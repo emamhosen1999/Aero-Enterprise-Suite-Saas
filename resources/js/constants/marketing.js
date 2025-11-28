@@ -227,10 +227,26 @@ export const resourceLibrary = [
 ];
 
 export const docQuickLinks = [
-   { summary: 'PFMEA workflows, supplier scorecards, and recall playbooks ready to deploy.'},
-  { label: 'API reference', href: '/docs/api' },
-  { label: 'Security center', href: '/docs/security' },
-  { label: 'Release notes', href: '/docs/releases' },
+  {
+    label: 'Implementation guides',
+    href: '/docs/implementation',
+    description: 'Blueprints for PFMEA workflows, supplier scorecards, and recall playbooks.',
+  },
+  {
+    label: 'API reference',
+    href: '/docs/api',
+    description: 'Endpoints, webhook events, and SDK samples kept current each release.',
+  },
+  {
+    label: 'Security center',
+    href: '/docs/security',
+    description: 'Certifications, data residency, and encryption deep dives.',
+  },
+  {
+    label: 'Release notes',
+    href: '/docs/releases',
+    description: 'Monthly drops covering features, fixes, and rollout guidance.',
+  },
 ];
 
 export const supportChannels = [

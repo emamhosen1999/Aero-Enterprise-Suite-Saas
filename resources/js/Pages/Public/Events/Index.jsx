@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import {
     Card,
@@ -16,17 +16,38 @@ import {
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import PublicLayout from '../../../Layouts/PublicLayout';
-
-// Helper function to get theme radius from CSS variable
-const getThemeRadius = () => {
-    const borderRadius = getComputedStyle(document.documentElement)
-        .getPropertyValue('--borderRadius')
-        .trim();
-    return borderRadius || 'md';
-};
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
 
 const PublicEventsIndex = ({ events }) => {
-    const [searchQuery, setSearchQuery] = React.useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const { themeSettings } = useTheme();
+    const isDarkMode = themeSettings?.mode === 'dark';
+
+    const palette = useMemo(() => ({
+        pageBg: isDarkMode ? 'bg-slate-950' : 'bg-gradient-to-br from-white via-slate-50 to-slate-100',
+        headerShell: isDarkMode ? 'bg-slate-900/70 border-white/10' : 'bg-white border-slate-200',
+        baseText: isDarkMode ? 'text-white' : 'text-slate-900',
+        mutedText: isDarkMode ? 'text-slate-300' : 'text-slate-600',
+        card: isDarkMode
+            ? 'bg-white/5 border border-white/10 backdrop-blur'
+            : 'bg-white border border-slate-200 shadow-sm',
+        inputWrapper: isDarkMode
+            ? 'bg-white/5 border border-white/10 backdrop-blur'
+            : 'bg-white border border-slate-200 shadow-sm',
+        emptyIcon: isDarkMode ? 'text-slate-500' : 'text-slate-400',
+    }), [isDarkMode]);
+
+    const radiusToken = useMemo(() => {
+        if (typeof document === 'undefined') {
+            return 'md';
+        }
+
+        const value = getComputedStyle(document.documentElement)
+            .getPropertyValue('--borderRadius')
+            .trim();
+
+        return value || 'md';
+    }, [themeSettings?.layout?.borderRadius, themeSettings?.mode]);
     
     const filteredEvents = events.data?.filter(event =>
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -36,14 +57,14 @@ const PublicEventsIndex = ({ events }) => {
     
     return (
         <PublicLayout>
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-background">
+        <div className={`min-h-screen ${palette.pageBg} ${palette.baseText}`}>
             <Head title="Events" />
             
             {/* Header */}
-            <div className="bg-white shadow-sm border-b">
+            <div className={`shadow-sm border-b ${palette.headerShell}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Upcoming Events</h1>
-                    <p className="mt-2 text-gray-600">Browse and register for our exciting events</p>
+                    <h1 className="text-3xl font-bold">Upcoming Events</h1>
+                    <p className={`mt-2 ${palette.mutedText}`}>Browse and register for our exciting events</p>
                 </div>
             </div>
             
@@ -55,10 +76,15 @@ const PublicEventsIndex = ({ events }) => {
                         placeholder="Search events..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        startContent={<MagnifyingGlassIcon className="w-5 h-5" />}
+                        startContent={<MagnifyingGlassIcon className="w-5 h-5 text-current" />}
                         size="lg"
-                        className="max-w-2xl"
-                        radius={getThemeRadius()}
+                        radius={radiusToken}
+                        classNames={{
+                            base: 'max-w-2xl',
+                            inputWrapper: palette.inputWrapper,
+                            input: palette.baseText,
+                            innerWrapper: 'gap-2',
+                        }}
                     />
                 </div>
                 
@@ -68,10 +94,10 @@ const PublicEventsIndex = ({ events }) => {
                         {filteredEvents.map((event) => (
                             <Card 
                                 key={event.id} 
-                                className="hover:shadow-xl transition-shadow cursor-pointer"
+                                className={`${palette.card} hover:shadow-xl transition-shadow cursor-pointer`}
                                 isPressable
                                 onPress={() => router.get(route('public.events.show', event.slug))}
-                                radius={getThemeRadius()}
+                                radius={radiusToken}
                             >
                                 {event.banner_image && (
                                     <CardHeader className="p-0">
@@ -86,23 +112,23 @@ const PublicEventsIndex = ({ events }) => {
                                     <div className="space-y-3">
                                         <div>
                                             <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-                                            <p className="text-sm text-default-600 line-clamp-2">
+                                            <p className={`text-sm ${palette.mutedText} line-clamp-2`}>
                                                 {event.description}
                                             </p>
                                         </div>
                                         
                                         <div className="space-y-2 text-sm">
-                                            <div className="flex items-center gap-2 text-default-600">
+                                            <div className={`flex items-center gap-2 ${palette.mutedText}`}>
                                                 <CalendarIcon className="w-4 h-4" />
                                                 <span>{dayjs(event.event_date).format('MMM DD, YYYY')} at {event.event_time}</span>
                                             </div>
                                             
-                                            <div className="flex items-center gap-2 text-default-600">
+                                            <div className={`flex items-center gap-2 ${palette.mutedText}`}>
                                                 <MapPinIcon className="w-4 h-4" />
                                                 <span>{event.venue}</span>
                                             </div>
                                             
-                                            <div className="flex items-center gap-2 text-default-600">
+                                            <div className={`flex items-center gap-2 ${palette.mutedText}`}>
                                                 <UserGroupIcon className="w-4 h-4" />
                                                 <span>
                                                     {event.approved_registrations_count || 0} registered
@@ -125,7 +151,7 @@ const PublicEventsIndex = ({ events }) => {
                                                 size="sm"
                                                 color="primary"
                                                 onPress={() => router.get(route('public.events.show', event.slug))}
-                                                radius={getThemeRadius()}
+                                                radius={radiusToken}
                                             >
                                                 View Details
                                             </Button>
@@ -137,9 +163,9 @@ const PublicEventsIndex = ({ events }) => {
                     </div>
                 ) : (
                     <div className="text-center py-16">
-                        <CalendarIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No events found</h3>
-                        <p className="text-gray-500">Check back later for upcoming events</p>
+                        <CalendarIcon className={`w-16 h-16 mx-auto mb-4 ${palette.emptyIcon}`} />
+                        <h3 className="text-xl font-semibold mb-2">No events found</h3>
+                        <p className={palette.mutedText}>Check back later for upcoming events</p>
                     </div>
                 )}
             </div>

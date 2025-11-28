@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import {
   Button,
@@ -17,6 +17,8 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/react';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { supportChannels, slaMatrix, demoSteps } from '../../constants/marketing';
 import PublicLayout from '../../Layouts/PublicLayout';
 
 const tierData = [
@@ -48,7 +50,7 @@ const addons = [
   { name: 'Dedicated Compliance Pods', price: 'Custom', description: 'ISO, HIPAA, SOC2 readiness operations.' },
 ];
 
-const comparison = [
+const featureComparison = [
   { feature: 'Modules included', launch: '2', scale: 'Unlimited', enterprise: 'Unlimited + custom' },
   { feature: 'Automation builder', launch: 'Playbooks', scale: 'Visual builder', enterprise: 'Advanced + SDK' },
   { feature: 'AI assistants', launch: 'Insights digest', scale: 'Risk + forecast', enterprise: 'Predictive + custom models' },
@@ -78,22 +80,53 @@ const faqs = [
 export default function Pricing() {
   const [annual, setAnnual] = useState(true);
   const multiplier = annual ? 10 : 12; // 2 months free yearly
+  const { themeSettings } = useTheme();
+  const isDarkMode = themeSettings?.mode === 'dark';
+
+  const palette = useMemo(() => ({
+    baseText: isDarkMode ? 'text-white' : 'text-slate-900',
+    mutedText: isDarkMode ? 'text-slate-300' : 'text-slate-600',
+    card: isDarkMode
+      ? 'bg-white/5 border border-white/10 backdrop-blur-xl'
+      : 'bg-white border border-slate-200 shadow-sm',
+    highlightCard: isDarkMode
+      ? 'bg-gradient-to-br from-blue-600/25 via-purple-600/20 to-pink-500/10 border border-white/30 shadow-xl'
+      : 'bg-gradient-to-br from-blue-100 via-purple-100 to-pink-50 border border-slate-200 shadow-lg',
+    tint: isDarkMode ? 'bg-white/5' : 'bg-slate-50',
+    badge: isDarkMode
+      ? 'bg-white/10 border border-white/20 text-white'
+      : 'bg-white border border-slate-200 text-slate-700',
+    divider: isDarkMode ? 'bg-white/10' : 'bg-slate-200',
+  }), [isDarkMode]);
 
   return (
     <PublicLayout>
-      <div className="text-white">
-      <section className="max-w-6xl mx-auto px-6 pt-28 pb-16 text-center">
-        <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-xs">Pricing</Chip>
-        <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-          Transparent pricing that scales with every module.
-        </h1>
-        <p className="text-slate-300 max-w-3xl mx-auto mb-10">
-          Activate only the modules you need. Switch plans anytime. Annual contracts include co-building credits and discounted per-module rates.
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          <span className={`text-sm ${annual ? 'text-white' : 'text-slate-400'}`}>Annual (2 months free)</span>
-          <Switch isSelected={!annual} onValueChange={() => setAnnual(!annual)} color="secondary" />
-          <span className={`text-sm ${!annual ? 'text-white' : 'text-slate-400'}`}>Monthly</span>
+      <div className={`relative ${palette.baseText}`}>
+      <section className="relative max-w-6xl mx-auto px-6 pt-28 pb-16 text-center overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div
+            className={`absolute inset-0 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-teal-500/10'
+                : 'bg-gradient-to-br from-sky-100/60 via-indigo-100/40 to-teal-100/50'
+            }`}
+          />
+          <div className="absolute -left-24 top-10 w-72 h-72 bg-emerald-400/20 blur-[140px]" />
+          <div className="absolute -right-32 bottom-8 w-72 h-72 bg-blue-500/20 blur-[160px]" />
+        </div>
+        <div className="relative">
+          <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-xs">Pricing</Chip>
+          <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
+            Transparent pricing that scales with every module.
+          </h1>
+          <p className={`max-w-3xl mx-auto mb-10 text-lg ${palette.mutedText}`}>
+            Activate only the modules you need. Switch plans anytime. Annual contracts include co-building credits and discounted per-module rates.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <span className={`text-sm ${annual ? 'font-semibold' : palette.mutedText}`}>Annual (2 months free)</span>
+            <Switch isSelected={!annual} onValueChange={() => setAnnual(!annual)} color="secondary" aria-label="Toggle billing cadence" />
+            <span className={`text-sm ${!annual ? 'font-semibold' : palette.mutedText}`}>Monthly</span>
+          </div>
         </div>
       </section>
 
@@ -102,13 +135,13 @@ export default function Pricing() {
           {tierData.map((tier) => (
             <Card
               key={tier.name}
-              className={`border ${tier.highlighted ? 'bg-gradient-to-br from-blue-600/30 via-purple-600/20 to-pink-500/20 border-white/30 scale-[1.02]' : 'bg-white/5 border-white/10'}`}
+              className={tier.highlighted ? palette.highlightCard : palette.card}
             >
               <CardHeader className="flex flex-col items-start gap-1">
-                <p className="text-sm text-slate-400">{tier.highlighted ? 'Most popular' : 'Plan'}</p>
+                <p className={`text-sm ${palette.mutedText}`}>{tier.highlighted ? 'Most popular' : 'Plan'}</p>
                 <h3 className="text-2xl font-semibold">{tier.name}</h3>
               </CardHeader>
-              <Divider className="bg-white/10" />
+              <Divider className={palette.divider} />
               <CardBody className="space-y-4">
                 <div>
                   {tier.custom ? (
@@ -116,23 +149,25 @@ export default function Pricing() {
                   ) : (
                     <>
                       <span className="text-5xl font-bold">${tier.price}</span>
-                      <span className="text-slate-400 text-base ml-2">/user/mo</span>
-                      <p className="text-xs text-slate-500">Billed ${(tier.price * multiplier).toFixed(0)}/user/year</p>
+                      <span className={`text-base ml-2 ${palette.mutedText}`}>/user/mo</span>
+                      <p className={`text-xs ${palette.mutedText}`}>Billed ${(tier.price * multiplier).toFixed(0)}/user/year</p>
                     </>
                   )}
                 </div>
-                <p className="text-slate-300">{tier.description}</p>
+                <p className={palette.mutedText}>{tier.description}</p>
                 <ul className="space-y-2 text-sm text-left">
                   {tier.includes.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-slate-200">
+                    <li key={item} className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Button fullWidth className="mt-4" variant={tier.highlighted ? 'solid' : 'bordered'} color="secondary">
-                  {tier.custom ? 'Talk to Sales' : 'Start Trial'}
-                </Button>
+                <Link href={tier.custom ? '/contact' : '/register'}>
+                  <Button fullWidth className="mt-2" variant={tier.highlighted ? 'solid' : 'bordered'} color="secondary">
+                    {tier.custom ? 'Talk to Sales' : 'Start Trial'}
+                  </Button>
+                </Link>
               </CardBody>
             </Card>
           ))}
@@ -159,9 +194,9 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="px-6 pb-16 bg-slate-900/40">
+      <section className={`px-6 pb-16 ${palette.tint}`}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-10">Compare plans</h2>
+          <h2 className="text-3xl font-semibold text-center mb-10">Feature comparison</h2>
           <div className="overflow-x-auto">
             <Table aria-label="Plan comparison" className="min-w-[800px]">
               <TableHeader>
@@ -171,9 +206,59 @@ export default function Pricing() {
                 <TableColumn>Enterprise</TableColumn>
               </TableHeader>
               <TableBody>
-                {comparison.map((row) => (
+                {featureComparison.map((row) => (
                   <TableRow key={row.feature}>
                     <TableCell>{row.feature}</TableCell>
+                    <TableCell>{row.launch}</TableCell>
+                    <TableCell>{row.scale}</TableCell>
+                    <TableCell>{row.enterprise}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 pb-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <Chip color="secondary" variant="flat" className="mb-3">Support fabric</Chip>
+            <h2 className="text-3xl font-semibold">Channels backed by clear response times.</h2>
+            <p className={`mt-2 ${palette.mutedText}`}>Every plan ships with a dedicated escalation path. Enterprise adds private pods and Slack Connect.</p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {supportChannels.map((channel) => (
+              <Card key={channel.label} className={`${palette.card} h-full`}>
+                <CardBody className="space-y-2">
+                  <h3 className="text-xl font-semibold">{channel.label}</h3>
+                  <p className={palette.mutedText}>{channel.description}</p>
+                  <Chip color="success" variant="flat" size="sm" className="w-fit">{channel.response}</Chip>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`px-6 pb-16 ${palette.tint}`}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <Chip color="primary" variant="flat" className="mb-3">SLA Matrix</Chip>
+            <h2 className="text-3xl font-semibold">Response commitments per plan.</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <Table aria-label="SLA matrix" className="min-w-[700px]">
+              <TableHeader>
+                <TableColumn>Severity</TableColumn>
+                <TableColumn>Launch</TableColumn>
+                <TableColumn>Scale</TableColumn>
+                <TableColumn>Enterprise</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {slaMatrix.map((row) => (
+                  <TableRow key={row.severity}>
+                    <TableCell>{row.severity}</TableCell>
                     <TableCell>{row.launch}</TableCell>
                     <TableCell>{row.scale}</TableCell>
                     <TableCell>{row.enterprise}</TableCell>
@@ -205,19 +290,27 @@ export default function Pricing() {
       </section>
 
       <section className="px-6 pb-20">
-        <Card className="max-w-5xl mx-auto text-center bg-gradient-to-r from-emerald-500/30 via-teal-500/20 to-blue-500/20 border border-white/20">
-          <CardBody className="space-y-5">
+        <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
+          <CardBody className="space-y-6">
             <Chip variant="flat" color="success">Next Steps</Chip>
             <h3 className="text-4xl font-semibold">Bundle modules, launch faster.</h3>
-            <p className="text-slate-100">
+            <p className={palette.mutedText}>
               Our pricing team will tailor a package across HR, Projects, Compliance, SCM, and CRM with the right SLAs and integrations.
             </p>
+            <div className="grid gap-4 md:grid-cols-3 text-left">
+              {demoSteps.map((step) => (
+                <div key={step.step} className={`rounded-2xl px-4 py-3 text-sm ${palette.badge}`}>
+                  <p className="text-xs uppercase tracking-widest opacity-80">{step.step}</p>
+                  <p className="font-semibold mt-1">{step.description}</p>
+                </div>
+              ))}
+            </div>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/demo">
                 <Button size="lg" className="bg-white text-slate-900 font-semibold px-10">Book a Demo</Button>
               </Link>
               <Link href="/contact">
-                <Button size="lg" variant="bordered" className="border-white/40 text-white px-10">Talk to Sales</Button>
+                <Button size="lg" variant="bordered" className="border-current px-10">Talk to Sales</Button>
               </Link>
             </div>
           </CardBody>

@@ -14,10 +14,26 @@ import {
   docQuickLinks,
 } from '../../constants/marketing';
 import PublicLayout from '../../Layouts/PublicLayout';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
 
 const Resources = () => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
+  const { themeSettings } = useTheme();
+  const isDarkMode = themeSettings?.mode === 'dark';
+
+  const palette = useMemo(() => ({
+    baseText: isDarkMode ? 'text-white' : 'text-slate-900',
+    mutedText: isDarkMode ? 'text-slate-300' : 'text-slate-600',
+    card: isDarkMode
+      ? 'bg-white/5 border border-white/10 backdrop-blur'
+      : 'bg-white border border-slate-200 shadow-sm',
+    tint: isDarkMode ? 'bg-slate-900/30' : 'bg-slate-50',
+    badge: isDarkMode ? 'border-white/20 text-white' : 'border-slate-300 text-slate-600',
+    input: isDarkMode
+      ? { wrapper: 'bg-white/5 border border-white/10', input: 'text-white placeholder:text-slate-400' }
+      : { wrapper: 'bg-white border border-slate-200', input: 'text-slate-900 placeholder:text-slate-500' },
+  }), [isDarkMode]);
 
   const results = useMemo(() => {
     return resourceLibrary.filter((item) => {
@@ -30,13 +46,13 @@ const Resources = () => {
 
   return (
     <PublicLayout>
-      <div className="text-white">
+      <div className={palette.baseText}>
       <section className="max-w-5xl mx-auto px-6 pt-28 pb-12 text-center">
         <Chip color="success" variant="flat" className="uppercase tracking-[0.35em] text-xs">Resources</Chip>
         <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
           Playbooks, case studies, and product updates in one HQ.
         </h1>
-        <p className="text-slate-300 mb-8">
+        <p className={`${palette.mutedText} mb-8`}>
           Stay ahead of enterprise operations with curated content from Aero strategists, customers, and product teams.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -45,10 +61,9 @@ const Resources = () => {
             placeholder="Search by topic or industry"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="bg-white/5"
-            classNames={{ inputWrapper: 'bg-white/5 border border-white/10', input: 'text-white' }}
+            classNames={palette.input}
           />
-          <Button variant="bordered" className="border-white/30 text-white w-full sm:w-auto">
+          <Button variant="bordered" className={`w-full sm:w-auto ${palette.badge}`}>
             Subscribe to newsletter
           </Button>
         </div>
@@ -73,19 +88,19 @@ const Resources = () => {
       <section className="px-6 pb-20">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
           {results.map((resource) => (
-            <Card key={resource.title} className="bg-white/5 border border-white/10">
+            <Card key={resource.title} className={palette.card}>
               <CardBody className="space-y-4">
-                <div className="flex items-center justify-between text-sm text-slate-400">
+                <div className={`flex items-center justify-between text-sm ${palette.mutedText}`}>
                   <Chip size="sm" color="secondary" variant="flat">{resource.type}</Chip>
                   <span>{resource.readingTime}</span>
                 </div>
                 <div>
                   <h3 className="text-2xl font-semibold">{resource.title}</h3>
-                  <p className="text-slate-300 mt-2">{resource.summary}</p>
+                  <p className={`${palette.mutedText} mt-2`}>{resource.summary}</p>
                 </div>
-                <div className="flex items-center justify-between text-sm text-slate-400">
+                <div className={`flex items-center justify-between text-sm ${palette.mutedText}`}>
                   <span>{resource.tag}</span>
-                  <Button variant="light" className="text-white px-0">Read →</Button>
+                  <Button variant="light" className="px-0 text-current">Read →</Button>
                 </div>
               </CardBody>
             </Card>
@@ -93,21 +108,24 @@ const Resources = () => {
         </div>
       </section>
 
-      <section className="px-6 pb-20 bg-slate-900/40">
+      <section className={`px-6 pb-20 ${palette.tint}`}>
         <div className="max-w-5xl mx-auto text-center mb-10">
           <Chip color="primary" variant="flat">Documentation</Chip>
           <h2 className="text-3xl font-semibold mt-4">Build with confidence.</h2>
-          <p className="text-slate-300 mt-3">Quick access to integration guides, API references, and security resources.</p>
+          <p className={`${palette.mutedText} mt-3`}>Quick access to integration guides, API references, and security resources.</p>
         </div>
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-4">
           {docQuickLinks.map((link) => (
-            <Card key={link.label} className="bg-white/5 border border-white/10">
-              <CardBody className="flex items-center justify-between">
+            <Card key={link.label} className={palette.card}>
+              <CardBody className="flex flex-col gap-3">
                 <div>
                   <p className="text-lg font-semibold">{link.label}</p>
-                  <p className="text-sm text-slate-400">Updated weekly</p>
+                  <p className={`text-sm ${palette.mutedText}`}>{link.description}</p>
                 </div>
-                <Link href={link.href} className="text-slate-200 hover:text-white">Open →</Link>
+                <div className="flex items-center justify-between text-sm">
+                  <span className={palette.mutedText}>Updated weekly</span>
+                  <Link href={link.href} className="font-medium text-primary-400 hover:underline">Open →</Link>
+                </div>
               </CardBody>
             </Card>
           ))}
@@ -115,16 +133,30 @@ const Resources = () => {
       </section>
 
       <section className="px-6 pb-24">
-        <Card className="max-w-4xl mx-auto text-center bg-gradient-to-r from-blue-500/30 via-purple-500/20 to-cyan-500/20 border border-white/20">
+        <Card className={`max-w-4xl mx-auto text-center ${
+          isDarkMode
+            ? 'bg-gradient-to-r from-blue-500/30 via-purple-500/20 to-cyan-500/20 border border-white/20'
+            : 'bg-gradient-to-r from-blue-100 via-purple-100 to-cyan-100 border border-slate-200 shadow-lg'
+        }`}>
           <CardBody className="space-y-4">
             <Chip color="success" variant="flat">Newsletter</Chip>
             <h3 className="text-3xl font-semibold">Monthly field reports in your inbox.</h3>
-            <p className="text-slate-100">
+            <p className={palette.mutedText}>
               Product launches, enterprise playbooks, and customer deep dives delivered once a month. No spam.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Input aria-label="Email" placeholder="you@company.com" classNames={{ inputWrapper: 'bg-white', input: 'text-slate-900' }} />
-              <Button className="bg-white text-slate-900 font-semibold">Subscribe</Button>
+              <Input
+                aria-label="Email"
+                placeholder="you@company.com"
+                classNames={
+                  isDarkMode
+                    ? { inputWrapper: 'bg-white/90', input: 'text-slate-900' }
+                    : { inputWrapper: 'bg-white', input: 'text-slate-900' }
+                }
+              />
+              <Button className={isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold'}>
+                Subscribe
+              </Button>
             </div>
           </CardBody>
         </Card>
