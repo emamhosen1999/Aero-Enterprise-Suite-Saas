@@ -36,7 +36,11 @@ use Illuminate\Support\Facades\Route;
 // Include authentication routes
 require __DIR__.'/auth.php';
 
-Route::redirect('/', '/dashboard');
+use Inertia\Inertia;
+
+Route::get('/', function () {
+    return Inertia::render('Public/Landing');
+});
 
 Route::get('/session-check', function () {
     return response()->json(['authenticated' => auth()->check()]);

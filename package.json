@@ -1,7 +1,7 @@
 {
      "private": true,
      "type": "module",
-     "version": "2.2.0",
+     "version": "1.2.0",
      "homepage": "http://aeos365.com",
      "scripts": {
           "dev": "vite",

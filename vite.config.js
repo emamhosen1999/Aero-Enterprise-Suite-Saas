@@ -3,6 +3,11 @@ import laravel from 'laravel-vite-plugin';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import fs from 'fs';
+
+const host = 'aero-enterprise-suite-saas.com'; 
+const certPath = 'C:/laragon/etc/ssl/laragon.crt'; 
+const keyPath = 'C:/laragon/etc/ssl/laragon.key';
 
 export default defineConfig({
     plugins: [
@@ -19,6 +24,18 @@ export default defineConfig({
     resolve: {
         alias: {
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
+        },
+    },
+    server: { 
+        host, 
+        hmr: { host },
+        https: {
+            key: fs.readFileSync(keyPath),
+            cert: fs.readFileSync(certPath),
+        },
+        cors: {
+            origin: 'https://aero-enterprise-suite-saas.com',
+            credentials: true,
         },
     },
 });
