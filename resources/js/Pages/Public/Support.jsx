@@ -43,10 +43,10 @@ const Support = () => {
       <section className="max-w-5xl mx-auto px-6 pt-28 pb-16 text-center">
         <Chip color="primary" variant="flat" className="uppercase tracking-[0.3em] text-xs">Support</Chip>
         <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-          Human-first support around the clock.
+          Support staffed by the engineers who ship the product.
         </h1>
         <p className={`${palette.mutedText} max-w-3xl mx-auto`}>
-          24/7 coverage with operational experts, dedicated Slack channels, and transparent SLAs. We co-own your outcomes.
+          Coverage runs 24/7 with direct Slack channels, phone escalations, and public SLAs, so you always know who owns an issue and when it will be resolved.
         </p>
         <div className="flex flex-wrap justify-center gap-4 mt-8">
           <Link href="/contact">

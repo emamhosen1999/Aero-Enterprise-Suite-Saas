@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\IdentifyDomainContext;
 use App\Models\User;
 use App\Services\DeviceAuthService;
 use App\Services\ModernAuthenticationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +48,7 @@ class LoginController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'email' => 'required|string|email',
@@ -214,7 +216,9 @@ class LoginController extends Controller
             $request
         );
 
-        return redirect()->intended(route('dashboard'));
+        $redirectTo = $this->determineRedirectPath($request, $user);
+
+        return redirect()->intended($redirectTo);
     }
 
     /**
@@ -262,6 +266,22 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect()->route('login');
+    }
+
+    /**
+     * Determine where to redirect the user after authentication.
+     */
+    protected function determineRedirectPath(Request $request, User $user): string
+    {
+        $context = IdentifyDomainContext::getContext($request);
+
+        return match ($context) {
+            IdentifyDomainContext::CONTEXT_ADMIN => route('admin.dashboard'),
+            IdentifyDomainContext::CONTEXT_TENANT => route('dashboard'),
+            default => $user->hasRole('super-admin')
+                ? route('admin.dashboard')
+                : route('platform.billing.index'),
+        };
     }
 }

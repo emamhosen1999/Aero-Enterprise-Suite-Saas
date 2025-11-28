@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Platform\RegistrationController;
+use App\Http\Controllers\Platform\RegistrationPageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -76,36 +78,17 @@ Route::middleware(['web'])->group(function () {
 
     // Registration Flow
     Route::prefix('register')->name('platform.register.')->group(function () {
-        // Step 1: Choose account type (company/individual)
-        Route::get('/', function () {
-            return Inertia::render('Public/Register/AccountType');
-        })->name('index');
+        Route::get('/', [RegistrationPageController::class, 'accountType'])->name('index');
+        Route::get('/details', [RegistrationPageController::class, 'details'])->name('details');
+        Route::get('/plan', [RegistrationPageController::class, 'plan'])->name('plan');
+        Route::get('/payment', [RegistrationPageController::class, 'payment'])->name('payment');
+        Route::get('/success', [RegistrationPageController::class, 'success'])->name('success');
 
-        // Step 2: Company/Individual information
-        Route::get('/details', function () {
-            return Inertia::render('Public/Register/Details');
-        })->name('details');
-
-        // Step 3: Select modules and plan
-        Route::get('/plan', function () {
-            return Inertia::render('Public/Register/SelectPlan');
-        })->name('plan');
-
-        // Step 4: Payment (or start trial)
-        Route::get('/payment', function () {
-            return Inertia::render('Public/Register/Payment');
-        })->name('payment');
-
-        // Step 5: Success/Confirmation
-        Route::get('/success', function () {
-            return Inertia::render('Public/Register/Success');
-        })->name('success');
+        Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');
+        Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');
+        Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
+        Route::post('/trial', [RegistrationController::class, 'activateTrial'])->name('trial.activate');
     });
-
-    // Subscription Login (for existing tenants to manage billing from central platform)
-    Route::get('/login', function () {
-        return Inertia::render('Public/Login');
-    })->name('platform.login');
 
     // Tenant Billing Portal (authenticated)
     Route::middleware(['auth'])->prefix('billing')->name('platform.billing.')->group(function () {

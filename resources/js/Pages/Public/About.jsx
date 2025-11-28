@@ -53,10 +53,10 @@ const About = () => {
         <div>
           <Chip color="secondary" variant="flat" className="uppercase tracking-[0.35em] text-xs">About</Chip>
           <h1 className="text-4xl md:text-5xl font-bold leading-tight mt-5 mb-6">
-            We are building the operating system for resilient, transparent enterprises.
+            We built Aero after running operations teams that had to juggle too many systems.
           </h1>
           <p className={`text-lg ${palette.mutedText}`}>
-            Aero was born from field teams juggling spreadsheets, point tools, and opaque workflows. Today, our mission is to give every enterprise a living, breathing command center that aligns HR, Projects, Compliance, Supply Chain, and Finance in real time.
+            The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and point tools. Aero keeps that work in one place so decisions stay grounded in fresh data.
           </p>
           <div className="grid grid-cols-2 gap-4 mt-10">
             {heroStats.map((stat) => (

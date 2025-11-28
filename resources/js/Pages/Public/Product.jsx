@@ -109,10 +109,10 @@ export default function Product() {
           <div>
             <Chip color="success" variant="flat" className="mb-5">Modular Enterprise OS</Chip>
             <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
-              Bring every department into a single living operating system.
+              Keep HR, projects, compliance, and finance in sync.
             </h1>
             <p className={`text-lg mb-8 ${palette.mutedText}`}>
-              Aero stitches HR, Projects, Compliance, SCM, Finance, and Customer Ops into one luminous canvas. Activate modules on your schedule without re-platforming or code rewrites.
+              Each Aero module shares the same data model, so adding HR, project tracking, compliance, or supply chain happens without migrations, fragile integrations, or custom code.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/register">

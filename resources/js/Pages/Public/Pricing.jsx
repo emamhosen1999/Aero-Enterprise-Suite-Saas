@@ -117,10 +117,10 @@ export default function Pricing() {
         <div className="relative">
           <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-xs">Pricing</Chip>
           <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            Transparent pricing that scales with every module.
+            Pricing built around the modules you actually use.
           </h1>
           <p className={`max-w-3xl mx-auto mb-10 text-lg ${palette.mutedText}`}>
-            Activate only the modules you need. Switch plans anytime. Annual contracts include co-building credits and discounted per-module rates.
+            Pick monthly or annual billing, add modules when teams are ready, and pause what you are not using without renegotiating a contract.
           </p>
           <div className="flex items-center justify-center gap-3">
             <span className={`text-sm ${annual ? 'font-semibold' : palette.mutedText}`}>Annual (2 months free)</span>

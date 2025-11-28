@@ -60,20 +60,20 @@ const iconMap = {
 
 const problemStatements = [
   {
-    title: 'Distributed blind spots',
-    detail: 'HR, compliance, and field ops log updates in different tools so executives rely on recap decks, not live data.',
+    title: 'Uneven visibility',
+    detail: 'HR, compliance, and field ops update different trackers, so executives wait on recap decks instead of seeing live metrics.',
   },
   {
-    title: 'Manual compliance loops',
-    detail: 'ISO, OSHA, and internal audits still run on email threads. Evidence hunts consume entire weeks every quarter.',
+    title: 'Audit prep consumes weeks',
+    detail: 'Evidence gathering for ISO, OSHA, or internal audits still happens over email which stalls day-to-day work.',
   },
   {
-    title: 'Fragmented tooling',
-    detail: 'Seven overlapping systems equal seven renewals, access issues, and disconnected automations.',
+    title: 'Too many brittle tools',
+    detail: 'Overlapping systems create duplicate entry, expiring licenses, and automations that never quite match.',
   },
   {
-    title: 'Slow decision cycles',
-    detail: 'Finance, projects, and workforce insights take weeks to reconcile before leadership reviews.',
+    title: 'Slow handoffs',
+    detail: 'Finance, project, and workforce data needs manual reconciliation before decisions reach steering meetings.',
   },
 ];
 
@@ -152,10 +152,10 @@ export default function Landing() {
                 Multi-tenant ready
               </Chip>
               <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-                Orchestrate HR, projects, compliance, and partners from one canvas.
+                Run HR, projects, compliance, and partner work from the same system.
               </h1>
               <p className={`text-lg ${palette.mutedText} mb-8`}>
-                Aero replaces siloed tools with a modular workspace built on Laravel, Inertia, and HeroUI. Launch in weeks, automate the busywork, and give leadership a single live record.
+                Aero combines HR, project tracking, compliance, and supplier workflows on one Laravel + Inertia stack so every team works from the same data without stitching spreadsheets together.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/register">
@@ -175,7 +175,7 @@ export default function Landing() {
                 </a>
               </div>
               <div className={`mt-6 text-sm ${palette.mutedText}`}>
-                No credit card. Dedicated solution architects for every rollout.
+                No payment is required for the trial. A rollout architect works with your admins on day one.
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
                 {heroStats.map((stat) => (

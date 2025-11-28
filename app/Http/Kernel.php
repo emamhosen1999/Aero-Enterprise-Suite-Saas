@@ -32,6 +32,7 @@ class Kernel extends HttpKernel
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class, // Locale detection before Inertia
+            \App\Http\Middleware\IdentifyDomainContext::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\Cors::class,

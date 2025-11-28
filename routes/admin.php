@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -16,10 +17,8 @@ use Inertia\Inertia;
 */
 
 // Public admin routes (login, password reset, etc.)
-Route::middleware(['web'])->group(function () {
-    Route::get('/login', function () {
-        return Inertia::render('Admin/Auth/Login');
-    })->name('admin.login');
+Route::middleware(['web', 'guest'])->group(function () {
+    Route::get('/login', [LoginController::class, 'create'])->name('admin.login');
 });
 
 // Protected admin routes

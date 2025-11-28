@@ -50,10 +50,10 @@ const Resources = () => {
       <section className="max-w-5xl mx-auto px-6 pt-28 pb-12 text-center">
         <Chip color="success" variant="flat" className="uppercase tracking-[0.35em] text-xs">Resources</Chip>
         <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-          Playbooks, case studies, and product updates in one HQ.
+          Case studies, playbooks, and release notes maintained by the product team.
         </h1>
         <p className={`${palette.mutedText} mb-8`}>
-          Stay ahead of enterprise operations with curated content from Aero strategists, customers, and product teams.
+          Everything here comes from real deployments and customer reviews, so you are not wading through generic blog filler.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <Input

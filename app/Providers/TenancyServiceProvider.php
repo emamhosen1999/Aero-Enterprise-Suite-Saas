@@ -21,34 +21,36 @@ class TenancyServiceProvider extends ServiceProvider
 
     public function events()
     {
+        $tenantCreatedListeners = [];
+
+        if ($jobs = $this->tenantCreatedJobs()) {
+            $tenantCreatedListeners[] = JobPipeline::make($jobs)
+                ->send(function (Events\TenantCreated $event) {
+                    return $event->tenant;
+                })
+                ->shouldBeQueued(false);
+        }
+
+        $tenantDeletedListeners = [];
+
+        if ($jobs = $this->tenantDeletedJobs()) {
+            $tenantDeletedListeners[] = JobPipeline::make($jobs)
+                ->send(function (Events\TenantDeleted $event) {
+                    return $event->tenant;
+                })
+                ->shouldBeQueued(false);
+        }
+
         return [
             // Tenant events
             Events\CreatingTenant::class => [],
-            Events\TenantCreated::class => [
-                JobPipeline::make([
-                    Jobs\CreateDatabase::class,
-                    Jobs\MigrateDatabase::class,
-                    // Jobs\SeedDatabase::class,
-
-                    // Your own jobs to prepare the tenant.
-                    // Provision API keys, create S3 buckets, anything you want!
-
-                ])->send(function (Events\TenantCreated $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
-            ],
+            Events\TenantCreated::class => $tenantCreatedListeners,
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],
             Events\UpdatingTenant::class => [],
             Events\TenantUpdated::class => [],
             Events\DeletingTenant::class => [],
-            Events\TenantDeleted::class => [
-                JobPipeline::make([
-                    Jobs\DeleteDatabase::class,
-                ])->send(function (Events\TenantDeleted $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
-            ],
+            Events\TenantDeleted::class => $tenantDeletedListeners,
 
             // Domain events
             Events\CreatingDomain::class => [],
@@ -198,6 +200,30 @@ class TenancyServiceProvider extends ServiceProvider
 
         // Don't register tenant routes here to avoid conflicts with web.php
         // The routes/tenant.php file is included directly and protected by middleware
+    }
+
+    protected function tenantCreatedJobs(): array
+    {
+        if ($this->app->runningUnitTests()) {
+            return [];
+        }
+
+        return [
+            Jobs\CreateDatabase::class,
+            Jobs\MigrateDatabase::class,
+            // Jobs\SeedDatabase::class,
+        ];
+    }
+
+    protected function tenantDeletedJobs(): array
+    {
+        if ($this->app->runningUnitTests()) {
+            return [];
+        }
+
+        return [
+            Jobs\DeleteDatabase::class,
+        ];
     }
 
     /**

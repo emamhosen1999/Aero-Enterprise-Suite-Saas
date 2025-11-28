@@ -1,0 +1,103 @@
+import React, { useMemo } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
+import AuthCard from '@/Components/AuthCard.jsx';
+import PublicLayout from '@/Layouts/PublicLayout.jsx';
+import ProgressSteps from './components/ProgressSteps.jsx';
+
+const accountOptions = [
+  {
+    type: 'company',
+    headline: 'Company workspace',
+    copy: 'Best for founding teams, HR, PMOs, and compliance pods rolling out across multiple departments.',
+    bullets: ['Unlimited teammates', 'Module-level access controls', 'Centralized billing'],
+  },
+  {
+    type: 'individual',
+    headline: 'Solo or consultant',
+    copy: 'Perfect for fractional operators validating processes before inviting the wider org.',
+    bullets: ['Single-seat workspace', 'Upgrade anytime', 'Keep data isolated per client'],
+  },
+];
+
+export default function AccountType({ steps = [], currentStep, savedData = {}, trialDays = 14 }) {
+  const { data, setData, post, processing, errors } = useForm({
+    type: savedData?.account?.type ?? 'company',
+  });
+
+  const description = useMemo(
+    () => trialDays > 0
+      ? `Every workspace starts with a ${trialDays}-day sandbox. You will only add a card when you are ready to activate billing.`
+      : 'Pick the tenant type that reflects how you plan to collaborate.',
+    [trialDays]
+  );
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    post(route('platform.register.account-type.store'));
+  };
+
+  return (
+    <PublicLayout mainClassName="pt-28 pb-20">
+      <Head title="Create your workspace" />
+      <section className="max-w-5xl mx-auto px-6 space-y-8">
+        <div className="space-y-5 text-center">
+          <Chip color="secondary" variant="flat" className="uppercase tracking-[0.3em]">Step 1</Chip>
+          <h1 className="text-4xl md:text-5xl font-semibold text-white">Who is this workspace for?</h1>
+          <p className="text-white/70 max-w-3xl mx-auto">{description}</p>
+        </div>
+
+        <ProgressSteps steps={steps} currentStep={currentStep} />
+
+        <AuthCard className="bg-white/5">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              {accountOptions.map((option) => {
+                const isSelected = data.type === option.type;
+                return (
+                  <Card
+                    key={option.type}
+                    isPressable
+                    onPress={() => setData('type', option.type)}
+                    className={isSelected
+                      ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/10 border border-blue-400/50'
+                      : 'bg-white/5 border border-white/10'}
+                  >
+                    <CardHeader className="justify-between">
+                      <div>
+                        <p className="text-sm text-white/60">{option.type === 'company' ? 'Full suite' : 'Light mode'}</p>
+                        <h2 className="text-2xl font-semibold text-white">{option.headline}</h2>
+                      </div>
+                      {isSelected && (
+                        <Chip color="success" variant="flat" size="sm">Selected</Chip>
+                      )}
+                    </CardHeader>
+                    <CardBody className="text-white/80 space-y-3">
+                      <p>{option.copy}</p>
+                      <ul className="text-sm space-y-1 list-disc list-inside text-white/70">
+                        {option.bullets.map((bullet) => (
+                          <li key={bullet}>{bullet}</li>
+                        ))}
+                      </ul>
+                    </CardBody>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {errors.type && <p className="text-sm text-red-400">{errors.type}</p>}
+
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="text-sm text-white/60">
+                Need to onboard multiple subsidiaries? You can add them later from the admin console.
+              </p>
+              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600" type="submit" isLoading={processing}>
+                Continue to details
+              </Button>
+            </div>
+          </form>
+        </AuthCard>
+      </section>
+    </PublicLayout>
+  );
+}

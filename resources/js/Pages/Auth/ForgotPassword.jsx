@@ -7,7 +7,7 @@ import {
     CheckCircleIcon,
     InformationCircleIcon 
 } from '@heroicons/react/24/outline';
-import { Input, Button as HeroButton, Checkbox as HeroCheckbox } from '@heroui/react';
+import { Input, Button as HeroButton } from '@heroui/react';
 import AuthLayout from '@/Components/AuthLayout';
 import Button from '@/Components/Button';
 
@@ -17,6 +17,18 @@ export default function ForgotPassword({ status }) {
     });
 
     const [showSuccess, setShowSuccess] = useState(false);
+    const COLORS = {
+        successBg: 'color-mix(in srgb, var(--theme-success, #22C55E) 15%, transparent)',
+        successBorder: 'color-mix(in srgb, var(--theme-success, #22C55E) 35%, transparent)',
+        successText: 'color-mix(in srgb, var(--theme-success, #22C55E) 85%, transparent)',
+        textSecondary: 'color-mix(in srgb, var(--theme-foreground, #11181C) 65%, transparent)',
+        infoBg: 'color-mix(in srgb, var(--theme-primary, #006FEE) 12%, transparent)',
+        infoBorder: 'color-mix(in srgb, var(--theme-primary, #006FEE) 28%, transparent)',
+        infoText: 'color-mix(in srgb, var(--theme-primary, #006FEE) 80%, transparent)',
+        warningBg: 'color-mix(in srgb, #f59e0b 12%, transparent)',
+        warningBorder: 'color-mix(in srgb, #f59e0b 28%, transparent)',
+        supportText: 'color-mix(in srgb, var(--theme-foreground, #11181C) 60%, transparent)'
+    };
 
     useEffect(() => {
         if (status) {
@@ -43,8 +55,8 @@ export default function ForgotPassword({ status }) {
                 <motion.div
                     className="mb-6 p-4 rounded-xl border"
                     style={{
-                        background: 'rgba(34, 197, 94, 0.1)',
-                        borderColor: 'rgba(34, 197, 94, 0.3)',
+                        background: COLORS.successBg,
+                        borderColor: COLORS.successBorder,
                         backdropFilter: 'blur(10px)'
                     }}
                     initial={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -68,14 +80,16 @@ export default function ForgotPassword({ status }) {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 }}
                             >
-                                Reset link sent
-                            </motion.h3>
-                            <motion.p
-                                className="text-sm text-green-700 mt-1"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.4 }}
-                            >
+                                <span style={{ color: COLORS.successText }}>Reset link sent</span>
+                            <motion.h3
+                                    className="text-sm font-medium"
+                                    style={{ color: COLORS.successText }}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    Reset link sent
+                                </motion.h3>
                                 {status}
                             </motion.p>
                         </div>
@@ -144,8 +158,8 @@ export default function ForgotPassword({ status }) {
             <motion.div
                 className="mt-8 p-4 rounded-xl border"
                 style={{
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    borderColor: 'rgba(59, 130, 246, 0.2)',
+                    background: COLORS.infoBg,
+                    borderColor: COLORS.infoBorder,
                     backdropFilter: 'blur(10px)'
                 }}
                 initial={{ opacity: 0, y: 20 }}
@@ -163,7 +177,8 @@ export default function ForgotPassword({ status }) {
                     </motion.div>
                     <div className="ml-3">
                         <motion.h3
-                            className="text-sm font-medium text-blue-800"
+                            className="text-sm font-medium"
+                            style={{ color: COLORS.infoText }}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.6 }}
@@ -171,7 +186,8 @@ export default function ForgotPassword({ status }) {
                             Secure Reset Process
                         </motion.h3>
                         <motion.div 
-                            className="text-sm text-blue-700 mt-2 space-y-1"
+                            className="text-sm mt-2 space-y-1"
+                            style={{ color: COLORS.infoText }}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.7 }}
@@ -192,7 +208,7 @@ export default function ForgotPassword({ status }) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
             >
-                <p className="text-sm" style={{ color: theme.palette.text.secondary }}>
+                <p className="text-sm" style={{ color: COLORS.supportText }}>
                     Still having trouble?{' '}
                     <motion.span whileHover={{ scale: 1.05 }} className="inline-block">
                         <Link

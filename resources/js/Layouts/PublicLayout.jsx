@@ -109,7 +109,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
                 </Link>
               )
             ))}
-            <Link href="/login" className={`${palette.loginLink} ${palette.loginLinkHover} transition-colors`}>Login</Link>
+            <Link href={route('login')} className={`${palette.loginLink} ${palette.loginLinkHover} transition-colors`}>Login</Link>
             <Link href="/register">
               <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 font-semibold px-5">
                 Start Trial

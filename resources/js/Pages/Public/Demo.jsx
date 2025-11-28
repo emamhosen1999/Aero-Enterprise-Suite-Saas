@@ -37,10 +37,10 @@ const Demo = () => {
         <div>
           <Chip variant="flat" color="primary" className="uppercase tracking-[0.35em] text-xs">Demo</Chip>
           <h1 className="text-4xl md:text-5xl font-bold mt-5 mb-6">
-            Experience Aero orchestrating HR, projects, compliance, and supply chain live.
+            See your workflows running in Aero before you commit.
           </h1>
           <p className={palette.mutedText}>
-            Get a curated walkthrough for your operating model. Bring stakeholders, we’ll bring the automation blueprints.
+            We configure the demo with your modules, sample data, and approval chains so stakeholders can judge the fit in a single session.
           </p>
           <div className="grid grid-cols-3 gap-4 mt-10">
             {demoStats.map((stat) => (
