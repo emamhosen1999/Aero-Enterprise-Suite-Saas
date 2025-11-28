@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
+            \App\Http\Middleware\IdentifyDomainContext::class, // Identify domain context first
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\TrackSecurityActivity::class,
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_permission_sync' => \App\Http\Middleware\EnsureRolePermissionSync::class,
             'track_security' => \App\Http\Middleware\TrackSecurityActivity::class,
             'session_expiry' => \App\Http\Middleware\CheckSessionExpiry::class, // Register alias
+            'identify_domain' => \App\Http\Middleware\IdentifyDomainContext::class, // Domain context alias
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

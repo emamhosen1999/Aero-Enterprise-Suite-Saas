@@ -10,7 +10,7 @@ import {
     XCircleIcon,
     ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
-import GlassCard from '@/Components/GlassCard.jsx';
+import { Card } from "@heroui/react";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 
@@ -120,7 +120,7 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    <GlassCard>
+                    <Card>
                         <PageHeader
                             title="Time-off Management"
                             subtitle="Comprehensive leave and holiday management system"
@@ -187,7 +187,7 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
                                 </div>
                             </div>
                         </PageHeader>
-                    </GlassCard>
+                    </Card>
                 </motion.div>
             </div>
         </>

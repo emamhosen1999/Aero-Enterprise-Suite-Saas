@@ -23,7 +23,6 @@ use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileImageController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Settings\AttendanceSettingController;
 use App\Http\Controllers\Settings\CompanySettingController;
@@ -38,9 +37,8 @@ require __DIR__.'/auth.php';
 
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Public/Landing');
-});
+// Note: The landing page route '/' is defined in routes/platform.php
+// This ensures it's loaded with the proper domain context middleware
 
 Route::get('/session-check', function () {
     return response()->json(['authenticated' => auth()->check()]);
@@ -443,13 +441,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/get-latest-timestamp', [TaskController::class, 'getLatestTimestamp'])->name('getLatestTimestamp');
     Route::get('/tasks/daily-summary-json', [DailyWorkSummaryController::class, 'dailySummary'])->name('dailySummaryJSON');
 
-    Route::get('/reports', [ReportController::class, 'showReports'])->name('showReports');
-    Route::get('/reports-json', [ReportController::class, 'allReports'])->name('allReports');
-    Route::post('/reports/add', [ReportController::class, 'addReport'])->name('addReport');
-    Route::post('/reports/delete', [ReportController::class, 'deleteReport'])->name('deleteReport');
-    Route::post('/reports/update', [ReportController::class, 'updateReport'])->name('updateReport');
-    Route::post('/tasks/attach-report', [TaskController::class, 'attachReport'])->name('attachReport');
-    Route::post('/tasks/detach-report', [TaskController::class, 'detachReport'])->name('detachReport');
 });
 
 // Enhanced Role Management Routes (with proper permission-based access control)

@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from '@inertiajs/react';
-import { Button } from '@heroui/react';
+import {
+  Button,
+  Card,
+  CardBody,
+  Chip,
+  Avatar,
+  Divider,
+} from '@heroui/react';
+import { motion } from 'framer-motion';
+import PublicLayout from '../../Layouts/PublicLayout';
 
 // Icons as inline SVGs for better presentation
 const HRIcon = () => (
@@ -54,266 +63,343 @@ const modules = [
   { name: 'CRM & Helpdesk', description: 'Customer relationships, tickets, and support management', icon: CRMIcon, color: 'from-indigo-500 to-violet-500' },
 ];
 
-const features = [
-  'Multi-Tenant Architecture',
-  'Database Per Tenant Security',
-  'Role-Based Access Control',
-  'Real-Time Analytics',
-  'API Integrations',
-  'Mobile Responsive',
-  '24/7 Support',
-  'Regular Updates',
+const problemStatements = [
+  { title: 'Siloed Departments', detail: 'Data is trapped across HR, Finance, and Projects causing blind spots and slow decisions.' },
+  { title: 'Manual Compliance', detail: 'Audits, policies, and ISO/OHS paperwork drain teams every quarter.' },
+  { title: 'Fragmented Tools', detail: 'Teams juggle 7+ disconnected apps with overlapping licenses and no shared source of truth.' },
+  { title: 'Delayed Insights', detail: 'Leadership waits weeks for performance dashboards and financial KPIs.' },
+];
+
+const howItWorks = [
+  { step: '01', title: 'Discover & Configure', detail: 'Select modules, map departments, and tailor workflows in minutes.' },
+  { step: '02', title: 'Invite Teams', detail: 'Bulk onboard employees, clients, and partners with SSO and role templates.' },
+  { step: '03', title: 'Automate & Integrate', detail: 'Connect Slack, SAP, QuickBooks, and 20+ services to orchestrate data flows.' },
+  { step: '04', title: 'Monitor & Optimize', detail: 'Interactive boards, AI nudges, and predictive analytics keep execution on-track.' },
+];
+
+const benefits = [
+  { stat: '42%', label: 'Faster project delivery', detail: 'Automated approvals and real-time dependencies reduce waiting loops.' },
+  { stat: '63%', label: 'Manual tasks eliminated', detail: 'Workflows replace spreadsheets, emails, and redundant tools.' },
+  { stat: '3x', label: 'Leadership visibility', detail: 'Exec dashboards merge finance, people, and operations in one glass pane.' },
+];
+
+const integrations = ['Slack', 'Teams', 'SAP', 'QuickBooks', 'Salesforce', 'Oracle', 'Jira', 'HubSpot'];
+
+const testimonials = [
+  {
+    company: 'Velocity Build Co.',
+    quote: 'Aero unified our HQ and 18 sites. We cut reporting cycles from 10 days to 3 hours.',
+    person: 'Anika Rahman',
+    role: 'COO',
+  },
+  {
+    company: 'Nimbus Hospitals',
+    quote: 'Clinical, HR, and compliance teams finally run on the same playbook.',
+    person: 'Dr. Omar Chowdhury',
+    role: 'Group Director',
+  },
+  {
+    company: 'Atlas Logistics',
+    quote: 'The modular pricing let us scale region by region with zero downtime.',
+    person: 'Liam Carter',
+    role: 'VP Operations',
+  },
 ];
 
 const pricingPlans = [
-  { name: 'Monthly', price: '$20', period: '/module/month', description: 'Flexible month-to-month billing', highlight: false },
-  { name: 'Yearly', price: '$200', period: '/module/year', description: 'Save 17% with annual billing', highlight: true },
+  { name: 'Launch', price: 'Custom', period: '', description: 'Ideal for pilots and rapid PoCs. Includes 2 modules + onboarding squad.', highlight: false },
+  { name: 'Scale', price: '$20', period: '/module/month', description: 'Core suite with automation, analytics, and premium support.', highlight: true },
+  { name: 'Enterprise', price: 'Let’s Talk', period: '', description: 'Global rollouts, dedicated CSM, private cloud, and custom SLAs.', highlight: false },
 ];
 
 export default function Landing() {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const anchorNavLinks = [
+    { type: 'anchor', href: '#modules', label: 'Modules' },
+    { type: 'anchor', href: '#pricing', label: 'Plans' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-x-hidden">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute -bottom-40 right-1/3 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-500" />
-      </div>
+    <PublicLayout extraNavLinks={anchorNavLinks} mainClassName="pt-0">
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(99,102,241,0.5) 1px, transparent 0)', backgroundSize: '80px 80px' }} />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-cyan-500/10" />
+        </div>
 
-      {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-slate-900/95 backdrop-blur-xl shadow-2xl' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">
-              A
+        {/* Hero Section */}
+        <section id="hero" className="relative pt-32 pb-32 px-6">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <Chip color="success" variant="shadow" className="mb-6 uppercase tracking-[0.3em] text-xs bg-emerald-500/20 border border-emerald-400/40">14-Day Trial · Database per tenant</Chip>
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
+              <span className="text-white">Aero Enterprise Suite</span>
+              <br />
+              <span className="bg-gradient-to-r from-sky-400 via-cyan-300 to-purple-400 bg-clip-text text-transparent">The operating system for modern enterprises.</span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-300 mb-8 leading-relaxed">
+              Power every department—HR, Projects, Compliance, SCM, Finance—with one modular, multi-tenant platform. Built with Laravel, Inertia, and HeroUI for relentless speed, security, and elegance.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/register">
+                <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10 py-7 rounded-2xl shadow-2xl shadow-blue-500/40">
+                  Start Free Trial
+                </Button>
+              </Link>
+              <Link href="/contact" >
+                <Button size="lg" variant="bordered" className="border-white/40 text-white px-9 py-7 rounded-2xl">
+                  Request a Demo
+                </Button>
+              </Link>
+              <a href="#modules">
+                <Button size="lg" variant="light" className="text-slate-200 px-9 py-7">
+                  Learn More
+                </Button>
+              </a>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-              Aero Enterprise Suite
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
-            <a href="#modules" className="text-slate-300 hover:text-white transition-colors">Modules</a>
-            <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Pricing</a>
-            <Link href="/login" className="text-slate-300 hover:text-white transition-colors">Login</Link>
-            <Link href="/register">
-              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 font-semibold px-6">
-                Get Started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-8">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            <span className="text-sm text-slate-300">Now with 14-day free trial</span>
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
-              Enterprise Suite
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Built for Scale
-            </span>
-          </h1>
-          
-          <p className="text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed">
-            The all-in-one SaaS platform for HR, Project Management, Compliance, Inventory, and more. 
-            Multi-tenant architecture with database-per-tenant security for enterprise-grade isolation.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Link href="/register">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold px-10 py-7 text-lg rounded-xl shadow-2xl shadow-purple-500/25 transition-all hover:scale-105"
-              >
-                Start Free Trial
-              </Button>
-            </Link>
-            <a href="#modules">
-              <Button 
-                size="lg" 
-                variant="bordered"
-                className="border-white/30 text-white hover:bg-white/10 px-10 py-7 text-lg rounded-xl"
-              >
-                Explore Modules
-              </Button>
-            </a>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-14">
+              {[
+                { value: '10+', label: 'Intelligent modules' },
+                { value: '99.95%', label: 'Uptime over 24 months' },
+                { value: '22', label: 'Global rollouts' },
+                { value: '3.5x', label: 'Faster decision cycles' },
+              ].map((stat) => (
+                <Card key={stat.label} className="bg-white/5 border border-white/10 backdrop-blur-xl">
+                  <CardBody className="text-center">
+                    <div className="text-2xl font-bold text-white">{stat.value}</div>
+                    <p className="text-xs text-slate-400 mt-1">{stat.label}</p>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            {[
-              { value: '10+', label: 'Modules' },
-              { value: '99.9%', label: 'Uptime' },
-              { value: '24/7', label: 'Support' },
-              { value: '14 Days', label: 'Free Trial' },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  {stat.value}
-                </div>
-                <div className="text-slate-400 mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 px-6 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Why Choose Aero?</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Built with modern technologies for performance, security, and scalability
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {features.map((feature, i) => (
-              <div 
-                key={i} 
-                className="flex items-center gap-3 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all"
-              >
-                <CheckIcon />
-                <span className="text-slate-200">{feature}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Modules Section */}
-      <section id="modules" className="py-20 px-6 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Powerful Modules</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Choose only the modules you need. Pay per module with flexible monthly or yearly plans.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modules.map((module, i) => (
-              <div 
-                key={i} 
-                className="group p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${module.color} p-3 text-white mb-5 group-hover:scale-110 transition-transform`}>
-                  <module.icon />
-                </div>
-                <h3 className="text-xl font-bold mb-2">{module.name}</h3>
-                <p className="text-slate-400 leading-relaxed">{module.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-6 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Pay only for the modules you use. No hidden fees.
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {pricingPlans.map((plan, i) => (
-              <div 
-                key={i} 
-                className={`relative p-8 rounded-2xl border transition-all duration-300 hover:-translate-y-1 ${
-                  plan.highlight 
-                    ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-purple-500/50' 
-                    : 'bg-white/5 border-white/10 hover:border-white/20'
-                }`}
-              >
-                {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-sm font-semibold">
-                    Best Value
+          <div className="relative">
+            <motion.div
+              initial={{ rotateX: 15, rotateY: -15, opacity: 0 }}
+              animate={{ rotateX: 0, rotateY: 0, opacity: 1 }}
+              transition={{ duration: 1 }}
+              className="relative"
+            >
+              <div className="relative" style={{ perspective: '1200px' }}>
+                <div
+                  className="bg-gradient-to-br from-slate-900/80 to-slate-800/40 border border-white/10 rounded-3xl p-6 shadow-2xl shadow-blue-500/30"
+                  style={{ transformStyle: 'preserve-3d', transform: 'rotateX(8deg) rotateY(-8deg)' }}
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    {modules.slice(0, 4).map((module) => (
+                      <Card key={module.name} className="bg-white/5 border border-white/10">
+                        <CardBody>
+                          <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${module.color} flex items-center justify-center text-white mb-3`}>
+                            <module.icon />
+                          </div>
+                          <p className="text-sm font-semibold text-white">{module.name}</p>
+                          <p className="text-xs text-slate-300 mt-1">{module.description.substring(0, 40)}...</p>
+                        </CardBody>
+                      </Card>
+                    ))}
                   </div>
-                )}
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-5xl font-extrabold">{plan.price}</span>
-                  <span className="text-slate-400">{plan.period}</span>
+                  <Divider className="my-6 bg-white/10" />
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <p className="text-3xl font-bold">Live KPI Board</p>
+                      <p className="text-sm text-slate-400">AI flags schedule and compliance risks before they escalate.</p>
+                    </div>
+                    <Chip variant="flat" color="secondary">Real-time</Chip>
+                  </div>
                 </div>
-                <p className="text-slate-400 mb-6">{plan.description}</p>
-                <Link href="/register" className="block">
-                  <Button 
-                    fullWidth
-                    className={`py-6 font-semibold ${
-                      plan.highlight 
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    Start 14-Day Free Trial
+              </div>
+            </motion.div>
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/40 rounded-full blur-3xl" />
+            <div className="absolute -bottom-14 -left-10 w-52 h-52 bg-cyan-500/30 rounded-full blur-3xl" />
+          </div>
+        </div>
+        </section>
+
+        {/* Problem Statement */}
+        <section id="problems" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <Chip color="warning" className="mb-4" variant="faded">Why companies switch</Chip>
+            <h2 className="text-4xl font-bold mb-4">Operations shouldn’t feel like stitching spreadsheets</h2>
+            <p className="text-slate-300 text-lg">Aero eliminates the top blockers slowing down enterprise execution.</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {problemStatements.map((problem) => (
+              <Card key={problem.title} className="bg-white/5 border border-white/10 backdrop-blur-xl hover:translate-y-[-6px] transition-transform">
+                <CardBody>
+                  <h3 className="text-xl font-semibold text-white mb-2">{problem.title}</h3>
+                  <p className="text-slate-400">{problem.detail}</p>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </div>
+        </section>
+
+        {/* Modules Section */}
+        <section id="modules" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <Chip color="secondary" className="mb-4" variant="flat">Modular architecture</Chip>
+            <h2 className="text-4xl font-bold mb-4">Every department, one visual command center</h2>
+            <p className="text-slate-300 text-lg">Pick only the modules you need today. Activate more as you scale—no migrations needed.</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {modules.map((module) => (
+              <Card key={module.name} className="bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all">
+                <CardBody>
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${module.color} flex items-center justify-center text-white mb-4`}>
+                    <module.icon />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white">{module.name}</h3>
+                  <p className="text-slate-400 mt-2">{module.description}</p>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how-it-works" className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <Chip color="primary" variant="faded" className="mb-4">How Aero flows</Chip>
+            <h2 className="text-4xl font-bold mb-4">Launch in weeks, not quarters</h2>
+            <p className="text-slate-300">A guided rollout with automation blueprints and success architects.</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            {howItWorks.map((step) => (
+              <Card key={step.step} className="bg-white/5 border border-white/10">
+                <CardBody>
+                  <div className="flex items-center gap-4 mb-3">
+                    <Chip variant="solid" color="secondary">{step.step}</Chip>
+                    <h3 className="text-xl font-semibold">{step.title}</h3>
+                  </div>
+                  <p className="text-slate-400">{step.detail}</p>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </div>
+        </section>
+
+        {/* Benefits */}
+        <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6">
+            {benefits.map((benefit) => (
+              <motion.div key={benefit.label} whileHover={{ scale: 1.03 }}>
+                <Card className="bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-cyan-500/10 border border-white/10">
+                  <CardBody>
+                    <div className="text-4xl font-bold text-white">{benefit.stat}</div>
+                    <h4 className="text-lg font-semibold mt-3">{benefit.label}</h4>
+                    <p className="text-slate-300 mt-2">{benefit.detail}</p>
+                  </CardBody>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+        </section>
+
+        {/* Integrations */}
+        <section id="integrations" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto text-center">
+          <Chip color="success" className="mb-4" variant="bordered">Plays well with leaders</Chip>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Connect Arsenal of Enterprise Tools</h2>
+          <p className="text-slate-300 mb-10">Two-way sync, events, and APIs keep Aero aligned with finance, CRM, and collaboration stacks.</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {integrations.map((logo) => (
+              <div key={logo} className="p-6 rounded-2xl bg-white/5 border border-white/10 text-lg font-semibold text-white tracking-wider">
+                {logo}
+              </div>
+            ))}
+          </div>
+        </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
+            <div>
+              <Chip variant="flat" color="secondary" className="mb-4">Customer stories</Chip>
+              <h2 className="text-4xl font-bold">Trusted by builders, hospitals, and governments</h2>
+            </div>
+            <Button variant="bordered" className="border-white/30 text-white">Download case studies</Button>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial) => (
+              <Card key={testimonial.company} className="bg-white/5 border border-white/10 h-full">
+                <CardBody className="flex flex-col gap-4">
+                  <p className="text-slate-200 text-lg">“{testimonial.quote}”</p>
+                  <div className="flex items-center gap-4">
+                    <Avatar name={testimonial.person} color="secondary" />
+                    <div>
+                      <p className="font-semibold">{testimonial.person}</p>
+                      <p className="text-sm text-slate-400">{testimonial.role} · {testimonial.company}</p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <Chip variant="shadow" color="primary" className="mb-4">Pricing that scales with you</Chip>
+            <h2 className="text-4xl font-bold mb-4">Transparent, modular, enterprise-ready</h2>
+            <p className="text-slate-300">Only pay for the modules and environments you activate. Cancel or expand anytime.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {pricingPlans.map((plan) => (
+              <Card key={plan.name} className={`border ${plan.highlight ? 'bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-white/30' : 'bg-white/5 border-white/10'} backdrop-blur-xl`}>
+                <CardBody className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-semibold">{plan.name}</h3>
+                    {plan.highlight && <Chip color="secondary">Most popular</Chip>}
+                  </div>
+                  <div>
+                    <span className="text-4xl font-extrabold">{plan.price}</span>
+                    <span className="text-slate-400 ml-2">{plan.period}</span>
+                  </div>
+                  <p className="text-slate-300 flex-1">{plan.description}</p>
+                  <Button as={Link} href="/register" className={`py-6 font-semibold ${plan.highlight ? 'bg-white text-slate-900' : 'bg-white/10 text-white'}`}>
+                    Start now
                   </Button>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <Card className="bg-gradient-to-br from-blue-600/40 via-purple-600/40 to-pink-500/30 border border-white/20">
+            <CardBody className="py-14">
+              <h2 className="text-4xl font-bold mb-4">See Aero in action</h2>
+              <p className="text-slate-100 text-lg mb-8">Book a white-glove demo or spin up a tenant sandbox in 60 seconds.</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/register">
+                  <Button size="lg" className="bg-white text-slate-900 font-semibold px-10 py-6">Start free trial</Button>
+                </Link>
+                <Link href="/demo">
+                  <Button size="lg" variant="bordered" className="border-white text-white px-10 py-6">Book enterprise demo</Button>
                 </Link>
               </div>
-            ))}
-          </div>
+            </CardBody>
+          </Card>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-6 relative">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="p-12 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-3xl border border-white/10">
-            <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Business?</h2>
-            <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands of companies already using Aero Enterprise Suite to streamline their operations.
-            </p>
-            <Link href="/register">
-              <Button 
-                size="lg" 
-                className="bg-white text-slate-900 hover:bg-slate-100 font-bold px-12 py-7 text-lg rounded-xl shadow-2xl transition-all hover:scale-105"
-              >
-                Get Started Now — It's Free
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-white/10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-sm">
-              A
-            </div>
-            <span className="font-semibold">Aero Enterprise Suite</span>
-          </div>
-          <div className="flex items-center gap-8 text-sm text-slate-400">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Contact</a>
-          </div>
-          <div className="text-sm text-slate-500">
-            © {new Date().getFullYear()} Aero Enterprise Suite. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+        </section>
+      </div>
+    </PublicLayout>
   );
 }

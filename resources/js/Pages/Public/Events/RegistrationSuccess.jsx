@@ -11,6 +11,7 @@ import {
     PrinterIcon,
     ArrowLeftIcon
 } from '@heroicons/react/24/outline';
+import PublicLayout from '../../../Layouts/PublicLayout';
 
 // Helper function to get theme radius from CSS variable
 const getThemeRadius = () => {
@@ -26,6 +27,7 @@ const RegistrationSuccess = ({ event, registration }) => {
     };
     
     return (
+        <PublicLayout>
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-background flex items-center justify-center p-4">
             <Head title="Registration Successful" />
             
@@ -114,6 +116,7 @@ const RegistrationSuccess = ({ event, registration }) => {
                 </CardBody>
             </Card>
         </div>
+        </PublicLayout>
     );
 };
 

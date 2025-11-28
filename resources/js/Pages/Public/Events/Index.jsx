@@ -15,6 +15,7 @@ import {
     MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
+import PublicLayout from '../../../Layouts/PublicLayout';
 
 // Helper function to get theme radius from CSS variable
 const getThemeRadius = () => {
@@ -34,6 +35,7 @@ const PublicEventsIndex = ({ events }) => {
     );
     
     return (
+        <PublicLayout>
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-background">
             <Head title="Events" />
             
@@ -142,6 +144,7 @@ const PublicEventsIndex = ({ events }) => {
                 )}
             </div>
         </div>
+        </PublicLayout>
     );
 };
 

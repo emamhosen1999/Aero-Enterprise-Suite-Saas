@@ -21,7 +21,9 @@ import {
   Button,
   Input,
   Select,
-  SelectItem
+  SelectItem,
+  Card,
+
 } from "@heroui/react";
 import { useTheme } from '@/Contexts/ThemeContext';
 import { 
@@ -60,7 +62,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { ChevronDown } from 'lucide-react';
 import App from "@/Layouts/App.jsx";
-import GlassCard from '@/Components/GlassCard';
+
 import PageHeader from '@/Components/PageHeader';
 import { 
     LineChart, 
@@ -1023,7 +1025,7 @@ const SystemMonitoringEnhanced = ({ title, initialData }) => {
             >
                 <Grow in timeout={800}>
                     <div className="max-w-7xl mx-auto">
-                        <GlassCard>
+                        <Card>
                             <PageHeader
                                 title="Enterprise System Monitoring"
                                 subtitle="ISO-compliant comprehensive system monitoring and analysis dashboard"
@@ -1206,7 +1208,7 @@ const SystemMonitoringEnhanced = ({ title, initialData }) => {
                                     </Paper>
                                 </div>
                             </PageHeader>
-                        </GlassCard>
+                        </Card>
                     </div>
                 </Grow>
             </Box>

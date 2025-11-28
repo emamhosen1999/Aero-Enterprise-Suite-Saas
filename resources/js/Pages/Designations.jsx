@@ -10,7 +10,6 @@ import {
     ChartBarIcon, Squares2X2Icon, TableCellsIcon, AdjustmentsHorizontalIcon,
     BuildingOfficeIcon, UsersIcon, PencilIcon
 } from '@heroicons/react/24/outline';
-import GlassCard from '@/Components/GlassCard.jsx';
 import PageHeader from '@/Components/PageHeader.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import App from '@/Layouts/App.jsx';
@@ -214,7 +213,7 @@ const Designations = ({ title, initialDesignations, departments, managers, paren
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    <GlassCard>
+                    <Card>
                         <PageHeader
                             title="Designation Management"
                             subtitle="Manage company designations and hierarchy"
@@ -308,7 +307,7 @@ const Designations = ({ title, initialDesignations, departments, managers, paren
                                 </div>
                             </div>
                         </PageHeader>
-                    </GlassCard>
+                    </Card>
                 </motion.div>
             </div>
 
