@@ -11,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Training extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'title',
@@ -34,7 +34,7 @@ class Training extends Model implements HasMedia
         'certification',
         'created_by',
         'approval_required',
-        'department_id'
+        'department_id',
     ];
 
     protected $casts = [
@@ -135,6 +135,7 @@ class Training extends Model implements HasMedia
     public function isActive()
     {
         $now = now();
+
         return $this->status === 'active' &&
             ($now->between($this->start_date, $this->end_date) ||
                 ($now->gte($this->start_date) && $this->end_date === null));

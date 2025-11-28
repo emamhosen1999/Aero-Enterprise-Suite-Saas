@@ -1,26 +1,19 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-    Typography,
-    useTheme,
-    useMediaQuery,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Grid,
-    TextField,
-    FormControl,
-    InputLabel,
+    Button,
+    Input,
+    Textarea,
     Select,
-    MenuItem,
-    FormControlLabel,
+    SelectItem,
     Switch,
-    IconButton,
-    Box,
-    Chip
-} from "@mui/material";
-import {
-    Button
+    Chip,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Divider
 } from "@heroui/react";
 import {
     CalendarDaysIcon,
@@ -29,12 +22,9 @@ import {
     ClockIcon,
     CheckIcon
 } from "@heroicons/react/24/outline";
-import ClearIcon from '@mui/icons-material/Clear';
-import LoadingButton from "@mui/lab/LoadingButton";
-import { toast } from "react-toastify";
+import { showToast } from "@/utils/toastUtils";
 import { format, differenceInDays, addDays } from 'date-fns';
 import axios from 'axios';
-import GlassDialog from "@/Components/GlassDialog.jsx";
 
 const HolidayForm = ({ 
     open, 
@@ -43,8 +33,20 @@ const HolidayForm = ({
     setHolidaysData, 
     currentHoliday 
 }) => {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
     
     // Form state
     const [formData, setFormData] = useState({
@@ -154,15 +156,15 @@ const HolidayForm = ({
 
             if (response.status === 200) {
                 setHolidaysData(response.data.holidays);
-                toast.success(response.data.message || 'Holiday saved successfully!');
+                showToast.success(response.data.message || 'Holiday saved successfully!');
                 closeModal();
             }
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
-                toast.error('Please check the form for errors');
+                showToast.error('Please check the form for errors');
             } else {
-                toast.error(error.response?.data?.message || 'Failed to save holiday');
+                showToast.error(error.response?.data?.message || 'Failed to save holiday');
             }
         } finally {
             setProcessing(false);
@@ -173,323 +175,382 @@ const HolidayForm = ({
     const selectedType = holidayTypes.find(type => type.key === formData.type);
 
     return (
-        <GlassDialog open={open} onClose={closeModal} fullWidth maxWidth="md">
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CalendarDaysIcon className="w-6 h-6 text-primary" />
-                    <Typography variant="h6">
-                        {currentHoliday ? 'Edit Holiday' : 'Add New Holiday'}
-                    </Typography>
-                </Box>
-                <IconButton
-                    onClick={closeModal}
-                    sx={{ position: 'absolute', top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
-            
-            <form onSubmit={handleSubmit}>
-                <DialogContent 
-                    sx={{ 
-                        maxHeight: '70vh', 
-                        overflowY: 'auto',
-                        '&::-webkit-scrollbar': {
-                            width: '6px',
-                        },
-                        '&::-webkit-scrollbar-track': {
-                            background: 'rgba(255,255,255,0.1)',
-                            borderRadius: '3px',
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                            background: 'rgba(255,255,255,0.3)',
-                            borderRadius: '3px',
-                            '&:hover': {
-                                background: 'rgba(255,255,255,0.5)',
-                            },
-                        },
-                    }}
-                >
-                    <Grid container spacing={3}>
-                        {/* Basic Information */}
-                        <Grid item xs={12}>
-                            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                Basic Information
-                            </Typography>
-                        </Grid>
+        <Modal 
+            isOpen={open} 
+            onClose={closeModal}
+            size="3xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+                header: "border-b border-divider",
+                body: "overflow-y-auto",
+                footer: "border-t border-divider",
+                closeButton: "hover:bg-white/5 active:bg-white/10"
+            }}
+            style={{
+                border: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+                borderRadius: `var(--borderRadius, 12px)`,
+                fontFamily: `var(--fontFamily, "Inter")`,
+                transform: `scale(var(--scale, 1))`,
+            }}
+        >
+            <ModalContent>
+                {(onClose) => (
+                    <>
+                        <ModalHeader className="flex flex-col gap-1" style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <div className="flex items-center gap-2">
+                                <CalendarDaysIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
+                                <span className="text-lg font-semibold" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
+                                    {currentHoliday ? 'Edit Holiday' : 'Add New Holiday'}
+                                </span>
+                            </div>
+                        </ModalHeader>
                         
-                        <Grid item xs={12}>
-                            <TextField
-                                label="Holiday Title"
-                                placeholder="Enter holiday name"
-                                fullWidth
-                                value={formData.title}
-                                onChange={(e) => handleFieldChange('title', e.target.value)}
-                                error={!!errors.title}
-                                helperText={errors.title}
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
+                        <form onSubmit={handleSubmit}>
+                            <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
+                                <div className="space-y-6">
+                                    {/* Basic Information Section */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <InformationCircleIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
+                                            <h3 className="text-base font-semibold" style={{ color: 'var(--theme-foreground)' }}>
+                                                Basic Information
+                                            </h3>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {/* Holiday Title */}
+                                            <Input
+                                                label="Holiday Title"
+                                                placeholder="Enter holiday name"
+                                                value={formData.title}
+                                                onValueChange={(value) => handleFieldChange('title', value)}
+                                                isInvalid={Boolean(errors.title)}
+                                                errorMessage={errors.title}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            />
 
-                        <Grid item xs={12}>
-                            <TextField
-                                label="Description"
-                                placeholder="Optional description or notes"
-                                fullWidth
-                                multiline
-                                rows={3}
-                                value={formData.description}
-                                onChange={(e) => handleFieldChange('description', e.target.value)}
-                                error={!!errors.description}
-                                helperText={errors.description}
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
+                                            {/* Description */}
+                                            <Textarea
+                                                label="Description"
+                                                placeholder="Optional description or notes"
+                                                value={formData.description}
+                                                onValueChange={(value) => handleFieldChange('description', value)}
+                                                isInvalid={Boolean(errors.description)}
+                                                errorMessage={errors.description}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                minRows={3}
+                                                maxRows={5}
+                                                classNames={{
+                                                    input: "text-small"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
 
-                        {/* Holiday Type */}
-                        <Grid item xs={12}>
-                            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                Holiday Type
-                            </Typography>
-                        </Grid>
-                        
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                                <InputLabel>Type</InputLabel>
-                                <Select
-                                    value={formData.type}
-                                    onChange={(e) => handleFieldChange('type', e.target.value)}
-                                    label="Type"
-                                    error={!!errors.type}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            sx: {
-                                                backdropFilter: 'blur(16px) saturate(200%)',
-                                                background: theme.glassCard.background,
-                                                border: theme.glassCard.border,
-                                                borderRadius: 2,
-                                                boxShadow: theme.glassCard.boxShadow,
-                                            },
-                                        },
-                                    }}
-                                >
-                                    {holidayTypes.map((type) => (
-                                        <MenuItem key={type.key} value={type.key}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <span>{type.icon}</span>
-                                                <Box>
-                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                                        {type.label}
-                                                    </Typography>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        {type.description}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {errors.type && (
-                                    <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
-                                        {errors.type}
-                                    </Typography>
-                                )}
-                            </FormControl>
-                        </Grid>
+                                    <Divider style={{ background: `var(--theme-divider)` }} />
 
-                        {selectedType && (
-                            <Grid item xs={12} md={6}>
-                                <Box 
-                                    sx={{ 
-                                        p: 2, 
-                                        backgroundColor: 'rgba(255,255,255,0.05)', 
-                                        borderRadius: 1,
-                                        border: '1px solid rgba(255,255,255,0.1)'
-                                    }}
-                                >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <span style={{ fontSize: '1.5rem' }}>{selectedType.icon}</span>
-                                        <Box>
-                                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                                {selectedType.label}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                {selectedType.description}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </Box>
-                            </Grid>
-                        )}
+                                    {/* Holiday Type Section */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <CheckIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
+                                            <h3 className="text-base font-semibold" style={{ color: 'var(--theme-foreground)' }}>
+                                                Holiday Type
+                                            </h3>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Type Selection */}
+                                            <Select
+                                                label="Holiday Type"
+                                                placeholder="Select holiday type"
+                                                selectedKeys={formData.type ? new Set([formData.type]) : new Set()}
+                                                onSelectionChange={(keys) => {
+                                                    const value = Array.from(keys)[0];
+                                                    handleFieldChange('type', value || '');
+                                                }}
+                                                isInvalid={Boolean(errors.type)}
+                                                errorMessage={errors.type}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    trigger: "min-h-unit-10",
+                                                    value: "text-small"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            >
+                                                {holidayTypes.map((type) => (
+                                                    <SelectItem 
+                                                        key={type.key} 
+                                                        value={type.key}
+                                                        textValue={type.label}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{type.icon}</span>
+                                                            <div>
+                                                                <div className="font-medium">{type.label}</div>
+                                                                <div className="text-xs text-default-500">{type.description}</div>
+                                                            </div>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </Select>
 
-                        {/* Date Range */}
-                        <Grid item xs={12}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                    Date Range
-                                </Typography>
-                                {duration > 1 && (
-                                    <Chip 
-                                        label={`${duration} days`} 
-                                        size="small" 
-                                        color="primary" 
-                                        variant="outlined"
-                                    />
-                                )}
-                            </Box>
-                        </Grid>
-                        
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                type="date"
-                                label="From Date"
-                                fullWidth
-                                value={formData.from_date}
-                                onChange={(e) => handleFieldChange('from_date', e.target.value)}
-                                error={!!errors.fromDate}
-                                helperText={errors.fromDate}
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
+                                            {/* Type Preview */}
+                                            {selectedType && (
+                                                <div 
+                                                    className="p-3 rounded-lg border flex items-center gap-2" 
+                                                    style={{
+                                                        backgroundColor: 'var(--theme-content2)',
+                                                        borderColor: 'var(--theme-divider)',
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <span className="text-lg">{selectedType.icon}</span>
+                                                    <div>
+                                                        <div className="font-medium text-sm" style={{ color: 'var(--theme-foreground)' }}>
+                                                            {selectedType.label}
+                                                        </div>
+                                                        <div className="text-xs" style={{ color: 'var(--theme-foreground-600)' }}>
+                                                            {selectedType.description}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
 
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                type="date"
-                                label="To Date"
-                                fullWidth
-                                value={formData.to_date}
-                                onChange={(e) => handleFieldChange('to_date', e.target.value)}
-                                error={!!errors.toDate}
-                                helperText={errors.toDate}
-                                InputLabelProps={{ shrink: true }}
-                            />
-                        </Grid>
+                                    <Divider style={{ background: `var(--theme-divider)` }} />
 
-                        {formData.from_date && formData.to_date && (
-                            <Grid item xs={12}>
-                                <Box 
-                                    sx={{ 
-                                        p: 2, 
-                                        backgroundColor: 'rgba(255,255,255,0.05)', 
-                                        borderRadius: 1,
-                                        border: '1px solid rgba(255,255,255,0.1)'
-                                    }}
-                                >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <InformationCircleIcon className="w-4 h-4 text-primary" />
-                                        <Typography variant="body2">
-                                            Holiday period: {format(new Date(formData.from_date), 'MMM dd, yyyy')} 
+                                    {/* Date Range Section */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <CalendarDaysIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
+                                                <h3 className="text-base font-semibold" style={{ color: 'var(--theme-foreground)' }}>
+                                                    Date Range
+                                                </h3>
+                                            </div>
                                             {duration > 1 && (
-                                                <> to {format(new Date(formData.to_date), 'MMM dd, yyyy')}</>
-                                            )} ({duration} {duration === 1 ? 'day' : 'days'})
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                            </Grid>
-                        )}
+                                                <Chip 
+                                                    variant="bordered" 
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    style={{
+                                                        borderColor: `var(--theme-primary)`,
+                                                        color: `var(--theme-primary)`,
+                                                        borderRadius: `var(--borderRadius, 8px)`,
+                                                    }}
+                                                >
+                                                    {duration} days
+                                                </Chip>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* From Date */}
+                                            <Input
+                                                label="From Date"
+                                                type="date"
+                                                value={formData.from_date}
+                                                onValueChange={(value) => handleFieldChange('from_date', value)}
+                                                isInvalid={Boolean(errors.fromDate)}
+                                                errorMessage={errors.fromDate}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            />
 
-                        {/* Settings */}
-                        <Grid item xs={12}>
-                            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                                Settings
-                            </Typography>
-                        </Grid>
-                        
-                        <Grid item xs={12} md={6}>
-                            <Box 
-                                sx={{ 
-                                    p: 2, 
-                                    backgroundColor: 'rgba(255,255,255,0.05)', 
-                                    borderRadius: 1,
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between'
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <ClockIcon className="w-5 h-5 text-default-400" />
-                                    <Box>
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                            Recurring Holiday
-                                        </Typography>
-                                        <Typography variant="caption" color="text.secondary">
-                                            Repeat this holiday annually
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={formData.is_recurring}
-                                            onChange={(e) => handleFieldChange('is_recurring', e.target.checked)}
-                                            color="primary"
-                                        />
-                                    }
-                                    label=""
-                                />
-                            </Box>
-                        </Grid>
+                                            {/* To Date */}
+                                            <Input
+                                                label="To Date"
+                                                type="date"
+                                                value={formData.to_date}
+                                                onValueChange={(value) => handleFieldChange('to_date', value)}
+                                                isInvalid={Boolean(errors.toDate)}
+                                                errorMessage={errors.toDate}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            />
+                                        </div>
 
-                        <Grid item xs={12} md={6}>
-                            <Box 
-                                sx={{ 
-                                    p: 2, 
-                                    backgroundColor: 'rgba(255,255,255,0.05)', 
-                                    borderRadius: 1,
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between'
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <CheckIcon className="w-5 h-5 text-default-400" />
-                                    <Box>
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                            Active Holiday
-                                        </Typography>
-                                        <Typography variant="caption" color="text.secondary">
-                                            Include in holiday calculations
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={formData.is_active}
-                                            onChange={(e) => handleFieldChange('is_active', e.target.checked)}
-                                            color="success"
-                                        />
-                                    }
-                                    label=""
-                                />
-                            </Box>
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                
-                <DialogActions sx={{ padding: '16px 24px', justifyContent: 'flex-end', gap: 1 }}>
-                    <Button
-                        color="danger"
-                        variant="light"
-                        onPress={closeModal}
-                        disabled={processing}
-                    >
-                        Cancel
-                    </Button>
-                    <LoadingButton
-                        type="submit"
-                        variant="contained"
-                        loading={processing}
-                        startIcon={!processing && <CheckIcon className="w-4 h-4" />}
-                        sx={{ borderRadius: '8px' }}
-                    >
-                        {processing ? 'Saving...' : (currentHoliday ? 'Update Holiday' : 'Create Holiday')}
-                    </LoadingButton>
-                </DialogActions>
-            </form>
-        </GlassDialog>
+                                        {/* Date Range Preview */}
+                                        {formData.from_date && formData.to_date && (
+                                            <div 
+                                                className="p-3 rounded-lg border flex items-center gap-2" 
+                                                style={{
+                                                    backgroundColor: 'var(--theme-content2)',
+                                                    borderColor: 'var(--theme-divider)',
+                                                    borderRadius: `var(--borderRadius, 12px)`,
+                                                }}
+                                            >
+                                                <InformationCircleIcon className="w-4 h-4" style={{ color: 'var(--theme-primary)' }} />
+                                                <div className="text-sm">
+                                                    <span style={{ color: 'var(--theme-foreground)' }}>
+                                                        Holiday period: {format(new Date(formData.from_date), 'MMM dd, yyyy')} 
+                                                        {duration > 1 && (
+                                                            <> to {format(new Date(formData.to_date), 'MMM dd, yyyy')}</>
+                                                        )} ({duration} {duration === 1 ? 'day' : 'days'})
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Divider style={{ background: `var(--theme-divider)` }} />
+
+                                    {/* Settings Section */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <ClockIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
+                                            <h3 className="text-base font-semibold" style={{ color: 'var(--theme-foreground)' }}>
+                                                Settings
+                                            </h3>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Recurring Holiday */}
+                                            <div 
+                                                className="p-4 rounded-lg border flex items-center justify-between"
+                                                style={{
+                                                    backgroundColor: 'var(--theme-content2)',
+                                                    borderColor: 'var(--theme-divider)',
+                                                    borderRadius: `var(--borderRadius, 12px)`,
+                                                }}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <ClockIcon className="w-5 h-5 text-default-400" />
+                                                    <div>
+                                                        <p className="text-sm font-medium" style={{ color: 'var(--theme-foreground)' }}>
+                                                            Recurring Holiday
+                                                        </p>
+                                                        <p className="text-xs" style={{ color: 'var(--theme-foreground-600)' }}>
+                                                            Repeat this holiday annually
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Switch
+                                                    isSelected={formData.is_recurring}
+                                                    onValueChange={(checked) => handleFieldChange('is_recurring', checked)}
+                                                    color="primary"
+                                                    size="sm"
+                                                />
+                                            </div>
+
+                                            {/* Active Holiday */}
+                                            <div 
+                                                className="p-4 rounded-lg border flex items-center justify-between"
+                                                style={{
+                                                    backgroundColor: 'var(--theme-content2)',
+                                                    borderColor: 'var(--theme-divider)',
+                                                    borderRadius: `var(--borderRadius, 12px)`,
+                                                }}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <CheckIcon className="w-5 h-5 text-default-400" />
+                                                    <div>
+                                                        <p className="text-sm font-medium" style={{ color: 'var(--theme-foreground)' }}>
+                                                            Active Holiday
+                                                        </p>
+                                                        <p className="text-xs" style={{ color: 'var(--theme-foreground-600)' }}>
+                                                            Include in holiday calculations
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Switch
+                                                    isSelected={formData.is_active}
+                                                    onValueChange={(checked) => handleFieldChange('is_active', checked)}
+                                                    color="success"
+                                                    size="sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ModalBody>
+                            
+                            <ModalFooter className="flex flex-col sm:flex-row justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4" style={{
+                                borderColor: `var(--theme-divider, #E4E4E7)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
+                                <Button
+                                    color="default"
+                                    variant="bordered"
+                                    onPress={onClose}
+                                    radius={getThemeRadius()}
+                                    size="sm"
+                                    isDisabled={processing}
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    color="primary"
+                                    variant="solid"
+                                    isLoading={processing}
+                                    isDisabled={processing}
+                                    radius={getThemeRadius()}
+                                    size="sm"
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                >
+                                    {processing ? 'Saving...' : (currentHoliday ? 'Update Holiday' : 'Create Holiday')}
+                                </Button>
+                            </ModalFooter>
+                        </form>
+                    </>
+                )}
+            </ModalContent>
+        </Modal>
     );
 };
 

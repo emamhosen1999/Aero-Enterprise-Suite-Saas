@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Services\FMSService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,7 +27,7 @@ class FMSController extends Controller
         return Inertia::render('FMS/Index', [
             'stats' => $stats,
             'recentTransactions' => $recentTransactions,
-            'chartData' => $chartData
+            'chartData' => $chartData,
         ]);
     }
 
@@ -42,7 +41,7 @@ class FMSController extends Controller
 
         return Inertia::render('FMS/AccountsPayable/Index', [
             'payables' => $payables,
-            'vendors' => $vendors
+            'vendors' => $vendors,
         ]);
     }
 
@@ -56,7 +55,7 @@ class FMSController extends Controller
             'invoice_number' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         $payable = $this->fmsService->createAccountsPayable($request->all());
@@ -74,7 +73,7 @@ class FMSController extends Controller
 
         return Inertia::render('FMS/AccountsReceivable/Index', [
             'receivables' => $receivables,
-            'customers' => $customers
+            'customers' => $customers,
         ]);
     }
 
@@ -88,7 +87,7 @@ class FMSController extends Controller
             'invoice_number' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         $receivable = $this->fmsService->createAccountsReceivable($request->all());
@@ -106,7 +105,7 @@ class FMSController extends Controller
 
         return Inertia::render('FMS/GeneralLedger/Index', [
             'ledgerEntries' => $ledgerEntries,
-            'accounts' => $accounts
+            'accounts' => $accounts,
         ]);
     }
 
@@ -121,12 +120,12 @@ class FMSController extends Controller
             'description' => 'required|string',
             'debit_amount' => 'nullable|numeric|min:0',
             'credit_amount' => 'nullable|numeric|min:0',
-            'reference_number' => 'nullable|string|max:255'
+            'reference_number' => 'nullable|string|max:255',
         ]);
 
         // Ensure either debit or credit is provided, not both
         if (($request->debit_amount && $request->credit_amount) ||
-            (!$request->debit_amount && !$request->credit_amount)
+            (! $request->debit_amount && ! $request->credit_amount)
         ) {
             return redirect()->back()->withErrors(['amount' => 'Please provide either debit or credit amount, not both.']);
         }
@@ -144,7 +143,7 @@ class FMSController extends Controller
         $reportData = $this->fmsService->getFinancialReports();
 
         return Inertia::render('FMS/Reports/Index', [
-            'reportData' => $reportData
+            'reportData' => $reportData,
         ]);
     }
 
@@ -156,7 +155,7 @@ class FMSController extends Controller
         $request->validate([
             'report_type' => 'required|in:income_statement,balance_sheet,cash_flow,trial_balance',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date'
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         $reportData = $this->fmsService->generateReport(
@@ -167,7 +166,7 @@ class FMSController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $reportData
+            'data' => $reportData,
         ]);
     }
 
@@ -181,7 +180,7 @@ class FMSController extends Controller
 
         return Inertia::render('FMS/Budgets/Index', [
             'budgets' => $budgets,
-            'departments' => $departments
+            'departments' => $departments,
         ]);
     }
 
@@ -195,7 +194,7 @@ class FMSController extends Controller
             'department_id' => 'required|exists:departments,id',
             'fiscal_year' => 'required|integer|min:2020|max:2030',
             'total_amount' => 'required|numeric|min:0',
-            'status' => 'required|in:draft,approved,active,closed'
+            'status' => 'required|in:draft,approved,active,closed',
         ]);
 
         $budget = $this->fmsService->createBudget($request->all());
@@ -215,7 +214,7 @@ class FMSController extends Controller
         return Inertia::render('FMS/Expenses/Index', [
             'expenses' => $expenses,
             'categories' => $categories,
-            'users' => $users
+            'users' => $users,
         ]);
     }
 
@@ -230,7 +229,7 @@ class FMSController extends Controller
             'category_id' => 'required|exists:expense_categories,id',
             'expense_date' => 'required|date',
             'submitted_by' => 'required|exists:users,id',
-            'receipt_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048'
+            'receipt_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         $expense = $this->fmsService->createExpense($request->all());
@@ -248,7 +247,7 @@ class FMSController extends Controller
 
         return Inertia::render('FMS/Invoices/Index', [
             'invoices' => $invoices,
-            'customers' => $customers
+            'customers' => $customers,
         ]);
     }
 
@@ -268,7 +267,7 @@ class FMSController extends Controller
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0'
+            'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
         $invoice = $this->fmsService->createInvoice($request->all());
@@ -284,7 +283,7 @@ class FMSController extends Controller
         $settings = $this->fmsService->getSettings();
 
         return Inertia::render('FMS/Settings/Index', [
-            'settings' => $settings
+            'settings' => $settings,
         ]);
     }
 
@@ -298,7 +297,7 @@ class FMSController extends Controller
             'fiscal_year_start' => 'required|date_format:m-d',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'auto_invoice_numbering' => 'boolean',
-            'invoice_prefix' => 'nullable|string|max:10'
+            'invoice_prefix' => 'nullable|string|max:10',
         ]);
 
         $this->fmsService->updateSettings($request->all());

@@ -24,7 +24,7 @@ class Transaction extends Model
         'status',
         'notes',
         'processed_by',
-        'processed_at'
+        'processed_at',
     ];
 
     protected $casts = [

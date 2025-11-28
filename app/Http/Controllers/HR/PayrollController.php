@@ -8,14 +8,14 @@ use App\Models\HRM\PayrollAllowance;
 use App\Models\HRM\PayrollDeduction;
 use App\Models\HRM\Payslip;
 use App\Models\User;
+use App\Services\PayrollCalculationService;
+use App\Services\PayrollReportService;
+use App\Services\PayslipService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Carbon\Carbon;
-use App\Services\PayrollCalculationService;
-use App\Services\PayslipService;
-use App\Services\PayrollReportService;
 
 class PayrollController extends Controller
 {
@@ -372,7 +372,7 @@ class PayrollController extends Controller
             'pay_period_end' => 'required|date|after:pay_period_start',
         ]);
 
-        $payrollService = new PayrollCalculationService();
+        $payrollService = new PayrollCalculationService;
 
         $results = $payrollService->processBulkPayroll(
             $validated['employee_ids'],
@@ -400,7 +400,7 @@ class PayrollController extends Controller
             return redirect()->back()->with('error', 'Payroll must be processed before generating payslip');
         }
 
-        $payslipService = new PayslipService();
+        $payslipService = new PayslipService;
         $payslip = $payslipService->generatePayslip($payroll);
 
         return redirect()->back()->with('success', 'Payslip generated successfully');
@@ -417,7 +417,7 @@ class PayrollController extends Controller
             'send_email' => 'boolean',
         ]);
 
-        $payslipService = new PayslipService();
+        $payslipService = new PayslipService;
         $results = $payslipService->generateBulkPayslips(
             $validated['payroll_ids'],
             ['send_email' => $validated['send_email'] ?? false]
@@ -438,11 +438,11 @@ class PayrollController extends Controller
         $payroll = Payroll::with(['employee', 'payslip'])
             ->findOrFail($id);
 
-        if (!$payroll->payslip) {
+        if (! $payroll->payslip) {
             return redirect()->back()->with('error', 'Payslip not found. Please generate payslip first.');
         }
 
-        $payslipService = new PayslipService();
+        $payslipService = new PayslipService;
         $payslipService->sendPayslipEmail($payroll->payslip);
 
         return redirect()->back()->with('success', 'Payslip email sent successfully');
@@ -456,11 +456,12 @@ class PayrollController extends Controller
         $payroll = Payroll::with(['payslip'])
             ->findOrFail($id);
 
-        if (!$payroll->payslip) {
+        if (! $payroll->payslip) {
             return redirect()->back()->with('error', 'Payslip not found. Please generate payslip first.');
         }
 
-        $payslipService = new PayslipService();
+        $payslipService = new PayslipService;
+
         return $payslipService->downloadPayslip($payroll->payslip);
     }
 
@@ -509,7 +510,7 @@ class PayrollController extends Controller
      */
     public function reports()
     {
-        $reportService = new PayrollReportService();
+        $reportService = new PayrollReportService;
         $currentMonth = now()->month;
         $currentYear = now()->year;
 
@@ -532,7 +533,7 @@ class PayrollController extends Controller
             'year' => 'required|integer|min:2020|max:2030',
         ]);
 
-        $reportService = new PayrollReportService();
+        $reportService = new PayrollReportService;
         $report = $reportService->generateMonthlySummary($validated['month'], $validated['year']);
 
         return response()->json($report);
@@ -548,7 +549,7 @@ class PayrollController extends Controller
             'end_date' => 'required|date|after:start_date',
         ]);
 
-        $reportService = new PayrollReportService();
+        $reportService = new PayrollReportService;
         $report = $reportService->generateTaxReport(
             Carbon::parse($validated['start_date']),
             Carbon::parse($validated['end_date'])
@@ -567,7 +568,7 @@ class PayrollController extends Controller
             'payroll_ids.*' => 'exists:payrolls,id',
         ]);
 
-        $reportService = new PayrollReportService();
+        $reportService = new PayrollReportService;
         $report = $reportService->generateBankTransferReport($validated['payroll_ids']);
 
         return response()->json($report);
@@ -583,7 +584,7 @@ class PayrollController extends Controller
             'year' => 'required|integer|min:2020|max:2030',
         ]);
 
-        $reportService = new PayrollReportService();
+        $reportService = new PayrollReportService;
         $report = $reportService->generateStatutoryReport($validated['month'], $validated['year']);
 
         return response()->json($report);

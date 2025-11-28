@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Compliance;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Models\Compliance\RegulatoryRequirement;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class RegulatoryRequirementController extends Controller
 {
@@ -20,9 +20,9 @@ class RegulatoryRequirementController extends Controller
         // Apply filters
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('title', 'like', '%' . $request->search . '%')
-                    ->orWhere('description', 'like', '%' . $request->search . '%')
-                    ->orWhere('requirement_number', 'like', '%' . $request->search . '%');
+                $q->where('title', 'like', '%'.$request->search.'%')
+                    ->orWhere('description', 'like', '%'.$request->search.'%')
+                    ->orWhere('requirement_number', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -58,7 +58,7 @@ class RegulatoryRequirementController extends Controller
             'statuses' => $this->getStatuses(),
             'priorities' => $this->getPriorities(),
             'types' => $this->getTypes(),
-            'regulatoryBodies' => $this->getRegulatoryBodies()
+            'regulatoryBodies' => $this->getRegulatoryBodies(),
         ]);
     }
 
@@ -71,7 +71,7 @@ class RegulatoryRequirementController extends Controller
             'statuses' => $this->getStatuses(),
             'priorities' => $this->getPriorities(),
             'types' => $this->getTypes(),
-            'users' => User::select('id', 'name', 'email')->get()
+            'users' => User::select('id', 'name', 'email')->get(),
         ]);
     }
 
@@ -85,17 +85,17 @@ class RegulatoryRequirementController extends Controller
             'description' => 'required|string',
             'regulatory_body' => 'required|string|max:255',
             'regulation_reference' => 'nullable|string|max:255',
-            'requirement_type' => 'required|string|in:' . implode(',', array_keys($this->getTypes())),
+            'requirement_type' => 'required|string|in:'.implode(',', array_keys($this->getTypes())),
             'industry' => 'nullable|string|max:255',
             'applicable_locations' => 'nullable|array',
             'effective_date' => 'required|date',
             'compliance_deadline' => 'required|date|after:effective_date',
-            'status' => 'required|string|in:' . implode(',', array_keys($this->getStatuses())),
-            'priority' => 'required|string|in:' . implode(',', array_keys($this->getPriorities())),
+            'status' => 'required|string|in:'.implode(',', array_keys($this->getStatuses())),
+            'priority' => 'required|string|in:'.implode(',', array_keys($this->getPriorities())),
             'assigned_to' => 'nullable|exists:users,id',
             'compliance_percentage' => 'nullable|numeric|min:0|max:100',
             'implementation_notes' => 'nullable|string',
-            'evidence_documents' => 'nullable|array'
+            'evidence_documents' => 'nullable|array',
         ]);
 
         $requirement = RegulatoryRequirement::create([
@@ -114,7 +114,7 @@ class RegulatoryRequirementController extends Controller
             'assigned_to' => $request->assigned_to,
             'compliance_percentage' => $request->compliance_percentage ?? 0,
             'implementation_notes' => $request->implementation_notes,
-            'evidence_documents' => $request->evidence_documents
+            'evidence_documents' => $request->evidence_documents,
         ]);
 
         return redirect()->route('compliance.regulatory.show', $requirement)
@@ -131,7 +131,7 @@ class RegulatoryRequirementController extends Controller
         return Inertia::render('Compliance/RegulatoryRequirements/Show', [
             'requirement' => $requirement,
             'complianceHistory' => $this->getComplianceHistory($requirement),
-            'relatedRequirements' => $this->getRelatedRequirements($requirement)
+            'relatedRequirements' => $this->getRelatedRequirements($requirement),
         ]);
     }
 
@@ -145,7 +145,7 @@ class RegulatoryRequirementController extends Controller
             'statuses' => $this->getStatuses(),
             'priorities' => $this->getPriorities(),
             'types' => $this->getTypes(),
-            'users' => User::select('id', 'name', 'email')->get()
+            'users' => User::select('id', 'name', 'email')->get(),
         ]);
     }
 
@@ -159,17 +159,17 @@ class RegulatoryRequirementController extends Controller
             'description' => 'required|string',
             'regulatory_body' => 'required|string|max:255',
             'regulation_reference' => 'nullable|string|max:255',
-            'requirement_type' => 'required|string|in:' . implode(',', array_keys($this->getTypes())),
+            'requirement_type' => 'required|string|in:'.implode(',', array_keys($this->getTypes())),
             'industry' => 'nullable|string|max:255',
             'applicable_locations' => 'nullable|array',
             'effective_date' => 'required|date',
             'compliance_deadline' => 'required|date|after:effective_date',
-            'status' => 'required|string|in:' . implode(',', array_keys($this->getStatuses())),
-            'priority' => 'required|string|in:' . implode(',', array_keys($this->getPriorities())),
+            'status' => 'required|string|in:'.implode(',', array_keys($this->getStatuses())),
+            'priority' => 'required|string|in:'.implode(',', array_keys($this->getPriorities())),
             'assigned_to' => 'nullable|exists:users,id',
             'compliance_percentage' => 'nullable|numeric|min:0|max:100',
             'implementation_notes' => 'nullable|string',
-            'evidence_documents' => 'nullable|array'
+            'evidence_documents' => 'nullable|array',
         ]);
 
         $requirement->update([
@@ -187,7 +187,7 @@ class RegulatoryRequirementController extends Controller
             'assigned_to' => $request->assigned_to,
             'compliance_percentage' => $request->compliance_percentage ?? 0,
             'implementation_notes' => $request->implementation_notes,
-            'evidence_documents' => $request->evidence_documents
+            'evidence_documents' => $request->evidence_documents,
         ]);
 
         return redirect()->route('compliance.regulatory.show', $requirement)
@@ -215,7 +215,7 @@ class RegulatoryRequirementController extends Controller
             RegulatoryRequirement::STATUS_IN_PROGRESS => 'In Progress',
             RegulatoryRequirement::STATUS_COMPLIANT => 'Compliant',
             RegulatoryRequirement::STATUS_NON_COMPLIANT => 'Non-Compliant',
-            RegulatoryRequirement::STATUS_NOT_APPLICABLE => 'Not Applicable'
+            RegulatoryRequirement::STATUS_NOT_APPLICABLE => 'Not Applicable',
         ];
     }
 
@@ -228,7 +228,7 @@ class RegulatoryRequirementController extends Controller
             RegulatoryRequirement::PRIORITY_LOW => 'Low',
             RegulatoryRequirement::PRIORITY_MEDIUM => 'Medium',
             RegulatoryRequirement::PRIORITY_HIGH => 'High',
-            RegulatoryRequirement::PRIORITY_CRITICAL => 'Critical'
+            RegulatoryRequirement::PRIORITY_CRITICAL => 'Critical',
         ];
     }
 
@@ -243,7 +243,7 @@ class RegulatoryRequirementController extends Controller
             RegulatoryRequirement::TYPE_FINANCIAL => 'Financial',
             RegulatoryRequirement::TYPE_DATA_PROTECTION => 'Data Protection',
             RegulatoryRequirement::TYPE_EMPLOYMENT => 'Employment',
-            RegulatoryRequirement::TYPE_QUALITY => 'Quality'
+            RegulatoryRequirement::TYPE_QUALITY => 'Quality',
         ];
     }
 
@@ -269,7 +269,7 @@ class RegulatoryRequirementController extends Controller
         $year = now()->year;
 
         // Get the last requirement number for this year
-        $lastRequirement = RegulatoryRequirement::where('requirement_number', 'like', $prefix . $year . '-%')
+        $lastRequirement = RegulatoryRequirement::where('requirement_number', 'like', $prefix.$year.'-%')
             ->orderBy('requirement_number', 'desc')
             ->first();
 
@@ -279,7 +279,7 @@ class RegulatoryRequirementController extends Controller
             $nextNumber = $lastNumber + 1;
         }
 
-        return $prefix . $year . '-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        return $prefix.$year.'-'.str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -296,7 +296,7 @@ class RegulatoryRequirementController extends Controller
                 'status' => $requirement->status,
                 'compliance_percentage' => 0,
                 'notes' => 'Requirement created',
-                'user' => 'System'
+                'user' => 'System',
             ],
             [
                 'date' => $requirement->updated_at,
@@ -304,8 +304,8 @@ class RegulatoryRequirementController extends Controller
                 'status' => $requirement->status,
                 'compliance_percentage' => $requirement->compliance_percentage,
                 'notes' => $requirement->implementation_notes ?? 'Status updated',
-                'user' => $requirement->assignedUser->name ?? 'Unknown'
-            ]
+                'user' => $requirement->assignedUser->name ?? 'Unknown',
+            ],
         ];
     }
 
@@ -332,7 +332,7 @@ class RegulatoryRequirementController extends Controller
     {
         $request->validate([
             'format' => 'required|in:pdf,excel,csv',
-            'filters' => 'nullable|array'
+            'filters' => 'nullable|array',
         ]);
 
         // Implementation for exporting requirements
@@ -340,7 +340,7 @@ class RegulatoryRequirementController extends Controller
 
         return response()->json([
             'message' => 'Export started',
-            'status' => 'processing'
+            'status' => 'processing',
         ]);
     }
 
@@ -375,7 +375,7 @@ class RegulatoryRequirementController extends Controller
             'stats' => $stats,
             'upcoming_deadlines' => $upcomingDeadlines,
             'overdue_requirements' => $overdueRequirements,
-            'compliance_rate' => $stats['total'] > 0 ? round(($stats['compliant'] / $stats['total']) * 100, 2) : 0
+            'compliance_rate' => $stats['total'] > 0 ? round(($stats['compliant'] / $stats['total']) * 100, 2) : 0,
         ]);
     }
 }

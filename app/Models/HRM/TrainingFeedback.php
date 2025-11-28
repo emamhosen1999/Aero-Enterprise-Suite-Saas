@@ -23,7 +23,7 @@ class TrainingFeedback extends Model
         'relevance_rating',
         'recommendation_likelihood',
         'submitted_at',
-        'is_anonymous'
+        'is_anonymous',
     ];
 
     protected $casts = [
@@ -72,7 +72,7 @@ class TrainingFeedback extends Model
             $this->content_rating,
             $this->materials_rating,
             $this->organization_rating,
-            $this->relevance_rating
+            $this->relevance_rating,
         ];
 
         $validRatings = array_filter($ratings, function ($rating) {

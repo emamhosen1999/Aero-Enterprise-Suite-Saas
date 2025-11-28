@@ -28,8 +28,16 @@ class LeaveResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             
+            // Approval workflow fields
+            'approval_chain' => $this->approval_chain,
+            'current_approval_level' => $this->current_approval_level,
+            'approved_at' => $this->approved_at,
+            'rejected_at' => $this->rejected_at,
+            'rejected_by' => $this->rejected_by,
+            'rejection_reason' => $this->rejection_reason,
+
             // Include employee data when available
-            'employee' => $this->when($this->relationLoaded('employee'), function () {
+            'employee' => $this->when($this->relationLoaded('employee') && $this->employee, function () {
                 return [
                     'id' => $this->employee->id,
                     'name' => $this->employee->name,
@@ -38,9 +46,9 @@ class LeaveResource extends JsonResource
                     'designation_id' => $this->employee->designation_id,
                 ];
             }),
-            
+
             // Include leave setting data when available
-            'leave_setting' => $this->when($this->relationLoaded('leaveSetting'), function () {
+            'leave_setting' => $this->when($this->relationLoaded('leaveSetting') && $this->leaveSetting, function () {
                 return [
                     'id' => $this->leaveSetting->id,
                     'type' => $this->leaveSetting->type,
@@ -55,7 +63,7 @@ class LeaveResource extends JsonResource
      */
     private function formatDate($date): ?string
     {
-        if (!$date) {
+        if (! $date) {
             return null;
         }
 

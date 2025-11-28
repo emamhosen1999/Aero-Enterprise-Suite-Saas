@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+} from '@mui/material';
+import {
     Modal,
     ModalContent,
     ModalHeader,
     ModalBody,
     ModalFooter,
     Button,
-    Select,
-    SelectItem,
     Checkbox,
     CheckboxGroup,
     Card,
@@ -250,24 +254,69 @@ const ExportModal = ({
                         {/* Template Type */}
                         <div>
                             <h4 className="font-semibold mb-3">Template Type</h4>
-                            <Select
-                                selectedKeys={[exportSettings.templateType]}
-                                onSelectionChange={(keys) => setExportSettings(prev => ({ 
-                                    ...prev, 
-                                    templateType: Array.from(keys)[0] 
-                                }))}
-                                placeholder="Select template type"
-                            >
-                                {templateTypes.map((template) => (
-                                    <SelectItem 
-                                        key={template.key} 
-                                        value={template.key}
-                                        description={template.description}
-                                    >
-                                        {template.label}
-                                    </SelectItem>
-                                ))}
-                            </Select>
+                            <FormControl fullWidth size="small">
+                                <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                                    Select template type
+                                </InputLabel>
+                                <Select
+                                    value={exportSettings.templateType || ''}
+                                    onChange={(e) => setExportSettings(prev => ({ 
+                                        ...prev, 
+                                        templateType: e.target.value 
+                                    }))}
+                                    label="Select template type"
+                                    sx={{
+                                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                        backdropFilter: 'blur(16px)',
+                                        borderRadius: '12px',
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(59, 130, 246, 0.5)',
+                                        },
+                                        '& .MuiSelect-select': {
+                                            color: 'rgba(255, 255, 255, 0.9)',
+                                        },
+                                        '& .MuiSelect-icon': {
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                        },
+                                    }}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            sx: {
+                                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                                backdropFilter: 'blur(16px)',
+                                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                                borderRadius: '12px',
+                                                '& .MuiMenuItem-root': {
+                                                    color: 'rgba(255, 255, 255, 0.9)',
+                                                    '&:hover': {
+                                                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                                                    },
+                                                    '&.Mui-selected': {
+                                                        backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {templateTypes.map((template) => (
+                                        <MenuItem key={template.key} value={template.key}>
+                                            <div>
+                                                <div>{template.label}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)' }}>
+                                                    {template.description}
+                                                </div>
+                                            </div>
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </div>
 
                         {/* Field Selection */}

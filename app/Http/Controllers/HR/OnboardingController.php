@@ -3,19 +3,18 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\HR\StoreOnboardingRequest;
-use App\Http\Requests\HR\UpdateOnboardingRequest;
 use App\Http\Requests\HR\StoreOffboardingRequest;
+use App\Http\Requests\HR\StoreOnboardingRequest;
 use App\Http\Requests\HR\UpdateOffboardingRequest;
+use App\Http\Requests\HR\UpdateOnboardingRequest;
+use App\Models\Checklist;
 use App\Models\HRM\Offboarding;
 use App\Models\HRM\OffboardingTask;
 use App\Models\HRM\Onboarding;
 use App\Models\HRM\OnboardingTask;
-use App\Models\User;
-use App\Models\OnboardingStep;
 use App\Models\OffboardingStep;
-use App\Models\Checklist;
-use Illuminate\Support\Facades\Auth;
+use App\Models\OnboardingStep;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -35,7 +34,7 @@ class OnboardingController extends Controller
 
         return Inertia::render('HR/Onboarding/Index', [
             'title' => 'Employee Onboarding',
-            'onboardings' => $onboardings
+            'onboardings' => $onboardings,
         ]);
     }
 
@@ -53,7 +52,7 @@ class OnboardingController extends Controller
 
         return Inertia::render('HR/Onboarding/Create', [
             'title' => 'Create Onboarding Process',
-            'employees' => $employees
+            'employees' => $employees,
         ]);
     }
 
@@ -114,7 +113,7 @@ class OnboardingController extends Controller
 
         return Inertia::render('HR/Onboarding/Show', [
             'title' => 'Onboarding Details',
-            'onboarding' => $onboarding
+            'onboarding' => $onboarding,
         ]);
     }
 
@@ -141,7 +140,7 @@ class OnboardingController extends Controller
             'title' => 'Edit Onboarding Process',
             'onboarding' => $onboarding,
             'employees' => $employees,
-            'assignees' => $assignees
+            'assignees' => $assignees,
         ]);
     }
 
@@ -171,7 +170,7 @@ class OnboardingController extends Controller
             $updatedTaskIds = [];
 
             foreach ($validated['tasks'] as $taskData) {
-                if (!empty($taskData['id'])) {
+                if (! empty($taskData['id'])) {
                     $task = OnboardingTask::findOrFail($taskData['id']);
                     $task->update([
                         'task' => $taskData['task'],
@@ -232,7 +231,7 @@ class OnboardingController extends Controller
             return redirect()->route('hr.onboarding.index')
                 ->with('success', 'Onboarding process deleted successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to delete onboarding process: ' . $e->getMessage());
+            Log::error('Failed to delete onboarding process: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to delete onboarding process.');
@@ -252,7 +251,7 @@ class OnboardingController extends Controller
 
         return Inertia::render('HR/Offboarding/Index', [
             'title' => 'Employee Offboarding',
-            'offboardings' => $offboardings
+            'offboardings' => $offboardings,
         ]);
     }
 
@@ -270,7 +269,7 @@ class OnboardingController extends Controller
 
         return Inertia::render('HR/Offboarding/Create', [
             'title' => 'Create Offboarding Process',
-            'employees' => $employees
+            'employees' => $employees,
         ]);
     }
 
@@ -307,6 +306,7 @@ class OnboardingController extends Controller
             }
 
             DB::commit();
+
             return redirect()->route('hr.offboarding.show', $offboarding->id)
                 ->with('success', 'Offboarding process created successfully.');
         } catch (\Exception $e) {
@@ -329,7 +329,7 @@ class OnboardingController extends Controller
 
         return Inertia::render('HR/Offboarding/Show', [
             'title' => 'Offboarding Details',
-            'offboarding' => $offboarding
+            'offboarding' => $offboarding,
         ]);
     }
 
@@ -357,7 +357,7 @@ class OnboardingController extends Controller
             $existingTaskIds = $offboarding->tasks->pluck('id')->toArray();
             $updatedTaskIds = [];
             foreach ($validated['tasks'] as $taskData) {
-                if (!empty($taskData['id'])) {
+                if (! empty($taskData['id'])) {
                     $task = OffboardingTask::findOrFail($taskData['id']);
                     $task->update([
                         'task' => $taskData['task'],
@@ -388,11 +388,13 @@ class OnboardingController extends Controller
                 OffboardingTask::whereIn('id', $tasksToDelete)->delete();
             }
             DB::commit();
+
             return redirect()->route('hr.offboarding.show', $offboarding->id)
                 ->with('success', 'Offboarding process updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to update offboarding process', ['error' => $e->getMessage(), 'offboarding_id' => $offboarding->id]);
+
             return redirect()->back()
                 ->with('error', 'Failed to update offboarding process. Please try again.')
                 ->withInput();
@@ -409,13 +411,15 @@ class OnboardingController extends Controller
 
         try {
             $offboarding->delete();
+
             return redirect()->route('hr.offboarding.index')
                 ->with('success', 'Offboarding process deleted successfully.');
         } catch (\Exception $e) {
             Log::error('Failed to delete offboarding process', [
                 'error' => $e->getMessage(),
-                'offboarding_id' => $id
+                'offboarding_id' => $id,
             ]);
+
             return redirect()->back()
                 ->with('error', 'Failed to delete offboarding process.');
         }
@@ -430,6 +434,7 @@ class OnboardingController extends Controller
         $onboardingSteps = OnboardingStep::orderBy('order')->get();
         $offboardingSteps = OffboardingStep::orderBy('order')->get();
         $checklists = Checklist::orderBy('name')->get();
+
         return Inertia::render('HR/Checklists/Index', [
             'title' => 'Onboarding & Offboarding Checklists',
             'onboardingSteps' => $onboardingSteps,
@@ -458,6 +463,7 @@ class OnboardingController extends Controller
             'items' => $data['items'] ?? [],
             'active' => true,
         ]);
+
         return redirect()->back()->with('success', 'Checklist created.');
     }
 
@@ -473,9 +479,10 @@ class OnboardingController extends Controller
             'description' => 'nullable|string',
             'items' => 'nullable|array',
             'items.*.label' => 'required_with:items|string|max:255',
-            'active' => 'sometimes|boolean'
+            'active' => 'sometimes|boolean',
         ]);
         $checklist->update($data);
+
         return redirect()->back()->with('success', 'Checklist updated.');
     }
 
@@ -487,6 +494,7 @@ class OnboardingController extends Controller
         $checklist = Checklist::findOrFail($id);
         $this->authorize('delete', $checklist);
         $checklist->delete();
+
         return redirect()->back()->with('success', 'Checklist deleted.');
     }
 }

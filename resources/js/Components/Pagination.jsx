@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Pagination as MuiPagination } from '@mui/material';
+import { Pagination as HeroUIPagination } from '@heroui/react';
 
 const Pagination = ({ 
     currentPage = 1, 
@@ -7,28 +7,23 @@ const Pagination = ({
     onPageChange, 
     ...props 
 }) => {
-    const handleChange = (event, value) => {
-        if (onPageChange) {
-            onPageChange(value);
-        }
-    };
-
     if (totalPages <= 1) {
         return null;
     }
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <MuiPagination 
-                count={totalPages}
+        <div className="flex justify-center mt-4">
+            <HeroUIPagination 
+                total={totalPages}
                 page={currentPage}
-                onChange={handleChange}
+                onChange={onPageChange}
                 color="primary"
-                variant="outlined"
-                shape="rounded"
+                variant="bordered"
+                showControls
+                isCompact
                 {...props}
             />
-        </Box>
+        </div>
     );
 };
 

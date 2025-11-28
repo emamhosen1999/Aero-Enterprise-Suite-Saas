@@ -1,16 +1,14 @@
 import React from 'react';
 import { 
-    Box, 
     Card, 
-    CardContent, 
+    CardBody, 
     CardHeader, 
     Chip, 
-    CircularProgress, 
+    Spinner, 
     Divider, 
-    LinearProgress, 
-    Typography 
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+    Progress 
+} from '@heroui/react';
+
 import { 
     CheckCircleIcon, 
     ExclamationTriangleIcon, 
@@ -18,12 +16,27 @@ import {
     InformationCircleIcon 
 } from '@heroicons/react/24/outline';
 
+// Theme utility function
+const getThemeRadius = () => {
+    if (typeof window === 'undefined') return 'lg';
+    
+    const rootStyles = getComputedStyle(document.documentElement);
+    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+    
+    const radiusValue = parseInt(borderRadius);
+    if (radiusValue === 0) return 'none';
+    if (radiusValue <= 4) return 'sm';
+    if (radiusValue <= 8) return 'md';
+    if (radiusValue <= 12) return 'lg';
+    return 'xl';
+};
+
 const BulkValidationPreview = ({ 
     validationResults = [], 
     balanceImpact = null,
     isValidating = false 
 }) => {
-    const theme = useTheme();
+
     
     if (validationResults.length === 0 && !isValidating) {
         return null;
@@ -37,16 +50,36 @@ const BulkValidationPreview = ({
 
     // Get status icon and color
     const getStatusIcon = (status) => {
-        const iconProps = { style: { width: 16, height: 16 } };
+        const iconProps = { className: "w-4 h-4" };
         switch (status) {
             case 'valid':
-                return <CheckCircleIcon {...iconProps} style={{ ...iconProps.style, color: theme.palette.success.main }} />;
+                return (
+                    <CheckCircleIcon 
+                        {...iconProps} 
+                        style={{ color: 'var(--theme-success, #22C55E)' }}
+                    />
+                );
             case 'warning':
-                return <ExclamationTriangleIcon {...iconProps} style={{ ...iconProps.style, color: theme.palette.warning.main }} />;
+                return (
+                    <ExclamationTriangleIcon 
+                        {...iconProps} 
+                        style={{ color: 'var(--theme-warning, #F59E0B)' }}
+                    />
+                );
             case 'conflict':
-                return <XCircleIcon {...iconProps} style={{ ...iconProps.style, color: theme.palette.error.main }} />;
+                return (
+                    <XCircleIcon 
+                        {...iconProps} 
+                        style={{ color: 'var(--theme-danger, #EF4444)' }}
+                    />
+                );
             default:
-                return <InformationCircleIcon {...iconProps} style={{ ...iconProps.style, color: theme.palette.text.disabled }} />;
+                return (
+                    <InformationCircleIcon 
+                        {...iconProps} 
+                        style={{ color: 'var(--theme-foreground-400, #A1A1AA)' }}
+                    />
+                );
         }
     };
 
@@ -57,7 +90,7 @@ const BulkValidationPreview = ({
             case 'warning':
                 return 'warning';
             case 'conflict':
-                return 'error';
+                return 'danger';
             default:
                 return 'default';
         }
@@ -72,213 +105,285 @@ const BulkValidationPreview = ({
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div className="flex flex-col gap-3 sm:gap-4">
             {/* Summary Card */}
-            <Card variant="outlined">
-                <CardHeader
-                    title={
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Typography variant="h6">Validation Results</Typography>
-                            {isValidating && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <CircularProgress size={16} />
-                                    <Typography variant="body2" color="text.secondary">
-                                        Validating...
-                                    </Typography>
-                                </Box>
-                            )}
-                        </Box>
-                    }
-                />
-                <CardContent sx={{ pt: 0 }}>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 2 }}>
-                        <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="success.main" fontWeight="bold">
+            <Card 
+                radius={getThemeRadius()}
+                className="shadow-sm border border-divider/50"
+                style={{
+                    borderRadius: `var(--borderRadius, 12px)`,
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    background: `linear-gradient(135deg, 
+                        color-mix(in srgb, var(--theme-content1) 90%, transparent) 40%, 
+                        color-mix(in srgb, var(--theme-content2) 80%, transparent) 60%)`,
+                }}
+            >
+                <CardHeader className="pb-2 px-4 pt-4">
+                    <div className="flex items-center justify-between w-full">
+                        <h3 className="text-base sm:text-lg font-semibold" style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            Validation Results
+                        </h3>
+                        {isValidating && (
+                            <div className="flex items-center gap-2">
+                                <Spinner size="sm" color="primary" />
+                                <span className="text-xs sm:text-sm" style={{
+                                    color: `var(--theme-foreground-600, #71717A)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
+                                    Validating...
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </CardHeader>
+                <CardBody className="pt-0 px-4 pb-4" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
+                        <div className="text-center">
+                            <h4 className="text-lg sm:text-2xl font-bold" style={{
+                                color: `var(--theme-success, #22C55E)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 {validCount}
-                            </Typography>
-                            <Typography variant="body2" color="success.main">
+                            </h4>
+                            <p className="text-xs sm:text-sm" style={{
+                                color: `var(--theme-success, #22C55E)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 Valid
-                            </Typography>
-                        </Box>
-                        <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="warning.main" fontWeight="bold">
+                            </p>
+                        </div>
+                        <div className="text-center">
+                            <h4 className="text-lg sm:text-2xl font-bold" style={{
+                                color: `var(--theme-warning, #F59E0B)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 {warningCount}
-                            </Typography>
-                            <Typography variant="body2" color="warning.main">
+                            </h4>
+                            <p className="text-xs sm:text-sm" style={{
+                                color: `var(--theme-warning, #F59E0B)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 Warnings
-                            </Typography>
-                        </Box>
-                        <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="error.main" fontWeight="bold">
+                            </p>
+                        </div>
+                        <div className="text-center">
+                            <h4 className="text-lg sm:text-2xl font-bold" style={{
+                                color: `var(--theme-danger, #EF4444)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 {conflictCount}
-                            </Typography>
-                            <Typography variant="body2" color="error.main">
+                            </h4>
+                            <p className="text-xs sm:text-sm" style={{
+                                color: `var(--theme-danger, #EF4444)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 Conflicts
-                            </Typography>
-                        </Box>
-                    </Box>
+                            </p>
+                        </div>
+                    </div>
 
                     {/* Balance Impact */}
                     {balanceImpact && (
-                        <Box 
-                            sx={{ 
-                                p: 2, 
-                                borderRadius: 2, 
-                                background: theme.palette.background.paper,
-                                border: `1px solid ${theme.palette.divider}` 
-                            }}
-                        >
-                            <Typography variant="subtitle2" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <InformationCircleIcon style={{ width: 16, height: 16, color: theme.palette.primary.main }} />
+                        <div className="p-3 sm:p-4 rounded-lg border" style={{
+                            background: `var(--theme-content2, #F4F4F5)`,
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            borderRadius: `var(--borderRadius, 8px)`,
+                        }}>
+                            <h4 className="text-xs sm:text-sm font-medium mb-3 sm:mb-4 flex items-center gap-2" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
+                                <InformationCircleIcon 
+                                    className="w-4 h-4" 
+                                    style={{ color: 'var(--theme-primary)' }}
+                                />
                                 Leave Balance Impact
-                            </Typography>
-                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary" component="span">
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                                <div>
+                                    <span className="text-xs sm:text-sm" style={{
+                                        color: `var(--theme-foreground-600, #71717A)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         Leave Type:
-                                    </Typography>
-                                    <Typography variant="body2" fontWeight="medium" component="span" sx={{ ml: 1 }}>
+                                    </span>
+                                    <span className="text-xs sm:text-sm font-medium ml-2" style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         {balanceImpact.leave_type}
-                                    </Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary" component="span">
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-xs sm:text-sm" style={{
+                                        color: `var(--theme-foreground-600, #71717A)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         Current Balance:
-                                    </Typography>
-                                    <Typography variant="body2" fontWeight="medium" component="span" sx={{ ml: 1 }}>
+                                    </span>
+                                    <span className="text-xs sm:text-sm font-medium ml-2" style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         {balanceImpact.current_balance} days
-                                    </Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary" component="span">
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-xs sm:text-sm" style={{
+                                        color: `var(--theme-foreground-600, #71717A)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         Requested Days:
-                                    </Typography>
-                                    <Typography variant="body2" fontWeight="medium" component="span" sx={{ ml: 1 }}>
+                                    </span>
+                                    <span className="text-xs sm:text-sm font-medium ml-2" style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         {balanceImpact.requested_days} days
-                                    </Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary" component="span">
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-xs sm:text-sm" style={{
+                                        color: `var(--theme-foreground-600, #71717A)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         Remaining Balance:
-                                    </Typography>
-                                    <Typography 
-                                        variant="body2" 
-                                        fontWeight="medium" 
-                                        component="span" 
-                                        sx={{ 
-                                            ml: 1,
-                                            color: balanceImpact.remaining_balance < 0 ? 'error.main' : 'success.main'
-                                        }}
-                                    >
+                                    </span>
+                                    <span className={`text-xs sm:text-sm font-medium ml-2`} style={{
+                                        color: balanceImpact.remaining_balance < 0 
+                                            ? 'var(--theme-danger)' 
+                                            : 'var(--theme-success)',
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         {balanceImpact.remaining_balance} days
-                                    </Typography>
-                                </Box>
-                            </Box>
+                                    </span>
+                                </div>
+                            </div>
                             
                             {balanceImpact.remaining_balance < 0 && (
-                                <Box 
-                                    sx={{ 
-                                        mt: 2, 
-                                        p: 1.5, 
-                                        borderRadius: 1, 
-                                        bgcolor: 'error.light',
-                                        border: 1,
-                                        borderColor: 'error.main'
-                                    }}
-                                >
-                                    <Typography variant="body2" color="error.main">
+                                <div className="mt-3 p-2 sm:p-3 rounded-md border" style={{
+                                    background: `color-mix(in srgb, var(--theme-danger) 10%, transparent)`,
+                                    borderColor: `color-mix(in srgb, var(--theme-danger) 20%, transparent)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                }}>
+                                    <p className="text-xs sm:text-sm" style={{
+                                        color: `var(--theme-danger)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         ⚠️ This request exceeds your available leave balance by {Math.abs(balanceImpact.remaining_balance)} days.
-                                    </Typography>
-                                </Box>
+                                    </p>
+                                </div>
                             )}
-                        </Box>
+                        </div>
                     )}
-                </CardContent>
+                </CardBody>
             </Card>
 
             {/* Detailed Results */}
             {validationResults.length > 0 && (
-                <Card variant="outlined">
-                    <CardHeader
-                        title={<Typography variant="h6">Date-by-Date Results</Typography>}
-                    />
-                    <CardContent>
-                        <Box 
-                            sx={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                gap: 1, 
-                                maxHeight: 240, 
-                                overflowY: 'auto' 
-                            }}
-                        >
+                <Card 
+                    radius={getThemeRadius()}
+                    className="shadow-sm border border-divider/50"
+                    style={{
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                        background: `linear-gradient(135deg, 
+                            color-mix(in srgb, var(--theme-content1) 90%, transparent) 40%, 
+                            color-mix(in srgb, var(--theme-content2) 80%, transparent) 60%)`,
+                    }}
+                >
+                    <CardHeader className="px-4 pt-4 pb-2">
+                        <h3 className="text-base sm:text-lg font-semibold" style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            Date-by-Date Results
+                        </h3>
+                    </CardHeader>
+                    <CardBody className="px-4 pb-4 pt-0" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        <div className="flex flex-col gap-2 max-h-40 overflow-y-auto">
                             {validationResults.map((result, index) => (
-                                <Box 
+                                <div 
                                     key={index}
-                                    sx={{ 
-                                        display: 'flex', 
-                                        alignItems: 'flex-start', 
-                                        justifyContent: 'space-between', 
-                                        p: 2, 
-                                        borderRadius: 2, 
-                                        border: 1,
-                                        borderColor: 'divider',
-                                        '&:hover': {
-                                            borderColor: 'text.secondary'
-                                        },
-                                        transition: 'border-color 0.2s'
+                                    className="flex items-start justify-between p-3 rounded-lg border transition-colors"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.borderColor = 'var(--theme-divider-hover, #D4D4D8)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.borderColor = 'var(--theme-divider, #E4E4E7)';
                                     }}
                                 >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <div className="flex items-center gap-2 sm:gap-3">
                                         {getStatusIcon(result.status)}
-                                        <Box>
-                                            <Typography variant="body2" fontWeight="medium">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium" style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}>
                                                 {formatDate(result.date)}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
+                                            </p>
+                                            <p className="text-xs opacity-75" style={{
+                                                color: `var(--theme-foreground-500, #71717A)`,
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}>
                                                 {result.date}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
+                                            </p>
+                                        </div>
+                                    </div>
                                     
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                                    <div className="flex flex-col items-end gap-1">
                                         <Chip 
-                                            size="small" 
-                                            variant="outlined" 
+                                            size="sm" 
+                                            variant="bordered" 
                                             color={getStatusColor(result.status)}
-                                            label={result.status}
-                                            sx={{ textTransform: 'capitalize' }}
-                                        />
+                                            radius={getThemeRadius()}
+                                            className="capitalize text-xs"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            {result.status}
+                                        </Chip>
                                         
                                         {/* Errors */}
                                         {result.errors && result.errors.length > 0 && (
-                                            <Box sx={{ textAlign: 'right' }}>
+                                            <div className="text-right">
                                                 {result.errors.map((error, errorIndex) => (
-                                                    <Typography key={errorIndex} variant="caption" color="error.main">
+                                                    <p key={errorIndex} className="text-xs" style={{
+                                                        color: `var(--theme-danger)`,
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}>
                                                         {error}
-                                                    </Typography>
+                                                    </p>
                                                 ))}
-                                            </Box>
+                                            </div>
                                         )}
                                         
                                         {/* Warnings */}
                                         {result.warnings && result.warnings.length > 0 && (
-                                            <Box sx={{ textAlign: 'right' }}>
+                                            <div className="text-right">
                                                 {result.warnings.map((warning, warningIndex) => (
-                                                    <Typography key={warningIndex} variant="caption" color="warning.main">
+                                                    <p key={warningIndex} className="text-xs" style={{
+                                                        color: `var(--theme-warning)`,
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}>
                                                         {warning}
-                                                    </Typography>
+                                                    </p>
                                                 ))}
-                                            </Box>
+                                            </div>
                                         )}
-                                    </Box>
-                                </Box>
+                                    </div>
+                                </div>
                             ))}
-                        </Box>
-                    </CardContent>
+                        </div>
+                    </CardBody>
                 </Card>
             )}
-        </Box>
+        </div>
     );
 };
 

@@ -127,7 +127,7 @@ class TrainingController extends Controller
             'department',
             'creator',
             'materials',
-            'enrollments.user'
+            'enrollments.user',
         ])->findOrFail($id);
 
         // Check if current user is enrolled
@@ -142,7 +142,7 @@ class TrainingController extends Controller
             'training' => $training,
             'userEnrollment' => $userEnrollment,
             'attachments' => $training->getMedia('training_attachments'),
-            'canEnroll' => $training->status === 'active' && !$training->isFull(),
+            'canEnroll' => $training->status === 'active' && ! $training->isFull(),
             'availableSpots' => $training->availableSpots(),
         ]);
     }
@@ -489,7 +489,7 @@ class TrainingController extends Controller
         }
 
         // If marking as completed, set completion date if not provided
-        if ($request->status === 'completed' && !$request->completion_date) {
+        if ($request->status === 'completed' && ! $request->completion_date) {
             $validated['completion_date'] = now();
         }
 

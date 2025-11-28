@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 abstract class BaseAttendanceValidator
 {
     protected $attendanceType;
+
     protected $request;
 
     public function __construct($attendanceType, Request $request)
@@ -49,8 +50,8 @@ abstract class BaseAttendanceValidator
     {
         $lat = $this->request->input('lat');
         $lng = $this->request->input('lng');
-        
-        if (!$lat || !$lng) {
+
+        if (! $lat || ! $lng) {
             return null;
         }
 
@@ -58,7 +59,7 @@ abstract class BaseAttendanceValidator
             'lat' => $lat,
             'lng' => $lng,
             'address' => $this->request->input('address', ''),
-            'timestamp' => now()->toISOString()
+            'timestamp' => now()->toISOString(),
         ];
     }
 
@@ -70,7 +71,7 @@ abstract class BaseAttendanceValidator
         return [
             'status' => 'success',
             'message' => $message,
-            'data' => $data
+            'data' => $data,
         ];
     }
 
@@ -82,7 +83,7 @@ abstract class BaseAttendanceValidator
         return [
             'status' => 'error',
             'message' => $message,
-            'code' => $code
+            'code' => $code,
         ];
     }
 }

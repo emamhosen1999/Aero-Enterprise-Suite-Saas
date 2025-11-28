@@ -1,25 +1,34 @@
 import React, {useState} from 'react';
 import {
-    Box,
     Button,
-    CardContent,
-    CircularProgress,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Grid,
-    IconButton,
-    TextField,
-    Typography
-} from '@mui/material';
-import {Add, Clear as ClearIcon} from '@mui/icons-material';
-import {LoadingButton} from '@mui/lab';
+    Input,
+    Spinner,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
+} from '@heroui/react';
+import { Plus, X, Briefcase } from 'lucide-react';
 import GlassCard from '@/Components/GlassCard'; // Ensure this component is correctly imported
-import GlassDialog from '@/Components/GlassDialog.jsx'; // Ensure this component is correctly imported
-import {useTheme} from '@mui/material/styles';
-import {toast} from 'react-toastify';
+import { showToast } from '@/utils/toastUtils';
 
 const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
     const [updatedUser, setUpdatedUser] = useState({
         id: user.id
     });
@@ -27,7 +36,6 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
     const [experienceList, setExperienceList] = useState(user.experiences.length > 0 ? user.experiences : [{ company_name: "", location: "", job_position: "", period_from: "", period_to: "", description: "" }]);
     const [errors, setErrors] = useState({});
     const [processing, setProcessing] = useState(false);
-    const theme = useTheme();
 
     const handleExperienceChange = (index, field, value) => {
         const updatedList = [...experienceList];
@@ -111,24 +119,24 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                 }
             });
 
-            toast.promise(
+            showToast.promise(
                 promise,
                 {
                     pending: {
                         render() {
                             return (
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <CircularProgress />
-                                    <span style={{ marginLeft: '8px' }}>Deleting experience record ...</span>
+                                <div className="flex items-center">
+                                    <Spinner size="sm" />
+                                    <span className="ml-2">Deleting experience record ...</span>
                                 </div>
                             );
                         },
                         icon: false,
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)'
                         }
                     },
                     success: {
@@ -138,9 +146,9 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                         icon: '🟢',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)'
                         }
                     },
                     error: {
@@ -150,9 +158,9 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)'
                         }
                     }
                 }
@@ -197,24 +205,24 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
             }
         });
 
-        toast.promise(
+        showToast.promise(
             promise,
             {
                 pending: {
                     render() {
                         return (
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <CircularProgress />
-                                <span style={{ marginLeft: '8px' }}>Updating experience records ...</span>
+                            <div className="flex items-center">
+                                <Spinner size="sm" />
+                                <span className="ml-2">Updating experience records ...</span>
                             </div>
                         );
                     },
                     icon: false,
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)'
                     }
                 },
                 success: {
@@ -230,9 +238,9 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     },
                 },
                 error: {
@@ -242,9 +250,9 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)'
                     }
                 }
             }
@@ -256,136 +264,227 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
     };
 
     return (
-        <GlassDialog open={open} onClose={closeModal} maxWidth="md" fullWidth>
-            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-                <Typography>Experience Information</Typography>
-                <IconButton
-                    onClick={closeModal}
-                    sx={{ position: "absolute", top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
+        <Modal
+            isOpen={open}
+            onOpenChange={processing ? undefined : closeModal}
+            size="3xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "bg-content1",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+            }}
+            style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}
+        >
+            <ModalContent>
+                <ModalHeader className="flex gap-3 items-center" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderBottom: '1px solid var(--theme-divider)'
+                }}>
+                    <div className="p-2 rounded-lg" style={{
+                        background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                        borderRadius: `var(--borderRadius, 8px)`,
+                    }}>
+                        <Briefcase size={20} style={{ color: 'var(--theme-primary)' }} />
+                    </div>
+                    <span className="text-lg font-semibold" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        Experience Information
+                    </span>
+                </ModalHeader>
             <form onSubmit={handleSubmit}>
-                <DialogContent>
-                    <Box>
-                        <Grid container spacing={2}>
-                            {experienceList.map((experience, index) => (
-                                <Grid item xs={12} key={index}>
-                                    <GlassCard>
-                                        <CardContent>
-                                            <Typography variant="h6" gutterBottom>
-                                                {'Experience #' + (index + 1)}
-                                                <IconButton
-                                                    onClick={() => handleExperienceRemove(index)}
-                                                    sx={{ position: "absolute", top: 8, right: 16 }}
-                                                >
-                                                    <ClearIcon />
-                                                </IconButton>
-                                            </Typography>
-                                            <Grid container spacing={2}>
-                                                <Grid item xs={12} md={6}>
-                                                    <TextField
-                                                        label="Company"
-                                                        fullWidth
-                                                        value={experience.company_name || ''}
-                                                        onChange={(e) => handleExperienceChange(index, 'company_name', e.target.value)}
-                                                        error={Boolean(errors[`experiences.${index}.company_name`])}
-                                                        helperText={errors[`experiences.${index}.company_name`] ? errors[`experiences.${index}.company_name`][0] : ''}
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12} md={6}>
-                                                    <TextField
-                                                        label="Location"
-                                                        fullWidth
-                                                        value={experience.location || ''}
-                                                        onChange={(e) => handleExperienceChange(index, 'location', e.target.value)}
-                                                        error={Boolean(errors[`experiences.${index}.location`])}
-                                                        helperText={errors[`experiences.${index}.location`] ? errors[`experiences.${index}.location`][0] : ''}
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12} md={6}>
-                                                    <TextField
-                                                        label="Role"
-                                                        fullWidth
-                                                        value={experience.job_position || ''}
-                                                        onChange={(e) => handleExperienceChange(index, 'job_position', e.target.value)}
-                                                        error={Boolean(errors[`experiences.${index}.job_position`])}
-                                                        helperText={errors[`experiences.${index}.job_position`] ? errors[`experiences.${index}.job_position`][0] : ''}
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12} md={6}>
-                                                    <TextField
-                                                        label="Started From"
-                                                        type="date"
-                                                        fullWidth
-                                                        InputLabelProps={{ shrink: true }}
-                                                        value={experience.period_from || ''}
-                                                        onChange={(e) => handleExperienceChange(index, 'period_from', e.target.value)}
-                                                        error={Boolean(errors[`experiences.${index}.period_from`])}
-                                                        helperText={errors[`experiences.${index}.period_from`] ? errors[`experiences.${index}.period_from`][0] : ''}
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12} md={6}>
-                                                    <TextField
-                                                        label="Ended On"
-                                                        type="date"
-                                                        fullWidth
-                                                        InputLabelProps={{ shrink: true }}
-                                                        value={experience.period_to || ''}
-                                                        onChange={(e) => handleExperienceChange(index, 'period_to', e.target.value)}
-                                                        error={Boolean(errors[`experiences.${index}.period_to`])}
-                                                        helperText={errors[`experiences.${index}.period_to`] ? errors[`experiences.${index}.period_to`][0] : ''}
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12}>
-                                                    <TextField
-                                                        label="Responsibilities"
-                                                        fullWidth
-                                                        multiline
-                                                        rows={3}
-                                                        value={experience.description || ''}
-                                                        onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
-                                                        error={Boolean(errors[`experiences.${index}.description`])}
-                                                        helperText={errors[`experiences.${index}.description`] ? errors[`experiences.${index}.description`][0] : ''}
-                                                    />
-                                                </Grid>
-                                            </Grid>
-                                        </CardContent>
-                                    </GlassCard>
-                                </Grid>
-                            ))}
-                        </Grid>
-                        <Button size="small" color="error" sx={{ mt: 2 }} onClick={handleAddMore}>
-                            <Add/> Add More
+                <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <div className="space-y-4">
+                        {experienceList.map((experience, index) => (
+                            <div key={index}>
+                                <GlassCard>
+                                    <div className="p-4 relative">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                                                Experience #{index + 1}
+                                            </h4>
+                                            <Button
+                                                isIconOnly
+                                                variant="light"
+                                                onPress={() => handleExperienceRemove(index)}
+                                                className="text-red-500 hover:text-red-700"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                            >
+                                                <X size={16} />
+                                            </Button>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <Input
+                                                    label="Company"
+                                                    value={experience.company_name || ''}
+                                                    onChange={(e) => handleExperienceChange(index, 'company_name', e.target.value)}
+                                                    isInvalid={Boolean(errors[`experiences.${index}.company_name`])}
+                                                    errorMessage={errors[`experiences.${index}.company_name`] ? errors[`experiences.${index}.company_name`][0] : ''}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                    style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Input
+                                                    label="Location"
+                                                    value={experience.location || ''}
+                                                    onChange={(e) => handleExperienceChange(index, 'location', e.target.value)}
+                                                    isInvalid={Boolean(errors[`experiences.${index}.location`])}
+                                                    errorMessage={errors[`experiences.${index}.location`] ? errors[`experiences.${index}.location`][0] : ''}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                    style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Input
+                                                    label="Role"
+                                                    value={experience.job_position || ''}
+                                                    onChange={(e) => handleExperienceChange(index, 'job_position', e.target.value)}
+                                                    isInvalid={Boolean(errors[`experiences.${index}.job_position`])}
+                                                    errorMessage={errors[`experiences.${index}.job_position`] ? errors[`experiences.${index}.job_position`][0] : ''}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                    style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Input
+                                                    label="Started From"
+                                                    type="date"
+                                                    value={experience.period_from || ''}
+                                                    onChange={(e) => handleExperienceChange(index, 'period_from', e.target.value)}
+                                                    isInvalid={Boolean(errors[`experiences.${index}.period_from`])}
+                                                    errorMessage={errors[`experiences.${index}.period_from`] ? errors[`experiences.${index}.period_from`][0] : ''}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                    style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Input
+                                                    label="Ended On"
+                                                    type="date"
+                                                    value={experience.period_to || ''}
+                                                    onChange={(e) => handleExperienceChange(index, 'period_to', e.target.value)}
+                                                    isInvalid={Boolean(errors[`experiences.${index}.period_to`])}
+                                                    errorMessage={errors[`experiences.${index}.period_to`] ? errors[`experiences.${index}.period_to`][0] : ''}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                    style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="col-span-full">
+                                                <Input
+                                                    label="Responsibilities"
+                                                    value={experience.description || ''}
+                                                    onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                                                    isInvalid={Boolean(errors[`experiences.${index}.description`])}
+                                                    errorMessage={errors[`experiences.${index}.description`] ? errors[`experiences.${index}.description`][0] : ''}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                    style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </GlassCard>
+                            </div>
+                        ))}
+                        <Button 
+                            size="sm" 
+                            color="danger" 
+                            variant="bordered"
+                            onPress={handleAddMore}
+                            startContent={<Plus size={16} />}
+                            radius={getThemeRadius()}
+                        >
+                            Add More
                         </Button>
-                    </Box>
-                </DialogContent>
-                <DialogActions
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '16px',
-                    }}
-                >
-                    <LoadingButton
-                        disabled={!dataChanged}
-                        sx={{
-                            borderRadius: '50px',
-                            padding: '6px 16px',
+                    </div>
+                </ModalBody>
+                <ModalFooter style={{
+                    borderTop: '1px solid var(--theme-divider)',
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <Button
+                        onPress={closeModal}
+                        isDisabled={processing}
+                        variant="light"
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
                         }}
-                        size="large"
-                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        isDisabled={!dataChanged}
+                        variant="bordered"
                         color="primary"
                         type="submit"
-                        loading={processing}
+                        isLoading={processing}
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
                     >
                         Submit
-                    </LoadingButton>
-                </DialogActions>
+                    </Button>
+                </ModalFooter>
             </form>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
     );
 };
 

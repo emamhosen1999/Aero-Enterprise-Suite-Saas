@@ -2,10 +2,10 @@
 
 namespace App\Models\Compliance;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 class AuditFinding extends Model
 {
@@ -32,7 +32,7 @@ class AuditFinding extends Model
         'verifier_id',
         'closure_notes',
         'recurrence_risk',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -40,34 +40,49 @@ class AuditFinding extends Model
         'completion_date' => 'date',
         'verification_date' => 'date',
         'evidence' => 'json',
-        'metadata' => 'json'
+        'metadata' => 'json',
     ];
 
     // Severity constants
     const SEVERITY_CRITICAL = 'critical';
+
     const SEVERITY_MAJOR = 'major';
+
     const SEVERITY_MINOR = 'minor';
+
     const SEVERITY_OBSERVATION = 'observation';
 
     // Status constants
     const STATUS_OPEN = 'open';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_PENDING_VERIFICATION = 'pending_verification';
+
     const STATUS_CLOSED = 'closed';
+
     const STATUS_OVERDUE = 'overdue';
 
     // Category constants
     const CATEGORY_DOCUMENTATION = 'documentation';
+
     const CATEGORY_PROCESS = 'process';
+
     const CATEGORY_TRAINING = 'training';
+
     const CATEGORY_RESOURCE = 'resource';
+
     const CATEGORY_SYSTEM = 'system';
+
     const CATEGORY_MANAGEMENT = 'management';
+
     const CATEGORY_REGULATORY = 'regulatory';
 
     // Recurrence risk constants
     const RECURRENCE_LOW = 'low';
+
     const RECURRENCE_MEDIUM = 'medium';
+
     const RECURRENCE_HIGH = 'high';
 
     /**
@@ -100,7 +115,7 @@ class AuditFinding extends Model
     public function isOverdue(): bool
     {
         return $this->due_date < now() &&
-            !in_array($this->status, [self::STATUS_CLOSED, self::STATUS_PENDING_VERIFICATION]);
+            ! in_array($this->status, [self::STATUS_CLOSED, self::STATUS_PENDING_VERIFICATION]);
     }
 
     /**
@@ -111,6 +126,7 @@ class AuditFinding extends Model
         if ($this->due_date) {
             return now()->diffInDays($this->due_date, false);
         }
+
         return 0;
     }
 

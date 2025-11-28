@@ -34,7 +34,7 @@ class KPI extends Model
         'formula',
         'data_source',
         'responsible_user_id',
-        'status'
+        'status',
     ];
 
     /**

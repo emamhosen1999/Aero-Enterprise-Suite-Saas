@@ -19,21 +19,22 @@ class SendAttendanceReminders extends Command
     public function handle()
     {
         $startTime = microtime(true);
-        $this->info('🚀 Starting attendance reminders at ' . now()->toDateTimeString());
+        $this->info('🚀 Starting attendance reminders at '.now()->toDateTimeString());
         Log::info('Starting attendance reminders process');
 
         try {
             // Get the active attendance setting
             $attendanceSetting = AttendanceSetting::first();
 
-            if (!$attendanceSetting) {
+            if (! $attendanceSetting) {
                 $message = 'No active attendance setting found. Please configure attendance settings first.';
                 $this->error($message);
                 Log::error($message);
+
                 return 1; // Exit with error code
             }
 
-            $this->info("ℹ️ Using attendance setting ID: " . $attendanceSetting->id);
+            $this->info('ℹ️ Using attendance setting ID: '.$attendanceSetting->id);
 
             // Handle test mode
             if ($this->option('test') || $this->option('user-id')) {
@@ -57,6 +58,7 @@ class SendAttendanceReminders extends Command
                         if (empty($user->fcm_token)) {
                             $skippedCount++;
                             $this->warn("Skipping user {$user->id}: No FCM token");
+
                             continue;
                         }
 
@@ -78,18 +80,19 @@ class SendAttendanceReminders extends Command
                 'execution_time_seconds' => $executionTime,
             ];
 
-            $this->info("\n📊 Summary:" . json_encode($summary, JSON_PRETTY_PRINT));
+            $this->info("\n📊 Summary:".json_encode($summary, JSON_PRETTY_PRINT));
             Log::info('Attendance reminders dispatched successfully', $summary);
 
             return 0; // Success
 
         } catch (\Exception $e) {
-            $errorMessage = 'Error in attendance:reminders command: ' . $e->getMessage();
+            $errorMessage = 'Error in attendance:reminders command: '.$e->getMessage();
             $this->error($errorMessage);
             Log::error($errorMessage, [
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return 1; // Exit with error code
         }
     }
@@ -104,8 +107,9 @@ class SendAttendanceReminders extends Command
         if ($userId) {
             $user = User::find($userId);
 
-            if (!$user) {
+            if (! $user) {
                 $this->error("User with ID {$userId} not found");
+
                 return 1;
             }
 
@@ -116,8 +120,9 @@ class SendAttendanceReminders extends Command
                 ->whereNotNull('fcm_token')
                 ->first();
 
-            if (!$user) {
+            if (! $user) {
                 $this->error('No active users with FCM tokens found for testing');
+
                 return 1;
             }
 

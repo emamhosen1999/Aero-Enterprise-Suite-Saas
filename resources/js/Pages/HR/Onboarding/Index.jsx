@@ -18,7 +18,7 @@ export default function OnboardingIndex() {
 
   const renderProgress = (p) => (
     <div className="flex items-center gap-2">
-      <div className="w-28 h-2 bg-gray-200 rounded overflow-hidden">
+      <div className="w-28 h-2 bg-gray-200 rounded-sm overflow-hidden">
         <div className="h-full bg-blue-500" style={{ width: `${p || 0}%` }} />
       </div>
       <span className="text-xs tabular-nums w-10">{p ?? 0}%</span>
@@ -35,7 +35,7 @@ export default function OnboardingIndex() {
           <Link href={route('hr.onboarding.create')} className="btn btn-primary">New Onboarding</Link>
         </div>
       </div>
-      <div className="bg-white rounded shadow divide-y">
+      <div className="bg-white rounded-sm shadow-sm divide-y">
         <div className="grid grid-cols-6 px-4 py-2 text-xs font-semibold tracking-wide text-gray-600 uppercase">
           <div>ID</div>
           <div>Employee</div>
@@ -48,7 +48,7 @@ export default function OnboardingIndex() {
           <div className="p-4 text-sm text-gray-500">No onboarding processes found.</div>
         )}
         {onboardings?.data?.map(o => (
-          <Link key={o.id} href={route('hr.onboarding.show', o.id)} className="block hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition">
+          <Link key={o.id} href={route('hr.onboarding.show', o.id)} className="block hover:bg-gray-50 focus:bg-gray-50 focus:outline-hidden transition">
             <div className="grid grid-cols-6 px-4 py-2 text-sm items-center">
               <div className="font-medium">#{o.id}</div>
               <div className="truncate" title={o.employee?.name}>{o.employee?.name || '—'}</div>
@@ -67,7 +67,7 @@ export default function OnboardingIndex() {
             <Link
               key={i}
               href={l.url || '#'}
-              className={`px-3 py-1 rounded border text-sm ${l.active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 border-gray-300'} ${!l.url ? 'opacity-40 cursor-not-allowed' : ''}`}
+              className={`px-3 py-1 rounded-sm border text-sm ${l.active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-50 border-gray-300'} ${!l.url ? 'opacity-40 cursor-not-allowed' : ''}`}
               dangerouslySetInnerHTML={{ __html: l.label }}
             />
           ))}

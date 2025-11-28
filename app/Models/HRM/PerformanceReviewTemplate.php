@@ -19,7 +19,7 @@ class PerformanceReviewTemplate extends Model
         'status',
         'created_by',
         'default_for_department_id',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [

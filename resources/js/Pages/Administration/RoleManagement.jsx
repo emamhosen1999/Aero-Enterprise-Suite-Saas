@@ -1,36 +1,24 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Head, usePage, router } from "@inertiajs/react";
-import { 
-  Box, 
-  Typography, 
-  useMediaQuery, 
-  Grow, 
-  Fade,
-  useTheme,
-  Grid,
-  CircularProgress,
-  Tooltip,
-  Snackbar,
-  Alert,
-  Divider,
-  Tabs,
-  Tab,
-  FormControlLabel,
-  Checkbox
-} from '@mui/material';
-import LoadingButton from "@mui/lab/LoadingButton";
+import { motion } from 'framer-motion';
 import { 
   Button,
-  Input,
   Chip,
   Card,
   CardBody,
   CardHeader,
   Select,
   SelectItem,
+  Input,
+  Checkbox,
+  Divider,
+  Tabs,
+  Tab,
+  Spinner,
+  Tooltip,
+  Progress,
   Textarea,
   Spacer,
-  Progress,
   Modal,
   ModalContent,
   ModalHeader,
@@ -39,6 +27,8 @@ import {
   useDisclosure,
   Switch
 } from "@heroui/react";
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import useMediaQuery from '@/Hooks/useMediaQuery';
 import { 
   UserGroupIcon, 
   KeyIcon,
@@ -57,17 +47,17 @@ import {
   EyeSlashIcon,
   ArrowPathIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  CogIcon,
-  TrashIcon as TrashIconOutline
+  XCircleIcon
 } from "@heroicons/react/24/outline";
 import GlassCard from '@/Components/GlassCard.jsx';
 import GlassDialog from '@/Components/GlassDialog.jsx';
-import PageHeader from '@/Components/PageHeader.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
+import RolesTable from '@/Tables/RolesTable.jsx';
+import PermissionsTable from '@/Tables/PermissionsTable.jsx';
+import UserRolesTable from '@/Tables/UserRolesTable.jsx';
 import App from '@/Layouts/App.jsx';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastUtils';
 
 // Utility functions
 const normalizeArray = (arr) => Array.isArray(arr) ? [...arr] : [];
@@ -156,12 +146,28 @@ const RoleManagement = (props) => {
     const users = props.users || [];
 
     // Refs for performance optimization
-    const abortControllerRef = useRef(null);
+    const permissionAbortControllers = useRef(new Map()); // Per-permission abort controllers
+    const moduleAbortControllers = useRef(new Map()); // Per-module abort controllers
     const lastUpdateRef = useRef(Date.now());
     
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    // Theme and responsive hooks
+    const { themeSettings } = useTheme();
+    const isDark = themeSettings?.mode === 'dark';
+    const isMobile = useMediaQuery('(max-width: 640px)');
+    const isTablet = useMediaQuery('(max-width: 768px)');
+    
+    // Helper function to get theme-aware radius for HeroUI components
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
     
     // Main tab management
     const [activeTab, setActiveTab] = useState(0);
@@ -200,7 +206,6 @@ const RoleManagement = (props) => {
     const [permissionSearchQuery, setPermissionSearchQuery] = useState('');
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [roleStatusFilter, setRoleStatusFilter] = useState('all');
-    const [moduleFilter, setModuleFilter] = useState('all');
     const [userRoleFilter, setUserRoleFilter] = useState('all');
     const debouncedRoleSearch = useDebounce(roleSearchQuery, 300);
     const debouncedPermissionSearch = useDebounce(permissionSearchQuery, 300);
@@ -347,19 +352,17 @@ const RoleManagement = (props) => {
         });
     }, [roles, debouncedRoleSearch, roleStatusFilter]);
 
+    // Permissions are independent - no module filter, only search by name/description
     const filteredPermissions = useMemo(() => {
         return permissions.filter(permission => {
             const matchesSearch = debouncedPermissionSearch === '' || 
                 (permission.name && permission.name.toLowerCase().includes(debouncedPermissionSearch.toLowerCase())) ||
-                (permission.display_name && permission.display_name.toLowerCase().includes(debouncedPermissionSearch.toLowerCase()));
+                (permission.display_name && permission.display_name.toLowerCase().includes(debouncedPermissionSearch.toLowerCase())) ||
+                (permission.description && permission.description.toLowerCase().includes(debouncedPermissionSearch.toLowerCase()));
             
-            const matchesModule = moduleFilter === 'all' || 
-                permission.module === moduleFilter ||
-                (permission.name && permission.name.startsWith(moduleFilter));
-            
-            return matchesSearch && matchesModule;
+            return matchesSearch;
         });
-    }, [permissions, debouncedPermissionSearch, moduleFilter]);
+    }, [permissions, debouncedPermissionSearch]);
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
@@ -507,11 +510,6 @@ const RoleManagement = (props) => {
         setRolePage(0);
     }, []);
 
-    const handleModuleFilterChange = useCallback((value) => {
-        setModuleFilter(value);
-        setPermissionPage(0);
-    }, []);
-
     const handleUserRoleFilterChange = useCallback((value) => {
         setUserRoleFilter(value);
         setUserPage(0);
@@ -519,6 +517,7 @@ const RoleManagement = (props) => {
 
     // Enhanced modal handlers
     const openRoleModal = useCallback((role = null) => {
+        console.log('Opening role modal for role:', role);
         setEditingRole(role);
         setRoleForm({
             name: role?.name || '',
@@ -618,7 +617,7 @@ const RoleManagement = (props) => {
         
         try {
             await axios.delete(`/api/roles/${roleToDelete.id}`);
-            toast.success('Role deleted successfully');
+            showToast.success('Role deleted successfully');
             setSuccessMessage('Role deleted successfully');
             setConfirmDeleteOpen(false);
             setRoleToDelete(null);
@@ -626,7 +625,7 @@ const RoleManagement = (props) => {
         } catch (error) {
             console.error('Error deleting role:', error);
             const errorMsg = error.response?.data?.message || 'Failed to delete role';
-            toast.error(errorMsg);
+            showToast.error(errorMsg);
             setErrorMessage(errorMsg);
         } finally {
             setIsLoading(false);
@@ -640,7 +639,7 @@ const RoleManagement = (props) => {
         
         try {
             await axios.delete(`/api/permissions/${permissionToDelete.id}`);
-            toast.success('Permission deleted successfully');
+            showToast.success('Permission deleted successfully');
             setSuccessMessage('Permission deleted successfully');
             setConfirmDeleteOpen(false);
             setPermissionToDelete(null);
@@ -648,7 +647,7 @@ const RoleManagement = (props) => {
         } catch (error) {
             console.error('Error deleting permission:', error);
             const errorMsg = error.response?.data?.message || 'Failed to delete permission';
-            toast.error(errorMsg);
+            showToast.error(errorMsg);
             setErrorMessage(errorMsg);
         } finally {
             setIsLoading(false);
@@ -688,11 +687,11 @@ const RoleManagement = (props) => {
             if (response.status === 200 || response.status === 201) {
                 if (editingRole) {
                     setRoles(prev => prev.map(r => r.id === editingRole.id ? response.data.role : r));
-                    toast.success('Role updated successfully');
+                    showToast.success('Role updated successfully');
                     setSuccessMessage('Role updated successfully');
                 } else {
                     setRoles(prev => [...prev, response.data.role]);
-                    toast.success('Role created successfully');
+                    showToast.success('Role created successfully');
                     setSuccessMessage('Role created successfully');
                 }
                 
@@ -715,7 +714,7 @@ const RoleManagement = (props) => {
                 setFormErrors(error.response.data.errors);
             } else {
                 const errorMsg = error.response?.data?.message || 'Failed to save role';
-                toast.error(errorMsg);
+                showToast.error(errorMsg);
                 setErrorMessage(errorMsg);
             }
             
@@ -759,10 +758,10 @@ const RoleManagement = (props) => {
             if (response.status === 200 || response.status === 201) {
                 if (editingPermission) {
                     setPermissions(prev => prev.map(p => p.id === editingPermission.id ? response.data.permission : p));
-                    toast.success('Permission updated successfully');
+                    showToast.success('Permission updated successfully');
                 } else {
                     setPermissions(prev => [...prev, response.data.permission]);
-                    toast.success('Permission created successfully');
+                    showToast.success('Permission created successfully');
                 }
                 
                 closePermissionModal();
@@ -775,7 +774,7 @@ const RoleManagement = (props) => {
                 setFormErrors(error.response.data.errors);
             } else {
                 const errorMsg = error.response?.data?.message || 'Failed to save permission';
-                toast.error(errorMsg);
+                showToast.error(errorMsg);
                 setErrorMessage(errorMsg);
             }
         } finally {
@@ -796,14 +795,14 @@ const RoleManagement = (props) => {
 
             if (response.status === 200) {
                 setRolePermissions(response.data.role_has_permissions);
-                toast.success('Role permissions updated successfully');
+                showToast.success('Role permissions updated successfully');
                 closeRolePermissionModal();
                 lastUpdateRef.current = Date.now();
             }
         } catch (error) {
             console.error('Error updating role permissions:', error);
             const errorMsg = error.response?.data?.message || 'Failed to update role permissions';
-            toast.error(errorMsg);
+            showToast.error(errorMsg);
             setErrorMessage(errorMsg);
         } finally {
             setIsLoading(false);
@@ -822,7 +821,7 @@ const RoleManagement = (props) => {
             });
 
             if (response.status === 200) {
-                toast.success('User roles updated successfully');
+                showToast.success('User roles updated successfully');
                 closeUserRoleModal();
                 // Optionally refresh user data here
                 lastUpdateRef.current = Date.now();
@@ -830,21 +829,26 @@ const RoleManagement = (props) => {
         } catch (error) {
             console.error('Error updating user roles:', error);
             const errorMsg = error.response?.data?.message || 'Failed to update user roles';
-            toast.error(errorMsg);
+            showToast.error(errorMsg);
             setErrorMessage(errorMsg);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Enhanced toggle permission with better state management and error handling
+    // Enhanced toggle permission with independent state management and error handling
     const togglePermission = useCallback(async (permissionName) => {
-        if (!activeRole || isLoading) return;
+        if (!activeRole) return;
+        
+        // Check if this specific permission is already loading
+        if (loadingStates.permissions[permissionName] === LOADING_STATES.LOADING) return;
 
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
+        // Cancel only this permission's previous request (if any)
+        if (permissionAbortControllers.current.has(permissionName)) {
+            permissionAbortControllers.current.get(permissionName).abort();
         }
-        abortControllerRef.current = new AbortController();
+        const controller = new AbortController();
+        permissionAbortControllers.current.set(permissionName, controller);
 
         setLoadingStates(prev => ({
             ...prev,
@@ -860,48 +864,53 @@ const RoleManagement = (props) => {
                 permission: permissionName,
                 action: action
             }, {
-                signal: abortControllerRef.current.signal
+                signal: controller.signal
             });
 
             if (response.status === 200) {
-                // Prefer server-authoritative data if provided
-                if (response.data.role_has_permissions) {
-                    setRolePermissions(response.data.role_has_permissions);
-                    const updated = response.data.role_has_permissions
-                        .filter(rp => rp.role_id === activeRole.id)
-                        .map(rp => rp.permission_id);
-                    setSelectedPermissions(new Set(updated));
-                } else {
-                    // Fallback to optimistic update
-                    const permission = permissions.find(p => p.name === permissionName);
-                    if (permission) {
-                        if (hasPermission) {
-                            setRolePermissions(prev => prev.filter(rp => !(rp.role_id === activeRole.id && rp.permission_id === permission.id)));
-                            setSelectedPermissions(prev => { const ns = new Set(prev); ns.delete(permission.id); return ns; });
-                        } else {
-                            setRolePermissions(prev => [...prev, { role_id: activeRole.id, permission_id: permission.id }]);
-                            setSelectedPermissions(prev => new Set([...prev, permission.id]));
+                    // Prefer server-authoritative data if provided
+                    if (response.data.role_has_permissions) {
+                        setRolePermissions(response.data.role_has_permissions);
+                        const updated = response.data.role_has_permissions
+                            .filter(rp => rp.role_id === activeRole.id)
+                            .map(rp => rp.permission_id);
+                        setSelectedPermissions(new Set(updated));
+                    } else {
+                        // Fallback to optimistic update
+                        const permission = permissions.find(p => p.name === permissionName);
+                        if (permission) {
+                            if (hasPermission) {
+                                setRolePermissions(prev => prev.filter(rp => !(rp.role_id === activeRole.id && rp.permission_id === permission.id)));
+                                setSelectedPermissions(prev => { const ns = new Set(prev); ns.delete(permission.id); return ns; });
+                            } else {
+                                setRolePermissions(prev => [...prev, { role_id: activeRole.id, permission_id: permission.id }]);
+                                setSelectedPermissions(prev => new Set([...prev, permission.id]));
+                            }
                         }
                     }
-                }
 
-                setLoadingStates(prev => ({
-                    ...prev,
-                    permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.SUCCESS }
-                }));
-
-                setTimeout(() => {
                     setLoadingStates(prev => ({
                         ...prev,
-                        permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.IDLE }
+                        permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.SUCCESS }
                     }));
-                }, 2000);
 
-                toast.success(`Permission ${action}ed successfully`);
-                lastUpdateRef.current = Date.now();
+                    setTimeout(() => {
+                        setLoadingStates(prev => ({
+                            ...prev,
+                            permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.IDLE }
+                        }));
+                    }, 2000);
+
+                    showToast.success(`Permission ${action}ed successfully`);
+                    lastUpdateRef.current = Date.now();
+
+                    // Force reload roles and permissions so UI updates immediately
+                    router.reload({ only: ['roles', 'permissions'] });
             }
         } catch (error) {
-            if (error.name !== 'AbortError') {
+            // Handle both AbortError (native) and CanceledError (axios)
+            const isCanceled = error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ERR_CANCELED';
+            if (!isCanceled) {
                 console.error('Error updating permission:', error);
                 setLoadingStates(prev => ({
                     ...prev,
@@ -913,23 +922,28 @@ const RoleManagement = (props) => {
                         permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.IDLE }
                     }));
                 }, 3000);
-                toast.error(error.response?.data?.message || 'Failed to update permission');
+                showToast.error(error.response?.data?.message || 'Failed to update permission');
                 setErrorMessage(error.response?.data?.message || 'Failed to update permission');
             }
         } finally {
-            setIsLoading(false);
+            // Clean up the abort controller for this permission
+            permissionAbortControllers.current.delete(permissionName);
         }
-    }, [activeRole, isLoading, roleHasPermission, permissions]);
+    }, [activeRole, loadingStates.permissions, roleHasPermission, permissions]);
 
-    // Enhanced toggle module permissions with better state management
+    // Enhanced toggle module permissions with independent state management
     const toggleModulePermissions = useCallback(async (module) => {
-        if (!activeRole || isLoading) return;
+        if (!activeRole) return;
+        
+        // Check if this specific module is already loading
+        if (loadingStates.modules[module] === LOADING_STATES.LOADING) return;
 
-        // Cancel any previous request
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
+        // Cancel only this module's previous request (if any)
+        if (moduleAbortControllers.current.has(module)) {
+            moduleAbortControllers.current.get(module).abort();
         }
-        abortControllerRef.current = new AbortController();
+        const controller = new AbortController();
+        moduleAbortControllers.current.set(module, controller);
 
         // Set loading state for module
         setLoadingStates(prev => ({
@@ -943,7 +957,7 @@ const RoleManagement = (props) => {
                 module: module,
                 action: 'toggle'
             }, {
-                signal: abortControllerRef.current.signal
+                signal: controller.signal
             });
 
             if (response.status === 200) {
@@ -970,11 +984,13 @@ const RoleManagement = (props) => {
                     }));
                 }, 2000);
 
-                toast.success('Module permissions updated successfully');
+                showToast.success('Module permissions updated successfully');
                 lastUpdateRef.current = Date.now();
             }
         } catch (error) {
-            if (error.name !== 'AbortError') {
+            // Handle both AbortError (native) and CanceledError (axios)
+            const isCanceled = error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ERR_CANCELED';
+            if (!isCanceled) {
                 console.error('Error updating module permissions:', error);
                 
                 // Set error state
@@ -991,11 +1007,14 @@ const RoleManagement = (props) => {
                     }));
                 }, 3000);
 
-                toast.error(error.response?.data?.message || 'Failed to update module permissions');
+                showToast.error(error.response?.data?.message || 'Failed to update module permissions');
                 setErrorMessage(error.response?.data?.message || 'Failed to update module permissions');
             }
+        } finally {
+            // Clean up the abort controller for this module
+            moduleAbortControllers.current.delete(module);
         }
-    }, [activeRole, isLoading]);
+    }, [activeRole, loadingStates.modules]);
 
     // Enhanced form field handlers with validation
     const handleFormFieldChange = useCallback((field, value) => {
@@ -1010,9 +1029,13 @@ const RoleManagement = (props) => {
     // Cleanup function for component unmount
     useEffect(() => {
         return () => {
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
+            // Abort all pending permission requests
+            permissionAbortControllers.current.forEach(controller => controller.abort());
+            permissionAbortControllers.current.clear();
+            
+            // Abort all pending module requests
+            moduleAbortControllers.current.forEach(controller => controller.abort());
+            moduleAbortControllers.current.clear();
         };
     }, []);
 
@@ -1032,11 +1055,10 @@ const RoleManagement = (props) => {
             }
             
             // Escape to clear filters
-            if (event.key === 'Escape' && (roleSearchQuery || permissionSearchQuery || userSearchQuery || moduleFilter !== 'all')) {
+            if (event.key === 'Escape' && (roleSearchQuery || permissionSearchQuery || userSearchQuery)) {
                 setRoleSearchQuery('');
                 setPermissionSearchQuery('');
                 setUserSearchQuery('');
-                setModuleFilter('all');
                 setRoleStatusFilter('all');
                 setUserRoleFilter('all');
             }
@@ -1055,7 +1077,7 @@ const RoleManagement = (props) => {
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [roleSearchQuery, permissionSearchQuery, userSearchQuery, moduleFilter, roleStatusFilter, userRoleFilter]);
+    }, [roleSearchQuery, permissionSearchQuery, userSearchQuery, roleStatusFilter, userRoleFilter]);
 
     // Function to get loading state for permission
     const getPermissionLoadingState = useCallback((permissionName) => {
@@ -1067,677 +1089,12 @@ const RoleManagement = (props) => {
         return loadingStates.modules[module] || LOADING_STATES.IDLE;
     }, [loadingStates.modules]);
 
-    // Tab component functions with consistent theming
-    const RolesManagementTab = () => (
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-4">
-            <CardHeader className="p-4 border-b border-white/10">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
-                    <Typography variant="h6" className="flex items-center gap-2">
-                        <UserGroupIcon className="w-5 h-5" />
-                        Roles Management
-                    </Typography>
-                    <Button
-                        onPress={() => openRoleModal()}
-                        startContent={<PlusIcon className="w-4 h-4" />}
-                        className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-blue-400/30 text-white"
-                        variant="bordered"
-                    >
-                        Add Role
-                    </Button>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                    <Input
-                        label="Search Roles"
-                        variant="bordered"
-                        placeholder="Search by role name..."
-                        value={roleSearchQuery}
-                        onValueChange={handleRoleSearchChange}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                        className="flex-1"
-                        classNames={{
-                            input: "bg-transparent text-white",
-                            inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                            label: "text-white/70"
-                        }}
-                    />
-                    <Select
-                        label="Status Filter"
-                        variant="bordered"
-                        selectedKeys={[roleStatusFilter]}
-                        onSelectionChange={(keys) => handleRoleStatusFilterChange(Array.from(keys)[0])}
-                        className="min-w-[140px]"
-                        classNames={{
-                            trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                            label: "text-white/70",
-                            value: "text-white"
-                        }}
-                    >
-                        <SelectItem key="all" value="all">All Status</SelectItem>
-                        <SelectItem key="active" value="active">Active</SelectItem>
-                        <SelectItem key="inactive" value="inactive">Inactive</SelectItem>
-                    </Select>
-                </div>
-            </CardHeader>
-
-            <CardBody className="p-0">
-                <div className="divide-y divide-white/10">
-                    {paginatedRoles.map((role) => {
-                        const rolePermissions = getRolePermissions(role.id);
-                        const permissionNames = rolePermissions
-                            .map(permId => permissions.find(p => p.id === permId)?.name)
-                            .filter(Boolean)
-                            .slice(0, 3);
-                        
-                        return (
-                            <div key={role.id} className="p-4 hover:bg-white/5 transition-colors">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                                            {role.name.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <Typography variant="body1" className="font-medium">
-                                                    {role.name}
-                                                </Typography>
-                                                {role.name === 'Super Administrator' && (
-                                                    <Chip size="sm" color="warning" variant="flat">
-                                                        System
-                                                    </Chip>
-                                                )}
-                                                <Chip
-                                                    size="sm"
-                                                    color={role.is_active !== false ? "success" : "default"}
-                                                    variant="flat"
-                                                >
-                                                    {role.is_active !== false ? "Active" : "Inactive"}
-                                                </Chip>
-                                            </div>
-                                            {role.description && (
-                                                <Typography variant="body2" color="textSecondary" className="mt-1">
-                                                    {role.description}
-                                                </Typography>
-                                            )}
-                                            <div className="flex flex-wrap gap-1 mt-2">
-                                                {permissionNames.map((permission, index) => (
-                                                    <Chip
-                                                        key={index}
-                                                        size="sm"
-                                                        variant="flat"
-                                                        color="primary"
-                                                        className="text-xs"
-                                                    >
-                                                        {permission}
-                                                    </Chip>
-                                                ))}
-                                                {rolePermissions.length > 3 && (
-                                                    <Chip
-                                                        size="sm"
-                                                        variant="flat"
-                                                        color="secondary"
-                                                        className="text-xs"
-                                                    >
-                                                        +{rolePermissions.length - 3} more
-                                                    </Chip>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Tooltip content="Edit Role">
-                                            <Button
-                                                isIconOnly
-                                                size="sm"
-                                                variant="light"
-                                                onPress={() => openRoleModal(role)}
-                                                isDisabled={!canManageRole(role)}
-                                                className="text-blue-400 hover:text-blue-300"
-                                            >
-                                                <PencilSquareIcon className="w-4 h-4" />
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip content="Delete Role">
-                                            <Button
-                                                isIconOnly
-                                                size="sm"
-                                                variant="light"
-                                                onPress={() => confirmDeleteRole(role)}
-                                                isDisabled={!canManageRole(role)}
-                                                className="text-red-400 hover:text-red-300"
-                                            >
-                                                <TrashIcon className="w-4 h-4" />
-                                            </Button>
-                                        </Tooltip>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-                
-                {filteredRoles.length === 0 && (
-                    <div className="text-center py-12">
-                        <UserGroupIcon className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                        <Typography variant="body1" color="textSecondary">
-                            No roles found matching your criteria
-                        </Typography>
-                    </div>
-                )}
-                
-                {filteredRoles.length > roleRowsPerPage && (
-                    <div className="flex justify-between items-center p-4 border-t border-white/10">
-                        <Typography variant="body2" color="textSecondary">
-                            Showing {rolePage * roleRowsPerPage + 1} to {Math.min((rolePage + 1) * roleRowsPerPage, filteredRoles.length)} of {filteredRoles.length} roles
-                        </Typography>
-                        <div className="flex gap-2">
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                isDisabled={rolePage === 0}
-                                onPress={() => setRolePage(prev => Math.max(0, prev - 1))}
-                                className="text-white"
-                            >
-                                ‹
-                            </Button>
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                isDisabled={(rolePage + 1) * roleRowsPerPage >= filteredRoles.length}
-                                onPress={() => setRolePage(prev => prev + 1)}
-                                className="text-white"
-                            >
-                                ›
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </CardBody>
-        </Card>
-    );
-
-    const PermissionsManagementTab = () => (
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-4">
-            <CardHeader className="p-4 border-b border-white/10">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
-                    <Typography variant="h6" className="flex items-center gap-2">
-                        <KeyIcon className="w-5 h-5" />
-                        Permissions Management
-                    </Typography>
-                    <Button
-                        onPress={() => openPermissionModal()}
-                        startContent={<PlusIcon className="w-4 h-4" />}
-                        className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-400/30 text-white"
-                        variant="bordered"
-                    >
-                        Add Permission
-                    </Button>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                    <Input
-                        label="Search Permissions"
-                        variant="bordered"
-                        placeholder="Search by permission name..."
-                        value={permissionSearchQuery}
-                        onValueChange={handlePermissionSearchChange}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                        className="flex-1"
-                        classNames={{
-                            input: "bg-transparent text-white",
-                            inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                            label: "text-white/70"
-                        }}
-                    />
-                    <Select
-                        label="Module Filter"
-                        variant="bordered"
-                        selectedKeys={[moduleFilter]}
-                        onSelectionChange={(keys) => handleModuleFilterChange(Array.from(keys)[0])}
-                        className="min-w-[180px]"
-                        classNames={{
-                            trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                            label: "text-white/70",
-                            value: "text-white"
-                        }}
-                    >
-                        <SelectItem key="all" value="all">All Modules</SelectItem>
-                        {modules.map(module => (
-                            <SelectItem key={module} value={module}>
-                                {module}
-                            </SelectItem>
-                        ))}
-                    </Select>
-                </div>
-            </CardHeader>
-
-            <CardBody className="p-0">
-                <div className="divide-y divide-white/10">
-                    {paginatedPermissions.map((permission) => (
-                        <div key={permission.id} className="p-4 hover:bg-white/5 transition-colors">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold">
-                                        {permission.name ? permission.name.charAt(0).toUpperCase() : 'P'}
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <Typography variant="body1" className="font-medium">
-                                                {permission.display_name || permission.name}
-                                            </Typography>
-                                            <Chip
-                                                size="sm"
-                                                color="secondary"
-                                                variant="flat"
-                                            >
-                                                {permission.module || (permission.name ? permission.name.split('.')[0] : 'General')}
-                                            </Chip>
-                                        </div>
-                                        <Typography variant="body2" color="textSecondary" className="mt-1">
-                                            {permission.name}
-                                        </Typography>
-                                        {permission.description && (
-                                            <Typography variant="body2" color="textSecondary" className="mt-1 max-w-md">
-                                                {permission.description}
-                                            </Typography>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Tooltip content="Edit Permission">
-                                        <Button
-                                            isIconOnly
-                                            size="sm"
-                                            variant="light"
-                                            onPress={() => openPermissionModal(permission)}
-                                            className="text-blue-400 hover:text-blue-300"
-                                        >
-                                            <PencilSquareIcon className="w-4 h-4" />
-                                        </Button>
-                                    </Tooltip>
-                                    <Tooltip content="Delete Permission">
-                                        <Button
-                                            isIconOnly
-                                            size="sm"
-                                            variant="light"
-                                            onPress={() => confirmDeletePermission(permission)}
-                                            className="text-red-400 hover:text-red-300"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </Button>
-                                    </Tooltip>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                
-                {filteredPermissions.length === 0 && (
-                    <div className="text-center py-12">
-                        <KeyIcon className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                        <Typography variant="body1" color="textSecondary">
-                            No permissions found matching your criteria
-                        </Typography>
-                    </div>
-                )}
-                
-                {filteredPermissions.length > permissionRowsPerPage && (
-                    <div className="flex justify-between items-center p-4 border-t border-white/10">
-                        <Typography variant="body2" color="textSecondary">
-                            Showing {permissionPage * permissionRowsPerPage + 1} to {Math.min((permissionPage + 1) * permissionRowsPerPage, filteredPermissions.length)} of {filteredPermissions.length} permissions
-                        </Typography>
-                        <div className="flex gap-2">
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                isDisabled={permissionPage === 0}
-                                onPress={() => setPermissionPage(prev => Math.max(0, prev - 1))}
-                                className="text-white"
-                            >
-                                ‹
-                            </Button>
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                isDisabled={(permissionPage + 1) * permissionRowsPerPage >= filteredPermissions.length}
-                                onPress={() => setPermissionPage(prev => prev + 1)}
-                                className="text-white"
-                            >
-                                ›
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </CardBody>
-        </Card>
-    );
-
-    const RolePermissionAssignmentTab = () => (
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-4">
-            <CardHeader className="p-4 border-b border-white/10">
-                <div className="flex flex-col gap-4 w-full">
-                    <Typography variant="h6" className="flex items-center gap-2">
-                        <AdjustmentsHorizontalIcon className="w-5 h-5" />
-                        Role-Permission Assignment
-                    </Typography>
-                    
-                    <Select
-                        label="Select Role to Manage"
-                        variant="bordered"
-                        selectedKeys={activeRoleId ? [activeRoleId.toString()] : []}
-                        onSelectionChange={(keys) => {
-                            const selectedId = Array.from(keys)[0];
-                            if (selectedId) {
-                                handleRoleSelect(parseInt(selectedId));
-                            }
-                        }}
-                        className="max-w-md"
-                        classNames={{
-                            trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                            label: "text-white/70",
-                            value: "text-white"
-                        }}
-                    >
-                        {roles.map((role) => (
-                            <SelectItem key={role.id.toString()} value={role.id.toString()}>
-                                {role.name}
-                            </SelectItem>
-                        ))}
-                    </Select>
-                </div>
-            </CardHeader>
-
-            <CardBody className="p-4">
-                {activeRole ? (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
-                            <div>
-                                <Typography variant="body1" className="font-medium">
-                                    Managing permissions for: {activeRole.name}
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    {selectedPermissions.size} of {permissions.length} permissions granted
-                                </Typography>
-                            </div>
-                            <Progress 
-                                value={(selectedPermissions.size / permissions.length) * 100}
-                                size="sm"
-                                color="primary"
-                                className="w-32"
-                                aria-label={`${Math.round((selectedPermissions.size / permissions.length) * 100)}% permissions granted`}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {Object.entries(permissionsGrouped).map(([moduleKey, moduleData]) => {
-                                const modulePermissions = moduleData.permissions || [];
-                                const grantedCount = modulePermissions.filter(permission => 
-                                    roleHasPermission(activeRole.id, permission.name)
-                                ).length;
-                                const totalCount = modulePermissions.length;
-                                const allGranted = grantedCount === totalCount;
-                                const someGranted = grantedCount > 0 && grantedCount < totalCount;
-
-                                return (
-                                    <Card key={moduleKey} className="bg-white/5 border-white/10">
-                                        <CardHeader className="pb-2">
-                                            <div className="flex items-center justify-between w-full">
-                                                <Typography variant="body1" className="font-medium capitalize">
-                                                    {moduleKey}
-                                                </Typography>
-                                                <div className="flex items-center gap-2">
-                                                    <Chip 
-                                                        size="sm" 
-                                                        variant="flat"
-                                                        color={allGranted ? "success" : someGranted ? "warning" : "default"}
-                                                    >
-                                                        {grantedCount}/{totalCount}
-                                                    </Chip>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="light"
-                                                        onPress={() => toggleModulePermissions(moduleKey)}
-                                                        isLoading={getModuleLoadingState(moduleKey) === LOADING_STATES.LOADING}
-                                                        className="text-xs"
-                                                    >
-                                                        {allGranted ? 'Revoke All' : 'Grant All'}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                            <Progress 
-                                                value={(grantedCount / totalCount) * 100}
-                                                size="sm"
-                                                color={allGranted ? "success" : someGranted ? "warning" : "default"}
-                                                aria-label={`${grantedCount} of ${totalCount} permissions granted for ${moduleKey} module`}
-                                            />
-                                        </CardHeader>
-                                        <CardBody className="pt-0">
-                                            <div className="space-y-2">
-                                                {modulePermissions.map((permission) => {
-                                                    const isGranted = roleHasPermission(activeRole.id, permission.name);
-                                                    const loadingState = getPermissionLoadingState(permission.name);
-                                                    
-                                                    return (
-                                                        <div 
-                                                            key={permission.id}
-                                                            className="flex items-center justify-between p-2 rounded bg-white/5 hover:bg-white/10 transition-colors"
-                                                        >
-                                                            <div>
-                                                                <Typography variant="body2" className="font-medium">
-                                                                    {permission.display_name || permission.name}
-                                                                </Typography>
-                                                                <Typography variant="caption" color="textSecondary">
-                                                                    {permission.name}
-                                                                </Typography>
-                                                            </div>
-                                                            <Switch
-                                                                key={`${permission.id}-${isGranted}-${loadingState}`}
-                                                                size="sm"
-                                                                isSelected={isGranted}
-                                                                onValueChange={() => togglePermission(permission.name)}
-                                                                isDisabled={loadingState === LOADING_STATES.LOADING}
-                                                                color="success"
-                                                                aria-label={`Toggle ${permission.display_name || permission.name} permission`}
-                                                            />
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </CardBody>
-                                    </Card>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-center py-12">
-                        <AdjustmentsHorizontalIcon className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                        <Typography variant="body1" color="textSecondary" className="mb-2">
-                            Select a role to manage permissions
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                            Choose a role from the dropdown above to assign or revoke permissions
-                        </Typography>
-                    </div>
-                )}
-            </CardBody>
-        </Card>
-    );
-
-    const UserRoleAssignmentTab = () => (
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 mt-4">
-            <CardHeader className="p-4 border-b border-white/10">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
-                    <Typography variant="h6" className="flex items-center gap-2">
-                        <UsersIcon className="w-5 h-5" />
-                        User-Role Assignment
-                    </Typography>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                    <Input
-                        label="Search Users"
-                        variant="bordered"
-                        placeholder="Search by user name or email..."
-                        value={userSearchQuery}
-                        onValueChange={handleUserSearchChange}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                        className="flex-1"
-                        classNames={{
-                            input: "bg-transparent text-white",
-                            inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                            label: "text-white/70"
-                        }}
-                    />
-                    <Select
-                        label="Filter by Role"
-                        variant="bordered"
-                        selectedKeys={[userRoleFilter]}
-                        onSelectionChange={(keys) => handleUserRoleFilterChange(Array.from(keys)[0])}
-                        className="min-w-[160px]"
-                        classNames={{
-                            trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                            label: "text-white/70",
-                            value: "text-white"
-                        }}
-                    >
-                        <SelectItem key="all" value="all">All Roles</SelectItem>
-                        {roleNames.map(roleName => (
-                            <SelectItem key={roleName} value={roleName}>
-                                {roleName}
-                            </SelectItem>
-                        ))}
-                    </Select>
-                </div>
-            </CardHeader>
-
-            <CardBody className="p-0">
-                {users && users.length > 0 ? (
-                    <div className="divide-y divide-white/10">
-                        {paginatedUsers.map((user) => (
-                            <div key={user.id} className="p-4 hover:bg-white/5 transition-colors">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center text-white font-bold">
-                                            {user.name?.charAt(0).toUpperCase() || 'U'}
-                                        </div>
-                                        <div>
-                                            <Typography variant="body1" className="font-medium">
-                                                {user.name || 'Unknown User'}
-                                            </Typography>
-                                            <Typography variant="body2" color="textSecondary">
-                                                {user.email || 'No email'}
-                                            </Typography>
-                                            <div className="flex flex-wrap gap-1 mt-2">
-                                                {user.roles && user.roles.length > 0 ? (
-                                                    <>
-                                                        {user.roles.slice(0, 3).map((role, index) => (
-                                                            <Chip
-                                                                key={index}
-                                                                size="sm"
-                                                                variant="flat"
-                                                                color="primary"
-                                                                className="text-xs"
-                                                            >
-                                                                {role.name}
-                                                            </Chip>
-                                                        ))}
-                                                        {user.roles.length > 3 && (
-                                                            <Chip
-                                                                size="sm"
-                                                                variant="flat"
-                                                                color="secondary"
-                                                                className="text-xs"
-                                                            >
-                                                                +{user.roles.length - 3} more
-                                                            </Chip>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <Chip
-                                                        size="sm"
-                                                        variant="flat"
-                                                        color="default"
-                                                        className="text-xs"
-                                                    >
-                                                        No roles assigned
-                                                    </Chip>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Tooltip content="Assign Roles">
-                                            <Button
-                                                isIconOnly
-                                                size="sm"
-                                                variant="light"
-                                                onPress={() => openUserRoleModal(user)}
-                                                className="text-orange-400 hover:text-orange-300"
-                                            >
-                                                <Cog6ToothIcon className="w-4 h-4" />
-                                            </Button>
-                                        </Tooltip>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-12">
-                        <UsersIcon className="w-16 h-16 text-white/30 mx-auto mb-4" />
-                        <Typography variant="body1">
-                            No users found
-                        </Typography>
-                        <Typography variant="body2">
-                            Users data is not available. Please ensure users are loaded from the backend.
-                        </Typography>
-                    </div>
-                )}
-                
-                {filteredUsers.length > userRowsPerPage && (
-                    <div className="flex justify-between items-center p-4 border-t border-white/10">
-                        <Typography variant="body2">
-                            Showing {userPage * userRowsPerPage + 1} to {Math.min((userPage + 1) * userRowsPerPage, filteredUsers.length)} of {filteredUsers.length} users
-                        </Typography>
-                        <div className="flex gap-2">
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                isDisabled={userPage === 0}
-                                onPress={() => setUserPage(prev => Math.max(0, prev - 1))}
-                                className="text-white"
-                            >
-                                ‹
-                            </Button>
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                isDisabled={(userPage + 1) * userRowsPerPage >= filteredUsers.length}
-                                onPress={() => setUserPage(prev => prev + 1)}
-                                className="text-white"
-                            >
-                                ›
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </CardBody>
-        </Card>
-    );    
-
     // Render all modals
     const renderModals = () => (
         <>
             {/* Enhanced Role Modal */}
             <GlassDialog 
-                open={roleDialogOpen} 
+                isOpen={roleDialogOpen} 
                 onClose={!isLoading ? closeRoleModal : undefined}
                 maxWidth="md"
                 title={
@@ -1789,11 +1146,13 @@ const RoleManagement = (props) => {
                             isRequired
                             isDisabled={isLoading}
                             variant="bordered"
+                            radius={getThemeRadius()}
                             classNames={{
-                                input: "text-white placeholder:text-white/50",
-                                inputWrapper: "border-white/20 bg-white/5 hover:border-white/30 focus-within:border-primary/50",
-                                label: "text-white/70",
-                                description: "text-white/50"
+                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                input: "text-foreground placeholder:text-default-400",
+                                label: "text-default-500",
+                                description: "text-default-400",
+                                errorMessage: "text-danger"
                             }}
                         />
                     </div>
@@ -1808,11 +1167,12 @@ const RoleManagement = (props) => {
                             }}
                             isDisabled={isLoading}
                             variant="bordered"
+                            radius={getThemeRadius()}
                             classNames={{
-                                trigger: "border-white/20 bg-white/5 hover:border-white/30 data-[open]:border-primary/50",
-                                value: "text-white",
-                                label: "text-white/70",
-                                popoverContent: "bg-black/80 backdrop-blur-xl border border-white/20"
+                                trigger: "border-default-200/20 bg-default-100/50 dark:bg-default-50/10 hover:border-default-300/30 data-[open]:border-primary/50",
+                                value: "text-foreground",
+                                label: "text-default-500",
+                                popoverContent: "bg-content1 dark:bg-content1 backdrop-blur-xl border border-default-200/20"
                             }}
                         >
                             <SelectItem key="web" value="web">Web</SelectItem>
@@ -1820,17 +1180,19 @@ const RoleManagement = (props) => {
                         </Select>
                     </div>
                     <div className="col-span-2">
-                        <Input
+                        <Textarea
                             label="Description"
                             placeholder="Optional description of role responsibilities"
                             value={roleForm.description}
                             onValueChange={(value) => setRoleForm(prev => ({ ...prev, description: value }))}
                             isDisabled={isLoading}
                             variant="bordered"
+                            minRows={2}
+                            radius={getThemeRadius()}
                             classNames={{
-                                input: "text-white placeholder:text-white/50",
-                                inputWrapper: "border-white/20 bg-white/5 hover:border-white/30 focus-within:border-primary/50",
-                                label: "text-white/70"
+                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                input: "text-foreground placeholder:text-default-400",
+                                label: "text-default-500"
                             }}
                         />
                     </div>
@@ -1839,7 +1201,7 @@ const RoleManagement = (props) => {
 
             {/* Permission Creation/Edit Modal */}
             <GlassDialog 
-                open={permissionDialogOpen} 
+                isOpen={permissionDialogOpen} 
                 onClose={!isLoading ? closePermissionModal : undefined}
                 maxWidth="md"
                 title={
@@ -1880,11 +1242,13 @@ const RoleManagement = (props) => {
                             isRequired
                             isDisabled={isLoading}
                             variant="bordered"
+                            radius={getThemeRadius()}
                             classNames={{
-                                input: "text-white placeholder:text-white/50",
-                                inputWrapper: "border-white/20 bg-white/5 hover:border-white/30 focus-within:border-primary/50",
-                                label: "text-white/70",
-                                description: "text-white/50"
+                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                input: "text-foreground placeholder:text-default-400",
+                                label: "text-default-500",
+                                description: "text-default-400",
+                                errorMessage: "text-danger"
                             }}
                         />
                     </div>
@@ -1900,11 +1264,13 @@ const RoleManagement = (props) => {
                             isRequired
                             isDisabled={isLoading}
                             variant="bordered"
+                            radius={getThemeRadius()}
                             classNames={{
-                                input: "text-white placeholder:text-white/50",
-                                inputWrapper: "border-white/20 bg-white/5 hover:border-white/30 focus-within:border-primary/50",
-                                label: "text-white/70",
-                                description: "text-white/50"
+                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                input: "text-foreground placeholder:text-default-400",
+                                label: "text-default-500",
+                                description: "text-default-400",
+                                errorMessage: "text-danger"
                             }}
                         />
                     </div>
@@ -1921,11 +1287,12 @@ const RoleManagement = (props) => {
                             errorMessage={formErrors.module}
                             isDisabled={isLoading}
                             variant="bordered"
+                            radius={getThemeRadius()}
                             classNames={{
-                                trigger: "border-white/20 bg-white/5 hover:border-white/30 data-[open]:border-primary/50",
-                                value: "text-white",
-                                label: "text-white/70",
-                                popoverContent: "bg-black/80 backdrop-blur-xl border border-white/20"
+                                trigger: "border-default-200/20 bg-default-100/50 dark:bg-default-50/10 hover:border-default-300/30 data-[open]:border-primary/50",
+                                value: "text-foreground",
+                                label: "text-default-500",
+                                popoverContent: "bg-content1 dark:bg-content1 backdrop-blur-xl border border-default-200/20"
                             }}
                         >
                             {modules.map(module => (
@@ -1944,16 +1311,17 @@ const RoleManagement = (props) => {
                             description="Usually 'web' for web permissions"
                             isDisabled={isLoading}
                             variant="bordered"
+                            radius={getThemeRadius()}
                             classNames={{
-                                input: "text-white placeholder:text-white/50",
-                                inputWrapper: "border-white/20 bg-white/5 hover:border-white/30 focus-within:border-primary/50",
-                                label: "text-white/70",
-                                description: "text-white/50"
+                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                input: "text-foreground placeholder:text-default-400",
+                                label: "text-default-500",
+                                description: "text-default-400"
                             }}
                         />
                     </div>
                     <div className="col-span-2">
-                        <Input
+                        <Textarea
                             label="Description"
                             placeholder="Optional description of what this permission allows"
                             value={permissionForm.description}
@@ -1961,11 +1329,13 @@ const RoleManagement = (props) => {
                             description="Optional description of what this permission allows"
                             isDisabled={isLoading}
                             variant="bordered"
+                            minRows={2}
+                            radius={getThemeRadius()}
                             classNames={{
-                                input: "text-white placeholder:text-white/50",
-                                inputWrapper: "border-white/20 bg-white/5 hover:border-white/30 focus-within:border-primary/50",
-                                label: "text-white/70",
-                                description: "text-white/50"
+                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                input: "text-foreground placeholder:text-default-400",
+                                label: "text-default-500",
+                                description: "text-default-400"
                             }}
                         />
                     </div>
@@ -1974,7 +1344,7 @@ const RoleManagement = (props) => {
 
             {/* Delete Confirmation Modal */}
             <GlassDialog 
-                open={confirmDeleteOpen} 
+                isOpen={confirmDeleteOpen} 
                 onClose={() => setConfirmDeleteOpen(false)}
                 maxWidth="sm"
                 title={
@@ -2001,7 +1371,7 @@ const RoleManagement = (props) => {
                     </div>
                 }
             >
-                <p className="text-white/90">
+                <p className="text-foreground/90">
                     Are you sure you want to delete {roleToDelete ? `the role "${roleToDelete.name}"` : permissionToDelete ? `the permission "${permissionToDelete.name}"` : 'this item'}? This action cannot be undone.
                 </p>
             </GlassDialog>
@@ -2012,182 +1382,632 @@ const RoleManagement = (props) => {
         <>
             <Head title={title} />
             
-            {/* Enhanced success/error notifications */}
-            <Snackbar 
-                open={!!successMessage} 
-                autoHideDuration={3000} 
-                onClose={() => setSuccessMessage('')}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-                <Alert severity="success" variant="filled" onClose={() => setSuccessMessage('')}>
-                    {successMessage}
-                </Alert>
-            </Snackbar>
-
-            <Snackbar 
-                open={!!errorMessage} 
-                autoHideDuration={5000} 
-                onClose={() => setErrorMessage('')}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-                <Alert severity="error" variant="filled" onClose={() => setErrorMessage('')}>
-                    {errorMessage}
-                </Alert>
-            </Snackbar>
-
-            {/* Data validation error alerts */}
+            {/* Data validation error alerts - shown as a card instead of MUI Alert */}
             {dataValidationErrors.length > 0 && (
-                <Box sx={{ mb: 2 }}>
-                    <Alert 
-                        severity="warning" 
-                        variant="outlined"
-                        icon={<ExclamationTriangleIcon className="w-5 h-5" />}
-                        action={
+                <div className="mb-4 p-4">
+                    <Card className="bg-warning/10 border border-warning/30" radius={getThemeRadius()}>
+                        <CardBody className="flex flex-row items-start gap-4">
+                            <ExclamationTriangleIcon className="w-6 h-6 text-warning flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <p className="font-semibold text-warning mb-2">
+                                    Data Integrity Issues Detected
+                                </p>
+                                <ul className="list-disc list-inside space-y-1 text-sm text-default-600">
+                                    {dataValidationErrors.map((error, index) => (
+                                        <li key={index}>{error}</li>
+                                    ))}
+                                </ul>
+                                <p className="text-sm text-default-500 italic mt-2">
+                                    This may indicate a cache or database synchronization issue on the server.
+                                </p>
+                            </div>
                             <Button
                                 color="warning"
-                                size="small"
-                                onClick={() => {
-                                    // Instead of full reload, refresh the page data
+                                size="sm"
+                                variant="flat"
+                                onPress={() => {
                                     router.reload({ only: ['roles', 'permissions', 'users'] });
                                 }}
                                 startContent={<ArrowPathIcon className="w-4 h-4" />}
                             >
                                 Refresh Data
                             </Button>
-                        }
-                    >
-                        <Box>
-                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                Data Integrity Issues Detected
-                            </Typography>
-                            <Box component="ul" sx={{ m: 0, pl: 2 }}>
-                                {dataValidationErrors.map((error, index) => (
-                                    <Typography 
-                                        key={index} 
-                                        component="li" 
-                                        variant="body2"
-                                        sx={{ mb: 0.5 }}
-                                    >
-                                        {error}
-                                    </Typography>
-                                ))}
-                            </Box>
-                            <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                This may indicate a cache or database synchronization issue on the server.
-                            </Typography>
-                        </Box>
-                    </Alert>
-                </Box>
+                        </CardBody>
+                    </Card>
+                </div>
             )}
 
-            {/* Main Container */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <Grow in>
-                    <GlassCard>
-                        <PageHeader
-                            title="Role & Permission Management"
-                            subtitle="Comprehensive access control and permission management system"
-                            icon={<ShieldCheckIcon className="w-8 h-8" />}
-                            variant="default"
-                            actionButtons={[
-                                {
-                                    label: "Export Data",
-                                    icon: <DocumentArrowDownIcon className="w-4 h-4" />,
-                                    variant: "bordered",
-                                    className: "border-[rgba(var(--theme-success-rgb),0.3)] bg-[rgba(var(--theme-success-rgb),0.05)] hover:bg-[rgba(var(--theme-success-rgb),0.1)]"
-                                }
-                            ]}
+            {/* Main Container - Themed like EmployeeList */}
+            <div 
+                className="flex flex-col w-full h-full p-4"
+                role="main"
+                aria-label="Role & Permission Management"
+            >
+                <div className="space-y-4">
+                    <div className="w-full">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
                         >
-                            <div className="p-6">
-                                {/* Enhanced Statistics Cards */}
-                                <StatsCards stats={[
-                                    {
-                                        title: "Total Roles",
-                                        value: roles.length,
-                                        icon: <UserGroupIcon />,
-                                        color: "text-blue-600",
-                                        iconBg: "bg-blue-500/20",
-                                        description: "System roles"
-                                    },
-                                    {
-                                        title: "Permissions", 
-                                        value: permissions.length,
-                                        icon: <KeyIcon />,
-                                        color: "text-green-600",
-                                        iconBg: "bg-green-500/20",
-                                        description: "Available permissions"
-                                    },
-                                    {
-                                        title: "Active Users",
-                                        value: users.length,
-                                        icon: <UsersIcon />,
-                                        color: "text-purple-600",
-                                        iconBg: "bg-purple-500/20", 
-                                        description: "System users"
-                                    },
-                                    {
-                                        title: "Modules",
-                                        value: modules.length,
-                                        icon: <CogIcon />,
-                                        color: "text-orange-600",
-                                        iconBg: "bg-orange-500/20",
-                                        description: "Permission modules"
-                                    }
-                                ]} />
+                            <Card 
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                <CardHeader 
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile && !isTablet ? 'p-6' : isMobile ? 'p-3' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col space-y-4">
+                                            {/* Main Header Content */}
+                                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                                {/* Title Section */}
+                                                <div className="flex items-center gap-3 lg:gap-4">
+                                                    <div 
+                                                        className={`
+                                                            ${!isMobile && !isTablet ? 'p-3' : isMobile ? 'p-2' : 'p-2.5'} 
+                                                            rounded-xl flex items-center justify-center
+                                                        `}
+                                                        style={{
+                                                            background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                            borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                            borderWidth: `var(--borderWidth, 2px)`,
+                                                            borderRadius: `var(--borderRadius, 12px)`,
+                                                        }}
+                                                    >
+                                                        <ShieldCheckIcon 
+                                                            className={`
+                                                                ${!isMobile && !isTablet ? 'w-8 h-8' : isMobile ? 'w-5 h-5' : 'w-6 h-6'}
+                                                            `}
+                                                            style={{ color: 'var(--theme-primary)' }}
+                                                        />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <h4 
+                                                            className={`
+                                                                ${!isMobile && !isTablet ? 'text-2xl' : isMobile ? 'text-lg' : 'text-xl'}
+                                                                font-bold text-foreground
+                                                                ${isMobile || isTablet ? 'truncate' : ''}
+                                                            `}
+                                                            style={{
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        >
+                                                            Role & Permission Management
+                                                        </h4>
+                                                        <p 
+                                                            className={`
+                                                                ${!isMobile && !isTablet ? 'text-sm' : 'text-xs'} 
+                                                                text-default-500
+                                                                ${isMobile || isTablet ? 'truncate' : ''}
+                                                            `}
+                                                            style={{
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        >
+                                                            Comprehensive access control and permission management system
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Action Buttons */}
+                                                <div className="flex flex-wrap gap-2">
+                                                    <Button
+                                                        className="font-medium"
+                                                        style={{
+                                                            background: `color-mix(in srgb, var(--theme-success) 15%, transparent)`,
+                                                            color: `var(--theme-success)`,
+                                                            borderRadius: getThemeRadius(),
+                                                            border: `1px solid color-mix(in srgb, var(--theme-success) 30%, transparent)`,
+                                                        }}
+                                                        startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+                                                    >
+                                                        {isMobile ? "Export" : "Export Data"}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
 
-                                {/* Enhanced Tabbed Interface */}
-                                <Box sx={{ width: '100%', mt: 4 }}>
-                                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                <CardBody className="p-6">
+                                    {/* Enhanced Statistics Cards */}
+                                    <StatsCards stats={[
+                                        {
+                                            title: "Total Roles",
+                                            value: roles.length,
+                                            icon: <UserGroupIcon />,
+                                            color: "text-blue-500",
+                                            iconBg: "bg-blue-500/20",
+                                            description: "System roles"
+                                        },
+                                        {
+                                            title: "Permissions", 
+                                            value: permissions.length,
+                                            icon: <KeyIcon />,
+                                            color: "text-green-500",
+                                            iconBg: "bg-green-500/20",
+                                            description: "Available permissions"
+                                        },
+                                        {
+                                            title: "Active Users",
+                                            value: users.length,
+                                            icon: <UsersIcon />,
+                                            color: "text-purple-500",
+                                            iconBg: "bg-purple-500/20", 
+                                            description: "System users"
+                                        },
+                                        {
+                                            title: "Modules",
+                                            value: modules.length,
+                                            icon: <Cog6ToothIcon />,
+                                            color: "text-orange-500",
+                                            iconBg: "bg-orange-500/20",
+                                            description: "Permission modules"
+                                        }
+                                    ]} />
+
+                                    {/* Enhanced Tabbed Interface using HeroUI Tabs */}
+                                    <div className="w-full mt-6">
                                         <Tabs 
-                                            value={activeTab} 
-                                            onChange={(event, newValue) => setActiveTab(newValue)}
-                                            aria-label="role management tabs"
-                                            sx={{
-                                                '& .MuiTab-root': {
-                                                    color: 'rgba(255, 255, 255, 0.7)',
-                                                    '&.Mui-selected': {
-                                                        color: '#3b82f6'
-                                                    }
-                                                },
-                                                '& .MuiTabs-indicator': {
-                                                    backgroundColor: '#3b82f6'
-                                                }
+                                            selectedKey={activeTab.toString()} 
+                                            onSelectionChange={(key) => setActiveTab(parseInt(key))}
+                                            aria-label="Role management tabs"
+                                            variant="underlined"
+                                            classNames={{
+                                                tabList: "gap-6 w-full relative rounded-none p-0 border-b",
+                                                cursor: "w-full",
+                                                tab: "max-w-fit px-0 h-12 text-default-500",
+                                                tabContent: ""
+                                            }}
+                                            style={{
+                                                '--tabs-cursor-bg': 'var(--theme-primary)',
                                             }}
                                         >
                                             <Tab 
-                                                label="Roles Management" 
-                                                icon={<UserGroupIcon className="w-5 h-5" />}
-                                                iconPosition="start"
+                                                key="0"
+                                                title={
+                                                    <div className="flex items-center gap-2">
+                                                        <UserGroupIcon className="w-5 h-5" />
+                                                        <span className={isMobile ? 'sr-only' : ''}>Roles Management</span>
+                                                    </div>
+                                                }
                                             />
                                             <Tab 
-                                                label="Permissions Management" 
-                                                icon={<KeyIcon className="w-5 h-5" />}
-                                                iconPosition="start"
+                                                key="1"
+                                                title={
+                                                    <div className="flex items-center gap-2">
+                                                        <KeyIcon className="w-5 h-5" />
+                                                        <span className={isMobile ? 'sr-only' : ''}>Permissions Management</span>
+                                                    </div>
+                                                }
                                             />
                                             <Tab 
-                                                label="Role-Permission Assignment" 
-                                                icon={<AdjustmentsHorizontalIcon className="w-5 h-5" />}
-                                                iconPosition="start"
+                                                key="2"
+                                                title={
+                                                    <div className="flex items-center gap-2">
+                                                        <AdjustmentsHorizontalIcon className="w-5 h-5" />
+                                                        <span className={isMobile ? 'sr-only' : ''}>Role-Permission Assignment</span>
+                                                    </div>
+                                                }
                                             />
                                             <Tab 
-                                                label="User-Role Assignment" 
-                                                icon={<UsersIcon className="w-5 h-5" />}
-                                                iconPosition="start"
+                                                key="3"
+                                                title={
+                                                    <div className="flex items-center gap-2">
+                                                        <UsersIcon className="w-5 h-5" />
+                                                        <span className={isMobile ? 'sr-only' : ''}>User-Role Assignment</span>
+                                                    </div>
+                                                }
                                             />
                                         </Tabs>
-                                    </Box>
 
-                                    {/* Tab Content */}
-                                    {activeTab === 0 && <RolesManagementTab />}
-                                    {activeTab === 1 && <PermissionsManagementTab />}
-                                    {activeTab === 2 && <RolePermissionAssignmentTab />}
-                                    {activeTab === 3 && <UserRoleAssignmentTab />}
-                                </Box>
-                            </div>
-                        </PageHeader>
-                    </GlassCard>
-                </Grow>
-            </Box>
+                                        {/* Tab Content - Roles Management */}
+                                        {activeTab === 0 && (
+                                            <div className="mt-4">
+                                                <Card 
+                                                    className="mb-4"
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
+                                                        border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <CardBody className="p-4">
+                                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full mb-4">
+                                                            <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                                                                <UserGroupIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
+                                                                Roles Management
+                                                            </div>
+                                                            <Button
+                                                                onPress={() => openRoleModal()}
+                                                                startContent={<PlusIcon className="w-4 h-4" />}
+                                                                className="text-white font-medium"
+                                                                style={{
+                                                                    background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
+                                                                    borderRadius: getThemeRadius(),
+                                                                }}
+                                                            >
+                                                                Add Role
+                                                            </Button>
+                                                        </div>
+                                                        
+                                                        <div className="flex flex-col sm:flex-row gap-4">
+                                                            <Input
+                                                                aria-label="Search roles"
+                                                                placeholder="Search by role name..."
+                                                                value={roleSearchQuery}
+                                                                onValueChange={handleRoleSearchChange}
+                                                                className="flex-1 min-w-0"
+                                                                radius={getThemeRadius()}
+                                                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                                                                variant="bordered"
+                                                                classNames={{
+                                                                    inputWrapper: "bg-white/10 backdrop-blur-md border-white/20",
+                                                                    base: "flex-1"
+                                                                }}
+                                                            />
+                                                            <Select
+                                                                aria-label="Filter by status"
+                                                                placeholder="All Status"
+                                                                variant="bordered"
+                                                                selectedKeys={[roleStatusFilter]}
+                                                                onSelectionChange={(keys) => handleRoleStatusFilterChange(Array.from(keys)[0])}
+                                                                className="w-full sm:w-[140px] sm:flex-shrink-0"
+                                                                radius={getThemeRadius()}
+                                                                classNames={{
+                                                                    trigger: "bg-white/10 backdrop-blur-md border-white/20",
+                                                                }}
+                                                            >
+                                                                <SelectItem key="all" value="all">All Status</SelectItem>
+                                                                <SelectItem key="active" value="active">Active</SelectItem>
+                                                                <SelectItem key="inactive" value="inactive">Inactive</SelectItem>
+                                                            </Select>
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+
+                                                <RolesTable 
+                                                    roles={paginatedRoles}
+                                                    permissions={permissions}
+                                                    getRolePermissions={getRolePermissions}
+                                                    onEdit={openRoleModal}
+                                                    onDelete={confirmDeleteRole}
+                                                    canManageRole={canManageRole}
+                                                    isMobile={isMobile}
+                                                    isTablet={isTablet}
+                                                    pagination={{
+                                                        currentPage: rolePage + 1,
+                                                        perPage: roleRowsPerPage,
+                                                        total: filteredRoles.length
+                                                    }}
+                                                    onPageChange={(page) => setRolePage(page - 1)}
+                                                    loading={loadingStates.roles === LOADING_STATES.LOADING}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* Tab Content - Permissions Management */}
+                                        {activeTab === 1 && (
+                                            <div className="mt-4">
+                                                <Card 
+                                                    className="mb-4"
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
+                                                        border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <CardBody className="p-4">
+                                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full mb-4">
+                                                            <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                                                                <KeyIcon className="w-5 h-5" style={{ color: 'var(--theme-success)' }} />
+                                                                Permissions Management
+                                                            </div>
+                                                            <Button
+                                                                onPress={() => openPermissionModal()}
+                                                                startContent={<PlusIcon className="w-4 h-4" />}
+                                                                className="text-white font-medium"
+                                                                style={{
+                                                                    background: `linear-gradient(135deg, var(--theme-success), color-mix(in srgb, var(--theme-success) 80%, var(--theme-primary)))`,
+                                                                    borderRadius: getThemeRadius(),
+                                                                }}
+                                                            >
+                                                                Add Permission
+                                                            </Button>
+                                                        </div>
+                                                        
+                                                        <div className="flex flex-col sm:flex-row gap-4">
+                                                            <Input
+                                                                aria-label="Search permissions"
+                                                                placeholder="Search by permission name or description..."
+                                                                value={permissionSearchQuery}
+                                                                onValueChange={handlePermissionSearchChange}
+                                                                className="flex-1 min-w-0"
+                                                                radius={getThemeRadius()}
+                                                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                                                                variant="bordered"
+                                                                classNames={{
+                                                                    inputWrapper: "bg-white/10 backdrop-blur-md border-white/20",
+                                                                    base: "flex-1"
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+
+                                                <PermissionsTable 
+                                                    permissions={paginatedPermissions}
+                                                    onEdit={openPermissionModal}
+                                                    onDelete={confirmDeletePermission}
+                                                    isMobile={isMobile}
+                                                    isTablet={isTablet}
+                                                    pagination={{
+                                                        currentPage: permissionPage + 1,
+                                                        perPage: permissionRowsPerPage,
+                                                        total: filteredPermissions.length
+                                                    }}
+                                                    onPageChange={(page) => setPermissionPage(page - 1)}
+                                                    loading={isLoading}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* Tab Content - Role-Permission Assignment */}
+                                        {activeTab === 2 && (
+                                            <Card 
+                                                className="mt-4"
+                                                style={{
+                                                    background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
+                                                    border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                                                    borderRadius: `var(--borderRadius, 12px)`,
+                                                }}
+                                            >
+                                                <CardHeader className="p-4 border-b border-default-200/20">
+                                                    <div className="flex flex-col gap-4 w-full">
+                                                        <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                                                            <AdjustmentsHorizontalIcon className="w-5 h-5" />
+                                                            Role-Permission Assignment
+                                                        </div>
+                                                        
+                                                        <Select
+                                                            label="Select Role to Manage"
+                                                            variant="bordered"
+                                                            selectedKeys={activeRoleId ? [activeRoleId.toString()] : []}
+                                                            onSelectionChange={(keys) => {
+                                                                const selectedId = Array.from(keys)[0];
+                                                                if (selectedId) {
+                                                                    handleRoleSelect(parseInt(selectedId));
+                                                                }
+                                                            }}
+                                                            className="max-w-md"
+                                                            radius={getThemeRadius()}
+                                                            classNames={{
+                                                                trigger: "bg-default-100/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/20 hover:bg-default-100/70 dark:hover:bg-default-50/20",
+                                                                label: "text-default-500",
+                                                                value: "text-foreground"
+                                                            }}
+                                                        >
+                                                            {roles.map((role) => (
+                                                                <SelectItem key={role.id.toString()} value={role.id.toString()}>
+                                                                    {role.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </Select>
+                                                    </div>
+                                                </CardHeader>
+
+                                                <CardBody className="p-4">
+                                                    {activeRole ? (
+                                                        <div className="space-y-6">
+                                                            <div className="flex items-center justify-between p-4 bg-default-100/50 dark:bg-default-50/10 rounded-lg border border-default-200/20">
+                                                                <div>
+                                                                    <p className="font-medium text-foreground">
+                                                                        Managing permissions for: {activeRole.name}
+                                                                    </p>
+                                                                    <p className="text-sm text-default-500">
+                                                                        {selectedPermissions.size} of {permissions.length} permissions granted
+                                                                    </p>
+                                                                </div>
+                                                                <Progress 
+                                                                    value={(selectedPermissions.size / permissions.length) * 100}
+                                                                    size="sm"
+                                                                    color="primary"
+                                                                    className="w-32"
+                                                                    aria-label={`${Math.round((selectedPermissions.size / permissions.length) * 100)}% permissions granted`}
+                                                                />
+                                                            </div>
+
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                                {Object.entries(permissionsGrouped).map(([moduleKey, moduleData]) => {
+                                                                    const modulePermissions = moduleData.permissions || [];
+                                                                    const grantedCount = modulePermissions.filter(permission => 
+                                                                        roleHasPermission(activeRole.id, permission.name)
+                                                                    ).length;
+                                                                    const totalCount = modulePermissions.length;
+                                                                    const allGranted = grantedCount === totalCount;
+                                                                    const someGranted = grantedCount > 0 && grantedCount < totalCount;
+
+                                                                    return (
+                                                                        <Card key={moduleKey} className="bg-default-100/50 dark:bg-default-50/10 border-default-200/20" radius={getThemeRadius()}>
+                                                                            <CardHeader className="pb-2">
+                                                                                <div className="flex items-center justify-between w-full">
+                                                                                    <span className="font-medium capitalize text-foreground">
+                                                                                        {moduleKey}
+                                                                                    </span>
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <Chip 
+                                                                                            size="sm" 
+                                                                                            variant="flat"
+                                                                                            color={allGranted ? "success" : someGranted ? "warning" : "default"}
+                                                                                        >
+                                                                                            {grantedCount}/{totalCount}
+                                                                                        </Chip>
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            variant="light"
+                                                                                            onPress={() => toggleModulePermissions(moduleKey)}
+                                                                                            isLoading={getModuleLoadingState(moduleKey) === LOADING_STATES.LOADING}
+                                                                                            className="text-xs"
+                                                                                        >
+                                                                                            {allGranted ? 'Revoke All' : 'Grant All'}
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <Progress 
+                                                                                    value={(grantedCount / totalCount) * 100}
+                                                                                    size="sm"
+                                                                                    color={allGranted ? "success" : someGranted ? "warning" : "default"}
+                                                                                    aria-label={`${grantedCount} of ${totalCount} permissions granted for ${moduleKey} module`}
+                                                                                />
+                                                                            </CardHeader>
+                                                                            <CardBody className="pt-0">
+                                                                                <div className="space-y-2">
+                                                                                    {modulePermissions.map((permission) => {
+                                                                                        const isGranted = roleHasPermission(activeRole.id, permission.name);
+                                                                                        const loadingState = getPermissionLoadingState(permission.name);
+                                                                                        
+                                                                                        return (
+                                                                                            <div 
+                                                                                                key={permission.id}
+                                                                                                className="flex items-center justify-between p-2 rounded-sm bg-default-100/50 dark:bg-default-50/10 hover:bg-default-100/70 dark:hover:bg-default-50/20 transition-colors"
+                                                                                            >
+                                                                                                <div>
+                                                                                                    <p className="text-sm font-medium text-foreground">
+                                                                                                        {permission.display_name || permission.name}
+                                                                                                    </p>
+                                                                                                    <p className="text-xs text-default-500">
+                                                                                                        {permission.name}
+                                                                                                    </p>
+                                                                                                </div>
+                                                                                                <Switch
+                                                                                                    key={`${permission.id}-${isGranted}-${loadingState}`}
+                                                                                                    size="sm"
+                                                                                                    isSelected={isGranted}
+                                                                                                    onValueChange={() => togglePermission(permission.name)}
+                                                                                                    isDisabled={loadingState === LOADING_STATES.LOADING}
+                                                                                                    color="success"
+                                                                                                    aria-label={`Toggle ${permission.display_name || permission.name} permission`}
+                                                                                                />
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            </CardBody>
+                                                                        </Card>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-center py-12">
+                                                            <AdjustmentsHorizontalIcon className="w-16 h-16 text-default-300 mx-auto mb-4" />
+                                                            <p className="mb-2 text-default-500">
+                                                                Select a role to manage permissions
+                                                            </p>
+                                                            <p className="text-sm text-default-400">
+                                                                Choose a role from the dropdown above to assign or revoke permissions
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                        )}
+
+                                        {/* Tab Content - User-Role Assignment */}
+                                        {activeTab === 3 && (
+                                            <div className="mt-4">
+                                                <Card 
+                                                    className="mb-4"
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
+                                                        border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <CardBody className="p-4">
+                                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full mb-4">
+                                                            <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                                                                <UsersIcon className="w-5 h-5" style={{ color: 'var(--theme-warning)' }} />
+                                                                User-Role Assignment
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex flex-col sm:flex-row gap-4">
+                                                            <Input
+                                                                aria-label="Search users"
+                                                                placeholder="Search by user name or email..."
+                                                                value={userSearchQuery}
+                                                                onValueChange={handleUserSearchChange}
+                                                                className="flex-1 min-w-0"
+                                                                radius={getThemeRadius()}
+                                                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                                                                variant="bordered"
+                                                                classNames={{
+                                                                    inputWrapper: "bg-white/10 backdrop-blur-md border-white/20",
+                                                                    base: "flex-1"
+                                                                }}
+                                                            />
+                                                            <Select
+                                                                aria-label="Filter by role"
+                                                                placeholder="All Roles"
+                                                                variant="bordered"
+                                                                selectedKeys={[userRoleFilter]}
+                                                                onSelectionChange={(keys) => handleUserRoleFilterChange(Array.from(keys)[0])}
+                                                                className="w-full sm:w-[160px] sm:flex-shrink-0"
+                                                                radius={getThemeRadius()}
+                                                                classNames={{
+                                                                    trigger: "bg-white/10 backdrop-blur-md border-white/20",
+                                                                }}
+                                                            >
+                                                                <SelectItem key="all" value="all">All Roles</SelectItem>
+                                                                {roleNames.map(roleName => (
+                                                                    <SelectItem key={roleName} value={roleName}>
+                                                                        {roleName}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </Select>
+                                                        </div>
+                                                    </CardBody>
+                                                </Card>
+
+                                                <UserRolesTable 
+                                                    users={paginatedUsers}
+                                                    onRowClick={openUserRoleModal}
+                                                    isMobile={isMobile}
+                                                    isTablet={isTablet}
+                                                    pagination={{
+                                                        currentPage: userPage + 1,
+                                                        perPage: userRowsPerPage,
+                                                        total: filteredUsers.length
+                                                    }}
+                                                    onPageChange={(page) => setUserPage(page - 1)}
+                                                    loading={isLoading}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
 
             {/* Enhanced Modals */}
             {renderModals()}

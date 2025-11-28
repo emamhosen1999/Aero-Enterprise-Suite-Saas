@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 class TestScheduler extends Command
 {
     protected $signature = 'test:scheduler';
+
     protected $description = 'Test scheduler command';
 
     public function handle()

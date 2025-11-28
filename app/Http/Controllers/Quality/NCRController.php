@@ -120,7 +120,7 @@ class NCRController extends Controller
         ]);
 
         // Create NCR number
-        $ncrNumber = 'NCR-' . date('Ymd') . '-' . sprintf('%04d', QualityNCR::count() + 1);
+        $ncrNumber = 'NCR-'.date('Ymd').'-'.sprintf('%04d', QualityNCR::count() + 1);
 
         $ncr = QualityNCR::create([
             'ncr_number' => $ncrNumber,

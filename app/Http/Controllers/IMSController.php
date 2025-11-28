@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Services\IMSService;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class IMSController extends Controller
 {
@@ -43,7 +42,7 @@ class IMSController extends Controller
 
         return Inertia::render('IMS/Index', [
             'data' => $data,
-            'can' => $this->getPermissions()
+            'can' => $this->getPermissions(),
         ]);
     }
 
@@ -56,7 +55,7 @@ class IMSController extends Controller
 
         return Inertia::render('IMS/Products/Index', [
             'products' => $products,
-            'can' => $this->getPermissions()
+            'can' => $this->getPermissions(),
         ]);
     }
 
@@ -69,7 +68,7 @@ class IMSController extends Controller
 
         return Inertia::render('IMS/Warehouse/Index', [
             'warehouses' => $warehouses,
-            'can' => $this->getPermissions()
+            'can' => $this->getPermissions(),
         ]);
     }
 
@@ -82,7 +81,7 @@ class IMSController extends Controller
 
         return Inertia::render('IMS/StockMovements/Index', [
             'movements' => $movements,
-            'can' => $this->getPermissions()
+            'can' => $this->getPermissions(),
         ]);
     }
 
@@ -95,7 +94,7 @@ class IMSController extends Controller
 
         return Inertia::render('IMS/Suppliers/Index', [
             'suppliers' => $suppliers,
-            'can' => $this->getPermissions()
+            'can' => $this->getPermissions(),
         ]);
     }
 
@@ -108,7 +107,7 @@ class IMSController extends Controller
 
         return Inertia::render('IMS/PurchaseOrders/Index', [
             'orders' => $orders,
-            'can' => $this->getPermissions()
+            'can' => $this->getPermissions(),
         ]);
     }
 
@@ -121,7 +120,7 @@ class IMSController extends Controller
 
         return Inertia::render('IMS/Reports/Index', [
             'reports' => $reports,
-            'can' => $this->getPermissions()
+            'can' => $this->getPermissions(),
         ]);
     }
 }

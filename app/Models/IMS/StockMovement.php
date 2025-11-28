@@ -41,8 +41,11 @@ class StockMovement extends Model
     ];
 
     const TYPE_INBOUND = 'inbound';
+
     const TYPE_OUTBOUND = 'outbound';
+
     const TYPE_ADJUSTMENT = 'adjustment';
+
     const TYPE_TRANSFER = 'transfer';
 
     /**

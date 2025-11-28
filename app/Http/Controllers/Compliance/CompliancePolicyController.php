@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Compliance;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Models\Compliance\CompliancePolicy;
 use App\Models\Compliance\CompliancePolicyAcknowledgment;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CompliancePolicyController extends Controller
 {
@@ -21,8 +21,8 @@ class CompliancePolicyController extends Controller
         // Apply filters
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('title', 'like', '%' . $request->search . '%')
-                    ->orWhere('description', 'like', '%' . $request->search . '%');
+                $q->where('title', 'like', '%'.$request->search.'%')
+                    ->orWhere('description', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -44,7 +44,7 @@ class CompliancePolicyController extends Controller
             'policies' => $policies,
             'filters' => $request->only(['search', 'category', 'status', 'due_for_review']),
             'categories' => $this->getCategories(),
-            'statuses' => $this->getStatuses()
+            'statuses' => $this->getStatuses(),
         ]);
     }
 
@@ -56,7 +56,7 @@ class CompliancePolicyController extends Controller
         return Inertia::render('Compliance/Policies/Create', [
             'categories' => $this->getCategories(),
             'types' => $this->getTypes(),
-            'users' => User::select('id', 'name', 'email')->get()
+            'users' => User::select('id', 'name', 'email')->get(),
         ]);
     }
 
@@ -68,8 +68,8 @@ class CompliancePolicyController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'category' => 'required|string|in:' . implode(',', array_keys($this->getCategories())),
-            'type' => 'required|string|in:' . implode(',', array_keys($this->getTypes())),
+            'category' => 'required|string|in:'.implode(',', array_keys($this->getCategories())),
+            'type' => 'required|string|in:'.implode(',', array_keys($this->getTypes())),
             'content' => 'required|string',
             'effective_date' => 'required|date',
             'review_frequency_months' => 'required|integer|min:1|max:60',
@@ -77,11 +77,11 @@ class CompliancePolicyController extends Controller
             'approver_id' => 'nullable|exists:users,id',
             'requires_acknowledgment' => 'boolean',
             'applicable_roles' => 'nullable|array',
-            'tags' => 'nullable|array'
+            'tags' => 'nullable|array',
         ]);
 
         $policy = CompliancePolicy::create([
-            'policy_id' => 'POL-' . strtoupper(substr(md5(uniqid()), 0, 8)),
+            'policy_id' => 'POL-'.strtoupper(substr(md5(uniqid()), 0, 8)),
             'title' => $request->title,
             'description' => $request->description,
             'category' => $request->category,
@@ -97,7 +97,7 @@ class CompliancePolicyController extends Controller
             'requires_acknowledgment' => $request->requires_acknowledgment ?? false,
             'applicable_roles' => $request->applicable_roles,
             'tags' => $request->tags,
-            'created_by' => auth()->id()
+            'created_by' => auth()->id(),
         ]);
 
         return redirect()->route('compliance.policies.show', $policy)
@@ -123,7 +123,7 @@ class CompliancePolicyController extends Controller
             'policy' => $policy,
             'acknowledgments' => $acknowledgments,
             'userHasAcknowledged' => $this->userHasAcknowledged($policy),
-            'acknowledgmentStats' => $this->getAcknowledmentStats($policy)
+            'acknowledgmentStats' => $this->getAcknowledmentStats($policy),
         ]);
     }
 
@@ -136,7 +136,7 @@ class CompliancePolicyController extends Controller
             'policy' => $policy,
             'categories' => $this->getCategories(),
             'types' => $this->getTypes(),
-            'users' => User::select('id', 'name', 'email')->get()
+            'users' => User::select('id', 'name', 'email')->get(),
         ]);
     }
 
@@ -148,8 +148,8 @@ class CompliancePolicyController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'category' => 'required|string|in:' . implode(',', array_keys($this->getCategories())),
-            'type' => 'required|string|in:' . implode(',', array_keys($this->getTypes())),
+            'category' => 'required|string|in:'.implode(',', array_keys($this->getCategories())),
+            'type' => 'required|string|in:'.implode(',', array_keys($this->getTypes())),
             'content' => 'required|string',
             'effective_date' => 'required|date',
             'review_frequency_months' => 'required|integer|min:1|max:60',
@@ -157,7 +157,7 @@ class CompliancePolicyController extends Controller
             'approver_id' => 'nullable|exists:users,id',
             'requires_acknowledgment' => 'boolean',
             'applicable_roles' => 'nullable|array',
-            'tags' => 'nullable|array'
+            'tags' => 'nullable|array',
         ]);
 
         // Increment version if content has changed
@@ -178,7 +178,7 @@ class CompliancePolicyController extends Controller
             'applicable_roles' => $request->applicable_roles,
             'tags' => $request->tags,
             'updated_by' => auth()->id(),
-            'version' => $versionChanged ? $this->incrementVersion($policy->version) : $policy->version
+            'version' => $versionChanged ? $this->incrementVersion($policy->version) : $policy->version,
         ]);
 
         return redirect()->route('compliance.policies.show', $policy)
@@ -208,7 +208,7 @@ class CompliancePolicyController extends Controller
         $policy->update([
             'status' => CompliancePolicy::STATUS_APPROVED,
             'approved_at' => now(),
-            'approved_by' => auth()->id()
+            'approved_by' => auth()->id(),
         ]);
 
         return back()->with('success', 'Policy approved successfully.');
@@ -226,7 +226,7 @@ class CompliancePolicyController extends Controller
         $policy->update([
             'status' => CompliancePolicy::STATUS_ACTIVE,
             'published_at' => now(),
-            'published_by' => auth()->id()
+            'published_by' => auth()->id(),
         ]);
 
         return back()->with('success', 'Policy published successfully.');
@@ -240,7 +240,7 @@ class CompliancePolicyController extends Controller
         $policy->update([
             'status' => CompliancePolicy::STATUS_ARCHIVED,
             'archived_at' => now(),
-            'archived_by' => auth()->id()
+            'archived_by' => auth()->id(),
         ]);
 
         return back()->with('success', 'Policy archived successfully.');
@@ -251,13 +251,13 @@ class CompliancePolicyController extends Controller
      */
     public function acknowledge(CompliancePolicy $policy)
     {
-        if (!$policy->requires_acknowledgment) {
+        if (! $policy->requires_acknowledgment) {
             return back()->with('error', 'This policy does not require acknowledgment.');
         }
 
         $existingAck = CompliancePolicyAcknowledgment::where([
             'compliance_policy_id' => $policy->id,
-            'user_id' => auth()->id()
+            'user_id' => auth()->id(),
         ])->first();
 
         if ($existingAck) {
@@ -269,7 +269,7 @@ class CompliancePolicyController extends Controller
             'user_id' => auth()->id(),
             'acknowledged_at' => now(),
             'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent()
+            'user_agent' => request()->userAgent(),
         ]);
 
         return back()->with('success', 'Policy acknowledged successfully.');
@@ -288,7 +288,7 @@ class CompliancePolicyController extends Controller
             CompliancePolicy::CATEGORY_FINANCIAL => 'Financial',
             CompliancePolicy::CATEGORY_OPERATIONAL => 'Operational',
             CompliancePolicy::CATEGORY_REGULATORY => 'Regulatory',
-            CompliancePolicy::CATEGORY_ENVIRONMENTAL => 'Environmental'
+            CompliancePolicy::CATEGORY_ENVIRONMENTAL => 'Environmental',
         ];
     }
 
@@ -301,7 +301,7 @@ class CompliancePolicyController extends Controller
             CompliancePolicy::TYPE_POLICY => 'Policy',
             CompliancePolicy::TYPE_PROCEDURE => 'Procedure',
             CompliancePolicy::TYPE_GUIDELINE => 'Guideline',
-            CompliancePolicy::TYPE_STANDARD => 'Standard'
+            CompliancePolicy::TYPE_STANDARD => 'Standard',
         ];
     }
 
@@ -316,7 +316,7 @@ class CompliancePolicyController extends Controller
             CompliancePolicy::STATUS_PENDING_APPROVAL => 'Pending Approval',
             CompliancePolicy::STATUS_APPROVED => 'Approved',
             CompliancePolicy::STATUS_ACTIVE => 'Active',
-            CompliancePolicy::STATUS_ARCHIVED => 'Archived'
+            CompliancePolicy::STATUS_ARCHIVED => 'Archived',
         ];
     }
 
@@ -325,13 +325,13 @@ class CompliancePolicyController extends Controller
      */
     private function userHasAcknowledged(CompliancePolicy $policy): bool
     {
-        if (!$policy->requires_acknowledgment) {
+        if (! $policy->requires_acknowledgment) {
             return true;
         }
 
         return CompliancePolicyAcknowledgment::where([
             'compliance_policy_id' => $policy->id,
-            'user_id' => auth()->id()
+            'user_id' => auth()->id(),
         ])->exists();
     }
 
@@ -340,7 +340,7 @@ class CompliancePolicyController extends Controller
      */
     private function getAcknowledmentStats(CompliancePolicy $policy): array
     {
-        if (!$policy->requires_acknowledgment) {
+        if (! $policy->requires_acknowledgment) {
             return [];
         }
 
@@ -353,7 +353,7 @@ class CompliancePolicyController extends Controller
             'total_users' => $totalUsers,
             'acknowledged_count' => $acknowledgedCount,
             'pending_count' => $totalUsers - $acknowledgedCount,
-            'acknowledgment_rate' => $totalUsers > 0 ? round(($acknowledgedCount / $totalUsers) * 100, 2) : 0
+            'acknowledgment_rate' => $totalUsers > 0 ? round(($acknowledgedCount / $totalUsers) * 100, 2) : 0,
         ];
     }
 
@@ -364,6 +364,7 @@ class CompliancePolicyController extends Controller
     {
         $parts = explode('.', $version);
         $parts[count($parts) - 1]++;
+
         return implode('.', $parts);
     }
 }

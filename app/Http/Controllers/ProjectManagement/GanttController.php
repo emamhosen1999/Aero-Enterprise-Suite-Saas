@@ -4,12 +4,12 @@ namespace App\Http\Controllers\ProjectManagement;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
-use App\Models\ProjectTask;
 use App\Models\ProjectMilestone;
+use App\Models\ProjectTask;
 use App\Models\ProjectTaskDependency;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class GanttController extends Controller
 {
@@ -17,7 +17,7 @@ class GanttController extends Controller
     {
         $projectId = $request->input('project_id');
 
-        if (!$projectId) {
+        if (! $projectId) {
             return Inertia::render('ProjectManagement/Gantt/Index', [
                 'projects' => Project::select('id', 'project_name')->get(),
                 'ganttData' => null,
@@ -32,7 +32,7 @@ class GanttController extends Controller
             },
             'milestones' => function ($query) {
                 $query->orderBy('due_date');
-            }
+            },
         ])->findOrFail($projectId);
 
         $ganttData = $this->prepareGanttData($project);
@@ -179,7 +179,7 @@ class GanttController extends Controller
 
         $milestones = $project->milestones->map(function ($milestone) {
             return [
-                'id' => 'milestone_' . $milestone->id,
+                'id' => 'milestone_'.$milestone->id,
                 'name' => $milestone->name,
                 'date' => $milestone->due_date->format('Y-m-d'),
                 'status' => $milestone->status,
@@ -269,6 +269,7 @@ class GanttController extends Controller
     {
         // Simple check for circular dependencies
         $visited = [];
+
         return $this->hasCircularDependency($successorId, $predecessorId, $visited);
     }
 

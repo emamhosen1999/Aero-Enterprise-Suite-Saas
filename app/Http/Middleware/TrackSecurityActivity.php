@@ -44,7 +44,7 @@ class TrackSecurityActivity
                 ->where('is_active', true)
                 ->update([
                     'last_activity' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
             // Detect potential security anomalies
@@ -52,7 +52,7 @@ class TrackSecurityActivity
 
         } catch (\Exception $e) {
             // Don't break the application flow
-            Log::debug('Failed to update session activity: ' . $e->getMessage());
+            Log::debug('Failed to update session activity: '.$e->getMessage());
         }
     }
 
@@ -78,7 +78,7 @@ class TrackSecurityActivity
                     'user_id' => $userId,
                     'current_ip' => $currentIp,
                     'user_agent' => $currentUserAgent,
-                    'session_id' => $request->session()->getId()
+                    'session_id' => $request->session()->getId(),
                 ]);
             }
 
@@ -93,12 +93,12 @@ class TrackSecurityActivity
                     'user_id' => $userId,
                     'active_sessions_count' => $activeSessionsCount,
                     'ip_address' => $currentIp,
-                    'user_agent' => $currentUserAgent
+                    'user_agent' => $currentUserAgent,
                 ]);
             }
 
         } catch (\Exception $e) {
-            Log::debug('Failed to detect security anomalies: ' . $e->getMessage());
+            Log::debug('Failed to detect security anomalies: '.$e->getMessage());
         }
     }
 
@@ -118,10 +118,10 @@ class TrackSecurityActivity
                 'risk_score' => $this->getRiskScoreForEvent($eventType),
                 'investigated' => false,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to log security event: ' . $e->getMessage());
+            Log::error('Failed to log security event: '.$e->getMessage());
         }
     }
 
@@ -134,7 +134,7 @@ class TrackSecurityActivity
             'ip_address_change' => 'warning',
             'multiple_active_sessions' => 'info',
             'suspicious_activity' => 'critical',
-            'failed_login' => 'warning'
+            'failed_login' => 'warning',
         ];
 
         return $severityMap[$eventType] ?? 'info';
@@ -149,7 +149,7 @@ class TrackSecurityActivity
             'ip_address_change' => 'medium',
             'multiple_active_sessions' => 'low',
             'suspicious_activity' => 'high',
-            'failed_login' => 'medium'
+            'failed_login' => 'medium',
         ];
 
         return $riskMap[$eventType] ?? 'low';

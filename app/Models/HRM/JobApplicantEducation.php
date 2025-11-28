@@ -21,7 +21,7 @@ class JobApplicantEducation extends Model
         'end_date',
         'is_current',
         'grade',
-        'description'
+        'description',
     ];
 
     protected $casts = [
@@ -44,13 +44,13 @@ class JobApplicantEducation extends Model
      */
     public function getDurationAttribute(): ?float
     {
-        if (!$this->start_date) {
+        if (! $this->start_date) {
             return null;
         }
 
         $endDate = $this->is_current ? now() : $this->end_date;
 
-        if (!$endDate) {
+        if (! $endDate) {
             return null;
         }
 
@@ -62,7 +62,7 @@ class JobApplicantEducation extends Model
      */
     public function getFormattedGradeAttribute(): ?string
     {
-        if (!$this->grade) {
+        if (! $this->grade) {
             return null;
         }
 

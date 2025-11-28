@@ -20,7 +20,7 @@ class FMSService
             'cash_flow' => 0, // Placeholder - calculate based on revenue - expenses
             'profit_margin' => 0, // Placeholder - calculate percentage
             'pending_invoices' => 0, // Count of unpaid invoices
-            'overdue_payments' => 0 // Count of overdue payments
+            'overdue_payments' => 0, // Count of overdue payments
         ];
     }
 
@@ -37,7 +37,7 @@ class FMSService
                 'description' => 'Invoice Payment Received',
                 'amount' => 1500.00,
                 'date' => now()->subDays(1),
-                'reference' => 'INV-001'
+                'reference' => 'INV-001',
             ],
             [
                 'id' => 2,
@@ -45,8 +45,8 @@ class FMSService
                 'description' => 'Office Supplies',
                 'amount' => 250.00,
                 'date' => now()->subDays(2),
-                'reference' => 'EXP-001'
-            ]
+                'reference' => 'EXP-001',
+            ],
         ]);
     }
 
@@ -58,17 +58,17 @@ class FMSService
         return [
             'monthly_revenue' => [
                 'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                'data' => [10000, 12000, 15000, 13000, 18000, 20000]
+                'data' => [10000, 12000, 15000, 13000, 18000, 20000],
             ],
             'expense_breakdown' => [
                 'labels' => ['Operations', 'Marketing', 'HR', 'IT', 'Office'],
-                'data' => [5000, 3000, 8000, 4000, 2000]
+                'data' => [5000, 3000, 8000, 4000, 2000],
             ],
             'cash_flow_trend' => [
                 'labels' => ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
                 'income' => [5000, 7000, 6000, 8000],
-                'expenses' => [3000, 4000, 4500, 5000]
-            ]
+                'expenses' => [3000, 4000, 4500, 5000],
+            ],
         ];
     }
 
@@ -128,7 +128,7 @@ class FMSService
             ['id' => 2, 'code' => '1100', 'name' => 'Accounts Receivable', 'type' => 'asset'],
             ['id' => 3, 'code' => '2000', 'name' => 'Accounts Payable', 'type' => 'liability'],
             ['id' => 4, 'code' => '4000', 'name' => 'Revenue', 'type' => 'revenue'],
-            ['id' => 5, 'code' => '5000', 'name' => 'Operating Expenses', 'type' => 'expense']
+            ['id' => 5, 'code' => '5000', 'name' => 'Operating Expenses', 'type' => 'expense'],
         ]);
     }
 
@@ -150,19 +150,19 @@ class FMSService
             'income_statement' => [
                 'revenue' => 50000,
                 'expenses' => 35000,
-                'net_income' => 15000
+                'net_income' => 15000,
             ],
             'balance_sheet' => [
                 'total_assets' => 100000,
                 'total_liabilities' => 40000,
-                'equity' => 60000
+                'equity' => 60000,
             ],
             'cash_flow' => [
                 'operating_activities' => 15000,
                 'investing_activities' => -5000,
                 'financing_activities' => 10000,
-                'net_cash_flow' => 20000
-            ]
+                'net_cash_flow' => 20000,
+            ],
         ];
     }
 
@@ -224,7 +224,7 @@ class FMSService
             ['id' => 2, 'name' => 'Travel'],
             ['id' => 3, 'name' => 'Marketing'],
             ['id' => 4, 'name' => 'Utilities'],
-            ['id' => 5, 'name' => 'Equipment']
+            ['id' => 5, 'name' => 'Equipment'],
         ]);
     }
 
@@ -300,7 +300,7 @@ class FMSService
             'fiscal_year_start' => '01-01',
             'tax_rate' => 8.5,
             'auto_invoice_numbering' => true,
-            'invoice_prefix' => 'INV-'
+            'invoice_prefix' => 'INV-',
         ];
     }
 
@@ -323,14 +323,14 @@ class FMSService
             'revenue' => [
                 'sales_revenue' => 45000,
                 'service_revenue' => 5000,
-                'total_revenue' => 50000
+                'total_revenue' => 50000,
             ],
             'expenses' => [
                 'cost_of_goods_sold' => 20000,
                 'operating_expenses' => 15000,
-                'total_expenses' => 35000
+                'total_expenses' => 35000,
             ],
-            'net_income' => 15000
+            'net_income' => 15000,
         ];
     }
 
@@ -343,31 +343,31 @@ class FMSService
                     'cash' => 25000,
                     'accounts_receivable' => 15000,
                     'inventory' => 10000,
-                    'total' => 50000
+                    'total' => 50000,
                 ],
                 'fixed_assets' => [
                     'equipment' => 30000,
                     'accumulated_depreciation' => -5000,
-                    'total' => 25000
+                    'total' => 25000,
                 ],
-                'total_assets' => 75000
+                'total_assets' => 75000,
             ],
             'liabilities' => [
                 'current_liabilities' => [
                     'accounts_payable' => 10000,
                     'accrued_expenses' => 5000,
-                    'total' => 15000
+                    'total' => 15000,
                 ],
                 'long_term_liabilities' => [
                     'loans_payable' => 20000,
-                    'total' => 20000
+                    'total' => 20000,
                 ],
-                'total_liabilities' => 35000
+                'total_liabilities' => 35000,
             ],
             'equity' => [
                 'retained_earnings' => 40000,
-                'total_equity' => 40000
-            ]
+                'total_equity' => 40000,
+            ],
         ];
     }
 
@@ -379,20 +379,20 @@ class FMSService
                 'net_income' => 15000,
                 'depreciation' => 2000,
                 'changes_in_working_capital' => -2000,
-                'total' => 15000
+                'total' => 15000,
             ],
             'investing_activities' => [
                 'equipment_purchases' => -10000,
-                'total' => -10000
+                'total' => -10000,
             ],
             'financing_activities' => [
                 'loan_proceeds' => 5000,
                 'owner_withdrawals' => -2000,
-                'total' => 3000
+                'total' => 3000,
             ],
             'net_change_in_cash' => 8000,
             'beginning_cash' => 17000,
-            'ending_cash' => 25000
+            'ending_cash' => 25000,
         ];
     }
 
@@ -406,10 +406,10 @@ class FMSService
                 ['account' => 'Equipment', 'debit' => 30000, 'credit' => 0],
                 ['account' => 'Accounts Payable', 'debit' => 0, 'credit' => 10000],
                 ['account' => 'Revenue', 'debit' => 0, 'credit' => 50000],
-                ['account' => 'Expenses', 'debit' => 35000, 'credit' => 0]
+                ['account' => 'Expenses', 'debit' => 35000, 'credit' => 0],
             ],
             'total_debits' => 105000,
-            'total_credits' => 105000
+            'total_credits' => 105000,
         ];
     }
 }

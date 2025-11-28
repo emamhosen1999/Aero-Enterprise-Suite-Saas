@@ -24,7 +24,7 @@ class OnboardingPolicy
     public function view(User $user, Onboarding $onboarding): bool
     {
         // Basic permission check
-        if (!$user->can('hr.onboarding.view')) {
+        if (! $user->can('hr.onboarding.view')) {
             return false;
         }
 

@@ -7,7 +7,6 @@ use App\Models\HRM\Holiday;
 use App\Models\HRM\Leave;
 use App\Models\HRM\LeaveSetting;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -21,33 +20,33 @@ class TimeOffManagementController extends Controller
     {
         $user = Auth::user();
         $currentYear = Carbon::now()->year;
-        
+
         // Get company holidays
         $holidays = Holiday::active()
-                          ->currentYear()
-                          ->orderBy('from_date', 'asc')
-                          ->get();
-        
+            ->currentYear()
+            ->orderBy('from_date', 'asc')
+            ->get();
+
         // Get leave settings/types
         $leaveTypes = LeaveSetting::all();
-        
+
         // Get user's leave requests
         $userLeaves = Leave::where('user_id', $user->id)
-                          ->whereYear('from_date', $currentYear)
-                          ->with(['leave_setting'])
-                          ->orderBy('from_date', 'desc')
-                          ->get();
-        
+            ->whereYear('from_date', $currentYear)
+            ->with(['leave_setting'])
+            ->orderBy('from_date', 'desc')
+            ->get();
+
         // Calculate leave statistics
         $stats = $this->calculateLeaveStats($user->id, $currentYear);
-        
+
         return Inertia::render('HR/TimeOff/Dashboard', [
             'title' => 'Time Off Management',
             'holidays' => $holidays,
             'leaveTypes' => $leaveTypes,
             'userLeaves' => $userLeaves,
             'stats' => $stats,
-            'currentYear' => $currentYear
+            'currentYear' => $currentYear,
         ]);
     }
 
@@ -76,7 +75,7 @@ class TimeOffManagementController extends Controller
     {
         $holidays = Holiday::all()->map(function ($holiday) {
             return [
-                'id' => 'holiday-' . $holiday->id,
+                'id' => 'holiday-'.$holiday->id,
                 'title' => $holiday->title,
                 'start' => $holiday->from_date,
                 'end' => $holiday->to_date ? Carbon::parse($holiday->to_date)->addDay() : Carbon::parse($holiday->from_date)->addDay(),
@@ -84,36 +83,44 @@ class TimeOffManagementController extends Controller
                 'color' => '#ef4444',
                 'extendedProps' => [
                     'type' => 'company_holiday',
-                    'description' => $holiday->title
-                ]
+                    'description' => $holiday->title,
+                ],
             ];
         });
 
         $leaves = Leave::where('status', 'approved')
-                      ->with(['user', 'leaveSetting'])
-                      ->get()
-                      ->map(function ($leave) {
-                          return [
-                              'id' => 'leave-' . $leave->id,
-                              'title' => $leave->user->name . ' - ' . $leave->leaveSetting->type,
-                              'start' => $leave->from_date,
-                              'end' => Carbon::parse($leave->to_date)->addDay(),
-                              'type' => 'leave',
-                              'color' => $this->getLeaveTypeColor($leave->leaveSetting->type),
-                              'extendedProps' => [
-                                  'type' => 'employee_leave',
-                                  'employee' => $leave->user->name,
-                                  'leaveType' => $leave->leaveSetting->type,
-                                  'reason' => $leave->reason
-                              ]
-                          ];
-                      });
+            ->with(['user', 'leaveSetting'])
+            ->whereHas('user') // Ensure user exists
+            ->whereHas('leaveSetting') // Ensure leave setting exists
+            ->get()
+            ->map(function ($leave) {
+                // Additional safety checks
+                if (! $leave->user || ! $leave->leaveSetting) {
+                    return null;
+                }
+
+                return [
+                    'id' => 'leave-'.$leave->id,
+                    'title' => $leave->user->name.' - '.$leave->leaveSetting->type,
+                    'start' => $leave->from_date,
+                    'end' => Carbon::parse($leave->to_date)->addDay(),
+                    'type' => 'leave',
+                    'color' => $this->getLeaveTypeColor($leave->leaveSetting->type),
+                    'extendedProps' => [
+                        'type' => 'employee_leave',
+                        'employee' => $leave->user->name,
+                        'leaveType' => $leave->leaveSetting->type,
+                        'reason' => $leave->reason,
+                    ],
+                ];
+            })
+            ->filter(); // Remove null entries
 
         $events = $holidays->merge($leaves);
 
         return Inertia::render('HR/TimeOff/Calendar', [
             'title' => 'Time Off Calendar',
-            'events' => $events
+            'events' => $events,
         ]);
     }
 
@@ -132,7 +139,7 @@ class TimeOffManagementController extends Controller
     public function reports()
     {
         $currentYear = Carbon::now()->year;
-        
+
         // Department-wise leave statistics
         $departmentStats = DB::table('leaves')
             ->join('users', 'leaves.user_id', '=', 'users.id')
@@ -180,7 +187,7 @@ class TimeOffManagementController extends Controller
             'departmentStats' => $departmentStats,
             'monthlyTrends' => $monthlyTrends,
             'leaveTypeStats' => $leaveTypeStats,
-            'currentYear' => $currentYear
+            'currentYear' => $currentYear,
         ]);
     }
 
@@ -200,28 +207,28 @@ class TimeOffManagementController extends Controller
     {
         $leaveTypes = LeaveSetting::all();
         $stats = [];
-        
+
         foreach ($leaveTypes as $leaveType) {
             $used = Leave::where('user_id', $userId)
-                        ->where('leave_setting_id', $leaveType->id)
-                        ->where('status', 'approved')
-                        ->whereYear('from_date', $year)
-                        ->sum(DB::raw('DATEDIFF(to_date, from_date) + 1'));
-            
+                ->where('leave_setting_id', $leaveType->id)
+                ->where('status', 'approved')
+                ->whereYear('from_date', $year)
+                ->sum(DB::raw('DATEDIFF(to_date, from_date) + 1'));
+
             $pending = Leave::where('user_id', $userId)
-                           ->where('leave_setting_id', $leaveType->id)
-                           ->where('status', 'pending')
-                           ->whereYear('from_date', $year)
-                           ->sum(DB::raw('DATEDIFF(to_date, from_date) + 1'));
-            
+                ->where('leave_setting_id', $leaveType->id)
+                ->where('status', 'pending')
+                ->whereYear('from_date', $year)
+                ->sum(DB::raw('DATEDIFF(to_date, from_date) + 1'));
+
             $stats[$leaveType->type] = [
                 'allocated' => $leaveType->days,
                 'used' => $used,
                 'pending' => $pending,
-                'available' => max(0, $leaveType->days - $used - $pending)
+                'available' => max(0, $leaveType->days - $used - $pending),
             ];
         }
-        
+
         return $stats;
     }
 
@@ -237,9 +244,9 @@ class TimeOffManagementController extends Controller
             'Maternity Leave' => '#ec4899',
             'Paternity Leave' => '#06b6d4',
             'Emergency Leave' => '#f59e0b',
-            'Bereavement Leave' => '#6b7280'
+            'Bereavement Leave' => '#6b7280',
         ];
-        
+
         return $colors[$leaveType] ?? '#6b7280';
     }
 }

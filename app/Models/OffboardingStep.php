@@ -12,12 +12,12 @@ class OffboardingStep extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'order', 'active', 'created_by', 'updated_by'
+        'name', 'description', 'order', 'active', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'active' => 'boolean',
-        'order' => 'integer'
+        'order' => 'integer',
     ];
 
     public static function boot()
@@ -52,6 +52,7 @@ class OffboardingStep extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');

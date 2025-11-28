@@ -7,16 +7,16 @@ use App\Models\User;
 use App\Services\Task\TaskCrudService;
 use App\Services\Task\TaskImportService;
 use App\Services\Task\TaskNotificationService;
-use App\Services\Task\TaskValidationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class TaskController extends Controller
 {
     private TaskCrudService $crudService;
+
     private TaskImportService $importService;
+
     private TaskNotificationService $notificationService;
 
     public function __construct(
@@ -28,6 +28,7 @@ class TaskController extends Controller
         $this->importService = $importService;
         $this->notificationService = $notificationService;
     }
+
     /**
      * Display a listing of the tasks.
      */
@@ -41,6 +42,7 @@ class TaskController extends Controller
         // Loop through each user and add a new field 'role' with the role name
         $users->transform(function ($user) {
             $user->role = $user->roles->first()->name;
+
             return $user;
         });
 
@@ -49,13 +51,14 @@ class TaskController extends Controller
             'allincharges' => $incharges,
             'title' => 'Tasks',
             'reports' => $reports,
-            'reports_with_tasks' => $reports_with_tasks
+            'reports_with_tasks' => $reports_with_tasks,
         ]);
     }
 
     public function getLatestTimestamp()
     {
         $latestTimestamp = \App\Models\DailyWork::max('updated_at');
+
         return response()->json(['timestamp' => $latestTimestamp]);
     }
 
@@ -63,6 +66,7 @@ class TaskController extends Controller
     {
         try {
             $result = $this->crudService->getAllTasks($request);
+
             return response()->json($result);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -73,6 +77,7 @@ class TaskController extends Controller
     {
         try {
             $result = $this->crudService->create($request);
+
             return response()->json($result);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
@@ -85,6 +90,7 @@ class TaskController extends Controller
     {
         try {
             $result = $this->crudService->update($request);
+
             return response()->json($result);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
@@ -97,6 +103,7 @@ class TaskController extends Controller
     {
         try {
             $result = $this->crudService->delete($request);
+
             return response()->json($result);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -107,9 +114,10 @@ class TaskController extends Controller
     {
         try {
             $results = $this->importService->processImport($request);
+
             return response()->json([
                 'message' => 'Import completed successfully',
-                'results' => $results
+                'results' => $results,
             ]);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
@@ -118,4 +126,3 @@ class TaskController extends Controller
         }
     }
 }
-

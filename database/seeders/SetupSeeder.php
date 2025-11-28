@@ -17,12 +17,12 @@ class SetupSeeder extends Seeder
 
         // Fix any migration issues first
         $this->fixMigrationIssues();
-        
+
         // Run the combined seeder with all necessary data
         $this->call([
             CombinedSeeder::class,
         ]);
-        
+
         // Create an admin user if it doesn't exist
         $this->ensureAdminUserExists();
 
@@ -31,38 +31,38 @@ class SetupSeeder extends Seeder
         $this->command->info('Email: admin@example.com');
         $this->command->info('Password: password');
     }
-    
+
     /**
      * Fix common migration issues before seeding
      */
     private function fixMigrationIssues(): void
     {
         $this->command->info('Checking and fixing migration issues...');
-        
+
         try {
             Artisan::call('hrm:extend', [
-                '--fix-migration-records' => true
+                '--fix-migration-records' => true,
             ]);
-            
+
             $output = Artisan::output();
             $this->command->info('Migration fixes applied:');
             $this->command->info($output);
         } catch (\Exception $e) {
-            $this->command->error('Error fixing migrations: ' . $e->getMessage());
+            $this->command->error('Error fixing migrations: '.$e->getMessage());
         }
     }
-    
+
     /**
      * Ensure an admin user exists in the system
      */
     private function ensureAdminUserExists(): void
     {
         $this->command->info('Ensuring admin user exists...');
-        
+
         $userModel = app(\App\Models\User::class);
         $adminExists = $userModel::where('email', 'admin@example.com')->exists();
-        
-        if (!$adminExists) {
+
+        if (! $adminExists) {
             // The CombinedSeeder will handle creating the admin user
             $this->command->info('✅ Admin user will be created by the CombinedSeeder');
         } else {

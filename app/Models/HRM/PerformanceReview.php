@@ -29,7 +29,7 @@ class PerformanceReview extends Model
         'employee_comments',
         'next_review_date',
         'department_id',
-        'template_id'
+        'template_id',
     ];
 
     protected $casts = [
@@ -118,10 +118,19 @@ class PerformanceReview extends Model
      */
     public function getRatingTextAttribute()
     {
-        if ($this->overall_rating >= 4.5) return 'Exceptional';
-        if ($this->overall_rating >= 3.5) return 'Exceeds Expectations';
-        if ($this->overall_rating >= 2.5) return 'Meets Expectations';
-        if ($this->overall_rating >= 1.5) return 'Needs Improvement';
+        if ($this->overall_rating >= 4.5) {
+            return 'Exceptional';
+        }
+        if ($this->overall_rating >= 3.5) {
+            return 'Exceeds Expectations';
+        }
+        if ($this->overall_rating >= 2.5) {
+            return 'Meets Expectations';
+        }
+        if ($this->overall_rating >= 1.5) {
+            return 'Needs Improvement';
+        }
+
         return 'Unsatisfactory';
     }
 }

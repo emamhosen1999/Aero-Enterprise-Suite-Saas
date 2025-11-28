@@ -1,26 +1,35 @@
 import {
-    CircularProgress,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    FormHelperText,
-    Grid,
-    IconButton,
-    InputLabel,
-    MenuItem,
+    Button,
+    Input,
     Select,
-    TextField,
-    Typography
-} from "@mui/material";
+    SelectItem,
+    Spinner,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
+} from "@heroui/react";
 import React, {useEffect, useState} from "react";
-import ClearIcon from '@mui/icons-material/Clear';
-import GlassDialog from "@/Components/GlassDialog.jsx";
-import {useTheme} from "@mui/material/styles";
-import LoadingButton from "@mui/lab/LoadingButton";
-import {toast} from "react-toastify";
+import { X, User } from 'lucide-react';
+import { showToast } from "@/utils/toastUtils";
 
 const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
     const [initialUserData, setInitialUserData] = useState({
         id: user.id,
         passport_no: user.passport_no || '',
@@ -41,8 +50,6 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
 
     const [errors, setErrors] = useState({});
     const [processing, setProcessing] = useState(false);
-
-    const theme = useTheme();
 
     const handleChange = (key, value) => {
         setInitialUserData((prevUser) => {
@@ -106,13 +113,13 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
 
             if (response.status === 200) {
                 setUser(response.data.user);
-                toast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Personal information updated successfully', {
+                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Personal information updated successfully', {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 closeModal();
@@ -126,49 +133,49 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
                 if (error.response.status === 422) {
                     // Handle validation errors
                     setErrors(error.response.data.errors || {});
-                    toast.error(error.response.data.error || 'Failed to update personal information.', {
+                    showToast.error(error.response.data.error || 'Failed to update personal information.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 } else {
                     // Handle other HTTP errors
-                    toast.error('An unexpected error occurred. Please try again later.', {
+                    showToast.error('An unexpected error occurred. Please try again later.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 }
                 console.error(error.response.data);
             } else if (error.request) {
                 // The request was made but no response was received
-                toast.error('No response received from the server. Please check your internet connection.', {
+                showToast.error('No response received from the server. Please check your internet connection.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error(error.request);
             } else {
                 // Something happened in setting up the request that triggered an Error
-                toast.error('An error occurred while setting up the request.', {
+                showToast.error('An error occurred while setting up the request.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error('Error', error.message);
@@ -182,151 +189,236 @@ const PersonalInformationForm = ({user,setUser, open, closeModal }) => {
 
 
     return (
-        <GlassDialog open={open} onClose={closeModal}>
-            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-                <Typography>Personal Information</Typography>
-                <IconButton
-                    variant="outlined"
-                    color="primary"
-                    onClick={closeModal}
-                    sx={{ position: 'absolute', top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
+        <Modal
+            isOpen={open}
+            onOpenChange={processing ? undefined : closeModal}
+            size="2xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "bg-content1",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+            }}
+            style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}
+        >
+            <ModalContent>
+                <ModalHeader className="flex gap-3 items-center" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderBottom: '1px solid var(--theme-divider)'
+                }}>
+                    <div className="p-2 rounded-lg" style={{
+                        background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                        borderRadius: `var(--borderRadius, 8px)`,
+                    }}>
+                        <User size={20} style={{ color: 'var(--theme-primary)' }} />
+                    </div>
+                    <span className="text-lg font-semibold" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        Personal Information
+                    </span>
+                </ModalHeader>
             <form onSubmit={handleSubmit}>
-                <DialogContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Input
                                 label="Passport No"
-                                fullWidth
                                 value={changedUserData.passport_no || initialUserData.passport_no || ''}
                                 onChange={(e) => handleChange('passport_no', e.target.value)}
-                                error={Boolean(errors.passport_no)}
-                                helperText={errors.passport_no}
+                                isInvalid={Boolean(errors.passport_no)}
+                                errorMessage={errors.passport_no}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Input
                                 label="Passport Expiry Date"
-                                fullWidth
                                 type="date"
                                 value={changedUserData.passport_exp_date || initialUserData.passport_exp_date || ''}
                                 onChange={(e) => handleChange('passport_exp_date', e.target.value)}
-                                InputLabelProps={{ shrink: true }}
-                                error={Boolean(errors.passport_exp_date)}
-                                helperText={errors.passport_exp_date}
+                                isInvalid={Boolean(errors.passport_exp_date)}
+                                errorMessage={errors.passport_exp_date}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Input
                                 label="NID No"
-                                fullWidth
                                 value={changedUserData.nid || initialUserData.nid || ''}
                                 onChange={(e) => handleChange('nid', e.target.value)}
-                                error={Boolean(errors.nid)}
-                                helperText={errors.nid}
+                                isInvalid={Boolean(errors.nid)}
+                                errorMessage={errors.nid}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Input
                                 label="Nationality"
-                                fullWidth
                                 value={changedUserData.nationality || initialUserData.nationality || ''}
                                 onChange={(e) => handleChange('nationality', e.target.value)}
-                                error={Boolean(errors.nationality)}
-                                helperText={errors.nationality}
+                                isInvalid={Boolean(errors.nationality)}
+                                errorMessage={errors.nationality}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Input
                                 label="Religion"
-                                fullWidth
                                 value={changedUserData.religion || initialUserData.religion || ''}
                                 onChange={(e) => handleChange('religion', e.target.value)}
-                                error={Boolean(errors.religion)}
-                                helperText={errors.religion}
+                                isInvalid={Boolean(errors.religion)}
+                                errorMessage={errors.religion}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                                <InputLabel id="marital-status-label">Marital status</InputLabel>
-                                <Select
-                                    labelId="marital-status-label"
-                                    value={changedUserData.marital_status || initialUserData.marital_status || "na"}
-                                    onChange={(e) => handleChange('marital_status', e.target.value)}
-                                    label="Marital status"
-                                    error={Boolean(errors.marital_status)}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            sx: {
-                                                backdropFilter: 'blur(16px) saturate(200%)',
-                                                background: theme.glassCard.background,
-                                                border: theme.glassCard.border,
-                                                borderRadius: 2,
-                                                boxShadow:
-                                                    'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
-                                            },
-                                        },
-                                    }}
-                                >
-                                    <MenuItem value="na">-</MenuItem>
-                                    <MenuItem value="Single">Single</MenuItem>
-                                    <MenuItem value="Married">Married</MenuItem>
-                                </Select>
-                                <FormHelperText>{errors.marital_status}</FormHelperText>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Select
+                                label="Marital Status"
+                                selectedKeys={changedUserData.marital_status || initialUserData.marital_status ? [changedUserData.marital_status || initialUserData.marital_status] : []}
+                                onSelectionChange={(keys) => handleChange('marital_status', Array.from(keys)[0])}
+                                isInvalid={Boolean(errors.marital_status)}
+                                errorMessage={errors.marital_status}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    trigger: "min-h-unit-10",
+                                    value: "text-small"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                            >
+                                <SelectItem key="na" value="na">-</SelectItem>
+                                <SelectItem key="Single" value="Single">Single</SelectItem>
+                                <SelectItem key="Married" value="Married">Married</SelectItem>
+                            </Select>
+                        </div>
+                        <div>
+                            <Input
                                 label="Employment of spouse"
-                                fullWidth
                                 value={changedUserData.marital_status === 'Single' ? '' : changedUserData.employment_of_spouse || initialUserData.employment_of_spouse}
                                 onChange={(e) => handleChange('employment_of_spouse', e.target.value)}
-                                error={Boolean(errors.employment_of_spouse)}
-                                helperText={errors.employment_of_spouse}
-                                disabled={changedUserData.marital_status === 'Single' || initialUserData.marital_status === 'Single'}
+                                isInvalid={Boolean(errors.employment_of_spouse)}
+                                errorMessage={errors.employment_of_spouse}
+                                isDisabled={changedUserData.marital_status === 'Single' || initialUserData.marital_status === 'Single'}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Input
                                 label="No. of children"
-                                fullWidth
                                 type="number"
                                 value={changedUserData.marital_status === 'Single' ? '' : changedUserData.number_of_children || initialUserData.number_of_children}
                                 onChange={(e) => handleChange('number_of_children', e.target.value)}
-                                error={Boolean(errors.number_of_children)}
-                                helperText={errors.number_of_children}
-                                disabled={changedUserData.marital_status === 'Single' || initialUserData.marital_status === 'Single'}
+                                isInvalid={Boolean(errors.number_of_children)}
+                                errorMessage={errors.number_of_children}
+                                isDisabled={changedUserData.marital_status === 'Single' || initialUserData.marital_status === 'Single'}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '16px',
-                    }}
-                >
-                    <LoadingButton
-                        disabled={!dataChanged}
-                        sx={{
-                            borderRadius: '50px',
-                            padding: '6px 16px',
+                        </div>
+                    </div>
+                </ModalBody>
+                <ModalFooter style={{
+                    borderTop: '1px solid var(--theme-divider)',
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <Button
+                        onPress={closeModal}
+                        isDisabled={processing}
+                        variant="light"
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
                         }}
-                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        isDisabled={!dataChanged}
+                        variant="bordered"
                         color="primary"
                         type="submit"
-                        loading={processing}
+                        isLoading={processing}
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
                     >
                         Submit
-                    </LoadingButton>
-                </DialogActions>
+                    </Button>
+                </ModalFooter>
             </form>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
 
     );
 };

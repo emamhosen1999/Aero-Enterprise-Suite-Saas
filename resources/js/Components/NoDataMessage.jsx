@@ -1,5 +1,4 @@
 import React from 'react';
-import { Typography } from '@mui/material';
 import { InboxIcon } from '@heroicons/react/24/outline';
 
 const NoDataMessage = ({ 
@@ -12,13 +11,13 @@ const NoDataMessage = ({
       <div className="mx-auto mb-2">
         {icon || <InboxIcon className="w-12 h-12 mx-auto text-default-300" />}
       </div>
-      <Typography variant="body1" color="textSecondary">
+      <p className="text-foreground text-sm mb-1">
         {message}
-      </Typography>
+      </p>
       {description && (
-        <Typography variant="caption" color="textSecondary">
+        <p className="text-default-400 text-xs">
           {description}
-        </Typography>
+        </p>
       )}
     </div>
   );

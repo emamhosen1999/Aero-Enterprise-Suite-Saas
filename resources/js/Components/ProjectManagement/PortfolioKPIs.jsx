@@ -375,7 +375,7 @@ const PortfolioKPIs = ({
             </div>
 
             {/* Real-time Status Banner */}
-            <Card className="bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border-primary-500/20">
+            <Card className="bg-linear-to-r from-primary-500/10 to-secondary-500/10 border-primary-500/20">
                 <CardBody className="p-4">
                     <div className="flex flex-wrap justify-between items-center gap-4 text-sm">
                         <div className="flex items-center space-x-4">

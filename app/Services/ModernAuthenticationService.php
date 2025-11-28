@@ -7,15 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class ModernAuthenticationService
 {
     protected const MAX_LOGIN_ATTEMPTS = 5;
+
     protected const LOCKOUT_DURATION = 30; // minutes
+
     protected const SESSION_LIFETIME = 120; // minutes
 
     /**
@@ -121,12 +120,12 @@ class ModernAuthenticationService
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         // Check if account is manually locked
-        if ($user->account_locked_at && !$this->isLockExpired($user)) {
+        if ($user->account_locked_at && ! $this->isLockExpired($user)) {
             return true;
         }
 
@@ -135,6 +134,7 @@ class ModernAuthenticationService
 
         if ($recentFailures >= self::MAX_LOGIN_ATTEMPTS) {
             $this->lockAccount($user, 'too_many_failed_attempts');
+
             return true;
         }
 
@@ -207,15 +207,16 @@ class ModernAuthenticationService
             ->where('attempts', '<', 5)
             ->first();
 
-        if (!$record) {
+        if (! $record) {
             return false;
         }
 
-        if (!Hash::check($token, $record->token)) {
+        if (! Hash::check($token, $record->token)) {
             // Increment attempts
             DB::table('password_reset_tokens_secure')
                 ->where('id', $record->id)
                 ->increment('attempts');
+
             return false;
         }
 
@@ -380,7 +381,7 @@ class ModernAuthenticationService
      */
     protected function isLockExpired(User $user): bool
     {
-        if (!$user->account_locked_at) {
+        if (! $user->account_locked_at) {
             return true;
         }
 
@@ -392,11 +393,21 @@ class ModernAuthenticationService
      */
     protected function getBrowserFromUserAgent(string $userAgent): string
     {
-        if (str_contains($userAgent, 'Chrome')) return 'Chrome';
-        if (str_contains($userAgent, 'Firefox')) return 'Firefox';
-        if (str_contains($userAgent, 'Safari')) return 'Safari';
-        if (str_contains($userAgent, 'Edge')) return 'Edge';
-        if (str_contains($userAgent, 'Opera')) return 'Opera';
+        if (str_contains($userAgent, 'Chrome')) {
+            return 'Chrome';
+        }
+        if (str_contains($userAgent, 'Firefox')) {
+            return 'Firefox';
+        }
+        if (str_contains($userAgent, 'Safari')) {
+            return 'Safari';
+        }
+        if (str_contains($userAgent, 'Edge')) {
+            return 'Edge';
+        }
+        if (str_contains($userAgent, 'Opera')) {
+            return 'Opera';
+        }
 
         return 'Unknown';
     }
@@ -406,11 +417,21 @@ class ModernAuthenticationService
      */
     protected function getPlatformFromUserAgent(string $userAgent): string
     {
-        if (str_contains($userAgent, 'Windows')) return 'Windows';
-        if (str_contains($userAgent, 'Macintosh')) return 'macOS';
-        if (str_contains($userAgent, 'Linux')) return 'Linux';
-        if (str_contains($userAgent, 'Android')) return 'Android';
-        if (str_contains($userAgent, 'iPhone') || str_contains($userAgent, 'iPad')) return 'iOS';
+        if (str_contains($userAgent, 'Windows')) {
+            return 'Windows';
+        }
+        if (str_contains($userAgent, 'Macintosh')) {
+            return 'macOS';
+        }
+        if (str_contains($userAgent, 'Linux')) {
+            return 'Linux';
+        }
+        if (str_contains($userAgent, 'Android')) {
+            return 'Android';
+        }
+        if (str_contains($userAgent, 'iPhone') || str_contains($userAgent, 'iPad')) {
+            return 'iOS';
+        }
 
         return 'Unknown';
     }
@@ -420,8 +441,12 @@ class ModernAuthenticationService
      */
     protected function getDeviceTypeFromUserAgent(string $userAgent): string
     {
-        if (str_contains($userAgent, 'Mobile') || str_contains($userAgent, 'Android')) return 'mobile';
-        if (str_contains($userAgent, 'Tablet') || str_contains($userAgent, 'iPad')) return 'tablet';
+        if (str_contains($userAgent, 'Mobile') || str_contains($userAgent, 'Android')) {
+            return 'mobile';
+        }
+        if (str_contains($userAgent, 'Tablet') || str_contains($userAgent, 'iPad')) {
+            return 'tablet';
+        }
 
         return 'desktop';
     }

@@ -11,7 +11,7 @@ import {
 import { Input, Button as HeroButton, Checkbox as HeroCheckbox } from '@heroui/react';
 import AuthLayout from '@/Components/AuthLayout';
 import Button from '@/Components/Button';
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from '@/Contexts/ThemeContext';
 
 export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -81,56 +81,9 @@ export default function ResetPassword({ token, email }) {
 
     const submit = (e) => {
         e.preventDefault();
-        
-        // Determine if we're on a tenant domain
-        const isTenantDomain = () => {
-            if (typeof window === 'undefined') return false;
-            
-            const host = window.location.hostname;
-            const pathname = window.location.pathname;
-            
-            // Development: check for path-based routing
-            if (host === '127.0.0.1' || host === 'localhost') {
-                return pathname.startsWith('/tenant/');
-            }
-            
-            // Production: check if it's not a central domain
-            const centralDomains = ['aero-hr.com', 'aero-hr.local', 'aero.com'];
-            return !centralDomains.includes(host);
-        };
-
-        const getCurrentTenantInfo = () => {
-            if (!isTenantDomain()) return null;
-            
-            const host = window.location.hostname;
-            const pathname = window.location.pathname;
-            
-            // Development: extract from path
-            if (host === '127.0.0.1' || host === 'localhost') {
-                const match = pathname.match(/\/tenant\/([^\/]+)/);
-                return match ? { domain: match[1], name: match[1] } : null;
-            }
-            
-            // Production: extract from subdomain
-            const parts = host.split('.');
-            if (parts.length >= 3) {
-                return { domain: parts[0], name: parts[0] };
-            }
-            
-            return null;
-        };
-
-        const tenantInfo = getCurrentTenantInfo();
-        
-        if (isTenantDomain() && tenantInfo) {
-            post(route('tenant.password.update', { tenant: tenantInfo.domain }), {
-                onFinish: () => reset('password', 'password_confirmation'),
-            });
-        } else {
-            post(route('central.password.update'), {
-                onFinish: () => reset('password', 'password_confirmation'),
-            });
-        }
+        post(route('password.update'), {
+            onFinish: () => reset('password', 'password_confirmation'),
+        });
     };
 
     return (
@@ -178,32 +131,8 @@ export default function ResetPassword({ token, email }) {
                         autoComplete="one-time-code"
                         autoFocus
                         maxLength={6}
-                        required
-                        startContent={
-                            <KeyIcon className="w-4 h-4 text-default-400 pointer-events-none flex-shrink-0" />
-                        }
-                        classNames={{
-                            base: "w-full",
-                            mainWrapper: "w-full",
-                            input: [
-                                "bg-transparent",
-                                "text-black dark:text-white",
-                                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                            ],
-                            innerWrapper: "bg-transparent",
-                            inputWrapper: [
-                                "shadow-xl",
-                                "bg-default-200/50",
-                                "dark:bg-default/60",
-                                "backdrop-blur-xl",
-                                "backdrop-saturate-200",
-                                "hover:bg-default-200/70",
-                                "dark:hover:bg-default/70",
-                                "group-data-[focused=true]:bg-default-200/50",
-                                "dark:group-data-[focused=true]:bg-default/60",
-                                "!cursor-text",
-                            ],
-                        }}
+                        isRequired
+                        startContent={<KeyIcon className="w-4 h-4 text-default-400" />}
                     />
                     <motion.p
                         className="text-xs mt-2"
@@ -231,13 +160,11 @@ export default function ResetPassword({ token, email }) {
                             isInvalid={!!errors.password}
                             errorMessage={errors.password}
                             autoComplete="new-password"
-                            required
-                            startContent={
-                                <LockClosedIcon className="w-4 h-4 text-default-400 pointer-events-none flex-shrink-0" />
-                            }
+                            isRequired
+                            startContent={<LockClosedIcon className="w-4 h-4 text-default-400 pointer-events-none shrink-0" />}
                             endContent={
                                 <button
-                                    className="focus:outline-none"
+                                    className="focus:outline-hidden"
                                     type="button"
                                     onClick={() => setIsPasswordVisible(!isPasswordVisible)}
                                 >
@@ -248,28 +175,6 @@ export default function ResetPassword({ token, email }) {
                                     )}
                                 </button>
                             }
-                            classNames={{
-                                base: "w-full",
-                                mainWrapper: "w-full",
-                                input: [
-                                    "bg-transparent",
-                                    "text-black dark:text-white",
-                                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                                ],
-                                innerWrapper: "bg-transparent",
-                                inputWrapper: [
-                                    "shadow-xl",
-                                    "bg-default-200/50",
-                                    "dark:bg-default/60",
-                                    "backdrop-blur-xl",
-                                    "backdrop-saturate-200",
-                                    "hover:bg-default-200/70",
-                                    "dark:hover:bg-default/70",
-                                    "group-data-[focused=true]:bg-default-200/50",
-                                    "dark:group-data-[focused=true]:bg-default/60",
-                                    "!cursor-text",
-                                ],
-                            }}
                         />
                         
                         {/* Password Strength Indicator */}
@@ -330,13 +235,11 @@ export default function ResetPassword({ token, email }) {
                         isInvalid={!!errors.password_confirmation}
                         errorMessage={errors.password_confirmation}
                         autoComplete="new-password"
-                        required
-                        startContent={
-                            <LockClosedIcon className="w-4 h-4 text-default-400 pointer-events-none flex-shrink-0" />
-                        }
+                        isRequired
+                        startContent={<LockClosedIcon className="w-4 h-4 text-default-400 pointer-events-none shrink-0" />}
                         endContent={
                             <button
-                                className="focus:outline-none"
+                                className="focus:outline-hidden"
                                 type="button"
                                 onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
                             >
@@ -347,28 +250,6 @@ export default function ResetPassword({ token, email }) {
                                 )}
                             </button>
                         }
-                        classNames={{
-                            base: "w-full",
-                            mainWrapper: "w-full",
-                            input: [
-                                "bg-transparent",
-                                "text-black dark:text-white",
-                                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                            ],
-                            innerWrapper: "bg-transparent",
-                            inputWrapper: [
-                                "shadow-xl",
-                                "bg-default-200/50",
-                                "dark:bg-default/60",
-                                "backdrop-blur-xl",
-                                "backdrop-saturate-200",
-                                "hover:bg-default-200/70",
-                                "dark:hover:bg-default/70",
-                                "group-data-[focused=true]:bg-default-200/50",
-                                "dark:group-data-[focused=true]:bg-default/60",
-                                "!cursor-text",
-                            ],
-                        }}
                     />
                 </motion.div>
 
@@ -377,16 +258,16 @@ export default function ResetPassword({ token, email }) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                 >
-                    <Button
+                    <HeroButton
                         type="submit"
-                        variant="primary"
+                        color="primary"
                         size="lg"
                         className="w-full"
-                        loading={processing}
+                        isLoading={processing}
                         disabled={processing}
                     >
                         {processing ? 'Updating password...' : 'Update password'}
-                    </Button>
+                    </HeroButton>
                 </motion.div>
             </form>
 
@@ -404,7 +285,7 @@ export default function ResetPassword({ token, email }) {
             >
                 <div className="flex items-start">
                     <motion.div
-                        className="flex-shrink-0"
+                        className="shrink-0"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.7, type: "spring", stiffness: 500 }}

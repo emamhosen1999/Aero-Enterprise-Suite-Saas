@@ -17,7 +17,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/';
+    public const HOME = '/dashboard';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -29,16 +29,30 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
-            // API routes
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
-            // Web routes
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
-                
-            // Note: Central routes are handled by TenancyServiceProvider
+
+            Route::middleware('web')
+                ->group(base_path('routes/hr.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/analytics.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/compliance.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/project-management.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/quality.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/modules.php'));
         });
     }
 }

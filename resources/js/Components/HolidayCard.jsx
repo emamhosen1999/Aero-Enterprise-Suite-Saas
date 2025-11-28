@@ -1,24 +1,25 @@
 import React from 'react';
-import {Box, Button, CardContent, CardHeader, Divider, Grid, Link, Typography} from '@mui/material';
-import Grow from '@mui/material/Grow';
+import { CardHeader, CardBody, Divider } from '@heroui/react';
+import { motion } from 'framer-motion';
 import GlassCard from "@/Components/GlassCard.jsx";
-import {usePage} from "@inertiajs/react";
+import { usePage } from "@inertiajs/react";
 
 const HolidayCard = () => {
     const { upcomingHoliday } = usePage().props;
     return (
-        <Box sx={{p:2}}>
-            <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
-          
+        <div className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {/* Upcoming Holiday Card */}
-                <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <GlassCard sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <CardHeader title="Upcoming Holiday"/>
-                            <CardContent sx={{ textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div className="flex flex-col">
+                    <div className="flex-1 flex flex-col">
+                        <GlassCard className="flex-1 flex flex-col">
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Upcoming Holiday</h3>
+                            </CardHeader>
+                            <CardBody className="text-center flex-1 flex flex-col justify-center">
                                 {upcomingHoliday ? (
                                     <>
-                                        <Typography variant="h6" gutterBottom>
+                                        <h4 className="text-base font-medium mb-2">
                                             {
                                                 upcomingHoliday.from_date === upcomingHoliday.to_date ?
                                                     new Date(upcomingHoliday.from_date).toLocaleString('en-US', {
@@ -35,26 +36,25 @@ const HolidayCard = () => {
                                                     year: 'numeric'
                                                 })
                                             }
-                                        </Typography>
-                                        <Divider sx={{mb: 2}}/>
-                                        <Typography variant="h5" gutterBottom>
+                                        </h4>
+                                        <Divider className="mb-4"/>
+                                        <h3 className="text-xl font-bold mb-2">
                                             {upcomingHoliday.title}
-                                        </Typography>
+                                        </h3>
                                     </>
 
                                 ) : (
-                                    <Typography variant="h6" gutterBottom>
+                                    <h4 className="text-base font-medium mb-2">
                                         No upcoming holidays
-                                    </Typography>
+                                    </h4>
                                 )}
 
-                            </CardContent>
+                            </CardBody>
                         </GlassCard>
-                    </Box>
-                </Grid>
-            </Grid>
-        </Box>
-
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

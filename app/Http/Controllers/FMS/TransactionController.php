@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\FMS;
 
 use App\Http\Controllers\Controller;
-use App\Models\Transaction;
 use App\Models\FinancialAccount;
 use App\Models\FinancialCategory;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -115,6 +115,7 @@ class TransactionController extends Controller
                 ->get()
                 ->map(function ($account) {
                     $account->balance = ($account->income ?? 0) - ($account->expense ?? 0);
+
                     return $account;
                 }),
         ]);

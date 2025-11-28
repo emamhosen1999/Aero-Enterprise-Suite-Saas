@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\ModernAuthenticationService;
 use App\Models\User;
+use App\Services\ModernAuthenticationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -18,12 +18,12 @@ use Inertia\Response;
 class PasswordResetController extends Controller
 {
     protected ModernAuthenticationService $authService;
-    
+
     public function __construct(ModernAuthenticationService $authService)
     {
         $this->authService = $authService;
     }
-    
+
     /**
      * Display the password reset request form.
      */
@@ -33,7 +33,7 @@ class PasswordResetController extends Controller
             'status' => session('status'),
         ]);
     }
-    
+
     /**
      * Handle password reset request.
      */
@@ -42,10 +42,10 @@ class PasswordResetController extends Controller
         $request->validate([
             'email' => 'required|email',
         ]);
-        
+
         $email = $request->email;
         $user = User::where('email', $email)->first();
-        
+
         // Always log the attempt, regardless of whether email exists
         $this->authService->logAuthenticationEvent(
             $user,
@@ -54,21 +54,21 @@ class PasswordResetController extends Controller
             $request,
             ['email' => $email]
         );
-        
-        if (!$user) {
+
+        if (! $user) {
             // Don't reveal that the email doesn't exist
             return back()->with('status', 'If an account with that email exists, we have sent a password reset link.');
         }
-        
+
         try {
             // Generate secure token with OTP
             $resetData = $this->authService->generatePasswordResetToken($email, $request);
-            
+
             // Send email with reset link and OTP
             $this->sendPasswordResetEmail($user, $resetData);
-            
+
             return back()->with('status', 'We have sent a password reset link and verification code to your email.');
-            
+
         } catch (\Exception $e) {
             $this->authService->logAuthenticationEvent(
                 $user,
@@ -77,11 +77,11 @@ class PasswordResetController extends Controller
                 $request,
                 ['email' => $email, 'error' => $e->getMessage()]
             );
-            
+
             return back()->withErrors(['email' => 'Failed to send password reset email. Please try again.']);
         }
     }
-    
+
     /**
      * Display the password reset form.
      */
@@ -92,7 +92,7 @@ class PasswordResetController extends Controller
             'token' => $request->token,
         ]);
     }
-    
+
     /**
      * Handle the password reset form submission.
      */
@@ -104,15 +104,15 @@ class PasswordResetController extends Controller
             'verification_code' => 'required|string|size:6',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
-        
+
         $email = $request->email;
         $token = $request->token;
         $verificationCode = $request->verification_code;
         $password = $request->password;
-        
+
         $user = User::where('email', $email)->first();
-        
-        if (!$user) {
+
+        if (! $user) {
             $this->authService->logAuthenticationEvent(
                 null,
                 'password_reset_invalid_email',
@@ -120,14 +120,14 @@ class PasswordResetController extends Controller
                 $request,
                 ['email' => $email]
             );
-            
+
             throw ValidationException::withMessages([
                 'email' => 'No account found with this email address.',
             ]);
         }
-        
+
         // Verify token and code
-        if (!$this->authService->verifyPasswordResetToken($email, $token, $verificationCode)) {
+        if (! $this->authService->verifyPasswordResetToken($email, $token, $verificationCode)) {
             $this->authService->logAuthenticationEvent(
                 $user,
                 'password_reset_invalid_token',
@@ -135,22 +135,22 @@ class PasswordResetController extends Controller
                 $request,
                 ['email' => $email]
             );
-            
+
             throw ValidationException::withMessages([
                 'verification_code' => 'The verification code is invalid or has expired.',
             ]);
         }
-        
+
         // Update password
         $user->update([
             'password' => Hash::make($password),
         ]);
-        
+
         // Clean up reset tokens for this email
         DB::table('password_reset_tokens_secure')
             ->where('email', $email)
             ->delete();
-        
+
         // Log successful password reset
         $this->authService->logAuthenticationEvent(
             $user,
@@ -158,13 +158,10 @@ class PasswordResetController extends Controller
             'success',
             $request
         );
-        
-        // Determine the correct login route based on tenant context
-        $loginRoute = tenant() ? 'tenant.login' : 'central.login';
-        
-        return redirect()->route($loginRoute)->with('status', 'Your password has been reset successfully.');
+
+        return redirect()->route('login')->with('status', 'Your password has been reset successfully.');
     }
-    
+
     /**
      * Send password reset email with OTP
      */
@@ -178,7 +175,7 @@ class PasswordResetController extends Controller
             'verification_code' => $resetData['verification_code'],
             'expires_at' => $resetData['expires_at'],
         ]);
-        
+
         // Example of how you would send an email:
         /*
         Mail::send('emails.password-reset', [

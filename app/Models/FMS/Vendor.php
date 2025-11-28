@@ -21,11 +21,11 @@ class Vendor extends Model
         'postal_code',
         'tax_id',
         'payment_terms',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     /**

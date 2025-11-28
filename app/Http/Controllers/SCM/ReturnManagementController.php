@@ -4,7 +4,6 @@ namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
 use App\Models\SCM\ReturnRequest;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -84,7 +83,7 @@ class ReturnManagementController extends Controller
 
     public function edit(ReturnRequest $returnRequest)
     {
-        if (!in_array($returnRequest->status, ['requested'])) {
+        if (! in_array($returnRequest->status, ['requested'])) {
             return Redirect::route('scm.return-management.index')->with('error', 'Only pending returns can be edited.');
         }
 
@@ -109,7 +108,7 @@ class ReturnManagementController extends Controller
 
     public function update(Request $request, ReturnRequest $returnRequest)
     {
-        if (!in_array($returnRequest->status, ['requested'])) {
+        if (! in_array($returnRequest->status, ['requested'])) {
             return Redirect::route('scm.return-management.index')->with('error', 'Only pending returns can be updated.');
         }
 
@@ -129,7 +128,7 @@ class ReturnManagementController extends Controller
 
     public function destroy(ReturnRequest $returnRequest)
     {
-        if (!in_array($returnRequest->status, ['requested'])) {
+        if (! in_array($returnRequest->status, ['requested'])) {
             return Redirect::route('scm.return-management.index')->with('error', 'Only pending returns can be deleted.');
         }
 
@@ -249,7 +248,8 @@ class ReturnManagementController extends Controller
     private function generateRmaNumber()
     {
         $lastReturn = ReturnRequest::latest('id')->first();
-        $nextNumber = $lastReturn ? (int)substr($lastReturn->rma_number, 4) + 1 : 1;
-        return 'RMA-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastReturn ? (int) substr($lastReturn->rma_number, 4) + 1 : 1;
+
+        return 'RMA-'.str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 }

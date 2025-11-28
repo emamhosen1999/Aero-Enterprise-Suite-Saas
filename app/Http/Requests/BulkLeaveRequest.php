@@ -12,7 +12,7 @@ class BulkLeaveRequest extends FormRequest
     public function authorize(): bool
     {
         // Check if user has permission to create leaves
-        return $this->user()->can('leaves.create') || 
+        return $this->user()->can('leaves.create') ||
                $this->user()->hasPermissionTo('leaves.create') ||
                in_array('leaves.create', $this->user()->permissions ?? []);
     }
@@ -29,7 +29,7 @@ class BulkLeaveRequest extends FormRequest
             'leave_type_id' => 'required|exists:leave_settings,id',
             'reason' => 'required|string|min:5|max:500',
             'allow_partial_success' => 'boolean',
-            'force_overwrite' => 'boolean'
+            'force_overwrite' => 'boolean',
         ];
     }
 
@@ -59,7 +59,7 @@ class BulkLeaveRequest extends FormRequest
     protected function prepareForValidation()
     {
         // If user_id is not provided, use the authenticated user's ID
-        if (!$this->has('user_id') && $this->user()) {
+        if (! $this->has('user_id') && $this->user()) {
             $this->merge([
                 'user_id' => $this->user()->id,
             ]);
@@ -88,20 +88,20 @@ class BulkLeaveRequest extends FormRequest
         $validator->after(function ($validator) {
             // Custom validation for date range
             $dates = $this->input('dates', []);
-            
+
             if (count($dates) > 0) {
                 $minDate = min($dates);
                 $maxDate = max($dates);
-                
+
                 try {
                     $minCarbon = \Carbon\Carbon::parse($minDate);
                     $maxCarbon = \Carbon\Carbon::parse($maxDate);
-                    
+
                     // Check if date range is more than 1 year
                     if ($maxCarbon->diffInDays($minCarbon) > 365) {
                         $validator->errors()->add('dates', 'Date range cannot exceed 365 days.');
                     }
-                    
+
                     // Check if any date is more than 1 year in the future
                     $oneYearFromNow = now()->addYear();
                     foreach ($dates as $date) {

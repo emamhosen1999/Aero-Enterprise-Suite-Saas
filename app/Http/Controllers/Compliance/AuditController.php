@@ -182,7 +182,7 @@ class AuditController extends Controller
             'department_id' => 'nullable|exists:departments,id',
             'scope' => 'required|string',
             'findings' => 'nullable|string',
-            'reference_number' => 'required|string|max:100|unique:compliance_audits,reference_number,' . $audit->id,
+            'reference_number' => 'required|string|max:100|unique:compliance_audits,reference_number,'.$audit->id,
         ]);
 
         $audit->update($validated);

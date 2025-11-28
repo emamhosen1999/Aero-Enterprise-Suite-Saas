@@ -24,7 +24,7 @@ class HrDocumentPolicy
     public function view(User $user, HrDocument $document): bool
     {
         // Basic permission check
-        if (!$user->can('hr.documents.view')) {
+        if (! $user->can('hr.documents.view')) {
             return false;
         }
 

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Experience;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class ExperienceController extends Controller
@@ -43,13 +42,13 @@ class ExperienceController extends Controller
                         ->first();
                     if ($experience) {
                         $experience->update($experienceData);
-                        $messages[] = 'Experience record updated: ' . $experienceData['company_name'];
+                        $messages[] = 'Experience record updated: '.$experienceData['company_name'];
                     } else {
                         return response()->json(['error' => 'Experience record not found.'], 404);
                     }
                 } else {
                     Experience::create($experienceData);
-                    $messages[] = 'Experience record added: ' . $experienceData['company_name'];
+                    $messages[] = 'Experience record added: '.$experienceData['company_name'];
                 }
             }
 
@@ -66,7 +65,7 @@ class ExperienceController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Update Experience Error: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Update Experience Error: '.$e->getMessage()], 500);
         }
     }
 

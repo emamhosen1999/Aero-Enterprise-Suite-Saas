@@ -2,10 +2,10 @@
 
 namespace App\Models\CRM;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\User;
 
 class Opportunity extends Model
 {
@@ -39,8 +39,11 @@ class Opportunity extends Model
      * Opportunity statuses
      */
     const STATUS_ACTIVE = 'active';
+
     const STATUS_WON = 'won';
+
     const STATUS_LOST = 'lost';
+
     const STATUS_CANCELLED = 'cancelled';
 
     /**

@@ -1,22 +1,13 @@
 import React, { useState, useCallback } from "react";
 import {
-    Box,
-    Typography,
-    IconButton,
-    Stack,
-    useMediaQuery,
-    Tooltip as MuiTooltip,
-    CardContent,
-    CardHeader,
-} from "@mui/material";
-import {
-    Edit as EditIcon,
-    Delete as DeleteIcon,
-    MoreVert as MoreVertIcon
-} from "@mui/icons-material";
-import { useTheme, alpha } from "@mui/material/styles";
+    PencilIcon as EditIcon,
+    TrashIcon as DeleteIcon,
+    EllipsisVerticalIcon as MoreVertIcon
+} from '@heroicons/react/24/outline';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+
 import { usePage } from "@inertiajs/react";
-import { toast } from "react-toastify";
+import { showToast } from '@/utils/toastUtils';
 import {
     Table,
     TableHeader,
@@ -36,7 +27,9 @@ import {
     Card,
     CardBody,
     Divider,
-    ScrollShadow
+    ScrollShadow,
+    Link,
+    Avatar 
 } from "@heroui/react";
 import {
     CalendarDaysIcon,
@@ -58,7 +51,9 @@ import {
     ExclamationTriangleIcon as ExclamationTriangleSolid
 } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import GlassCard from "@/Components/GlassCard";
+import { PhoneOff } from "lucide-react";
+import ApprovalActions from '@/Components/Leave/ApprovalActions.jsx';
+
 
 
 
@@ -86,7 +81,7 @@ const LeaveEmployeeTable = React.forwardRef(({
     fetchLeavesStats 
 }, ref) => {
     const { auth } = usePage().props;
-    const theme = useTheme();
+
     const isLargeScreen = useMediaQuery('(min-width: 1025px)');
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
     const isMobile = useMediaQuery('(max-width: 640px)');
@@ -100,6 +95,21 @@ const LeaveEmployeeTable = React.forwardRef(({
         () => Array.from(selectedKeys).join(", ").replaceAll("_", " "),
         [selectedKeys]
     );
+
+     // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
 
     const topContent = React.useMemo(() => {
         const isAllSelected = selectedKeys === "all";
@@ -121,6 +131,12 @@ const LeaveEmployeeTable = React.forwardRef(({
                                         : leaves.filter(leave => selectedKeys.has(leave.id.toString()));
                                     onBulkDelete(selectedLeavesArray);
                                 }}
+                                style={{
+                                    background: `color-mix(in srgb, var(--theme-danger) 20%, transparent)`,
+                                    border: `1px solid color-mix(in srgb, var(--theme-danger) 30%, transparent)`,
+                                    color: 'var(--theme-danger)',
+                                    borderRadius: getThemeRadius(),
+                                }}
                             >
                                 Delete {selectedCount} selected
                             </Button>
@@ -128,7 +144,10 @@ const LeaveEmployeeTable = React.forwardRef(({
                     </div>
                 </div>
                 {hasSelection && (
-                    <span className="text-default-400 text-small">
+                    <span 
+                        className="text-small opacity-70"
+                        style={{ color: 'var(--theme-foreground)' }}
+                    >
                         {selectedCount} of {leaves.length} selected
                     </span>
                 )}
@@ -148,28 +167,22 @@ const LeaveEmployeeTable = React.forwardRef(({
         'New': {
             color: 'primary',
             icon: ExclamationTriangleSolid,
-            bgColor: alpha(theme.palette.primary.main, 0.1),
-            textColor: theme.palette.primary.main
         },
         'Pending': {
             color: 'warning',
             icon: ClockSolid,
-            bgColor: alpha(theme.palette.warning.main, 0.1),
-            textColor: theme.palette.warning.main
         },
         'Approved': {
             color: 'success',
             icon: CheckCircleSolid,
-            bgColor: alpha(theme.palette.success.main, 0.1),
-            textColor: theme.palette.success.main
         },
         'Declined': {
             color: 'danger',
             icon: XCircleSolid,
-            bgColor: alpha(theme.palette.error.main, 0.1),
-            textColor: theme.palette.error.main
         }
     };
+
+    
 
     const getLeaveTypeIcon = (type) => {
         switch (type?.toLowerCase()) {
@@ -201,7 +214,7 @@ const LeaveEmployeeTable = React.forwardRef(({
     const updateLeaveStatus = useCallback(async (leave, newStatus) => {
     // If the leave is already in the desired status, resolve early and do not trigger loader or API
     if (leave.status === newStatus) {
-        toast.info(`Leave is already ${newStatus}.`);
+        showToast.info(`Leave is already ${newStatus}.`);
         return Promise.resolve(`The leave status is already updated to ${newStatus}`);
     }
 
@@ -239,8 +252,8 @@ const LeaveEmployeeTable = React.forwardRef(({
         }
     });
 
-    toast.promise(promise, {
-        pending: "Updating leave status...",
+    showToast.promise(promise, {
+        loading: "Updating leave status...",
         success: "Leave status updated successfully!",
         error: "Failed to update leave status"
     });
@@ -252,15 +265,52 @@ const LeaveEmployeeTable = React.forwardRef(({
         const config = statusConfig[status] || statusConfig['New'];
         const StatusIcon = config.icon;
 
+        // Map status to theme colors
+        const getStatusColors = (status) => {
+            switch (status.toLowerCase()) {
+                case 'approved':
+                    return {
+                        bg: 'color-mix(in srgb, var(--theme-success) 20%, transparent)',
+                        border: 'color-mix(in srgb, var(--theme-success) 40%, transparent)',
+                        color: 'var(--theme-success)'
+                    };
+                case 'rejected':
+                    return {
+                        bg: 'color-mix(in srgb, var(--theme-danger) 20%, transparent)',
+                        border: 'color-mix(in srgb, var(--theme-danger) 40%, transparent)',
+                        color: 'var(--theme-danger)'
+                    };
+                case 'pending':
+                    return {
+                        bg: 'color-mix(in srgb, var(--theme-warning) 20%, transparent)',
+                        border: 'color-mix(in srgb, var(--theme-warning) 40%, transparent)',
+                        color: 'var(--theme-warning)'
+                    };
+                default:
+                    return {
+                        bg: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                        border: 'color-mix(in srgb, var(--theme-primary) 40%, transparent)',
+                        color: 'var(--theme-primary)'
+                    };
+            }
+        };
+
+        const colors = getStatusColors(status);
+
         return (
             <Chip
                 size="sm"
                 variant="flat"
-                color={config.color}
                 startContent={<StatusIcon className="w-3 h-3" />}
                 classNames={{
                     base: "h-6",
                     content: "text-xs font-medium"
+                }}
+                style={{
+                    background: colors.bg,
+                    border: `1px solid ${colors.border}`,
+                    color: colors.color,
+                    borderRadius: getThemeRadius(),
                 }}
             >
                 {status}
@@ -293,42 +343,67 @@ const LeaveEmployeeTable = React.forwardRef(({
         const user = getUserInfo(leave.user_id);
         const duration = getLeaveDuration(leave.from_date, leave.to_date);
         const statusConf = statusConfig[leave.status] || statusConfig['New'];
-        console.log(isAdminView ? "Admin View" : "User View");
+
 
         return (
-            <GlassCard className="mb-2" shadow="sm">
-                <CardContent className="p-3">
-                    <Box className="flex items-start justify-between mb-3">
-                        <Box className="flex items-center gap-3 flex-1">
+            <Card 
+                className="mb-2"
+                style={{
+                    background: `color-mix(in srgb, var(--theme-content1) 85%, transparent)`,
+                    backdropFilter: 'blur(16px)',
+                    border: `1px solid color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                    borderRadius: getThemeRadius(),
+                }}
+            >
+                <CardBody className="p-3">
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3 flex-1">
                             {isAdminView && (
                                 <User
-                                    avatarProps={{
-                                        radius: "lg",
-                                        size: "sm",
-                                        src: user?.profile_image,
-                                        fallback: <UserIcon className="w-4 h-4" />
-                                    }}
-                                    name={
-                                        <Typography variant="body2" fontWeight="medium">
-                                            {user?.name}
-                                        </Typography>
-                                    }
-                                    description={
-                                        <Typography variant="caption" color="textSecondary">
-                                            {user?.phone}
-                                        </Typography>
-                                    }
-                                />
+                        avatarProps={{
+                        radius: "lg",
+                        size: "sm",
+                        src: user?.profile_image_url || user?.profile_image,
+                        showFallback: true, // Ensure fallback is always available
+                        name: user?.name || "Unnamed User",
+                        isBordered: true,
+                        }}
+                        description={
+                        user?.phone ? (
+                            <Link
+                            href={`tel:${user?.phone}`}
+                            size="sm"
+                            className="text-xs text-blue-500 hover:underline"
+                            >
+                            {user?.phone}
+                            </Link>
+                        ) : (
+                            <span className="flex items-center gap-1 text-xs text-gray-400 italic">
+                            <PhoneOff className="w-3 h-3" /> No Phone
+                            </span>
+                        )
+                        }
+                        name={
+                        <span className="text-sm font-medium">
+                            {user?.name || "Unnamed User"}
+                        </span>
+                        }
+                    />
                             )}
-                        </Box>
-                        <Box className="flex items-center gap-2">
+                        </div>
+                        <div className="flex items-center gap-2">
                             {getStatusChip(leave.status)}
                             {(canEditLeaves || canDeleteLeaves) && ( // Check specific permissions for dropdown
                                 <Dropdown>
                                     <DropdownTrigger>
-                                        <IconButton size="small">
+                                        <Button
+                                            isIconOnly
+                                            size="sm"
+                                            variant="light"
+                                            className="min-w-8 h-8"
+                                        >
                                             <EllipsisVerticalIcon className="w-4 h-4" />
-                                        </IconButton>
+                                        </Button>
                                     </DropdownTrigger>
                                     <DropdownMenu aria-label="Leave actions">
                                         {canEditLeaves && (
@@ -358,43 +433,64 @@ const LeaveEmployeeTable = React.forwardRef(({
                                     </DropdownMenu>
                                 </Dropdown>
                             )}
-                        </Box>
-                    </Box>
+                        </div>
+                    </div>
 
                     <Divider className="my-3" />
 
-                    <Stack spacing={2}>
-                        <Box className="flex items-center gap-2">
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
                             <DocumentTextIcon className="w-4 h-4 text-primary" />
-                            <Typography variant="body2" fontWeight="medium">
+                            <span className="text-sm font-medium">
                                 {leave.leave_type}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
 
-                        <Box className="flex items-center gap-2">
-                            <CalendarDaysIcon className="w-4 h-4 text-default-500" />
-                            <Typography variant="body2" color="textSecondary">
+                        <div className="flex items-center gap-2">
+                            <CalendarDaysIcon 
+                                className="w-4 h-4 opacity-60"
+                                style={{ color: 'var(--theme-foreground)' }}
+                            />
+                            <span 
+                                className="text-sm opacity-80"
+                                style={{ color: 'var(--theme-foreground)' }}
+                            >
                                 {formatDate(leave.from_date)} - {formatDate(leave.to_date)}
-                            </Typography>
-                            <Chip size="sm" variant="bordered" color="default">
+                            </span>
+                            <Chip 
+                                size="sm" 
+                                variant="bordered"
+                                style={{
+                                    background: 'color-mix(in srgb, var(--theme-content2) 50%, transparent)',
+                                    border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
+                                    color: 'var(--theme-foreground)',
+                                    borderRadius: getThemeRadius(),
+                                }}
+                            >
                                 {duration}
                             </Chip>
-                        </Box>
+                        </div>
 
                         {leave.reason && (
-                            <Box className="flex items-start gap-2">
-                                <ClockIconOutline className="w-4 h-4 text-default-500 mt-0.5" />
-                                <Typography variant="body2" color="textSecondary" className="flex-1">
+                            <div className="flex items-start gap-2">
+                                <ClockIconOutline 
+                                    className="w-4 h-4 mt-0.5 opacity-60"
+                                    style={{ color: 'var(--theme-foreground)' }}
+                                />
+                                <span 
+                                    className="text-sm flex-1 opacity-80"
+                                    style={{ color: 'var(--theme-foreground)' }}
+                                >
                                     {leave.reason}
-                                </Typography>
-                            </Box>
+                                </span>
+                            </div>
                         )}
-                    </Stack>
+                    </div>
 
                     {isAdminView && canApproveLeaves && (
                         <>
                             <Divider className="my-3" />
-                            <Box className="flex gap-2">
+                            <div className="flex gap-2">
                                 {['Approved', 'Declined'].map((status) => (
                                     <Button
                                         key={status}
@@ -419,11 +515,11 @@ const LeaveEmployeeTable = React.forwardRef(({
                                         {status}
                                     </Button>
                                 ))}
-                            </Box>
+                            </div>
                         </>
                     )}
-                </CardContent>
-            </GlassCard>
+                </CardBody>
+            </Card>
         );
     };
 
@@ -435,36 +531,48 @@ const LeaveEmployeeTable = React.forwardRef(({
             case "employee":
                 return (
                     <TableCell className="whitespace-nowrap">
-                        <User
-                            avatarProps={{
-                                radius: "lg",
-                                size: "sm",
-                                src: user?.profile_image,
-                                fallback: <UserIcon className="w-4 h-4" />
-                            }}
-                            description={
-                                <Typography variant="caption" className="text-xs">
-                                    {user?.phone}
-                                </Typography>
-                            }
-                            name={
-                                <Typography variant="body2" className="text-sm font-medium">
-                                    {user?.name}
-                                </Typography>
-                            }
-                        />
+                    <User
+                        avatarProps={{
+                        radius: "lg",
+                        size: "sm",
+                        src: user?.profile_image_url || user?.profile_image,
+                        showFallback: true, // Ensure fallback is always available
+                        name: user?.name || "Unnamed User",
+                        isBordered: true,
+                        }}
+                        description={
+                        user?.phone ? (
+                            <Link
+                            href={`tel:${user?.phone}`}
+                            size="sm"
+                            className="text-xs text-blue-500 hover:underline"
+                            >
+                            {user?.phone}
+                            </Link>
+                        ) : (
+                            <span className="flex items-center gap-1 text-xs text-gray-400 italic">
+                            <PhoneOff className="w-3 h-3" /> No Phone
+                            </span>
+                        )
+                        }
+                        name={
+                        <span className="text-sm font-medium">
+                            {user?.name || "Unnamed User"}
+                        </span>
+                        }
+                    />
                     </TableCell>
                 );
 
             case "leave_type":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             {getLeaveTypeIcon(leave.leave_type)}
-                            <Typography variant="body2" className="text-sm font-medium capitalize">
+                            <span className="text-sm font-medium capitalize">
                                 {leave.leave_type}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
             case "from_date":
@@ -473,28 +581,54 @@ const LeaveEmployeeTable = React.forwardRef(({
  
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
-                            <CalendarDaysIcon className="w-3 h-3 text-default-500" />
-                            <Box>
-                                <Typography variant="body2" className="text-sm">
+                        <div className="flex items-center gap-1">
+                            <CalendarDaysIcon 
+                                className="w-3 h-3 opacity-60"
+                                style={{ color: 'var(--theme-foreground)' }}
+                            />
+                            <div>
+                                <span 
+                                    className="text-sm"
+                                    style={{ color: 'var(--theme-foreground)' }}
+                                >
                                     {formatDate(leave[columnKey])}
-                                </Typography>
+                                </span>
                                 {columnKey === "from_date" && (
-                                    <Typography variant="caption" className="text-xs" color="textSecondary">
+                                    <div 
+                                        className="text-xs opacity-60"
+                                        style={{ color: 'var(--theme-foreground)' }}
+                                    >
                                         {getLeaveDuration(leave.from_date, leave.to_date)}
-                                    </Typography>
+                                    </div>
                                 )}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     </TableCell>
                 );
 
             case "status":
+                const canApproveThisLeave = leave.approval_chain && 
+                    leave.status === 'pending' && 
+                    leave.approval_chain.some(level => 
+                        level.level === leave.current_approval_level && 
+                        level.approver_id === auth.user.id && 
+                        level.status === 'pending'
+                    );
+
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             {getStatusChip(leave.status)}
-                            {isAdminView && canApproveLeaves && (
+                            {canApproveThisLeave ? (
+                                <ApprovalActions 
+                                    leave={leave} 
+                                    onApprovalComplete={() => {
+                                        // Refresh the leaves list
+                                        if (fetchLeavesStats) fetchLeavesStats();
+                                        window.location.reload();
+                                    }}
+                                />
+                            ) : isAdminView && canApproveLeaves && (
                                 <Dropdown>
                                     <DropdownTrigger>
                                         <Button 
@@ -502,6 +636,8 @@ const LeaveEmployeeTable = React.forwardRef(({
                                             size="sm" 
                                             variant="light"
                                             isDisabled={updatingLeave && updatingLeave.startsWith(`${leave.id}-`)}
+                                            onPress={() => {}} // Empty function for dropdown trigger
+                                            className="min-w-8 h-8"
                                         >
                                             <EllipsisVerticalIcon className="w-4 h-4" />
                                         </Button>
@@ -526,22 +662,21 @@ const LeaveEmployeeTable = React.forwardRef(({
                                     </DropdownMenu>
                                 </Dropdown>
                             )}
-                        </Box>
+                        </div>
                     </TableCell>
                 );
 
             case "reason":
                 return (
                     <TableCell>
-                        <MuiTooltip title={leave.reason || "No reason provided"}>
-                            <Typography 
-                                variant="caption" 
-                                className="max-w-xs truncate cursor-help text-xs"
-                                color="textSecondary"
+                        <Tooltip content={leave.reason || "No reason provided"}>
+                            <span 
+                                className="max-w-xs truncate cursor-help text-xs opacity-70"
+                                style={{ color: 'var(--theme-foreground)' }}
                             >
                                 {leave.reason || "No reason provided"}
-                            </Typography>
-                        </MuiTooltip>
+                            </span>
+                        </Tooltip>
                     </TableCell>
                 );
 
@@ -549,56 +684,53 @@ const LeaveEmployeeTable = React.forwardRef(({
           
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             {canEditLeaves && (
                                 <Tooltip content="Edit Leave">
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => {
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="light"
+                                        color="primary"
+                                        isDisabled={updatingLeave && updatingLeave.startsWith(`${leave.id}-`)}
+                                        onPress={() => {
                                             if (updatingLeave && updatingLeave.startsWith(`${leave.id}-`)) return;
-                                       
                                             setCurrentLeave(leave);
                                             openModal("edit_leave");
                                         }}
-                                        sx={{
-                                            background: alpha(theme.palette.primary.main, 0.1),
-                                            '&:hover': {
-                                                background: alpha(theme.palette.primary.main, 0.2)
-                                            }
-                                        }}
+                                        className="min-w-8 h-8"
                                     >
                                         <PencilIcon className="w-4 h-4" />
-                                    </IconButton>
+                                    </Button>
                                 </Tooltip>
                             )}
                             {canDeleteLeaves && (
                                 <Tooltip content="Delete Leave" color="danger">
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => {
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="light"
+                                        color="danger"
+                                        isDisabled={updatingLeave && updatingLeave.startsWith(`${leave.id}-`)}
+                                        onPress={() => {
                                             if (updatingLeave && updatingLeave.startsWith(`${leave.id}-`)) return;
                                             setCurrentLeave(leave);
                                             handleClickOpen(leave.id, "delete_leave");
                                         }}
-                                        sx={{
-                                            background: alpha(theme.palette.error.main, 0.1),
-                                            '&:hover': {
-                                                background: alpha(theme.palette.error.main, 0.2)
-                                            }
-                                        }}
+                                        className="min-w-8 h-8"
                                     >
                                         <TrashIcon className="w-4 h-4" />
-                                    </IconButton>
+                                    </Button>
                                 </Tooltip>
                             )}
-                        </Box>
+                        </div>
                     </TableCell>
                 );
 
             default:
                 return <TableCell>{leave[columnKey]}</TableCell>;
         }
-    }, [isAdminView, canApproveLeaves, isLargeScreen, updatingLeave, theme, setCurrentLeave, openModal, handleClickOpen, updateLeaveStatus]);
+    }, [isAdminView, canApproveLeaves, canEditLeaves, canDeleteLeaves, isLargeScreen, updatingLeave, setCurrentLeave, openModal, handleClickOpen, updateLeaveStatus, auth, fetchLeavesStats]);
 
     const columns = [
         ...(isAdminView ? [{ name: "Employee", uid: "employee", icon: UserIcon }] : []),
@@ -612,7 +744,7 @@ const LeaveEmployeeTable = React.forwardRef(({
 
     if (isMobile) {
         return (
-            <Box className="space-y-4">
+            <div className="space-y-4">
                 <ScrollShadow className="max-h-[70vh]">
                     {leaves.map((leave) => (
                         <MobileLeaveCard
@@ -631,29 +763,41 @@ const LeaveEmployeeTable = React.forwardRef(({
                     ))}
                 </ScrollShadow>
                 {totalRows > perPage && (
-                    <Box className="flex justify-center pt-4">
+                    <div 
+                        className="flex justify-center items-center"
+                    >
                         <Pagination
+                            initialPage={1}
+                            isCompact
                             showControls
                             showShadow
                             color="primary"
                             variant="bordered"
                             page={currentPage}
+                            radius={getThemeRadius()}
                             total={lastPage}
                             onChange={handlePageChange}
-                            size="sm"
+                            
+                            style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
                         />
-                    </Box>
+                        
+                    </div>
                 )}
-            </Box>
+            </div>
         );
     }
 
     return (
-        <Box sx={{ maxHeight: "84vh", overflowY: "auto" }}>
+        <div 
+           
+        >
             <ScrollShadow className="max-h-[70vh]">
                 <Table
                     isStriped
-                    selectionMode="multiple"
+                    setSelection
+                    selectionMode={isAdminView? "multiple" : "none"}
                     selectedKeys={selectedKeys}
                     onSelectionChange={setSelectedKeys}
                     topContent={topContent}
@@ -662,14 +806,19 @@ const LeaveEmployeeTable = React.forwardRef(({
                     isHeaderSticky
                     removeWrapper
                     aria-label="Leave Management Table"
+                    disabledBehavior="selection"
+                    radius={getThemeRadius()}
                     classNames={{
-                        wrapper: "min-h-[200px]",
-                        table: "min-h-[300px]",
-                        thead: "[&>tr]:first:shadow-small bg-default-100/80",
-                        tbody: "divide-y divide-default-200/50",
-                        tr: "group hover:bg-default-50/50 transition-colors h-12",
-                        td: "py-2 px-3 text-sm",
-                        th: "py-2 px-3 text-xs font-semibold"
+                        base: "max-h-[520px] overflow-auto",
+                        table: "min-h-[200px] w-full",
+                        thead: "z-10",
+                        tbody: "overflow-y-auto",
+                        th: "bg-default-100 text-default-700 font-semibold",
+                        td: "text-default-600",
+                    }}
+                    style={{
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
                     }}
                 >
                     <TableHeader columns={columns}>
@@ -677,32 +826,51 @@ const LeaveEmployeeTable = React.forwardRef(({
                             <TableColumn 
                                 key={column.uid} 
                                 align={column.uid === "actions" ? "center" : "start"}
-                                className="bg-default-100/80 backdrop-blur-md"
+                                className="backdrop-blur-md"
+                                style={{
+                                    backgroundColor: 'color-mix(in srgb, var(--theme-content2) 60%, transparent)',
+                                    color: 'var(--theme-foreground)',
+                                    borderBottom: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
+                                }}
                             >
-                                <Box className="flex items-center gap-1">
+                                <div className="flex items-center gap-1">
                                     {column.icon && <column.icon className="w-3 h-3" />}
                                     <span className="text-xs font-semibold">{column.name}</span>
-                                </Box>
+                                </div>
                             </TableColumn>
                         )}
                     </TableHeader>
                     <TableBody 
                         items={leaves}
                         emptyContent={
-                            <Box className="flex flex-col items-center justify-center py-8 text-center">
-                                <CalendarDaysIcon className="w-12 h-12 text-default-300 mb-4" />
-                                <Typography variant="h6" color="textSecondary">
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                                <CalendarDaysIcon 
+                                    className="w-12 h-12 mb-4 opacity-40"
+                                    style={{ color: 'var(--theme-foreground)' }}
+                                />
+                                <h6 
+                                    className="text-lg font-semibold mb-2"
+                                    style={{ color: 'var(--theme-foreground)' }}
+                                >
                                     No leaves found
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
+                                </h6>
+                                <p 
+                                    className="text-sm opacity-70"
+                                    style={{ color: 'var(--theme-foreground)' }}
+                                >
                                     {employee ? `No leaves found for "${employee}"` : "No leave requests for the selected period"}
-                                </Typography>
-                            </Box>
+                                </p>
+                            </div>
                         }
                     >
                         {(leave) => (
                             <TableRow 
-                                key={leave.id} 
+                                key={leave.id}
+                                className="transition-all duration-200 hover:scale-[1.01]"
+                                style={{
+                                    color: 'var(--theme-foreground)',
+                                    borderBottom: `1px solid color-mix(in srgb, var(--theme-content3) 30%, transparent)`,
+                                }}
                             >
                                 {(columnKey) => renderCell(leave, columnKey)}
                             </TableRow>
@@ -711,23 +879,34 @@ const LeaveEmployeeTable = React.forwardRef(({
                 </Table>
             </ScrollShadow>
             {totalRows > perPage && (
-                <Box className="py-4 flex justify-center">
+                <div 
+                    className="flex justify-center items-center"
+                >
                     <Pagination
+                        initialPage={1}
+                        isCompact
                         showControls
                         showShadow
                         color="primary"
                         variant="bordered"
                         page={currentPage}
+                        radius={getThemeRadius()}
                         total={lastPage}
                         onChange={handlePageChange}
-                        size={isMediumScreen ? "sm" : "md"}
+                        
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
                     />
-                    <div className="ml-4 text-xs text-gray-500">
+                    <div 
+                        className="text-xs opacity-70"
+                        style={{ color: 'var(--theme-foreground)' }}
+                    >
                         Page {currentPage} of {lastPage} (Total: {totalRows} records)
                     </div>
-                </Box>
+                </div>
             )}
-        </Box>
+        </div>
     );
 });
 

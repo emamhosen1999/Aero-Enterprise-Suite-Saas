@@ -28,7 +28,7 @@ import {
     ArrowsUpDownIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { toast } from "react-toastify";
+import { showToast } from '@/utils/toastUtils';
 import Loader from "@/Components/Loader.jsx";
 import { usePage } from '@inertiajs/react';
 
@@ -156,7 +156,7 @@ const LettersTable = ({ allData, setData, users, loading, handleClickOpen, openM
                                         key={user.id}
                                         name={user.name}
                                         avatarProps={{
-                                            src: user.profile_photo_url,
+                                            src: user.profile_image_url || user.profile_image || user.profile_photo_url,
                                             size: "sm"
                                         }}
                                     />
@@ -169,7 +169,7 @@ const LettersTable = ({ allData, setData, users, loading, handleClickOpen, openM
                                 <User
                                     name={user.name}
                                     avatarProps={{
-                                        src: user.profile_photo_url,
+                                        src: user.profile_image_url || user.profile_image || user.profile_photo_url,
                                         size: "sm"
                                     }}
                                 />
@@ -271,18 +271,12 @@ const LettersTable = ({ allData, setData, users, loading, handleClickOpen, openM
                     )
                 );
 
-                toast.success(response.data.messages || 'Letter updated successfully', {
-                    icon: '🟢',
-                });
+                showToast.success(response.data.messages || 'Letter updated successfully');
             } else {
-                toast.error(response.data.error || `Failed to update letter ${key}.`, {
-                    icon: '🔴',
-                });
+                showToast.error(response.data.error || `Failed to update letter ${key}.`);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'An unexpected error occurred.', {
-                icon: '🔴',
-            });
+            showToast.error(error.response?.data?.message || 'An unexpected error occurred.');
         }
     };
 

@@ -12,7 +12,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class TrainingAssignmentSubmission extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'training_assignment_id',
@@ -23,7 +23,7 @@ class TrainingAssignmentSubmission extends Model implements HasMedia
         'feedback',
         'graded_by',
         'graded_at',
-        'status'
+        'status',
     ];
 
     protected $casts = [
@@ -77,7 +77,7 @@ class TrainingAssignmentSubmission extends Model implements HasMedia
      */
     public function hasPassed()
     {
-        if ($this->score === null || !$this->isGraded()) {
+        if ($this->score === null || ! $this->isGraded()) {
             return false;
         }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Card, CardContent, Typography, Box, Chip } from '@mui/material';
+import { Card, CardBody } from '@nextui-org/react';
 import { 
     UserGroupIcon, 
     KeyIcon, 
@@ -44,46 +44,33 @@ const StatsCards = ({ stats }) => {
     ];
 
     return (
-        <Grid container spacing={3} className="mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {statItems.map((item, index) => {
                 const IconComponent = item.icon;
                 return (
-                    <Grid item xs={12} sm={6} md={3} key={index}>
-                        <Card 
-                            className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-white/20 dark:border-gray-700/20"
-                            sx={{ 
-                                backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                                backdropFilter: 'blur(10px)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-                            }}
-                        >
-                            <CardContent>
-                                <Box display="flex" alignItems="center" gap={2}>
-                                    <div className={`p-3 rounded-lg ${item.bgColor}`}>
-                                        <IconComponent className={`w-6 h-6 ${item.textColor}`} />
-                                    </div>
-                                    <Box flex={1}>
-                                        <Typography 
-                                            variant="body2" 
-                                            className="text-gray-600 dark:text-gray-300 font-medium"
-                                        >
-                                            {item.title}
-                                        </Typography>
-                                        <Typography 
-                                            variant="h4" 
-                                            className="text-gray-800 dark:text-white font-bold"
-                                        >
-                                            {item.value}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Grid>
+                    <Card 
+                        key={index}
+                        className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-white/20 dark:border-gray-700/20"
+                    >
+                        <CardBody className="p-6">
+                            <div className="flex items-center gap-4">
+                                <div className={`p-3 rounded-lg ${item.bgColor}`}>
+                                    <IconComponent className={`w-6 h-6 ${item.textColor}`} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                        {item.title}
+                                    </p>
+                                    <h3 className="text-2xl text-gray-800 dark:text-white font-bold">
+                                        {item.value}
+                                    </h3>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
                 );
             })}
-        </Grid>
+        </div>
     );
 };
 

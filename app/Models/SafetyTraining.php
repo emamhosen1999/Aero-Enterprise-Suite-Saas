@@ -26,7 +26,7 @@ class SafetyTraining extends Model
         'is_recurring',
         'recurrence_interval',
         'materials_url',
-        'status'
+        'status',
     ];
 
     /**

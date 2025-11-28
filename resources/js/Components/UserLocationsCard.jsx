@@ -1,52 +1,70 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import StatsCards from '@/Components/StatsCards';
+import { motion } from 'framer-motion';
 
 import {
-    Box,
-    CardContent,
-    CardHeader,
-    CircularProgress,
-    Typography,
+    Button,
+    Spinner,
     Chip,
     Avatar,
-    Stack,
-    Paper,
-    IconButton,
-    Tooltip,
-    Alert,
-    Fade,
-    Zoom,
-    Skeleton,
+    Card,
+    CardBody,
+    CardHeader,
     Divider,
-    useMediaQuery
-} from '@mui/material';
+} from '@heroui/react';
 import {
-    LocationOn,
-    Schedule,
-    Person,
-    Business,
-    MyLocation,
+    MapPin,
+    Clock,
+    User,
+    Building,
+    Navigation,
     ZoomIn,
     ZoomOut,
-    Refresh,
+    RefreshCw,
     Map as MapIcon,
-    Timeline,
-    Groups,
-    AccessTime,
-    Place,
-    Navigation
-} from '@mui/icons-material';
-import { useTheme, alpha } from '@mui/material/styles';
+    Users,
+    Clock4,
+    MapPin as Place,
+    Navigation as NavigationIcon
+} from 'lucide-react';
+
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 import 'leaflet-fullscreen/dist/Leaflet.fullscreen.js';
 import 'leaflet-fullscreen/dist/leaflet.fullscreen.css';
 import L from 'leaflet';
 import { usePage } from "@inertiajs/react";
-import GlassCard from "@/Components/GlassCard.jsx";
-import { Card, CardBody, CardHeader as HeroCardHeader, Button } from "@heroui/react";
-import PageHeader  from './PageHeader';
+
+// Utility function to replace MUI's alpha function
+const alpha = (color, opacity) => {
+    if (color.startsWith('var(')) {
+        // Use CSS variable with opacity via color-mix
+        return `color-mix(in srgb, ${color} ${opacity * 100}%, transparent)`;
+    }
+    if (color.startsWith('#')) {
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    return color.replace(/[\d.]+\)$/g, `${opacity})`);
+};
+
+// Helper function to convert theme borderRadius to HeroUI radius values
+const getThemeRadius = () => {
+    const rootStyles = getComputedStyle(document.documentElement);
+    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+    const radiusValue = parseInt(borderRadius);
+    if (radiusValue === 0) return 'none';
+    if (radiusValue <= 4) return 'sm';
+    if (radiusValue <= 8) return 'md';
+    if (radiusValue <= 16) return 'lg';
+    return 'full';
+};
 
 
 // Constants following ISO standards
@@ -57,19 +75,293 @@ const MAP_CONFIG = {
     POSITION_THRESHOLD: 0.0001,
     OFFSET_MULTIPLIER: 0.0001,
     MARKER_SIZE: [40, 40],
-    POPUP_MAX_WIDTH: 300,
+    POPUP_MAX_WIDTH: 160,
     UPDATE_INTERVAL: 30000 // 30 seconds
 };
 
-const PROJECT_LOCATIONS = {
-    primary: { lat: 23.879132, lng: 90.502617, name: 'Primary Office' },
-    route: {
-        start: { lat: 23.987057, lng: 90.361908, name: 'Route Start' },
-        end: { lat: 23.690618, lng: 90.546729, name: 'Route End' }
-    }
-};
+// Default center if no attendance type configs
+const DEFAULT_CENTER = { lat: 23.8103, lng: 90.4125 }; // Dhaka, Bangladesh
 
-// Enhanced Routing Machine Component
+// Component to render attendance type boundaries (polygons and routes)
+const AttendanceTypeBoundaries = React.memo(({ attendanceTypeConfigs, theme }) => {
+    const map = useMap();
+    const routingControlsRef = useRef([]);
+    
+    useEffect(() => {
+        if (!map || !attendanceTypeConfigs?.length) return;
+        
+        // Clear existing boundary layers
+        map.eachLayer((layer) => {
+            if (layer.options && (layer.options.isAttendanceBoundary || layer.options.isPolygon || layer.options.isRoute)) {
+                map.removeLayer(layer);
+            }
+        });
+        
+        // Clear existing routing controls
+        routingControlsRef.current.forEach(control => {
+            try {
+                map.removeControl(control);
+            } catch (e) {
+                console.warn('Error removing routing control:', e);
+            }
+        });
+        routingControlsRef.current = [];
+        
+        // Remove routing UI elements
+        map.getContainer().querySelectorAll('.leaflet-routing-container').forEach(el => el.remove());
+        
+        const allBounds = [];
+        
+        attendanceTypeConfigs.forEach((typeConfig, typeIndex) => {
+            const { base_slug, config, name } = typeConfig;
+            const primaryColor = theme?.customColors?.primary || 'var(--theme-primary, #3b82f6)';
+            
+            // Generate unique colors for different attendance types
+            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+            const typeColor = colors[typeIndex % colors.length];
+            
+            if (base_slug === 'geo_polygon' && config) {
+                // Render polygon(s)
+                const polygonPoints = config.polygon || [];
+                const polygons = config.polygons || [];
+                
+                // Handle single polygon format
+                if (polygonPoints.length >= 3) {
+                    const validPoints = polygonPoints.filter(p => p.lat && p.lng);
+                    if (validPoints.length >= 3) {
+                        const coords = validPoints.map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
+                        
+                        const polygon = L.polygon(coords, {
+                            color: typeColor,
+                            fillColor: typeColor,
+                            fillOpacity: 0.15,
+                            weight: 2,
+                            opacity: 0.7,
+                            isAttendanceBoundary: true,
+                            isPolygon: true
+                        }).addTo(map);
+                        
+                        polygon.bindPopup(`
+                            <div style="font-family: var(--fontFamily, 'Inter'); text-align: center; padding: 4px;">
+                                <strong style="color: ${typeColor};">${name}</strong><br>
+                                <small>Geofence Zone</small><br>
+                                <small>Points: ${validPoints.length}</small>
+                            </div>
+                        `);
+                        
+                        allBounds.push(polygon.getBounds());
+                    }
+                }
+                
+                // Handle multiple polygons format
+                polygons.forEach((poly, polyIndex) => {
+                    const points = poly.points || [];
+                    if (points.length >= 3) {
+                        const validPoints = points.filter(p => p.lat && p.lng);
+                        if (validPoints.length >= 3) {
+                            const coords = validPoints.map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
+                            
+                            const polygon = L.polygon(coords, {
+                                color: typeColor,
+                                fillColor: typeColor,
+                                fillOpacity: 0.15,
+                                weight: 2,
+                                opacity: 0.7,
+                                isAttendanceBoundary: true,
+                                isPolygon: true
+                            }).addTo(map);
+                            
+                            polygon.bindPopup(`
+                                <div style="font-family: var(--fontFamily, 'Inter'); text-align: center; padding: 4px;">
+                                    <strong style="color: ${typeColor};">${name}</strong><br>
+                                    <small>${poly.name || `Zone ${polyIndex + 1}`}</small>
+                                </div>
+                            `);
+                            
+                            allBounds.push(polygon.getBounds());
+                        }
+                    }
+                });
+            }
+            
+            if (base_slug === 'route_waypoint' && config) {
+                // Render route(s)
+                const waypoints = config.waypoints || [];
+                const routes = config.routes || [];
+                
+                // Handle single route format
+                if (waypoints.length >= 2) {
+                    const validWaypoints = waypoints.filter(w => w.lat && w.lng);
+                    if (validWaypoints.length >= 2) {
+                        const routeWaypoints = validWaypoints.map(w => 
+                            L.latLng(parseFloat(w.lat), parseFloat(w.lng))
+                        );
+                        
+                        // Add waypoint markers
+                        validWaypoints.forEach((wp, wpIndex) => {
+                            const isFirst = wpIndex === 0;
+                            const isLast = wpIndex === validWaypoints.length - 1;
+                            
+                            const markerHtml = `
+                                <div style="
+                                    width: 24px;
+                                    height: 24px;
+                                    border-radius: 50%;
+                                    background: ${isFirst ? '#10b981' : isLast ? '#ef4444' : typeColor};
+                                    border: 2px solid white;
+                                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-weight: bold;
+                                    font-size: 11px;
+                                ">
+                                    ${wpIndex + 1}
+                                </div>
+                            `;
+                            
+                            const marker = L.marker([parseFloat(wp.lat), parseFloat(wp.lng)], {
+                                icon: L.divIcon({
+                                    html: markerHtml,
+                                    className: 'route-waypoint-marker',
+                                    iconSize: [24, 24],
+                                    iconAnchor: [12, 12]
+                                }),
+                                isAttendanceBoundary: true
+                            }).addTo(map);
+                            
+                            marker.bindPopup(`
+                                <div style="font-family: var(--fontFamily, 'Inter'); text-align: center; padding: 4px;">
+                                    <strong style="color: ${typeColor};">${name}</strong><br>
+                                    <small>Waypoint ${wpIndex + 1}${wp.name ? `: ${wp.name}` : ''}</small>
+                                </div>
+                            `);
+                        });
+                        
+                        // Create route using Leaflet Routing Machine
+                        try {
+                            const routingControl = L.Routing.control({
+                                waypoints: routeWaypoints,
+                                routeWhileDragging: false,
+                                addWaypoints: false,
+                                createMarker: () => null,
+                                lineOptions: {
+                                    styles: [{
+                                        color: typeColor,
+                                        weight: 4,
+                                        opacity: 0.7,
+                                        dashArray: '8, 4'
+                                    }],
+                                    extendToWaypoints: true,
+                                    missingRouteTolerance: 0
+                                },
+                                show: false,
+                                fitSelectedRoutes: false,
+                                router: L.Routing.osrmv1({
+                                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                                })
+                            }).addTo(map);
+                            
+                            routingControlsRef.current.push(routingControl);
+                            
+                            // Calculate bounds from waypoints
+                            const bounds = L.latLngBounds(routeWaypoints);
+                            allBounds.push(bounds);
+                        } catch (e) {
+                            console.warn('Error creating route:', e);
+                            // Fallback: draw simple polyline
+                            const polyline = L.polyline(routeWaypoints, {
+                                color: typeColor,
+                                weight: 3,
+                                opacity: 0.6,
+                                dashArray: '10, 10',
+                                isAttendanceBoundary: true,
+                                isRoute: true
+                            }).addTo(map);
+                            
+                            allBounds.push(polyline.getBounds());
+                        }
+                    }
+                }
+                
+                // Handle multiple routes format
+                routes.forEach((routeData, routeIndex) => {
+                    const routeWaypoints = routeData.waypoints || [];
+                    if (routeWaypoints.length >= 2) {
+                        const validWaypoints = routeWaypoints.filter(w => w.lat && w.lng);
+                        if (validWaypoints.length >= 2) {
+                            const waypts = validWaypoints.map(w => 
+                                L.latLng(parseFloat(w.lat), parseFloat(w.lng))
+                            );
+                            
+                            try {
+                                const routingControl = L.Routing.control({
+                                    waypoints: waypts,
+                                    routeWhileDragging: false,
+                                    addWaypoints: false,
+                                    createMarker: () => null,
+                                    lineOptions: {
+                                        styles: [{
+                                            color: typeColor,
+                                            weight: 4,
+                                            opacity: 0.7,
+                                            dashArray: '8, 4'
+                                        }]
+                                    },
+                                    show: false,
+                                    fitSelectedRoutes: false,
+                                    router: L.Routing.osrmv1({
+                                        serviceUrl: 'https://router.project-osrm.org/route/v1'
+                                    })
+                                }).addTo(map);
+                                
+                                routingControlsRef.current.push(routingControl);
+                                allBounds.push(L.latLngBounds(waypts));
+                            } catch (e) {
+                                console.warn('Error creating route:', e);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Fit map to show all boundaries if we have any
+        if (allBounds.length > 0) {
+            const combinedBounds = allBounds.reduce((acc, bounds) => {
+                return acc ? acc.extend(bounds) : bounds;
+            }, null);
+            
+            if (combinedBounds && combinedBounds.isValid()) {
+                setTimeout(() => {
+                    map.fitBounds(combinedBounds, { 
+                        padding: [50, 50],
+                        maxZoom: 14
+                    });
+                }, 500);
+            }
+        }
+        
+        return () => {
+            // Cleanup
+            routingControlsRef.current.forEach(control => {
+                try {
+                    map.removeControl(control);
+                } catch (e) {
+                    // Ignore cleanup errors
+                }
+            });
+            routingControlsRef.current = [];
+        };
+    }, [map, attendanceTypeConfigs, theme]);
+    
+    return null;
+});
+
+AttendanceTypeBoundaries.displayName = 'AttendanceTypeBoundaries';
+
+// Enhanced Routing Machine Component (kept for backward compatibility but typically unused now)
 const RoutingMachine = React.memo(({ startLocation, endLocation, theme }) => {
     const map = useMap();
 
@@ -86,7 +378,7 @@ const RoutingMachine = React.memo(({ startLocation, endLocation, theme }) => {
             createMarker: () => null, // Hide default markers
             lineOptions: {
                 styles: [{
-                    color: theme.palette.primary.main,
+                    color: theme?.customColors?.primary || 'var(--theme-primary, #3b82f6)',
                     weight: 4,
                     opacity: 0.8
                 }]
@@ -108,7 +400,7 @@ RoutingMachine.displayName = 'RoutingMachine';
 
 
 // Enhanced User Markers Component
-const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, users, setUsers, setLoading, setError}) => {
+const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, users, setUsers, setLoading, setError, setAttendanceTypeConfigs }) => {
 
     const map = useMap();
     const prevLocationsRef = useRef([]);
@@ -117,6 +409,7 @@ const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, 
         if (!selectedDate) {
             setLoading(false);
             setUsers([]);
+            setAttendanceTypeConfigs?.([]);
             onUsersLoad?.([]);
             return;
         }
@@ -138,6 +431,7 @@ const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, 
             }
 
             const locations = data.locations;
+            const typeConfigs = data.attendance_type_configs || [];
 
             const hasChanges =
                 JSON.stringify(locations) !== JSON.stringify(prevLocationsRef.current);
@@ -146,6 +440,9 @@ const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, 
                 setUsers(locations);
                 prevLocationsRef.current = locations;
             }
+            
+            // Always update attendance type configs
+            setAttendanceTypeConfigs?.(typeConfigs);
 
             onUsersLoad?.(locations);
         } catch (error) {
@@ -261,15 +558,39 @@ const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, 
         }
     }, [selectedDate]);
 
-    const createUserIcon = useCallback((user) => {
+    const createUserIcon = useCallback((user, type = 'default') => {
+        const primaryColor = 'var(--theme-primary, #3b82f6)';
+        const secondaryColor = 'var(--theme-secondary, #8b5cf6)';
+        const successColor = 'var(--theme-success, #17C964)';
+        const dangerColor = 'var(--theme-danger, #ef4444)';
+        
+        // Use different colors based on marker type
+        let gradientColors;
+        let shadowColor;
+        let indicator = '';
+        
+        if (type === 'punchin') {
+            gradientColors = `${successColor}, #059669`;
+            shadowColor = alpha(successColor, 0.4);
+            indicator = `<span style="position: absolute; top: -4px; right: -4px; font-size: 10px;">▶</span>`;
+        } else if (type === 'punchout') {
+            gradientColors = `${dangerColor}, #dc2626`;
+            shadowColor = alpha(dangerColor, 0.4);
+            indicator = `<span style="position: absolute; top: -4px; right: -4px; font-size: 10px;">◼</span>`;
+        } else {
+            gradientColors = `${primaryColor}, ${secondaryColor}`;
+            shadowColor = alpha(primaryColor, 0.4);
+        }
+        
         const iconHtml = `
             <div style="
+                position: relative;
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main});
+                background: linear-gradient(135deg, ${gradientColors});
                 border: 3px solid white;
-                box-shadow: 0 4px 12px ${alpha(theme.palette.primary.main, 0.4)};
+                box-shadow: 0 4px 12px ${shadowColor};
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -278,13 +599,13 @@ const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, 
                 font-size: 14px;
                 backdrop-filter: blur(10px);
             ">
-                ${user.profile_image ? 
-                    `<img src="${user.profile_image}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;" />` :
+                ${user.profile_image_url || user.profile_image ? 
+                    `<img src="${user.profile_image_url || user.profile_image}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='${user.name?.charAt(0)?.toUpperCase() || '?'}';" />` :
                     user.name?.charAt(0)?.toUpperCase() || '?'
                 }
+                ${indicator}
             </div>
         `;
-
         return L.divIcon({
             html: iconHtml,
             className: 'user-marker-icon',
@@ -292,102 +613,210 @@ const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, 
             iconAnchor: [20, 20],
             popupAnchor: [0, -20]
         });
-    }, [theme]);
+    }, []);
 
-    const createPopupContent = useCallback((user) => {
-        const statusColor = user.punchout_time ? 
-            theme.palette.success.main : 
-            theme.palette.warning.main;
-
+    const createPopupContent = useCallback((user, type = 'combined') => {
+        const statusColor = user.punchout_time ? 'var(--theme-success, #17C964)' : 'var(--theme-warning, #F5A524)';
+        const primaryColor = 'var(--theme-primary, #3b82f6)';
+        const secondaryColor = 'var(--theme-secondary, #8b5cf6)';
+        const successColor = 'var(--theme-success, #17C964)';
+        const dangerColor = 'var(--theme-danger, #ef4444)';
+        const backgroundColor = 'var(--theme-content1, #ffffff)';
+        const textPrimary = 'var(--theme-foreground, #1f2937)';
+        const textSecondary = 'var(--theme-content3, #6b7280)';
+        
+        // Determine which photo to show based on popup type
+        let photoUrl = null;
+        let photoLabel = '';
+        if (type === 'punchin' && user.punchin_photo_url) {
+            photoUrl = user.punchin_photo_url;
+            photoLabel = 'Check In Photo';
+        } else if (type === 'punchout' && user.punchout_photo_url) {
+            photoUrl = user.punchout_photo_url;
+            photoLabel = 'Check Out Photo';
+        }
+        
+        // Build photo section HTML
+        const photoSection = photoUrl ? `
+            <div style="margin-top: 6px; margin-bottom: 6px; overflow: hidden; border-radius: 4px;">
+                <div style="color: ${textSecondary}; font-size: 8px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px;">
+                    ${photoLabel}
+                </div>
+                <img 
+                    src="${photoUrl}" 
+                    data-fullscreen-photo="${photoUrl}"
+                    style="
+                        width: 100%; 
+                        height: auto;
+                        max-height: 100px;
+                        object-fit: contain; 
+                        border-radius: 4px;
+                        border: 1px solid ${alpha(primaryColor, 0.2)};
+                        display: block;
+                        cursor: pointer;
+                    " 
+                    onmouseover="this.style.opacity='0.85'"
+                    onmouseout="this.style.opacity='1'"
+                    onerror="this.style.display='none';"
+                    title="Click to view full screen"
+                />
+            </div>
+        ` : '';
+        
+        // Customize header based on type
+        let typeIndicator = '';
+        let headerColor = primaryColor;
+        if (type === 'punchin') {
+            typeIndicator = `
+                <div style="
+                    display: inline-block;
+                    padding: 1px 4px;
+                    background: ${alpha(successColor, 0.1)};
+                    color: ${successColor};
+                    border-radius: 3px;
+                    font-size: 7px;
+                    font-weight: 600;
+                    margin-left: 4px;
+                    border: 1px solid ${alpha(successColor, 0.2)};
+                ">CHECK IN</div>
+            `;
+            headerColor = successColor;
+        } else if (type === 'punchout') {
+            typeIndicator = `
+                <div style="
+                    display: inline-block;
+                    padding: 1px 4px;
+                    background: ${alpha(dangerColor, 0.1)};
+                    color: ${dangerColor};
+                    border-radius: 3px;
+                    font-size: 7px;
+                    font-weight: 600;
+                    margin-left: 4px;
+                    border: 1px solid ${alpha(dangerColor, 0.2)};
+                ">CHECK OUT</div>
+            `;
+            headerColor = dangerColor;
+        }
+        
+        // Build time section based on type
+        let timeSection = '';
+        if (type === 'punchin') {
+            timeSection = `
+                <div style="display: flex; align-items: center;">
+                    <span style="color: ${successColor}; margin-right: 4px; font-size: 10px;">📍</span>
+                    <span style="color: ${textSecondary}; font-size: 9px;">
+                        Time: ${formatTime(user.punchin_time)}
+                    </span>
+                </div>
+            `;
+        } else if (type === 'punchout') {
+            timeSection = `
+                <div style="display: flex; align-items: center;">
+                    <span style="color: ${dangerColor}; margin-right: 4px; font-size: 10px;">📍</span>
+                    <span style="color: ${textSecondary}; font-size: 9px;">
+                        Time: ${formatTime(user.punchout_time)}
+                    </span>
+                </div>
+            `;
+        } else {
+            // Combined view (legacy/fallback)
+            timeSection = `
+                <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                    <span style="color: ${successColor}; margin-right: 4px; font-size: 10px;">📍</span>
+                    <span style="color: ${textSecondary}; font-size: 9px;">
+                        Check In: ${formatTime(user.punchin_time)}
+                    </span>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <span style="color: ${dangerColor}; margin-right: 4px; font-size: 10px;">📍</span>
+                    <span style="color: ${textSecondary}; font-size: 9px;">
+                        Check Out: ${formatTime(user.punchout_time)}
+                    </span>
+                </div>
+            `;
+        }
+        
         return `
             <div style="
-                min-width: 250px;
-                padding: 16px;
-                background: linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.95)}, ${alpha(theme.palette.primary.main, 0.05)});
-                border-radius: 12px;
-                border: 1px solid ${alpha(theme.palette.primary.main, 0.2)};
+                min-width: 140px;
+                max-width: 160px;
+                padding: 8px;
+                background: linear-gradient(135deg, ${alpha(backgroundColor, 0.95)}, ${alpha(headerColor, 0.05)});
+                border-radius: 8px;
+                border: 1px solid ${alpha(headerColor, 0.2)};
                 backdrop-filter: blur(20px);
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-family: var(--fontFamily, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+                overflow: hidden;
             ">
-                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; margin-bottom: 6px;">
                     <div style="
-                        width: 32px;
-                        height: 32px;
+                        width: 22px;
+                        height: 22px;
+                        min-width: 22px;
                         border-radius: 50%;
-                        background: linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main});
+                        background: linear-gradient(135deg, ${type === 'punchin' ? successColor : type === 'punchout' ? dangerColor : primaryColor}, ${secondaryColor});
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         color: white;
                         font-weight: bold;
-                        margin-right: 12px;
+                        font-size: 10px;
+                        margin-right: 6px;
                     ">
-                        ${user.profile_image ? 
-                            `<img src="${user.profile_image}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;" />` :
+                        ${user.profile_image_url || user.profile_image ? 
+                            `<img src="${user.profile_image_url || user.profile_image}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='${user.name?.charAt(0)?.toUpperCase() || '?'}';" />` :
                             user.name?.charAt(0)?.toUpperCase() || '?'
                         }
                     </div>
-                    <div>
-                        <div style="font-weight: 600; color: ${theme.palette.text.primary}; font-size: 16px;">
-                            ${user.name || 'Unknown User'}
+                    <div style="flex: 1; min-width: 0; overflow: hidden;">
+                        <div style="display: flex; align-items: center; flex-wrap: wrap;">
+                            <span style="font-weight: 600; color: ${textPrimary}; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;">
+                                ${user.name || 'Unknown'}
+                            </span>
+                            ${typeIndicator}
                         </div>
-                        <div style="color: ${theme.palette.text.secondary}; font-size: 12px;">
+                        <div style="color: ${textSecondary}; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${user.designation || 'No designation'}
                         </div>
                     </div>
                 </div>
-                
+                ${type === 'combined' ? `
                 <div style="
                     display: inline-block;
-                    padding: 4px 8px;
+                    padding: 2px 4px;
                     background: ${alpha(statusColor, 0.1)};
                     color: ${statusColor};
-                    border-radius: 6px;
-                    font-size: 12px;
+                    border-radius: 4px;
+                    font-size: 8px;
                     font-weight: 600;
-                    margin-bottom: 12px;
+                    margin-bottom: 6px;
                     border: 1px solid ${alpha(statusColor, 0.2)};
                 ">
                     ${user.punchout_time ? '✓ Completed' : '⏱ Active'}
-                </div>
-                
-                <div style="space-y: 8px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                        <span style="color: ${theme.palette.success.main}; margin-right: 8px;">📍</span>
-                        <span style="color: ${theme.palette.text.secondary}; font-size: 13px;">
-                            Check In: ${formatTime(user.punchin_time)}
-                        </span>
-                    </div>
-                    
-                    <div style="display: flex; align-items: center;">
-                        <span style="color: ${theme.palette.error.main}; margin-right: 8px;">📍</span>
-                        <span style="color: ${theme.palette.text.secondary}; font-size: 13px;">
-                            Check Out: ${formatTime(user.punchout_time)}
-                        </span>
-                    </div>
+                </div>` : ''}
+                ${photoSection}
+                <div style="space-y: 4px;">
+                    ${timeSection}
                 </div>
             </div>
         `;
-    }, [theme, formatTime]);
+    }, [formatTime]);
 
     useEffect(() => {
         if (!map || !users.length) return;
 
-        // Clear existing markers
+        // Clear existing markers and polylines
         map.eachLayer((layer) => {
-            if (layer instanceof L.Marker && layer.options.userData) {
+            if ((layer instanceof L.Marker && layer.options.userData) ||
+                (layer instanceof L.Polyline && layer.options.userRoute)) {
                 map.removeLayer(layer);
             }
         });
 
         const processedPositions = [];
-
-        users.forEach((user, index) => {
-            const location = parseLocation(user.punchout_location || user.punchin_location);
-            
-            if (!location) return;
-
-            // Check for overlapping positions and adjust
+        
+        // Helper to adjust position for overlapping
+        const getAdjustedForOverlap = (location) => {
             let adjustedPosition = { ...location };
             let attempts = 0;
             const maxAttempts = 10;
@@ -402,20 +831,170 @@ const UserMarkers = React.memo(({ selectedDate, onUsersLoad, theme, lastUpdate, 
                 adjustedPosition = getAdjustedPosition(location, attempts + 1);
                 attempts++;
             }
-
+            
             processedPositions.push(adjustedPosition);
+            return adjustedPosition;
+        };
 
-            const marker = L.marker([adjustedPosition.lat, adjustedPosition.lng], {
-                icon: createUserIcon(user),
-                userData: true // Mark as user marker for cleanup
-            });
+        users.forEach((user) => {
+            // Check if user has cycles data (new format)
+            const cycles = user.cycles || [];
+            
+            if (cycles.length > 0) {
+                // New format: iterate through cycles
+                cycles.forEach((cycle, cycleIndex) => {
+                    const punchinLocation = parseLocation(cycle.punchin_location);
+                    const punchoutLocation = parseLocation(cycle.punchout_location);
+                    
+                    if (!punchinLocation && !punchoutLocation) return;
+                    
+                    const isCompleteCycle = punchinLocation && punchoutLocation && cycle.is_complete;
+                    
+                    // Build cycle data for popup (includes user info + cycle specifics)
+                    const cycleData = {
+                        ...user,
+                        punchin_time: cycle.punchin_time,
+                        punchout_time: cycle.punchout_time,
+                        punchin_photo_url: cycle.punchin_photo_url,
+                        punchout_photo_url: cycle.punchout_photo_url,
+                    };
+                    
+                    if (isCompleteCycle) {
+                        // Complete cycle: Show both markers with route line
+                        const adjustedPunchin = getAdjustedForOverlap(punchinLocation);
+                        const adjustedPunchout = getAdjustedForOverlap(punchoutLocation);
+                        
+                        // Create punch-in marker (green)
+                        const punchinMarker = L.marker([adjustedPunchin.lat, adjustedPunchin.lng], {
+                            icon: createUserIcon(user, 'punchin'),
+                            userData: true
+                        });
+                        
+                        punchinMarker.bindPopup(createPopupContent(cycleData, 'punchin'), {
+                            maxWidth: MAP_CONFIG.POPUP_MAX_WIDTH,
+                            className: 'custom-popup'
+                        });
+                        
+                        punchinMarker.addTo(map);
+                        
+                        // Create punch-out marker (red)
+                        const punchoutMarker = L.marker([adjustedPunchout.lat, adjustedPunchout.lng], {
+                            icon: createUserIcon(user, 'punchout'),
+                            userData: true
+                        });
+                        
+                        punchoutMarker.bindPopup(createPopupContent(cycleData, 'punchout'), {
+                            maxWidth: MAP_CONFIG.POPUP_MAX_WIDTH,
+                            className: 'custom-popup'
+                        });
+                        
+                        punchoutMarker.addTo(map);
+                        
+                        // Draw route line from punch-in to punch-out
+                        const routeLine = L.polyline(
+                            [
+                                [adjustedPunchin.lat, adjustedPunchin.lng],
+                                [adjustedPunchout.lat, adjustedPunchout.lng]
+                            ],
+                            {
+                                color: 'var(--theme-primary, #3b82f6)',
+                                weight: 3,
+                                opacity: 0.7,
+                                dashArray: '10, 10',
+                                userRoute: true
+                            }
+                        );
+                        
+                        routeLine.addTo(map);
+                    } else {
+                        // Incomplete cycle: Only show punch-in marker
+                        const location = punchinLocation || punchoutLocation;
+                        const adjustedPosition = getAdjustedForOverlap(location);
+                        
+                        const markerType = punchinLocation ? 'punchin' : 'punchout';
+                        const marker = L.marker([adjustedPosition.lat, adjustedPosition.lng], {
+                            icon: createUserIcon(user, markerType),
+                            userData: true
+                        });
 
-            marker.bindPopup(createPopupContent(user), {
-                maxWidth: MAP_CONFIG.POPUP_MAX_WIDTH,
-                className: 'custom-popup'
-            });
+                        marker.bindPopup(createPopupContent(cycleData, markerType), {
+                            maxWidth: MAP_CONFIG.POPUP_MAX_WIDTH,
+                            className: 'custom-popup'
+                        });
 
-            marker.addTo(map);
+                        marker.addTo(map);
+                    }
+                });
+            } else {
+                // Legacy format: use direct punchin/punchout locations
+                const punchinLocation = parseLocation(user.punchin_location);
+                const punchoutLocation = parseLocation(user.punchout_location);
+                
+                if (!punchinLocation && !punchoutLocation) return;
+                
+                const isCompleteCycle = punchinLocation && punchoutLocation && user.punchout_time;
+                
+                if (isCompleteCycle) {
+                    const adjustedPunchin = getAdjustedForOverlap(punchinLocation);
+                    const adjustedPunchout = getAdjustedForOverlap(punchoutLocation);
+                    
+                    const punchinMarker = L.marker([adjustedPunchin.lat, adjustedPunchin.lng], {
+                        icon: createUserIcon(user, 'punchin'),
+                        userData: true
+                    });
+                    
+                    punchinMarker.bindPopup(createPopupContent(user, 'punchin'), {
+                        maxWidth: MAP_CONFIG.POPUP_MAX_WIDTH,
+                        className: 'custom-popup'
+                    });
+                    
+                    punchinMarker.addTo(map);
+                    
+                    const punchoutMarker = L.marker([adjustedPunchout.lat, adjustedPunchout.lng], {
+                        icon: createUserIcon(user, 'punchout'),
+                        userData: true
+                    });
+                    
+                    punchoutMarker.bindPopup(createPopupContent(user, 'punchout'), {
+                        maxWidth: MAP_CONFIG.POPUP_MAX_WIDTH,
+                        className: 'custom-popup'
+                    });
+                    
+                    punchoutMarker.addTo(map);
+                    
+                    const routeLine = L.polyline(
+                        [
+                            [adjustedPunchin.lat, adjustedPunchin.lng],
+                            [adjustedPunchout.lat, adjustedPunchout.lng]
+                        ],
+                        {
+                            color: 'var(--theme-primary, #3b82f6)',
+                            weight: 3,
+                            opacity: 0.7,
+                            dashArray: '10, 10',
+                            userRoute: true
+                        }
+                    );
+                    
+                    routeLine.addTo(map);
+                } else {
+                    const location = punchinLocation || punchoutLocation;
+                    const adjustedPosition = getAdjustedForOverlap(location);
+                    
+                    const markerType = punchinLocation ? 'punchin' : 'punchout';
+                    const marker = L.marker([adjustedPosition.lat, adjustedPosition.lng], {
+                        icon: createUserIcon(user, markerType),
+                        userData: true
+                    });
+
+                    marker.bindPopup(createPopupContent(user, markerType), {
+                        maxWidth: MAP_CONFIG.POPUP_MAX_WIDTH,
+                        className: 'custom-popup'
+                    });
+
+                    marker.addTo(map);
+                }
+            }
         });
 
     }, [map, users, theme, parseLocation, arePositionsClose, getAdjustedPosition, createUserIcon, createPopupContent]);
@@ -466,65 +1045,79 @@ const useUserStats = (users) => {
 
 // Main Component
 const UserLocationsCard = React.memo(({ updateMap, selectedDate }) => {
-    const theme = useTheme();
+    const { themeSettings } = useTheme();
+    
+    const isLargeScreen = useMediaQuery('(min-width: 1025px)');
+    const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
+    
     const [users, setUsers] = useState([]);
+    const [attendanceTypeConfigs, setAttendanceTypeConfigs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [fullscreenPhotoUrl, setFullscreenPhotoUrl] = useState(null);
     const [loadingInitialized, setLoadingInitialized] = useState(false);
-    
     const [lastUpdate, setLastUpdate] = useState(null);
     const [isPolling, setIsPolling] = useState(true);
     const [mapKey, setMapKey] = useState(0);
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    const isMobile = window.innerWidth < 640;
+    const isTablet = window.innerWidth < 768;
     const [lastChecked, setLastChecked] = useState(new Date());
     const prevUsersRef = useRef([]);
     const prevUpdateRef = useRef(null);
-     const handleRefresh = useCallback(async () => {
+    const mapContainerRef = useRef(null);
+    
+    // Handle click on popup photos for fullscreen view
+    useEffect(() => {
+        const handlePhotoClick = (e) => {
+            const photoUrl = e.target.dataset?.fullscreenPhoto;
+            if (photoUrl) {
+                setFullscreenPhotoUrl(photoUrl);
+            }
+        };
+        
+        // Add event listener to document for delegated click handling
+        document.addEventListener('click', handlePhotoClick);
+        
+        return () => {
+            document.removeEventListener('click', handlePhotoClick);
+        };
+    }, []);
+    
+    const handleRefresh = useCallback(async () => {
         setLoading(true);
-
         try {
-            // Force reload of user locations by triggering a new fetch
             const endpoint = route('getUserLocationsForDate', { 
                 date: selectedDate,
-                _t: Date.now() // Add cache busting parameter
+                _t: Date.now()
             });
-            
             if (!selectedDate) {
-                // Handle case when no date is selected
                 setUsers([]);
+                setAttendanceTypeConfigs([]);
                 prevUsersRef.current = [];
                 setMapKey(prev => prev + 1);
                 setLastChecked(new Date());
                 setLastUpdate(new Date());
                 return;
             }
-            
             const response = await fetch(endpoint);
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: Failed to refresh user locations`);
             }
-            
             const data = await response.json();
             const locations = Array.isArray(data.locations) ? data.locations : [];
-            
-            // Update the users state and previous reference
+            const typeConfigs = Array.isArray(data.attendance_type_configs) ? data.attendance_type_configs : [];
             setUsers(locations);
+            setAttendanceTypeConfigs(typeConfigs);
             prevUsersRef.current = locations;
-            
-            // Update the map key to force re-render
             setMapKey(prev => prev + 1);
-            // Update the last checked time
             setLastChecked(new Date());
             setLastUpdate(new Date());
         } catch (error) {
             console.error('Error refreshing map:', error);
-            // Clear users in case of error
             setUsers([]);
+            setAttendanceTypeConfigs([]);
             prevUsersRef.current = [];
         } finally {
-            // Always ensure loading is set to false
             setLoading(false);
         }
     }, [selectedDate]);
@@ -649,31 +1242,115 @@ const UserLocationsCard = React.memo(({ updateMap, selectedDate }) => {
    
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <Fade in timeout={800}>
-                <GlassCard sx={{ width: '100%', maxWidth: '100%' }}>
-                    <PageHeader
-                        title="Team Locations"
-                        subtitle={formattedDate}
-                        icon={<MapIcon className="w-6 h-6" />}
-                        variant="gradient"
-                        actions={
-                            <div className="flex items-center gap-2">
-                                {lastCheckedText && (
-                                    <Typography 
-                                        variant="caption" 
-                                        color="textSecondary"
-                                        className=" sm:block text-xs"
-                                    >
-                                        Updated: {lastCheckedText}
-                                    </Typography>
-                                )}
-                                
-                            </div>
-                        }
+        <div className="flex justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+                className="w-full max-w-full"
+            >
+                <Card 
+                    className="w-full transition-all duration-200"
+                    style={{
+                        border: `var(--borderWidth, 2px) solid transparent`,
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                        transform: `scale(var(--scale, 1))`,
+                        background: `linear-gradient(135deg, 
+                            var(--theme-content1, #FAFAFA) 20%, 
+                            var(--theme-content2, #F4F4F5) 10%, 
+                            var(--theme-content3, #F1F3F4) 20%)`,
+                    }}
+                >
+                    <CardHeader 
+                        className="border-b p-0"
+                        style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            background: `linear-gradient(135deg, 
+                                color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                        }}
                     >
-                        <Divider />
-                        
+                        <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'} w-full`}>
+                            <div className="flex flex-col space-y-4">
+                                {/* Main Header Content */}
+                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                    {/* Title Section */}
+                                    <div className="flex items-center gap-3 lg:gap-4">
+                                        <div 
+                                            className={`
+                                                ${isLargeScreen ? 'p-3' : isMediumScreen ? 'p-2.5' : 'p-2'} 
+                                                rounded-xl flex items-center justify-center
+                                            `}
+                                            style={{
+                                                background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                borderWidth: `var(--borderWidth, 2px)`,
+                                                borderRadius: `var(--borderRadius, 12px)`,
+                                            }}
+                                        >
+                                            <MapIcon 
+                                                className={`
+                                                    ${isLargeScreen ? 'w-8 h-8' : isMediumScreen ? 'w-6 h-6' : 'w-5 h-5'}
+                                                `}
+                                                style={{ color: 'var(--theme-primary)' }}
+                                            />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h4 
+                                                className={`
+                                                    ${isLargeScreen ? 'text-2xl' : isMediumScreen ? 'text-xl' : 'text-lg'}
+                                                    font-bold text-foreground
+                                                    ${!isLargeScreen ? 'truncate' : ''}
+                                                `}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            >
+                                                Team Locations
+                                            </h4>
+                                            <p 
+                                                className={`
+                                                    ${isLargeScreen ? 'text-sm' : 'text-xs'} 
+                                                    text-default-500
+                                                    ${!isLargeScreen ? 'truncate' : ''}
+                                                `}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            >
+                                                {formattedDate}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-4">
+                                        {lastCheckedText && (
+                                            <span 
+                                                className="text-xs text-default-500"
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            >
+                                                Updated: {lastCheckedText}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <Divider 
+                        style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                        }}
+                    />
+                    <CardBody 
+                        className="p-0"
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
+                    >
                         {/* Stats Cards */}
                         <div className="p-6">
                             <StatsCards
@@ -682,77 +1359,77 @@ const UserLocationsCard = React.memo(({ updateMap, selectedDate }) => {
                                     {
                                         title: 'Total',
                                         value: userStats.total,
-                                        icon: <Groups className="w-5 h-5" />,
-                                        color: 'text-blue-400',
+                                        icon: <Users className="w-5 h-5" />,
+                                        color: 'text-primary',
                                         description: 'Total users tracked',
-                                        iconBg: 'bg-blue-500/20',
-                                        valueColor: 'text-blue-400',
+                                        iconBg: 'bg-primary/20',
+                                        valueColor: 'text-primary',
+                                        customStyle: {
+                                            color: 'var(--theme-primary)',
+                                        }
                                     },
                                     {
                                         title: 'Active',
                                         value: userStats.checkedIn,
-                                        icon: <AccessTime className="w-5 h-5" />,
-                                        color: 'text-orange-400',
+                                        icon: <Clock4 className="w-5 h-5" />,
+                                        color: 'text-warning',
                                         description: 'Currently working',
-                                        iconBg: 'bg-orange-500/20',
-                                        valueColor: 'text-orange-400',
+                                        iconBg: 'bg-warning/20',
+                                        valueColor: 'text-warning',
+                                        customStyle: {
+                                            color: 'var(--theme-warning)',
+                                        }
                                     },
                                     {
                                         title: 'Completed',
                                         value: userStats.completed,
                                         icon: <Place className="w-5 h-5" />,
-                                        color: 'text-green-400',
+                                        color: 'text-success',
                                         description: 'Finished workday',
-                                        iconBg: 'bg-green-500/20',
-                                        valueColor: 'text-green-400',
+                                        iconBg: 'bg-success/20',
+                                        valueColor: 'text-success',
+                                        customStyle: {
+                                            color: 'var(--theme-success)',
+                                        }
                                     }
                                 ]}
-                            
                                 compact={isMobile}
                             />
                         </div>
-                        {/* Stats Cards END */}
-                        
-                        <CardContent sx={{ p: 3, pt: 0 }}>
+                        <div className="p-6 pt-0">
                             {users.length > 0 ? (
-                                <Box 
-                                    sx={{ 
-                                        height: '70vh', 
-                                        borderRadius: 4,
-                                        overflow: 'hidden',
-                                        border: `2px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                                        boxShadow: `0 10px 30px ${alpha(theme.palette.primary.main, 0.2)}`,
-                                        position: 'relative'
+                                <div 
+                                    className="relative h-[70vh] rounded-2xl overflow-hidden border-2 shadow-2xl"
+                                    style={{
+                                        borderColor: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                                        borderRadius: `var(--borderRadius, 12px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`
                                     }}
                                 >
                                     {loading && (
-                                        <Box
-                                            sx={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                bottom: 0,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                background: alpha(theme.palette.background.paper, 0.8),
-                                                backdropFilter: 'blur(10px)',
-                                                zIndex: 1000
+                                        <div 
+                                            className="absolute inset-0 flex items-center justify-center backdrop-blur-xl z-50"
+                                            style={{
+                                                background: `color-mix(in srgb, var(--theme-content1) 80%, transparent)`,
+                                                fontFamily: `var(--fontFamily, "Inter")`
                                             }}
                                         >
-                                            <Box sx={{ textAlign: 'center' }}>
-                                                <CircularProgress size={40} thickness={4} />
-                                                <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                                            <div className="text-center">
+                                                <Spinner size="lg" color="primary" />
+                                                <p 
+                                                    className="mt-4 text-default-500"
+                                                    style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`
+                                                    }}
+                                                >
                                                     Loading locations...
-                                                </Typography>
-                                            </Box>
-                                        </Box>
+                                                </p>
+                                            </div>
+                                        </div>
                                     )}
-
                                     <MapContainer
                                         key={`${updateMap}-${mapKey}`}
-                                        center={[PROJECT_LOCATIONS.primary.lat, PROJECT_LOCATIONS.primary.lng]}
+                                        center={[DEFAULT_CENTER.lat, DEFAULT_CENTER.lng]}
                                         zoom={MAP_CONFIG.DEFAULT_ZOOM}
                                         minZoom={MAP_CONFIG.MIN_ZOOM}
                                         maxZoom={MAP_CONFIG.MAX_ZOOM}
@@ -770,96 +1447,171 @@ const UserLocationsCard = React.memo(({ updateMap, selectedDate }) => {
                                             maxZoom={MAP_CONFIG.MAX_ZOOM}
                                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                         />
-                                        
-                                        <RoutingMachine 
-                                            startLocation={PROJECT_LOCATIONS.route.start} 
-                                            endLocation={PROJECT_LOCATIONS.route.end}
-                                            theme={theme}
+                                        <AttendanceTypeBoundaries 
+                                            attendanceTypeConfigs={attendanceTypeConfigs}
+                                            theme={themeSettings}
                                         />
-                                        
                                         <UserMarkers 
                                             users={users}
                                             setUsers={setUsers}
                                             setLoading={setLoading}
                                             setError={setError}
+                                            setAttendanceTypeConfigs={setAttendanceTypeConfigs}
                                             lastUpdate={lastUpdate}
                                             selectedDate={selectedDate}
                                             onUsersLoad={handleUsersLoad}
-                                            theme={theme}
+                                            theme={themeSettings}
                                         />
                                     </MapContainer>
-                                </Box>
+                                </div>
                             ) : loading ? (
-                                <Box 
-                                    sx={{ 
-                                        height: '70vh', 
-                                        borderRadius: 4,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: `2px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                                        boxShadow: `0 10px 30px ${alpha(theme.palette.primary.main, 0.2)}`,
-                                        background: alpha(theme.palette.background.paper, 0.5),
-                                        backdropFilter: 'blur(10px)',
+                                <div 
+                                    className="h-[70vh] rounded-2xl flex items-center justify-center border-2 shadow-2xl backdrop-blur-xl"
+                                    style={{
+                                        borderColor: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                                        background: `color-mix(in srgb, var(--theme-content1) 80%, transparent)`,
+                                        borderRadius: `var(--borderRadius, 12px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`
                                     }}
                                 >
-                                    <Box sx={{ textAlign: 'center' }}>
-                                        <CircularProgress size={40} thickness={4} />
-                                        <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                                    <div className="text-center">
+                                        <Spinner size="lg" color="primary" />
+                                        <p 
+                                            className="mt-4 text-default-500"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`
+                                            }}
+                                        >
                                             Loading locations...
-                                        </Typography>
-                                    </Box>
-                                </Box>
+                                        </p>
+                                    </div>
+                                </div>
                             ) : (
-                                <Box 
-                                    sx={{ 
-                                        height: '70vh', 
-                                        borderRadius: 4,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: alpha(theme.palette.background.paper, 0.5),
-                                        backdropFilter: 'blur(10px)',
-                                        border: `2px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                                        boxShadow: `0 10px 30px ${alpha(theme.palette.primary.main, 0.2)}`,
-                                        p: 6
+                                <div 
+                                    className="h-[70vh] rounded-2xl flex flex-col items-center justify-center backdrop-blur-xl border-2 shadow-2xl p-12"
+                                    style={{
+                                        background: `color-mix(in srgb, var(--theme-content1) 80%, transparent)`,
+                                        borderColor: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                                        borderRadius: `var(--borderRadius, 12px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`
                                     }}
                                 >
-                                    <MapIcon 
-                                        style={{ 
-                                            width: '64px', 
-                                            height: '64px', 
-                                            color: theme.palette.text.disabled,
-                                            margin: '0 auto 24px auto'
-                                        }} 
-                                    />
-                                    <Typography variant="h5" sx={{ mb: 2 }}>
+                                    <MapIcon className="w-16 h-16 text-default-300 mb-6" />
+                                    <h3 
+                                        className="text-xl font-semibold mb-4"
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`
+                                        }}
+                                    >
                                         No Location Data Available
-                                    </Typography>
-                                    <Typography color="textSecondary" sx={{ mb: 3, maxWidth: '600px', textAlign: 'center' }}>
+                                    </h3>
+                                    <p 
+                                        className="text-default-500 mb-6 max-w-md text-center"
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`
+                                        }}
+                                    >
                                         No team location data found for {formattedDate}. 
                                         {selectedDate && new Date(selectedDate) > new Date() ? 
                                             " This date is in the future." : 
                                             " Try selecting a different date or refreshing the data."}
-                                    </Typography>
+                                    </p>
                                     <Button 
-                                        variant="outlined"
+                                        variant="bordered"
                                         color="primary"
-                                        size="medium"
-                                        onClick={handleRefresh}
-                                        startIcon={<Refresh />}
-                                        sx={{ mt: 2 }}
+                                        size="md"
+                                        radius={getThemeRadius()}
+                                        onPress={handleRefresh}
+                                        startContent={<RefreshCw className="w-4 h-4" />}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`
+                                        }}
                                     >
                                         Refresh Data
                                     </Button>
-                                </Box>
+                                </div>
                             )}
-                        </CardContent>
-                    </PageHeader>
-                </GlassCard>
-            </Fade>
-        </Box>
+                        </div>
+                    </CardBody>
+                </Card>
+            </motion.div>
+            
+            {/* Fullscreen Photo Overlay */}
+            {fullscreenPhotoUrl && (
+                <div
+                    className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center"
+                    style={{
+                        zIndex: 99999,
+                        width: '100vw',
+                        height: '100vh',
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                        backdropFilter: 'blur(8px)',
+                    }}
+                    onClick={() => setFullscreenPhotoUrl(null)}
+                >
+                    {/* Close button */}
+                    <button
+                        className="absolute top-6 right-6 p-3 rounded-full transition-all hover:bg-white/30"
+                        style={{
+                            zIndex: 100000,
+                            color: 'white',
+                            background: 'rgba(255, 255, 255, 0.15)',
+                            border: '2px solid rgba(255, 255, 255, 0.3)',
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setFullscreenPhotoUrl(null);
+                        }}
+                        aria-label="Close fullscreen"
+                    >
+                        <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="28" 
+                            height="28" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2.5" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                        >
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    
+                    {/* Photo container */}
+                    <div 
+                        className="flex flex-col items-center justify-center p-4"
+                        style={{
+                            maxWidth: '95vw',
+                            maxHeight: '95vh',
+                        }}
+                    >
+                        <img
+                            src={fullscreenPhotoUrl}
+                            alt="Attendance photo"
+                            style={{
+                                maxWidth: '90vw',
+                                maxHeight: '85vh',
+                                objectFit: 'contain',
+                                borderRadius: '12px',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                        
+                        {/* Hint text */}
+                        <p 
+                            className="text-center mt-6 text-base"
+                            style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                        >
+                            Click anywhere to close
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 });
 

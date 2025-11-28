@@ -225,7 +225,7 @@ class ReportController extends Controller
                     ->where('punch_in_time', '>=', $startDate)
                     ->where('punch_in_time', '<=', $endDate)
                     ->count() / DB::table('users')->count(),
-            ]
+            ],
         ];
     }
 
@@ -238,13 +238,13 @@ class ReportController extends Controller
                 [
                     'label' => 'Sales',
                     'data' => [12, 19, 3, 5, 2, 3],
-                ]
+                ],
             ],
             'summary' => [
                 'totalSales' => '$500,000',
                 'growth' => '12%',
                 'topProduct' => 'Product X',
-            ]
+            ],
         ];
     }
 
@@ -265,14 +265,14 @@ class ReportController extends Controller
                 [
                     'label' => 'Profit',
                     'data' => [110000, 110000, 90000, 120000],
-                ]
+                ],
             ],
             'summary' => [
                 'totalRevenue' => '$2,440,000',
                 'totalExpenses' => '$2,010,000',
                 'netProfit' => '$430,000',
                 'profitMargin' => '17.6%',
-            ]
+            ],
         ];
     }
 
@@ -289,7 +289,7 @@ class ReportController extends Controller
             'summary' => [
                 'operationalEfficiency' => 'Good',
                 'areasForImprovement' => ['Reduce downtime', 'Optimize inventory management'],
-            ]
+            ],
         ];
     }
 
@@ -308,7 +308,7 @@ class ReportController extends Controller
                 'onTrack' => 2,
                 'delayed' => 1,
                 'atRisk' => 1,
-            ]
+            ],
         ];
     }
 
@@ -325,7 +325,7 @@ class ReportController extends Controller
                 'totalInventoryValue' => '$400,000',
                 'lowStockItems' => 12,
                 'overStockItems' => 8,
-            ]
+            ],
         ];
     }
 
@@ -344,7 +344,7 @@ class ReportController extends Controller
             'summary' => [
                 'queryTime' => '0.5s',
                 'resultCount' => count($results),
-            ]
+            ],
         ];
     }
 }

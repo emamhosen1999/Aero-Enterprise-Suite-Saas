@@ -1,354 +1,72 @@
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Exo:ital,wght@0,100..900;1,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Merienda:wght@300..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Exo:ital,wght@0,100..900;1,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Merienda:wght@300..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&display=swap')
+layer(base);
+@import '@fontsource/roboto/300.css';
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
 
-/* Import theme patterns for background support */
-@import './theme-patterns.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin '../../hero.ts';
+@source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
 
 
-.user-icon {
-    border-radius: 50%; /* Make the icon circular */
-    border: 2px solid #ffffff; /* White border */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow */
-    width: 30px; /* Ensures the icon remains the correct size */
-    height: 30px; /* Ensures the icon remains the correct size */
-    object-fit: cover; /* Maintain the aspect ratio of the image */
+.Toastify__toast-container {
+  z-index: 99999 !important;
 }
 
-
-.auth-one-bg {
-    border-bottom-left-radius: 30vh;
-    border-bottom-right-radius: 30vh;
+/* Line clamp utilities for text wrapping */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  max-height: 2.8em; /* 2 lines * 1.4 line-height */
 }
 
-.bg-overlay {
-    border-bottom-left-radius: 30vh;
-    border-bottom-right-radius: 30vh;
+/* Custom table row height */
+.table-row-height {
+  min-height: 4rem; /* Accommodate 2 lines of text with padding */
 }
 
-
-.dataTables-center {
-    text-align: center;
-    background-color: transparent;
+/* Hide Google Translate toolbar and elements */
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-balloon,
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-text-highlight {
+  display: none !important;
 }
 
-
-/* For Webkit-based browsers (Chrome, Safari) */
-::-webkit-scrollbar {
-    width: 12px; /* Width of the scrollbar */
+body {
+  top: 0 !important;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent; /* Transparent background for the track */
+.goog-te-gadget {
+  display: none !important;
 }
 
-::-webkit-scrollbar-thumb {
-    background-color: rgba(136, 136, 136, 0.7); /* Semi-transparent color */
-    border-radius: 10px; /* Round shape */
-    border: 3px solid transparent; /* Adds space around the thumb for a transparent effect */
-    background-clip: padding-box; /* Ensures the border color is transparent */
+/* Prevent Google Translate from modifying body position */
+.skiptranslate {
+  display: none !important;
+  height: 0 !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(85, 85, 85, 0.7); /* Darker color on hover */
+/* Fix for translated text styling */
+font[style] {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
-/* For Firefox */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(136, 136, 136, 0.7) transparent;
-}
-
-.leaflet-routing-container {
-    display: none;
-}
-
-.spinner-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.jdPBzn {
-    background-color: transparent !important;
-}
-
-/* Stats Cards Animation */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translate3d(0, 30px, 0);
-    }
-    to {
-        opacity: 1;
-        transform: translate3d(0, 0, 0);
-    }
-}
-
-/* Enhanced responsive utilities for stats cards */
-@media (max-width: 640px) {
-    .stats-compact {
-        padding: 0.75rem;
-    }
-    
-    .stats-compact .card-title {
-        font-size: 0.75rem;
-        line-height: 1.2;
-    }
-    
-    .stats-compact .card-value {
-        font-size: 1rem;
-        line-height: 1.2;
-    }
-}
-
-/* Theme Gradient System */
-:root {
-    /* Default Ocean Theme Gradients */
-    --theme-gradient-primary: linear-gradient(to right, theme('colors.sky.400'), theme('colors.sky.600'));
-    --theme-gradient-secondary: linear-gradient(to right, theme('colors.blue.400'), theme('colors.blue.600'));
-    --theme-gradient-accent: linear-gradient(to right, theme('colors.cyan.400'), theme('colors.blue.600'));
-    --theme-gradient-light: linear-gradient(to right, theme('colors.sky.100'), theme('colors.blue.100'));
-    --theme-gradient-dark: linear-gradient(to right, theme('colors.sky.800'), theme('colors.blue.900'));
-    --theme-gradient-subtle: linear-gradient(to right, theme('colors.sky.50'), theme('colors.blue.50'));
-    
-    /* Multi-directional gradient utilities */
-    --theme-gradient-primary-br: linear-gradient(to bottom right, theme('colors.sky.400'), theme('colors.sky.600'));
-    --theme-gradient-secondary-br: linear-gradient(to bottom right, theme('colors.blue.400'), theme('colors.blue.600'));
-    --theme-gradient-accent-br: linear-gradient(to bottom right, theme('colors.cyan.400'), theme('colors.blue.600'));
-}
-
-/* Theme-aware gradient utility classes */
-.bg-theme-gradient-primary {
-    background: var(--theme-gradient-primary);
-}
-
-.bg-theme-gradient-secondary {
-    background: var(--theme-gradient-secondary);
-}
-
-.bg-theme-gradient-accent {
-    background: var(--theme-gradient-accent);
-}
-
-.bg-theme-gradient-light {
-    background: var(--theme-gradient-light);
-}
-
-.bg-theme-gradient-dark {
-    background: var(--theme-gradient-dark);
-}
-
-.bg-theme-gradient-subtle {
-    background: var(--theme-gradient-subtle);
-}
-
-/* Multi-directional theme gradients */
-.bg-theme-gradient-primary-br {
-    background: var(--theme-gradient-primary-br);
-}
-
-.bg-theme-gradient-secondary-br {
-    background: var(--theme-gradient-secondary-br);
-}
-
-.bg-theme-gradient-accent-br {
-    background: var(--theme-gradient-accent-br);
-}
-
-/* Dynamic theme gradient classes that work with CSS variables */
-.theme-gradient-primary {
-    background: linear-gradient(to right, 
-        rgba(var(--theme-primary-rgb), 0.8), 
-        rgba(var(--theme-primary-rgb), 1)
-    );
-}
-
-.theme-gradient-secondary {
-    background: linear-gradient(to right, 
-        rgba(var(--theme-secondary-rgb), 0.8), 
-        rgba(var(--theme-secondary-rgb), 1)
-    );
-}
-
-.theme-gradient-primary-secondary {
-    background: linear-gradient(to right, 
-        rgba(var(--theme-primary-rgb), 1), 
-        rgba(var(--theme-secondary-rgb), 1)
-    );
-}
-
-.theme-gradient-light {
-    background: linear-gradient(to right, 
-        rgba(var(--theme-primary-rgb), 0.1), 
-        rgba(var(--theme-secondary-rgb), 0.1)
-    );
-}
-
-.theme-gradient-subtle {
-    background: linear-gradient(to right, 
-        rgba(var(--theme-primary-rgb), 0.05), 
-        rgba(var(--theme-secondary-rgb), 0.05)
-    );
-}
-
-/* Text gradients using theme colors */
-.text-theme-gradient {
-    background: linear-gradient(to right, var(--theme-primary), var(--theme-secondary));
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 200% auto;
-}
-
-/* Hover and interaction states for theme gradients */
-.theme-gradient-hover:hover {
-    background: linear-gradient(to right, 
-        rgba(var(--theme-primary-rgb), 0.9), 
-        rgba(var(--theme-secondary-rgb), 0.9)
-    );
-    transition: all 0.3s ease;
-}
-
-.theme-gradient-button {
-    background: linear-gradient(to right, var(--theme-primary), var(--theme-secondary));
-    color: white;
-    transition: all 0.3s ease;
-}
-
-.theme-gradient-button:hover {
-    background: linear-gradient(to right, 
-        rgba(var(--theme-primary-rgb), 0.9), 
-        rgba(var(--theme-secondary-rgb), 0.9)
-    );
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb), 0.3);
-}
-
-/* Dropdown improvements for better UX */
-.dropdown-content-fix {
-    min-height: fit-content !important;
-    padding-top: 4px !important;
-    padding-bottom: 4px !important;
-}
-
-/* Ensure dropdown items are visible and properly spaced */
-[data-slot="base"][role="menu"] {
-    min-height: fit-content !important;
-    overflow: visible !important;
-    padding: 4px !important;
-}
-
-/* Fix dropdown menu positioning and visibility */
-[data-slot="base"][role="menu"] > li:first-child {
-    margin-top: 0 !important;
-}
-
-/* Improve hover states for nested dropdowns */
-.dropdown-trigger-wrapper {
-    position: relative;
-}
-
-.dropdown-trigger-wrapper:hover .dropdown-content,
-.dropdown-trigger-wrapper:focus-within .dropdown-content {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* Ensure smooth transitions for dropdowns */
-.dropdown-transition {
-    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-}
-
-/* Fix for dropdown items being cut off */
-.dropdown-menu-container {
-    overflow: visible !important;
-    z-index: 9999 !important;
-    padding: 4px !important;
-}
-
-/* Better spacing for nested dropdown items */
-.nested-dropdown-item {
-    padding: 4px 8px !important;
-    margin: 2px 4px !important;
-    border-radius: 6px !important;
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
-}
-
-/* Compact dropdown items */
-[data-slot="base"][role="menuitem"] {
-    padding: 4px 8px !important;
-    margin: 1px 2px !important;
-    min-height: 28px !important;
-    font-size: 0.75rem !important;
-}
-
-/* Compact dropdown content */
-[data-slot="content"] {
-    padding: 4px !important;
-}
-
-/* Consistent menu item styling for all dropdown items */
-.menu-item-base {
-    display: flex !important;
-    align-items: center !important;
-    width: 100% !important;
-    padding: 8px 12px !important;
-    margin: 2px 4px !important;
-    border-radius: 8px !important;
-    font-size: 12px !important;
-    line-height: 16px !important;
-    transition: all 0.2s ease-in-out !important;
-    cursor: pointer !important;
-    text-decoration: none !important;
-    min-height: 32px !important;
-}
-
-.menu-item-base:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    transform: none !important;
-}
-
-.menu-item-base.active {
-    color: white !important;
-}
-
-.menu-item-base .menu-item-icon {
-    width: 16px !important;
-    height: 16px !important;
-    margin-right: 8px !important;
-    flex-shrink: 0 !important;
-}
-
-.menu-item-base .menu-item-text {
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    flex-grow: 1 !important;
-}
-
-.menu-item-base .menu-item-chevron {
-    width: 12px !important;
-    height: 12px !important;
-    margin-left: auto !important;
-    flex-shrink: 0 !important;
-}
-
-/* Override HeroUI default styles for consistency */
-[data-slot="base"][role="menuitem"]:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Ensure dropdown containers are compact */
-.dropdown-menu-container [data-slot="base"] {
-    padding: 2px !important;
+/* Elements that should never be translated */
+[data-no-translate],
+[data-name],
+[data-email],
+[data-phone],
+.notranslate {
+  font-style: inherit !important;
 }

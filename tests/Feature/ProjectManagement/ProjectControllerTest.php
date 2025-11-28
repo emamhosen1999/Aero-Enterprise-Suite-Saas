@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\ProjectManagement;
 
+use App\Models\HRM\Department;
 use App\Models\Project;
 use App\Models\User;
-use App\Models\HRM\Department;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -36,7 +36,7 @@ class ProjectControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertInertia(
-            fn($assert) => $assert
+            fn ($assert) => $assert
                 ->component('ProjectManagement/Projects/Index')
                 ->has('projects')
                 ->has('kpis')
@@ -108,7 +108,7 @@ class ProjectControllerTest extends TestCase
                     'value_score',
                     'risk_score',
                     'quadrant',
-                ]
+                ],
             ],
             'quadrants',
         ]);
@@ -214,7 +214,7 @@ class ProjectControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertInertia(
-            fn($assert) => $assert
+            fn ($assert) => $assert
                 ->component('ProjectManagement/Projects/Index')
                 ->has('projects')
                 ->where('filters.status', ['in_progress'])
@@ -243,7 +243,7 @@ class ProjectControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertInertia(
-            fn($assert) => $assert
+            fn ($assert) => $assert
                 ->component('ProjectManagement/Projects/Index')
                 ->has('projects')
                 ->where('filters.search', 'Test Search')

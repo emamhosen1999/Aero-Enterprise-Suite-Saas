@@ -61,7 +61,7 @@ class TaskImportService
 
         foreach ($importedTasks as $importedTask) {
             $result = $this->processTaskRow($importedTask, $date);
-            
+
             if ($result['processed']) {
                 $processedCount++;
             }
@@ -70,7 +70,7 @@ class TaskImportService
         return [
             'sheet' => $sheetIndex + 1,
             'date' => $date,
-            'processed_count' => $processedCount
+            'processed_count' => $processedCount,
         ];
     }
 
@@ -81,9 +81,10 @@ class TaskImportService
     {
         // Find work location for the task location
         $workLocation = $this->findWorkLocationForTask($importedTask[4]);
-        
-        if (!$workLocation) {
-            Log::warning('No work location found for task location: ' . $importedTask[4]);
+
+        if (! $workLocation) {
+            Log::warning('No work location found for task location: '.$importedTask[4]);
+
             return ['processed' => false];
         }
 
@@ -91,7 +92,7 @@ class TaskImportService
 
         // Check if task already exists
         $existingTask = Tasks::where('number', $importedTask[1])->first();
-        
+
         if ($existingTask) {
             $this->handleTaskResubmission($existingTask, $importedTask, $inchargeName);
         } else {

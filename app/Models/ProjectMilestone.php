@@ -24,7 +24,7 @@ class ProjectMilestone extends Model
         'status',
         'weight',
         'order',
-        'notes'
+        'notes',
     ];
 
     /**

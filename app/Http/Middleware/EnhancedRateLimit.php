@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Logging\ApplicationLogger;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
-use App\Services\Logging\ApplicationLogger;
 
 /**
  * Enhanced Rate Limiting Middleware
@@ -29,11 +29,11 @@ class EnhancedRateLimit
     {
         $user = $request->user();
         $key = $this->resolveRequestSignature($request, $user);
-        
+
         // Different limits for different user types
         $limits = $this->getUserLimits($user);
         $maxAttempts = $limits['requests_per_minute'];
-        
+
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             // Log rate limit violation
             $this->logger->logSecurityEvent('Rate Limit Exceeded', [
@@ -42,12 +42,12 @@ class EnhancedRateLimit
                 'attempts' => RateLimiter::attempts($key),
                 'max_attempts' => $maxAttempts,
                 'route' => $request->route()?->getName(),
-                'user_agent' => $request->userAgent()
+                'user_agent' => $request->userAgent(),
             ], 'warning');
 
             return response()->json([
                 'message' => 'Too many requests. Please slow down.',
-                'retry_after' => RateLimiter::availableIn($key)
+                'retry_after' => RateLimiter::availableIn($key),
             ], 429);
         }
 
@@ -59,7 +59,7 @@ class EnhancedRateLimit
         $response->headers->add([
             'X-RateLimit-Limit' => $maxAttempts,
             'X-RateLimit-Remaining' => max(0, $maxAttempts - RateLimiter::attempts($key)),
-            'X-RateLimit-Reset' => RateLimiter::availableIn($key) + time()
+            'X-RateLimit-Reset' => RateLimiter::availableIn($key) + time(),
         ]);
 
         return $response;
@@ -71,10 +71,10 @@ class EnhancedRateLimit
     protected function resolveRequestSignature(Request $request, $user): string
     {
         if ($user) {
-            return 'user:' . $user->id . '|route:' . ($request->route()?->getName() ?? 'unknown');
+            return 'user:'.$user->id.'|route:'.($request->route()?->getName() ?? 'unknown');
         }
-        
-        return 'ip:' . $request->ip() . '|route:' . ($request->route()?->getName() ?? 'unknown');
+
+        return 'ip:'.$request->ip().'|route:'.($request->route()?->getName() ?? 'unknown');
     }
 
     /**
@@ -82,7 +82,7 @@ class EnhancedRateLimit
      */
     protected function getUserLimits($user): array
     {
-        if (!$user) {
+        if (! $user) {
             return ['requests_per_minute' => 20]; // Guest users
         }
 
@@ -91,18 +91,18 @@ class EnhancedRateLimit
             if ($user->hasRole('Super Administrator')) {
                 return ['requests_per_minute' => 200];
             }
-            
+
             if ($user->hasRole('Administrator')) {
                 return ['requests_per_minute' => 150];
             }
-            
+
             $userWithDesignation = \App\Models\User::with('designation')->find($user->id);
             $userDesignationTitle = $userWithDesignation->designation?->title;
-            
+
             if ($userDesignationTitle === 'Supervision Engineer') {
                 return ['requests_per_minute' => 100];
             }
-            
+
             // Regular employees
             return ['requests_per_minute' => 60];
         });

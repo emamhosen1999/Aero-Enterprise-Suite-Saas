@@ -58,6 +58,7 @@ const DesignationTable = ({
         const baseColumns = [
             { name: "TITLE", uid: "title" },
             { name: "DEPARTMENT", uid: "department_name" },
+            { name: "HIERARCHY", uid: "hierarchy_level" },
             { name: "EMPLOYEES", uid: "employee_count" },
             { name: "STATUS", uid: "status" },
             { name: "ACTIONS", uid: "actions" }
@@ -75,6 +76,31 @@ const DesignationTable = ({
             case "department_name":
                 return (
                     <span className="text-default-500">{designation.department_name || '-'}</span>
+                );
+            case "hierarchy_level":
+                const levelColors = {
+                    1: 'primary',
+                    2: 'secondary',
+                    3: 'success',
+                    4: 'warning',
+                    5: 'danger',
+                };
+                const level = designation.hierarchy_level || 1;
+                const colorKey = level <= 5 ? level : 'default';
+                
+                return (
+                    <Chip
+                        size="sm"
+                        variant="flat"
+                        color={levelColors[colorKey] || 'default'}
+                        startContent={
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        }
+                    >
+                        Level {level}
+                    </Chip>
                 );
             case "employee_count":
                 return (
@@ -102,17 +128,7 @@ const DesignationTable = ({
                     <div className="flex justify-end items-center">
                         {!isMobile ? (
                             <>
-                                <Tooltip content="View Designation">
-                                    <Button
-                                        isIconOnly
-                                        size="sm"
-                                        variant="light"
-                                        className="text-default-400 hover:text-foreground"
-                                        onPress={() => onView(designation)}
-                                    >
-                                        <EyeIcon className="w-4 h-4" />
-                                    </Button>
-                                </Tooltip>
+                                
                                 
                                 {hasEditPermission && (
                                     <Tooltip content="Edit Designation">
@@ -160,13 +176,7 @@ const DesignationTable = ({
                                     </Button>
                                 </DropdownTrigger>
                                 <DropdownMenu aria-label="Designation actions">
-                                    <DropdownItem
-                                        key="view"
-                                        startContent={<EyeIcon className="w-4 h-4" />}
-                                        onPress={() => onView(designation)}
-                                    >
-                                        View Details
-                                    </DropdownItem>
+                                   
                                     
                                     {hasEditPermission && (
                                         <DropdownItem

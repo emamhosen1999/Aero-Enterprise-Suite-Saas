@@ -198,7 +198,7 @@ const PerformanceDashboard = ({ isVisible = false, onToggle }) => {
                                                 {metricName}
                                             </h3>
                                             {metric && (
-                                                <span className={`px-2 py-1 rounded text-xs font-medium ${getRatingColor(metric.rating)}`}>
+                                                <span className={`px-2 py-1 rounded-sm text-xs font-medium ${getRatingColor(metric.rating)}`}>
                                                     {metric.rating}
                                                 </span>
                                             )}

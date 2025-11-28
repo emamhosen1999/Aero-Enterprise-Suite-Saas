@@ -19,7 +19,7 @@ class PaymentMethod extends Model
         'is_active',
         'requires_authorization',
         'processing_fee',
-        'icon'
+        'icon',
     ];
 
     protected $casts = [

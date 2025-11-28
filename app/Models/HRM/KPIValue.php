@@ -21,7 +21,7 @@ class KPIValue extends Model
         'value',
         'date',
         'notes',
-        'recorded_by_user_id'
+        'recorded_by_user_id',
     ];
 
     /**

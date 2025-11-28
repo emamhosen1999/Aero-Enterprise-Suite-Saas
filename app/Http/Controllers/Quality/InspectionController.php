@@ -223,7 +223,7 @@ class InspectionController extends Controller
             'inspection_criteria' => 'nullable|string',
             'results' => 'nullable|string',
             'result_status' => 'nullable|in:passed,failed,conditionally_passed',
-            'inspection_number' => 'required|string|max:100|unique:quality_inspections,inspection_number,' . $inspection->id,
+            'inspection_number' => 'required|string|max:100|unique:quality_inspections,inspection_number,'.$inspection->id,
         ]);
 
         $inspection->update($validated);
@@ -233,7 +233,7 @@ class InspectionController extends Controller
             $existingIds = [];
 
             foreach ($request->input('checkpoints') as $checkpointData) {
-                if (!empty($checkpointData['id'])) {
+                if (! empty($checkpointData['id'])) {
                     // Update existing checkpoint
                     $checkpoint = QualityCheckpoint::find($checkpointData['id']);
                     if ($checkpoint && $checkpoint->inspection_id == $inspection->id) {
@@ -268,7 +268,7 @@ class InspectionController extends Controller
             }
 
             // Delete checkpoints that are not in the request
-            if (!empty($existingIds)) {
+            if (! empty($existingIds)) {
                 $inspection->checkpoints()
                     ->whereNotIn('id', $existingIds)
                     ->delete();
@@ -283,9 +283,9 @@ class InspectionController extends Controller
         ) {
 
             QualityNCR::create([
-                'ncr_number' => 'NCR-' . date('Ymd') . '-' . $inspection->id,
-                'title' => 'NCR for ' . $inspection->inspection_number,
-                'description' => $request->input('ncr_description') ?? 'Failed inspection: ' . $inspection->title,
+                'ncr_number' => 'NCR-'.date('Ymd').'-'.$inspection->id,
+                'title' => 'NCR for '.$inspection->inspection_number,
+                'description' => $request->input('ncr_description') ?? 'Failed inspection: '.$inspection->title,
                 'severity' => $request->input('ncr_severity') ?? 'minor',
                 'status' => 'open',
                 'reported_by' => Auth::id(),

@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, CardContent, Grid, Typography } from '@mui/material';
-import { blue, green, yellow, orange } from '@mui/material/colors';
-import Grow from '@mui/material/Grow';
-import GlassCard from "@/Components/GlassCard.jsx";
+import { motion } from 'framer-motion';
 import { 
     ClipboardDocumentListIcon,
     CheckCircleIcon,
@@ -13,93 +10,95 @@ import axios from 'axios';
 import { Skeleton, Card } from '@heroui/react';
 
 const StatisticCard = ({ title, value, icon: IconComponent, color, isLoaded, testId }) => (
-    <Grow in timeout={300}>
-        <GlassCard sx={{ 
-            height: '100%',
-            width: '100%' 
-        }}>
-            <CardContent sx={{ 
-                p: { xs: 2, sm: 3 },
-                height: '100%',
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
+    <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="h-full w-full"
+    >
+        <Card 
+            className="h-full w-full transition-all duration-200 cursor-pointer shadow-lg"
+            style={{
+                border: `var(--borderWidth, 2px) solid transparent`,
+                borderRadius: `var(--borderRadius, 12px)`,
+                fontFamily: `var(--fontFamily, "Inter")`,
+                transform: `scale(var(--scale, 1))`,
+                background: `linear-gradient(135deg, 
+                    var(--theme-content1, #FAFAFA) 20%, 
+                    var(--theme-content2, #F4F4F5) 10%, 
+                    var(--theme-content3, #F1F3F4) 20%)`,
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, ${color} 50%, transparent)`;
+                e.currentTarget.style.borderRadius = `var(--borderRadius, 12px)`;
+                e.currentTarget.style.transform = `scale(calc(var(--scale, 1) * 1.02))`;
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
+                e.currentTarget.style.transform = `scale(var(--scale, 1))`;
+            }}
+        >
+            <div className="p-4 h-full w-full flex flex-col">
                 <Skeleton 
                     className="rounded-lg" 
                     isLoaded={isLoaded}
                     data-testid={testId}
+                    style={{
+                        borderRadius: `var(--borderRadius, 8px)`
+                    }}
                 >
-                    <Box 
-                        display="flex" 
-                        flexDirection="column" 
-                        gap={2}
+                    <div 
+                        className="flex flex-col gap-2 h-full"
                         role="region"
                         aria-label={`${title} statistics`}
-                        sx={{ height: '100%' }}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                            transform: `scale(var(--scale, 1))`
+                        }}
                     >
                         {/* Header */}
-                        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                            <Typography 
-                                variant="body2"
-                                color="text.secondary" 
-                                sx={{ 
-                                    fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
-                                    fontWeight: 500,
-                                    lineHeight: 1.2,
-                                    flex: 1,
-                                    mr: 1
+                        <div className="flex justify-between items-start">
+                            <h3 
+                                className="text-xs font-medium text-default-500 leading-tight flex-1 mr-1"
+                                style={{ 
+                                    fontFamily: `var(--fontFamily, "Inter")`
                                 }}
-                                component="h3"
                             >
                                 {title}
-                            </Typography>
-                            <Box
-                                sx={{
-                                    bgcolor: `${color}20`,
-                                    borderRadius: '12px',
-                                    p: 1.5,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    minWidth: { xs: 40, sm: 48 },
-                                    minHeight: { xs: 40, sm: 48 },
-                                    flexShrink: 0
+                            </h3>
+                            <div
+                                className="flex items-center justify-center min-w-[40px] sm:min-w-[48px] min-h-[40px] sm:min-h-[48px] flex-shrink-0"
+                                style={{ 
+                                    backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    border: `var(--borderWidth, 1px) solid color-mix(in srgb, ${color} 25%, transparent)`
                                 }}
                             >
                                 <IconComponent 
-                                    style={{ 
-                                        width: '24px', 
-                                        height: '24px', 
-                                        color: color,
-                                        strokeWidth: 2
-                                    }}
+                                    className="w-6 h-6 stroke-2"
+                                    style={{ color: color }}
                                     aria-hidden="true"
                                 />
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
 
                         {/* Value */}
-                        <Box sx={{ mt: 'auto' }}>
-                            <Typography 
-                                variant="h4"
-                                component="div"
-                                sx={{ 
-                                    fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem', lg: '2rem', xl: '2.5rem' },
-                                    fontWeight: 700,
-                                    color: 'text.primary',
-                                    lineHeight: 1
-                                }}
+                        <div className="mt-auto">
+                            <div 
+                                className="text-2xl font-bold text-foreground leading-none"
                                 aria-live="polite"
+                                style={{ 
+                                    fontFamily: `var(--fontFamily, "Inter")`
+                                }}
                             >
                                 {typeof value === 'number' ? value.toLocaleString() : value}
-                            </Typography>
-                        </Box>
-                    </Box>
+                            </div>
+                        </div>
+                    </div>
                 </Skeleton>
-            </CardContent>
-        </GlassCard>
-    </Grow>
+            </div>
+        </Card>
+    </motion.div>
 );
 
 const StatisticsWidgets = () => {
@@ -163,7 +162,7 @@ const StatisticsWidgets = () => {
             title: 'Total Daily Works',
             value: statistics.total,
             icon: ClipboardDocumentListIcon,
-            color: blue[600],
+            color: 'var(--theme-primary, #006FEE)',
             testId: 'stat-total-works'
         },
         {
@@ -171,7 +170,7 @@ const StatisticsWidgets = () => {
             title: 'Completed Daily Works',
             value: statistics.completed,
             icon: CheckCircleIcon,
-            color: green[600],
+            color: 'var(--theme-success, #17C964)',
             testId: 'stat-completed-works'
         },
         {
@@ -179,7 +178,7 @@ const StatisticsWidgets = () => {
             title: 'Pending Daily Works',
             value: statistics.pending,
             icon: ClockIcon,
-            color: orange[600],
+            color: 'var(--theme-warning, #F5A524)',
             testId: 'stat-pending-works'
         },
         {
@@ -187,68 +186,47 @@ const StatisticsWidgets = () => {
             title: 'RFI Submissions',
             value: statistics.rfi_submissions,
             icon: DocumentTextIcon,
-            color: blue[600],
+            color: 'var(--theme-secondary, #7C3AED)',
             testId: 'stat-rfi-submissions'
         }
     ];
 
     if (error) {
         return (
-            <Box 
-                sx={{ 
-                    flexGrow: 1, 
-                    pt: 2, 
-                    pr: 2, 
-                    pl: 2, 
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}
-            >
-                <Card className="p-4 bg-danger-50 border-danger-200">
-                    <Typography color="error" variant="body1">
+            <div className="flex flex-col w-full h-full p-4">
+                <div className="flex-grow h-full flex items-center justify-center">
+                <Card 
+                    className="p-4 transition-all duration-200"
+                    style={{
+                        background: `color-mix(in srgb, var(--theme-danger, #F31260) 10%, transparent)`,
+                        borderColor: `color-mix(in srgb, var(--theme-danger, #F31260) 25%, transparent)`,
+                        borderWidth: `var(--borderWidth, 2px)`,
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                        transform: `scale(var(--scale, 1))`
+                    }}
+                >
+                    <p 
+                        className="text-base"
+                        style={{ color: `var(--theme-danger, #F31260)` }}
+                    >
                         Failed to load statistics: {error}
-                    </Typography>
+                    </p>
                 </Card>
-            </Box>
+                </div>
+            </div>
         );
     }
 
     return (
-        <Box 
-            sx={{ 
-                flexGrow: 1, 
-                pt: 2, 
-                pr: 2, 
-                pl: 2, 
-                height: '100%',
-                width: '100%'
-            }}
-            component="section"
-            aria-label="Statistics Dashboard"
-        >
-            <Grid 
-                container 
-                spacing={{ xs: 2, sm: 2, md: 2 }}
-                sx={{ 
-                    height: '100%',
-                    maxWidth: '1400px',
-                    margin: '0 auto'
-                }} 
-                alignItems="stretch"
+        <div className="flex flex-col w-full h-full p-4">
+            <section 
+                className="h-full w-full"
+                aria-label="Statistics Dashboard"
             >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full max-w-full">
                 {statisticsConfig.map((stat, index) => (
-                    <Grid 
-                        item 
-                        xs={12} 
-                        sm={6} 
-                        md={6} 
-                        lg={6}
-                        xl={6}
-                        key={stat.id}
-                        
-                    >
+                    <div key={stat.id} className="w-full">
                         <StatisticCard
                             title={stat.title}
                             value={stat.value}
@@ -257,10 +235,11 @@ const StatisticsWidgets = () => {
                             isLoaded={!loading}
                             testId={stat.testId}
                         />
-                    </Grid>
+                    </div>
                 ))}
-            </Grid>
-        </Box>
+            </div>
+            </section>
+        </div>
     );
 };
 

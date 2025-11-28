@@ -29,7 +29,8 @@ import {
     MapPinIcon,
     CheckCircleIcon,
     XCircleIcon,
-    EllipsisVerticalIcon
+    EllipsisVerticalIcon,
+    UserIcon
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import NoDataMessage from '@/Components/NoDataMessage';
@@ -77,7 +78,7 @@ const DepartmentTable = ({
                     <User
                         avatarProps={{ 
                             radius: "lg", 
-                            fallback: <BuildingOfficeIcon className="w-4 h-4" />,
+                            fallback: <BuildingOfficeIcon className="w-8 h-4" />,
                             size: isMobile ? "sm" : "md",
                         }}
                         name={department.name}
@@ -110,14 +111,29 @@ const DepartmentTable = ({
                 
             case "manager":
                 return (
-                    <div>
+                    <div className="flex items-start ">
                         {department.manager ? (
-                            <div className="flex flex-col">
-                                <span className="text-sm">{department.manager.name}</span>
-                                {!isMobile && department.manager.email && (
-                                    <span className="text-xs text-default-400">{department.manager.email}</span>
-                                )}
-                            </div>
+                            <>
+                                <User
+                                    avatarProps={{
+                                        radius: "lg",
+                                        src: department.manager?.profile_image_url || department.manager?.profile_image,
+                                        size: "md",
+                                fallback: <UserIcon className="w-5 h-5" />
+                                }}
+                                classNames={{
+                                    name: "font-semibold text-foreground text-sm",
+                                    description: "text-default-500 text-xs",
+                                }}
+                            />
+                        
+                                <div className="flex flex-col">
+                                    <span className="text-sm">{department.manager.name}</span>
+                                    {!isMobile && department.manager.email && (
+                                        <span className="text-xs text-default-400">{department.manager.email}</span>
+                                    )}
+                                </div>
+                            </>
                         ) : (
                             <span className="text-default-400 text-xs">Not assigned</span>
                         )}

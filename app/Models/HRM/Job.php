@@ -35,7 +35,7 @@ class Job extends Model
         'positions',
         'is_featured',
         'skills_required',
-        'custom_fields'
+        'custom_fields',
     ];
 
     protected $casts = [
@@ -93,6 +93,7 @@ class Job extends Model
     public function isOpen()
     {
         $now = now();
+
         return $this->status === 'open' &&
             ($now->between($this->posting_date, $this->closing_date) ||
                 ($now->gte($this->posting_date) && $this->closing_date === null));
@@ -129,14 +130,14 @@ class Job extends Model
         }
 
         if ($this->salary_min !== null && $this->salary_max === null) {
-            return 'From ' . $this->salary_currency . ' ' . number_format($this->salary_min);
+            return 'From '.$this->salary_currency.' '.number_format($this->salary_min);
         }
 
         if ($this->salary_min === null && $this->salary_max !== null) {
-            return 'Up to ' . $this->salary_currency . ' ' . number_format($this->salary_max);
+            return 'Up to '.$this->salary_currency.' '.number_format($this->salary_max);
         }
 
-        return $this->salary_currency . ' ' . number_format($this->salary_min) . ' - ' . number_format($this->salary_max);
+        return $this->salary_currency.' '.number_format($this->salary_min).' - '.number_format($this->salary_max);
     }
 
     /**

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Education;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class EducationController extends Controller
@@ -49,13 +48,13 @@ class EducationController extends Controller
                         ->first();
                     if ($education) {
                         $education->update($educationData);
-                        $messages[] = 'Education record updated: ' . $educationData['institution'];
+                        $messages[] = 'Education record updated: '.$educationData['institution'];
                     } else {
                         return response()->json(['error' => 'Education record not found.'], 404);
                     }
                 } else {
                     Education::create($educationData);
-                    $messages[] = 'Education record added: ' . $educationData['institution'];
+                    $messages[] = 'Education record added: '.$educationData['institution'];
                 }
             }
 
@@ -76,13 +75,9 @@ class EducationController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Update Education Error: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Update Education Error: '.$e->getMessage()], 500);
         }
     }
-
-
-
-
 
     // Delete education records
     public function delete(Request $request)
@@ -123,6 +118,4 @@ class EducationController extends Controller
             return response()->json(['error' => 'Delete Education Error: '.$e->getMessage()], 500);
         }
     }
-
-
 }

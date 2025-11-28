@@ -54,7 +54,9 @@ class TaxSlab extends Model
         $remainingIncome = $income;
 
         foreach ($slabs as $slab) {
-            if ($remainingIncome <= 0) break;
+            if ($remainingIncome <= 0) {
+                break;
+            }
 
             $slabIncome = $slab->max_income - $slab->min_income;
             $taxableInThisSlab = min($remainingIncome, $slabIncome);

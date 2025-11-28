@@ -24,13 +24,13 @@ class SafetyTrainingPolicy
     public function view(User $user, SafetyTraining $safetyTraining): bool
     {
         // Basic permission check
-        if (!$user->can('hr.safety.training.view')) {
+        if (! $user->can('hr.safety.training.view')) {
             return false;
         }
 
         // Employees can view trainings they're enrolled in
         if ($user->hasRole('Employee')) {
-            return $safetyTraining->participants()->where('user_id', $user->id)->exists() || 
+            return $safetyTraining->participants()->where('user_id', $user->id)->exists() ||
                    $safetyTraining->trainer_id === $user->id;
         }
 

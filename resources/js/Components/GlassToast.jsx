@@ -49,7 +49,7 @@ class GlassToast {
         const successContent = (
           <Card className="bg-transparent border-0 shadow-none m-0 p-0">
             <CardBody className="flex flex-row items-center gap-3 py-3 px-4">
-              <CheckCircleIcon className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <CheckCircleIcon className="w-5 h-5 text-green-400 shrink-0" />
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-foreground">{successMessage}</span>
                 <span className="text-xs text-green-400">Operation completed successfully</span>
@@ -78,7 +78,7 @@ class GlassToast {
         const errorContent = (
           <Card className="bg-transparent border-0 shadow-none m-0 p-0">
             <CardBody className="flex flex-row items-center gap-3 py-3 px-4">
-              <XCircleIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <XCircleIcon className="w-5 h-5 text-red-400 shrink-0" />
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-foreground">{errorMessage}</span>
                 <span className="text-xs text-red-400">Operation failed</span>
@@ -112,7 +112,7 @@ class GlassToast {
     const successContent = (
       <Card className="bg-transparent border-0 shadow-none m-0 p-0">
         <CardBody className="flex flex-row items-center gap-3 py-3 px-4">
-          <CheckCircleIcon className="w-5 h-5 text-green-400 flex-shrink-0" />
+          <CheckCircleIcon className="w-5 h-5 text-green-400 shrink-0" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-foreground">{message}</span>
             <span className="text-xs text-green-400">Success</span>
@@ -139,7 +139,7 @@ class GlassToast {
     const errorContent = (
       <Card className="bg-transparent border-0 shadow-none m-0 p-0">
         <CardBody className="flex flex-row items-center gap-3 py-3 px-4">
-          <XCircleIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
+          <XCircleIcon className="w-5 h-5 text-red-400 shrink-0" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-foreground">{message}</span>
             <span className="text-xs text-red-400">Error</span>
@@ -166,7 +166,7 @@ class GlassToast {
     const infoContent = (
       <Card className="bg-transparent border-0 shadow-none m-0 p-0">
         <CardBody className="flex flex-row items-center gap-3 py-3 px-4">
-          <InformationCircleIcon className="w-5 h-5 text-blue-400 flex-shrink-0" />
+          <InformationCircleIcon className="w-5 h-5 text-blue-400 shrink-0" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-foreground">{message}</span>
             <span className="text-xs text-blue-400">Information</span>
@@ -193,7 +193,7 @@ class GlassToast {
     const warningContent = (
       <Card className="bg-transparent border-0 shadow-none m-0 p-0">
         <CardBody className="flex flex-row items-center gap-3 py-3 px-4">
-          <InformationCircleIcon className="w-5 h-5 text-orange-400 flex-shrink-0" />
+          <InformationCircleIcon className="w-5 h-5 text-orange-400 shrink-0" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-foreground">{message}</span>
             <span className="text-xs text-orange-400">Warning</span>

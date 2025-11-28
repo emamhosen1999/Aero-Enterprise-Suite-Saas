@@ -5,12 +5,11 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Role Hierarchy Middleware
- * 
+ *
  * Ensures users can only manage roles below their hierarchy level
  */
 class RoleHierarchyMiddleware
@@ -20,9 +19,8 @@ class RoleHierarchyMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check()) {
-            $loginRoute = tenant() ? 'tenant.login' : 'central.login';
-            return redirect()->route($loginRoute);
+        if (! Auth::check()) {
+            return redirect()->route('login');
         }
 
         $user = Auth::user();
@@ -36,20 +34,20 @@ class RoleHierarchyMiddleware
             $targetRole = \Spatie\Permission\Models\Role::find($targetRoleId);
 
             if ($targetRole && $targetRole->hierarchy_level <= $userHierarchyLevel) {
-                Log::warning('Hierarchy violation attempt', [
+                \Log::warning('Hierarchy violation attempt', [
                     'user_id' => $user->id,
                     'user_hierarchy' => $userHierarchyLevel,
                     'target_role' => $targetRole->name,
                     'target_hierarchy' => $targetRole->hierarchy_level,
                     'action' => $request->method(),
-                    'timestamp' => now()
+                    'timestamp' => now(),
                 ]);
 
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => 'You cannot manage roles at or above your hierarchy level.',
                         'user_level' => $userHierarchyLevel,
-                        'target_level' => $targetRole->hierarchy_level
+                        'target_level' => $targetRole->hierarchy_level,
                     ], 403);
                 }
 
@@ -75,7 +73,7 @@ class RoleHierarchyMiddleware
             'Department Head' => 4,
             'Team Lead' => 5,
             'Senior Employee' => 6,
-            'Employee' => 10
+            'Employee' => 10,
         ];
 
         $highestLevel = 999; // Default to lowest authority

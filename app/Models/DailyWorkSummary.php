@@ -16,11 +16,12 @@ class DailyWorkSummary extends Model
         'resubmissions',
         'embankment',
         'structure',
-        'pavement'
+        'pavement',
     ];
 
     protected $casts = [
         'id' => 'integer',
+        'date' => 'date',
         'incharge' => 'integer',
         'totalDailyWorks' => 'integer',
         'resubmissions' => 'integer',
@@ -28,4 +29,16 @@ class DailyWorkSummary extends Model
         'structure' => 'integer',
         'pavement' => 'integer',
     ];
+
+    // Relationships
+    public function inchargeUser()
+    {
+        return $this->belongsTo(User::class, 'incharge');
+    }
+
+    public function dailyWorks()
+    {
+        return $this->hasMany(DailyWork::class, 'incharge', 'incharge')
+            ->whereDate('date', $this->date);
+    }
 }

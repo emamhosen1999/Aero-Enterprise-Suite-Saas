@@ -1,43 +1,36 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, usePage } from "@inertiajs/react";
 import { 
-  Box, 
-  Typography, 
-  useMediaQuery, 
-  Grow, 
-  Fade,
-  useTheme,
-  Grid,
-  IconButton,
-  Alert,
-  LinearProgress,
+  Card,
+  CardBody,
+  CardHeader,
   Chip,
-  Paper,
+  Progress,
   Divider,
   Table,
+  TableHeader,
+  TableColumn,
   TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
   TableRow,
-  TablePagination,
+  TableCell,
+  Pagination,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Card,
-  CardContent,
-  CardHeader,
+  AccordionItem,
   Tooltip,
-  Badge
-} from '@mui/material';
-import LoadingButton from "@mui/lab/LoadingButton";
-import { 
+  Badge,
   Button,
+  Input,
   Select,
-  SelectItem,
+  SelectItem
+} from "@heroui/react";
+import { useTheme } from '@/Contexts/ThemeContext';
+import { 
+  Button as HeroButton,
+  Select as HeroSelect,
+  SelectItem as HeroSelectItem,
   Switch,
   Spinner,
-  Progress,
+  Progress as HeroProgress,
   Tabs,
   Tab
 } from "@heroui/react";
@@ -65,7 +58,7 @@ import {
   TableCellsIcon,
   PresentationChartLineIcon
 } from '@heroicons/react/24/outline';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { ChevronDown } from 'lucide-react';
 import App from "@/Layouts/App.jsx";
 import GlassCard from '@/Components/GlassCard';
 import PageHeader from '@/Components/PageHeader';
@@ -88,13 +81,27 @@ import {
     RadialBar,
     Legend
 } from 'recharts';
-import { toast } from "react-toastify";
+import { showToast } from "@/utils/toastUtils";
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SystemMonitoringEnhanced = ({ title, initialData }) => {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const { isDark } = useTheme();
+    const primaryColor = getThemePrimaryColor();
+    
+    // Custom media query
+    const [isMobile, setIsMobile] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+    
     const { auth, app } = usePage().props;
     
     // State management
@@ -135,7 +142,7 @@ const SystemMonitoringEnhanced = ({ title, initialData }) => {
             setData(response.data);
         } catch (error) {
             console.error('Failed to fetch monitoring data:', error);
-            toast.error('Failed to refresh system data');
+            showToast.error('Failed to refresh system data');
         } finally {
             setLoading(false);
         }
@@ -195,10 +202,10 @@ const SystemMonitoringEnhanced = ({ title, initialData }) => {
             link.remove();
             window.URL.revokeObjectURL(url);
             
-            toast.success('System report exported successfully');
+            showToast.success('System report exported successfully');
         } catch (error) {
             console.error('Failed to export report:', error);
-            toast.error('Failed to export system report');
+            showToast.error('Failed to export system report');
         } finally {
             setLoading(false);
         }
@@ -1027,7 +1034,7 @@ const SystemMonitoringEnhanced = ({ title, initialData }) => {
                                         label: "Export Report",
                                         icon: <DocumentArrowDownIcon className="w-4 h-4" />,
                                         onPress: handleExportReport,
-                                        className: "bg-gradient-to-r from-[rgba(var(--theme-primary-rgb),0.2)] to-[rgba(var(--theme-secondary-rgb),0.2)] hover:from-[rgba(var(--theme-primary-rgb),0.3)] hover:to-[rgba(var(--theme-secondary-rgb),0.3)] border border-[rgba(var(--theme-primary-rgb),0.3)]"
+                                        className: "bg-linear-to-r from-[rgba(var(--theme-primary-rgb),0.2)] to-[rgba(var(--theme-secondary-rgb),0.2)] hover:from-[rgba(var(--theme-primary-rgb),0.3)] hover:to-[rgba(var(--theme-secondary-rgb),0.3)] border border-[rgba(var(--theme-primary-rgb),0.3)]"
                                     },
                                     {
                                         label: "Refresh Data",

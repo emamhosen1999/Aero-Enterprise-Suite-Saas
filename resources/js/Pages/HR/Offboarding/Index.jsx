@@ -17,7 +17,7 @@ export default function OffboardingIndex() {
 
   const renderProgress = (p) => (
     <div className="flex items-center gap-2">
-      <div className="w-28 h-2 bg-gray-200 rounded overflow-hidden">
+      <div className="w-28 h-2 bg-gray-200 rounded-sm overflow-hidden">
         <div className="h-full bg-indigo-500" style={{ width: `${p || 0}%` }} />
       </div>
       <span className="text-xs tabular-nums w-10">{p ?? 0}%</span>
@@ -31,7 +31,7 @@ export default function OffboardingIndex() {
         <h1 className="text-xl font-semibold">Offboarding Processes</h1>
         <Link href={route('hr.offboarding.create')} className="btn btn-primary">New Offboarding</Link>
       </div>
-      <div className="bg-white rounded shadow divide-y">
+      <div className="bg-white rounded-sm shadow-sm divide-y">
         <div className="grid grid-cols-6 px-4 py-2 text-xs font-semibold tracking-wide text-gray-600 uppercase">
           <div>ID</div>
           <div>Employee</div>
@@ -59,7 +59,7 @@ export default function OffboardingIndex() {
       {offboardings?.links && (
         <div className="flex flex-wrap gap-2">
           {offboardings.links.map((l,i)=>(
-            <Link key={i} href={l.url || '#'} className={`px-3 py-1 rounded border text-sm ${l.active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white hover:bg-gray-50 border-gray-300'} ${!l.url ? 'opacity-40 cursor-not-allowed' : ''}`} dangerouslySetInnerHTML={{ __html: l.label }} />
+            <Link key={i} href={l.url || '#'} className={`px-3 py-1 rounded-sm border text-sm ${l.active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white hover:bg-gray-50 border-gray-300'} ${!l.url ? 'opacity-40 cursor-not-allowed' : ''}`} dangerouslySetInnerHTML={{ __html: l.label }} />
           ))}
         </div>
       )}

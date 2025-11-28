@@ -2,11 +2,11 @@
 
 namespace App\Models\Compliance;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\User;
 
 class RiskAssessment extends Model
 {
@@ -27,7 +27,7 @@ class RiskAssessment extends Model
         'owner_id',
         'reviewer_id',
         'notes',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -36,26 +36,36 @@ class RiskAssessment extends Model
         'metadata' => 'json',
         'likelihood' => 'integer',
         'impact' => 'integer',
-        'risk_score' => 'decimal:2'
+        'risk_score' => 'decimal:2',
     ];
 
     // Status constants
     const STATUS_PENDING = 'pending';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_ARCHIVED = 'archived';
 
     // Risk level constants
     const LEVEL_LOW = 'low';
+
     const LEVEL_MEDIUM = 'medium';
+
     const LEVEL_HIGH = 'high';
+
     const LEVEL_CRITICAL = 'critical';
 
     // Category constants
     const CATEGORY_OPERATIONAL = 'operational';
+
     const CATEGORY_FINANCIAL = 'financial';
+
     const CATEGORY_REGULATORY = 'regulatory';
+
     const CATEGORY_STRATEGIC = 'strategic';
+
     const CATEGORY_TECHNOLOGY = 'technology';
 
     /**
@@ -97,9 +107,16 @@ class RiskAssessment extends Model
     {
         $score = $this->calculateRiskScore();
 
-        if ($score >= 20) return self::LEVEL_CRITICAL;
-        if ($score >= 15) return self::LEVEL_HIGH;
-        if ($score >= 10) return self::LEVEL_MEDIUM;
+        if ($score >= 20) {
+            return self::LEVEL_CRITICAL;
+        }
+        if ($score >= 15) {
+            return self::LEVEL_HIGH;
+        }
+        if ($score >= 10) {
+            return self::LEVEL_MEDIUM;
+        }
+
         return self::LEVEL_LOW;
     }
 

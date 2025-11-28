@@ -23,7 +23,7 @@ class JobApplicantExperience extends Model
         'description',
         'achievements',
         'reference_name',
-        'reference_contact'
+        'reference_contact',
     ];
 
     protected $casts = [
@@ -45,13 +45,13 @@ class JobApplicantExperience extends Model
      */
     public function getDurationAttribute(): ?float
     {
-        if (!$this->start_date) {
+        if (! $this->start_date) {
             return null;
         }
 
         $endDate = $this->is_current ? now() : $this->end_date;
 
-        if (!$endDate) {
+        if (! $endDate) {
             return null;
         }
 
@@ -65,15 +65,16 @@ class JobApplicantExperience extends Model
     {
         $duration = $this->duration;
 
-        if (!$duration) {
+        if (! $duration) {
             return 'Unknown duration';
         }
 
         if ($duration < 1) {
             $months = round($this->start_date->diffInMonths($this->is_current ? now() : $this->end_date));
-            return $months . ' month' . ($months !== 1 ? 's' : '');
+
+            return $months.' month'.($months !== 1 ? 's' : '');
         }
 
-        return $duration . ' year' . ($duration !== 1 ? 's' : '');
+        return $duration.' year'.($duration !== 1 ? 's' : '');
     }
 }

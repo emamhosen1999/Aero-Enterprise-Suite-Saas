@@ -34,6 +34,7 @@ class SendAttendanceReminder implements ShouldQueue
     public $backoff = [30, 60, 120];
 
     protected $user;
+
     protected $attendanceSetting;
 
     public function __construct(User $user, AttendanceSetting $attendanceSetting)
@@ -51,26 +52,28 @@ class SendAttendanceReminder implements ShouldQueue
             if ($this->isHoliday($today)) {
                 Log::info('Skipping attendance reminder - today is a holiday', [
                     'user_id' => $this->user->id,
-                    'date' => $today->toDateString()
+                    'date' => $today->toDateString(),
                 ]);
+
                 return;
             }
-
 
             // Check if user is on leave today
             if ($this->isUserOnLeave($today)) {
                 Log::info('Skipping attendance reminder - user is on leave', [
                     'user_id' => $this->user->id,
-                    'date' => $today->toDateString()
+                    'date' => $today->toDateString(),
                 ]);
+
                 return;
             }
 
             // Skip if user doesn't have a valid device token
             if (empty($this->user->fcm_token)) {
                 Log::warning('Skipping attendance reminder - user has no FCM token', [
-                    'user_id' => $this->user->id
+                    'user_id' => $this->user->id,
                 ]);
+
                 return;
             }
 
@@ -101,12 +104,12 @@ class SendAttendanceReminder implements ShouldQueue
                 Log::info('Attendance reminder sent successfully', [
                     'user_id' => $this->user->id,
                     'fcm_token' => $this->user->fcm_token,
-                    'office_start_time' => $officeStartTime
+                    'office_start_time' => $officeStartTime,
                 ]);
             } else {
                 Log::error('Failed to send attendance reminder', [
                     'user_id' => $this->user->id,
-                    'fcm_token' => $this->user->fcm_token
+                    'fcm_token' => $this->user->fcm_token,
                 ]);
                 $this->fail('Failed to send FCM notification');
             }
@@ -115,7 +118,7 @@ class SendAttendanceReminder implements ShouldQueue
             Log::error('Error in SendAttendanceReminder job', [
                 'user_id' => $this->user->id ?? null,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             $this->fail($e);
         }
@@ -148,7 +151,7 @@ class SendAttendanceReminder implements ShouldQueue
         // Send user notification of failure, etc...
         Log::error('SendAttendanceReminder job failed', [
             'user_id' => $this->user->id ?? null,
-            'error' => $exception->getMessage()
+            'error' => $exception->getMessage(),
         ]);
     }
 }

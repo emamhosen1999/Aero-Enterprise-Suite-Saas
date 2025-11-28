@@ -26,7 +26,7 @@ class Customer extends Model
         'loyalty_points',
         'customer_group_id',
         'notes',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [

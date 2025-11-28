@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Secure Password Reset Email
- * 
+ *
  * Sends a secure OTP-based password reset email with comprehensive
  * security information and context for audit trails.
  */
@@ -21,11 +21,17 @@ class SecurePasswordResetMail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public User $user;
+
     public string $otp;
+
     public string $resetUrl;
+
     public string $timestamp;
+
     public string $ipAddress;
+
     public ?string $location;
+
     public string $userAgent;
 
     /**
@@ -57,12 +63,12 @@ class SecurePasswordResetMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[SECURITY] Password Reset Request - ' . config('app.name'),
+            subject: '[SECURITY] Password Reset Request - '.config('app.name'),
             tags: ['password-reset', 'security'],
             metadata: [
                 'user_id' => $this->user->id,
                 'ip_address' => $this->ipAddress,
-                'type' => 'password_reset'
+                'type' => 'password_reset',
             ]
         );
     }
@@ -81,7 +87,7 @@ class SecurePasswordResetMail extends Mailable implements ShouldQueue
                 'timestamp' => $this->timestamp,
                 'ipAddress' => $this->ipAddress,
                 'location' => $this->location,
-                'userAgent' => $this->userAgent
+                'userAgent' => $this->userAgent,
             ]
         );
     }

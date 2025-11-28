@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class EnsureSuperAdmin extends Command
 {
@@ -36,8 +36,9 @@ class EnsureSuperAdmin extends Command
 
         // Check if the Super Administrator role exists
         $role = Role::where('name', 'Super Administrator')->first();
-        if (!$role) {
+        if (! $role) {
             $this->error('Super Administrator role not found! Please run the permission seeder first.');
+
             return 1;
         }
 
@@ -46,19 +47,19 @@ class EnsureSuperAdmin extends Command
 
         if ($user) {
             $this->info("User {$email} already exists. Ensuring proper role assignment...");
-            
+
             // Ensure the user has the Super Administrator role
-            if (!$user->hasRole('Super Administrator')) {
+            if (! $user->hasRole('Super Administrator')) {
                 // Remove any existing roles
                 DB::table('model_has_roles')->where('model_id', $user->id)
                     ->where('model_type', User::class)
                     ->delete();
-                
+
                 // Assign the Super Administrator role
                 $user->assignRole('Super Administrator');
                 $this->info("Super Administrator role assigned to {$email}");
             } else {
-                $this->info("User already has Super Administrator role.");
+                $this->info('User already has Super Administrator role.');
             }
         } else {
             // Create a new user with the Super Administrator role
@@ -70,13 +71,14 @@ class EnsureSuperAdmin extends Command
                 'email_verified_at' => now(),
                 'status' => 'active',
             ]);
-            
+
             $user->assignRole('Super Administrator');
-            
+
             $this->info("Super Administrator user created with email: {$email} and password: {$password}");
         }
 
-        $this->info("✅ Super Administrator user is ready to use.");
+        $this->info('✅ Super Administrator user is ready to use.');
+
         return 0;
     }
 }

@@ -30,7 +30,7 @@ class Product extends Model
         'dimensions',
         'supplier_id',
         'brand',
-        'model'
+        'model',
     ];
 
     protected $casts = [

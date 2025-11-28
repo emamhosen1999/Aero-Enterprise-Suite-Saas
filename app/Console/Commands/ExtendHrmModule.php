@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class ExtendHrmModule extends Command
 {
@@ -41,6 +40,7 @@ class ExtendHrmModule extends Command
                 $this->info(Artisan::output());
             } else {
                 $this->info('Operation cancelled.');
+
                 return 1;
             }
         }
@@ -73,8 +73,8 @@ class ExtendHrmModule extends Command
                 Artisan::call('migrate', ['--force' => true]);
                 $this->info(Artisan::output());
             } catch (\Exception $e) {
-                $this->error("Migration failed: " . $e->getMessage());
-                $this->warn("This may be because some tables already exist. Continuing with seeders...");
+                $this->error('Migration failed: '.$e->getMessage());
+                $this->warn('This may be because some tables already exist. Continuing with seeders...');
             }
         }
 
@@ -90,7 +90,7 @@ class ExtendHrmModule extends Command
             ]);
             $this->info(Artisan::output());
         } catch (\Exception $e) {
-            $this->error("Combined Seeder failed: " . $e->getMessage());
+            $this->error('Combined Seeder failed: '.$e->getMessage());
         }
 
         $this->info('✅ HRM module has been extended with ISO-compliant features.');
@@ -118,55 +118,57 @@ class ExtendHrmModule extends Command
     private function fixPendingMigrationRecords(): void
     {
         $this->info('Fixing migration records for tables that already exist but show as pending...');
-        
+
         // Check for existing tables
         $existingTables = [];
         try {
             $existingTables = DB::select('SHOW TABLES');
-            $existingTables = array_map(function($table) {
-                return array_values((array)$table)[0];
+            $existingTables = array_map(function ($table) {
+                return array_values((array) $table)[0];
             }, $existingTables);
         } catch (\Exception $e) {
-            $this->warn("Could not get existing tables: " . $e->getMessage());
+            $this->warn('Could not get existing tables: '.$e->getMessage());
+
             return;
         }
-        
+
         // Get pending migrations
         Artisan::call('migrate:status');
         $migrationStatus = Artisan::output();
-        
+
         // Extract pending migrations from the output
         preg_match_all('/(\d{4}_\d{2}_\d{2}_\d{6})_([a-z0-9_]+).*?Pending/i', $migrationStatus, $matches, PREG_SET_ORDER);
-        
+
         if (empty($matches)) {
             $this->info('No pending migrations found.');
+
             return;
         }
-        
+
         // Problematic migrations that we should fix
         $problemMigrations = [
             '2024_07_13_000001_create_scm_tables' => [
-                'tables' => ['supplier_categories', 'suppliers', 'purchase_orders']
+                'tables' => ['supplier_categories', 'suppliers', 'purchase_orders'],
             ],
             '2024_07_18_000001_create_procurement_tables' => [
-                'tables' => ['rfq', 'rfq_items', 'rfq_suppliers']
+                'tables' => ['rfq', 'rfq_items', 'rfq_suppliers'],
             ],
             '2024_12_22_000001_create_enhanced_logging_tables' => [
-                'tables' => ['audit_logs', 'system_logs', 'security_logs']
+                'tables' => ['audit_logs', 'system_logs', 'security_logs'],
             ],
             '2025_06_25_165223_create_personal_access_tokens_table' => [
-                'tables' => ['personal_access_tokens']
-            ]
+                'tables' => ['personal_access_tokens'],
+            ],
         ];
-        
+
         foreach ($matches as $match) {
-            $migrationName = $match[1] . '_' . $match[2];
-            
+            $migrationName = $match[1].'_'.$match[2];
+
             // Check if this is a problematic migration
             if (isset($problemMigrations[$migrationName])) {
                 $tables = $problemMigrations[$migrationName]['tables'];
                 $tableExists = false;
-                
+
                 // Check if any of the tables exist
                 foreach ($tables as $table) {
                     if (in_array($table, $existingTables)) {
@@ -174,7 +176,7 @@ class ExtendHrmModule extends Command
                         break;
                     }
                 }
-                
+
                 // If at least one table exists, fix the migration record
                 if ($tableExists) {
                     $this->fixMigrationRecord($migrationName);
@@ -189,51 +191,53 @@ class ExtendHrmModule extends Command
     private function runAllPendingMigrations(): void
     {
         $this->info('Running all pending migrations one by one...');
-        
+
         // Get pending migrations
         Artisan::call('migrate:status');
         $migrationStatus = Artisan::output();
-        
+
         // Extract pending migrations from the output
         preg_match_all('/(\d{4}_\d{2}_\d{2}_\d{6})_([a-z0-9_]+).*?Pending/i', $migrationStatus, $matches, PREG_SET_ORDER);
-        
+
         if (empty($matches)) {
             $this->info('No pending migrations found.');
+
             return;
         }
-        
-        $this->info('Found ' . count($matches) . ' pending migrations.');
-        
+
+        $this->info('Found '.count($matches).' pending migrations.');
+
         // Process each pending migration
         foreach ($matches as $match) {
-            $migrationName = $match[1] . '_' . $match[2];
+            $migrationName = $match[1].'_'.$match[2];
             $this->info("Running migration: {$migrationName}");
-            
+
             try {
                 // Find the migration file
                 $migrationFiles = glob(database_path("migrations/{$migrationName}*.php"));
-                
+
                 if (empty($migrationFiles)) {
                     $this->warn("Migration file for {$migrationName} not found, skipping...");
+
                     continue;
                 }
-                
+
                 $migrationFile = basename($migrationFiles[0]);
-                
+
                 // Run the migration
                 Artisan::call('migrate', [
                     '--path' => "database/migrations/{$migrationFile}",
-                    '--force' => true
+                    '--force' => true,
                 ]);
-                
+
                 $this->info(Artisan::output());
-                
+
             } catch (\Exception $e) {
-                $this->error("Migration {$migrationName} failed: " . $e->getMessage());
-                $this->warn("Continuing with next migration...");
+                $this->error("Migration {$migrationName} failed: ".$e->getMessage());
+                $this->warn('Continuing with next migration...');
             }
         }
-        
+
         $this->info('Completed running pending migrations.');
     }
 
@@ -250,43 +254,43 @@ class ExtendHrmModule extends Command
         $existingTables = [];
         try {
             $existingTables = DB::select('SHOW TABLES');
-            $existingTables = array_map(function($table) {
-                return array_values((array)$table)[0];
+            $existingTables = array_map(function ($table) {
+                return array_values((array) $table)[0];
             }, $existingTables);
         } catch (\Exception $e) {
-            $this->warn("Could not get existing tables: " . $e->getMessage());
+            $this->warn('Could not get existing tables: '.$e->getMessage());
         }
 
         // Fix any missing migration records for tables that already exist
         if (in_array('inventory_items', $existingTables)) {
             $this->fixMigrationRecord('2024_07_12_000000_create_inventory_items_table');
         }
-        
+
         if (in_array('inventory_locations', $existingTables)) {
             $this->fixMigrationRecord('2024_07_12_000002_create_ims_tables');
         }
-        
+
         if (in_array('sales', $existingTables) || in_array('sale_items', $existingTables)) {
             $this->fixMigrationRecord('2024_07_12_000001_create_pos_tables');
         }
 
         // Determine which migrations to run based on missing tables
         $migrationsToRun = [];
-        
+
         // Check if inventory_locations table exists
-        if (!in_array('inventory_locations', $existingTables)) {
+        if (! in_array('inventory_locations', $existingTables)) {
             $this->info('inventory_locations table missing, adding to migration queue...');
             $migrationsToRun[] = $coreMigrations[0];
         }
-        
+
         // Check if inventory_items table exists
-        if (!in_array('inventory_items', $existingTables)) {
+        if (! in_array('inventory_items', $existingTables)) {
             $this->info('inventory_items table missing, adding to migration queue...');
             $migrationsToRun[] = $coreMigrations[1];
         }
-        
+
         // Check if sale_items table exists
-        if (!in_array('sale_items', $existingTables)) {
+        if (! in_array('sale_items', $existingTables)) {
             $this->info('sale_items table missing, adding to migration queue...');
             $migrationsToRun[] = $coreMigrations[2];
         }
@@ -297,11 +301,11 @@ class ExtendHrmModule extends Command
             try {
                 Artisan::call('migrate', [
                     '--path' => $migrationPath,
-                    '--force' => true
+                    '--force' => true,
                 ]);
                 $this->info(Artisan::output());
             } catch (\Exception $e) {
-                $this->error("Migration failed: " . $e->getMessage());
+                $this->error('Migration failed: '.$e->getMessage());
                 // Try to continue with other migrations
             }
         }
@@ -314,15 +318,15 @@ class ExtendHrmModule extends Command
 
         // Check for other tables that might be referenced by foreign keys
         $dependencyTables = [
-            'users', 'roles', 'permissions', 'departments'
+            'users', 'roles', 'permissions', 'departments',
         ];
 
         foreach ($dependencyTables as $table) {
-            if (!in_array($table, $existingTables)) {
+            if (! in_array($table, $existingTables)) {
                 $this->warn("Required dependency table '{$table}' doesn't exist. Running core migrations first...");
                 Artisan::call('migrate', [
                     '--path' => 'database/migrations',
-                    '--force' => true
+                    '--force' => true,
                 ]);
                 $this->info(Artisan::output());
                 break; // Only need to run migrations once if any table is missing
@@ -337,13 +341,13 @@ class ExtendHrmModule extends Command
     {
         $exists = DB::table('migrations')->where('migration', $migration)->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             $this->info("Adding missing migration record for {$migration}...");
             DB::table('migrations')->insert([
                 'migration' => $migration,
-                'batch' => DB::table('migrations')->max('batch') + 1
+                'batch' => DB::table('migrations')->max('batch') + 1,
             ]);
-            $this->info("✅ Migration record added.");
+            $this->info('✅ Migration record added.');
         }
     }
 
@@ -357,12 +361,12 @@ class ExtendHrmModule extends Command
             try {
                 Artisan::call('migrate', [
                     '--path' => "database/migrations/{$migrationFile}",
-                    '--force' => true
+                    '--force' => true,
                 ]);
                 $this->info(Artisan::output());
             } catch (\Exception $e) {
-                $this->error("Migration failed: " . $e->getMessage());
-                $this->warn("Continuing with next migration...");
+                $this->error('Migration failed: '.$e->getMessage());
+                $this->warn('Continuing with next migration...');
             }
         }
     }
@@ -382,13 +386,13 @@ class ExtendHrmModule extends Command
         ];
 
         foreach ($requiredModels as $modelClass) {
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 $modelName = substr($modelClass, strrpos($modelClass, '\\') + 1);
                 $this->warn("Required model '{$modelName}' doesn't exist, ensuring it's created...");
 
                 // Check if the model file exists
-                $modelPath = app_path('Models/' . $modelName . '.php');
-                if (!file_exists($modelPath)) {
+                $modelPath = app_path('Models/'.$modelName.'.php');
+                if (! file_exists($modelPath)) {
                     $this->createModelStub($modelName, $modelPath);
                 }
             }
@@ -421,7 +425,7 @@ PHP;
             file_put_contents($modelPath, $modelContent);
             $this->info("Created stub model: {$modelName}");
         } catch (\Exception $e) {
-            $this->error("Failed to create model file: " . $e->getMessage());
+            $this->error('Failed to create model file: '.$e->getMessage());
         }
     }
 }

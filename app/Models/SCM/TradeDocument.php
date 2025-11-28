@@ -79,7 +79,9 @@ class TradeDocument extends Model
      */
     public function getFileSizeHumanAttribute()
     {
-        if (!$this->file_size) return null;
+        if (! $this->file_size) {
+            return null;
+        }
 
         $units = ['B', 'KB', 'MB', 'GB'];
         $size = $this->file_size;
@@ -90,6 +92,6 @@ class TradeDocument extends Model
             $unit++;
         }
 
-        return round($size, 2) . ' ' . $units[$unit];
+        return round($size, 2).' '.$units[$unit];
     }
 }

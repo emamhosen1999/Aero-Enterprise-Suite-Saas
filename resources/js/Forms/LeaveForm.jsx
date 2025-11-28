@@ -1,30 +1,25 @@
-
 import React, {useState, useEffect} from 'react';
 import {
     Avatar,
-    Box,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    FormHelperText,
-    Grid,
-    IconButton,
-    InputLabel,
-    MenuItem,
+    Button,
+    Input,
+    Textarea,
     Select,
-    TextField,
-    Typography
-} from "@mui/material";
-import ClearIcon from '@mui/icons-material/Clear';
-import LoadingButton from "@mui/lab/LoadingButton";
-import { useTheme } from "@mui/material/styles";
-import { toast } from "react-toastify";
-import GlassDialog from "@/Components/GlassDialog.jsx";
+    SelectItem,
+    Spinner,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
+} from "@heroui/react";
+import { X, CalendarIcon, UserIcon, ClockIcon } from 'lucide-react';
+
+import { showToast } from "@/utils/toastUtils";
+
+import DepartmentEmployeeSelector from "@/Components/DepartmentEmployeeSelector.jsx";
+import ApprovalChain from "@/Components/Leave/ApprovalChain.jsx";
 import {router, usePage} from "@inertiajs/react";
-import { Inertia } from '@inertiajs/inertia';
 
 const LeaveForm = ({
                        open,
@@ -33,6 +28,7 @@ const LeaveForm = ({
                        setLeavesData,
                        currentLeave,
                        allUsers,
+                       departments = [],
                        setTotalRows,
                        setLastPage,
                        setLeaves,
@@ -43,11 +39,38 @@ const LeaveForm = ({
                        updateLeaveOptimized,
                        fetchLeavesStats
 }) => {
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
    
 
     const {auth} = usePage().props;
-    const theme = useTheme();
+
     const [user_id, setUserId] = useState(currentLeave?.user_id || auth.user.id);
+    
+    // Initialize selectedDepartmentId based on currentLeave or user's department
+    const initializeDepartmentId = () => {
+        if (currentLeave?.user_id) {
+            // Find the user from allUsers to get their department
+            const leaveUser = allUsers?.find(user => user.id === currentLeave.user_id);
+            return leaveUser?.department_id || null;
+        }
+        // For new leaves, use the current user's department
+        return auth?.user?.department_id || null;
+    };
+    
+    const [selectedDepartmentId, setSelectedDepartmentId] = useState(initializeDepartmentId());
     // Initialize state variables
     const [leaveTypes, setLeaveTypes] = useState(leavesData?.leaveTypes || []);
     const [leaveCounts, setLeaveCounts] = useState([]);
@@ -120,24 +143,38 @@ const LeaveForm = ({
     // Populate state when leavesData or auth changes
     useEffect(() => {
         if (leavesData) {
-            setLeaveTypes(leavesData.leaveTypes || []);
+            const newLeaveTypes = leavesData.leaveTypes || [];
+            setLeaveTypes(newLeaveTypes);
             const userLeaveCounts = leavesData.leaveCountsByUser?.[user_id] || [];
             setLeaveCounts(userLeaveCounts);
             
             // Set initial leave type if not set and we have leave types (only for new leaves)
-            if (leaveTypes.length > 0 && !leaveType && !currentLeave) {
-                setLeaveType(leaveTypes[0].type);
+            if (newLeaveTypes.length > 0 && !leaveType && !currentLeave) {
+                setLeaveType(newLeaveTypes[0].type);
             }
             
             // For edit mode, ensure leave type is set from current leave
             if (currentLeave && !leaveType) {
-                const leaveTypeFromSettings = leavesData.leaveTypes?.find(lt => lt.id === currentLeave.leave_type);
+                const leaveTypeFromSettings = newLeaveTypes?.find(lt => lt.id === currentLeave.leave_type);
                 if (leaveTypeFromSettings) {
                     setLeaveType(leaveTypeFromSettings.type);
                 }
             }
         }
     }, [leavesData, user_id, currentLeave]);
+
+    // Update department and user ID when currentLeave changes (for edit mode)
+    useEffect(() => {
+        if (currentLeave) {
+            setUserId(currentLeave.user_id);
+            
+            // Find the user from allUsers to get their department
+            const leaveUser = allUsers?.find(user => user.id === currentLeave.user_id);
+            if (leaveUser?.department_id) {
+                setSelectedDepartmentId(leaveUser.department_id);
+            }
+        }
+    }, [currentLeave, allUsers]);
 
     // Update remaining leaves when user or leave type changes
     useEffect(() => {
@@ -285,258 +322,297 @@ const LeaveForm = ({
             }
         });
 
-        toast.promise(
+        showToast.promise(
             promise,
             {
-                pending: {
-                    render() {
-                        return (
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <CircularProgress />
-                                <span style={{ marginLeft: '8px' }}>Submitting leave application...</span>
-                            </div>
-                        );
-                    },
-                    icon: false,
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    },
-                },
-                success: {
-                    render({ data }) {
-                        return (
-                            <>
-                                {data.map((message, index) => (
-                                    <div key={index}>{message}</div>
-                                ))}
-                            </>
-                        );
-                    },
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    },
-                },
-                error: {
-                    render({ data }) {
-                        return (
-                            <>
-                                {data}
-                            </>
-                        );
-                    },
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    },
-                },
+                loading: 'Submitting leave application...',
+                success: (data) => Array.isArray(data) ? data.join(', ') : data,
+                error: (err) => typeof err === 'string' ? err : 'Failed to submit leave application'
             }
         );
     };
 
     return (
-        <GlassDialog open={open} onClose={closeModal} fullWidth maxWidth="sm">
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="h6">{currentLeave ? 'Edit Leave' : 'Add Leave'}</Typography>
-                <IconButton
-                    onClick={closeModal}
-                    sx={{ position: 'absolute', top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
-            <form onSubmit={handleSubmit}>
-                <DialogContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                                <InputLabel id="leave-type-label">Leave Type</InputLabel>
-                                <Select
-                                    labelId="leave-type-label"
-                                    value={leaveType || ''}
-                                    onChange={(e) => setLeaveType(e.target.value)}
-                                    label="Leave Type"
-                                    error={Boolean(errors.leaveType)}
-                                    disabled={false}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            sx: {
-                                                backdropFilter: 'blur(16px) saturate(200%)',
-                                                background: theme.glassCard.background,
-                                                border: theme.glassCard.border,
-                                                borderRadius: 2,
-                                                boxShadow: theme.glassCard.boxShadow,
-                                                maxHeight: 300,
-                                            },
-                                        },
+        <Modal 
+            isOpen={open} 
+            onClose={closeModal}
+            size="3xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8 max-h-[95vh]",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+                header: "border-b border-divider",
+                body: "overflow-y-auto",
+                footer: "border-t border-divider",
+                closeButton: "hover:bg-white/5 active:bg-white/10"
+            }}
+            style={{
+                border: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+                borderRadius: `var(--borderRadius, 12px)`,
+                fontFamily: `var(--fontFamily, "Inter")`,
+                transform: `scale(var(--scale, 1))`,
+                
+            }}
+        >
+            <ModalContent>
+                {(onClose) => (
+                    <>
+                        <ModalHeader className="flex flex-col gap-1" style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <div className="flex items-center gap-2">
+                                <CalendarIcon size={20} style={{ color: 'var(--theme-primary)' }} />
+                                <span className="text-lg font-semibold" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
+                                    {currentLeave ? 'Edit Leave' : 'Add Leave'}
+                                </span>
+                            </div>
+                        </ModalHeader>
+                        <form onSubmit={handleSubmit}>
+                            <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                                    {/* Leave Type Selection */}
+                                    <div className="col-span-1">
+                                        <Select
+                                            label="Leave Type"
+                                            placeholder="Select Leave Type"
+                                            selectionMode="single"
+                                            selectedKeys={leaveType && leaveType !== '' ? new Set([leaveType]) : new Set()}
+                                            onSelectionChange={(keys) => {
+                                                const value = Array.from(keys)[0];
+                                                setLeaveType(value || '');
+                                            }}
+                                            isInvalid={Boolean(errors.leaveType)}
+                                            errorMessage={errors.leaveType}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                            startContent={<UserIcon size={16} className="text-default-400" />}
+                                            classNames={{
+                                                trigger: "min-h-unit-10",
+                                                value: "text-small"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            {leaveTypes.map((type) => {
+                                                const leaveCount = leaveCounts?.find(lc => lc.leave_type === type.type);
+                                                const remaining = leaveCount ? (type.days - leaveCount.days_used) : type.days;
+                                                const isDisabled = remaining <= 0;
+                                                
+                                                return (
+                                                    <SelectItem 
+                                                        key={type.type} 
+                                                        value={type.type}
+                                                        isDisabled={isDisabled}
+                                                        title={isDisabled ? 'No remaining leaves available' : ''}
+                                                        textValue={type.type}
+                                                    >
+                                                        <div className="flex justify-between w-full">
+                                                            <span>{type.type}</span>
+                                                            <span className="text-small text-default-500">
+                                                                {leaveCount ? 
+                                                                    `${leaveCount.days_used} / ${type.days} days` : 
+                                                                    `${type.days} days`}
+                                                            </span>
+                                                        </div>
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </Select>
+                                    </div>
+
+                                    {/* From Date */}
+                                    <div className="col-span-1">
+                                        <Input
+                                            label="From Date"
+                                            type="date"
+                                            value={fromDate}
+                                            onValueChange={setFromDate}
+                                            isInvalid={Boolean(errors.fromDate)}
+                                            errorMessage={errors.fromDate}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                            startContent={<CalendarIcon size={16} className="text-default-400" />}
+                                            classNames={{
+                                                input: "text-small",
+                                                inputWrapper: "min-h-unit-10"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* To Date */}
+                                    <div className="col-span-1">
+                                        <Input
+                                            label="To Date"
+                                            type="date"
+                                            value={toDate}
+                                            onValueChange={setToDate}
+                                            isInvalid={Boolean(errors.toDate)}
+                                            errorMessage={errors.toDate}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                            startContent={<CalendarIcon size={16} className="text-default-400" />}
+                                            classNames={{
+                                                input: "text-small",
+                                                inputWrapper: "min-h-unit-10"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Number of Days */}
+                                    <div className="col-span-1">
+                                        <Input
+                                            label="Number of Days"
+                                            value={daysCount.toString()}
+                                            isReadOnly
+                                            isInvalid={Boolean(errors.daysCount)}
+                                            errorMessage={errors.daysCount}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                            startContent={<ClockIcon size={16} className="text-default-400" />}
+                                            classNames={{
+                                                input: "text-small",
+                                                inputWrapper: "min-h-unit-10"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Remaining Leaves */}
+                                    <div className="col-span-1">
+                                        <Input
+                                            label="Remaining Leaves"
+                                            value={`${remainingLeaves} day${remainingLeaves !== 1 ? 's' : ''} of ${leaveTypes.find(lt => lt.type === leaveType)?.days || 0} total`}
+                                            isReadOnly
+                                            isInvalid={Boolean(errors.remainingLeaves)}
+                                            errorMessage={errors.remainingLeaves}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                            startContent={<ClockIcon size={16} className="text-default-400" />}
+                                            classNames={{
+                                                input: "text-small",
+                                                inputWrapper: "min-h-unit-10"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Department & Employee Selection for Admin */}
+                                    {route().current() === 'leaves' && (
+                                        <div className="col-span-full">
+                                            <DepartmentEmployeeSelector
+                                                selectedDepartmentId={selectedDepartmentId}
+                                                selectedEmployeeId={user_id}
+                                                onDepartmentChange={setSelectedDepartmentId}
+                                                onEmployeeChange={setUserId}
+                                                allUsers={allUsers}
+                                                departments={departments}
+                                                showSearch={true}
+                                                error={errors}
+                                                variant="bordered"
+                                                size="sm"
+                                                showAllOption={false}
+                                                autoSelectFirstDepartment={true}
+                                                required={true}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Leave Reason */}
+                                    <div className="col-span-full">
+                                        <Textarea
+                                            label="Leave Reason"
+                                            placeholder="Please provide a detailed reason for your leave request..."
+                                            value={leaveReason}
+                                            onValueChange={setLeaveReason}
+                                            isInvalid={Boolean(errors.leaveReason)}
+                                            errorMessage={errors.leaveReason}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={getThemeRadius()}
+                                            minRows={3}
+                                            maxRows={5}
+                                            classNames={{
+                                                input: "text-small"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Approval Chain - Show only when editing existing leave with approval chain */}
+                                    {currentLeave && currentLeave.approval_chain && currentLeave.approval_chain.length > 0 && (
+                                        <div className="col-span-full">
+                                            <ApprovalChain
+                                                approvalChain={currentLeave.approval_chain}
+                                                currentLevel={currentLeave.current_approval_level}
+                                                status={currentLeave.status}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </ModalBody>
+                            <ModalFooter className="flex flex-col sm:flex-row justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4" style={{
+                                borderColor: `var(--theme-divider, #E4E4E7)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
+                                <Button
+                                    color="default"
+                                    variant="bordered"
+                                    onPress={onClose}
+                                    radius={getThemeRadius()}
+                                    size="sm"
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
                                 >
-                                    <MenuItem value="" disabled>Select Leave Type</MenuItem>
-                                    {leaveTypes.map((type) => {
-                                        const leaveCount = leaveCounts?.find(lc => lc.leave_type === type.type);
-                                        const remaining = leaveCount ? (type.days - leaveCount.days_used) : type.days;
-                                        const isDisabled = remaining <= 0;
-                                        
-                                        return (
-                                            <MenuItem 
-                                                key={type.id} 
-                                                value={type.type}
-                                                disabled={isDisabled}
-                                                title={isDisabled ? 'No remaining leaves available' : ''}
-                                            >
-                                                <Box display="flex" justifyContent="space-between" width="100%">
-                                                    <span>{type.type}</span>
-                                                    <span>
-                                                        {leaveCount ? 
-                                                            `${leaveCount.days_used} / ${type.days} days` : 
-                                                            `${type.days} days`}
-                                                    </span>
-                                                </Box>
-                                            </MenuItem>
-                                        );
-                                    })}
-                                </Select>
-                                <FormHelperText>{errors.leaveType}</FormHelperText>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                label="From"
-                                type="date"
-                                fullWidth
-                                value={fromDate}
-                                onChange={(e) => setFromDate(e.target.value)}
-                                InputLabelProps={{ shrink: true }}
-                                error={Boolean(errors.fromDate)}
-                                helperText={errors.fromDate}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                label="To"
-                                type="date"
-                                fullWidth
-                                value={toDate}
-                                onChange={(e) => setToDate(e.target.value)}
-                                InputLabelProps={{ shrink: true }}
-                                error={Boolean(errors.toDate)}
-                                helperText={errors.toDate}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                label="Number of days"
-                                type="text"
-                                fullWidth
-                                value={daysCount}
-                                InputProps={{ readOnly: true }}
-                                error={Boolean(errors.daysCount)}
-                                helperText={errors.daysCount}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                label="Remaining Leaves"
-                                type="text"
-                                fullWidth
-                                value={`${remainingLeaves} day${remainingLeaves !== 1 ? 's' : ''}`}
-                                InputProps={{ 
-                                    readOnly: true,
-                                    endAdornment: (
-                                        <Typography variant="caption" color="textSecondary" sx={{ ml: 1 }}>
-                                            of {leaveTypes.find(lt => lt.type === leaveType)?.days || 0} total
-                                        </Typography>
-                                    )
-                                }}
-                                error={Boolean(errors.remainingLeaves)}
-                                helperText={errors.remainingLeaves}
-                            />
-                        </Grid>
-                        {route().current() === 'leaves' &&
-                            <Grid item xs={12} md={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="leave-employee-label">Employee</InputLabel>
-                                    <Select
-                                        variant="outlined"
-                                        fullWidth
-                                        labelId="leave-employee-label"
-                                        value={user_id || "na"}
-                                        error={Boolean(errors.user_id)}
-                                        onChange={(e) => setUserId(e.target.value)}
-                                        label="Employee"
-                                        MenuProps={{
-                                            PaperProps: {
-                                                sx: {
-                                                    backdropFilter: 'blur(16px) saturate(200%)',
-                                                    background: theme.glassCard.background,
-                                                    border: theme.glassCard.border,
-                                                    borderRadius: 2,
-                                                    boxShadow: theme.glassCard.boxShadow,
-                                                },
-                                            },
-                                        }}
-                                    >
-                                        <MenuItem value="na" disabled>Please select</MenuItem>
-                                        {allUsers.map(user => (
-                                            <MenuItem key={user.id} value={user.id}>
-                                                <Box sx={{display: 'flex'}}>
-                                                    <Avatar
-                                                        src={user.profile_image}
-                                                        alt={user.name || 'Not assigned'}
-                                                        sx={{
-                                                            borderRadius: '50%',
-                                                            width: 23,
-                                                            height: 23,
-                                                            display: 'flex',
-                                                            mr: 1,
-                                                        }}
-                                                    />
-                                                    {user.name}
-                                                </Box>
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                    <FormHelperText>{errors.user_id}</FormHelperText>
-                                </FormControl>
-                            </Grid>
-                        }
-                        <Grid item xs={12}>
-                            <TextField
-                                label="Leave Reason"
-                                multiline
-                                rows={4}
-                                fullWidth
-                                value={leaveReason}
-                                onChange={(e) => setLeaveReason(e.target.value)}
-                                error={Boolean(errors.leaveReason)}
-                                helperText={errors.leaveReason}
-                            />
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions sx={{ padding: '16px', justifyContent: 'center' }}>
-                    <LoadingButton
-                        type="submit"
-                        variant="outlined"
-                        color="primary"
-                        loading={processing}
-                        disabled={processing}
-                        sx={{ borderRadius: '50px' }}
-                    >
-                        Submit
-                    </LoadingButton>
-                </DialogActions>
-            </form>
-        </GlassDialog>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    color="primary"
+                                    variant="solid"
+                                    isLoading={processing}
+                                    isDisabled={processing}
+                                    radius={getThemeRadius()}
+                                    size="sm"
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                >
+                                    {processing ? 'Submitting...' : 'Submit'}
+                                </Button>
+                            </ModalFooter>
+                        </form>
+                    </>
+                )}
+            </ModalContent>
+        </Modal>
     );
 };
 

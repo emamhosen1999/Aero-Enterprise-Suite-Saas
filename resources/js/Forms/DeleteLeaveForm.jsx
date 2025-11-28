@@ -1,26 +1,46 @@
-import { Button, CircularProgress, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
-import GlassDialog from "@/Components/GlassDialog.jsx";
 import React, { useState } from "react";
-import {toast} from "react-toastify";
-import {useTheme} from "@mui/material/styles";
-import axios from 'axios'; // Add missing axios import
-
-
+import {
+    Button,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Divider
+} from "@heroui/react";
+import { 
+    ExclamationTriangleIcon,
+    TrashIcon 
+} from "@heroicons/react/24/outline";
+import { showToast } from "@/utils/toastUtils";
+import axios from 'axios';
 
 const DeleteLeaveForm = ({ open, closeModal, leaveId, setLeavesData, setLeaves, setTotalRows, setLastPage, setError, deleteLeaveOptimized, fetchLeavesStats }) => {
-    const theme = useTheme();
     const [deleting, setDeleting] = useState(false);
 
-    const handleDelete = () => {
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    const handleDelete = async () => {
         if (!leaveId) {
-            const toastPromise = Promise.reject(new Error('Invalid leave ID'));
-            toast.promise(toastPromise, {
-                error: 'Invalid leave ID provided'
-            });
+            showToast.error('Invalid leave ID provided');
             return;
         }
 
         setDeleting(true);
+        
         const promise = new Promise(async (resolve, reject) => {
             try {
                 const response = await axios.delete(route('leave-delete', { id: leaveId, route: route().current() }));
@@ -67,84 +87,129 @@ const DeleteLeaveForm = ({ open, closeModal, leaveId, setLeavesData, setLeaves, 
             }
         });
 
-        toast.promise(
+        showToast.promise(
             promise,
             {
-                pending: {
-                    render() {
-                        return (
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <CircularProgress />
-                                <span style={{ marginLeft: '8px' }}>Deleting leave application...</span>
-                            </div>
-                        );
-                    },
-                    icon: false,
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    },
-                },
+                pending: 'Deleting leave application...',
                 success: {
                     render({ data }) {
-                        return <>{data}</>;
-                    },
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    },
+                        return data;
+                    }
                 },
                 error: {
                     render({ data }) {
-                        return <>{data}</>;
-                    },
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    },
-                },
+                        return data;
+                    }
+                }
             }
         );
     };
-    return(
-        <GlassDialog
-            open={open}
+    return (
+        <Modal 
+            isOpen={open} 
             onClose={closeModal}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
+            size="md"
+            radius={getThemeRadius()}
+            classNames={{
+                base: "backdrop-blur-md mx-2 my-2 sm:mx-4 sm:my-8",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+                header: "border-b border-divider",
+                body: "py-6",
+                footer: "border-t border-divider",
+                closeButton: "hover:bg-white/5 active:bg-white/10"
+            }}
+            style={{
+                border: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+                borderRadius: `var(--borderRadius, 12px)`,
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}
+            isDismissable={!deleting}
+            hideCloseButton={deleting}
         >
-            <DialogTitle id="alert-dialog-title">
-                {"Confirm Deletion"}
-            </DialogTitle>
-            <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                    Are you sure you want to delete this leave? This action cannot be undone.
-                </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                <Button 
-                    onClick={closeModal} 
-                    color="primary"
-                    disabled={deleting} // Disable cancel button while deleting
-                    >
-                    Cancel
-                </Button>
-                {/* Use a loading button for the delete action */}
-                <Button 
-                    loading={deleting} 
-                    disabled={deleting} onClick={handleDelete} color="error" autoFocus>Delete
-                </Button>
-            </DialogActions>
-        </GlassDialog>
-
+            <ModalContent>
+                {(onClose) => (
+                    <>
+                        <ModalHeader className="flex flex-col gap-1" style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <div className="flex items-center gap-3">
+                                <div 
+                                    className="p-2 rounded-lg"
+                                    style={{
+                                        backgroundColor: 'color-mix(in srgb, #ef4444 15%, transparent)',
+                                        color: '#ef4444'
+                                    }}
+                                >
+                                    <ExclamationTriangleIcon className="w-6 h-6" />
+                                </div>
+                                <span className="text-lg font-semibold" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    color: 'var(--theme-foreground)'
+                                }}>
+                                    Confirm Deletion
+                                </span>
+                            </div>
+                        </ModalHeader>
+                        
+                        <ModalBody style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <div className="flex items-start gap-3">
+                                <ExclamationTriangleIcon 
+                                    className="w-5 h-5 mt-0.5 flex-shrink-0" 
+                                    style={{ color: '#ef4444' }} 
+                                />
+                                <div className="space-y-2">
+                                    <p className="text-sm font-medium" style={{ color: 'var(--theme-foreground)' }}>
+                                        Are you sure you want to delete this leave application?
+                                    </p>
+                                    <p className="text-sm" style={{ color: 'var(--theme-foreground-600)' }}>
+                                        This action cannot be undone. The leave application will be permanently removed from the system.
+                                    </p>
+                                </div>
+                            </div>
+                        </ModalBody>
+                        
+                        <ModalFooter className="flex justify-end gap-2 px-6 py-4" style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <Button
+                                color="default"
+                                variant="bordered"
+                                onPress={onClose}
+                                radius={getThemeRadius()}
+                                size="sm"
+                                isDisabled={deleting}
+                                style={{
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                color="danger"
+                                variant="solid"
+                                onPress={handleDelete}
+                                radius={getThemeRadius()}
+                                size="sm"
+                                isLoading={deleting}
+                                isDisabled={deleting}
+                                startContent={!deleting && <TrashIcon className="w-4 h-4" />}
+                                style={{
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                            >
+                                {deleting ? 'Deleting...' : 'Delete Leave'}
+                            </Button>
+                        </ModalFooter>
+                    </>
+                )}
+            </ModalContent>
+        </Modal>
     );
 }
 

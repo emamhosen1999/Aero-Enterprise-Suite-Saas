@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Http\Controllers\NotificationController;
 use App\Models\User;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class SendPunchOutReminder extends Command
 {
@@ -26,12 +25,11 @@ class SendPunchOutReminder extends Command
             $query->whereNotNull('punchin'); // Ensure users have attendances with punchin
         })->whereNotNull('fcm_token')->get(); // Ensure users have the FCM token
 
-
         foreach ($users as $user) {
             $token = $user->fcm_token; // FCM token of the user
 
             // Call your notification controller method
-            $notificationController = new NotificationController();
+            $notificationController = new NotificationController;
             $notificationController->sendPushNotification(
                 $token,
                 'Punch out reminder',

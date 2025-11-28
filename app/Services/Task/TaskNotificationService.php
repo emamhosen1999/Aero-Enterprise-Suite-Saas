@@ -17,8 +17,8 @@ class TaskNotificationService
     {
         $user = Auth::user();
         $assignedUser = User::find($assignedTo);
-        
-        if (!$assignedUser) {
+
+        if (! $assignedUser) {
             return;
         }
 
@@ -39,8 +39,8 @@ class TaskNotificationService
     {
         $user = Auth::user();
         $inchargeUser = User::find($task->incharge);
-        
-        if (!$inchargeUser || $inchargeUser->id === $user->id) {
+
+        if (! $inchargeUser || $inchargeUser->id === $user->id) {
             return;
         }
 
@@ -63,8 +63,8 @@ class TaskNotificationService
     {
         $user = Auth::user();
         $inchargeUser = User::find($task->incharge);
-        
-        if (!$inchargeUser || $inchargeUser->id === $user->id) {
+
+        if (! $inchargeUser || $inchargeUser->id === $user->id) {
             return;
         }
 
@@ -85,7 +85,7 @@ class TaskNotificationService
     public function sendBulkNotification(array $userIds, array $notificationData): void
     {
         $users = User::whereIn('id', $userIds)->get();
-        
+
         if ($users->isEmpty()) {
             return;
         }
@@ -100,8 +100,8 @@ class TaskNotificationService
     {
         $user = Auth::user();
         $inchargeUser = User::find($task->incharge);
-        
-        if (!$inchargeUser || $inchargeUser->id === $user->id) {
+
+        if (! $inchargeUser || $inchargeUser->id === $user->id) {
             return;
         }
 
@@ -123,13 +123,14 @@ class TaskNotificationService
      */
     private function getOrdinalNumber(int $number): string
     {
-        if (!in_array(($number % 100), [11, 12, 13])) {
+        if (! in_array(($number % 100), [11, 12, 13])) {
             switch ($number % 10) {
-                case 1: return $number . 'st';
-                case 2: return $number . 'nd';
-                case 3: return $number . 'rd';
+                case 1: return $number.'st';
+                case 2: return $number.'nd';
+                case 3: return $number.'rd';
             }
         }
-        return $number . 'th';
+
+        return $number.'th';
     }
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
     Card,
@@ -12,13 +12,14 @@ import {
     AvatarGroup,
     Tooltip,
     Badge,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
     Checkbox,
     Divider,
 } from "@heroui/react";
+import {
+    Menu,
+    MenuItem,
+    IconButton,
+} from '@mui/material';
 import {
     BriefcaseIcon,
     CalendarDaysIcon,
@@ -65,6 +66,22 @@ const ProjectCard = ({
     userRole,
     className = "",
 }) => {
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+
+    const handleMenuClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleMenuItemClick = (key) => {
+        onQuickAction(key, project);
+        handleMenuClose();
+    };
+
     const calculateProgress = () => {
         if (!project.total_tasks || project.total_tasks === 0) return project.progress || 0;
         return Math.round((project.completed_tasks / project.total_tasks) * 100);
@@ -244,32 +261,58 @@ const ProjectCard = ({
                         </div>
                     </div>
                     
-                    <Dropdown>
-                        <DropdownTrigger>
-                            <Button
-                                isIconOnly
-                                size="sm"
-                                variant="light"
-                                className="text-default-400 hover:text-default-600"
+                    <IconButton
+                        size="small"
+                        onClick={handleMenuClick}
+                        sx={{
+                            color: 'text.secondary',
+                            backgroundColor: 'transparent',
+                            backdropFilter: 'blur(16px)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                color: 'text.primary',
+                            },
+                        }}
+                    >
+                        <EllipsisVerticalIcon className="w-4 h-4" />
+                    </IconButton>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleMenuClose}
+                        sx={{
+                            '& .MuiPaper-root': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                backdropFilter: 'blur(16px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: 2,
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                                minWidth: 160,
+                            },
+                        }}
+                    >
+                        {actions.map((action) => (
+                            <MenuItem
+                                key={action.key}
+                                onClick={() => handleMenuItemClick(action.key)}
+                                sx={{
+                                    fontSize: '0.875rem',
+                                    color: action.color === 'danger' ? 'error.main' : 'text.primary',
+                                    backgroundColor: 'transparent',
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                    },
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                }}
                             >
-                                <EllipsisVerticalIcon className="w-4 h-4" />
-                            </Button>
-                        </DropdownTrigger>
-                        <DropdownMenu
-                            aria-label="Project actions"
-                            onAction={(key) => onQuickAction(key, project)}
-                        >
-                            {actions.map((action) => (
-                                <DropdownItem
-                                    key={action.key}
-                                    startContent={action.icon}
-                                    color={action.color}
-                                >
-                                    {action.label}
-                                </DropdownItem>
-                            ))}
-                        </DropdownMenu>
-                    </Dropdown>
+                                {action.icon}
+                                {action.label}
+                            </MenuItem>
+                        ))}
+                    </Menu>
                 </div>
             </CardHeader>
 

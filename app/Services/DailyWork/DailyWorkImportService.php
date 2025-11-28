@@ -4,7 +4,7 @@ namespace App\Services\DailyWork;
 
 use App\Imports\DailyWorkImport;
 use App\Models\DailyWork;
-use App\Models\DailySummary;
+use App\Models\DailyWorkSummary;
 use App\Models\Jurisdiction;
 use App\Models\User;
 use Carbon\Carbon;
@@ -64,7 +64,7 @@ class DailyWorkImportService
 
         foreach ($importedDailyWorks as $importedDailyWork) {
             $result = $this->processDailyWorkRow($importedDailyWork, $date, $inChargeSummary);
-            
+
             if ($result['processed']) {
                 $inChargeSummary = $result['summary'];
             }
@@ -77,7 +77,7 @@ class DailyWorkImportService
             'sheet' => $sheetIndex + 1,
             'date' => $date,
             'summaries' => $inChargeSummary,
-            'processed_count' => count($importedDailyWorks)
+            'processed_count' => count($importedDailyWorks),
         ];
     }
 
@@ -88,18 +88,20 @@ class DailyWorkImportService
     {
         // Extract chainages and find jurisdiction
         $jurisdiction = $this->findJurisdictionForLocation($importedDailyWork[4]);
-        
-        if (!$jurisdiction) {
-            Log::warning('No jurisdiction found for location: ' . $importedDailyWork[4]);
+
+        if (! $jurisdiction) {
+            Log::warning('No jurisdiction found for location: '.$importedDailyWork[4]);
+
             return ['processed' => false, 'summary' => $inChargeSummary];
         }
 
         $inCharge = $jurisdiction->incharge;
-        $inChargeName = User::find($inCharge)->user_name;
+        $inChargeUser = User::find($inCharge);
+        $inChargeName = $inChargeUser ? $inChargeUser->user_name : 'unknown';
 
         // Initialize incharge summary if not exists
-        if (!isset($inChargeSummary[$inChargeName])) {
-            $inChargeSummary[$inChargeName] = [
+        if (! isset($inChargeSummary[$inCharge])) {
+            $inChargeSummary[$inCharge] = [
                 'totalDailyWorks' => 0,
                 'resubmissions' => 0,
                 'embankment' => 0,
@@ -109,16 +111,16 @@ class DailyWorkImportService
         }
 
         // Update summary counters
-        $inChargeSummary[$inChargeName]['totalDailyWorks']++;
-        $this->updateTypeCounter($inChargeSummary[$inChargeName], $importedDailyWork[2]);
+        $inChargeSummary[$inCharge]['totalDailyWorks']++;
+        $this->updateTypeCounter($inChargeSummary[$inCharge], $importedDailyWork[2]);
 
         // Handle existing or new daily work
         $existingDailyWork = DailyWork::where('number', $importedDailyWork[1])->first();
-        
+
         if ($existingDailyWork) {
-            $this->handleResubmission($existingDailyWork, $importedDailyWork, $inChargeSummary[$inChargeName], $inChargeName);
+            $this->handleResubmission($existingDailyWork, $importedDailyWork, $inChargeSummary[$inCharge], $inCharge);
         } else {
-            $this->createNewDailyWork($importedDailyWork, $inChargeName);
+            $this->createNewDailyWork($importedDailyWork, $inCharge);
         }
 
         return ['processed' => true, 'summary' => $inChargeSummary];
@@ -133,8 +135,8 @@ class DailyWorkImportService
         $chainageRegex = '/(.*K[0-9]+(?:\+[0-9]+(?:\.[0-9]+)?)?)-(.*K[0-9]+(?:\+[0-9]+(?:\.[0-9]+)?)?)|(.*K[0-9]+)(.*)/';
 
         if (preg_match($chainageRegex, $location, $matches)) {
-            $startChainage = $matches[1] === "" ? $matches[0] : $matches[1];
-            $endChainage = $matches[2] === "" ? null : $matches[2];
+            $startChainage = $matches[1] === '' ? $matches[0] : $matches[1];
+            $endChainage = $matches[2] === '' ? null : $matches[2];
 
             $startChainageFormatted = $this->formatChainage($startChainage);
             $endChainageFormatted = $endChainage ? $this->formatChainage($endChainage) : null;
@@ -146,9 +148,10 @@ class DailyWorkImportService
                 $formattedEndJurisdiction = $this->formatChainage($jurisdiction->end_chainage);
 
                 // Check if the start chainage is within the jurisdiction's range
-                if ($startChainageFormatted >= $formattedStartJurisdiction && 
+                if ($startChainageFormatted >= $formattedStartJurisdiction &&
                     $startChainageFormatted <= $formattedEndJurisdiction) {
-                    Log::info('Jurisdiction Match Found: ' . $formattedStartJurisdiction . "-" . $formattedEndJurisdiction);
+                    Log::info('Jurisdiction Match Found: '.$formattedStartJurisdiction.'-'.$formattedEndJurisdiction);
+
                     return $jurisdiction;
                 }
 
@@ -156,7 +159,8 @@ class DailyWorkImportService
                 if ($endChainageFormatted &&
                     $endChainageFormatted >= $formattedStartJurisdiction &&
                     $endChainageFormatted <= $formattedEndJurisdiction) {
-                    Log::info('Jurisdiction Match Found for End Chainage: ' . $formattedStartJurisdiction . "-" . $formattedEndJurisdiction);
+                    Log::info('Jurisdiction Match Found for End Chainage: '.$formattedStartJurisdiction.'-'.$formattedEndJurisdiction);
+
                     return $jurisdiction;
                 }
             }
@@ -172,16 +176,16 @@ class DailyWorkImportService
     {
         // Remove spaces and convert to uppercase
         $chainage = strtoupper(trim($chainage));
-        
+
         // Extract K number and additional values
         if (preg_match('/K(\d+)(?:\+(\d+(?:\.\d+)?))?/', $chainage, $matches)) {
-            $kNumber = (int)$matches[1];
-            $additional = isset($matches[2]) ? (float)$matches[2] : 0;
-            
+            $kNumber = (int) $matches[1];
+            $additional = isset($matches[2]) ? (float) $matches[2] : 0;
+
             // Convert to a comparable format (e.g., K05+900 becomes 5.900)
             return sprintf('%d.%03d', $kNumber, $additional);
         }
-        
+
         return $chainage;
     }
 
@@ -206,7 +210,7 @@ class DailyWorkImportService
     /**
      * Handle resubmission of existing daily work
      */
-    private function handleResubmission(DailyWork $existingDailyWork, array $importedDailyWork, array &$summary, string $inChargeName): void
+    private function handleResubmission(DailyWork $existingDailyWork, array $importedDailyWork, array &$summary, int $inChargeId): void
     {
         $summary['resubmissions']++;
         $resubmissionCount = $existingDailyWork->resubmission_count ?? 0;
@@ -216,11 +220,15 @@ class DailyWorkImportService
         DailyWork::create([
             'date' => ($existingDailyWork->status === 'completed' ? $existingDailyWork->date : $importedDailyWork[0]),
             'number' => $importedDailyWork[1],
-            'status' => ($existingDailyWork->status === 'completed' ? 'completed' : 'resubmission'),
+            'status' => ($existingDailyWork->status === 'completed' ? 'completed' : 'new'),
             'type' => $importedDailyWork[2],
             'description' => $importedDailyWork[3],
             'location' => $importedDailyWork[4],
-            'incharge' => $inChargeName,
+            'side' => $importedDailyWork[5] ?? null,
+            'qty_layer' => $importedDailyWork[6] ?? null,
+            'planned_time' => $importedDailyWork[7] ?? null,
+            'incharge' => $inChargeId,
+            'assigned' => null, // Don't auto-assign to incharge
             'resubmission_count' => $resubmissionCount,
             'resubmission_date' => $resubmissionDate,
         ]);
@@ -229,16 +237,20 @@ class DailyWorkImportService
     /**
      * Create new daily work
      */
-    private function createNewDailyWork(array $importedDailyWork, string $inChargeName): void
+    private function createNewDailyWork(array $importedDailyWork, int $inChargeId): void
     {
         DailyWork::create([
             'date' => $importedDailyWork[0],
             'number' => $importedDailyWork[1],
-            'status' => 'pending',
+            'status' => 'new',
             'type' => $importedDailyWork[2],
             'description' => $importedDailyWork[3],
             'location' => $importedDailyWork[4],
-            'incharge' => $inChargeName,
+            'side' => $importedDailyWork[5] ?? null,
+            'qty_layer' => $importedDailyWork[6] ?? null,
+            'planned_time' => $importedDailyWork[7] ?? null,
+            'incharge' => $inChargeId,
+            'assigned' => null, // Don't auto-assign to incharge
         ]);
     }
 
@@ -248,9 +260,10 @@ class DailyWorkImportService
     private function getResubmissionDate(DailyWork $existingDailyWork, int $resubmissionCount): string
     {
         if ($resubmissionCount === 1) {
-            return $existingDailyWork->resubmission_date ?? $this->getOrdinalNumber($resubmissionCount) . " Resubmission on " . Carbon::now()->format('jS F Y');
+            return $existingDailyWork->resubmission_date ?? $this->getOrdinalNumber($resubmissionCount).' Resubmission on '.Carbon::now()->format('jS F Y');
         }
-        return $this->getOrdinalNumber($resubmissionCount) . " Resubmission on " . Carbon::now()->format('jS F Y');
+
+        return $this->getOrdinalNumber($resubmissionCount).' Resubmission on '.Carbon::now()->format('jS F Y');
     }
 
     /**
@@ -258,14 +271,15 @@ class DailyWorkImportService
      */
     private function getOrdinalNumber(int $number): string
     {
-        if (!in_array(($number % 100), [11, 12, 13])) {
+        if (! in_array(($number % 100), [11, 12, 13])) {
             switch ($number % 10) {
-                case 1: return $number . 'st';
-                case 2: return $number . 'nd';
-                case 3: return $number . 'rd';
+                case 1: return $number.'st';
+                case 2: return $number.'nd';
+                case 3: return $number.'rd';
             }
         }
-        return $number . 'th';
+
+        return $number.'th';
     }
 
     /**
@@ -273,11 +287,11 @@ class DailyWorkImportService
      */
     private function createDailySummaries(array $inChargeSummary, string $date): void
     {
-        foreach ($inChargeSummary as $inChargeName => $summary) {
-            DailySummary::updateOrCreate(
-                ['date' => $date, 'incharge' => $inChargeName],
+        foreach ($inChargeSummary as $inChargeId => $summary) {
+            DailyWorkSummary::updateOrCreate(
+                ['date' => $date, 'incharge' => $inChargeId],
                 [
-                    'total_daily_works' => $summary['totalDailyWorks'],
+                    'totalDailyWorks' => $summary['totalDailyWorks'],
                     'resubmissions' => $summary['resubmissions'],
                     'embankment' => $summary['embankment'],
                     'structure' => $summary['structure'],
@@ -285,5 +299,51 @@ class DailyWorkImportService
                 ]
             );
         }
+    }
+
+    /**
+     * Download Excel template for daily works import
+     */
+    public function downloadTemplate()
+    {
+        // Create sample data for the template
+        $templateData = [
+            ['Date', 'RFI Number', 'Work Type', 'Description', 'Location/Chainage', 'Road Side', 'Layer/Quantity', 'Time'],
+            ['2025-11-26', 'S2025-0527-10207', 'Structure', 'Retaining wall module: RE wall Block Installation Check', 'K38+060-K38+110', 'TR-R', '2:30 PM', '2:30 PM'],
+            ['2025-11-26', 'DSW-060', 'Structure', 'Dismantling of Shoulder Wall and Cantilever retaining wall: RE-wall Dismantling Work Check', 'K24+395-K24+418', 'TR-L', '11:00 AM', '11:00 AM'],
+            ['2025-11-26', 'E2025-1126-23676', 'Embankment', 'Embankment Stacking on site: Roadway Excavation in Suitable Soil (Re-Work) Before Level Check', 'K24+395-K24+418', 'TR-L', '1.4m1', '5:00 PM'],
+            ['2025-11-26', 'E2025-1119-23562', 'Embankment', 'Roadway excavation in suitable soil including stocking on site: Roadway Excavation in Suitable Soil After Level', 'SCK0+220-SCK0+345.060', 'SR-L', '', '3:00 PM'],
+            ['2025-11-26', 'E2025-1126-23677', 'Embankment', 'Embankment Fill from the source approved by Engineer: Embankment Sand Filling Level Check & Compaction Test (RE Wall Section)', 'SCK0+440-SCK0+450', 'SR-L', '17th', '10:00 AM'],
+        ];
+
+        // Create a temporary file
+        $filename = 'daily_works_import_template_'.date('Y-m-d_H-i-s').'.xlsx';
+        $tempPath = storage_path('app/temp/'.$filename);
+
+        // Ensure temp directory exists
+        if (! file_exists(dirname($tempPath))) {
+            mkdir(dirname($tempPath), 0755, true);
+        }
+
+        // Create Excel file with template data
+        Excel::store(new class($templateData) implements \Maatwebsite\Excel\Concerns\FromArray
+        {
+            private $data;
+
+            public function __construct($data)
+            {
+                $this->data = $data;
+            }
+
+            public function array(): array
+            {
+                return $this->data;
+            }
+        }, 'temp/'.$filename);
+
+        // Return download response
+        return response()->download($tempPath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }

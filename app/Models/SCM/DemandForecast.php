@@ -2,8 +2,8 @@
 
 namespace App\Models\SCM;
 
-use App\Models\User;
 use App\Models\InventoryItem;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -89,6 +89,7 @@ class DemandForecast extends Model
     public function isPeriodActive()
     {
         $now = now()->toDateString();
+
         return $now >= $this->forecast_period_start && $now <= $this->forecast_period_end;
     }
 }

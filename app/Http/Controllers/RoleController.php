@@ -2,27 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
+use App\Models\User;
+use App\Services\Role\RolePermissionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use App\Services\Role\RolePermissionService;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
-use Spatie\Permission\Exceptions\RoleDoesNotExist;
-use Spatie\Permission\Exceptions\PermissionDoesNotExist;
-use Illuminate\Support\Facades\Auth; // added
-use Illuminate\Support\Facades\Artisan; // added
+use Spatie\Permission\Models\Permission; // added
+use Spatie\Permission\Models\Role; // added
 
 /**
  * Enterprise Role Controller
- * 
+ *
  * Implements comprehensive role and permission management using Spatie Permission
  * Follows ISO 27001/27002 compliance standards
  * Supports hierarchical role management and audit trails
@@ -30,31 +29,35 @@ use Illuminate\Support\Facades\Artisan; // added
 class RoleController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-    
-    private RolePermissionService $rolePermissionService;    public function __construct(RolePermissionService $rolePermissionService)
+
+    private RolePermissionService $rolePermissionService;
+
+    public function __construct(RolePermissionService $rolePermissionService)
     {
         $this->rolePermissionService = $rolePermissionService;
-        
+
         // Apply middleware for authorization using Spatie Permission only
         $this->middleware('auth');
         // Role-based authorization is handled in routes, no additional middleware needed
-    }    /**
+    }
+
+    /**
      * Display roles and permissions management interface
      */
     public function getRolesAndPermissions()
     {
         try {
             $user = Auth::user();
-            
+
             // Enhanced data retrieval with retry mechanism for live servers
             $maxRetries = 3;
             $retryDelay = 100; // milliseconds
-            
+
             for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
                 try {
                     // Get all roles (Super Administrator can see all, others see limited)
                     $roles = Role::with(['permissions'])
-                        ->when(!$user->hasRole('Super Administrator'), function ($query) {
+                        ->when(! $user->hasRole('Super Administrator'), function ($query) {
                             // If not Super Admin, only show roles they can manage
                             return $query->whereNotIn('name', ['Super Administrator']);
                         })
@@ -62,7 +65,7 @@ class RoleController extends BaseController
 
                     // Get permissions grouped by module using the new service method
                     $permissionsGrouped = $this->rolePermissionService->getPermissionsGroupedByModule();
-                    
+
                     // Get all permissions as flat array for compatibility
                     $permissions = Permission::all();
 
@@ -81,7 +84,7 @@ class RoleController extends BaseController
                         'grouped_modules' => count($permissionsGrouped),
                         'attempt' => $attempt,
                         'server_env' => app()->environment(),
-                        'user_id' => $user->id
+                        'user_id' => $user->id,
                     ]);
 
                     return Inertia::render('Administration/RoleManagement', [
@@ -95,61 +98,63 @@ class RoleController extends BaseController
                         'server_info' => [
                             'environment' => app()->environment(),
                             'timestamp' => now()->toISOString(),
-                            'cache_driver' => config('cache.default')
-                        ]
+                            'cache_driver' => config('cache.default'),
+                        ],
                     ]);
-                    
+
                 } catch (\Exception $e) {
                     if ($attempt === $maxRetries) {
                         throw $e;
                     }
-                    
+
                     Log::warning("Role data loading attempt {$attempt} failed, retrying...", [
                         'error' => $e->getMessage(),
                         'attempt' => $attempt,
-                        'max_retries' => $maxRetries
+                        'max_retries' => $maxRetries,
                     ]);
-                    
+
                     usleep($retryDelay * 1000); // Convert to microseconds
                     $retryDelay *= 2; // Exponential backoff
                 }
             }
-            
+
         } catch (\Exception $e) {
-            Log::error('Failed to load roles and permissions: ' . $e->getMessage(), [
+            Log::error('Failed to load roles and permissions: '.$e->getMessage(), [
                 'stack_trace' => $e->getTraceAsString(),
                 'user_id' => Auth::id(),
-                'server_env' => app()->environment()
+                'server_env' => app()->environment(),
             ]);
-            
+
             return back()->with('error', 'Failed to load role management interface. Please try again or contact support.');
         }
-    }    /**
+    }
+
+    /**
      * Display the main role management interface (enhanced for live server compatibility)
      */
     public function index()
     {
         try {
             $user = Auth::user();
-            
+
             // Enhanced data retrieval with retry mechanism for live servers
             $maxRetries = 3;
             $retryDelay = 100; // milliseconds
-            
+
             for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
                 try {
                     // Use the enhanced service method that includes fallback strategies
                     $frontendData = $this->rolePermissionService->getRolesWithPermissionsForFrontend();
-                    
+
                     // Extract the data
                     $roles = collect($frontendData['roles'] ?? []);
                     $permissions = collect($frontendData['permissions'] ?? []);
                     $roleHasPermissions = collect($frontendData['role_has_permissions'] ?? []);
                     $permissionsGrouped = $frontendData['permissionsGrouped'] ?? [];
-                    
+
                     // Filter roles for non-super administrators
-                    if (!$user->hasRole('Super Administrator')) {
-                        $roles = $roles->filter(function($role) {
+                    if (! $user->hasRole('Super Administrator')) {
+                        $roles = $roles->filter(function ($role) {
                             return ($role['name'] ?? '') !== 'Super Administrator';
                         });
                     }
@@ -168,8 +173,27 @@ class RoleController extends BaseController
                         'attempt' => $attempt,
                         'server_env' => app()->environment(),
                         'user_id' => $user->id,
-                        'has_error' => isset($frontendData['error'])
+                        'has_error' => isset($frontendData['error']),
                     ]);
+
+                    // Get users with their roles for the User-Role assignment tab
+                    $users = User::with('roles')
+                        ->select(['id', 'name', 'email'])
+                        ->orderBy('name')
+                        ->get()
+                        ->map(function ($user) {
+                            return [
+                                'id' => $user->id,
+                                'name' => $user->name,
+                                'email' => $user->email,
+                                'roles' => $user->roles->map(function ($role) {
+                                    return [
+                                        'id' => $role->id,
+                                        'name' => $role->name,
+                                    ];
+                                }),
+                            ];
+                        });
 
                     return Inertia::render('Administration/RoleManagement', [
                         'title' => 'Enterprise Role Management',
@@ -179,6 +203,7 @@ class RoleController extends BaseController
                         'role_has_permissions' => $roleHasPermissions->toArray(),
                         'enterprise_modules' => $this->rolePermissionService->getEnterpriseModules(),
                         'can_manage_super_admin' => $user->hasRole('Super Administrator'),
+                        'users' => $users,
                         'server_info' => [
                             'environment' => app()->environment(),
                             'timestamp' => now()->toISOString(),
@@ -186,40 +211,40 @@ class RoleController extends BaseController
                             'db_connection' => config('database.default'),
                             'data_source' => $frontendData['timestamp'] ?? 'unknown',
                             'has_fallback_data' => isset($frontendData['error']),
-                            'snapshot_hash' => $this->rolePermissionService->snapshotHash()
-                        ]
+                            'snapshot_hash' => $this->rolePermissionService->snapshotHash(),
+                        ],
                     ]);
-                    
+
                 } catch (\Exception $e) {
                     if ($attempt === $maxRetries) {
                         throw $e;
                     }
-                    
+
                     Log::warning("Role interface loading attempt {$attempt} failed, retrying...", [
                         'error' => $e->getMessage(),
                         'attempt' => $attempt,
-                        'max_retries' => $maxRetries
+                        'max_retries' => $maxRetries,
                     ]);
-                    
+
                     usleep($retryDelay * 1000); // Convert to microseconds
                     $retryDelay *= 2; // Exponential backoff
                 }
             }
-            
+
         } catch (\Exception $e) {
-            Log::error('Failed to load role management interface: ' . $e->getMessage(), [
+            Log::error('Failed to load role management interface: '.$e->getMessage(), [
                 'stack_trace' => $e->getTraceAsString(),
                 'user_id' => Auth::id(),
-                'server_env' => app()->environment()
+                'server_env' => app()->environment(),
             ]);
-            
+
             // Attempt to run data integrity validation
             try {
                 $validationReport = $this->rolePermissionService->validateAndRepairDataIntegrity();
             } catch (\Exception $validationError) {
-                $validationReport = ['error' => 'Validation failed: ' . $validationError->getMessage()];
+                $validationReport = ['error' => 'Validation failed: '.$validationError->getMessage()];
             }
-            
+
             // Return error page with diagnostic information
             return Inertia::render('Administration/RoleManagement', [
                 'title' => 'Enterprise Role Management - Error',
@@ -229,6 +254,7 @@ class RoleController extends BaseController
                 'role_has_permissions' => [],
                 'enterprise_modules' => [],
                 'can_manage_super_admin' => false,
+                'users' => [],
                 'error' => [
                     'message' => 'Failed to load role management data',
                     'details' => $e->getMessage(),
@@ -239,12 +265,14 @@ class RoleController extends BaseController
                         'Run diagnostic: /admin/roles/debug (if Super Admin)',
                         'Clear caches: php artisan cache:clear',
                         'Check logs for detailed error information',
-                        'Contact system administrator if issue persists'
-                    ]
-                ]
+                        'Contact system administrator if issue persists',
+                    ],
+                ],
             ]);
         }
-    }/**
+    }
+
+    /**
      * Store a new role with validation and audit trail
      */
     public function storeRole(Request $request)
@@ -254,35 +282,35 @@ class RoleController extends BaseController
             'description' => 'nullable|string|max:500',
             'permissions' => 'nullable|array',
             'permissions.*' => 'string|exists:permissions,name',
-            'hierarchy_level' => 'nullable|integer|min:1|max:50'
+            'hierarchy_level' => 'nullable|integer|min:1|max:50',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
-        
+
         try {            // Only Super Administrator can create roles for security
-            if (!Auth::user()->hasRole('Super Administrator')) {
+            if (! Auth::user()->hasRole('Super Administrator')) {
                 return response()->json([
-                    'error' => 'Insufficient permissions to create roles'
+                    'error' => 'Insufficient permissions to create roles',
                 ], 403);
             }
 
             // Create the role using Spatie's Role::create method
             $roleData = [
                 'name' => $request->name,
-                'guard_name' => 'web'
+                'guard_name' => 'web',
             ];
 
             $role = Role::create($roleData);            // Add description if provided
             if ($request->has('description')) {
                 DB::table('roles')->where('id', $role->id)->update([
                     'description' => $request->description,
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
             }// Assign permissions if provided using the service
             if ($request->permissions && is_array($request->permissions)) {
@@ -294,66 +322,68 @@ class RoleController extends BaseController
                 'role_id' => $role->id,
                 'role_name' => $role->name,
                 'created_by' => Auth::id(),
-                'permissions_assigned' => count($request->permissions ?? [])
+                'permissions_assigned' => count($request->permissions ?? []),
             ]);
 
             DB::commit();
-            
+
             // Clear Spatie Permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             return response()->json([
                 'message' => 'Role created successfully',
-                'role' => $role->fresh('permissions')
+                'role' => $role->fresh('permissions'),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role creation failed: ' . $e->getMessage());
-            
+            Log::error('Role creation failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to create role',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
-    }    /**
+    }
+
+    /**
      * Update an existing role with enhanced validation
      */
     public function updateRole(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:roles,name,' . $id,
+            'name' => 'required|string|max:255|unique:roles,name,'.$id,
             'description' => 'nullable|string|max:500',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'string|exists:permissions,name'
+            'permissions.*' => 'string|exists:permissions,name',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
-        
+
         try {
             $role = Role::findById($id);
-            
-            if (!$role) {
+
+            if (! $role) {
                 return response()->json(['error' => 'Role not found'], 404);
             }
 
             // Check if user can manage this role
-            if (!$this->canManageRole(Auth::user(), $role)) {
+            if (! $this->canManageRole(Auth::user(), $role)) {
                 return response()->json([
-                    'error' => 'Insufficient authority to manage this role'
+                    'error' => 'Insufficient authority to manage this role',
                 ], 403);
             }
 
             // Store original state for audit
             $originalState = [
                 'name' => $role->name,
-                'permissions' => $role->permissions->pluck('name')->toArray()
+                'permissions' => $role->permissions->pluck('name')->toArray(),
             ];
 
             // Update role using Spatie methods
@@ -364,7 +394,7 @@ class RoleController extends BaseController
             if ($request->has('description')) {
                 DB::table('roles')->where('id', $role->id)->update([
                     'description' => $request->description,
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
             }            // Sync permissions using the service
             if ($request->has('permissions')) {
@@ -377,46 +407,48 @@ class RoleController extends BaseController
                 'role_name' => $role->name,
                 'updated_by' => Auth::id(),
                 'original_state' => $originalState,
-                'new_permissions' => $request->permissions ?? []
+                'new_permissions' => $request->permissions ?? [],
             ]);
 
             DB::commit();
-            
+
             // Clear Spatie Permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             return response()->json([
                 'message' => 'Role updated successfully',
-                'role' => $role->fresh('permissions')
+                'role' => $role->fresh('permissions'),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role update failed: ' . $e->getMessage());
-            
+            Log::error('Role update failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to update role',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
-    }    /**
+    }
+
+    /**
      * Delete a role with safety checks using Spatie Permission
      */
     public function deleteRole($id)
     {
         DB::beginTransaction();
-        
+
         try {
             $role = Role::findById($id);
-            
-            if (!$role) {
+
+            if (! $role) {
                 return response()->json(['error' => 'Role not found'], 404);
             }
 
             // Check if user can manage this role
-            if (!$this->canManageRole(Auth::user(), $role)) {
+            if (! $this->canManageRole(Auth::user(), $role)) {
                 return response()->json([
-                    'error' => 'Insufficient authority to delete this role'
+                    'error' => 'Insufficient authority to delete this role',
                 ], 403);
             }
 
@@ -424,7 +456,7 @@ class RoleController extends BaseController
             $systemRoles = ['Super Administrator', 'Administrator'];
             if (in_array($role->name, $systemRoles)) {
                 return response()->json([
-                    'error' => 'Cannot delete system role'
+                    'error' => 'Cannot delete system role',
                 ], 403);
             }
 
@@ -432,7 +464,7 @@ class RoleController extends BaseController
             $usersCount = $role->users()->count();
             if ($usersCount > 0) {
                 return response()->json([
-                    'error' => "Cannot delete role. It is assigned to {$usersCount} user(s)."
+                    'error' => "Cannot delete role. It is assigned to {$usersCount} user(s).",
                 ], 409);
             }
 
@@ -441,31 +473,33 @@ class RoleController extends BaseController
                 'role_id' => $role->id,
                 'role_name' => $role->name,
                 'deleted_by' => Auth::id(),
-                'permissions_count' => $role->permissions->count()
+                'permissions_count' => $role->permissions->count(),
             ]);
 
             // Delete role using Spatie method (automatically removes permission relationships)
             $role->delete();
 
             DB::commit();
-            
+
             // Clear Spatie Permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             return response()->json([
-                'message' => 'Role deleted successfully'
+                'message' => 'Role deleted successfully',
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role deletion failed: ' . $e->getMessage());
-            
+            Log::error('Role deletion failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to delete role',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
-    }    /**
+    }
+
+    /**
      * Update role module permissions with enterprise logic using Spatie Permission
      */
     public function updateRoleModule(Request $request)
@@ -473,33 +507,33 @@ class RoleController extends BaseController
         $validator = Validator::make($request->all(), [
             'roleId' => 'required|exists:roles,id',
             'module' => 'required|string',
-            'action' => 'required|in:grant,revoke,toggle'
+            'action' => 'required|in:grant,revoke,toggle',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
-        
+
         try {
             $role = Role::findById($request->roleId);
-            
-            if (!$this->canManageRole(Auth::user(), $role)) {
+
+            if (! $this->canManageRole(Auth::user(), $role)) {
                 return response()->json([
-                    'error' => 'Insufficient authority to manage this role'
+                    'error' => 'Insufficient authority to manage this role',
                 ], 403);
             }            $module = $request->module;
             $action = $request->action;
 
             // Get module permissions using the RolePermissionService (proper way)
             $permissionsGrouped = $this->rolePermissionService->getPermissionsGroupedByModule();
-            
-            if (!isset($permissionsGrouped[$module])) {
+
+            if (! isset($permissionsGrouped[$module])) {
                 return response()->json([
-                    'error' => 'Module not found'
+                    'error' => 'Module not found',
                 ], 404);
             }
 
@@ -510,7 +544,7 @@ class RoleController extends BaseController
 
             if (empty($modulePermissions)) {
                 return response()->json([
-                    'error' => 'No permissions found for this module'
+                    'error' => 'No permissions found for this module',
                 ], 404);
             }
 
@@ -525,11 +559,11 @@ class RoleController extends BaseController
                 case 'grant':
                     $role->givePermissionTo($modulePermissions);
                     break;
-                    
+
                 case 'revoke':
                     $role->revokePermissionTo($modulePermissions);
                     break;
-                    
+
                 case 'toggle':
                     if (count($currentModulePermissions) === count($modulePermissions)) {
                         // All permissions granted, revoke them
@@ -546,11 +580,11 @@ class RoleController extends BaseController
                 'module' => $module,
                 'action' => $action,
                 'permissions_affected' => $modulePermissions,
-                'updated_by' => Auth::id()
+                'updated_by' => Auth::id(),
             ]);
 
             DB::commit();
-            
+
             // Clear Spatie Permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -563,11 +597,11 @@ class RoleController extends BaseController
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Module permission update failed: ' . $e->getMessage());
-            
+            Log::error('Module permission update failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to update module permissions',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -580,31 +614,31 @@ class RoleController extends BaseController
         $validator = Validator::make($request->all(), [
             'role_id' => 'required|exists:roles,id',
             'permission' => 'required|string',
-            'action' => 'required|in:grant,revoke'
+            'action' => 'required|in:grant,revoke',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
-        
+
         try {
             $role = Role::findById($request->role_id);
-            
-            if (!$this->canManageRole(Auth::user(), $role)) {
+
+            if (! $this->canManageRole(Auth::user(), $role)) {
                 return response()->json([
-                    'error' => 'Insufficient authority to manage this role'
+                    'error' => 'Insufficient authority to manage this role',
                 ], 403);
             }
 
             $permission = Permission::where('name', $request->permission)->first();
-            
-            if (!$permission) {
+
+            if (! $permission) {
                 return response()->json([
-                    'error' => 'Permission not found'
+                    'error' => 'Permission not found',
                 ], 404);
             }
 
@@ -620,9 +654,10 @@ class RoleController extends BaseController
                 'role_name' => $role->name,
                 'permission' => $request->permission,
                 'action' => $request->action,
-                'updated_by' => Auth::id()
-            ]);            DB::commit();
-            
+                'updated_by' => Auth::id(),
+            ]);
+            DB::commit();
+
             // Clear Spatie Permission cache and refresh cache for live server
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
             Cache::forget(config('permission.cache.key', 'spatie.permission.cache'));
@@ -634,16 +669,16 @@ class RoleController extends BaseController
             return response()->json([
                 'message' => 'Permission updated successfully',
                 'role' => $freshRole,
-                'role_has_permissions' => $roleHasPermissions
+                'role_has_permissions' => $roleHasPermissions,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role permission update failed: ' . $e->getMessage());
-            
+            Log::error('Role permission update failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to update permission',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -656,44 +691,44 @@ class RoleController extends BaseController
         $validator = Validator::make($request->all(), [
             'role_id' => 'required|exists:roles,id',
             'permission_id' => 'required|exists:permissions,id',
-            'value' => 'required|boolean'
+            'value' => 'required|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
-        
+
         try {
             $role = Role::findById($request->role_id);
-            
-            if (!$this->canManageRole(Auth::user(), $role)) {
+
+            if (! $this->canManageRole(Auth::user(), $role)) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'Insufficient authority to manage this role'
+                    'error' => 'Insufficient authority to manage this role',
                 ], 403);
             }
 
             $permission = Permission::findById($request->permission_id);
-            
-            if (!$permission) {
+
+            if (! $permission) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'Permission not found'
+                    'error' => 'Permission not found',
                 ], 404);
             }
 
             // Check current state to avoid unnecessary operations
             $hasPermission = $role->hasPermissionTo($permission);
-            
-            if ($request->value && !$hasPermission) {
+
+            if ($request->value && ! $hasPermission) {
                 $role->givePermissionTo($permission);
                 $action = 'granted';
-            } elseif (!$request->value && $hasPermission) {
+            } elseif (! $request->value && $hasPermission) {
                 $role->revokePermissionTo($permission);
                 $action = 'revoked';
             } else {
@@ -712,14 +747,14 @@ class RoleController extends BaseController
                 'action' => $action,
                 'updated_by' => Auth::id(),
                 'server_env' => app()->environment(),
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
             DB::commit();
-            
+
             // Enhanced cache clearing for live server compatibility
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-            
+
             // Clear additional caches that might affect live servers
             if (app()->environment('production')) {
                 Cache::flush();
@@ -735,12 +770,12 @@ class RoleController extends BaseController
                 'message' => "Permission {$action} successfully",
                 'role' => $refreshedRole,
                 'action' => $action,
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             // Enhanced error logging for live server debugging
             Log::error('Permission toggle failed', [
                 'role_id' => $request->role_id,
@@ -749,14 +784,14 @@ class RoleController extends BaseController
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'server_env' => app()->environment(),
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => 'Failed to toggle permission',
                 'message' => app()->environment('local') ? $e->getMessage() : 'An error occurred',
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ], 500);
         }
     }
@@ -767,9 +802,9 @@ class RoleController extends BaseController
     public function initializeEnterpriseSystem()
     {
         try {
-            if (!Auth::user()->hasRole('Super Administrator')) {
+            if (! Auth::user()->hasRole('Super Administrator')) {
                 return response()->json([
-                    'error' => 'Only Super Administrator can initialize the enterprise system'
+                    'error' => 'Only Super Administrator can initialize the enterprise system',
                 ], 403);
             }
 
@@ -777,41 +812,43 @@ class RoleController extends BaseController
 
             return response()->json([
                 'message' => 'Enterprise role system initialized successfully',
-                'results' => $results
+                'results' => $results,
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Enterprise system initialization failed: ' . $e->getMessage());
-            
+            Log::error('Enterprise system initialization failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to initialize enterprise system',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
-    }    /**
+    }
+
+    /**
      * Get role audit report
      */
     public function getRoleAudit()
     {
         try {
-            if (!Auth::user()->hasRole(['Super Administrator', 'Administrator'])) {
+            if (! Auth::user()->hasRole(['Super Administrator', 'Administrator'])) {
                 return response()->json([
-                    'error' => 'Insufficient permissions for role audit'
+                    'error' => 'Insufficient permissions for role audit',
                 ], 403);
             }
 
             $audit = $this->rolePermissionService->auditRolePermissions();
 
             return response()->json([
-                'audit' => $audit
+                'audit' => $audit,
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Role audit failed: ' . $e->getMessage());
-            
+            Log::error('Role audit failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to generate role audit',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -826,29 +863,30 @@ class RoleController extends BaseController
             'role_ids.*' => 'exists:roles,id',
             'operation' => 'required|in:grant_permissions,revoke_permissions,delete,activate,deactivate',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'string|exists:permissions,name'
+            'permissions.*' => 'string|exists:permissions,name',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
-        
+
         try {
             $roles = Role::whereIn('id', $request->role_ids)->get();
             $results = [];
 
             foreach ($roles as $role) {
-                if (!$this->canManageRole(Auth::user(), $role)) {
+                if (! $this->canManageRole(Auth::user(), $role)) {
                     $results[] = [
                         'role_id' => $role->id,
                         'role_name' => $role->name,
                         'status' => 'skipped',
-                        'reason' => 'Insufficient authority'
+                        'reason' => 'Insufficient authority',
                     ];
+
                     continue;
                 }
 
@@ -864,14 +902,14 @@ class RoleController extends BaseController
                         }
                         break;
                     case 'delete':
-                        if (!$role->is_system_role && $role->users()->count() === 0) {
+                        if (! $role->is_system_role && $role->users()->count() === 0) {
                             $role->delete();
                         } else {
                             $results[] = [
                                 'role_id' => $role->id,
                                 'role_name' => $role->name,
                                 'status' => 'skipped',
-                                'reason' => 'Cannot delete system role or role with users'
+                                'reason' => 'Cannot delete system role or role with users',
                             ];
                             break;
                         }
@@ -881,27 +919,27 @@ class RoleController extends BaseController
                 $results[] = [
                     'role_id' => $role->id,
                     'role_name' => $role->name,
-                    'status' => 'success'
+                    'status' => 'success',
                 ];
             }
 
             DB::commit();
-            
+
             // Clear Spatie Permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             return response()->json([
                 'message' => 'Bulk operation completed',
-                'results' => $results
+                'results' => $results,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Bulk operation failed: ' . $e->getMessage());
-            
+            Log::error('Bulk operation failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Bulk operation failed',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -914,30 +952,30 @@ class RoleController extends BaseController
         $validator = Validator::make($request->all(), [
             'source_role_id' => 'required|exists:roles,id',
             'new_name' => 'required|string|max:255|unique:roles,name',
-            'new_description' => 'nullable|string|max:500'
+            'new_description' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
-        
+
         try {
             $sourceRole = Role::findById($request->source_role_id);
-            
-            if (!$this->canManageRole(Auth::user(), $sourceRole)) {
+
+            if (! $this->canManageRole(Auth::user(), $sourceRole)) {
                 return response()->json([
-                    'error' => 'Insufficient authority to clone this role'
+                    'error' => 'Insufficient authority to clone this role',
                 ], 403);
             }
 
             // Create new role
             $newRole = Role::create([
                 'name' => $request->new_name,
-                'guard_name' => 'web'
+                'guard_name' => 'web',
             ]);
 
             // Add custom attributes
@@ -946,12 +984,12 @@ class RoleController extends BaseController
                 'hierarchy_level' => $sourceRole->hierarchy_level ?? 10,
                 'category' => $sourceRole->category ?? null,
                 'is_system_role' => false, // Cloned roles are never system roles
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             // Copy all permissions from source role
             $sourcePermissions = $sourceRole->permissions->pluck('name')->toArray();
-            if (!empty($sourcePermissions)) {
+            if (! empty($sourcePermissions)) {
                 $newRole->givePermissionTo($sourcePermissions);
             }
 
@@ -962,26 +1000,26 @@ class RoleController extends BaseController
                 'new_role_id' => $newRole->id,
                 'new_role_name' => $newRole->name,
                 'cloned_by' => Auth::id(),
-                'permissions_cloned' => count($sourcePermissions)
+                'permissions_cloned' => count($sourcePermissions),
             ]);
 
             DB::commit();
-            
+
             // Clear Spatie Permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             return response()->json([
                 'message' => 'Role cloned successfully',
-                'role' => $newRole->fresh('permissions')
+                'role' => $newRole->fresh('permissions'),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role cloning failed: ' . $e->getMessage());
-            
+            Log::error('Role cloning failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to clone role',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -992,9 +1030,9 @@ class RoleController extends BaseController
     public function exportRoles()
     {
         try {
-            if (!Auth::user()->hasRole(['Super Administrator', 'Administrator'])) {
+            if (! Auth::user()->hasRole(['Super Administrator', 'Administrator'])) {
                 return response()->json([
-                    'error' => 'Insufficient permissions for export'
+                    'error' => 'Insufficient permissions for export',
                 ], 403);
             }
 
@@ -1008,7 +1046,7 @@ class RoleController extends BaseController
                     'exported_by' => Auth::user()->name,
                     'version' => '1.0',
                     'total_roles' => $roles->count(),
-                    'total_permissions' => $permissions->count()
+                    'total_permissions' => $permissions->count(),
                 ],
                 'roles' => $roles->map(function ($role) {
                     return [
@@ -1018,30 +1056,30 @@ class RoleController extends BaseController
                         'hierarchy_level' => $role->hierarchy_level,
                         'category' => $role->category,
                         'is_system_role' => $role->is_system_role,
-                        'permissions' => $role->permissions->pluck('name')->toArray()
+                        'permissions' => $role->permissions->pluck('name')->toArray(),
                     ];
                 }),
                 'permissions' => $permissions->map(function ($permission) {
                     return [
                         'name' => $permission->name,
-                        'guard_name' => $permission->guard_name
+                        'guard_name' => $permission->guard_name,
                     ];
                 }),
-                'enterprise_modules' => $enterpriseModules
+                'enterprise_modules' => $enterpriseModules,
             ];
 
-            $filename = 'roles-export-' . now()->format('Y-m-d-H-i-s') . '.json';
+            $filename = 'roles-export-'.now()->format('Y-m-d-H-i-s').'.json';
 
             return response()->json($exportData)
                 ->header('Content-Type', 'application/json')
-                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+                ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
 
         } catch (\Exception $e) {
-            Log::error('Role export failed: ' . $e->getMessage());
-            
+            Log::error('Role export failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to export roles',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -1052,23 +1090,23 @@ class RoleController extends BaseController
     public function getEnhancedRoleAudit()
     {
         try {
-            if (!Auth::user()->hasRole(['Super Administrator', 'Administrator'])) {
+            if (! Auth::user()->hasRole(['Super Administrator', 'Administrator'])) {
                 return response()->json([
-                    'error' => 'Insufficient permissions for role audit'
+                    'error' => 'Insufficient permissions for role audit',
                 ], 403);
             }
 
             $roles = Role::with(['permissions', 'users'])->get();
             $permissions = Permission::all();
-            
+
             $audit = [
                 'summary' => [
                     'total_roles' => $roles->count(),
                     'system_roles' => $roles->where('is_system_role', true)->count(),
                     'custom_roles' => $roles->where('is_system_role', false)->count(),
                     'total_permissions' => $permissions->count(),
-                    'roles_with_users' => $roles->filter(fn($role) => $role->users->count() > 0)->count(),
-                    'orphaned_roles' => $roles->filter(fn($role) => $role->users->count() === 0 && !$role->is_system_role)->count()
+                    'roles_with_users' => $roles->filter(fn ($role) => $role->users->count() > 0)->count(),
+                    'orphaned_roles' => $roles->filter(fn ($role) => $role->users->count() === 0 && ! $role->is_system_role)->count(),
                 ],
                 'hierarchy_analysis' => [],
                 'permission_analysis' => [],
@@ -1077,8 +1115,8 @@ class RoleController extends BaseController
                     'iso_27001_compliant' => true,
                     'rbac_implemented' => true,
                     'audit_trail_enabled' => true,
-                    'least_privilege_enforced' => true
-                ]
+                    'least_privilege_enforced' => true,
+                ],
             ];
 
             // Hierarchy analysis
@@ -1087,47 +1125,47 @@ class RoleController extends BaseController
                 $audit['hierarchy_analysis'][] = [
                     'level' => $level,
                     'role_count' => $levelRoles->count(),
-                    'avg_permissions' => round($levelRoles->avg(fn($role) => $role->permissions->count())),
-                    'roles' => $levelRoles->pluck('name')->toArray()
+                    'avg_permissions' => round($levelRoles->avg(fn ($role) => $role->permissions->count())),
+                    'roles' => $levelRoles->pluck('name')->toArray(),
                 ];
             }
 
             // Permission analysis
             $permissionUsage = [];
             foreach ($permissions as $permission) {
-                $roleCount = $roles->filter(fn($role) => $role->permissions->contains('name', $permission->name))->count();
+                $roleCount = $roles->filter(fn ($role) => $role->permissions->contains('name', $permission->name))->count();
                 $permissionUsage[] = [
                     'permission' => $permission->name,
                     'role_count' => $roleCount,
-                    'usage_percentage' => round(($roleCount / $roles->count()) * 100, 2)
+                    'usage_percentage' => round(($roleCount / $roles->count()) * 100, 2),
                 ];
             }
             $audit['permission_analysis'] = collect($permissionUsage)->sortByDesc('usage_percentage')->values()->toArray();
 
             // Security recommendations
             $recommendations = [];
-            
+
             // Check for roles with too many permissions
-            $overPrivilegedRoles = $roles->filter(fn($role) => $role->permissions->count() > ($permissions->count() * 0.8));
+            $overPrivilegedRoles = $roles->filter(fn ($role) => $role->permissions->count() > ($permissions->count() * 0.8));
             if ($overPrivilegedRoles->count() > 0) {
                 $recommendations[] = [
                     'type' => 'warning',
                     'title' => 'Over-privileged Roles Detected',
                     'description' => 'Some roles have access to more than 80% of available permissions',
                     'affected_roles' => $overPrivilegedRoles->pluck('name')->toArray(),
-                    'recommendation' => 'Review and apply principle of least privilege'
+                    'recommendation' => 'Review and apply principle of least privilege',
                 ];
             }
 
             // Check for unused roles
-            $unusedRoles = $roles->filter(fn($role) => $role->users->count() === 0 && !$role->is_system_role);
+            $unusedRoles = $roles->filter(fn ($role) => $role->users->count() === 0 && ! $role->is_system_role);
             if ($unusedRoles->count() > 0) {
                 $recommendations[] = [
                     'type' => 'info',
                     'title' => 'Unused Roles Found',
                     'description' => 'Some custom roles are not assigned to any users',
                     'affected_roles' => $unusedRoles->pluck('name')->toArray(),
-                    'recommendation' => 'Consider removing unused roles to reduce attack surface'
+                    'recommendation' => 'Consider removing unused roles to reduce attack surface',
                 ];
             }
 
@@ -1136,11 +1174,11 @@ class RoleController extends BaseController
             return response()->json(['audit' => $audit]);
 
         } catch (\Exception $e) {
-            Log::error('Enhanced role audit failed: ' . $e->getMessage());
-            
+            Log::error('Enhanced role audit failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to generate enhanced audit report',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -1152,36 +1190,38 @@ class RoleController extends BaseController
     {
         try {
             $roles = Role::with(['permissions', 'users'])->get();
-            
+
             $metrics = [
-                'role_distribution' => $roles->groupBy('hierarchy_level')->map(fn($group) => $group->count()),
+                'role_distribution' => $roles->groupBy('hierarchy_level')->map(fn ($group) => $group->count()),
                 'permission_coverage' => $roles->map(function ($role) {
                     return [
                         'role' => $role->name,
                         'permission_count' => $role->permissions->count(),
-                        'user_count' => $role->users->count()
+                        'user_count' => $role->users->count(),
                     ];
                 }),
                 'system_health' => [
-                    'average_permissions_per_role' => round($roles->avg(fn($role) => $role->permissions->count()), 2),
-                    'most_used_role' => $roles->sortByDesc(fn($role) => $role->users->count())->first()?->name,
-                    'least_used_permissions' => Permission::whereDoesntHave('roles')->count()
-                ]
+                    'average_permissions_per_role' => round($roles->avg(fn ($role) => $role->permissions->count()), 2),
+                    'most_used_role' => $roles->sortByDesc(fn ($role) => $role->users->count())->first()?->name,
+                    'least_used_permissions' => Permission::whereDoesntHave('roles')->count(),
+                ],
             ];
 
             return response()->json(['metrics' => $metrics]);
 
         } catch (\Exception $e) {
-            Log::error('Role metrics generation failed: ' . $e->getMessage());
-            
+            Log::error('Role metrics generation failed: '.$e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to generate role metrics',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
-    }    /**
+    }
+
+    /**
      * Check if user can manage a specific role
-     *//**
+     */ /**
      * Check if user can manage a specific role
      */
     private function canManageRole($user, Role $role): bool
@@ -1190,7 +1230,7 @@ class RoleController extends BaseController
         if ($role->name === 'Super Administrator') {
             return $user->hasRole('Super Administrator');
         }
-        
+
         // Users with roles.update permission can manage other roles
         return $user->can('roles.update');
     }
@@ -1204,8 +1244,127 @@ class RoleController extends BaseController
             'message' => 'Role controller is working',
             'user' => Auth::user()->name,
             'roles' => Auth::user()->roles->pluck('name'),
-            'timestamp' => now()
+            'timestamp' => now(),
         ]);
+    }
+
+    /**
+     * API: List all roles with their permissions (for API endpoints)
+     */
+    public function apiIndex()
+    {
+        try {
+            $user = Auth::user();
+
+            $roles = Role::with(['permissions'])
+                ->when(! $user->hasRole('Super Administrator'), function ($query) {
+                    return $query->whereNotIn('name', ['Super Administrator']);
+                })
+                ->get();
+
+            return response()->json([
+                'roles' => $roles,
+                'total' => $roles->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to list roles via API: '.$e->getMessage());
+
+            return response()->json([
+                'error' => 'Failed to retrieve roles',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * API: Show a specific role with its permissions
+     */
+    public function apiShow($id)
+    {
+        try {
+            $role = Role::with(['permissions', 'users'])->findById($id);
+
+            if (! $role) {
+                return response()->json(['error' => 'Role not found'], 404);
+            }
+
+            return response()->json([
+                'role' => $role,
+                'permissions' => $role->permissions->pluck('name'),
+                'users_count' => $role->users->count(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to show role via API: '.$e->getMessage());
+
+            return response()->json([
+                'error' => 'Failed to retrieve role',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * API: Sync all permissions for a role (replaces existing permissions)
+     */
+    public function syncRolePermissions(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'permissions' => 'required|array',
+            'permissions.*' => 'string|exists:permissions,name',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $role = Role::findById($id);
+
+            if (! $role) {
+                return response()->json(['error' => 'Role not found'], 404);
+            }
+
+            if (! $this->canManageRole(Auth::user(), $role)) {
+                return response()->json([
+                    'error' => 'Insufficient authority to manage this role',
+                ], 403);
+            }
+
+            // Store original permissions for audit
+            $originalPermissions = $role->permissions->pluck('name')->toArray();
+
+            // Sync permissions (replaces all existing)
+            $role->syncPermissions($request->permissions);
+
+            // Log the change
+            Log::info('Role permissions synced', [
+                'role_id' => $role->id,
+                'role_name' => $role->name,
+                'original_permissions' => $originalPermissions,
+                'new_permissions' => $request->permissions,
+                'synced_by' => Auth::id(),
+            ]);
+
+            DB::commit();
+
+            // Clear Spatie Permission cache
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+            return response()->json([
+                'message' => 'Role permissions synced successfully',
+                'role' => $role->fresh('permissions'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to sync role permissions: '.$e->getMessage());
+
+            return response()->json([
+                'error' => 'Failed to sync role permissions',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -1239,16 +1398,16 @@ class RoleController extends BaseController
         ]);
 
         $role = \Spatie\Permission\Models\Role::findById($roleId);
-        if (!$role) {
+        if (! $role) {
             return response()->json(['error' => 'Role not found'], 404);
         }
-        if (!$this->canManageRole(Auth::user(), $role)) {
+        if (! $this->canManageRole(Auth::user(), $role)) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
         // Simple optimistic concurrency: compare provided version with current snapshot
         $currentHash = $this->rolePermissionService->snapshotHash();
-        if (!empty($data['version']) && $data['version'] !== $currentHash) {
+        if (! empty($data['version']) && $data['version'] !== $currentHash) {
             return response()->json([
                 'error' => 'Version conflict',
                 'current' => $currentHash,
@@ -1270,10 +1429,12 @@ class RoleController extends BaseController
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Batch permission update failed', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Update failed'], 500);
         }
 
         $fresh = $role->load('permissions');
+
         return response()->json([
             'message' => 'Permissions updated',
             'role' => [

@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Mail\PayslipEmail;
 use App\Models\HRM\Payroll;
 use App\Models\HRM\Payslip;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\PayslipEmail;
+use Illuminate\Support\Facades\Storage;
 
 class PayslipService
 {
@@ -62,12 +62,13 @@ class PayslipService
             try {
                 $payroll = Payroll::with(['employee', 'allowances', 'deductions'])->find($payrollId);
 
-                if (!$payroll) {
+                if (! $payroll) {
                     $results[] = [
                         'payroll_id' => $payrollId,
                         'status' => 'error',
-                        'message' => 'Payroll not found'
+                        'message' => 'Payroll not found',
                     ];
+
                     continue;
                 }
 
@@ -78,13 +79,13 @@ class PayslipService
                     'payslip_id' => $payslip->id,
                     'employee_name' => $payroll->employee->name,
                     'status' => 'success',
-                    'pdf_path' => $payslip->pdf_path
+                    'pdf_path' => $payslip->pdf_path,
                 ];
             } catch (\Exception $e) {
                 $results[] = [
                     'payroll_id' => $payrollId,
                     'status' => 'error',
-                    'message' => $e->getMessage()
+                    'message' => $e->getMessage(),
                 ];
             }
         }
@@ -120,7 +121,7 @@ class PayslipService
      */
     public function downloadPayslip(Payslip $payslip)
     {
-        if (!Storage::exists($payslip->pdf_path)) {
+        if (! Storage::exists($payslip->pdf_path)) {
             // Regenerate if not found
             $this->generatePayslip($payslip->payroll);
         }
@@ -150,15 +151,15 @@ class PayslipService
             [
                 'description' => 'Basic Salary',
                 'amount' => $payroll->basic_salary,
-                'type' => 'basic'
-            ]
+                'type' => 'basic',
+            ],
         ];
 
         foreach ($allowanceGroups as $type => $groupAllowances) {
             $earnings[] = [
                 'description' => $this->formatAllowanceType($type),
                 'amount' => $groupAllowances->sum('amount'),
-                'type' => 'allowance'
+                'type' => 'allowance',
             ];
         }
 
@@ -166,7 +167,7 @@ class PayslipService
             $earnings[] = [
                 'description' => 'Overtime Amount',
                 'amount' => $payroll->overtime_amount,
-                'type' => 'overtime'
+                'type' => 'overtime',
             ];
         }
 
@@ -176,7 +177,7 @@ class PayslipService
             $deductionsBreakdown[] = [
                 'description' => $this->formatDeductionType($type),
                 'amount' => $groupDeductions->sum('amount'),
-                'type' => $type
+                'type' => $type,
             ];
         }
 

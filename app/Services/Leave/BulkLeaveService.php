@@ -36,7 +36,7 @@ class BulkLeaveService
                 'date' => $date,
                 'status' => 'valid',
                 'errors' => [],
-                'warnings' => []
+                'warnings' => [],
             ];
 
             try {
@@ -44,8 +44,8 @@ class BulkLeaveService
 
                 // Check for overlapping leaves
                 $overlapError = $this->overlapService->getOverlapErrorMessage(
-                    $userId, 
-                    $carbonDate, 
+                    $userId,
+                    $carbonDate,
                     $carbonDate
                 );
 
@@ -79,7 +79,7 @@ class BulkLeaveService
 
         return [
             'validation_results' => $results,
-            'estimated_balance_impact' => $estimatedBalanceImpact
+            'estimated_balance_impact' => $estimatedBalanceImpact,
         ];
     }
 
@@ -105,16 +105,17 @@ class BulkLeaveService
 
                     // Validate individual date
                     $validation = $this->validateSingleDate($userId, $carbonDate, $leaveTypeId);
-                    
-                    if (!empty($validation['errors'])) {
+
+                    if (! empty($validation['errors'])) {
                         $failedDates[] = [
                             'date' => $date,
-                            'errors' => $validation['errors']
+                            'errors' => $validation['errors'],
                         ];
-                        
-                        if (!$allowPartialSuccess) {
-                            throw new \Exception('Validation failed for date: ' . $date);
+
+                        if (! $allowPartialSuccess) {
+                            throw new \Exception('Validation failed for date: '.$date);
                         }
+
                         continue;
                     }
 
@@ -125,7 +126,7 @@ class BulkLeaveService
                         'fromDate' => $date,
                         'toDate' => $date,
                         'daysCount' => 1,
-                        'leaveReason' => $reason
+                        'leaveReason' => $reason,
                     ];
 
                     $leave = $this->crudService->createLeave($leaveData);
@@ -134,10 +135,10 @@ class BulkLeaveService
                 } catch (\Exception $e) {
                     $failedDates[] = [
                         'date' => $date,
-                        'errors' => [$e->getMessage()]
+                        'errors' => [$e->getMessage()],
                     ];
 
-                    if (!$allowPartialSuccess) {
+                    if (! $allowPartialSuccess) {
                         throw $e;
                     }
                 }
@@ -152,7 +153,7 @@ class BulkLeaveService
                 'total_requested' => $totalRequested,
                 'successful' => $successful,
                 'failed' => $failed,
-                'partial_success_mode' => $allowPartialSuccess
+                'partial_success_mode' => $allowPartialSuccess,
             ]);
 
             return [
@@ -163,8 +164,8 @@ class BulkLeaveService
                 'summary' => [
                     'total_requested' => $totalRequested,
                     'successful' => $successful,
-                    'failed' => $failed
-                ]
+                    'failed' => $failed,
+                ],
             ];
         });
     }
@@ -196,13 +197,13 @@ class BulkLeaveService
     private function calculateBalanceImpact(int $userId, int $leaveTypeId, int $requestedDays): array
     {
         $leaveSetting = LeaveSetting::find($leaveTypeId);
-        
-        if (!$leaveSetting) {
+
+        if (! $leaveSetting) {
             return [
                 'leave_type' => 'Unknown',
                 'current_balance' => 0,
                 'requested_days' => $requestedDays,
-                'remaining_balance' => 0
+                'remaining_balance' => 0,
             ];
         }
 
@@ -223,7 +224,7 @@ class BulkLeaveService
             'requested_days' => $requestedDays,
             'remaining_balance' => $remainingBalance,
             'total_allowed' => $totalAllowedDays,
-            'used_days' => $usedDays
+            'used_days' => $usedDays,
         ];
     }
 
@@ -235,7 +236,7 @@ class BulkLeaveService
         if ($failed === 0) {
             return "All {$successful} leave requests created successfully";
         } elseif ($successful === 0) {
-            return "Failed to create any leave requests";
+            return 'Failed to create any leave requests';
         } else {
             return "{$successful} leave requests created successfully, {$failed} failed";
         }

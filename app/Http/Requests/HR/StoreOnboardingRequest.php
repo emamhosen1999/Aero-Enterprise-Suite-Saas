@@ -3,7 +3,6 @@
 namespace App\Http\Requests\HR;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\HRM\Onboarding;
 
 class StoreOnboardingRequest extends FormRequest
 {
@@ -30,7 +29,7 @@ class StoreOnboardingRequest extends FormRequest
     public function prepareForValidation(): void
     {
         // Ensure tasks array key always exists to simplify controller logic
-        if (!$this->has('tasks')) {
+        if (! $this->has('tasks')) {
             $this->merge(['tasks' => []]);
         }
     }

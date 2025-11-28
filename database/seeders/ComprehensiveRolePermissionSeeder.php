@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Console\Command;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class ComprehensiveRolePermissionSeeder extends Seeder
 {
@@ -20,12 +19,12 @@ class ComprehensiveRolePermissionSeeder extends Seeder
     /**
      * Set the console command instance.
      *
-     * @param Command $command
      * @return void
      */
     public function setCommand(Command $command)
     {
         $this->command = $command;
+
         return $this;
     }
 
@@ -61,7 +60,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'core' => [
                 'core.dashboard.view' => 'View dashboard and analytics',
                 'core.stats.view' => 'View system statistics',
-                'core.updates.view' => 'View system updates'
+                'core.updates.view' => 'View system updates',
             ],
 
             // Self Service Module
@@ -75,7 +74,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'communications.own.view' => 'View own communications',
                 'profile.own.view' => 'View own profile',
                 'profile.own.update' => 'Update own profile',
-                'profile.password.change' => 'Change own password'
+                'profile.password.change' => 'Change own password',
             ],
 
             // Human Resource Management
@@ -223,7 +222,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'hr.payslips.download' => 'Download payslips',
                 'hr.payslips.email' => 'Email payslips',
                 'hr.payroll.reports' => 'View payroll reports',
-                'hr.payroll.analytics' => 'View payroll analytics'
+                'hr.payroll.analytics' => 'View payroll analytics',
             ],
 
             // Project & Portfolio Management
@@ -243,7 +242,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'reports.view' => 'View reports',
                 'reports.create' => 'Create reports',
                 'reports.update' => 'Update reports',
-                'reports.delete' => 'Delete reports'
+                'reports.delete' => 'Delete reports',
             ],
 
             // HR Performance Management
@@ -334,7 +333,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'documents.view' => 'View documents',
                 'documents.create' => 'Create documents',
                 'documents.update' => 'Update documents',
-                'documents.delete' => 'Delete documents'
+                'documents.delete' => 'Delete documents',
             ],
 
             // Customer Relationship Management (Future)
@@ -350,7 +349,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'feedback.view' => 'View customer feedback',
                 'feedback.create' => 'Create feedback records',
                 'feedback.update' => 'Update feedback',
-                'feedback.delete' => 'Delete feedback'
+                'feedback.delete' => 'Delete feedback',
             ],
 
             // Supply Chain & Inventory Management (Future)
@@ -368,7 +367,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'purchase-orders.update' => 'Update purchase orders',
                 'purchase-orders.delete' => 'Delete purchase orders',
                 'warehousing.view' => 'View warehouse operations',
-                'warehousing.manage' => 'Manage warehouse operations'
+                'warehousing.manage' => 'Manage warehouse operations',
             ],
 
             // Retail & Sales Operations (Future)
@@ -377,7 +376,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'pos.operate' => 'Operate POS terminal',
                 'sales.view' => 'View sales records',
                 'sales.create' => 'Create sales transactions',
-                'sales.analytics' => 'View sales analytics'
+                'sales.analytics' => 'View sales analytics',
             ],
 
             // Financial Management & Accounting (Future)
@@ -389,7 +388,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'ledger.view' => 'View general ledger',
                 'ledger.manage' => 'Manage general ledger',
                 'financial-reports.view' => 'View financial reports',
-                'financial-reports.create' => 'Create financial reports'
+                'financial-reports.create' => 'Create financial reports',
             ],
 
             // System Administration
@@ -420,7 +419,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'audit.view' => 'View audit logs',
                 'audit.export' => 'Export audit data',
                 'backup.create' => 'Create system backups',
-                'backup.restore' => 'Restore system backups'
+                'backup.restore' => 'Restore system backups',
             ],
 
             // Compliance Management
@@ -439,7 +438,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'compliance.requirements.create' => 'Create compliance requirements',
                 'compliance.requirements.update' => 'Update compliance requirements',
                 'compliance.requirements.delete' => 'Delete compliance requirements',
-                'compliance.settings' => 'Manage compliance settings'
+                'compliance.settings' => 'Manage compliance settings',
             ],
 
             // Quality Management
@@ -458,7 +457,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'quality.calibrations.create' => 'Create equipment calibrations',
                 'quality.calibrations.update' => 'Update equipment calibrations',
                 'quality.calibrations.delete' => 'Delete equipment calibrations',
-                'quality.settings' => 'Manage quality control settings'
+                'quality.settings' => 'Manage quality control settings',
             ],
 
             // Analytics & Business Intelligence
@@ -478,7 +477,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'analytics.kpi.update' => 'Update key performance indicators',
                 'analytics.kpi.delete' => 'Delete key performance indicators',
                 'analytics.kpi.log' => 'Log KPI values',
-                'analytics.settings' => 'Manage analytics settings'
+                'analytics.settings' => 'Manage analytics settings',
             ],
 
             // Project Management (Extended)
@@ -505,7 +504,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'project-management.issues.update' => 'Update project issues',
                 'project-management.issues.delete' => 'Delete project issues',
                 'project-management.reports.view' => 'View project reports',
-                'project-management.settings' => 'Manage project settings'
+                'project-management.settings' => 'Manage project settings',
             ],
 
             // Learning Management System (LMS)
@@ -546,7 +545,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'lms.reports.view' => 'View LMS reports',
 
                 // Settings
-                'lms.settings.manage' => 'Manage LMS settings'
+                'lms.settings.manage' => 'Manage LMS settings',
             ],
         ];
 
@@ -554,10 +553,10 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             foreach ($permissions as $permissionName => $description) {
                 Permission::firstOrCreate([
                     'name' => $permissionName,
-                    'guard_name' => 'web'
+                    'guard_name' => 'web',
                 ], [
                     'module' => $module,
-                    'description' => $description
+                    'description' => $description,
                 ]);
             }
         }
@@ -577,68 +576,68 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'name' => 'Super Administrator',
                 'description' => 'Full system access with all privileges',
                 'hierarchy_level' => 1,
-                'is_system_role' => true
+                'is_system_role' => true,
             ],
             [
                 'name' => 'Administrator',
                 'description' => 'Administrative access to most system functions',
                 'hierarchy_level' => 10,
-                'is_system_role' => true
+                'is_system_role' => true,
             ],
             [
                 'name' => 'HR Manager',
                 'description' => 'Human resources management and employee operations',
                 'hierarchy_level' => 20,
-                'is_system_role' => false
+                'is_system_role' => false,
             ],
             [
                 'name' => 'Project Manager',
                 'description' => 'Project and portfolio management capabilities',
                 'hierarchy_level' => 20,
-                'is_system_role' => false
+                'is_system_role' => false,
             ],
             [
                 'name' => 'Department Manager',
                 'description' => 'Departmental management and team oversight',
                 'hierarchy_level' => 30,
-                'is_system_role' => false
+                'is_system_role' => false,
             ],
             [
                 'name' => 'Team Lead',
                 'description' => 'Team leadership and basic management functions',
                 'hierarchy_level' => 40,
-                'is_system_role' => false
+                'is_system_role' => false,
             ],
             [
                 'name' => 'Senior Employee',
                 'description' => 'Senior level employee with extended access',
                 'hierarchy_level' => 50,
-                'is_system_role' => false
+                'is_system_role' => false,
             ],
             [
                 'name' => 'Employee',
                 'description' => 'Standard employee access to self-service functions',
                 'hierarchy_level' => 60,
-                'is_system_role' => false
+                'is_system_role' => false,
             ],
             [
                 'name' => 'Contractor',
                 'description' => 'Limited access for contractors and temporary staff',
                 'hierarchy_level' => 70,
-                'is_system_role' => false
+                'is_system_role' => false,
             ],
             [
                 'name' => 'Intern',
                 'description' => 'Basic access for interns and trainees',
                 'hierarchy_level' => 80,
-                'is_system_role' => false
-            ]
+                'is_system_role' => false,
+            ],
         ];
 
         foreach ($roles as $roleData) {
             Role::firstOrCreate([
                 'name' => $roleData['name'],
-                'guard_name' => 'web'
+                'guard_name' => 'web',
             ], $roleData);
         }
 
@@ -661,7 +660,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
         $adminPermissions = Permission::whereNotIn('name', [
             'users.impersonate',
             'backup.create',
-            'backup.restore'
+            'backup.restore',
         ])->get();
         $admin->givePermissionTo($adminPermissions);
 
@@ -717,7 +716,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'hr.timeoff.approve',
                 'hr.timeoff.reject',
                 'hr.analytics.view',
-                'hr.employee.documents.view'
+                'hr.employee.documents.view',
             ])
             ->get();
         $deptManager->givePermissionTo($deptPermissions);
@@ -749,7 +748,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'hr.timeoff.approve',
                 'hr.timeoff.calendar.view',
                 'hr.safety.view',
-                'hr.safety.incidents.view'
+                'hr.safety.incidents.view',
             ])
             ->get();
         $teamLead->givePermissionTo($teamPermissions);
@@ -770,7 +769,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'training-feedback.own.view',
                 'training-feedback.own.create',
                 'training-assignment-submissions.create',
-                'training-assignment-submissions.update'
+                'training-assignment-submissions.update',
             ])
             ->get();
         $seniorEmployee->givePermissionTo($seniorPermissions);
@@ -796,7 +795,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
                 'hr.selfservice.trainings.view',
                 'hr.selfservice.payslips.view',
                 'hr.selfservice.performance.view',
-                'hr.safety.incidents.create'
+                'hr.safety.incidents.create',
             ])
             ->get();
         $employee->givePermissionTo($employeePermissions);
@@ -812,7 +811,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'profile.password.change',
             'daily-works.view',
             'daily-works.create',
-            'tasks.view'
+            'tasks.view',
         ])
             ->get();
         $contractor->givePermissionTo($contractorPermissions);
@@ -825,7 +824,7 @@ class ComprehensiveRolePermissionSeeder extends Seeder
             'attendance.own.punch',
             'profile.own.view',
             'profile.password.change',
-            'tasks.view'
+            'tasks.view',
         ])
             ->get();
         $intern->givePermissionTo($internPermissions);

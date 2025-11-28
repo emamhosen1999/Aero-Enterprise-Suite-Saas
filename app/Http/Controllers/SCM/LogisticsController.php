@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
+use App\Models\InventoryLocation;
 use App\Models\LogisticsCarrier;
 use App\Models\LogisticsShipment;
-use App\Models\InventoryLocation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
@@ -122,7 +121,7 @@ class LogisticsController extends Controller
     public function destroy(LogisticsShipment $logistic)
     {
         // Only allow deletion of pending shipments
-        if (!in_array($logistic->status, ['pending', 'failed'])) {
+        if (! in_array($logistic->status, ['pending', 'failed'])) {
             return Redirect::route('scm.logistics.index')->with('error', 'Only pending or failed shipments can be deleted.');
         }
 
@@ -228,7 +227,8 @@ class LogisticsController extends Controller
     private function generateShipmentNumber()
     {
         $lastShipment = LogisticsShipment::latest('id')->first();
-        $nextNumber = $lastShipment ? (int)substr($lastShipment->shipment_number, 4) + 1 : 1;
-        return 'SHP-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastShipment ? (int) substr($lastShipment->shipment_number, 4) + 1 : 1;
+
+        return 'SHP-'.str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 }

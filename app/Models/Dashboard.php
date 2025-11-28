@@ -24,7 +24,7 @@ class Dashboard extends Model
         'is_public',
         'refresh_interval',
         'layout',
-        'status'
+        'status',
     ];
 
     /**

@@ -1,13 +1,13 @@
 /**
  * Standardized chip colors and states for consistent UI across the application
- * These colors work with both NextUI and Material-UI chip components
+ * These colors work with both HeroUI and Material-UI chip components
  */
 
 // Leave status chip colors
 export const LEAVE_STATUS_COLORS = {
     'pending': {
         color: 'warning',
-        nextUIColor: 'warning',
+        heroUIColor: 'warning',
         muiColor: 'warning',
         icon: '⏳',
         bgColor: 'rgba(245, 158, 11, 0.1)',
@@ -16,7 +16,7 @@ export const LEAVE_STATUS_COLORS = {
     },
     'approved': {
         color: 'success',
-        nextUIColor: 'success',
+        heroUIColor: 'success',
         muiColor: 'success',
         icon: '✅',
         bgColor: 'rgba(34, 197, 94, 0.1)',
@@ -25,7 +25,7 @@ export const LEAVE_STATUS_COLORS = {
     },
     'rejected': {
         color: 'danger',
-        nextUIColor: 'danger',
+        heroUIColor: 'danger',
         muiColor: 'error',
         icon: '❌',
         bgColor: 'rgba(239, 68, 68, 0.1)',
@@ -34,7 +34,7 @@ export const LEAVE_STATUS_COLORS = {
     },
     'cancelled': {
         color: 'default',
-        nextUIColor: 'default',
+        heroUIColor: 'default',
         muiColor: 'default',
         icon: '⚪',
         bgColor: 'rgba(107, 114, 128, 0.1)',
@@ -47,7 +47,7 @@ export const LEAVE_STATUS_COLORS = {
 export const HOLIDAY_TYPE_COLORS = {
     'public': {
         color: 'danger',
-        nextUIColor: 'danger',
+        heroUIColor: 'danger',
         muiColor: 'error',
         icon: '🏛️',
         bgColor: 'rgba(239, 68, 68, 0.1)',
@@ -56,7 +56,7 @@ export const HOLIDAY_TYPE_COLORS = {
     },
     'religious': {
         color: 'secondary',
-        nextUIColor: 'secondary',
+        heroUIColor: 'secondary',
         muiColor: 'secondary',
         icon: '🕌',
         bgColor: 'rgba(168, 85, 247, 0.1)',
@@ -65,7 +65,7 @@ export const HOLIDAY_TYPE_COLORS = {
     },
     'national': {
         color: 'primary',
-        nextUIColor: 'primary',
+        heroUIColor: 'primary',
         muiColor: 'primary',
         icon: '🇧🇩',
         bgColor: 'rgba(59, 130, 246, 0.1)',
@@ -74,7 +74,7 @@ export const HOLIDAY_TYPE_COLORS = {
     },
     'company': {
         color: 'warning',
-        nextUIColor: 'warning',
+        heroUIColor: 'warning',
         muiColor: 'warning',
         icon: '🏢',
         bgColor: 'rgba(245, 158, 11, 0.1)',
@@ -83,7 +83,7 @@ export const HOLIDAY_TYPE_COLORS = {
     },
     'optional': {
         color: 'default',
-        nextUIColor: 'default',
+        heroUIColor: 'default',
         muiColor: 'default',
         icon: '📅',
         bgColor: 'rgba(107, 114, 128, 0.1)',
@@ -96,7 +96,7 @@ export const HOLIDAY_TYPE_COLORS = {
 export const HOLIDAY_STATUS_COLORS = {
     'upcoming': {
         color: 'primary',
-        nextUIColor: 'primary',
+        heroUIColor: 'primary',
         muiColor: 'primary',
         icon: '⏰',
         bgColor: 'rgba(59, 130, 246, 0.1)',
@@ -105,7 +105,7 @@ export const HOLIDAY_STATUS_COLORS = {
     },
     'ongoing': {
         color: 'success',
-        nextUIColor: 'success',
+        heroUIColor: 'success',
         muiColor: 'success',
         icon: '🟢',
         bgColor: 'rgba(34, 197, 94, 0.1)',
@@ -114,7 +114,7 @@ export const HOLIDAY_STATUS_COLORS = {
     },
     'past': {
         color: 'default',
-        nextUIColor: 'default',
+        heroUIColor: 'default',
         muiColor: 'default',
         icon: '⚪',
         bgColor: 'rgba(107, 114, 128, 0.1)',
@@ -127,7 +127,7 @@ export const HOLIDAY_STATUS_COLORS = {
 export const CALENDAR_DATE_COLORS = {
     'selected': {
         color: 'primary',
-        nextUIColor: 'primary',
+        heroUIColor: 'primary',
         muiColor: 'primary',
         bgColor: 'rgba(59, 130, 246, 1)',
         textColor: '#ffffff',
@@ -136,7 +136,7 @@ export const CALENDAR_DATE_COLORS = {
     },
     'existing_leave': {
         color: 'danger',
-        nextUIColor: 'danger',
+        heroUIColor: 'danger',
         muiColor: 'error',
         bgColor: 'rgba(239, 68, 68, 0.2)',
         textColor: '#dc2626',
@@ -146,7 +146,7 @@ export const CALENDAR_DATE_COLORS = {
     },
     'holiday': {
         color: 'warning',
-        nextUIColor: 'warning',
+        heroUIColor: 'warning',
         muiColor: 'warning',
         bgColor: 'rgba(245, 158, 11, 0.2)',
         textColor: '#d97706',
@@ -156,7 +156,7 @@ export const CALENDAR_DATE_COLORS = {
     },
     'today': {
         color: 'secondary',
-        nextUIColor: 'secondary',
+        heroUIColor: 'secondary',
         muiColor: 'secondary',
         bgColor: 'rgba(168, 85, 247, 0.1)',
         textColor: '#7c3aed',
@@ -165,7 +165,7 @@ export const CALENDAR_DATE_COLORS = {
     },
     'weekend': {
         color: 'default',
-        nextUIColor: 'default',
+        heroUIColor: 'default',
         muiColor: 'default',
         bgColor: 'transparent',
         textColor: '#9ca3af',
@@ -173,7 +173,7 @@ export const CALENDAR_DATE_COLORS = {
     },
     'disabled': {
         color: 'default',
-        nextUIColor: 'default',
+        heroUIColor: 'default',
         muiColor: 'default',
         bgColor: 'rgba(107, 114, 128, 0.05)',
         textColor: '#d1d5db',
@@ -185,7 +185,7 @@ export const CALENDAR_DATE_COLORS = {
 export const USER_STATUS_COLORS = {
     'active': {
         color: 'success',
-        nextUIColor: 'success',
+        heroUIColor: 'success',
         muiColor: 'success',
         icon: '✅',
         bgColor: 'rgba(34, 197, 94, 0.1)',
@@ -194,7 +194,7 @@ export const USER_STATUS_COLORS = {
     },
     'inactive': {
         color: 'danger',
-        nextUIColor: 'danger',
+        heroUIColor: 'danger',
         muiColor: 'error',
         icon: '❌',
         bgColor: 'rgba(239, 68, 68, 0.1)',
@@ -203,7 +203,7 @@ export const USER_STATUS_COLORS = {
     },
     'suspended': {
         color: 'warning',
-        nextUIColor: 'warning',
+        heroUIColor: 'warning',
         muiColor: 'warning',
         icon: '⚠️',
         bgColor: 'rgba(245, 158, 11, 0.1)',
@@ -216,7 +216,7 @@ export const USER_STATUS_COLORS = {
 export const VALIDATION_RESULT_COLORS = {
     'valid': {
         color: 'success',
-        nextUIColor: 'success',
+        heroUIColor: 'success',
         muiColor: 'success',
         icon: '✅',
         bgColor: 'rgba(34, 197, 94, 0.1)',
@@ -225,7 +225,7 @@ export const VALIDATION_RESULT_COLORS = {
     },
     'warning': {
         color: 'warning',
-        nextUIColor: 'warning',
+        heroUIColor: 'warning',
         muiColor: 'warning',
         icon: '⚠️',
         bgColor: 'rgba(245, 158, 11, 0.1)',
@@ -234,7 +234,7 @@ export const VALIDATION_RESULT_COLORS = {
     },
     'conflict': {
         color: 'danger',
-        nextUIColor: 'danger',
+        heroUIColor: 'danger',
         muiColor: 'error',
         icon: '❌',
         bgColor: 'rgba(239, 68, 68, 0.1)',
@@ -243,7 +243,7 @@ export const VALIDATION_RESULT_COLORS = {
     },
     'info': {
         color: 'primary',
-        nextUIColor: 'primary',
+        heroUIColor: 'primary',
         muiColor: 'primary',
         icon: 'ℹ️',
         bgColor: 'rgba(59, 130, 246, 0.1)',

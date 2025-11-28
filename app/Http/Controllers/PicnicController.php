@@ -9,7 +9,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PicnicController extends Controller
 {
-
     public function index(): \Inertia\Response
     {
         $participants = PicnicParticipant::all();
@@ -32,7 +31,7 @@ class PicnicController extends Controller
             'name' => $participant->name,
             'phone' => $participant->phone,
             'random_number' => $participant->random_number,
-            'payment_amount' => $participant->payment_amount
+            'payment_amount' => $participant->payment_amount,
         ]);
 
         $qrCode = QrCode::size(300)->generate($qrData);

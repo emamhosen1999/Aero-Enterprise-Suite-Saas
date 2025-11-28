@@ -4,48 +4,60 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\LeaveResource;
 use App\Http\Resources\LeaveResourceCollection;
+use App\Models\HRM\Department;
 use App\Models\HRM\Leave;
 use App\Models\HRM\LeaveSetting;
 use App\Models\User;
+use App\Services\Leave\LeaveApprovalService;
 use App\Services\Leave\LeaveCrudService;
 use App\Services\Leave\LeaveOverlapService;
 use App\Services\Leave\LeaveQueryService;
 use App\Services\Leave\LeaveSummaryService;
 use App\Services\Leave\LeaveValidationService;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use App\Models\HRM\Department;
 
 class LeaveController extends Controller
 {
     protected LeaveValidationService $validationService;
+
     protected LeaveOverlapService $overlapService;
+
     protected LeaveCrudService $crudService;
+
     protected LeaveQueryService $queryService;
+
     protected LeaveSummaryService $summaryService;
+
+    protected LeaveApprovalService $approvalService;
 
     public function __construct(
         LeaveValidationService $validationService,
         LeaveOverlapService $overlapService,
         LeaveCrudService $crudService,
         LeaveQueryService $queryService,
-        LeaveSummaryService $summaryService
+        LeaveSummaryService $summaryService,
+        LeaveApprovalService $approvalService
     ) {
         $this->validationService = $validationService;
         $this->overlapService = $overlapService;
         $this->crudService = $crudService;
         $this->queryService = $queryService;
         $this->summaryService = $summaryService;
+        $this->approvalService = $approvalService;
     }
+
     public function index1(): \Inertia\Response
     {
         return Inertia::render('LeavesEmployee', [
             'title' => 'Leaves',
             'allUsers' => User::all(),
-            
+
         ]);
     }
 
@@ -61,14 +73,14 @@ class LeaveController extends Controller
     {
         try {
             $leaveData = $this->queryService->getLeaveRecords($request);
-            
+
             // Debug log the structure returned by LeaveQueryService
             Log::info('LeaveController - leaveData structure:', [
                 'leavesData_keys' => array_keys($leaveData['leavesData'] ?? []),
                 'publicHolidays_count' => count($leaveData['leavesData']['publicHolidays'] ?? []),
-                'publicHolidays_sample' => array_slice($leaveData['leavesData']['publicHolidays'] ?? [], 0, 3)
+                'publicHolidays_sample' => array_slice($leaveData['leavesData']['publicHolidays'] ?? [], 0, 3),
             ]);
-            
+
             $response = [
                 'leaves' => new LeaveResourceCollection($leaveData['leaveRecords']),
                 'leavesData' => $leaveData['leavesData'],
@@ -84,6 +96,7 @@ class LeaveController extends Controller
             return response()->json($response, 200);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'success' => false,
                 'error' => 'An error occurred while retrieving leave data.',
@@ -102,6 +115,7 @@ class LeaveController extends Controller
             ]);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'error' => 'An error occurred while retrieving leave data.',
                 'details' => $e->getMessage(),
@@ -117,7 +131,7 @@ class LeaveController extends Controller
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors(),
-                'message' => 'Validation failed'
+                'message' => 'Validation failed',
             ], 422);
         }
 
@@ -132,7 +146,7 @@ class LeaveController extends Controller
                 return response()->json([
                     'success' => false,
                     'error' => $overlapError,
-                    'message' => 'Leave dates overlap with existing leave or holiday'
+                    'message' => 'Leave dates overlap with existing leave or holiday',
                 ], 422);
             }
 
@@ -163,6 +177,7 @@ class LeaveController extends Controller
             ], 201);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'success' => false,
                 'error' => 'An error occurred while submitting the leave data.',
@@ -200,6 +215,7 @@ class LeaveController extends Controller
             ], 200);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'error' => 'An error occurred while updating the leave.',
                 'details' => $e->getMessage(),
@@ -235,6 +251,7 @@ class LeaveController extends Controller
             ]);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'error' => 'An error occurred while deleting the leave.',
                 'details' => $e->getMessage(),
@@ -265,7 +282,7 @@ class LeaveController extends Controller
         try {
             $request->validate([
                 'leave_ids' => 'required|array',
-                'leave_ids.*' => 'integer|exists:leave_applications,id'
+                'leave_ids.*' => 'integer|exists:leave_applications,id',
             ]);
 
             $leaveIds = $request->input('leave_ids');
@@ -281,10 +298,11 @@ class LeaveController extends Controller
             return response()->json([
                 'message' => "{$updatedCount} leave(s) approved successfully",
                 'updated_count' => $updatedCount,
-                'total_requested' => count($leaveIds)
+                'total_requested' => count($leaveIds),
             ]);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'error' => 'An error occurred while approving leaves.',
                 'details' => $e->getMessage(),
@@ -297,7 +315,7 @@ class LeaveController extends Controller
         try {
             $request->validate([
                 'leave_ids' => 'required|array',
-                'leave_ids.*' => 'integer|exists:leave_applications,id'
+                'leave_ids.*' => 'integer|exists:leave_applications,id',
             ]);
 
             $leaveIds = $request->input('leave_ids');
@@ -313,14 +331,304 @@ class LeaveController extends Controller
             return response()->json([
                 'message' => "{$updatedCount} leave(s) rejected successfully",
                 'updated_count' => $updatedCount,
-                'total_requested' => count($leaveIds)
+                'total_requested' => count($leaveIds),
             ]);
         } catch (\Throwable $e) {
             report($e);
+
             return response()->json([
                 'error' => 'An error occurred while rejecting leaves.',
                 'details' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $filters = [
+            'year' => $request->input('year', now()->year),
+            'department_id' => $request->input('department_id'),
+            'employee_id' => $request->input('employee_id'),
+            'status' => $request->input('status'),
+            'leave_type' => $request->input('leave_type'),
+        ];
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\LeaveSummaryExport($filters),
+            'Leave_Summary_'.($filters['year'] ?? now()->year).'.xlsx'
+        );
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $filters = [
+            'year' => $request->input('year', now()->year),
+            'department_id' => $request->input('department_id'),
+            'employee_id' => $request->input('employee_id'),
+            'status' => $request->input('status'),
+            'leave_type' => $request->input('leave_type'),
+        ];
+
+        $summaryData = $this->summaryService->generateLeaveSummary($filters);
+
+        $pdf = PDF::loadView('leave_summary_pdf', [
+            'title' => 'Leave Summary - '.($filters['year'] ?? now()->year),
+            'generatedOn' => now()->format('F d, Y h:i A'),
+            'summaryData' => $summaryData,
+            'filters' => $filters,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download('Leave_Summary_'.($filters['year'] ?? now()->year).'.pdf');
+    }
+
+    /**
+     * Approve leave request at current approval level
+     */
+    public function approveLeave(Request $request, $id)
+    {
+        try {
+            $leave = Leave::findOrFail($id);
+            $approver = Auth::user();
+            $comments = $request->input('comments');
+
+            $result = $this->approvalService->approve($leave, $approver, $comments);
+
+            if ($result['success']) {
+                return response()->json($result, 200);
+            }
+
+            return response()->json($result, 403);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while approving the leave.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject leave request
+     */
+    public function rejectLeave(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'reason' => 'required|string|min:10',
+            ]);
+
+            $leave = Leave::findOrFail($id);
+            $approver = Auth::user();
+            $reason = $request->input('reason');
+
+            $result = $this->approvalService->reject($leave, $approver, $reason);
+
+            if ($result['success']) {
+                return response()->json($result, 200);
+            }
+
+            return response()->json($result, 403);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while rejecting the leave.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pending approvals for current user
+     */
+    public function pendingApprovals()
+    {
+        try {
+            $user = Auth::user();
+            $pendingLeaves = $this->approvalService->getPendingApprovalsForUser($user);
+            $stats = $this->approvalService->getApprovalStats($user);
+
+            return response()->json([
+                'success' => true,
+                'pending_leaves' => $pendingLeaves,
+                'stats' => $stats,
+            ], 200);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching pending approvals.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get leave analytics data
+     */
+    public function getAnalytics(Request $request)
+    {
+        try {
+            $year = $request->input('year', now()->year);
+            $departmentId = $request->input('department_id');
+
+            $analytics = [
+                'monthly_trends' => $this->getMonthlyTrends($year, $departmentId),
+                'department_comparison' => $this->getDepartmentComparison($year),
+                'leave_type_distribution' => $this->getLeaveTypeDistribution($year, $departmentId),
+                'absenteeism_rate' => $this->getAbsenteeismRate($year, $departmentId),
+                'peak_periods' => $this->getPeakPeriods($year, $departmentId),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'analytics' => $analytics,
+            ], 200);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching analytics.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get monthly leave trends
+     */
+    protected function getMonthlyTrends($year, $departmentId = null)
+    {
+        $query = Leave::whereYear('from_date', $year);
+
+        if ($departmentId) {
+            $query->whereHas('user', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        return collect(range(1, 12))->map(function ($month) use ($query) {
+            $monthQuery = clone $query;
+
+            return [
+                'month' => Carbon::create(null, $month)->format('M'),
+                'leaves_taken' => $monthQuery->whereMonth('from_date', $month)
+                    ->where('status', 'approved')
+                    ->sum('no_of_days'),
+                'leaves_approved' => $monthQuery->whereMonth('from_date', $month)
+                    ->where('status', 'approved')
+                    ->count(),
+            ];
+        });
+    }
+
+    /**
+     * Get department comparison
+     */
+    protected function getDepartmentComparison($year)
+    {
+        return Department::withCount(['users as average_days' => function ($query) use ($year) {
+            $query->join('leaves', 'users.id', '=', 'leaves.user_id')
+                ->whereYear('leaves.from_date', $year)
+                ->where('leaves.status', 'approved')
+                ->select(DB::raw('AVG(leaves.no_of_days)'));
+        }])
+            ->having('average_days', '>', 0)
+            ->get()
+            ->map(function ($dept) {
+                return [
+                    'department' => $dept->name,
+                    'average_days' => round($dept->average_days ?? 0, 2),
+                ];
+            });
+    }
+
+    /**
+     * Get leave type distribution
+     */
+    protected function getLeaveTypeDistribution($year, $departmentId = null)
+    {
+        $query = Leave::whereYear('from_date', $year)
+            ->where('status', 'approved');
+
+        if ($departmentId) {
+            $query->whereHas('user', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        return $query->join('leave_settings', 'leaves.leave_type', '=', 'leave_settings.id')
+            ->select('leave_settings.type', DB::raw('count(*) as count'))
+            ->groupBy('leave_settings.type')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'type' => $item->type,
+                    'count' => $item->count,
+                ];
+            });
+    }
+
+    /**
+     * Get absenteeism rate
+     */
+    protected function getAbsenteeismRate($year, $departmentId = null)
+    {
+        $workingDays = 260; // Approximate working days in a year
+
+        $query = Leave::whereYear('from_date', $year)
+            ->where('status', 'approved');
+
+        if ($departmentId) {
+            $query->whereHas('user', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        $totalLeaveDays = $query->sum('no_of_days');
+        $employeeCount = User::when($departmentId, function ($q) use ($departmentId) {
+            $q->where('department_id', $departmentId);
+        })->count();
+
+        if ($employeeCount === 0) {
+            return 0;
+        }
+
+        return ($totalLeaveDays / ($employeeCount * $workingDays)) * 100;
+    }
+
+    /**
+     * Get peak leave periods
+     */
+    protected function getPeakPeriods($year, $departmentId = null)
+    {
+        $query = Leave::whereYear('from_date', $year)
+            ->where('status', 'approved');
+
+        if ($departmentId) {
+            $query->whereHas('user', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        return $query->selectRaw('MONTH(from_date) as month, COUNT(*) as count')
+            ->groupBy('month')
+            ->orderByDesc('count')
+            ->limit(5)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'period' => Carbon::create(null, $item->month)->format('F'),
+                    'count' => $item->count,
+                    'reason' => null,
+                ];
+            });
     }
 }

@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\DMS\Document;
 use App\Models\DMS\Category;
-use App\Models\DMS\Folder;
-use App\Models\DMS\DocumentShare;
+use App\Models\DMS\Document;
 use App\Models\DMS\DocumentAccessLog;
+use App\Models\DMS\DocumentShare;
+use App\Models\DMS\Folder;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -20,10 +20,10 @@ class DMSService
     public function createDocument(array $data, UploadedFile $file, User $user): Document
     {
         // Generate unique document number
-        $documentNumber = 'DOC-' . date('Y') . '-' . str_pad(Document::count() + 1, 6, '0', STR_PAD_LEFT);
+        $documentNumber = 'DOC-'.date('Y').'-'.str_pad(Document::count() + 1, 6, '0', STR_PAD_LEFT);
 
         // Store file
-        $fileName = $documentNumber . '_' . Str::slug($data['title']) . '.' . $file->getClientOriginalExtension();
+        $fileName = $documentNumber.'_'.Str::slug($data['title']).'.'.$file->getClientOriginalExtension();
         $filePath = $file->storeAs('documents', $fileName, 'public');
 
         // Create document
@@ -114,29 +114,29 @@ class DMSService
         $query = Document::query()->with(['category', 'creator', 'folder']);
 
         // Apply filters
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('title', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('document_number', 'like', '%' . $filters['search'] . '%');
+                $q->where('title', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('description', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('document_number', 'like', '%'.$filters['search'].'%');
             });
         }
 
-        if (!empty($filters['category_id'])) {
+        if (! empty($filters['category_id'])) {
             $query->where('category_id', $filters['category_id']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['visibility'])) {
+        if (! empty($filters['visibility'])) {
             $query->where('visibility', $filters['visibility']);
         }
 
         // Filter by user access
         $userRoles = $user->roles->pluck('name')->toArray();
-        if (!in_array('Super Administrator', $userRoles) && !in_array('Administrator', $userRoles)) {
+        if (! in_array('Super Administrator', $userRoles) && ! in_array('Administrator', $userRoles)) {
             $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id)
                     ->orWhere('visibility', 'public')

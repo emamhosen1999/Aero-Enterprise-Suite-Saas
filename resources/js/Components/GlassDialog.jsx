@@ -1,38 +1,49 @@
 import React, { forwardRef } from 'react';
-import Dialog from '@mui/material/Dialog';
-import Fade from '@mui/material/Fade';
+import { Modal, ModalContent } from '@heroui/react';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
 
-const Transition = forwardRef(function Transition(props, ref) {
-  return <Fade timeout={600} ref={ref} {...props} />;
-});
+const GlassDialog = forwardRef(({ children, ...props }, ref) => {
+  const { themeSettings } = useTheme();
+  const isDark = themeSettings?.mode === 'dark';
 
-const GlassDialog = forwardRef(({
-  open,
-  closeModal,
-  children,
-  ...props
-}, ref) => {
+  // Glass style for the whole popup (modal base slot)
+  const glassStyles = {
+    backdropFilter: "blur(16px) saturate(180%)",
+    WebkitBackdropFilter: "blur(16px) saturate(180%)",
+    backgroundColor: isDark
+      ? "rgba(0, 0, 0, 0.15)"
+      : "rgba(255, 255, 255, 0.15)",
+    borderRadius: "16px",
+    border: isDark
+      ? "1px solid rgba(255, 255, 255, 0.1)"
+      : "1px solid rgba(0, 0, 0, 0.1)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    boxShadow: isDark
+      ? "0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+      : "0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+  };
+
   return (
-    <Dialog
-      {...props}
-      ref={ref}
-      open={open}
-      onClose={closeModal}
-      fullWidth
-      maxWidth="md"
-      variant="glass"                      // ✅ Enables glass theme variant
-      TransitionComponent={Transition}     // ✅ Smooth Fade animation
-      aria-labelledby="glass-dialog"
-      scroll="paper"                       // ✅ Enable proper scrolling
-      PaperProps={{
-        sx: {
-          maxHeight: '90vh',              // ✅ Limit dialog height
-          ...props.PaperProps?.sx
-        }
-      }}
+    <>
+    <Modal
+    {...props}
+    
+    
     >
-      {children}
-    </Dialog>
+      <ModalContent
+      classNames={{
+      base: "backdrop-blur"
+    }}
+        
+      >
+        {children}
+      </ModalContent>
+      
+    </Modal>
+   
+    </>
+    
+    
   );
 });
 

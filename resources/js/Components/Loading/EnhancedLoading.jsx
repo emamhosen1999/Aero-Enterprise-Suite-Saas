@@ -148,7 +148,7 @@ export const SmartSkeletonCard = memo(({
 
     return (
         <Box
-            className={`${className} p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10`}
+            className={`${className} p-6 bg-white/5 backdrop-blur-xs rounded-xl border border-white/10`}
             sx={{ 
                 height: `${height}px`,
                 display: 'flex',
@@ -362,7 +362,7 @@ export const SmartPageLoader = memo(({
                     >
                         <Box className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
                             <Box 
-                                className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300 ease-out"
+                                className="h-full bg-linear-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300 ease-out"
                                 sx={{ 
                                     width: `${progress}%`,
                                     boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)'

@@ -18,7 +18,7 @@ class JobApplicationStageHistory extends Model
         'stage_id',
         'moved_by',
         'moved_at',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [

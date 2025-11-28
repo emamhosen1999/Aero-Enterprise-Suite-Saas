@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Compliance;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use App\Models\Compliance\CompliancePolicy;
-use App\Models\Compliance\RegulatoryRequirement;
-use App\Models\Compliance\RiskAssessment;
-use App\Models\Compliance\ComplianceAudit;
 use App\Models\Compliance\AuditFinding;
+use App\Models\Compliance\ComplianceAudit;
+use App\Models\Compliance\CompliancePolicy;
 use App\Models\Compliance\ComplianceTrainingRecord;
 use App\Models\Compliance\ControlledDocument;
+use App\Models\Compliance\RegulatoryRequirement;
+use App\Models\Compliance\RiskAssessment;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ComplianceController extends Controller
 {
@@ -26,7 +26,7 @@ class ComplianceController extends Controller
             'stats' => $stats,
             'recentActivities' => $this->getRecentActivities(),
             'upcomingDeadlines' => $this->getUpcomingDeadlines(),
-            'criticalIssues' => $this->getCriticalIssues()
+            'criticalIssues' => $this->getCriticalIssues(),
         ]);
     }
 
@@ -40,39 +40,39 @@ class ComplianceController extends Controller
                 'total' => CompliancePolicy::count(),
                 'active' => CompliancePolicy::active()->count(),
                 'due_for_review' => CompliancePolicy::dueForReview()->count(),
-                'overdue' => CompliancePolicy::overdue()->count()
+                'overdue' => CompliancePolicy::overdue()->count(),
             ],
             'regulatory_requirements' => [
                 'total' => RegulatoryRequirement::count(),
                 'active' => RegulatoryRequirement::active()->count(),
-                'compliance_rate' => $this->calculateComplianceRate()
+                'compliance_rate' => $this->calculateComplianceRate(),
             ],
             'risk_assessments' => [
                 'total' => RiskAssessment::count(),
                 'high_risk' => RiskAssessment::highRisk()->count(),
                 'overdue_review' => RiskAssessment::overdueReview()->count(),
-                'active' => RiskAssessment::active()->count()
+                'active' => RiskAssessment::active()->count(),
             ],
             'audits' => [
                 'total' => ComplianceAudit::count(),
                 'active' => ComplianceAudit::active()->count(),
                 'completed_this_year' => ComplianceAudit::completed()
                     ->whereYear('end_date', now()->year)->count(),
-                'findings_open' => AuditFinding::where('status', AuditFinding::STATUS_OPEN)->count()
+                'findings_open' => AuditFinding::where('status', AuditFinding::STATUS_OPEN)->count(),
             ],
             'training' => [
                 'total_records' => ComplianceTrainingRecord::count(),
                 'completed_this_year' => ComplianceTrainingRecord::completed()
                     ->whereYear('completion_date', now()->year)->count(),
                 'expired' => ComplianceTrainingRecord::expired()->count(),
-                'expiring_soon' => ComplianceTrainingRecord::expiringSoon()->count()
+                'expiring_soon' => ComplianceTrainingRecord::expiringSoon()->count(),
             ],
             'documents' => [
                 'total' => ControlledDocument::count(),
                 'active' => ControlledDocument::active()->count(),
                 'due_for_review' => ControlledDocument::dueForReview()->count(),
-                'pending_approval' => ControlledDocument::pendingApproval()->count()
-            ]
+                'pending_approval' => ControlledDocument::pendingApproval()->count(),
+            ],
         ];
     }
 
@@ -95,7 +95,7 @@ class ComplianceController extends Controller
                     'date' => $policy->updated_at,
                     'user' => $policy->owner->name ?? 'System',
                     'icon' => 'document-text',
-                    'color' => 'blue'
+                    'color' => 'blue',
                 ];
             });
 
@@ -111,7 +111,7 @@ class ComplianceController extends Controller
                     'date' => $finding->created_at,
                     'user' => $finding->responsiblePerson->name ?? 'Unassigned',
                     'icon' => 'exclamation-triangle',
-                    'color' => $finding->severity === 'critical' ? 'red' : 'yellow'
+                    'color' => $finding->severity === 'critical' ? 'red' : 'yellow',
                 ];
             });
 
@@ -128,7 +128,7 @@ class ComplianceController extends Controller
                     'date' => $training->completion_date,
                     'user' => $training->employee->name ?? 'Unknown',
                     'icon' => 'academic-cap',
-                    'color' => 'green'
+                    'color' => 'green',
                 ];
             });
 
@@ -160,7 +160,7 @@ class ComplianceController extends Controller
                     'date' => $policy->next_review_date,
                     'days_until' => now()->diffInDays($policy->next_review_date, false),
                     'priority' => $policy->next_review_date < now() ? 'high' : 'medium',
-                    'url' => route('compliance.policies.show', $policy->id)
+                    'url' => route('compliance.policies.show', $policy->id),
                 ];
             });
 
@@ -176,7 +176,7 @@ class ComplianceController extends Controller
                     'date' => $training->expiry_date,
                     'days_until' => now()->diffInDays($training->expiry_date, false),
                     'priority' => $training->expiry_date <= now()->addDays(7) ? 'high' : 'medium',
-                    'url' => route('compliance.training.show', $training->id)
+                    'url' => route('compliance.training.show', $training->id),
                 ];
             });
 
@@ -191,7 +191,7 @@ class ComplianceController extends Controller
                     'date' => $document->next_review_date,
                     'days_until' => now()->diffInDays($document->next_review_date, false),
                     'priority' => $document->next_review_date < now() ? 'high' : 'medium',
-                    'url' => route('compliance.documents.show', $document->id)
+                    'url' => route('compliance.documents.show', $document->id),
                 ];
             });
 
@@ -226,7 +226,7 @@ class ComplianceController extends Controller
                     'due_date' => $finding->due_date,
                     'audit' => $finding->complianceAudit->title,
                     'priority' => 'critical',
-                    'url' => route('compliance.findings.show', $finding->id)
+                    'url' => route('compliance.findings.show', $finding->id),
                 ];
             });
 
@@ -243,7 +243,7 @@ class ComplianceController extends Controller
                     'responsible' => $risk->owner->name ?? 'Unassigned',
                     'risk_level' => $risk->risk_level,
                     'priority' => $risk->risk_level === 'critical' ? 'critical' : 'high',
-                    'url' => route('compliance.risks.show', $risk->id)
+                    'url' => route('compliance.risks.show', $risk->id),
                 ];
             });
 
@@ -259,7 +259,7 @@ class ComplianceController extends Controller
                     'responsible' => $policy->owner->name ?? 'Unassigned',
                     'due_date' => $policy->next_review_date,
                     'priority' => 'high',
-                    'url' => route('compliance.policies.show', $policy->id)
+                    'url' => route('compliance.policies.show', $policy->id),
                 ];
             });
 
@@ -279,7 +279,9 @@ class ComplianceController extends Controller
     private function calculateComplianceRate(): float
     {
         $totalRequirements = RegulatoryRequirement::active()->count();
-        if ($totalRequirements === 0) return 100.0;
+        if ($totalRequirements === 0) {
+            return 100.0;
+        }
 
         $compliantRequirements = RegulatoryRequirement::active()
             ->where('compliance_status', RegulatoryRequirement::STATUS_COMPLIANT)
@@ -297,7 +299,7 @@ class ComplianceController extends Controller
             'type' => 'required|in:overview,policies,audits,risks,training,documents',
             'format' => 'required|in:pdf,excel',
             'date_from' => 'nullable|date',
-            'date_to' => 'nullable|date|after_or_equal:date_from'
+            'date_to' => 'nullable|date|after_or_equal:date_from',
         ]);
 
         // Implementation for report generation would go here
@@ -305,7 +307,7 @@ class ComplianceController extends Controller
 
         return response()->json([
             'message' => 'Report generation started',
-            'status' => 'processing'
+            'status' => 'processing',
         ]);
     }
 
@@ -321,7 +323,7 @@ class ComplianceController extends Controller
             'compliance_trend' => $this->getComplianceTrend($startDate),
             'risk_distribution' => $this->getRiskDistribution(),
             'audit_performance' => $this->getAuditPerformance($startDate),
-            'training_completion' => $this->getTrainingCompletion($startDate)
+            'training_completion' => $this->getTrainingCompletion($startDate),
         ]);
     }
 
@@ -347,7 +349,7 @@ class ComplianceController extends Controller
             'by_category' => RiskAssessment::selectRaw('category, COUNT(*) as count')
                 ->groupBy('category')
                 ->pluck('count', 'category')
-                ->toArray()
+                ->toArray(),
         ];
     }
 
@@ -367,7 +369,7 @@ class ComplianceController extends Controller
                 ->selectRaw('severity, COUNT(*) as count')
                 ->groupBy('severity')
                 ->pluck('count', 'severity')
-                ->toArray()
+                ->toArray(),
         ];
     }
 
@@ -388,7 +390,7 @@ class ComplianceController extends Controller
                 ->selectRaw('training_category, COUNT(*) as count')
                 ->groupBy('training_category')
                 ->pluck('count', 'training_category')
-                ->toArray()
+                ->toArray(),
         ];
     }
 }

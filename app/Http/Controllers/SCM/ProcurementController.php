@@ -97,7 +97,7 @@ class ProcurementController extends Controller
 
     public function edit(ProcurementRequest $procurementRequest)
     {
-        if (!$procurementRequest->canEdit()) {
+        if (! $procurementRequest->canEdit()) {
             return Redirect::route('scm.procurement.index')->with('error', 'Only draft requests can be edited.');
         }
 
@@ -111,7 +111,7 @@ class ProcurementController extends Controller
 
     public function update(Request $request, ProcurementRequest $procurementRequest)
     {
-        if (!$procurementRequest->canEdit()) {
+        if (! $procurementRequest->canEdit()) {
             return Redirect::route('scm.procurement.index')->with('error', 'Only draft requests can be updated.');
         }
 
@@ -162,7 +162,7 @@ class ProcurementController extends Controller
 
     public function destroy(ProcurementRequest $procurementRequest)
     {
-        if (!$procurementRequest->canEdit()) {
+        if (! $procurementRequest->canEdit()) {
             return Redirect::route('scm.procurement.index')->with('error', 'Only draft requests can be deleted.');
         }
 
@@ -236,7 +236,8 @@ class ProcurementController extends Controller
     private function generateRequestNumber()
     {
         $lastRequest = ProcurementRequest::latest('id')->first();
-        $nextNumber = $lastRequest ? (int)substr($lastRequest->request_number, 3) + 1 : 1;
-        return 'PR-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastRequest ? (int) substr($lastRequest->request_number, 3) + 1 : 1;
+
+        return 'PR-'.str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 }

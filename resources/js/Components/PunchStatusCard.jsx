@@ -1,305 +1,537 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
-    Box,
     Card,
-    CardContent,
-    Typography,
+    CardBody,
+    CardHeader,
     Button,
-    CircularProgress,
-    Alert,
+    Spinner,
     Chip,
-    Grid,
-    List,
-    ListItem,
-    ListItemText,
-    ListItemIcon,
     Divider,
-    Paper,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
     Avatar,
-    Stack,
-    Fab,
     Tooltip,
     Badge,
-    LinearProgress,
-    Collapse
-} from '@mui/material';
-import GlassDialog from '@/Components/GlassDialog';
+    Progress,
+    Input,
+    Skeleton,
+    Accordion,
+    AccordionItem
+} from '@heroui/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-    AccessTime,
-    LocationOn,
-    Wifi,
-    QrCode,
-    CheckCircle,
-    Error,
-    PlayArrow,
-    Stop,
-    Schedule,
-    Today,
-    Person,
-    Settings,
-    Refresh,
-    TimerOutlined,
-    WorkOutline,
-    TrendingUp,
-    ExpandMore,
-    ExpandLess,
-    Security,
-    SignalWifi4Bar,
-    GpsFixed,
-    Language,
-    Close
-} from '@mui/icons-material';
-import { useTheme, alpha } from '@mui/material/styles';
-import { toast } from 'react-toastify';
+    ClockIcon,
+    MapPinIcon,
+    WifiIcon,
+    QrCodeIcon,
+    CheckCircleIcon,
+    ExclamationTriangleIcon,
+    PlayIcon,
+    StopIcon,
+    CalendarIcon,
+    CalendarDaysIcon,
+    UserIcon,
+    CogIcon,
+    ArrowPathIcon,
+    BuildingOfficeIcon,
+    ArrowTrendingUpIcon,
+    ChevronDownIcon,
+    ChevronUpIcon,
+    ShieldCheckIcon,
+    SignalIcon,
+    GlobeAltIcon,
+    XMarkIcon,
+    BellIcon,
+    InformationCircleIcon,
+    CameraIcon,
+} from '@heroicons/react/24/outline';
+import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import { usePage } from '@inertiajs/react';
-import GlassCard from './GlassCard';
+import ProfileAvatar from './ProfileAvatar';
 
-const PunchStatusCard = () => {
-    const theme = useTheme();
-    const { auth } = usePage().props;
-    const user = auth.user;
+/**
+ * Enhanced PunchStatusCard Component for Enterprise ERP System
+ * 
+ * @description A comprehensive attendance tracking component with real-time status monitoring,
+ * location-based validation, and enterprise-grade security features.
+ * 
+ * @features
+ * - Real-time attendance tracking with simplified location validation
+ * - Role-based access control integration
+ * - Progressive Web App (PWA) ready with offline capabilities
+ * - Enterprise security with device fingerprinting
+ * - Responsive design with HeroUI theming
+ * - Performance optimized with memoization and efficient state management
+ * 
+ * @author Emam Hosen - Final Year CSE Project
+ * @version 3.0.0 - Simplified Location Management
+ */
 
-    // State management
-    const [currentStatus, setCurrentStatus] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [todayPunches, setTodayPunches] = useState([]);
-    const [totalWorkTime, setTotalWorkTime] = useState('00:00:00');
-    const [realtimeWorkTime, setRealtimeWorkTime] = useState('00:00:00');
-    const [userOnLeave, setUserOnLeave] = useState(null);
-    const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
-    const [expandedSections, setExpandedSections] = useState({
-        punches: false,
-        rules: false,
-        validation: false
+// ===== UTILITY FUNCTIONS =====
+
+/**
+ * Debounce utility for performance optimization
+ */
+const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
+/**
+ * Enhanced device type detection hook
+ */
+const useDeviceType = () => {
+    const [deviceState, setDeviceState] = useState({
+        isMobile: false,
+        isTablet: false,
+        isDesktop: false
     });
-    const [connectionStatus, setConnectionStatus] = useState({
-        location: false,
-        network: true,
-        device: true
-    });
-    const [sessionInfo, setSessionInfo] = useState({
-        ip: 'Unknown',
-        accuracy: 'N/A',
-        timestamp: null
-    });
 
-    // Real-time clock and work time calculation
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const now = new Date();
-            setCurrentTime(now);
-
-            // Calculate real-time work hours if user is punched in
-            if (currentStatus === 'punched_in' && todayPunches.length > 0) {
-                calculateRealtimeWorkTime(now);
-            }
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [currentStatus, todayPunches]);
-
-    // Component initialization
-    useEffect(() => {
-        fetchCurrentStatus();
-        checkLocationConnectionStatus();
-        checkNetworkStatus();
+    const updateDeviceType = useCallback(() => {
+        const width = window.innerWidth;
+        const newState = {
+            isMobile: width <= 768,
+            isTablet: width > 768 && width <= 1024,
+            isDesktop: width > 1024
+        };
+        setDeviceState(prevState => 
+            JSON.stringify(prevState) !== JSON.stringify(newState) ? newState : prevState
+        );
     }, []);
 
-    const calculateRealtimeWorkTime = (currentTime) => {
-        let totalSeconds = 0;
+    useEffect(() => {
+        updateDeviceType();
+        const debouncedUpdate = debounce(updateDeviceType, 150);
+        window.addEventListener('resize', debouncedUpdate);
+        return () => window.removeEventListener('resize', debouncedUpdate);
+    }, [updateDeviceType]);
 
-        todayPunches.forEach((punch, index) => {
-            if (punch.punchin_time) {
-                let punchInTime;
+    return deviceState;
+};
 
-                // Handle different date/time formats
-                if (typeof punch.punchin_time === 'string' && punch.punchin_time.includes(':') && !punch.punchin_time.includes('T')) {
-                    // For time strings like "09:30:00", create a date object for today
-                    const today = new Date();
-                    const [hours, minutes, seconds] = punch.punchin_time.split(':');
-                    punchInTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
-                        parseInt(hours), parseInt(minutes), parseInt(seconds || 0));
-                } else {
-                    // For ISO datetime strings or timestamps
-                    punchInTime = new Date(punch.punchin_time);
-                }
+/**
+ * GPS Status Types
+ */
+const GPS_STATUS = {
+    CHECKING: 'checking',
+    ACTIVE: 'active',
+    DENIED: 'denied',
+    INACTIVE: 'inactive'
+};
 
-                // Validate the punch in time
-                if (isNaN(punchInTime.getTime())) {
-                    console.warn('Invalid punch in time:', punch.punchin_time);
-                    return; // Skip this punch if invalid
-                }
+/**
+ * Main PunchStatusCard Component
+ */
+const PunchStatusCard = React.memo(() => {
+    // ===== CORE STATE MANAGEMENT =====
+    const { auth } = usePage().props;
+    const user = auth.user;
+    const { isMobile, isTablet } = useDeviceType();
 
-                if (punch.punchout_time) {
-                    // Completed session
-                    let punchOutTime;
+    // Attendance state
+    const [attendanceState, setAttendanceState] = useState({
+        currentStatus: null,
+        todayPunches: [],
+        totalWorkTime: '00:00:00',
+        realtimeWorkTime: '00:00:00',
+        userOnLeave: null,
+        loading: false,
+        lastRefresh: null
+    });
 
-                    if (typeof punch.punchout_time === 'string' && punch.punchout_time.includes(':') && !punch.punchout_time.includes('T')) {
-                        // For time strings like "17:30:00", create a date object for today
-                        const today = new Date();
-                        const [hours, minutes, seconds] = punch.punchout_time.split(':');
-                        punchOutTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
-                            parseInt(hours), parseInt(minutes), parseInt(seconds || 0));
-                    } else {
-                        // For ISO datetime strings or timestamps
-                        punchOutTime = new Date(punch.punchout_time);
-                    }
+    // Location state - simplified
+    const [locationState, setLocationState] = useState({
+        status: GPS_STATUS.CHECKING,
+        coordinates: null,
+        error: null,
+        lastUpdate: null
+    });
 
-                    // Validate the punch out time
-                    if (isNaN(punchOutTime.getTime())) {
-                        console.warn('Invalid punch out time:', punch.punchout_time);
-                        return; // Skip this punch if invalid
-                    }
-
-                    const sessionSeconds = Math.floor((punchOutTime - punchInTime) / 1000);
-                    if (sessionSeconds > 0) {
-                        totalSeconds += sessionSeconds;
-                    }
-                } else {
-                    // Current active session - calculate up to current time
-                    const sessionSeconds = Math.floor((currentTime - punchInTime) / 1000);
-                    if (sessionSeconds > 0) {
-                        totalSeconds += sessionSeconds;
-                    }
-                }
-            }
-        });
-
-        // Ensure totalSeconds is a valid number
-        if (isNaN(totalSeconds) || totalSeconds < 0) {
-            totalSeconds = 0;
+    // UI state
+    const [uiState, setUiState] = useState({
+        sessionDialogOpen: false,
+        expandedSections: {
+            punches: false,
+            stats: false,
+            validation: false
         }
+    });
 
-        // Convert total seconds to HH:MM:SS format
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        setRealtimeWorkTime(formattedTime);
-    };
-
-    const fetchCurrentStatus = async () => {
-        try {
-            const response = await axios.get(route('attendance.current-user-punch'));
-            const data = response.data;
-
-            setTodayPunches(data.punches || []);
-            setTotalWorkTime(data.total_production_time || '00:00:00');
-            setUserOnLeave(data.isUserOnLeave);
-
-            // Determine current status
-            if (data.punches && data.punches.length > 0) {
-                const lastPunch = data.punches[data.punches.length - 1];
-                const status = lastPunch.punchout_time ? 'punched_out' : 'punched_in';
-                setCurrentStatus(status);
-
-                // Initialize real-time calculation
-                if (status === 'punched_in') {
-                    // Wait a bit for state to update, then calculate
-                    setTimeout(() => {
-                        calculateRealtimeWorkTime(new Date());
-                    }, 100);
-                } else {
-                    // For punched out status, show the total production time or calculate from all sessions
-                    if (data.total_production_time && data.total_production_time !== '00:00:00') {
-                        setRealtimeWorkTime(data.total_production_time);
-                    } else {
-                        // Calculate from punch data
-                        let totalSeconds = 0;
-                        data.punches.forEach(punch => {
-                            if (punch.punchin_time && punch.punchout_time) {
-                                try {
-                                    const punchIn = new Date(punch.punchin_time);
-                                    const punchOut = new Date(punch.punchout_time);
-                                    if (!isNaN(punchIn.getTime()) && !isNaN(punchOut.getTime())) {
-                                        totalSeconds += Math.floor((punchOut - punchIn) / 1000);
-                                    }
-                                } catch (error) {
-                                    console.warn('Error calculating session time:', error);
-                                }
-                            }
-                        });
-
-                        const hours = Math.floor(totalSeconds / 3600);
-                        const minutes = Math.floor((totalSeconds % 3600) / 60);
-                        const secs = totalSeconds % 60;
-                        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                        setRealtimeWorkTime(formattedTime);
-                    }
-                }
-            } else {
-                setCurrentStatus('not_punched');
-                setRealtimeWorkTime('00:00:00');
-            }
-        } catch (error) {
-            console.error('Error fetching current status:', error);
-            toast.error('Failed to fetch attendance status');
-            // Set safe defaults on error
-            setRealtimeWorkTime('00:00:00');
+    // System state
+    const [systemState, setSystemState] = useState({
+        currentTime: new Date(),
+        connectionStatus: {
+            network: true,
+            device: true
+        },
+        sessionInfo: {
+            ip: 'Unknown',
+            accuracy: 'N/A',
+            timestamp: null
         }
-    };
+    });
 
-    // Function to just check and set location connection status
-    const checkLocationConnectionStatus = () => {
-        if (!navigator.geolocation) {
-            setConnectionStatus(prev => ({ ...prev, location: false }));
-            return;
-        }
+    // Camera state for photo capture (polygon/route types)
+    const [cameraState, setCameraState] = useState({
+        isOpen: false,
+        capturedPhoto: null,
+        isCapturing: false,
+        stream: null,
+        pendingPunchData: null,
+        facingMode: 'user', // 'user' for front camera (default), 'environment' for back camera
+        isSwitching: false,
+    });
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
 
-        navigator.geolocation.getCurrentPosition(
-            () => {
-                setConnectionStatus(prev => ({ ...prev, location: true }));
-            },
-            (error) => {
-                console.error('Error checking location connection:', error);
-                setConnectionStatus(prev => ({ ...prev, location: false }));
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-    };
+    // Check if user's attendance type requires photo capture
+    const requiresPhotoCapture = useMemo(() => {
+        const attendanceType = user?.attendance_type;
+        if (!attendanceType?.slug) return false;
+        const baseSlug = attendanceType.slug.replace(/_\d+$/, '');
+        return ['geo_polygon', 'route_waypoint'].includes(baseSlug);
+    }, [user?.attendance_type]);
 
-    // Function to fetch and return location data when needed
-    const fetchLocationData = () => {
-        if (!navigator.geolocation) {
-            throw new Error('Geolocation is not supported by this browser');
-        }
+    // ===== LOCATION MANAGEMENT - SIMPLIFIED =====
 
+    /**
+     * Core location getter - Single unified function
+     */
+    const getLocation = useCallback(() => {
         return new Promise((resolve, reject) => {
+            // Check browser support
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation is not supported by this browser'));
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 30000 // Allow 30 seconds cache
+            };
+
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const locationData = {
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude,
-                        accuracy: position.coords.accuracy
+                        accuracy: position.coords.accuracy,
+                        timestamp: new Date(position.timestamp)
                     };
                     resolve(locationData);
                 },
                 (error) => {
-                    console.error('Error getting location data:', error);
-                    reject(error);
+                    let message = 'Location unavailable';
+                    switch (error.code) {
+                        case 1: // PERMISSION_DENIED
+                            message = 'Location access denied. Please allow location permission in your browser settings.';
+                            break;
+                        case 2: // POSITION_UNAVAILABLE
+                            message = 'Location unavailable. Please ensure GPS is enabled.';
+                            break;
+                        case 3: // TIMEOUT
+                            message = 'Location request timed out. Please try again.';
+                            break;
+                        default:
+                            message = 'Unable to retrieve location. Please try again.';
+                    }
+                    reject(new Error(message));
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                options
             );
         });
-    };
+    }, []);
 
+    /**
+     * Check location permission and update GPS status
+     */
+    const checkLocationPermission = useCallback(async () => {
+        setLocationState(prev => ({ ...prev, status: GPS_STATUS.CHECKING, error: null }));
 
-    const checkNetworkStatus = () => {
-        setConnectionStatus(prev => ({
+        try {
+            const coordinates = await getLocation();
+            setLocationState({
+                status: GPS_STATUS.ACTIVE,
+                coordinates,
+                error: null,
+                lastUpdate: new Date()
+            });
+        } catch (error) {
+            const isPermissionDenied = error.message.includes('denied') || error.message.includes('Permission');
+            setLocationState({
+                status: isPermissionDenied ? GPS_STATUS.DENIED : GPS_STATUS.INACTIVE,
+                coordinates: null,
+                error: error.message,
+                lastUpdate: new Date()
+            });
+        }
+    }, [getLocation]);
+
+    /**
+     * Request location permission reset (for denied status)
+     */
+    const requestLocationPermissionReset = useCallback(async () => {
+        if (locationState.status !== GPS_STATUS.DENIED) return;
+
+        try {
+            setLocationState(prev => ({ ...prev, status: GPS_STATUS.CHECKING, error: null }));
+            const coordinates = await getLocation();
+            
+            setLocationState({
+                status: GPS_STATUS.ACTIVE,
+                coordinates,
+                error: null,
+                lastUpdate: new Date()
+            });
+
+            showToast.success('Location access granted successfully!', {
+                style: {
+                    backdropFilter: 'blur(16px) saturate(200%)',
+                    background: 'var(--theme-success)',
+                    color: 'var(--theme-success-foreground)',
+                }
+            });
+        } catch (error) {
+            setLocationState(prev => ({
+                ...prev,
+                status: GPS_STATUS.DENIED,
+                error: 'Location access still denied. Please check your browser settings.'
+            }));
+
+            showToast.error('Please enable location in your browser settings manually.', {
+                style: {
+                    backdropFilter: 'blur(16px) saturate(200%)',
+                    background: 'var(--theme-danger)',
+                    color: 'var(--theme-danger-foreground)',
+                }
+            });
+        }
+    }, [locationState.status, getLocation]);
+
+    // ===== MEMOIZED VALUES =====
+    const statusConfig = useMemo(() => {
+        if (attendanceState.userOnLeave) {
+            return {
+                color: 'warning',
+                text: 'On Leave',
+                action: 'On Leave',
+                icon: <ExclamationTriangleIcon className="w-4 h-4" />
+            };
+        }
+
+        switch (attendanceState.currentStatus) {
+            case 'punched_in':
+                return {
+                    color: 'success',
+                    text: 'Checked In',
+                    action: 'Check Out',
+                    icon: <PlayIcon className="w-4 h-4" />
+                };
+            case 'punched_out':
+                return {
+                    color: 'primary',
+                    text: 'Checked Out',
+                    action: 'Check In',
+                    icon: <StopIcon className="w-4 h-4" />
+                };
+            default:
+                return {
+                    color: 'primary',
+                    text: 'Ready to Check In',
+                    action: 'Check In',
+                    icon: <ClockIcon className="w-4 h-4" />
+                };
+        }
+    }, [attendanceState.currentStatus, attendanceState.userOnLeave]);
+
+    const workStats = useMemo(() => ({
+        sessionsToday: attendanceState.todayPunches.length,
+        averageSessionTime: attendanceState.todayPunches.length > 0 
+            ? Math.round(parseFloat(attendanceState.realtimeWorkTime.split(':')[0]) / attendanceState.todayPunches.length * 100) / 100 
+            : 0,
+        productivity: Math.min(100, (parseFloat(attendanceState.realtimeWorkTime.split(':')[0]) / 8) * 100)
+    }), [attendanceState.todayPunches, attendanceState.realtimeWorkTime]);
+
+    const gpsChipConfig = useMemo(() => {
+        switch (locationState.status) {
+            case GPS_STATUS.CHECKING:
+                return {
+                    color: 'default',
+                    variant: 'flat',
+                    text: 'Checking',
+                    clickable: false,
+                    tooltip: 'Checking location permissions...'
+                };
+            case GPS_STATUS.ACTIVE:
+                return {
+                    color: 'success',
+                    variant: 'flat',
+                    text: 'GPS',
+                    clickable: false,
+                    tooltip: `Location: Active (±${Math.round(locationState.coordinates?.accuracy || 0)}m)`
+                };
+            case GPS_STATUS.DENIED:
+                return {
+                    color: 'danger',
+                    variant: 'bordered',
+                    text: 'GPS',
+                    clickable: true,
+                    tooltip: 'Location access denied. Click to retry.'
+                };
+            case GPS_STATUS.INACTIVE:
+                return {
+                    color: 'warning',
+                    variant: 'bordered',
+                    text: 'GPS',
+                    clickable: true,
+                    tooltip: 'Location unavailable. Click to retry.'
+                };
+            default:
+                return {
+                    color: 'default',
+                    variant: 'flat',
+                    text: 'GPS',
+                    clickable: false,
+                    tooltip: 'Location status unknown'
+                };
+        }
+    }, [locationState.status, locationState.coordinates?.accuracy]);
+
+    // ===== CORE FUNCTIONS =====
+
+    /**
+     * Calculate real-time work time
+     */
+    const calculateRealtimeWorkTime = useCallback(() => {
+        const currentTime = new Date();
+        let totalSeconds = 0;
+        let hasActivePunch = false;
+
+        attendanceState.todayPunches.forEach((punch) => {
+            if (punch.punchin_time) {
+                let punchInTime;
+                
+                // Handle different time formats - try parsing as ISO date first
+                try {
+                    punchInTime = new Date(punch.punchin_time);
+                    
+                    // If invalid or string with just time format
+                    if (isNaN(punchInTime.getTime()) || (typeof punch.punchin_time === 'string' && punch.punchin_time.includes(':') && !punch.punchin_time.includes('T'))) {
+                        const today = new Date();
+                        const [hours, minutes, seconds] = punch.punchin_time.split(':');
+                        punchInTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
+                            parseInt(hours), parseInt(minutes), parseInt(seconds || 0));
+                    }
+                } catch (error) {
+                    console.warn('Invalid punch in time format:', punch.punchin_time);
+                    return;
+                }
+
+                if (isNaN(punchInTime.getTime())) return;
+
+                if (punch.punchout_time) {
+                    let punchOutTime;
+                    
+                    try {
+                        punchOutTime = new Date(punch.punchout_time);
+                        
+                        // If invalid or string with just time format
+                        if (isNaN(punchOutTime.getTime()) || (typeof punch.punchout_time === 'string' && punch.punchout_time.includes(':') && !punch.punchout_time.includes('T'))) {
+                            const today = new Date();
+                            const [hours, minutes, seconds] = punch.punchout_time.split(':');
+                            punchOutTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
+                                parseInt(hours), parseInt(minutes), parseInt(seconds || 0));
+                        }
+                    } catch (error) {
+                        console.warn('Invalid punch out time format:', punch.punchout_time);
+                        return;
+                    }
+
+                    if (isNaN(punchOutTime.getTime())) return;
+
+                    const sessionSeconds = Math.floor((punchOutTime - punchInTime) / 1000);
+                    if (sessionSeconds > 0) totalSeconds += sessionSeconds;
+                } else {
+                    // Active session - calculate from punch in to now
+                    hasActivePunch = true;
+                    const sessionSeconds = Math.floor((currentTime - punchInTime) / 1000);
+                    if (sessionSeconds > 0) totalSeconds += sessionSeconds;
+                }
+            }
+        });
+
+        // If no active punch and we have backend total time, use that instead
+        if (!hasActivePunch && attendanceState.totalWorkTime && attendanceState.totalWorkTime !== '00:00:00') {
+            setAttendanceState(prev => ({
+                ...prev,
+                realtimeWorkTime: attendanceState.totalWorkTime
+            }));
+            return;
+        }
+
+        if (isNaN(totalSeconds) || totalSeconds < 0) totalSeconds = 0;
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        setAttendanceState(prev => ({
             ...prev,
-            network: navigator.onLine,
-            device: true
+            realtimeWorkTime: formattedTime
         }));
-    };
+    }, [attendanceState.todayPunches, attendanceState.totalWorkTime]);
 
-    const getDeviceFingerprint = () => {
+    /**
+     * Fetch current attendance status - Always fetch latest data
+     */
+    const fetchCurrentStatus = useCallback(async () => {
+        try {
+            // Add timestamp to prevent caching
+            const response = await axios.get(route('attendance.current-user-punch'), {
+                params: { t: Date.now() }
+            });
+            const data = response.data;
+
+            setAttendanceState(prev => ({
+                ...prev,
+                todayPunches: data.punches || [],
+                totalWorkTime: data.total_production_time || '00:00:00',
+                realtimeWorkTime: data.total_production_time || '00:00:00',
+                userOnLeave: data.isUserOnLeave,
+                lastRefresh: new Date(),
+                currentStatus: (() => {
+                    if (data.punches && data.punches.length > 0) {
+                        const lastPunch = data.punches[data.punches.length - 1];
+                        return lastPunch.punchout_time ? 'punched_out' : 'punched_in';
+                    }
+                    return 'not_punched';
+                })()
+            }));
+
+        } catch (error) {
+            console.error('Error fetching current status:', error);
+            showToast.error('Failed to fetch attendance status');
+        }
+    }, []);
+
+    /**
+     * Get device fingerprint for security
+     */
+    const getDeviceFingerprint = useCallback(() => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         ctx.textBaseline = 'top';
@@ -314,20 +546,236 @@ const PunchStatusCard = () => {
             canvasFingerprint: canvas.toDataURL(),
             timestamp: Date.now()
         };
-    };
+    }, []);
 
-    const handlePunch = async () => {
-        if (userOnLeave) {
-            toast.warning('You are on leave today. Cannot punch in/out.');
+    // ===== CAMERA FUNCTIONS FOR PHOTO CAPTURE =====
+    
+    /**
+     * Start camera for photo capture
+     */
+    const startCamera = useCallback(async (facingMode = 'user') => {
+        try {
+            // Stop existing stream first
+            if (cameraState.stream) {
+                cameraState.stream.getTracks().forEach(track => track.stop());
+            }
+            
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    facingMode: facingMode, 
+                    width: { ideal: 1280 }, 
+                    height: { ideal: 720 } 
+                }
+            });
+            
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                await videoRef.current.play();
+            }
+            
+            setCameraState(prev => ({ 
+                ...prev, 
+                stream, 
+                isCapturing: false, 
+                isSwitching: false,
+                facingMode 
+            }));
+        } catch (error) {
+            console.error('Camera access error:', error);
+            // Try fallback to any available camera
+            try {
+                const fallbackStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+                
+                if (videoRef.current) {
+                    videoRef.current.srcObject = fallbackStream;
+                    await videoRef.current.play();
+                }
+                
+                setCameraState(prev => ({ 
+                    ...prev, 
+                    stream: fallbackStream, 
+                    isCapturing: false, 
+                    isSwitching: false 
+                }));
+            } catch (fallbackError) {
+                showToast.error('Unable to access camera. Please check permissions.');
+                setCameraState(prev => ({ ...prev, isOpen: false, isSwitching: false }));
+            }
+        }
+    }, [cameraState.stream]);
+
+    /**
+     * Switch between front and back camera
+     */
+    const switchCamera = useCallback(async () => {
+        const newFacingMode = cameraState.facingMode === 'environment' ? 'user' : 'environment';
+        setCameraState(prev => ({ ...prev, isSwitching: true }));
+        await startCamera(newFacingMode);
+    }, [cameraState.facingMode, startCamera]);
+
+    /**
+     * Stop camera stream
+     */
+    const stopCamera = useCallback(() => {
+        if (cameraState.stream) {
+            cameraState.stream.getTracks().forEach(track => track.stop());
+        }
+        setCameraState(prev => ({ 
+            ...prev, 
+            stream: null, 
+            isOpen: false, 
+            capturedPhoto: null,
+            facingMode: 'user',
+            isSwitching: false 
+        }));
+    }, [cameraState.stream]);
+
+    /**
+     * Capture photo with coordinate watermark
+     */
+    const capturePhoto = useCallback(async () => {
+        if (!videoRef.current || !canvasRef.current) return;
+
+        setCameraState(prev => ({ ...prev, isCapturing: true }));
+
+        try {
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw video frame
+            ctx.drawImage(video, 0, 0);
+
+            // Add coordinate watermark
+            const coordinates = locationState.coordinates;
+            if (coordinates) {
+                const watermarkText = `📍 ${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)} | ${new Date().toLocaleString()}`;
+                
+                // Watermark background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+                
+                // Watermark text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(watermarkText, 10, canvas.height - 20);
+            }
+
+            // Convert to base64
+            const photoData = canvas.toDataURL('image/jpeg', 0.85);
+            
+            setCameraState(prev => ({ 
+                ...prev, 
+                capturedPhoto: photoData, 
+                isCapturing: false 
+            }));
+
+            showToast.success('Photo captured successfully!');
+        } catch (error) {
+            console.error('Photo capture error:', error);
+            showToast.error('Failed to capture photo. Please try again.');
+            setCameraState(prev => ({ ...prev, isCapturing: false }));
+        }
+    }, [locationState.coordinates]);
+
+    /**
+     * Retake photo
+     */
+    const retakePhoto = useCallback(() => {
+        setCameraState(prev => ({ ...prev, capturedPhoto: null }));
+    }, []);
+
+    /**
+     * Confirm photo and submit punch
+     */
+    const confirmPhotoAndPunch = useCallback(async () => {
+        if (!cameraState.capturedPhoto || !cameraState.pendingPunchData) {
+            showToast.error('Please capture a photo first.');
             return;
         }
 
-        setLoading(true);
+        setAttendanceState(prev => ({ ...prev, loading: true }));
+        stopCamera();
 
         try {
-            const locationData = await fetchLocationData();
+            // Add photo to punch data
+            const punchDataWithPhoto = {
+                ...cameraState.pendingPunchData,
+                photo: cameraState.capturedPhoto,
+            };
+
+            // Submit punch
+            const response = await axios.post(route('attendance.punch'), punchDataWithPhoto);
+
+            if (response.data.status === 'success') {
+                setUiState(prev => ({
+                    ...prev,
+                    sessionDialogOpen: true
+                }));
+
+                // Immediately fetch latest data after successful punch
+                setTimeout(() => {
+                    fetchCurrentStatus();
+                }, 500);
+            } else {
+                showToast.error(response.data.message);
+            }
+        } catch (error) {
+            console.error('Punch operation failed:', error);
+            const errorMessage = error.response?.data?.message || 'Unable to record attendance. Please try again.';
+            showToast.error(errorMessage);
+        } finally {
+            setAttendanceState(prev => ({ ...prev, loading: false }));
+            setCameraState(prev => ({ ...prev, pendingPunchData: null, capturedPhoto: null }));
+        }
+    }, [cameraState.capturedPhoto, cameraState.pendingPunchData, stopCamera, fetchCurrentStatus]);
+
+    /**
+     * Open camera modal and prepare punch data
+     */
+    const openCameraForPunch = useCallback(async (punchData) => {
+        setCameraState(prev => ({ 
+            ...prev, 
+            isOpen: true, 
+            pendingPunchData: punchData,
+            capturedPhoto: null 
+        }));
+        
+        // Start camera after modal opens
+        setTimeout(() => startCamera(), 300);
+    }, [startCamera]);
+
+    /**
+     * Handle punch action - Main attendance function
+     */
+    const handlePunch = useCallback(async () => {
+        // Check if user is on leave
+        if (attendanceState.userOnLeave) {
+            showToast.warning('You are on leave today. Cannot punch in/out.');
+            return;
+        }
+
+        // Check if location is active
+        if (locationState.status !== GPS_STATUS.ACTIVE) {
+            showToast.error('Location access required for attendance. Please enable GPS and try again.');
+            return;
+        }
+
+        setAttendanceState(prev => ({ ...prev, loading: true }));
+
+        try {
+            // Get fresh location data for the punch
+            const coordinates = await getLocation();
             const deviceFingerprint = getDeviceFingerprint();
 
+            // Get IP address
             let currentIp = 'Unknown';
             try {
                 const ipResponse = await axios.get(route('getClientIp'));
@@ -336,18 +784,21 @@ const PunchStatusCard = () => {
                 console.warn('Could not fetch IP address:', ipError);
             }
 
-            // Update session info for dialog
-            setSessionInfo({
-                ip: currentIp,
-                accuracy: locationData?.accuracy ? `${Math.round(locationData.accuracy)}m` : 'N/A',
-                timestamp: new Date().toLocaleString()
-            });
+            // Update session info
+            setSystemState(prev => ({
+                ...prev,
+                sessionInfo: {
+                    ip: currentIp,
+                    accuracy: coordinates.accuracy ? `${Math.round(coordinates.accuracy)}m` : 'N/A',
+                    timestamp: new Date().toLocaleString()
+                }
+            }));
 
-
-            const context = {
-                lat: locationData?.latitude,
-                lng: locationData?.longitude,
-                accuracy: locationData?.accuracy,
+            // Prepare punch data
+            const punchData = {
+                lat: coordinates.latitude,
+                lng: coordinates.longitude,
+                accuracy: coordinates.accuracy,
                 ip: currentIp,
                 wifi_ssid: 'Unknown',
                 device_fingerprint: JSON.stringify(deviceFingerprint),
@@ -355,73 +806,66 @@ const PunchStatusCard = () => {
                 timestamp: new Date().toISOString(),
             };
 
-            const response = await axios.post(route('attendance.punch'), context);
+            // Check if photo capture is required (polygon/route types)
+            if (requiresPhotoCapture) {
+                setAttendanceState(prev => ({ ...prev, loading: false }));
+                openCameraForPunch(punchData);
+                return;
+            }
+
+            // Submit punch directly (no photo required)
+            const response = await axios.post(route('attendance.punch'), punchData);
 
             if (response.data.status === 'success') {
-                toast.success(response.data.message, {
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: alpha(theme.palette.success.main, 0.1),
-                        border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
-                        color: theme.palette.text.primary,
-                    }
-                });
+                
 
-                // Show session info dialog on success
-                setSessionDialogOpen(true);
+                setUiState(prev => ({
+                    ...prev,
+                    sessionDialogOpen: true
+                }));
 
-                await fetchCurrentStatus();
+                // Immediately fetch latest data after successful punch
+                setTimeout(() => {
+                    fetchCurrentStatus();
+                }, 500);
             } else {
-                toast.error(response.data.message);
+                showToast.error(response.data.message);
             }
         } catch (error) {
-            console.error('Error during punch operation:', error);
-            toast.error(error.response.data.message, {
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: alpha(theme.palette.success.main, 0.1),
-                        border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
-                        color: theme.palette.text.primary,
-                    }
-                });
-
+            console.error('Punch operation failed:', error);
+            
+            const errorMessage = error.response?.data?.message || 'Unable to record attendance. Please try again.';
+            
+            showToast.error(errorMessage, {
+                style: {
+                    backdropFilter: 'blur(16px) saturate(200%)',
+                    background: 'var(--theme-danger)',
+                    color: 'var(--theme-danger-foreground)',
+                }
+            });
         } finally {
-            setLoading(false);
+            setAttendanceState(prev => ({ ...prev, loading: false }));
         }
-    };
+    }, [attendanceState.userOnLeave, locationState.status, getLocation, getDeviceFingerprint, fetchCurrentStatus, requiresPhotoCapture, openCameraForPunch]);
 
-    const toggleSection = (section) => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }));
-    };
+    /**
+     * Handle GPS chip click
+     */
+    const handleGpsChipClick = useCallback(() => {
+        if (!gpsChipConfig.clickable) return;
 
-    const getStatusColor = () => {
-        if (userOnLeave) return 'warning';
-        switch (currentStatus) {
-            case 'punched_in': return 'success';
-            case 'punched_out': return 'info';
-            default: return 'default';
+        if (locationState.status === GPS_STATUS.DENIED) {
+            requestLocationPermissionReset();
+        } else if (locationState.status === GPS_STATUS.INACTIVE) {
+            checkLocationPermission();
         }
-    };
+    }, [gpsChipConfig.clickable, locationState.status, requestLocationPermissionReset, checkLocationPermission]);
 
-    const getStatusText = () => {
-        if (userOnLeave) return 'On Leave';
-        switch (currentStatus) {
-            case 'punched_in': return 'Checked In';
-            case 'punched_out': return 'Checked Out';
-            default: return 'Ready to Check In';
-        }
-    };
-
-    const getActionButtonText = () => {
-        if (userOnLeave) return 'On Leave';
-        return currentStatus === 'punched_in' ? 'Check Out' : 'Check In';
-    };
-
-    const formatTime = (timeString) => {
-        if (!timeString) return null;
+    /**
+     * Format time utility
+     */
+    const formatTime = useCallback((timeString) => {
+        if (!timeString) return '--:--';
 
         try {
             let date;
@@ -434,550 +878,957 @@ const PunchStatusCard = () => {
                 date = new Date(timeString);
             }
 
-            if (isNaN(date.getTime())) {
-                console.warn('Invalid date:', timeString);
-                return null;
-            }
+            if (isNaN(date.getTime())) return '--:--';
 
-            return date;
+            return date.toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
         } catch (error) {
-            console.warn('Error formatting time:', error);
-            return null;
+            return '--:--';
         }
-    };
+    }, []);
 
-    const displayTime = (timeString) => {
-        const date = formatTime(timeString);
-        if (!date) return '--:--';
-
-        return date.toLocaleTimeString('en-US', { 
-            hour12: false, 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-    };
-
-    const formatLocation = (locationData) => {
+    /**
+     * Format location utility
+     */
+    const formatLocation = useCallback((locationData) => {
         if (!locationData) return 'Location not available';
 
         try {
-            // Handle object format: {lat: 23.8845952, lng: 90.4986624, address: "", timestamp: "..."}
             if (typeof locationData === 'object' && locationData.lat && locationData.lng) {
-                if (locationData.address && locationData.address.trim()) {
-                    return locationData.address.substring(0, 30);
-                }
-                return `${locationData.lat.toFixed(4)}, ${locationData.lng.toFixed(4)}`;
+                return locationData.address?.trim() 
+                    ? locationData.address.substring(0, 30)
+                    : `${locationData.lat.toFixed(4)}, ${locationData.lng.toFixed(4)}`;
             }
 
-            // Handle string format (legacy data or JSON strings)
             if (typeof locationData === 'string') {
-                // Try to parse as JSON first
                 try {
                     const parsed = JSON.parse(locationData);
                     if (parsed.lat && parsed.lng) {
-                        if (parsed.address && parsed.address.trim()) {
-                            return parsed.address.substring(0, 30);
-                        }
-                        return `${parsed.lat.toFixed(4)}, ${parsed.lng.toFixed(4)}`;
+                        return parsed.address?.trim() 
+                            ? parsed.address.substring(0, 30)
+                            : `${parsed.lat.toFixed(4)}, ${parsed.lng.toFixed(4)}`;
                     }
-                } catch (error) {
-                    // If JSON parsing fails, treat as legacy coordinate string
+                } catch {
                     return locationData.substring(0, 30);
                 }
             }
 
             return 'Location not available';
         } catch (error) {
-            console.warn('Error formatting location:', locationData, error);
             return 'Location not available';
         }
-    };
+    }, []);
 
+    // ===== EFFECTS =====
+
+    /**
+     * Real-time clock and work time calculation
+     */
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setSystemState(prev => ({ ...prev, currentTime: new Date() }));
+            
+            // Only calculate if we have active session
+            if (attendanceState.currentStatus === 'punched_in' && attendanceState.todayPunches.length > 0) {
+                calculateRealtimeWorkTime();
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [attendanceState.currentStatus, attendanceState.todayPunches.length, calculateRealtimeWorkTime]);
+
+    /**
+     * Initial setup and data fetching
+     */
+    useEffect(() => {
+        // Fetch initial attendance data
+        fetchCurrentStatus();
+        
+        // Check location permission
+        checkLocationPermission();
+
+        // Network status handlers
+        const handleOnline = () => {
+            setSystemState(prev => ({
+                ...prev,
+                connectionStatus: { ...prev.connectionStatus, network: true }
+            }));
+            // Refresh data when coming back online
+            fetchCurrentStatus();
+        };
+
+        const handleOffline = () => {
+            setSystemState(prev => ({
+                ...prev,
+                connectionStatus: { ...prev.connectionStatus, network: false }
+            }));
+        };
+
+        const handleFocus = () => {
+            // Refresh data when window regains focus
+            fetchCurrentStatus();
+            checkLocationPermission();
+        };
+
+        // Add event listeners
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('focus', handleFocus);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [fetchCurrentStatus, checkLocationPermission]);
+
+    /**
+     * Auto-refresh attendance data every 30 seconds
+     */
+    useEffect(() => {
+        const refreshInterval = setInterval(() => {
+            fetchCurrentStatus();
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(refreshInterval);
+    }, [fetchCurrentStatus]);
+
+    // ===== RENDER =====
     return (
-        <Box sx={{ 
-            p: 2, 
-            display: 'flex', 
-            flexDirection: 'column',
-            width: '100%',
-            height: '100%'
-        }}>
-            {/* Compact Hero Status Card */}
-            <GlassCard sx={{ 
-                display: 'flex', 
-                flexDirection: 'column',
-                height: '100%',
-                width: '100%'
-            }}>
-                <CardContent sx={{ 
-                    p: 2, 
-                    textAlign: 'center', 
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    flex: 1,
-                    width: '100%'
-                }}>
-
-
-                    {/* Compact Header with User & Time */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                            <Badge
-                                overlap="circular"
-                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                badgeContent={
-                                    <Box
-                                        sx={{
-                                            width: 12,
-                                            height: 12,
-                                            borderRadius: '50%',
-                                            bgcolor: getStatusColor() === 'success' ? 'success.main' : 
-                                                   getStatusColor() === 'warning' ? 'warning.main' : 'grey.400',
-                                            border: `2px solid ${theme.palette.background.paper}`,
-                                        }}
-                                    />
-                                }
-                            >
-                                <Avatar 
-                                    sx={{ 
-                                        width: 48, 
-                                        height: 48,
-                                        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                        fontSize: '1.2rem'
-                                    }}
-                                >
-                                    {user?.profile_image ? (
-                                        <img src={user.profile_image} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        user?.name?.charAt(0).toUpperCase()
-                                    )}
-                                </Avatar>
-                            </Badge>
-
-                            <Box sx={{ ml: 2, textAlign: 'left' }}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem', lineHeight: 1.2 }}>
-                                    {user?.name}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    ID: {user?.employee_id || user?.id}
-                                </Typography>
-                            </Box>
-                        </Box>
-
-                        <Box sx={{ textAlign: 'right' }}>
-                            <Typography 
-                                variant="h5" 
-                                sx={{ 
-                                    fontWeight: 300,
-                                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                    backgroundClip: 'text',
-                                    WebkitBackgroundClip: 'text',
-                                    color: 'transparent',
-                                    lineHeight: 1
-                                }}
-                            >
-                                {currentTime.toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: true
-                                })}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                                {currentTime.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}
-                            </Typography>
-                        </Box>
-                    </Box>
-
-                    {/* Status Chip - Smaller */}
-                    <Chip
-                        label={getStatusText()}
-                        color={getStatusColor()}
-                        sx={{ 
-                            mb: 2, 
-                            fontSize: '0.8rem', 
-                            py: 1.5, 
-                            px: 2,
-                            height: 32,
-                            borderRadius: 2,
-                            fontWeight: 600,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.3px'
-                        }}
-                        icon={currentStatus === 'punched_in' ? <PlayArrow sx={{ fontSize: 16 }} /> : <Stop sx={{ fontSize: 16 }} />}
-                    />
-
-                    {/* Compact Work Stats */}
-                    <Grid container spacing={1} sx={{ mb: 2 }}>
-                        <Grid item xs={6}>
-                            <Paper 
-                                variant="outlined" 
-                                sx={{ 
-                                    p: 1.5, 
-                                    textAlign: 'center',
-                                    background: alpha(theme.palette.primary.main, 0.05),
-                                    border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                                    borderRadius: 2
-                                }}
-                            >
-                                <TimerOutlined color="primary" sx={{ fontSize: 20, mb: 0.5 }} />
-                                <Typography 
-                                    variant="h6" 
-                                    color="primary" 
-                                    sx={{ 
-                                        fontWeight: 700, 
-                                        fontSize: '1rem',
-                                        fontFamily: 'monospace',
-                                        letterSpacing: '0.5px'
-                                    }}
-                                >
-                                    {realtimeWorkTime}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Hours Today
-                                </Typography>
-                            </Paper>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Paper 
-                                variant="outlined" 
-                                sx={{ 
-                                    p: 1.5, 
-                                    textAlign: 'center',
-                                    background: alpha(theme.palette.secondary.main, 0.05),
-                                    border: `1px solid ${alpha(theme.palette.secondary.main, 0.1)}`,
-                                    borderRadius: 2
-                                }}
-                            >
-                                <WorkOutline color="secondary" sx={{ fontSize: 20, mb: 0.5 }} />
-                                <Typography variant="h6" color="secondary" sx={{ fontWeight: 700, fontSize: '1rem' }}>
-                                    {todayPunches.length}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Sessions
-                                </Typography>
-                            </Paper>
-                        </Grid>
-                    </Grid>
-
-                    {/* Hero Main Action Button - Compact */}
-                    <Button
-                        variant="contained"
-                        size="large"
-                        fullWidth
-                        onClick={handlePunch}
-                        disabled={loading || userOnLeave}
-                        sx={{
-                            mb: 2,
-                            height: 48,
-                            borderRadius: 3,
-                            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                            color: 'white',
-                            fontWeight: 600,
-                            fontSize: '1rem',
-                            textTransform: 'none',
-                            boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                            '&:hover': {
-                                background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
-                                transform: 'translateY(-1px)',
-                                boxShadow: `0 8px 25px ${alpha(theme.palette.primary.main, 0.4)}`,
-                            },
-                            '&:disabled': {
-                                background: alpha(theme.palette.action.disabled, 0.1),
-                                color: theme.palette.action.disabled,
-                                backdropFilter: 'blur(16px) saturate(200%)',
-                            }
-                        }}
-                        startIcon={loading ? (
-                            <CircularProgress size={18} color="inherit" />
-                        ) : (
-                            currentStatus === 'punched_in' ? <Stop /> : <PlayArrow />
-                        )}
-                    >
-                        {loading ? 'Processing...' : getActionButtonText()}
-                    </Button>
-
-                    {/* Compact Connection Status */}
-                    <Stack direction="row" spacing={0.5} justifyContent="center">
-                        <Tooltip title={`GPS: ${connectionStatus.location ? 'Connected' : 'Disconnected'}`}>
-                            <Chip 
-                                size="small" 
-                                icon={<GpsFixed sx={{ fontSize: 14 }} />}
-                                label="GPS"
-                                color={connectionStatus.location ? 'success' : 'default'}
-                                variant={connectionStatus.location ? 'filled' : 'outlined'}
-                                sx={{ fontSize: '0.7rem', height: 24 }}
-                            />
-                        </Tooltip>
-                        <Tooltip title={`Network: ${connectionStatus.network ? 'Online' : 'Offline'}`}>
-                            <Chip 
-                                size="small" 
-                                icon={<SignalWifi4Bar sx={{ fontSize: 14 }} />}
-                                label="Net"
-                                color={connectionStatus.network ? 'success' : 'default'}
-                                variant={connectionStatus.network ? 'filled' : 'outlined'}
-                                sx={{ fontSize: '0.7rem', height: 24 }}
-                            />
-                        </Tooltip>
-                        <Tooltip title="Device Security">
-                            <Chip 
-                                size="small" 
-                                icon={<Security sx={{ fontSize: 14 }} />}
-                                label="Secure"
-                                color="success"
-                                variant="filled"
-                                sx={{ fontSize: '0.7rem', height: 24 }}
-                            />
-                        </Tooltip>
-                    </Stack>
-                </CardContent>
-
-                {/* Leave Status Alert - Compact */}
-                {userOnLeave && (
-                    <Alert 
-                        severity="warning" 
-                        sx={{ 
-                            mx: 2, 
-                            mb: 2,
-                            borderRadius: 2,
-                            background: alpha(theme.palette.warning.main, 0.1),
-                            border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            fontSize: '0.8rem'
-                        }}
-                    >
-                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
-                            On {userOnLeave.leave_type} Leave
-                        </Typography>
-                        <Typography variant="caption">
-                            {new Date(userOnLeave.from_date).toLocaleDateString()} - {new Date(userOnLeave.to_date).toLocaleDateString()}
-                        </Typography>
-                    </Alert>
-                )}
-
-                {/* Collapsible Today's Activity */}
-                <Box sx={{ borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}>
-                    <Box 
-                        sx={{ 
-                            p: 2, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'space-between',
-                            cursor: 'pointer',
-                            '&:hover': {
-                                background: alpha(theme.palette.primary.main, 0.02)
-                            }
-                        }}
-                        onClick={() => toggleSection('punches')}
-                    >
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Today color="primary" sx={{ mr: 1, fontSize: 20 }} />
-                            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                                Today's Activity
-                            </Typography>
-                        </Box>
-                        <IconButton size="small">
-                            {expandedSections.punches ? <ExpandLess /> : <ExpandMore />}
-                        </IconButton>
-                    </Box>
-
-                    <Collapse in={expandedSections.punches}>
-                        <Box sx={{ px: 2, pb: 2 }}>
-                            {todayPunches.length > 0 ? (
-                                <List sx={{ p: 0 }}>
-                                    {todayPunches.map((punch, index) => (
-                                        <React.Fragment key={index}>
-                                            <ListItem sx={{ px: 0, py: 1 }}>
-                                                <ListItemIcon sx={{ minWidth: 36 }}>
-                                                    <Avatar sx={{ width: 24, height: 24, bgcolor: 'primary.main' }}>
-                                                        <Schedule sx={{ fontSize: 14 }} />
-                                                    </Avatar>
-                                                </ListItemIcon>
-                                                <ListItemText
-                                                    primary={
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
-                                                                In: {displayTime(punch.punchin_time || punch.punch_in_time || punch.time_in)}
-                                                            </Typography>
-                                                            {(punch.punchout_time || punch.punch_out_time || punch.time_out) && (
-                                                                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
-                                                                    Out: {displayTime(punch.punchout_time || punch.punch_out_time || punch.time_out)}
-                                                                </Typography>
-                                                            )}
-                                                            {punch.duration && (
-                                                                <Chip 
-                                                                    label={punch.duration} 
-                                                                    size="small" 
-                                                                    color="primary"
-                                                                    variant="outlined"
-                                                                    sx={{ fontSize: '0.6rem', height: 20 }}
-                                                                />
-                                                            )}
-                                                        </Box>
-                                                    }
-                                                    secondary={
-                                                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                                                            📍 {formatLocation(punch.punchin_location || punch.location)}...
-                                                        </Typography>
-                                                    }
-                                                />
-                                            </ListItem>
-                                            {index < todayPunches.length - 1 && <Divider />}
-                                        </React.Fragment>
-                                    ))}
-                                </List>
-                            ) : (
-                                <Alert 
-                                    severity="info" 
-                                    sx={{ 
-                                        background: alpha(theme.palette.info.main, 0.05),
-                                        border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`,
-                                        backdropFilter: 'blur(16px) saturate(200%)',
-                                        fontSize: '0.8rem'
-                                    }}
-                                >
-                                    <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                                        No activity recorded today
-                                    </Typography>
-                                </Alert>
-                            )}
-                        </Box>
-                    </Collapse>
-                </Box>
-            </GlassCard>
-
-            {/* Hero Session Info Dialog */}
-            <GlassDialog open={sessionDialogOpen} onClose={() => setSessionDialogOpen(false)} maxWidth="sm" fullWidth>
-                {/* Compact Header */}
-                <Box
-                    sx={{
-                    p: 2,
-                    textAlign: 'center',
-                    position: 'relative',
-                    color: 'white',
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`
+        <div className="flex flex-col w-full h-full p-4">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col h-full"
+            >
+                <Card 
+                    className="flex flex-col h-full backdrop-blur-md"
+                    style={{
+                        background: `linear-gradient(to bottom right, 
+                            var(--theme-content1, #FAFAFA) 20%, 
+                            var(--theme-content2, #F4F4F5) 10%, 
+                            var(--theme-content3, #F1F3F4) 20%)`,
+                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                        borderWidth: `var(--borderWidth, 2px)`,
+                        borderRadius: `var(--borderRadius, 8px)`,
+                        fontFamily: `var(--fontFamily, 'Inter')`,
+                        opacity: attendanceState.loading ? `var(--disabledOpacity, 0.5)` : '1',
                     }}
                 >
-                    <IconButton
-                    onClick={() => setSessionDialogOpen(false)}
-                    sx={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        color: 'rgba(255,255,255,0.8)',
-                        '&:hover': { color: '#fff', backgroundColor: alpha('#fff', 0.1) },
-                        p: 0.5
-                    }}
-                    >
-                    <Close fontSize="small" />
-                    </IconButton>
-                    <CheckCircle sx={{ fontSize: 36, mb: 0.5, opacity: 0.9 }} />
-                    <Typography variant="subtitle1" fontWeight={700}>Attendance Recorded</Typography>
-                    <Typography variant="caption" sx={{ opacity: 0.85 }}>Attendance successfully captured</Typography>
-                </Box>
+                    <CardBody className="flex flex-col flex-1 p-4">
+                        {/* Header with User & Time */}
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center flex-1">
+                                <Badge
+                                    content=""
+                                    color={statusConfig.color}
+                                    placement="bottom-right"
+                                    shape="circle"
+                                    className="border-2 border-white"
+                                >
+                                    <ProfileAvatar
+                                        src={user?.profile_image_url || user?.profile_image}
+                                        name={user?.name}
+                                        className="w-12 h-12"
+                                    />
+                                </Badge>
 
-                {/* Body */}
-                <DialogContent sx={{ p: 2 }}>
-                    <Grid container spacing={1.5}>
+                                <div className="ml-3 flex-1 min-w-0">
+                                    <h3 
+                                        className="font-semibold text-sm truncate notranslate"
+                                        style={{ color: 'var(--theme-foreground)' }}
+                                        data-name="true"
+                                    >
+                                        {user?.name}
+                                    </h3>
+                                    <p 
+                                        className="text-xs notranslate"
+                                        style={{ color: 'var(--theme-foreground-600)' }}
+                                        data-no-translate="true"
+                                    >
+                                        ID: {user?.employee_id || user?.id}
+                                    </p>
+                                </div>
+                            </div>
 
-                        {/* IP Address */}
-                        <Grid item xs={6}>
-                            <Box
-                            sx={{
-                                p: 1.5,
-                                textAlign: 'center',
-                                borderRadius: 2,
-                                background: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.1)}, ${alpha(theme.palette.info.main, 0.05)})`,
-                                border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
-                                backdropFilter: 'blur(8px)'
-                            }}
+                            <div className="text-right">
+                                <div 
+                                    className="text-lg font-light leading-none"
+                                    style={{
+                                        background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
+                                        backgroundClip: 'text',
+                                        WebkitBackgroundClip: 'text',
+                                        color: 'transparent',
+                                    }}
+                                >
+                                    {systemState.currentTime.toLocaleTimeString('en-US', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: true
+                                    })}
+                                </div>
+                                <div 
+                                    className="text-xs"
+                                    style={{ color: 'var(--theme-foreground-600)' }}
+                                >
+                                    {systemState.currentTime.toLocaleDateString('en-US', { 
+                                        weekday: 'short', 
+                                        day: 'numeric' 
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Status Chip */}
+                        <div 
+                            className="flex justify-center mb-4"
+                            
+                        >
+                            <Chip
+                                color={statusConfig.color}
+                                variant="flat"
+                                startContent={statusConfig.icon}
+                                className="px-4 py-2 font-semibold text-sm"
+                                style={{
+                                    background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                                    borderColor: `color-mix(in srgb, var(--theme-primary) 20%, transparent)`,
+                                    borderWidth: `var(--borderWidth, 2px)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, 'Inter')`,
+                                }}
                             >
-                            <Box sx={{
-                                width: 32, height: 32, mb: 1, mx: 'auto',
-                                borderRadius: '50%',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: `linear-gradient(135deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`
-                            }}>
-                                <Language sx={{ color: 'white', fontSize: 18 }} />
-                            </Box>
-                            <Typography variant="subtitle2" fontWeight={600} color="info.main">{sessionInfo.ip}</Typography>
-                            <Typography variant="caption" color="text.secondary">IP Address</Typography>
-                            </Box>
-                        </Grid>
+                                {statusConfig.text}
+                            </Chip>
+                        </div>
 
-                        {/* GPS Accuracy */}
-                        <Grid item xs={6}>
-                            <Box
-                            sx={{
-                                p: 1.5,
-                                textAlign: 'center',
-                                borderRadius: 2,
-                                background: `linear-gradient(135deg, ${alpha(theme.palette.success.main, 0.1)}, ${alpha(theme.palette.success.main, 0.05)})`,
-                                border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
-                                backdropFilter: 'blur(8px)'
-                            }}
+                        {/* Work Stats Grid */}
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                            <Card 
+                                className="p-3 text-center"
+                                style={{
+                                    background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                                    borderColor: `color-mix(in srgb, var(--theme-primary) 20%, transparent)`,
+                                    borderWidth: `var(--borderWidth, 2px)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, 'Inter')`,
+                                }}
                             >
-                            <Box sx={{
-                                width: 32, height: 32, mb: 1, mx: 'auto',
-                                borderRadius: '50%',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: `linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`
-                            }}>
-                                <GpsFixed sx={{ color: 'white', fontSize: 18 }} />
-                            </Box>
-                            <Typography variant="subtitle2" fontWeight={600} color="success.main">{sessionInfo.accuracy}</Typography>
-                            <Typography variant="caption" color="text.secondary">GPS Accuracy</Typography>
-                            </Box>
-                        </Grid>
-                    </Grid>
+                                <ClockIcon 
+                                    className="w-5 h-5 mx-auto mb-1"
+                                    style={{ color: 'var(--theme-primary)' }}
+                                />
+                                <div 
+                                    className="text-sm font-bold font-mono tracking-wide"
+                                    style={{ color: 'var(--theme-primary)' }}
+                                >
+                                    {attendanceState.realtimeWorkTime}
+                                </div>
+                                <div 
+                                    className="text-xs"
+                                    style={{ color: 'var(--theme-foreground-600)' }}
+                                >
+                                    Hours Today
+                                </div>
+                            </Card>
 
-                    {/* Timestamp */}
-                    <Box
-                    sx={{
-                        mt: 2,
-                        py: 1,
-                        px: 2,
-                        borderRadius: 2,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backdropFilter: 'blur(8px)',
-                        background: `linear-gradient(135deg, ${alpha(theme.palette.success.main, 0.1)}, ${alpha(theme.palette.success.main, 0.05)})`,
-                        border: `1px solid ${alpha(theme.palette.divider, 0.2)}`
-                    }}
-                    >
-                    <AccessTime sx={{ mr: 1, fontSize: 16 }} color="primary" />
-                    <Typography variant="caption" fontWeight={600} color="text.secondary">
-                        Recorded at: {sessionInfo.timestamp}
-                    </Typography>
-                    </Box>
-                </DialogContent>
+                            <Card 
+                                className="p-3 text-center"
+                                style={{
+                                    background: `color-mix(in srgb, var(--theme-secondary) 10%, transparent)`,
+                                    borderColor: `color-mix(in srgb, var(--theme-secondary) 20%, transparent)`,
+                                    borderWidth: `var(--borderWidth, 2px)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, 'Inter')`,
+                                }}
+                            >
+                                <BuildingOfficeIcon 
+                                    className="w-5 h-5 mx-auto mb-1"
+                                    style={{ color: 'var(--theme-secondary)' }}
+                                />
+                                <div 
+                                    className="text-sm font-bold"
+                                    style={{ color: 'var(--theme-secondary)' }}
+                                >
+                                    {workStats.sessionsToday}
+                                </div>
+                                <div 
+                                    className="text-xs"
+                                    style={{ color: 'var(--theme-foreground-600)' }}
+                                >
+                                    Sessions
+                                </div>
+                            </Card>
+                        </div>
 
-                {/* Action */}
-                <DialogActions sx={{ px: 2, pb: 2 }}>
-                    <Button
-                    onClick={() => setSessionDialogOpen(false)}
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                        height: 42,
-                        borderRadius: 2,
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        fontSize: '0.875rem',
-                        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                        '&:hover': {
-                        background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`
-                        }
-                    }}
-                    >
-                    Continue
-                    </Button>
-                </DialogActions>
-            </GlassDialog>
-        </Box>
+                        {/* Main Action Button */}
+                        <Button
+                            color={statusConfig.color}
+                            variant="shadow"
+                            size="lg"
+                            fullWidth
+                            onPress={handlePunch}
+                            isDisabled={
+                                attendanceState.loading || 
+                                attendanceState.userOnLeave || 
+                                locationState.status !== GPS_STATUS.ACTIVE
+                            }
+                            isLoading={attendanceState.loading}
+                            startContent={!attendanceState.loading && statusConfig.icon}
+                            className="mb-4 font-semibold"
+                            style={{
+                                background: (attendanceState.userOnLeave || locationState.status !== GPS_STATUS.ACTIVE)
+                                    ? 'var(--theme-default, #71717A)'
+                                    : statusConfig.color === 'primary' 
+                                        ? `linear-gradient(135deg, var(--theme-primary, #006FEE), var(--theme-primary-600, #005BC4))`
+                                        : statusConfig.color === 'success'
+                                        ? `linear-gradient(135deg, var(--theme-success, #17C964), var(--theme-success-600, #12A150))`
+                                        : statusConfig.color === 'warning'
+                                        ? `linear-gradient(135deg, var(--theme-warning, #F5A524), var(--theme-warning-600, #C4841D))`
+                                        : `linear-gradient(135deg, var(--theme-primary, #006FEE), var(--theme-primary-600, #005BC4))`,
+                                color: 'white',
+                                borderRadius: `var(--borderRadius, 8px)`,
+                                borderWidth: `var(--borderWidth, 2px)`,
+                                fontFamily: `var(--fontFamily, 'Inter')`,
+                                opacity: (attendanceState.loading || attendanceState.userOnLeave || locationState.status !== GPS_STATUS.ACTIVE) 
+                                    ? `var(--disabledOpacity, 0.5)` : '1',
+                            }}
+                        >
+                            {attendanceState.loading ? 'Processing...' : statusConfig.action}
+                        </Button>
+
+                        {/* Connection Status */}
+                        <div className="flex justify-center gap-2 mb-4">
+                            <Tooltip content={gpsChipConfig.tooltip}>
+                                <Chip 
+                                    size="sm" 
+                                    variant={gpsChipConfig.variant}
+                                    color={gpsChipConfig.color}
+                                    startContent={
+                                        locationState.status === GPS_STATUS.CHECKING ? 
+                                            <Spinner size="sm" className="w-3 h-3" /> :
+                                            <MapPinIcon className="w-3 h-3" />
+                                    }
+                                    className={`text-xs transition-all ${gpsChipConfig.clickable ? 'cursor-pointer hover:scale-105' : ''}`}
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, 'Inter')`,
+                                    }}
+                                    onClick={gpsChipConfig.clickable ? handleGpsChipClick : undefined}
+                                >
+                                    {gpsChipConfig.text}
+                                </Chip>
+                            </Tooltip>
+
+                            <Tooltip content={`Network: ${systemState.connectionStatus.network ? 'Online' : 'Offline'}`}>
+                                <Chip 
+                                    size="sm" 
+                                    variant="flat"
+                                    color={systemState.connectionStatus.network ? 'success' : 'default'}
+                                    startContent={<WifiIcon className="w-3 h-3" />}
+                                    className="text-xs"
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, 'Inter')`,
+                                    }}
+                                >
+                                    Net
+                                </Chip>
+                            </Tooltip>
+
+                            <Tooltip content="Device Security">
+                                <Chip 
+                                    size="sm" 
+                                    variant="flat"
+                                    color="success"
+                                    startContent={<ShieldCheckIcon className="w-3 h-3" />}
+                                    className="text-xs"
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, 'Inter')`,
+                                    }}
+                                >
+                                    Secure
+                                </Chip>
+                            </Tooltip>
+                        </div>
+
+                        {/* Location Error Message */}
+                        {locationState.error && locationState.status !== GPS_STATUS.ACTIVE && (
+                            <Card 
+                                className="p-3 mb-4"
+                                style={{
+                                    background: `color-mix(in srgb, var(--theme-danger) 10%, transparent)`,
+                                    borderColor: `color-mix(in srgb, var(--theme-danger) 20%, transparent)`,
+                                    borderWidth: `var(--borderWidth, 1px)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, 'Inter')`,
+                                }}
+                            >
+                                <div className="flex items-start gap-2">
+                                    <ExclamationTriangleIcon 
+                                        className="w-4 h-4 mt-0.5 flex-shrink-0"
+                                        style={{ color: 'var(--theme-danger)' }}
+                                    />
+                                    <div className="text-xs" style={{ color: 'var(--theme-danger-foreground)' }}>
+                                        {locationState.error}
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Leave Status Alert */}
+                        {attendanceState.userOnLeave && (
+                            <Card 
+                                className="p-3 mb-4"
+                                style={{
+                                    background: `color-mix(in srgb, var(--theme-warning) 15%, transparent)`,
+                                    borderColor: `color-mix(in srgb, var(--theme-warning) 30%, transparent)`,
+                                    borderWidth: `var(--borderWidth, 2px)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, 'Inter')`,
+                                }}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <ExclamationTriangleIcon 
+                                        className="w-5 h-5"
+                                        style={{ color: 'var(--theme-warning)' }}
+                                    />
+                                    <div>
+                                        <div 
+                                            className="font-semibold text-sm"
+                                            style={{ color: 'var(--theme-warning-foreground)' }}
+                                        >
+                                            On {attendanceState.userOnLeave.leave_type} Leave
+                                        </div>
+                                        <div 
+                                            className="text-xs"
+                                            style={{ color: 'var(--theme-warning-foreground-600)' }}
+                                        >
+                                            {new Date(attendanceState.userOnLeave.from_date).toLocaleDateString()} - {new Date(attendanceState.userOnLeave.to_date).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Expandable Today's Activity */}
+                        <div className="border-t border-divider">
+                            <Accordion>
+                                <AccordionItem 
+                                    key="activity"
+                                    aria-label="Today's Activity"
+                                    startContent={<CalendarIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />}
+                                    title={
+                                        <span 
+                                            className="font-semibold text-sm"
+                                            style={{ color: 'var(--theme-foreground)' }}
+                                        >
+                                            Today's Activity
+                                        </span>
+                                    }
+                                    subtitle={
+                                        <span 
+                                            className="text-xs"
+                                            style={{ color: 'var(--theme-foreground-600)' }}
+                                        >
+                                            {workStats.sessionsToday} sessions • {attendanceState.realtimeWorkTime}
+                                        </span>
+                                    }
+                                >
+                                    <div className="space-y-2">
+                                        {attendanceState.todayPunches.length > 0 ? (
+                                            attendanceState.todayPunches.map((punch, index) => (
+                                                <Card 
+                                                    key={index}
+                                                    className="p-3"
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                                                        borderColor: `color-mix(in srgb, var(--theme-primary) 20%, transparent)`,
+                                                        borderWidth: `var(--borderWidth, 2px)`,
+                                                        borderRadius: `var(--borderRadius, 8px)`,
+                                                        fontFamily: `var(--fontFamily, 'Inter')`,
+                                                    }}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            
+                                                            {/* Two-column grid for punch details */}
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                {/* Punch In Column */}
+                                                                <div className="space-y-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div 
+                                                                            className="w-2 h-2 rounded-full bg-success"
+                                                                            style={{ backgroundColor: 'var(--theme-success)' }}
+                                                                        />
+                                                                        <span 
+                                                                            className="text-xs font-semibold"
+                                                                            style={{ color: 'var(--theme-success)' }}
+                                                                        >
+                                                                            Check In
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="pl-4 space-y-1">
+                                                                        <div 
+                                                                            className="text-sm font-mono font-medium"
+                                                                            style={{ color: 'var(--theme-foreground)' }}
+                                                                        >
+                                                                            {formatTime(punch.punchin_time)}
+                                                                        </div>
+                                                                        <div className="flex items-start gap-1">
+                                                                            <MapPinIcon 
+                                                                                className="w-3 h-3 mt-0.5 flex-shrink-0"
+                                                                                style={{ color: 'var(--theme-foreground-500)' }}
+                                                                            />
+                                                                            <span 
+                                                                                className="text-xs leading-tight"
+                                                                                style={{ color: 'var(--theme-foreground-600)' }}
+                                                                            >
+                                                                                {formatLocation(punch.punchin_location)}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Punch Out Column */}
+                                                                {punch.punchout_time ? (
+                                                                    <div className="space-y-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div 
+                                                                                className="w-2 h-2 rounded-full"
+                                                                                style={{ backgroundColor: 'var(--theme-primary)' }}
+                                                                            />
+                                                                            <span 
+                                                                                className="text-xs font-semibold"
+                                                                                style={{ color: 'var(--theme-primary)' }}
+                                                                            >
+                                                                                Check Out
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="pl-4 space-y-1">
+                                                                            <div 
+                                                                                className="text-sm font-mono font-medium"
+                                                                                style={{ color: 'var(--theme-foreground)' }}
+                                                                            >
+                                                                                {formatTime(punch.punchout_time)}
+                                                                            </div>
+                                                                            <div className="flex items-start gap-1">
+                                                                                <MapPinIcon 
+                                                                                    className="w-3 h-3 mt-0.5 flex-shrink-0"
+                                                                                    style={{ color: 'var(--theme-foreground-500)' }}
+                                                                                />
+                                                                                <span 
+                                                                                    className="text-xs leading-tight"
+                                                                                    style={{ color: 'var(--theme-foreground-600)' }}
+                                                                                >
+                                                                                    {formatLocation(punch.punchout_location)}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="space-y-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div 
+                                                                                className="w-2 h-2 rounded-full border-2"
+                                                                                style={{ borderColor: 'var(--theme-warning)' }}
+                                                                            />
+                                                                            <span 
+                                                                                className="text-xs font-semibold"
+                                                                                style={{ color: 'var(--theme-warning)' }}
+                                                                            >
+                                                                                Active Session
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="pl-4 space-y-1">
+                                                                            <div 
+                                                                                className="text-sm font-mono font-medium"
+                                                                                style={{ color: 'var(--theme-warning)' }}
+                                                                            >
+                                                                                --:--
+                                                                            </div>
+                                                                            <div className="flex items-start gap-1">
+                                                                                <ClockIcon 
+                                                                                    className="w-3 h-3 mt-0.5 flex-shrink-0"
+                                                                                    style={{ color: 'var(--theme-warning)' }}
+                                                                                />
+                                                                                <span 
+                                                                                    className="text-xs leading-tight"
+                                                                                    style={{ color: 'var(--theme-warning-600)' }}
+                                                                                >
+                                                                                    In progress
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {punch.duration && (
+                                                            <Chip 
+                                                                size="sm" 
+                                                                color="primary"
+                                                                variant="flat"
+                                                                className="text-xs"
+                                                            >
+                                                                {punch.duration}
+                                                            </Chip>
+                                                        )}
+                                                    </div>
+                                                </Card>
+                                            ))
+                                        ) : (
+                                            <Card 
+                                                className="p-4 text-center"
+                                               
+                                                style={{
+                                                    background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                                                    borderColor: `color-mix(in srgb, var(--theme-primary) 20%, transparent)`,
+                                                    borderWidth: `var(--borderWidth, 2px)`,
+                                                    borderRadius: `var(--borderRadius, 8px)`,
+                                                    fontFamily: `var(--fontFamily, 'Inter')`,
+                                                }}
+                                            >
+                                                <InformationCircleIcon 
+                                                    className="w-8 h-8 mx-auto mb-2"
+                                                    style={{ color: 'var(--theme-primary)' }}
+                                                />
+                                                <div 
+                                                    className="text-sm"
+                                                    style={{ color: 'var(--theme-foreground-600)' }}
+                                                >
+                                                    No activity recorded today
+                                                </div>
+                                            </Card>
+                                        )}
+                                    </div>
+                                </AccordionItem>
+                            </Accordion>
+                        </div>
+                    </CardBody>
+                </Card>
+            </motion.div>
+
+            {/* Session Success Modal */}
+            <Modal 
+                isOpen={uiState.sessionDialogOpen} 
+                onOpenChange={(open) => setUiState(prev => ({ ...prev, sessionDialogOpen: open }))}
+                size="sm"
+                backdrop="blur"
+                classNames={{
+                    backdrop: "backdrop-blur-md",
+                    base: "border border-default-200",
+                    header: "border-b-[1px] border-divider",
+                    footer: "border-t-[1px] border-divider",
+                }}
+                style={{
+                    background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
+                    borderColor: `color-mix(in srgb, var(--theme-primary) 20%, transparent)`,
+                    borderWidth: `var(--borderWidth, 2px)`,
+                    borderRadius: `var(--borderRadius, 8px)`,
+                    fontFamily: `var(--fontFamily, 'Inter')`,
+                }}
+             
+            >
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1 text-center">
+                                <CheckCircleIcon 
+                                    className="w-8 h-8 mx-auto mb-2"
+                                    style={{ color: 'var(--theme-success)' }}
+                                />
+                                <h3 className="font-bold text-lg">Attendance Recorded</h3>
+                                <p className="text-sm font-normal opacity-70">
+                                    Your attendance has been successfully captured
+                                </p>
+                            </ModalHeader>
+                            <ModalBody>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Card 
+                                        className="p-3 text-center"
+                                        style={{
+                                            borderRadius: `var(--borderRadius, 8px)`,
+                                            fontFamily: `var(--fontFamily, 'Inter')`,
+                                        }}
+                                    >
+                                        <GlobeAltIcon 
+                                            className="w-6 h-6 mx-auto mb-2"
+                                            style={{ color: 'var(--theme-primary)' }}
+                                        />
+                                        <div 
+                                            className="text-sm font-semibold"
+                                            style={{ color: 'var(--theme-primary)' }}
+                                        >
+                                            {systemState.sessionInfo.ip}
+                                        </div>
+                                        <div 
+                                            className="text-xs"
+                                            style={{ color: 'var(--theme-foreground-600)' }}
+                                        >
+                                            IP Address
+                                        </div>
+                                    </Card>
+
+                                    <Card 
+                                        className="p-3 text-center"
+                                        style={{
+                                            borderRadius: `var(--borderRadius, 8px)`,
+                                            fontFamily: `var(--fontFamily, 'Inter')`,
+                                        }}
+                                    >
+                                        <MapPinIcon 
+                                            className="w-6 h-6 mx-auto mb-2"
+                                            style={{ color: 'var(--theme-success)' }}
+                                        />
+                                        <div 
+                                            className="text-sm font-semibold"
+                                            style={{ color: 'var(--theme-success)' }}
+                                        >
+                                            {systemState.sessionInfo.accuracy}
+                                        </div>
+                                        <div 
+                                            className="text-xs"
+                                            style={{ color: 'var(--theme-foreground-600)' }}
+                                        >
+                                            GPS Accuracy
+                                        </div>
+                                    </Card>
+                                </div>
+
+                                <Card 
+                                    className="p-3 mt-4"
+                                    style={{
+                                        background: `color-mix(in srgb, var(--theme-success) 10%, transparent)`,
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, 'Inter')`,
+                                    }}
+                                >
+                                    <div className="flex items-center justify-center gap-2 text-xs">
+                                        <ClockIcon className="w-4 h-4" />
+                                        <span>Recorded at: {systemState.sessionInfo.timestamp}</span>
+                                    </div>
+                                </Card>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button 
+                                    color="primary" 
+                                    variant="shadow"
+                                    fullWidth
+                                    onPress={onClose}
+                                    className="font-semibold"
+                                    style={{
+                                        borderRadius: `var(--borderRadius, 8px)`,
+                                        fontFamily: `var(--fontFamily, 'Inter')`,
+                                    }}
+                                >
+                                    Continue
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+
+            {/* Camera Modal for Photo Capture */}
+            <Modal 
+                isOpen={cameraState.isOpen} 
+                onClose={stopCamera}
+                size="lg"
+                classNames={{
+                    backdrop: "bg-black/80",
+                    base: "bg-content1"
+                }}
+                style={{
+                    borderRadius: `var(--borderRadius, 12px)`,
+                    fontFamily: `var(--fontFamily, 'Inter')`,
+                }}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <CameraIcon className="w-5 h-5 text-primary" />
+                            <span>Capture Attendance Photo</span>
+                        </div>
+                        <p className="text-sm text-default-500 font-normal">
+                            Take a photo for verification. Location coordinates will be added automatically.
+                        </p>
+                    </ModalHeader>
+                    <ModalBody className="p-4">
+                        <div className="relative rounded-lg overflow-hidden bg-black">
+                            {/* Video preview or captured photo */}
+                            {cameraState.capturedPhoto ? (
+                                <img 
+                                    src={cameraState.capturedPhoto} 
+                                    alt="Captured" 
+                                    className="w-full h-auto max-h-[400px] object-contain"
+                                />
+                            ) : (
+                                <>
+                                    <video 
+                                        ref={videoRef}
+                                        autoPlay 
+                                        playsInline 
+                                        muted
+                                        className="w-full h-auto max-h-[400px] object-contain"
+                                        style={{ transform: cameraState.facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
+                                    />
+                                    
+                                    {/* Camera switch button */}
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="flat"
+                                        className="absolute top-3 right-3 bg-black/50 text-white hover:bg-black/70"
+                                        onPress={switchCamera}
+                                        isLoading={cameraState.isSwitching}
+                                        isDisabled={!cameraState.stream || cameraState.isSwitching}
+                                        style={{ borderRadius: '50%' }}
+                                    >
+                                        <ArrowPathIcon className="w-4 h-4" />
+                                    </Button>
+                                    
+                                    {/* Camera mode indicator */}
+                                    <div className="absolute top-3 left-3 px-2 py-1 rounded-full text-xs text-white bg-black/50">
+                                        {cameraState.facingMode === 'user' ? '🤳 Front' : '📷 Back'}
+                                    </div>
+                                </>
+                            )}
+                            
+                            {/* Hidden canvas for photo capture */}
+                            <canvas ref={canvasRef} className="hidden" />
+                            
+                            {/* Location overlay */}
+                            {locationState.coordinates && (
+                                <div 
+                                    className="absolute bottom-0 left-0 right-0 p-2 text-white text-xs"
+                                    style={{ background: 'rgba(0,0,0,0.7)' }}
+                                >
+                                    📍 {locationState.coordinates.latitude.toFixed(6)}, {locationState.coordinates.longitude.toFixed(6)}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Instructions */}
+                        <div 
+                            className="mt-3 p-3 rounded-lg text-sm"
+                            style={{ 
+                                background: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)',
+                                borderRadius: 'var(--borderRadius, 8px)',
+                            }}
+                        >
+                            <p className="flex items-center gap-2">
+                                <InformationCircleIcon className="w-4 h-4 text-primary" />
+                                {cameraState.capturedPhoto 
+                                    ? 'Review your photo. You can retake if needed.'
+                                    : 'Position yourself clearly in the frame and capture the photo.'}
+                            </p>
+                        </div>
+                    </ModalBody>
+                    <ModalFooter className="flex gap-2">
+                        <Button 
+                            color="danger" 
+                            variant="light"
+                            onPress={stopCamera}
+                            style={{ fontFamily: `var(--fontFamily, 'Inter')` }}
+                        >
+                            Cancel
+                        </Button>
+                        
+                        {cameraState.capturedPhoto ? (
+                            <>
+                                <Button 
+                                    color="secondary" 
+                                    variant="flat"
+                                    onPress={retakePhoto}
+                                    startContent={<ArrowPathIcon className="w-4 h-4" />}
+                                    style={{ fontFamily: `var(--fontFamily, 'Inter')` }}
+                                >
+                                    Retake
+                                </Button>
+                                <Button 
+                                    color="success" 
+                                    variant="shadow"
+                                    onPress={confirmPhotoAndPunch}
+                                    isLoading={attendanceState.loading}
+                                    startContent={!attendanceState.loading && <CheckCircleIcon className="w-4 h-4" />}
+                                    style={{ fontFamily: `var(--fontFamily, 'Inter')` }}
+                                >
+                                    Confirm & {statusConfig.action}
+                                </Button>
+                            </>
+                        ) : (
+                            <Button 
+                                color="primary" 
+                                variant="shadow"
+                                onPress={capturePhoto}
+                                isLoading={cameraState.isCapturing}
+                                isDisabled={!cameraState.stream}
+                                startContent={!cameraState.isCapturing && <CameraIcon className="w-4 h-4" />}
+                                style={{ fontFamily: `var(--fontFamily, 'Inter')` }}
+                            >
+                                Capture Photo
+                            </Button>
+                        )}
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </div>
     );
-};
+});
+
+PunchStatusCard.displayName = 'PunchStatusCard';
 
 export default PunchStatusCard;
+
+/**
+ * =========================
+ * IMPLEMENTATION NOTES v3.0.0
+ * =========================
+ * 
+ * This completely redesigned PunchStatusCard implements the requested simplified location management:
+ * 
+ * 1. **Simplified Location Management**:
+ *    - Single `getLocation()` function for all location requests
+ *    - Clear GPS status states: CHECKING, ACTIVE, DENIED, INACTIVE
+ *    - Unified permission checking with `checkLocationPermission()`
+ *    - Simple retry mechanism with `requestLocationPermissionReset()`
+ * 
+ * 2. **Enhanced Data Freshness**:
+ *    - Always fetches latest punch data with cache-busting timestamp
+ *    - Auto-refresh every 30 seconds
+ *    - Immediate refresh after successful punch
+ *    - Window focus refresh for real-time updates
+ * 
+ * 3. **Improved UX**:
+ *    - GPS chip shows clear status and is clickable when needed
+ *    - Punch button disabled until GPS is active
+ *    - Real-time work time calculation
+ *    - Better error messaging
+ * 
+ * 4. **Enterprise Features**:
+ *    - Device fingerprinting for security
+ *    - Comprehensive error handling
+ *    - Network status monitoring
+ *    - Leave status integration
+ * 
+ * 5. **Performance Optimizations**:
+ *    - React.memo for preventing unnecessary re-renders
+ *    - useCallback and useMemo for expensive operations
+ *    - Debounced resize handlers
+ *    - Efficient state management
+ * 
+ * 6. **Clean Code Practices**:
+ *    - Clear separation of concerns
+ *    - Modular state management
+ *    - Comprehensive error handling
+ *    - Professional styling with HeroUI theming
+ * 
+ * The component now provides a streamlined, enterprise-grade attendance tracking experience
+ * with simplified location management and always-fresh data.
+ */

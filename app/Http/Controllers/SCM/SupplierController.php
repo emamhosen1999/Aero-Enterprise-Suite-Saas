@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\Supplier;
-use App\Models\PurchaseOrder;
 use App\Models\LogisticsShipment;
+use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class SupplierController extends Controller

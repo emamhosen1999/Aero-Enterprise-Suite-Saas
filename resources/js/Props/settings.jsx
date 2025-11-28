@@ -48,7 +48,7 @@ export const getSettingsPages = (permissions = []) => {
     // 2. Organization
     if (permissions.includes('company.settings')) {
         settings.push({
-            name: 'Organization Configuration', 
+            name: 'Organization', 
             icon: <BuildingOfficeIcon className="w-5 h-5" />, 
             route: 'admin.settings.company',
             category: 'organization',
@@ -58,7 +58,7 @@ export const getSettingsPages = (permissions = []) => {
     }
     if (permissions.includes('attendance.settings')) {
         settings.push({
-            name: 'Time & Attendance Configuration', 
+            name: 'Time & Attendance', 
             icon: <ClockIcon className="w-5 h-5" />, 
             route: 'attendance-settings.index',
             category: 'organization',
@@ -68,7 +68,7 @@ export const getSettingsPages = (permissions = []) => {
     }
     if (permissions.includes('leave-settings.view')) {
         settings.push({
-            name: 'Leave Policy Management', 
+            name: 'Leave Policy', 
             icon: <HandThumbUpIcon className="w-5 h-5" />, 
             route: 'leave-settings',
             category: 'organization',
@@ -79,7 +79,7 @@ export const getSettingsPages = (permissions = []) => {
     // 3. Security
     if (permissions.includes('roles.view')) {
         settings.push({
-            name: 'Identity & Access Management', 
+            name: 'Roles & Permission', 
             icon: <KeyIcon className="w-5 h-5" />, 
             route: 'admin.roles-management',
             category: 'security',
@@ -87,16 +87,7 @@ export const getSettingsPages = (permissions = []) => {
             description: 'Manage user roles and permission system'
         });
     }
-    if (permissions.includes('users.view')) {
-        settings.push({
-            name: 'User Account Administration', 
-            icon: <UserGroupIcon className="w-5 h-5" />, 
-            route: 'users',
-            category: 'security',
-            priority: 6,
-            description: 'Manage user accounts and access control'
-        });
-    }
+    
     
     // // HR Module Settings
     // if (permissions.includes('performance-templates.view')) {

@@ -18,7 +18,7 @@ export default function OnboardingShow() {
       </div>
       <div className="grid md:grid-cols-3 gap-6">
         <div className="col-span-2 space-y-4">
-          <div className="bg-white shadow rounded p-4">
+          <div className="bg-white shadow-sm rounded-sm p-4">
             <h2 className="font-medium mb-3">Overview</h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-gray-600">Employee</dt><dd>{onboarding.employee?.name}</dd>
@@ -30,7 +30,7 @@ export default function OnboardingShow() {
             </dl>
             {onboarding.notes && <p className="mt-3 text-sm text-gray-700 whitespace-pre-line">{onboarding.notes}</p>}
           </div>
-          <div className="bg-white shadow rounded">
+          <div className="bg-white shadow-sm rounded-sm">
             <div className="flex items-center justify-between px-4 py-3 border-b">
               <h3 className="font-medium">Tasks ({tasks.length})</h3>
             </div>
@@ -56,7 +56,7 @@ export default function OnboardingShow() {
           </div>
         </div>
         <div className="space-y-4">
-          <div className="bg-white shadow rounded p-4">
+          <div className="bg-white shadow-sm rounded-sm p-4">
             <h2 className="font-medium mb-3">Actions</h2>
             <ul className="space-y-2 text-sm">
               <li><Link href={route('hr.onboarding.edit', onboarding.id)} className="link">Edit Onboarding</Link></li>

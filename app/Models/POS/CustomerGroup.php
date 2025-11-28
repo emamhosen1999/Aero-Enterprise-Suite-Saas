@@ -16,7 +16,7 @@ class CustomerGroup extends Model
         'name',
         'description',
         'discount_percentage',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Advanced API Security Middleware
- * 
+ *
  * Provides comprehensive security controls for API endpoints
  * including rate limiting, input validation, and audit logging
  */
@@ -23,21 +23,21 @@ class ApiSecurityMiddleware
     {
         // Rate limiting by user and IP
         $this->applyRateLimiting($request);
-        
+
         // Input sanitization and validation
         $this->sanitizeInput($request);
-        
+
         // Security headers
         $this->validateSecurityHeaders($request);
-        
+
         // Audit logging for sensitive operations
         $this->auditRequest($request);
-        
+
         $response = $next($request);
-        
+
         // Add security headers to response
         $this->addSecurityHeaders($response);
-        
+
         return $response;
     }
 
@@ -55,9 +55,9 @@ class ApiSecurityMiddleware
                 'user_id' => auth()->id(),
                 'ip' => $request->ip(),
                 'endpoint' => $request->path(),
-                'user_agent' => $request->userAgent()
+                'user_agent' => $request->userAgent(),
             ]);
-            
+
             abort(429, 'Too many requests. Please slow down.');
         }
 
@@ -72,7 +72,7 @@ class ApiSecurityMiddleware
         $userId = auth()->id() ?? 'guest';
         $ip = $request->ip();
         $endpoint = $request->path();
-        
+
         return "api_rate_limit:{$userId}:{$ip}:{$endpoint}";
     }
 
@@ -82,16 +82,16 @@ class ApiSecurityMiddleware
     private function getMaxAttempts(Request $request): int
     {
         $path = $request->path();
-        
+
         // Sensitive endpoints get stricter limits
         if (str_contains($path, 'roles') || str_contains($path, 'users') || str_contains($path, 'permissions')) {
             return 30; // 30 requests per window
         }
-        
+
         if (str_contains($path, 'admin')) {
             return 60; // 60 requests per window
         }
-        
+
         return 120; // Default limit
     }
 
@@ -101,12 +101,12 @@ class ApiSecurityMiddleware
     private function getDecayMinutes(Request $request): int
     {
         $path = $request->path();
-        
+
         // Sensitive endpoints get longer decay periods
         if (str_contains($path, 'roles') || str_contains($path, 'permissions')) {
             return 15; // 15 minute window
         }
-        
+
         return 5; // 5 minute window
     }
 
@@ -128,12 +128,12 @@ class ApiSecurityMiddleware
         if (is_array($data)) {
             return array_map([$this, 'recursiveSanitize'], $data);
         }
-        
+
         if (is_string($data)) {
             // Remove potentially dangerous characters
             $data = strip_tags($data);
             $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-            
+
             // Check for SQL injection patterns
             $sqlPatterns = [
                 '/(\bunion\b.*\bselect\b)/i',
@@ -143,41 +143,41 @@ class ApiSecurityMiddleware
                 '/(\bdelete\b.*\bfrom\b)/i',
                 '/(\bdrop\b.*\btable\b)/i',
             ];
-            
+
             foreach ($sqlPatterns as $pattern) {
                 if (preg_match($pattern, $data)) {
                     Log::critical('Potential SQL injection attempt detected', [
                         'user_id' => auth()->id(),
                         'ip' => request()->ip(),
                         'data' => $data,
-                        'endpoint' => request()->path()
+                        'endpoint' => request()->path(),
                     ]);
-                    
+
                     abort(400, 'Invalid input detected');
                 }
             }
-            
+
             // Check for XSS patterns
             $xssPatterns = [
                 '/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi',
                 '/javascript:/i',
                 '/on\w+\s*=/i',
             ];
-            
+
             foreach ($xssPatterns as $pattern) {
                 if (preg_match($pattern, $data)) {
                     Log::warning('Potential XSS attempt detected', [
                         'user_id' => auth()->id(),
                         'ip' => request()->ip(),
                         'data' => $data,
-                        'endpoint' => request()->path()
+                        'endpoint' => request()->path(),
                     ]);
-                    
+
                     abort(400, 'Invalid input detected');
                 }
             }
         }
-        
+
         return $data;
     }
 
@@ -188,17 +188,17 @@ class ApiSecurityMiddleware
     {
         // Check for required headers in API requests
         if ($request->isJson()) {
-            if (!$request->hasHeader('Content-Type') || 
-                !str_contains($request->header('Content-Type'), 'application/json')) {
-                
+            if (! $request->hasHeader('Content-Type') ||
+                ! str_contains($request->header('Content-Type'), 'application/json')) {
+
                 Log::warning('Missing or invalid Content-Type header', [
                     'user_id' => auth()->id(),
                     'ip' => $request->ip(),
-                    'content_type' => $request->header('Content-Type')
+                    'content_type' => $request->header('Content-Type'),
                 ]);
             }
         }
-        
+
         // Check for suspicious user agents
         $userAgent = $request->userAgent();
         $suspiciousPatterns = [
@@ -209,14 +209,14 @@ class ApiSecurityMiddleware
             '/wget/i',
             '/python/i',
         ];
-        
+
         foreach ($suspiciousPatterns as $pattern) {
             if ($userAgent && preg_match($pattern, $userAgent)) {
                 Log::info('Suspicious user agent detected', [
                     'user_id' => auth()->id(),
                     'ip' => $request->ip(),
                     'user_agent' => $userAgent,
-                    'endpoint' => $request->path()
+                    'endpoint' => $request->path(),
                 ]);
                 break;
             }
@@ -233,14 +233,14 @@ class ApiSecurityMiddleware
             'admin/users',
             'roles/update-permission',
             'roles/update-module',
-            'users/update-role'
+            'users/update-role',
         ];
-        
+
         $path = $request->path();
-        $isSensitive = collect($sensitiveEndpoints)->contains(function($endpoint) use ($path) {
+        $isSensitive = collect($sensitiveEndpoints)->contains(function ($endpoint) use ($path) {
             return str_contains($path, $endpoint);
         });
-        
+
         if ($isSensitive) {
             Log::info('Sensitive operation attempted', [
                 'user_id' => auth()->id(),
@@ -250,7 +250,7 @@ class ApiSecurityMiddleware
                 'endpoint' => $path,
                 'input' => $request->except(['password', 'password_confirmation']),
                 'user_agent' => $request->userAgent(),
-                'timestamp' => now()
+                'timestamp' => now(),
             ]);
         }
     }
@@ -265,12 +265,12 @@ class ApiSecurityMiddleware
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-        
+
         // Only add HSTS in production with HTTPS
         if (app()->environment('production') && request()->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
-        
+
         // CSP header for additional XSS protection
         $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:";
         $response->headers->set('Content-Security-Policy', $csp);

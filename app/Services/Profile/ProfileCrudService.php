@@ -3,7 +3,6 @@
 namespace App\Services\Profile;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileCrudService
@@ -44,14 +43,14 @@ class ProfileCrudService
     public function getUserWithDetails(int $userId): ?User
     {
         $user = User::with(['educations', 'experiences'])->where('id', $userId)->first();
-        
+
         if ($user) {
             foreach ($user->educations as $education) {
                 $education->starting_date = date('Y-m', strtotime($education->starting_date));
                 $education->complete_date = date('Y-m', strtotime($education->complete_date));
             }
         }
-        
+
         return $user;
     }
 
@@ -61,13 +60,14 @@ class ProfileCrudService
     public function deleteUser(int $userId): bool
     {
         $user = $this->findUser($userId);
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
 
         try {
             $user->delete();
+
             return true;
         } catch (\Exception $e) {
             throw $e;

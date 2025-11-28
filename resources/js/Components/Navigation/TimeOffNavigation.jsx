@@ -99,18 +99,18 @@ const TimeOffNavigation = ({ currentRoute, permissions = [] }) => {
               className={`
                 w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all duration-200
                 ${active 
-                  ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30' 
+                  ? 'bg-linear-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30' 
                   : 'hover:bg-white/5 text-gray-300 hover:text-white'
                 }
               `}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <Icon className="w-5 h-5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm">{item.name}</div>
                 <div className="text-xs opacity-70 truncate">{item.description}</div>
               </div>
               {active && (
-                <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0" />
+                <div className="w-2 h-2 bg-blue-400 rounded-full shrink-0" />
               )}
             </button>
           );
@@ -126,21 +126,21 @@ export const TimeOffQuickActions = ({ permissions = [] }) => {
       name: 'Request Time Off',
       route: 'hr.timeoff.employee-requests',
       icon: PlusIcon,
-      color: 'bg-gradient-to-r from-blue-500 to-blue-600',
+      color: 'bg-linear-to-r from-blue-500 to-blue-600',
       permission: 'hr.timeoff.view'
     },
     {
       name: 'Add Holiday',
       route: 'hr.timeoff.holidays',
       icon: GlobeAltIcon,
-      color: 'bg-gradient-to-r from-green-500 to-green-600',
+      color: 'bg-linear-to-r from-green-500 to-green-600',
       permission: 'hr.timeoff.manage'
     },
     {
       name: 'View Calendar',
       route: 'hr.timeoff.calendar',
       icon: CalendarDaysIcon,
-      color: 'bg-gradient-to-r from-purple-500 to-purple-600',
+      color: 'bg-linear-to-r from-purple-500 to-purple-600',
       permission: 'hr.timeoff.view'
     }
   ];

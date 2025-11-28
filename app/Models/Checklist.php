@@ -12,15 +12,16 @@ class Checklist extends Model
     use HasFactory, SoftDeletes;
 
     const TYPE_ONBOARDING = 'onboarding';
+
     const TYPE_OFFBOARDING = 'offboarding';
 
     protected $fillable = [
-        'name', 'type', 'description', 'items', 'active', 'created_by', 'updated_by'
+        'name', 'type', 'description', 'items', 'active', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'items' => 'array',
-        'active' => 'boolean'
+        'active' => 'boolean',
     ];
 
     public static function boot()
@@ -46,6 +47,7 @@ class Checklist extends Model
     {
         return $q->where('active', true);
     }
+
     public function scopeType($q, $type)
     {
         return $q->where('type', $type);
@@ -56,6 +58,7 @@ class Checklist extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');

@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Services\Role\RolePermissionService;
+use Illuminate\Console\Command;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class TestRoleSystem extends Command
 {
@@ -37,22 +37,23 @@ class TestRoleSystem extends Command
         $userCount = User::count();
         $roleCount = Role::count();
         $permissionCount = Permission::count();
-        
+
         $this->table(
             ['Component', 'Count'],
             [
                 ['Users', $userCount],
                 ['Roles', $roleCount],
-                ['Permissions', $permissionCount]
+                ['Permissions', $permissionCount],
             ]
         );
 
         // Test 2: Check specific user
         $userId = $this->option('user');
         $user = User::find($userId);
-        
-        if (!$user) {
+
+        if (! $user) {
             $this->error("User with ID {$userId} not found");
+
             return 1;
         }
 
@@ -67,7 +68,7 @@ class TestRoleSystem extends Command
                 ['Name', $user->name],
                 ['Email', $user->email],
                 ['Roles', implode(', ', $userRoles)],
-                ['Permissions (first 10)', implode(', ', $userPermissions)]
+                ['Permissions (first 10)', implode(', ', $userPermissions)],
             ]
         );
 
@@ -89,37 +90,37 @@ class TestRoleSystem extends Command
         // Test 4: Test RolePermissionService
         $this->newLine();
         $this->info('🛠️ Test 4: RolePermissionService Test');
-        
+
         try {
-            $roleService = new RolePermissionService();
+            $roleService = new RolePermissionService;
             $modules = $roleService->getEnterpriseModules();
-            $this->info("✅ RolePermissionService loaded successfully");
-            $this->info("📦 Enterprise modules available: " . count($modules));
+            $this->info('✅ RolePermissionService loaded successfully');
+            $this->info('📦 Enterprise modules available: '.count($modules));
         } catch (\Exception $e) {
-            $this->error("❌ RolePermissionService failed: " . $e->getMessage());
+            $this->error('❌ RolePermissionService failed: '.$e->getMessage());
         }
 
         // Test 5: Test database relationships
         $this->newLine();
         $this->info('🔗 Test 5: Database Relationships');
-        
+
         try {
             $sampleRole = Role::with('permissions')->first();
             if ($sampleRole) {
-                $this->info("✅ Role-Permission relationship working");
+                $this->info('✅ Role-Permission relationship working');
                 $this->info("🎯 Sample role '{$sampleRole->name}' has {$sampleRole->permissions->count()} permissions");
             }
-            
+
             $roleUsers = $user->roles()->with('users')->get();
-            $this->info("✅ User-Role relationship working");
-            
+            $this->info('✅ User-Role relationship working');
+
         } catch (\Exception $e) {
-            $this->error("❌ Database relationship test failed: " . $e->getMessage());
+            $this->error('❌ Database relationship test failed: '.$e->getMessage());
         }
 
         $this->newLine();
         $this->info('🎉 Role system test completed!');
-        
+
         return 0;
     }
 }

@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\POS\Category;
+use App\Models\POS\Customer;
+use App\Models\POS\PaymentMethod;
 use App\Models\POS\Product;
 use App\Models\POS\Transaction;
-use App\Models\POS\Customer;
-use App\Models\POS\Category;
-use App\Models\POS\PaymentMethod;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class POSService
 {
@@ -236,7 +236,7 @@ class POSService
             $sale = $salesData->firstWhere('date', $date);
             $chartData[] = [
                 'date' => $date,
-                'total' => $sale ? $sale->total : 0
+                'total' => $sale ? $sale->total : 0,
             ];
         }
 
@@ -248,8 +248,12 @@ class POSService
      */
     public function getSalesReport($startDate = null, $endDate = null)
     {
-        if (!$startDate) $startDate = Carbon::now()->startOfMonth();
-        if (!$endDate) $endDate = Carbon::now()->endOfMonth();
+        if (! $startDate) {
+            $startDate = Carbon::now()->startOfMonth();
+        }
+        if (! $endDate) {
+            $endDate = Carbon::now()->endOfMonth();
+        }
 
         return [
             'period' => [
@@ -307,10 +311,10 @@ class POSService
             $transaction = Transaction::create([
                 'transaction_number' => $this->generateTransactionNumber(),
                 'customer_id' => $data['customer_id'] ?? null,
-                'subtotal' => collect($data['items'])->sum(fn($item) => $item['quantity'] * $item['price']),
+                'subtotal' => collect($data['items'])->sum(fn ($item) => $item['quantity'] * $item['price']),
                 'tax_amount' => $data['tax_amount'] ?? 0,
                 'discount_amount' => $data['discount'] ?? 0,
-                'total_amount' => collect($data['items'])->sum(fn($item) => $item['quantity'] * $item['price']) + ($data['tax_amount'] ?? 0) - ($data['discount'] ?? 0),
+                'total_amount' => collect($data['items'])->sum(fn ($item) => $item['quantity'] * $item['price']) + ($data['tax_amount'] ?? 0) - ($data['discount'] ?? 0),
                 'payment_method' => $data['payment_method'],
                 'status' => 'completed',
                 'processed_by' => auth()->id(),
@@ -353,7 +357,7 @@ class POSService
         $date = Carbon::now()->format('Ymd');
         $sequence = Transaction::whereDate('created_at', Carbon::today())->count() + 1;
 
-        return $prefix . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.$date.'-'.str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     /**

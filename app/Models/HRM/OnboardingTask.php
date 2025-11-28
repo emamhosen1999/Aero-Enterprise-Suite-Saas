@@ -13,8 +13,11 @@ class OnboardingTask extends Model
     use HasFactory, SoftDeletes;
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_IN_PROGRESS = 'in_progress'; // normalized
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_NOT_APPLICABLE = 'not-applicable';
 
     protected $fillable = [

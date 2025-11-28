@@ -168,9 +168,9 @@ class DashboardController extends Controller
                             'data' => [8, 5, 10, 4, 11],
                             'backgroundColor' => 'rgba(255, 99, 132, 0.2)',
                             'borderColor' => 'rgba(255, 99, 132, 1)',
-                        ]
-                    ]
-                ]
+                        ],
+                    ],
+                ],
             ],
             [
                 'id' => 2,
@@ -196,9 +196,9 @@ class DashboardController extends Controller
                                 'rgba(255, 206, 86, 1)',
                                 'rgba(255, 99, 132, 1)',
                             ],
-                        ]
-                    ]
-                ]
+                        ],
+                    ],
+                ],
             ],
         ];
     }

@@ -20,6 +20,12 @@ class Leave extends Model
         'approved_by',
         'reason',
         'status',
+        'approval_chain',
+        'current_approval_level',
+        'approved_at',
+        'rejection_reason',
+        'rejected_by',
+        'submitted_at',
     ];
 
     protected $casts = [
@@ -31,6 +37,11 @@ class Leave extends Model
         'reason' => 'string',
         'status' => 'string',
         'approved_by' => 'integer',
+        'approval_chain' => 'array',
+        'current_approval_level' => 'integer',
+        'approved_at' => 'datetime',
+        'rejected_by' => 'integer',
+        'submitted_at' => 'datetime',
     ];
 
     // Relationships
@@ -75,10 +86,15 @@ class Leave extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    public function rejectedBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
     // Accessors
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'New' => 'primary',
             'Pending' => 'warning',
             'Approved' => 'success',
@@ -108,6 +124,4 @@ class Leave extends Model
     {
         return $value ? Carbon::parse($value)->format('Y-m-d') : $value;
     }
-
-
 }

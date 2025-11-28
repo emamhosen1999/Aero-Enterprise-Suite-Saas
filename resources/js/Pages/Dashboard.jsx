@@ -6,19 +6,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import TimeSheetTable from '@/Tables/TimeSheetTable.jsx';
 import UserLocationsCard from '@/Components/UserLocationsCard.jsx';
 import UpdatesCards from '@/Components/UpdatesCards.jsx';
-import HolidayCard from '@/Components/HolidayCard.jsx';
 import StatisticCard from '@/Components/StatisticCard.jsx';
 import PunchStatusCard from '@/Components/PunchStatusCard.jsx';
 import App from "@/Layouts/App.jsx";
-import { Grid, Box } from "@mui/material";
 
-import { 
-    HomeIcon, 
-    CalendarDaysIcon,
-    ChartBarIcon 
-} from '@heroicons/react/24/outline';
+
 
 export default function Dashboard({ auth }) {
+
+
 
     const [updateMap, setUpdateMap] = useState(false);
     const [updateTimeSheet, setUpdateTimeSheet] = useState(false);
@@ -110,7 +106,7 @@ export default function Dashboard({ auth }) {
         setUpdateMap(prev => !prev);
     };
 
-    return (
+    return ( 
         <>
             <Head title="Dashboard" />
             <motion.div
@@ -119,60 +115,58 @@ export default function Dashboard({ auth }) {
                 animate="visible"
                 
             >
-                <Box sx={{ 
-                    width: '100%',
-                    // Remove extra padding since App.jsx now provides consistent padding
-                }}>
+                <div className="w-full">
                     {/*<NoticeBoard/>*/}
                     <motion.div key="main-grid" variants={itemVariants}>
-                        <Grid container spacing={2}>
+                        <div className="grid grid-cols-1 md:grid-cols-2">
                             {/* Punch Status Card - for employees and self-service users */}
                             {hasEveryPermission(['attendance.own.punch', 'attendance.own.view']) &&
-                                <Grid key="punch-status-grid" item xs={12} md={6} sx={{ display: 'flex' }}>
+                                <div key="punch-status-grid" className="h-full">
                                     <motion.div
                                         key="punch-status-card"
                                         variants={staggerItemVariants}
                                         custom={0}
                                         whileHover={{ 
-                                            scale: 1.02,
+                                            scale: 1.01,
                                             transition: { duration: 0.2 }
                                         }}
-                                        style={{ width: '100%', display: 'flex' }}
+                                        className="h-full"
                                     >
                                         <PunchStatusCard handlePunchSuccess={handlePunchSuccess} />
                                     </motion.div>
-                                </Grid>
+                                </div>
                             }
                             {/* Statistics Card - for users with dashboard access */}
                             {hasPermission('core.dashboard.view') &&
-                                <Grid key="statistics-grid" item xs={12} md={6} sx={{ display: 'flex' }}>
+                                <div key="statistics-grid" className="h-full">
                                     <motion.div
                                         key="statistics-card"
                                         variants={staggerItemVariants}
                                         custom={1}
                                         whileHover={{ 
-                                            scale: 1.02,
+                                            scale: 1.01,
                                             transition: { duration: 0.2 }
                                         }}
-                                        style={{ width: '100%', display: 'flex' }}
+                                        className="h-full"
                                     >
                                         <StatisticCard />
                                     </motion.div>
-                                </Grid>
+                                </div>
                             }
-                        </Grid>
+                        </div>
                     </motion.div>
                     
                     {/* Admin/Manager level components */}
                     {hasAnyPermission(['attendance.view', 'employees.view']) && (
-                        <AnimatePresence mode="wait">
+                        <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
                             <motion.div
                                 key="timesheet-section"
                                 variants={staggerItemVariants}
                                 custom={2}
-                                initial="hidden"
-                                animate="visible"
-                                exit="hidden"
                             >
                                 <TimeSheetTable 
                                     selectedDate={selectedDate} 
@@ -184,16 +178,13 @@ export default function Dashboard({ auth }) {
                                 key="user-locations-section"
                                 variants={staggerItemVariants}
                                 custom={3}
-                                initial="hidden"
-                                animate="visible"
-                                exit="hidden"
                             >
                                 <UserLocationsCard 
                                     selectedDate={selectedDate} 
                                     updateMap={updateMap} 
                                 />
                             </motion.div>
-                        </AnimatePresence>
+                        </motion.div>
                     )}
                     
                     {/* Updates and holidays - available to all authenticated users */}
@@ -208,8 +199,9 @@ export default function Dashboard({ auth }) {
                             <UpdatesCards />
                         </motion.div>
                     )}
+                    
                 
-                </Box>
+                </div>
             </motion.div>
         </>
     );

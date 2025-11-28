@@ -18,7 +18,7 @@ class TransactionItem extends Model
         'price',
         'total',
         'tax_amount',
-        'discount_amount'
+        'discount_amount',
     ];
 
     protected $casts = [

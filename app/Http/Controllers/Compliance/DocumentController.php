@@ -192,7 +192,7 @@ class DocumentController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'document_number' => 'required|string|max:100|unique:compliance_documents,document_number,' . $document->id,
+            'document_number' => 'required|string|max:100|unique:compliance_documents,document_number,'.$document->id,
             'version' => 'required|string|max:20',
             'status' => 'required|in:draft,review,approved,published,archived,superseded',
             'document_type' => 'required|string|max:50',
@@ -274,13 +274,13 @@ class DocumentController extends Controller
     {
         $this->authorize('view', $document);
 
-        if (!$document->file_path || !Storage::exists($document->file_path)) {
+        if (! $document->file_path || ! Storage::exists($document->file_path)) {
             return redirect()->back()->with('error', 'File not found.');
         }
 
         return Storage::download(
             $document->file_path,
-            $document->document_number . '-' . $document->version . '.' . pathinfo($document->file_path, PATHINFO_EXTENSION)
+            $document->document_number.'-'.$document->version.'.'.pathinfo($document->file_path, PATHINFO_EXTENSION)
         );
     }
 }

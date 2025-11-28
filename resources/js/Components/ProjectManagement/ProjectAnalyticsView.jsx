@@ -14,8 +14,8 @@ import {
 import {
     ChartBarSquareIcon,
     ChartPieIcon,
-    TrendingUpIcon,
-    TrendingDownIcon,
+    ArrowTrendingUpIcon,
+    ArrowTrendingDownIcon,
     ClockIcon,
     BanknotesIcon,
     ExclamationTriangleIcon,
@@ -244,7 +244,7 @@ const ProjectAnalyticsView = ({
                     <Grid container spacing={3}>
                         {/* Total Projects */}
                         <Grid item xs={12} sm={6} md={3}>
-                            <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                            <Card className="bg-linear-to-r from-blue-500 to-purple-600 text-white">
                                 <CardBody className="text-center">
                                     <div className="text-3xl font-bold mb-2">{analytics.totalProjects}</div>
                                     <div className="text-sm opacity-90">Total Projects</div>
@@ -254,7 +254,7 @@ const ProjectAnalyticsView = ({
 
                         {/* Average Progress */}
                         <Grid item xs={12} sm={6} md={3}>
-                            <Card className="bg-gradient-to-r from-green-500 to-teal-600 text-white">
+                            <Card className="bg-linear-to-r from-green-500 to-teal-600 text-white">
                                 <CardBody className="text-center">
                                     <div className="text-3xl font-bold mb-2">
                                         {analytics.performanceMetrics.projectsWithTasks > 0 
@@ -268,7 +268,7 @@ const ProjectAnalyticsView = ({
 
                         {/* Budget Utilization */}
                         <Grid item xs={12} sm={6} md={3}>
-                            <Card className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white">
+                            <Card className="bg-linear-to-r from-yellow-500 to-orange-600 text-white">
                                 <CardBody className="text-center">
                                     <div className="text-3xl font-bold mb-2">
                                         {analytics.budgetAnalysis.totalBudget > 0 
@@ -282,7 +282,7 @@ const ProjectAnalyticsView = ({
 
                         {/* Health Score */}
                         <Grid item xs={12} sm={6} md={3}>
-                            <Card className="bg-gradient-to-r from-red-500 to-pink-600 text-white">
+                            <Card className="bg-linear-to-r from-red-500 to-pink-600 text-white">
                                 <CardBody className="text-center">
                                     <div className="text-3xl font-bold mb-2">
                                         {Math.round(((analytics.healthDistribution.good || 0) / analytics.totalProjects) * 100)}%
@@ -494,7 +494,7 @@ const ProjectAnalyticsView = ({
                                             {analytics.timelineAnalysis.overdue}
                                         </Chip>
                                         {analytics.timelineAnalysis.overdue > 0 && (
-                                            <TrendingUpIcon className="w-4 h-4 text-danger" />
+                                            <ArrowTrendingUpIcon className="w-4 h-4 text-danger" />
                                         )}
                                     </div>
                                 </div>

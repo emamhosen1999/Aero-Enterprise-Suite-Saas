@@ -9,8 +9,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Report extends Model implements HasMedia
 {
-    use InteractsWithMedia;
     use HasFactory;
+    use InteractsWithMedia;
 
     protected $fillable = [
         'ref_no',
@@ -18,7 +18,7 @@ class Report extends Model implements HasMedia
         'issue_date',
         'details',
         'status',
-        'remarks'
+        'remarks',
     ];
 
     public function daily_works()

@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Password Changed Notification Email
- * 
+ *
  * Sends a security notification when a user's password has been
  * successfully changed, including security context and next steps.
  */
@@ -21,10 +21,15 @@ class PasswordChangedNotificationMail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public User $user;
+
     public string $timestamp;
+
     public string $ipAddress;
+
     public ?string $location;
+
     public string $userAgent;
+
     public ?string $supportUrl;
 
     /**
@@ -54,12 +59,12 @@ class PasswordChangedNotificationMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[SECURITY] Password Changed - ' . config('app.name'),
+            subject: '[SECURITY] Password Changed - '.config('app.name'),
             tags: ['password-changed', 'security', 'notification'],
             metadata: [
                 'user_id' => $this->user->id,
                 'ip_address' => $this->ipAddress,
-                'type' => 'password_changed'
+                'type' => 'password_changed',
             ]
         );
     }
@@ -77,7 +82,7 @@ class PasswordChangedNotificationMail extends Mailable implements ShouldQueue
                 'ipAddress' => $this->ipAddress,
                 'location' => $this->location,
                 'userAgent' => $this->userAgent,
-                'supportUrl' => $this->supportUrl
+                'supportUrl' => $this->supportUrl,
             ]
         );
     }

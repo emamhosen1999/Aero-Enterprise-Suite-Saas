@@ -1,8 +1,7 @@
 <?php
 
 namespace App\Imports;
-
-use App\Models\Tasks;
+use App\Models\DailyWork;
 use Maatwebsite\Excel\Concerns\ToModel;
 
 class DailyWorkImport implements ToModel
@@ -17,7 +16,7 @@ class DailyWorkImport implements ToModel
             'location' => $row[4],
             'side' => $row[5],
             'qty_layer' => $row[6],
-            'planned_time' => $row[7]
+            'planned_time' => $row[7],
         ]);
     }
 }

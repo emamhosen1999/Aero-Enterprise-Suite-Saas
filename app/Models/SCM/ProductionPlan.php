@@ -2,8 +2,8 @@
 
 namespace App\Models\SCM;
 
-use App\Models\User;
 use App\Models\InventoryItem;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -85,7 +85,7 @@ class ProductionPlan extends Model
      */
     public function isOverdue()
     {
-        return $this->planned_end_date < now()->toDateString() && !in_array($this->status, ['completed', 'cancelled']);
+        return $this->planned_end_date < now()->toDateString() && ! in_array($this->status, ['completed', 'cancelled']);
     }
 
     /**
@@ -96,6 +96,7 @@ class ProductionPlan extends Model
         if ($this->planned_quantity > 0) {
             return min(100, ($this->actual_quantity / $this->planned_quantity) * 100);
         }
+
         return 0;
     }
 

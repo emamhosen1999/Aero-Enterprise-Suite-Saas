@@ -1,30 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box,
-    Typography,
-    Grid,
-    Tabs,
-    Tab,
-    Button,
-    CardContent,
+    Card as HeroCard,
+    CardBody,
     CardHeader,
-    TextField,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    FormControl,
-    InputLabel,
-    MenuItem,
+    Button as HeroButton,
+    Input,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
     Select,
+    SelectItem,
     Chip,
-    FormHelperText,
-    Grow,
-    CardActions,
-    Divider
-} from '@mui/material';
-import LoadingButton from "@mui/lab/LoadingButton";
+    Divider,
+    Tabs,
+    Tab
+} from '@heroui/react';
+import { motion } from 'framer-motion';
 import { Head, usePage } from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
 import GlassCard from '@/Components/GlassCard';
@@ -39,8 +32,8 @@ import {
     DocumentTextIcon,
     ChartBarSquareIcon
 } from '@heroicons/react/24/outline';
-import { toast } from "react-toastify";
-import { useTheme } from "@mui/material/styles";
+import { showToast } from "@/utils/toastUtils";
+import useTheme, { getThemePrimaryColor } from '@/theme';
 import axios from 'axios';
 
 const TabPanel = (props) => {

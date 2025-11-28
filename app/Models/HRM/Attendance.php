@@ -1,15 +1,17 @@
 <?php
 
-
 namespace App\Models\HRM;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Attendance extends Model
+class Attendance extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'user_id',
@@ -26,9 +28,53 @@ class Attendance extends Model
         'punchout' => 'datetime',
     ];
 
+    protected $appends = [
+        'punchin_photo_url',
+        'punchout_photo_url',
+    ];
+
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Register media collections for punch photos
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('punchin_photo')
+            ->singleFile();
+
+        $this->addMediaCollection('punchout_photo')
+            ->singleFile();
+    }
+
+    /**
+     * Register media conversions for thumbnails
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->sharpen(10);
+    }
+
+    /**
+     * Get punch in photo URL
+     */
+    public function getPunchinPhotoUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('punchin_photo') ?: null;
+    }
+
+    /**
+     * Get punch out photo URL
+     */
+    public function getPunchoutPhotoUrlAttribute(): ?string
+    {
+        return $this->getFirstMediaUrl('punchout_photo') ?: null;
     }
 
     /**
@@ -46,5 +92,4 @@ class Attendance extends Model
     {
         return $this->punchout_location ? json_decode($this->punchout_location, true) : null;
     }
-
 }

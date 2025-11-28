@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\SCM\DemandForecast;
 use App\Models\InventoryItem;
+use App\Models\SCM\DemandForecast;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;

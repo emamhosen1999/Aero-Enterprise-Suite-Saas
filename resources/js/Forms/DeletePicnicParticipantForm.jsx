@@ -1,12 +1,12 @@
-import {Button, CircularProgress, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
+import { Button, Spinner } from "@heroui/react";
 import GlassDialog from "@/Components/GlassDialog.jsx";
 import React from "react";
-import {toast} from "react-toastify";
-import {useTheme} from "@mui/material/styles";
+import { showToast } from "@/utils/toastUtils";
+
 
 
 const DeleteLeaveForm = ({ open, handleClose, leaveIdToDelete, setLeavesData }) => {
-    const theme = useTheme();
+
     const handleDelete = () => {
         const promise = new Promise(async (resolve, reject) => {
             try {
@@ -25,7 +25,7 @@ const DeleteLeaveForm = ({ open, handleClose, leaveIdToDelete, setLeavesData }) 
             }
         });
 
-        toast.promise(
+        showToast.promise(
             promise,
             {
                 pending: {

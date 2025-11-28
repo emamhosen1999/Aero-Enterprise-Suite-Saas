@@ -9,15 +9,17 @@ use App\Models\HRM\Department;
 use App\Models\HRM\Designation;
 use App\Models\HRM\Leave;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Class User
@@ -29,9 +31,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class User extends Authenticatable implements HasMedia
 {
-    use HasFactory, Notifiable, HasRoles, HasPushSubscriptions, InteractsWithMedia, SoftDeletes, TwoFactorAuthenticatable;
-
-
+    use HasFactory, HasPushSubscriptions, HasRoles, InteractsWithMedia, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -116,6 +116,10 @@ class User extends Authenticatable implements HasMedia
         'attendance_config',
         'fcm_token',
         'preferences',
+        'single_device_login_enabled',
+        'device_reset_at',
+        'device_reset_reason',
+        'locale',
     ];
 
     /**
@@ -143,7 +147,72 @@ class User extends Authenticatable implements HasMedia
         'attendance_config' => 'array',
         'preferences' => 'array',
         'active' => 'boolean',
+        'single_device_login_enabled' => 'boolean',
+        'device_reset_at' => 'datetime',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'profile_image_url',
+    ];
+
+    /**
+     * Query scope to load basic relations for user management.
+     */
+    public function scopeWithBasicRelations($query)
+    {
+        return $query->with([
+            'department:id,name',
+            'designation:id,title',
+            'roles:id,name',
+        ]);
+    }
+
+    /**
+     * Query scope to load device information.
+     */
+    public function scopeWithDeviceInfo($query)
+    {
+        return $query->with([
+            'currentDevice:id,user_id,device_name,device_type,last_used_at,is_active',
+        ]);
+    }
+
+    /**
+     * Query scope to load full relations for detailed views.
+     */
+    public function scopeWithFullRelations($query)
+    {
+        return $query->with([
+            'department',
+            'designation',
+            'roles',
+            'attendanceType',
+            'currentDevice',
+            'educations',
+            'experiences',
+        ]);
+    }
+
+    /**
+     * Query scope for active users only.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
+    }
+
+    /**
+     * Query scope for inactive users only.
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('active', false);
+    }
 
     public function ledProjects()
     {
@@ -164,7 +233,6 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->hasMany(Education::class);
     }
-
 
     public function setActiveStatus(bool $status)
     {
@@ -206,5 +274,168 @@ class User extends Authenticatable implements HasMedia
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    /**
+     * Get the user's manager (who they report to).
+     */
+    public function reportsTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'report_to');
+    }
+
+    /**
+     * Get the users who report to this user.
+     */
+    public function directReports(): HasMany
+    {
+        return $this->hasMany(User::class, 'report_to');
+    }
+
+    /**
+     * Get the user's devices.
+     */
+    public function devices(): HasMany
+    {
+        return $this->hasMany(UserDevice::class);
+    }
+
+    /**
+     * Get the user's active devices.
+     */
+    public function activeDevices()
+    {
+        return $this->hasMany(UserDevice::class)->active();
+    }
+
+    /**
+     * Get the current active device.
+     */
+    public function currentDevice()
+    {
+        return $this->hasOne(UserDevice::class)->active()->latest('last_used_at');
+    }
+
+    /**
+     * Get the active device (alias for currentDevice for compatibility).
+     */
+    public function activeDevice()
+    {
+        return $this->currentDevice();
+    }
+
+    /**
+     * Check if single device login is enabled for this user.
+     */
+    public function hasSingleDeviceLoginEnabled(): bool
+    {
+        return $this->single_device_login_enabled;
+    }
+
+    /**
+     * Accessor for single_device_login (for frontend compatibility).
+     */
+    public function getSingleDeviceLoginAttribute(): bool
+    {
+        return $this->single_device_login_enabled;
+    }
+
+    /**
+     * Enable single device login for this user.
+     */
+    public function enableSingleDeviceLogin(?string $reason = null): bool
+    {
+        return $this->update([
+            'single_device_login_enabled' => true,
+            'device_reset_reason' => $reason,
+        ]);
+    }
+
+    /**
+     * Disable single device login for this user.
+     */
+    public function disableSingleDeviceLogin(?string $reason = null): bool
+    {
+        return $this->update([
+            'single_device_login_enabled' => false,
+            'device_reset_reason' => $reason,
+        ]);
+    }
+
+    /**
+     * Reset user devices (admin action).
+     */
+    public function resetDevices(?string $reason = null): bool
+    {
+        // Delete all devices for complete reset
+        $this->devices()->delete();
+
+        return $this->update([
+            'device_reset_at' => now(),
+            'device_reset_reason' => $reason ?: 'Admin reset',
+        ]);
+    }
+
+    /**
+     * Check if user can login from new device.
+     */
+    public function canLoginFromDevice(string $deviceId): bool
+    {
+        // If single device login is not enabled, allow login
+        if (! $this->hasSingleDeviceLoginEnabled()) {
+            return true;
+        }
+
+        // Check if this device is already registered and active
+        $existingDevice = $this->devices()
+            ->where('device_id', $deviceId)
+            ->active()
+            ->first();
+
+        if ($existingDevice) {
+            return true;
+        }
+
+        // Check if user has any active devices
+        $hasActiveDevices = $this->activeDevices()->exists();
+
+        // If no active devices, allow login (first device or after reset)
+        return ! $hasActiveDevices;
+    }
+
+    /**
+     * Get device summary for display.
+     */
+    public function getDeviceSummary(): array
+    {
+        $devices = $this->devices()->orderBy('last_used_at', 'desc')->get();
+
+        return [
+            'total_devices' => $devices->count(),
+            'active_devices' => $devices->where('is_active', true)->count(),
+            'current_device' => $devices->where('is_active', true)->first(),
+            'last_reset' => $this->device_reset_at,
+            'reset_reason' => $this->device_reset_reason,
+            'single_device_enabled' => $this->single_device_login_enabled,
+        ];
+    }
+
+    /**
+     * Get the profile image URL.
+     * Uses MediaLibrary standard methods with proper exception handling.
+     */
+    public function getProfileImageUrlAttribute(): ?string
+    {
+        try {
+            // Only use MediaLibrary - check if user has media in the profile_images collection
+            $url = $this->getFirstMediaUrl('profile_images');
+
+            return ! empty($url) ? $url : null;
+        } catch (\Exception $e) {
+            // Log the error and return null
+            Log::warning('Failed to get profile image URL for user '.$this->id.': '.$e->getMessage());
+
+            return null;
+        }
     }
 }

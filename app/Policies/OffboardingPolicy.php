@@ -24,7 +24,7 @@ class OffboardingPolicy
     public function view(User $user, Offboarding $offboarding): bool
     {
         // Basic permission check
-        if (!$user->can('hr.offboarding.view')) {
+        if (! $user->can('hr.offboarding.view')) {
             return false;
         }
 

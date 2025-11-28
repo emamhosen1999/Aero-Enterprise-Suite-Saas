@@ -1,0 +1,233 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+
+/**
+ * Module Model
+ *
+ * Represents a top-level application module (HRM, CRM, DMS, etc.)
+ * Used for organizing the application into logical functional areas.
+ */
+class Module extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'code',
+        'name',
+        'description',
+        'icon',
+        'route_prefix',
+        'category',
+        'priority',
+        'is_active',
+        'is_core',
+        'settings',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'is_core' => 'boolean',
+        'settings' => 'array',
+        'priority' => 'integer',
+    ];
+
+    // Module categories
+    public const CATEGORY_CORE = 'core_system';
+
+    public const CATEGORY_SELF_SERVICE = 'self_service';
+
+    public const CATEGORY_HUMAN_RESOURCES = 'human_resources';
+
+    public const CATEGORY_PROJECT_MANAGEMENT = 'project_management';
+
+    public const CATEGORY_DOCUMENT_MANAGEMENT = 'document_management';
+
+    public const CATEGORY_CUSTOMER_RELATIONS = 'customer_relations';
+
+    public const CATEGORY_SUPPLY_CHAIN = 'supply_chain';
+
+    public const CATEGORY_RETAIL_SALES = 'retail_sales';
+
+    public const CATEGORY_FINANCIAL = 'financial_management';
+
+    public const CATEGORY_ADMINISTRATION = 'system_administration';
+
+    public static function categories(): array
+    {
+        return [
+            self::CATEGORY_CORE => 'Core System',
+            self::CATEGORY_SELF_SERVICE => 'Self Service',
+            self::CATEGORY_HUMAN_RESOURCES => 'Human Resources',
+            self::CATEGORY_PROJECT_MANAGEMENT => 'Project Management',
+            self::CATEGORY_DOCUMENT_MANAGEMENT => 'Document Management',
+            self::CATEGORY_CUSTOMER_RELATIONS => 'Customer Relations',
+            self::CATEGORY_SUPPLY_CHAIN => 'Supply Chain',
+            self::CATEGORY_RETAIL_SALES => 'Retail & Sales',
+            self::CATEGORY_FINANCIAL => 'Financial Management',
+            self::CATEGORY_ADMINISTRATION => 'System Administration',
+        ];
+    }
+
+    public function subModules(): HasMany
+    {
+        return $this->hasMany(SubModule::class)->orderBy('priority');
+    }
+
+    public function components(): HasMany
+    {
+        return $this->hasMany(ModuleComponent::class)->orderBy('id');
+    }
+
+    public function permissionRequirements(): HasMany
+    {
+        return $this->hasMany(ModulePermission::class);
+    }
+
+    /**
+     * Get all permissions required for this module (including sub-modules and components)
+     */
+    public function getAllRequiredPermissions(): Collection
+    {
+        return ModulePermission::where('module_id', $this->id)
+            ->with('permission')
+            ->active()
+            ->get()
+            ->pluck('permission')
+            ->filter();
+    }
+
+    /**
+     * Get only module-level permissions (not sub-module or component specific)
+     */
+    public function getModuleLevelPermissions(): Collection
+    {
+        return ModulePermission::forModule($this->id)
+            ->with('permission')
+            ->active()
+            ->get()
+            ->pluck('permission')
+            ->filter();
+    }
+
+    /**
+     * Check if a user can access this module
+     */
+    public function userCanAccess($user = null): bool
+    {
+        if (! $user) {
+            $user = auth()->user();
+        }
+
+        if (! $user) {
+            return false;
+        }
+
+        $requirements = ModulePermission::forModule($this->id)->active()->with('permission')->get();
+
+        if ($requirements->isEmpty()) {
+            // No requirements defined - allow access by default
+            return true;
+        }
+
+        // Group requirements by type and group
+        $grouped = $requirements->groupBy('requirement_group');
+
+        foreach ($grouped as $group => $groupRequirements) {
+            $type = $groupRequirements->first()->requirement_type;
+
+            switch ($type) {
+                case ModulePermission::TYPE_REQUIRED:
+                    // All required permissions must be present
+                    foreach ($groupRequirements as $req) {
+                        if (! $user->can($req->permission->name)) {
+                            return false;
+                        }
+                    }
+                    break;
+
+                case ModulePermission::TYPE_ANY:
+                    // At least one permission in the group must be present
+                    $hasAny = false;
+                    foreach ($groupRequirements as $req) {
+                        if ($user->can($req->permission->name)) {
+                            $hasAny = true;
+                            break;
+                        }
+                    }
+                    if (! $hasAny) {
+                        return false;
+                    }
+                    break;
+
+                case ModulePermission::TYPE_ALL:
+                    // All permissions in the group must be present
+                    foreach ($groupRequirements as $req) {
+                        if (! $user->can($req->permission->name)) {
+                            return false;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Scope for active modules
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for ordering by priority
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('priority')->orderBy('name');
+    }
+
+    /**
+     * Scope for specific category
+     */
+    public function scopeInCategory($query, string $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    /**
+     * Get all active modules with their structure (cached)
+     */
+    public static function getActiveModulesWithStructure(): Collection
+    {
+        return Cache::remember('modules_with_structure', 300, function () {
+            return static::active()
+                ->ordered()
+                ->with([
+                    'subModules' => fn ($q) => $q->where('is_active', true),
+                    'subModules.components' => fn ($q) => $q->where('is_active', true),
+                    'permissionRequirements.permission',
+                ])
+                ->get();
+        });
+    }
+
+    /**
+     * Clear the module structure cache
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget('modules_with_structure');
+        Cache::forget('user_accessible_modules');
+    }
+}

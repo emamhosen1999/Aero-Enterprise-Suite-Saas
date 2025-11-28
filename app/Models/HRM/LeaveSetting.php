@@ -15,6 +15,8 @@ class LeaveSetting extends Model
         'eligibility',
         'carry_forward',
         'earned_leave',
+        'requires_approval',
+        'auto_approve',
         'special_conditions',
     ];
 
@@ -25,6 +27,8 @@ class LeaveSetting extends Model
         'eligibility' => 'string',
         'carry_forward' => 'boolean',
         'earned_leave' => 'boolean',
+        'requires_approval' => 'boolean',
+        'auto_approve' => 'boolean',
         'special_conditions' => 'string',
 
     ];
@@ -33,6 +37,4 @@ class LeaveSetting extends Model
     {
         return $this->hasMany(Leave::class, 'leave_type');
     }
-
-
 }

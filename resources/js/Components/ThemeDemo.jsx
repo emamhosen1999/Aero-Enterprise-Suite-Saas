@@ -1,165 +1,114 @@
 import React from 'react';
-import { Box, Typography, Card, CardContent, Button, Chip } from '@mui/material';
-import { Card as HeroCard, CardBody, Button as HeroButton } from '@heroui/react';
+import { Card as HeroCard, CardBody, Button as HeroButton, Chip } from '@heroui/react';
 import { 
-  Palette as PaletteIcon,
-  AutoAwesome as AutoAwesomeIcon,
-  Brush as BrushIcon,
-  Colorize as ColorizeIcon
-} from '@mui/icons-material';
+  PaintBrushIcon,
+  SparklesIcon,
+  SwatchIcon,
+  EyeDropperIcon
+} from '@heroicons/react/24/outline';
 
 const ThemeDemo = ({ currentTheme, darkMode }) => {
   return (
-    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h4" sx={{ 
-        mb: 3, 
-        textAlign: 'center',
-        fontWeight: 700,
-        background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
-        backgroundClip: 'text',
-        WebkitBackgroundClip: 'text',
-        color: 'transparent',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 2
-      }}>
-        <AutoAwesomeIcon sx={{ color: 'var(--theme-primary)' }} />
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="mb-6 text-center text-3xl font-bold flex items-center justify-center gap-2"
+          style={{
+            background: `linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))`,
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent',
+          }}>
+        <SparklesIcon className="w-8 h-8" style={{ color: 'var(--theme-primary)' }} />
         Theme System Demo
-      </Typography>
+      </h1>
 
       {/* Theme Information */}
       <HeroCard className="mb-6 bg-white/5 backdrop-blur-md border border-white/10">
         <CardBody className="p-6">
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-            <PaletteIcon sx={{ color: 'var(--theme-primary)' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <div className="flex items-center gap-2 mb-4">
+            <SwatchIcon className="w-6 h-6" style={{ color: 'var(--theme-primary)' }} />
+            <h2 className="text-xl font-semibold">
               Current Theme Settings
-            </Typography>
-          </Box>
+            </h2>
+          </div>
           
-          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-            <Box>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p className="text-foreground-600 text-sm mb-2">
                 Theme Color
-              </Typography>
+              </p>
               <Chip 
-                label={currentTheme?.name || 'OCEAN'}
-                sx={{ 
+                className="font-semibold"
+                style={{ 
                   backgroundColor: 'var(--theme-primary)',
-                  color: 'white',
-                  fontWeight: 600
+                  color: 'white'
                 }}
-              />
-            </Box>
+              >
+                {currentTheme?.name || 'OCEAN'}
+              </Chip>
+            </div>
             
-            <Box>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>
+            <div>
+              <p className="text-foreground-600 text-sm mb-2">
                 Mode
-              </Typography>
+              </p>
               <Chip 
-                label={darkMode ? 'Dark Mode' : 'Light Mode'}
-                sx={{ 
+                className="font-semibold"
+                style={{ 
                   backgroundColor: darkMode ? '#1a1a1a' : '#f5f5f5',
-                  color: darkMode ? 'white' : 'black',
-                  fontWeight: 600
+                  color: darkMode ? 'white' : 'black'
                 }}
-              />
-            </Box>
+              >
+                {darkMode ? 'Dark Mode' : 'Light Mode'}
+              </Chip>
+            </div>
             
-            <Box>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>
+            <div>
+              <p className="text-foreground-600 text-sm mb-2">
                 Primary Color
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 1,
-                  backgroundColor: 'var(--theme-primary)',
-                  border: '2px solid rgba(255,255,255,0.2)'
-                }} />
-                <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+              </p>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-5 h-5 rounded border-2 border-white/20"
+                  style={{ backgroundColor: 'var(--theme-primary)' }}
+                />
+                <code className="text-sm font-mono">
                   {currentTheme?.primary || '#0ea5e9'}
-                </Typography>
-              </Box>
-            </Box>
+                </code>
+              </div>
+            </div>
             
-            <Box>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>
+            <div>
+              <p className="text-foreground-600 text-sm mb-2">
                 Secondary Color
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 1,
-                  backgroundColor: 'var(--theme-secondary)',
-                  border: '2px solid rgba(255,255,255,0.2)'
-                }} />
-                <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+              </p>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-5 h-5 rounded border-2 border-white/20"
+                  style={{ backgroundColor: 'var(--theme-secondary)' }}
+                />
+                <code className="text-sm font-mono">
                   {currentTheme?.secondary || '#0284c7'}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
+                </code>
+              </div>
+            </div>
+          </div>
         </CardBody>
       </HeroCard>
 
       {/* Component Examples */}
-      <Typography variant="h5" sx={{ mb: 3, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <BrushIcon sx={{ color: 'var(--theme-primary)' }} />
+      <h2 className="mb-4 text-2xl font-semibold flex items-center gap-2">
+        <PaintBrushIcon className="w-6 h-6" style={{ color: 'var(--theme-primary)' }} />
         Component Examples
-      </Typography>
+      </h2>
 
-      <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-        {/* Material-UI Components */}
-        <Card sx={{ 
-          background: 'rgba(var(--theme-primary-rgb), 0.05)',
-          border: '1px solid rgba(var(--theme-primary-rgb), 0.1)',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2, color: 'var(--theme-primary)' }}>
-              Material-UI Components
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Button 
-                variant="contained" 
-                sx={{ 
-                  backgroundColor: 'var(--theme-primary)',
-                  '&:hover': { backgroundColor: 'var(--theme-secondary)' }
-                }}
-              >
-                Primary Button
-              </Button>
-              <Button 
-                variant="outlined" 
-                sx={{ 
-                  borderColor: 'var(--theme-primary)',
-                  color: 'var(--theme-primary)',
-                  '&:hover': { 
-                    borderColor: 'var(--theme-secondary)',
-                    backgroundColor: 'rgba(var(--theme-primary-rgb), 0.1)'
-                  }
-                }}
-              >
-                Outlined Button
-              </Button>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                These components automatically adapt to the selected theme colors with smooth transitions.
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
         {/* HeroUI Components */}
-        <HeroCard className="theme-aware-card">
+        <HeroCard className="theme-aware-card bg-white/5 backdrop-blur-md border border-white/10">
           <CardBody>
-            <Typography variant="h6" sx={{ mb: 2, color: 'var(--theme-primary)' }}>
+            <h3 className="mb-4 text-lg font-semibold" style={{ color: 'var(--theme-primary)' }}>
               HeroUI Components
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            </h3>
+            <div className="flex flex-col gap-3">
               <HeroButton 
                 className="theme-aware-button"
                 style={{
@@ -179,116 +128,106 @@ const ThemeDemo = ({ currentTheme, darkMode }) => {
               >
                 Hero Bordered Button
               </HeroButton>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                HeroUI components also respect the theme system with custom CSS properties.
-              </Typography>
-            </Box>
+              <p className="text-foreground-600 text-sm">
+                HeroUI components automatically respect the theme system with custom CSS properties.
+              </p>
+            </div>
           </CardBody>
         </HeroCard>
 
         {/* Color Palette */}
         <HeroCard className="bg-white/5 backdrop-blur-md border border-white/10">
           <CardBody>
-            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ColorizeIcon sx={{ color: 'var(--theme-primary)' }} />
+            <h3 className="mb-4 text-lg font-semibold flex items-center gap-2">
+              <EyeDropperIcon className="w-5 h-5" style={{ color: 'var(--theme-primary)' }} />
               Color Palette
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box sx={{
-                  width: '100%',
-                  height: 60,
-                  borderRadius: 2,
-                  backgroundColor: 'var(--theme-primary)',
-                  mb: 1
-                }} />
-                <Typography variant="caption">Primary</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box sx={{
-                  width: '100%',
-                  height: 60,
-                  borderRadius: 2,
-                  backgroundColor: 'var(--theme-secondary)',
-                  mb: 1
-                }} />
-                <Typography variant="caption">Secondary</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box sx={{
-                  width: '100%',
-                  height: 60,
-                  borderRadius: 2,
-                  backgroundColor: 'rgba(var(--theme-primary-rgb), 0.3)',
-                  mb: 1
-                }} />
-                <Typography variant="caption">Primary 30%</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Box sx={{
-                  width: '100%',
-                  height: 60,
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))',
-                  mb: 1
-                }} />
-                <Typography variant="caption">Gradient</Typography>
-              </Box>
-            </Box>
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <div 
+                  className="w-full h-16 rounded-lg mb-2"
+                  style={{ backgroundColor: 'var(--theme-primary)' }}
+                />
+                <span className="text-xs">Primary</span>
+              </div>
+              <div className="text-center">
+                <div 
+                  className="w-full h-16 rounded-lg mb-2"
+                  style={{ backgroundColor: 'var(--theme-secondary)' }}
+                />
+                <span className="text-xs">Secondary</span>
+              </div>
+              <div className="text-center">
+                <div 
+                  className="w-full h-16 rounded-lg mb-2"
+                  style={{ backgroundColor: 'rgba(var(--theme-primary-rgb), 0.3)' }}
+                />
+                <span className="text-xs">Primary 30%</span>
+              </div>
+              <div className="text-center">
+                <div 
+                  className="w-full h-16 rounded-lg mb-2"
+                  style={{ background: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))' }}
+                />
+                <span className="text-xs">Gradient</span>
+              </div>
+            </div>
           </CardBody>
         </HeroCard>
 
         {/* Typography Examples */}
         <HeroCard className="bg-white/5 backdrop-blur-md border border-white/10">
           <CardBody>
-            <Typography variant="h6" sx={{ mb: 2, color: 'var(--theme-primary)' }}>
+            <h3 className="mb-4 text-lg font-semibold" style={{ color: 'var(--theme-primary)' }}>
               Typography Styles
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Typography variant="h4" sx={{ color: 'var(--theme-primary)' }}>
+            </h3>
+            <div className="flex flex-col gap-2">
+              <h4 className="text-2xl" style={{ color: 'var(--theme-primary)' }}>
                 Heading 4
-              </Typography>
-              <Typography variant="h6" sx={{ color: 'var(--theme-secondary)' }}>
+              </h4>
+              <h6 className="text-lg" style={{ color: 'var(--theme-secondary)' }}>
                 Heading 6
-              </Typography>
-              <Typography variant="body1">
+              </h6>
+              <p className="text-base">
                 Body text adapts to the current font family selection and theme colors.
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              </p>
+              <span className="text-sm text-foreground-600">
                 Caption text with theme-aware secondary color.
-              </Typography>
-            </Box>
+              </span>
+            </div>
           </CardBody>
         </HeroCard>
-      </Box>
 
-      {/* Instructions */}
-      <Box sx={{ mt: 4, p: 3, borderRadius: 2, backgroundColor: 'rgba(var(--theme-primary-rgb), 0.05)', border: '1px solid rgba(var(--theme-primary-rgb), 0.1)' }}>
-        <Typography variant="h6" sx={{ mb: 2, color: 'var(--theme-primary)' }}>
-          How to Use the Theme System
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
-          The theme system provides a comprehensive, smooth, and professional theming experience:
-        </Typography>
-        <Box component="ul" sx={{ pl: 3 }}>
-          <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-            <strong>Theme Colors:</strong> Choose from 6 professionally curated color palettes
-          </Typography>
-          <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-            <strong>Dark/Light Mode:</strong> Toggle between modes with smooth transitions
-          </Typography>
-          <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-            <strong>Background Patterns:</strong> Select from 9 different background styles
-          </Typography>
-          <Typography component="li" variant="body2" sx={{ mb: 1 }}>
-            <strong>Typography:</strong> Choose from 4 different font families
-          </Typography>
-          <Typography component="li" variant="body2">
-            <strong>Auto-Save:</strong> All preferences are automatically saved and restored
-          </Typography>
-        </Box>
-      </Box>
-    </Box>
+        {/* Instructions */}
+        <HeroCard className="bg-white/5 backdrop-blur-md border border-white/10">
+          <CardBody>
+            <h3 className="mb-4 text-lg font-semibold" style={{ color: 'var(--theme-primary)' }}>
+              How to Use the Theme System
+            </h3>
+            <p className="mb-4 text-foreground-600 text-sm">
+              The theme system provides a comprehensive, smooth, and professional theming experience:
+            </p>
+            <ul className="pl-4 space-y-2">
+              <li className="text-sm">
+                <strong>Theme Colors:</strong> Choose from 6 professionally curated color palettes
+              </li>
+              <li className="text-sm">
+                <strong>Dark/Light Mode:</strong> Toggle between modes with smooth transitions
+              </li>
+              <li className="text-sm">
+                <strong>Background Patterns:</strong> Select from 9 different background styles
+              </li>
+              <li className="text-sm">
+                <strong>Typography:</strong> Choose from 4 different font families
+              </li>
+              <li className="text-sm">
+                <strong>Auto-Save:</strong> All preferences are automatically saved and restored
+              </li>
+            </ul>
+          </CardBody>
+        </HeroCard>
+      </div>
+    </div>
   );
 };
 

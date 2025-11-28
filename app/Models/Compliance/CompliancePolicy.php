@@ -58,33 +58,52 @@ class CompliancePolicy extends Model
 
     // Status constants
     const STATUS_DRAFT = 'draft';
+
     const STATUS_UNDER_REVIEW = 'under_review';
+
     const STATUS_PENDING_APPROVAL = 'pending_approval';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_ARCHIVED = 'archived';
+
     const STATUS_SUPERSEDED = 'superseded';
 
     // Category constants
     const CATEGORY_HR = 'hr';
+
     const CATEGORY_SAFETY = 'safety';
+
     const CATEGORY_SECURITY = 'security';
+
     const CATEGORY_QUALITY = 'quality';
+
     const CATEGORY_FINANCIAL = 'financial';
+
     const CATEGORY_OPERATIONAL = 'operational';
+
     const CATEGORY_REGULATORY = 'regulatory';
+
     const CATEGORY_ENVIRONMENTAL = 'environmental';
 
     // Type constants
     const TYPE_POLICY = 'policy';
+
     const TYPE_PROCEDURE = 'procedure';
+
     const TYPE_GUIDELINE = 'guideline';
+
     const TYPE_STANDARD = 'standard';
 
     // Priority constants
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_MEDIUM = 'medium';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_CRITICAL = 'critical';
 
     /**

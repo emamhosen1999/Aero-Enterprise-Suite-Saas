@@ -1,21 +1,23 @@
 import React from 'react';
-import { Box, Container, Grid, Typography, useMediaQuery } from '@mui/material';
 import { Button, Divider, Link } from "@heroui/react";
+import { usePage } from '@inertiajs/react';
 import { 
   HeartIcon, 
   GlobeAltIcon,
   EnvelopeIcon,
   PhoneIcon 
 } from '@heroicons/react/24/outline';
-import { useTheme } from "@mui/material/styles";
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import GlassCard from '@/Components/GlassCard.jsx';
-import { GRADIENT_PRESETS } from '@/utils/gradientUtils.js';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    const isMobile = useMediaQuery('(max-width: 640px)');
+    const isTablet = useMediaQuery('(max-width: 768px)');
+    const { theme } = useTheme();
+    const { url } = usePage();
+    const activePage = url;
 
     const quickLinks = [
         { label: 'Dashboard', href: '/dashboard' },
@@ -50,96 +52,101 @@ const Footer = () => {
     ];
 
     return (
-        <Box 
-            component="footer" 
+        <footer 
             role="contentinfo"
-            sx={{ 
-                py: { xs: 3, md: 4 },
-                mt: 'auto',
-                borderTop: `1px solid ${theme.palette.divider}`
-            }}
+            className="py-12 md:py-16 mt-auto border-t border-divider"
         >
-            <Container maxWidth="xl">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <GlassCard className="overflow-hidden">
-                    <Box sx={{ p: { xs: 3, md: 4 } }}>
+                    <div className="p-12 md:p-16">
                         {/* Main Footer Content */}
-                        <Grid container spacing={{ xs: 3, md: 4 }}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
                             {/* Brand Section */}
-                            <Grid item xs={12} md={4}>
-                                <Box className="space-y-4">
+                            <div className="md:col-span-1">
+                                <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${GRADIENT_PRESETS.iconContainer}`}>
-                                            <Typography 
-                                                variant="h5" 
-                                                className="font-bold text-white"
+                                            <span 
+                                                className="font-bold text-white text-xl"
                                                 style={{ fontFamily: 'Inter, sans-serif' }}
                                             >
                                                 A
-                                            </Typography>
+                                            </span>
                                         </div>
                                         <div>
-                                            <Typography 
-                                                variant="h5" 
-                                                className={`font-bold ${GRADIENT_PRESETS.gradientText}`}
-                                            >
-                                                Aero HR
-                                            </Typography>
-                                            <Typography variant="caption" className="text-default-500">
+                                            <h3 className={`font-bold text-xl ${GRADIENT_PRESETS.gradientText}`}>
+                                                aeos365
+                                            </h3>
+                                            <p className="text-default-500 text-sm">
                                                 Enterprise Solution
-                                            </Typography>
+                                            </p>
                                         </div>
                                     </div>
-                                    <Typography 
-                                        variant="body2" 
-                                        color="text.secondary"
-                                        className="leading-relaxed mt-3"
-                                    >
+                                    <p className="text-default-500 leading-relaxed mt-3 text-sm">
                                         Advanced Human Resource Management system designed for modern enterprises. 
                                         Streamline your HR operations with our comprehensive, cloud-based solution 
                                         featuring employee management, attendance tracking, leave management, and more.
-                                    </Typography>
+                                    </p>
                                     <div className="flex items-center gap-2 text-sm text-default-500 mt-4">
                                         <span>Crafted with</span>
                                         <HeartIcon className="w-4 h-4 text-red-500 animate-pulse" />
                                         <span>by the Aero Team</span>
                                     </div>
-                                </Box>
-                            </Grid>
+                                </div>
+                            </div>
 
                             {/* Quick Links */}
-                            <Grid item xs={12} sm={6} md={4}>
-                                <Box className="space-y-4">
-                                    <Typography 
-                                        variant="subtitle1" 
-                                        className="font-semibold text-foreground"
-                                    >
+                            <div className="md:col-span-1">
+                                <div className="space-y-4">
+                                    <h4 className="font-semibold text-foreground text-lg">
                                         Quick Links
-                                    </Typography>
+                                    </h4>
                                     <div className="grid grid-cols-2 gap-2">
-                                        {quickLinks.map((link, index) => (
-                                            <Link
-                                                key={index}
-                                                href={link.href}
-                                                color="foreground"
-                                                className="text-sm hover:text-primary transition-colors duration-200"
-                                                underline="hover"
-                                            >
-                                                {link.label}
-                                            </Link>
-                                        ))}
+                                        {quickLinks.map((link, index) => {
+                                            const isActive = activePage === link.href;
+                                            return (
+                                                <Link
+                                                    key={index}
+                                                    href={link.href}
+                                                    className="text-sm transition-all duration-200 p-2 rounded-lg"
+                                                    underline="hover"
+                                                    style={isActive ? {
+                                                        backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
+                                                        border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
+                                                        borderRadius: `var(--borderRadius, 8px)`,
+                                                        color: `#FFFFFF`
+                                                    } : {
+                                                        border: `var(--borderWidth, 2px) solid transparent`,
+                                                        borderRadius: `var(--borderRadius, 8px)`,
+                                                        color: `var(--theme-foreground, #11181C)`
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        if (!isActive) {
+                                                            e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+                                                            e.target.style.color = `var(--theme-primary, #006FEE)`;
+                                                        }
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        if (!isActive) {
+                                                            e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+                                                            e.target.style.color = `var(--theme-foreground, #11181C)`;
+                                                        }
+                                                    }}
+                                                >
+                                                    {link.label}
+                                                </Link>
+                                            );
+                                        })}
                                     </div>
-                                </Box>
-                            </Grid>
+                                </div>
+                            </div>
 
                             {/* Contact Information */}
-                            <Grid item xs={12} sm={6} md={4}>
-                                <Box className="space-y-4">
-                                    <Typography 
-                                        variant="subtitle1" 
-                                        className="font-semibold text-foreground"
-                                    >
+                            <div className="md:col-span-1">
+                                <div className="space-y-4">
+                                    <h4 className="font-semibold text-foreground text-lg">
                                         Contact Info
-                                    </Typography>
+                                    </h4>
                                     <div className="space-y-3">
                                         {contactInfo.map((contact, index) => {
                                             const IconComponent = contact.icon;
@@ -147,39 +154,61 @@ const Footer = () => {
                                                 <Link
                                                     key={index}
                                                     href={contact.href}
-                                                    color="foreground"
-                                                    className="flex items-center gap-3 text-sm hover:text-primary transition-colors duration-200"
+                                                    className="flex items-center gap-3 text-sm transition-all duration-200 p-2 rounded-lg"
                                                     underline="none"
+                                                    style={{
+                                                        border: `var(--borderWidth, 2px) solid transparent`,
+                                                        borderRadius: `var(--borderRadius, 8px)`,
+                                                        color: `var(--theme-foreground, #11181C)`
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+                                                        e.target.style.color = `var(--theme-primary, #006FEE)`;
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+                                                        e.target.style.color = `var(--theme-foreground, #11181C)`;
+                                                    }}
                                                 >
-                                                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-default-100 flex items-center justify-center">
-                                                        <IconComponent className="w-4 h-4" />
+                                                    <div 
+                                                        className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+                                                        style={{
+                                                            backgroundColor: `var(--theme-content1, #FAFAFA)`,
+                                                            borderRadius: `var(--borderRadius, 8px)`
+                                                        }}
+                                                    >
+                                                        <IconComponent 
+                                                            className="w-4 h-4" 
+                                                            style={{ color: `var(--theme-foreground, #11181C)` }}
+                                                        />
                                                     </div>
                                                     <div>
                                                         <div className="font-medium">{contact.label}</div>
-                                                        <div className="text-default-500 text-xs">{contact.value}</div>
+                                                        <div 
+                                                            className="text-xs"
+                                                            style={{ color: `var(--theme-foreground-500, #71717A)` }}
+                                                        >
+                                                            {contact.value}
+                                                        </div>
                                                     </div>
                                                 </Link>
                                             );
                                         })}
                                     </div>
-                                </Box>
-                            </Grid>
-                        </Grid>
+                                </div>
+                            </div>
+                        </div>
 
                         <Divider className="my-6 bg-white/20" />
 
                         {/* Bottom Section */}
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} md={6}>
-                                <Typography 
-                                    variant="body2" 
-                                    color="text.secondary"
-                                    className="text-center md:text-left"
-                                >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div className="md:col-span-1">
+                                <p className="text-default-500 text-center md:text-left text-sm">
                                     &copy; {currentYear} Aero HR Enterprise Solution. All rights reserved.
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
+                                </p>
+                            </div>
+                            <div className="md:col-span-1">
                                 <div className="flex justify-center md:justify-end gap-4">
                                     <Link
                                         href="/privacy"
@@ -206,12 +235,12 @@ const Footer = () => {
                                         Support
                                     </Link>
                                 </div>
-                            </Grid>
-                        </Grid>
-                    </Box>
+                            </div>
+                        </div>
+                    </div>
                 </GlassCard>
-            </Container>
-        </Box>
+            </div>
+        </footer>
     );
 };
 

@@ -1,21 +1,33 @@
 import React, {useEffect, useState} from "react";
 import {
-    CircularProgress,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Grid,
-    IconButton,
-    TextField,
-    Typography
-} from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
-import ClearIcon from "@mui/icons-material/Clear";
-import {useTheme} from "@mui/material/styles";
-import {toast} from "react-toastify";
-import GlassDialog from "@/Components/GlassDialog.jsx";
+    Button,
+    Input,
+    Spinner,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+} from "@heroui/react";
+import { X, Users } from "lucide-react";
+import { showToast } from "@/utils/toastUtils";
 
 const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => {
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
     const [initialUserData, setInitialUserData] = useState({
         id: user.id,
         family_member_name: user.family_member_name || '',
@@ -31,8 +43,6 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
     const [dataChanged, setDataChanged] = useState(false);
     const [errors, setErrors] = useState({});
     const [processing, setProcessing] = useState(false);
-
-    const theme = useTheme();
 
     const handleChange = (key, value) => {
         setInitialUserData((prevUser) => {
@@ -84,13 +94,13 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
 
             if (response.status === 200) {
                 setUser(response.data.user);
-                toast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Family information updated successfully', {
+                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Family information updated successfully', {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 closeModal();
@@ -104,49 +114,49 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
                 if (error.response.status === 422) {
                     // Handle validation errors
                     setErrors(error.response.data.errors || {});
-                    toast.error(error.response.data.error || 'Failed to update family information.', {
+                    showToast.error(error.response.data.error || 'Failed to update family information.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 } else {
                     // Handle other HTTP errors
-                    toast.error('An unexpected error occurred. Please try again later.', {
+                    showToast.error('An unexpected error occurred. Please try again later.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 }
                 console.error(error.response.data);
             } else if (error.request) {
                 // The request was made but no response was received
-                toast.error('No response received from the server. Please check your internet connection.', {
+                showToast.error('No response received from the server. Please check your internet connection.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error(error.request);
             } else {
                 // Something happened in setting up the request that triggered an Error
-                toast.error('An error occurred while setting up the request.', {
+                showToast.error('An error occurred while setting up the request.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error('Error', error.message);
@@ -157,89 +167,153 @@ const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => 
     };
 
     return (
-        <GlassDialog open={open} onClose={closeModal}>
-            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-                <Typography>Family Member</Typography>
-                <IconButton
-                    variant="outlined"
-                    color="primary"
-                    onClick={closeModal}
-                    sx={{ position: 'absolute', top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
+        <Modal
+            isOpen={open}
+            onOpenChange={processing ? undefined : closeModal}
+            size="2xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "bg-content1",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+            }}
+            style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}
+        >
+            <ModalContent>
+                <ModalHeader className="flex gap-3 items-center" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderBottom: '1px solid var(--theme-divider)'
+                }}>
+                    <div className="p-2 rounded-lg" style={{
+                        background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                        borderRadius: `var(--borderRadius, 8px)`,
+                    }}>
+                        <Users size={20} style={{ color: 'var(--theme-primary)' }} />
+                    </div>
+                    <span className="text-lg font-semibold" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        Family Member
+                    </span>
+                </ModalHeader>
             <form onSubmit={handleSubmit}>
-                <DialogContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1">
+                            <Input
                                 label="Name"
-                                fullWidth
+                                variant="bordered"
                                 value={changedUserData.family_member_name || initialUserData.family_member_name || ""}
                                 onChange={(e) => handleChange('family_member_name', e.target.value)}
-                                error={Boolean(errors.family_member_name)}
-                                helperText={errors.family_member_name}
+                                isInvalid={Boolean(errors.family_member_name)}
+                                errorMessage={errors.family_member_name}
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div className="col-span-1">
+                            <Input
                                 label="Relationship"
-                                fullWidth
+                                variant="bordered"
                                 value={changedUserData.family_member_relationship || initialUserData.family_member_relationship || ""}
                                 onChange={(e) => handleChange('family_member_relationship', e.target.value)}
-                                error={Boolean(errors.family_member_relationship)}
-                                helperText={errors.family_member_relationship}
+                                isInvalid={Boolean(errors.family_member_relationship)}
+                                errorMessage={errors.family_member_relationship}
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div className="col-span-1">
+                            <Input
                                 label="Date of Birth"
-                                fullWidth
+                                variant="bordered"
                                 type="date"
                                 value={changedUserData.family_member_dob || initialUserData.family_member_dob || ""}
                                 onChange={(e) => handleChange('family_member_dob', e.target.value)}
-                                InputLabelProps={{ shrink: true }}
-                                error={Boolean(errors.family_member_dob)}
-                                helperText={errors.family_member_dob}
+                                isInvalid={Boolean(errors.family_member_dob)}
+                                errorMessage={errors.family_member_dob}
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
+                        </div>
+                        <div className="col-span-1">
+                            <Input
                                 label="Phone"
-                                fullWidth
+                                variant="bordered"
                                 value={changedUserData.family_member_phone || initialUserData.family_member_phone || ""}
                                 onChange={(e) => handleChange('family_member_phone', e.target.value)}
-                                error={Boolean(errors.family_member_phone)}
-                                helperText={errors.family_member_phone}
+                                isInvalid={Boolean(errors.family_member_phone)}
+                                errorMessage={errors.family_member_phone}
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '16px',
-                    }}
-                >
-                    <LoadingButton
-                        disabled={!dataChanged}
-                        sx={{
-                            borderRadius: '50px',
-                            padding: '6px 16px',
+                        </div>
+                    </div>
+                </ModalBody>
+                <ModalFooter style={{
+                    borderTop: '1px solid var(--theme-divider)',
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <Button
+                        onPress={closeModal}
+                        isDisabled={processing}
+                        variant="light"
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
                         }}
-                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        isDisabled={!dataChanged}
+                        variant="bordered"
                         color="primary"
                         type="submit"
-                        loading={processing}
+                        isLoading={processing}
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
                     >
                         Submit
-                    </LoadingButton>
-                </DialogActions>
+                    </Button>
+                </ModalFooter>
             </form>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
     );
 };
 

@@ -31,7 +31,7 @@ class ProjectIssue extends Model implements HasMedia
         'resolution_date',
         'resolution',
         'tags',
-        'notes'
+        'notes',
     ];
 
     /**

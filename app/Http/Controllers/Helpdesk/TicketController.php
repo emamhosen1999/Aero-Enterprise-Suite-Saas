@@ -21,7 +21,7 @@ class TicketController extends Controller
                 ->when(request('priority'), function ($query, $priority) {
                     $query->where('priority', $priority);
                 })
-                ->when(!Auth::user()->hasRole('admin') && !Auth::user()->hasPermissionTo('view_all_tickets'), function ($query) {
+                ->when(! Auth::user()->hasRole('admin') && ! Auth::user()->hasPermissionTo('view_all_tickets'), function ($query) {
                     $query->where(function ($q) {
                         $q->where('requester_id', Auth::id())
                             ->orWhere('assignee_id', Auth::id());
@@ -77,7 +77,7 @@ class TicketController extends Controller
     public function show(HelpDeskTicket $ticket)
     {
         if (
-            !Auth::user()->hasPermissionTo('view_all_tickets') &&
+            ! Auth::user()->hasPermissionTo('view_all_tickets') &&
             Auth::id() !== $ticket->requester_id &&
             Auth::id() !== $ticket->assignee_id
         ) {
@@ -94,7 +94,7 @@ class TicketController extends Controller
     public function edit(HelpDeskTicket $ticket)
     {
         if (
-            !Auth::user()->hasPermissionTo('edit_tickets') &&
+            ! Auth::user()->hasPermissionTo('edit_tickets') &&
             Auth::id() !== $ticket->assignee_id
         ) {
             abort(403, 'Unauthorized action.');
@@ -111,7 +111,7 @@ class TicketController extends Controller
     public function update(Request $request, HelpDeskTicket $ticket)
     {
         if (
-            !Auth::user()->hasPermissionTo('edit_tickets') &&
+            ! Auth::user()->hasPermissionTo('edit_tickets') &&
             Auth::id() !== $ticket->assignee_id
         ) {
             abort(403, 'Unauthorized action.');
@@ -173,7 +173,7 @@ class TicketController extends Controller
 
     public function destroy(HelpDeskTicket $ticket)
     {
-        if (!Auth::user()->hasPermissionTo('delete_tickets')) {
+        if (! Auth::user()->hasPermissionTo('delete_tickets')) {
             abort(403, 'Unauthorized action.');
         }
 

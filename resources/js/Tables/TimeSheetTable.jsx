@@ -1,35 +1,31 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { RefreshCcw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import {
-    Box,
-    CardContent,
-    CardHeader,
-    Typography,
-
-    Grid,
-
-    useMediaQuery,
-
-} from '@mui/material';
-import {    Table,
+    Table,
     TableHeader,
     TableColumn,
     TableBody,
     TableRow,
     TableCell,
     User,
-    Input,
     ScrollShadow,
     Pagination,
     Skeleton,
     Card as HeroCard,
+    Card,
+    CardBody,
+    CardHeader,
     Divider,
     Button,
-    Button as HeroButton
+    Button as HeroButton,
+    Link,
+    Input
 } from "@heroui/react";
-import Grow from '@mui/material/Grow';
-import GlassCard from "@/Components/GlassCard.jsx";
 import { usePage } from "@inertiajs/react";
 import dayjs from "dayjs";
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { 
     MagnifyingGlassIcon,
     CalendarDaysIcon,
@@ -38,20 +34,15 @@ import {
     ExclamationTriangleIcon,
     CheckCircleIcon,
     XCircleIcon,
-
     UserGroupIcon,
     DocumentArrowDownIcon,
-
-   
+    PhoneIcon,
 } from '@heroicons/react/24/outline';
-import { Refresh } from '@mui/icons-material';
-
 import axios from 'axios';
-import { useTheme, alpha } from '@mui/material/styles';
 
 import { AbsentUsersInlineCard } from '@/Components/TimeSheet/AbsentUsersInlineCard';
 
-const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee }) => {
+const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee, onMarkAsPresent }) => {
     const { auth } = usePage().props;
     const { url } = usePage();
    
@@ -72,6 +63,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
     const [lastUpdate, setLastUpdate] = useState(null);
     const [isPolling, setIsPolling] = useState(true);
     const [lastChecked, setLastChecked] = useState(new Date());
+    const [downloading, setDownloading] = useState('');
     const prevUpdateRef = useRef(null);
     const prevFilterData = useRef({
         currentMonth: dayjs().format('YYYY-MM'),
@@ -83,6 +75,21 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
         refreshKey: 0,
         currentPage: 1
     });
+    
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
     
     const [filterData, setFilterData] = useState(externalFilterData || {
         currentMonth: dayjs().format('YYYY-MM'),
@@ -338,7 +345,9 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                 return 'warning';
         }
     };    // Check permissions using new system
+    console.log(auth.permissions)
     const canViewAllAttendance = auth.permissions?.includes('attendance.view') || false;
+    const canViewOwnAttendance = auth.permissions?.includes('attendance.own.view') || false;
     const canManageAttendance = auth.permissions?.includes('attendance.manage') || false;
     const canExportAttendance = auth.permissions?.includes('attendance.export') || canManageAttendance || false;    // Filter absent users for export functions only - backend now handles search filtering
     const filteredAbsentUsers = useMemo(() => {
@@ -348,18 +357,17 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
     
     // Column definitions with improved descriptive labels
     const columns = [
-        ...(!(canViewAllAttendance) && url !== '/attendance' ? [
-            { name: "Date", uid: "date", icon: CalendarDaysIcon, ariaLabel: "Attendance date" }
-        ] : []),
-        ...(url == '/attendance-employee' ? [
+        // Date column - only shown in employee view (when user can't view all attendance or on employee-specific page)
+        ...(!canViewAllAttendance || url === '/attendance-employee' ? [
             { name: "Date", uid: "date", icon: CalendarDaysIcon, ariaLabel: "Attendance date" }
         ] : []),
         
+        // Employee column - only shown in admin/manager view (when user can view all attendance and not on employee page)
         ...(canViewAllAttendance && (url !== '/attendance-employee') ? [
             { name: "Employee", uid: "employee", icon: UserIcon, ariaLabel: "Employee name and information" }
         ] : []),
-        { name: "Clock In", uid: "clockin_time", icon: ClockIcon, ariaLabel: "First punch in time" },
-        { name: "Clock Out", uid: "clockout_time", icon: ClockIcon, ariaLabel: "Last punch out time" },
+        { name: "Clock In", uid: "clockin_time", icon: ClockIcon, ariaLabel: "All clock in times" },
+        { name: "Clock Out", uid: "clockout_time", icon: ClockIcon, ariaLabel: "All clock out times" },
         { name: "Work Hours", uid: "production_time", icon: ClockIcon, ariaLabel: "Total working hours" },
         { name: "Punches", uid: "punch_details", icon: ClockIcon, ariaLabel: "Number of time punches recorded" }
     ];
@@ -373,72 +381,97 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
             case "date":
                 return (
                     <TableCell className={`${cellBaseClasses}`}>
-                        <Box className="flex items-center gap-2">
-                            <CalendarDaysIcon className="w-4 h-4 text-primary flex-shrink-0" />
-                            <Box className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                            <CalendarDaysIcon className="w-4 h-4 text-primary shrink-0" />
+                            <div className="flex flex-col">
                                 <span>
                                     {dayjs(attendance.date).format('MMM D, YYYY')}
                                 </span>
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     </TableCell>
                 );
             case "employee":
                 const avatarSize = isLargeScreen ? 'md' : isMediumScreen ? 'md' : 'sm';
                 return (
                     <TableCell className="whitespace-nowrap">
+                        
                         <User
-                            avatarProps={{
-                                radius: "lg",
-                                size: avatarSize,
-                                src: attendance.user?.profile_image,
-                                fallback: <UserIcon className="w-6 h-6" />
-                            }}
-                            description={attendance.user?.phone}
-                            name={attendance.user?.name}
-                        />
+                        avatarProps={{
+                        radius: "lg",
+                        size: "sm",
+                        src: attendance.user?.profile_image_url || attendance.user?.profile_image,
+                        showFallback: true, // Ensure fallback is always available
+                        name: attendance.user?.name || "Unnamed User",
+                        isBordered: true,
+                        }}
+                        description={
+                        attendance.user?.phone ? (
+                            <Link
+                            href={`tel:${attendance.user?.phone}`}
+                            size="sm"
+                            className="text-xs hover:underline"
+                            style={{ color: 'var(--theme-primary)' }}
+                            >
+                            {attendance.user?.phone}
+                            </Link>
+                        ) : (
+                            <span className="flex items-center gap-1 text-xs text-default-400 italic">
+                            <PhoneIcon className="w-3 h-3" /> No Phone
+                            </span>
+                        )
+                        }
+                        name={
+                        <span className="text-sm font-medium">
+                            {attendance.user?.name || "Unnamed User"}
+                        </span>
+                        }
+                    />
                     </TableCell>
-                );            case "clockin_time":
+                );            
+                case "clockin_time":
                 return (
                     <TableCell className={`${cellBaseClasses}`}>
-                        <Box className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <ClockIcon className="w-4 h-4 text-success" />
-                            <Box className="flex flex-col">
-                                <span>
-                                    {attendance.punchin_time 
-                                        ? formatTime(attendance.punchin_time, attendance.date) || 'Invalid time'
-                                        : 'Not clocked in'
-                                    }
-                                </span>
-                                {attendance.punchin_time && (
-                                    <span className="text-xs text-default-500">
-                                        First punch
-                                    </span>
+                            <div className="flex flex-col">
+                                {attendance.punches && attendance.punches.length > 0 ? (
+                                    attendance.punches
+                                        .filter(punch => punch.punch_in)
+                                        .map((punch, index) => (
+                                            <span key={index} className="block text-xs">
+                                                <span className="text-default-400 mr-1">{index + 1}.</span>
+                                                {formatTime(punch.punch_in, attendance.date) || 'Invalid time'}
+                                            </span>
+                                        ))
+                                ) : (
+                                    <span>Not clocked in</span>
                                 )}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     </TableCell>
                 );            case "clockout_time":
                 return (
                     <TableCell className={`${cellBaseClasses}`}>
-                        <Box className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <ClockIcon className="w-4 h-4 text-danger" />
-                            <Box className="flex flex-col">
-                                <span>
-                                    {attendance.punchout_time 
-                                        ? formatTime(attendance.punchout_time, attendance.date) || 'Invalid time'
-                                        : attendance.punchin_time 
-                                            ? (isCurrentDate ? 'Currently working' : 'Missing punch-out')
-                                            : 'Not started'
-                                    }
-                                </span>
-                                {attendance.punchout_time && (
-                                    <span className="text-xs text-default-500">
-                                        Last punch
+                            <div className="flex flex-col">
+                                {attendance.punches && attendance.punches.length > 0 ? (
+                                    attendance.punches.map((punch, index) => (
+                                        <span key={index} className="block text-xs">
+                                            <span className="text-default-400 mr-1">{index + 1}.</span>
+                                            {punch.punch_out ? formatTime(punch.punch_out, attendance.date) || 'Invalid time' : 'No punch out'}
+                                        </span>
+                                    ))
+                                ) : attendance.punchin_time ? (
+                                    <span>
+                                        {isCurrentDate ? 'Currently working' : 'Missing punch-out'}
                                     </span>
+                                ) : (
+                                    <span>Not started</span>
                                 )}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     </TableCell>
                 );case "production_time":
                 const hasWorkTime = attendance.total_work_minutes > 0;
@@ -451,45 +484,45 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                     
                     return (
                         <TableCell className={`${cellBaseClasses}`}>
-                            <Box className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                                 <ClockIcon className={`w-4 h-4 ${hasIncompletePunch ? 'text-warning' : 'text-primary'}`} />
-                                <Box className="flex flex-col">
+                                <div className="flex flex-col">
                                     <span className="font-medium">{`${hours}h ${minutes}m`}</span>
                                     <span className="text-xs text-default-500">
                                         {hasIncompletePunch ? 'Partial data - in progress' : 'Total worked time'}
                                     </span>
-                                </Box>
-                            </Box>
+                                </div>
+                            </div>
                         </TableCell>
                     );
                 } else if (isCurrentlyWorking) {
                     // Currently working (today's date and has punch in but no punch out)
                     return (
                         <TableCell className={`${cellBaseClasses}`}>
-                            <Box className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                                 <ClockIcon className="w-4 h-4 text-warning" />
-                                <Box className="flex flex-col">
+                                <div className="flex flex-col">
                                     <span className="text-warning">In Progress</span>
                                     <span className="text-xs text-default-500">
                                         Currently working
                                     </span>
-                                </Box>
-                            </Box>
+                                </div>
+                            </div>
                         </TableCell>
                     );
                 } else if (attendance.punchin_time && !attendance.punchout_time && !isCurrentDate) {
                     // Past date with incomplete punch
                     return (
                         <TableCell className={`${cellBaseClasses}`}>
-                            <Box className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                                 <ExclamationTriangleIcon className="w-4 h-4 text-danger" />
-                                <Box className="flex flex-col">
+                                <div className="flex flex-col">
                                     <span className="text-danger">Incomplete punch</span>
                                     <span className="text-xs text-default-500">
                                         Missing punch out
                                     </span>
-                                </Box>
-                            </Box>
+                                </div>
+                            </div>
                         </TableCell>
                     );
                 }
@@ -497,23 +530,23 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                 // No punch in at all
                 return (
                     <TableCell className={`${cellBaseClasses}`}>
-                        <Box className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <ExclamationTriangleIcon className="w-4 h-4 text-warning" />
-                            <Box className="flex flex-col">
+                            <div className="flex flex-col">
                                 <span className="text-warning">No work time</span>
                                 <span className="text-xs text-default-500">
                                     No attendance
                                 </span>
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     </TableCell>
                 );
             case "punch_details":
                 return (
                     <TableCell className={`${cellBaseClasses}`}>
-                        <Box className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <ClockIcon className="w-4 h-4 text-default-400" />
-                            <Box className="flex flex-col">
+                            <div className="flex flex-col">
                                 <span className="text-xs font-medium">
                                     {attendance.punch_count || 0} punch{(attendance.punch_count || 0) !== 1 ? 'es' : ''}
                                 </span>
@@ -527,8 +560,8 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                                         All complete
                                     </span>
                                 )}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                     </TableCell>
                 );
             default:
@@ -536,6 +569,7 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
         }
     };    // Excel download function
     const exportExcel = useCallback(async () => { 
+        setDownloading('excel');
         try { 
             const response = await axios.get(route('attendance.exportExcel'), { params: { date: selectedDate }, responseType: 'blob', });
 
@@ -550,15 +584,19 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
             document.body.appendChild(link);
             link.click();
             link.remove();
+            window.URL.revokeObjectURL(url);
+            setDownloading('');
         } catch (error) {
             console.error('Error downloading Excel:', error);
             alert('Failed to download attendance excel.');
+            setDownloading('');
         }
 
     }, [selectedDate]);
 
     // PDF download function
     const downloadPDF = useCallback(async () => {
+        setDownloading('pdf');
         try { 
             const response = await axios.get(route('attendance.exportPdf'), { params:{date:selectedDate}, responseType:'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -570,9 +608,12 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
             document.body.appendChild(link); 
             link.click(); 
             link.remove();
+            window.URL.revokeObjectURL(url);
+            setDownloading('');
         } catch (error) {
             console.error('Error downloading PDF:', error);
             alert('Failed to download attendance pdf.');
+            setDownloading('');
         }
         
     },[selectedDate]);    
@@ -683,428 +724,401 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
 
 
 
-      // Employee view - render only table and pagination without wrapper
-    if (url === '/attendance-employee') {
-    
-        return (
-            <Box 
-                role="region"
-                aria-label="Attendance data table"
-                className="w-full"
+    // Employee view - render only table and pagination without wrapper
+
+    return (
+    <>
+        { canViewAllAttendance && (
+            <div 
+                className="flex flex-col w-full h-full p-4"
+                role="main"
+                aria-label="Timesheet Management"
             >
-                {error ? (
-                    <HeroCard className="p-4 bg-danger-50 border-danger-200">
-                        <Box className="flex items-center gap-3">
-                            <ExclamationTriangleIcon className="w-5 h-5 text-danger" />
-                            <Typography color="error" variant="body1">{error}</Typography>
-                        </Box>
-                    </HeroCard>
-                ) : (
-                    <>
-                        <ScrollShadow
-                            orientation="horizontal"
-                            className="overflow-y-hidden"
+                <div className="space-y-4">
+                    {/* Combined Attendance and Absent Users Card */}
+                    <div className="w-full">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
                         >
-                            <Skeleton className="rounded-lg" isLoaded={isLoaded}>
-                                <Table
-                                    selectionMode="multiple"
-                                    selectionBehavior="toggle"
-                                    isCompact
-                                    removeWrapper
-                                    aria-label="Employee attendance timesheet table"
-                                    isHeaderSticky
-                                    classNames={{
-                                        base: "max-h-[520px] overflow-auto",
-                                        table: "min-h-[200px] w-full",
-                                        thead: "z-10",
-                                        tbody: "overflow-y-auto",
+                            <Card 
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                {/* Main Card Content */}
+                                <CardHeader 
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
                                     }}
                                 >
-                                    <TableHeader columns={columns}>
-                                        {(column) => (
-                                            <TableColumn 
-                                                key={column.uid} 
-                                                align="start"
-                                                aria-label={column.ariaLabel || column.name}
-                                            >
-                                                <Box className="flex items-center gap-2">
-                                                    {column.icon && <column.icon className="w-4 h-4" />}
-                                                    <span className="text-sm font-medium">{column.name}</span>
-                                                </Box>
-                                            </TableColumn>
-                                        )}
-                                    </TableHeader>
-                                    <TableBody 
-                                        items={attendances}                                                                emptyContent={
-                                        <Box className="flex flex-col items-center justify-center py-12">
-                                            <ClockIcon className="w-16 h-16 text-default-300 mb-4" />
-                                            <Typography variant="h6" className="mb-2">
-                                                No Attendance Records
-                                            </Typography>
-                                            <Typography variant="body2" color="textSecondary">
-                                                No attendance records found for the selected date
-                                            </Typography>
-                                            
-                                        </Box>
-                                    }
-                                    >
-                                        {(attendance) => (
-                                            <TableRow key={attendance.id || attendance.user_id}>
-                                                {(columnKey) => renderCell(attendance, columnKey)}
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </Skeleton>
-                        </ScrollShadow>
-                        {totalRows > perPage && (
-                            <Box className="py-4 flex justify-center">
-                                <Pagination
-                                    initialPage={1}
-                                    isCompact
-                                    showControls
-                                    showShadow
-                                    color="primary"
-                                    variant="bordered"
-                                    page={currentPage}
-                                    total={lastPage}
-                                    onChange={handlePageChange}
-                                    aria-label="Timesheet pagination"
-                                />
-                            </Box>
-                        )}
-                    </>
-                )}
-            </Box>
-        );
-    }    
-    // Admin view - render full layout with combined GlassCard wrapper
-    return (
-        <Box 
-            sx={{ display: 'flex', justifyContent: 'center', p: 2 }}
-            component="main"
-            role="main"
-            aria-label="Timesheet Management"
-        >
-            <Grid container spacing={2}>
-                {/* Combined Attendance and Absent Users Card */}
-                <Grid item xs={12}>
-                    <Grow in timeout={500}>
-                        <GlassCard>
-                            {/* Main Card Content */}
-                            <CardHeader
-                                className="bg-gradient-to-br from-slate-50/50 to-white/30 backdrop-blur-sm border-b border-white/20"
-                                title={
-                                    <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'}`}>
-                                        <div className="flex flex-col space-y-4">
-                                            {/* Main Header Content */}
-                                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                                {/* Title Section */}
-                                                <div className="flex items-center gap-3 lg:gap-4">
-                                                    <div className={`
-                                                        ${isLargeScreen ? 'p-3' : isMediumScreen ? 'p-2.5' : 'p-2'} 
-                                                        rounded-xl bg-gradient-to-br from-[rgba(var(--theme-primary-rgb),0.2)] to-[rgba(var(--theme-secondary-rgb),0.2)] border border-[rgba(var(--theme-primary-rgb),0.3)] backdrop-blur-sm
-                                                    `}>
-                                                        <ClockIcon 
+                                    <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'} w-full`}>
+                                            <div className="flex flex-col space-y-4">
+                                                {/* Main Header Content */}
+                                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                                    {/* Title Section */}
+                                                    <div className="flex items-center gap-3 lg:gap-4">
+                                                        <div 
                                                             className={`
-                                                                ${isLargeScreen ? 'w-8 h-8' : isMediumScreen ? 'w-6 h-6' : 'w-5 h-5'}
+                                                                ${isLargeScreen ? 'p-3' : isMediumScreen ? 'p-2.5' : 'p-2'} 
+                                                                rounded-xl flex items-center justify-center
                                                             `}
-                                                            style={{ color: 'var(--theme-primary)' }}
+                                                            style={{
+                                                                background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                                borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                                borderWidth: `var(--borderWidth, 2px)`,
+                                                                borderRadius: `var(--borderRadius, 12px)`,
+                                                            }}
+                                                        >
+                                                            <ClockIcon 
+                                                                className={`
+                                                                    ${isLargeScreen ? 'w-8 h-8' : isMediumScreen ? 'w-6 h-6' : 'w-5 h-5'}
+                                                                `}
+                                                                style={{ color: 'var(--theme-primary)' }}
+                                                            />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h4 
+                                                                className={`
+                                                                    ${isLargeScreen ? 'text-2xl' : isMediumScreen ? 'text-xl' : 'text-lg'}
+                                                                    font-bold text-foreground
+                                                                    ${!isLargeScreen ? 'truncate' : ''}
+                                                                `}
+                                                                style={{
+                                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                                }}
+                                                            >
+                                                                Daily Timesheet
+                                                            </h4>
+                                                            <p 
+                                                                className={`
+                                                                    ${isLargeScreen ? 'text-sm' : 'text-xs'} 
+                                                                    text-default-500
+                                                                    ${!isLargeScreen ? 'truncate' : ''}
+                                                                `}
+                                                                style={{
+                                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                                }}
+                                                            >
+                                                                {new Date(selectedDate).toLocaleString('en-US', {
+                                                                    month: isLargeScreen ? 'long' : 'short',
+                                                                    day: 'numeric',
+                                                                    year: isLargeScreen ? 'numeric' : undefined,
+                                                                })}
+                                                            </p>
+                                                        </div>
+                                                    </div>                                                {/* Action Buttons */}
+                                                    <div className="flex items-center gap-4">
+                                                        {lastCheckedText && (
+                                                            <span className="text-xs text-default-500">
+                                                                Updated: {lastCheckedText}
+                                                            </span>
+                                                        )}
+                                                        <div className="flex items-center gap-2">
+                                                            {canExportAttendance && (
+                                                                <>
+                                                                    <HeroButton
+                                                                        color="success"
+                                                                        variant="flat"
+                                                                        size={isLargeScreen ? "md" : "sm"}
+                                                                        radius={getThemeRadius()}
+                                                                        startContent={
+                                                                            <DocumentArrowDownIcon className={`
+                                                                                ${isLargeScreen ? 'w-4 h-4' : 'w-3.5 h-3.5'}
+                                                                            `} />
+                                                                        }
+                                                                        onPress={exportExcel}
+                                                                        isDisabled={!isLoaded || attendances.length === 0 || downloading !== ''}
+                                                                        isLoading={downloading === 'excel'}
+                                                                        style={{
+                                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                                        }}
+                                                                    >
+                                                                        {isLargeScreen ? 'Excel' : 'XLS'}
+                                                                    </HeroButton>
+                                                                    
+                                                                    <HeroButton
+                                                                        color="danger"
+                                                                        variant="flat"
+                                                                        size={isLargeScreen ? "md" : "sm"}
+                                                                        radius={getThemeRadius()}
+                                                                        startContent={
+                                                                            <DocumentArrowDownIcon className={`
+                                                                                ${isLargeScreen ? 'w-4 h-4' : 'w-3.5 h-3.5'}
+                                                                            `} />
+                                                                        }
+                                                                        onPress={downloadPDF}
+                                                                        isDisabled={!isLoaded || attendances.length === 0 || downloading !== ''}
+                                                                        isLoading={downloading === 'pdf'}
+                                                                        style={{
+                                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                                        }}
+                                                                    >
+                                                                        PDF
+                                                                    </HeroButton>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        
+                                                    </div>
+                                                </div>
+
+                                                {/* Stats Bar - Only show on larger screens */}
+                                                {isLargeScreen && (
+                                                    <div className="flex items-center gap-6 pt-2 border-t border-white/10">
+                                                        <div className="flex items-center gap-2">
+                                                            <CheckCircleIcon className="w-4 h-4 text-success" />
+                                                            <span className="text-xs text-gray-500">
+                                                                Present: {totalRows}
+                                                            </span>
+                                                        </div>
+                                                        {canViewAllAttendance && (
+                                                            <div className="flex items-center gap-2">
+                                                                <ExclamationTriangleIcon className="w-4 h-4 text-warning" />
+                                                                <span className="text-xs text-gray-500">
+                                                                    Absent: {absentUsers.length}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-2">
+                                                            <UserGroupIcon className="w-4 h-4 text-primary" />
+                                                            <span className="text-xs text-gray-500">
+                                                                Total: {totalRows + absentUsers.length}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                </CardHeader>
+                                <Divider />
+                                <CardBody>
+                                    <div 
+                                        role="search"
+                                        aria-label="Timesheet filters"
+                                    >
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                            {canViewAllAttendance && (
+                                                <>
+                                                    <div className="col-span-1">
+                                                        <Input
+                                                            type="text"
+                                                            label="Search Employee"
+                                                            placeholder="Enter employee name"
+                                                            value={employee}
+                                                            onChange={(e) => setEmployee(e.target.value)}
+                                                            variant="bordered"
+                                                            size="sm"
+                                                            radius={getThemeRadius()}
+                                                            startContent={
+                                                                <MagnifyingGlassIcon className="w-4 h-4 text-default-400" />
+                                                            }
+                                                            classNames={{
+                                                                input: "text-sm",
+                                                            }}
+                                                            style={{
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                            aria-label="Search employees"
                                                         />
                                                     </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <Typography 
-                                                            variant={isLargeScreen ? "h4" : isMediumScreen ? "h5" : "h6"}
-                                                            className={`
-                                                                font-bold bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] bg-clip-text text-transparent
-                                                                ${!isLargeScreen ? 'truncate' : ''}
-                                                            `}
+                                                    <div className="col-span-1">
+                                                        <Input
+                                                            label="Select Date"
+                                                            type="date"
+                                                            variant="bordered"
+                                                            onChange={handleDateChange}
+                                                            value={new Date(selectedDate).toISOString().slice(0, 10) || ''}
+                                                            size="sm"
+                                                            radius={getThemeRadius()}
+                                                            startContent={
+                                                                <CalendarDaysIcon className="w-4 h-4 text-default-400" />
+                                                            }
+                                                            classNames={{
+                                                                input: "text-sm",
+                                                            }}
                                                             style={{
-                                                                fontFamily: 'var(--font-current)',
-                                                                transition: 'all var(--transition)'
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
                                                             }}
-                                                        >
-                                                            Daily Timesheet
-                                                        </Typography>
-                                                        <Typography 
-                                                            variant={isLargeScreen ? "body2" : "caption"} 
-                                                            color="textSecondary"
-                                                            className={!isLargeScreen ? 'truncate' : ''}
-                                                            style={{
-                                                                fontFamily: 'var(--font-current)',
-                                                                transition: 'all var(--transition)'
-                                                            }}
-                                                        >
-                                                            {new Date(selectedDate).toLocaleString('en-US', {
-                                                                month: isLargeScreen ? 'long' : 'short',
-                                                                day: 'numeric',
-                                                                year: isLargeScreen ? 'numeric' : undefined,
-                                                            })}
-                                                        </Typography>
+                                                            aria-label="Select date for timesheet"
+                                                        />
                                                     </div>
-                                                </div>                                                {/* Action Buttons */}
-                                                <div className="flex items-center gap-4">
-                                                    {lastCheckedText && (
-                                                        <Typography 
-                                                            variant="caption" 
-                                                            color="textSecondary"
-                                                            sx={{
-                                                                fontSize: '0.75rem',
-                                                                display: { xs: 'block', sm: 'block' }
-                                                            }}
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardBody>
+                                <Divider />                           
+                                <CardBody>
+                                    {/* Two Column Layout for Present and Absent Users */}
+                                    <div className="flex flex-col lg:flex-row gap-6 h-full">
+                                        {/* Present Users - Attendance Table */}
+                                        <div className={`${canViewAllAttendance ? 'lg:flex-1 lg:w-0' : 'w-full'} min-h-0`}>
+                                            {error ? (
+                                                <Card 
+                                                    className="p-4 transition-all duration-200"
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-danger, #F31260) 10%, transparent)`,
+                                                        borderColor: `color-mix(in srgb, var(--theme-danger, #F31260) 25%, transparent)`,
+                                                        borderWidth: `var(--borderWidth, 2px)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                        transform: `scale(var(--scale, 1))`
+                                                    }}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <ExclamationTriangleIcon 
+                                                            className="w-5 h-5"
+                                                            style={{ color: 'var(--theme-danger)' }}
+                                                        />
+                                                        <p 
+                                                            className="text-sm"
+                                                            style={{ color: 'var(--theme-danger)' }}
                                                         >
-                                                            Updated: {lastCheckedText}
-                                                        </Typography>
-                                                    )}
-                                                    <div className="flex items-center gap-2">
-                                                        {canExportAttendance && (
-                                                            <>
-                                                                <HeroButton
-                                                                    color="success"
-                                                                    variant="flat"
-                                                                    size={isLargeScreen ? "md" : "sm"}
-                                                                    startContent={
-                                                                        <DocumentArrowDownIcon className={`
-                                                                            ${isLargeScreen ? 'w-4 h-4' : 'w-3.5 h-3.5'}
-                                                                        `} />
-                                                                    }
-                                                                    className="bg-gradient-to-r from-[rgba(var(--theme-success-rgb),0.1)] to-[rgba(var(--theme-success-rgb),0.2)] hover:from-[rgba(var(--theme-success-rgb),0.2)] hover:to-[rgba(var(--theme-success-rgb),0.3)] border border-[rgba(var(--theme-success-rgb),0.2)] backdrop-blur-sm"
-                                                                    onPress={exportExcel}
-                                                                    isDisabled={!isLoaded || attendances.length === 0}
-                                                                    style={{
-                                                                        fontFamily: 'var(--font-current)',
-                                                                        transition: 'all var(--transition)'
-                                                                    }}
-                                                                >
-                                                                    {isLargeScreen ? 'Excel' : 'XLS'}
-                                                                </HeroButton>
-                                                                
-                                                                <HeroButton
-                                                                    color="danger"
-                                                                    variant="flat"
-                                                                    size={isLargeScreen ? "md" : "sm"}
-                                                                    startContent={
-                                                                        <DocumentArrowDownIcon className={`
-                                                                            ${isLargeScreen ? 'w-4 h-4' : 'w-3.5 h-3.5'}
-                                                                        `} />
-                                                                    }
-                                                                    className="bg-gradient-to-r from-[rgba(var(--theme-danger-rgb),0.1)] to-[rgba(var(--theme-danger-rgb),0.2)] hover:from-[rgba(var(--theme-danger-rgb),0.2)] hover:to-[rgba(var(--theme-danger-rgb),0.3)] border border-[rgba(var(--theme-danger-rgb),0.2)] backdrop-blur-sm"
-                                                                    onPress={downloadPDF}
-                                                                    isDisabled={!isLoaded || attendances.length === 0}
-                                                                    style={{
-                                                                        fontFamily: 'var(--font-current)',
-                                                                        transition: 'all var(--transition)'
-                                                                    }}
-                                                                >
-                                                                    PDF
-                                                                </HeroButton>
-                                                            </>
-                                                        )}
+                                                            {error}
+                                                        </p>
                                                     </div>
+                                                </Card>
+                                            ) : (                                            
+                                                <div 
+                                                    role="region"
+                                                    aria-label="Present employees attendance table"
+                                                    className="h-full flex flex-col"
+                                                >
                                                     
-                                                    
-                                                </div>
-                                            </div>
-
-                                            {/* Stats Bar - Only show on larger screens */}
-                                            {isLargeScreen && (
-                                                <div className="flex items-center gap-6 pt-2 border-t border-white/10">
-                                                    <div className="flex items-center gap-2">
-                                                        <CheckCircleIcon className="w-4 h-4 text-success" />
-                                                        <Typography variant="caption" color="textSecondary">
-                                                            Present: {totalRows}
-                                                        </Typography>
+                                                
+                                                    <div className="mb-4 flex-shrink-0">
+                                                        <h6 
+                                                            className="text-lg font-semibold text-foreground flex items-center gap-2"
+                                                            style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                        >
+                                                            <CheckCircleIcon 
+                                                                className="w-5 h-5"
+                                                                style={{ color: 'var(--theme-success)' }}
+                                                            />
+                                                            Present Employees ({totalRows})
+                                                        </h6>
                                                     </div>
-                                                    {canViewAllAttendance && (
-                                                        <div className="flex items-center gap-2">
-                                                            <ExclamationTriangleIcon className="w-4 h-4 text-warning" />
-                                                            <Typography variant="caption" color="textSecondary">
-                                                                Absent: {absentUsers.length}
-                                                            </Typography>
+                                                    <div className="flex-1 min-h-0 flex flex-col">
+                                                        <ScrollShadow
+                                                            orientation="horizontal"
+                                                            className="overflow-y-hidden flex-1"
+                                                        >
+                                                        <Skeleton className="rounded-lg" isLoaded={isLoaded}>
+                                                            <Table
+                                                            
+                                                                isCompact
+                                                                removeWrapper
+                                                                aria-label="Employee attendance timesheet table"
+                                                                isHeaderSticky
+                                                                radius={getThemeRadius()}
+                                                                classNames={{
+                                                                    base: "max-h-[520px] overflow-auto",
+                                                                    table: "min-h-[200px] w-full",
+                                                                    thead: "z-10",
+                                                                    tbody: "overflow-y-auto",
+                                                                    th: "bg-default-100 text-default-700 font-semibold",
+                                                                    td: "text-default-600",
+                                                                }}
+                                                                style={{
+                                                                    borderRadius: `var(--borderRadius, 12px)`,
+                                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                                }}
+                                                            >
+                                                                <TableHeader columns={columns}>
+                                                                    {(column) => (
+                                                                        <TableColumn key={column.uid} align="start">
+                                                                            <div className="flex items-center gap-2">
+                                                                                {column.icon && <column.icon className="w-4 h-4" />}
+                                                                                <span className="text-sm font-medium">{column.name}</span>
+                                                                            </div>
+                                                                        </TableColumn>
+                                                                    )}
+                                                                </TableHeader>
+                                                                <TableBody 
+                                                                    items={attendances}
+                                                                    emptyContent={
+                                                                        <div className="flex flex-col items-center justify-center py-8">
+                                                                            <ClockIcon className="w-12 h-12 text-default-300 mb-4" />
+                                                                            <p className="text-default-500">
+                                                                                No attendance records found
+                                                                            </p>
+                                                                        </div>
+                                                                    }
+                                                                >
+                                                                    {(attendance) => (
+                                                                        <TableRow key={attendance.id || attendance.user_id}>
+                                                                            {(columnKey) => renderCell(attendance, columnKey)}
+                                                                        </TableRow>
+                                                                    )}
+                                                                </TableBody>
+                                                            </Table>
+                                                        </Skeleton>
+                                                    </ScrollShadow>
+                                                    {totalRows > perPage && (
+                                                        <div className="py-4 flex justify-center">
+                                                            <Pagination
+                                                                initialPage={1}
+                                                                isCompact
+                                                                showControls
+                                                                showShadow
+                                                                color="primary"
+                                                                variant="bordered"
+                                                                radius={getThemeRadius()}
+                                                                page={currentPage}
+                                                                total={lastPage}
+                                                                onChange={handlePageChange}
+                                                                aria-label="Timesheet pagination"
+                                                                style={{
+                                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                                }}
+                                                            />
                                                         </div>
                                                     )}
-                                                    <div className="flex items-center gap-2">
-                                                        <UserGroupIcon className="w-4 h-4 text-primary" />
-                                                        <Typography variant="caption" color="textSecondary">
-                                                            Total: {totalRows + absentUsers.length}
-                                                        </Typography>
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
-                                }
-                                sx={{ 
-                                    padding: 0,
-                                    '& .MuiCardHeader-content': { 
-                                        width: '100%',
-                                        overflow: 'hidden' 
-                                    }
-                                }}
-                            />
-                            <Divider />
-                            <CardContent>
-                                <Box 
-                                    component="section"
-                                    role="search"
-                                    aria-label="Timesheet filters"
-                                >
-                                    <Grid container spacing={3}>
-                                        {canViewAllAttendance && (
-                                            <>
-                                                <Grid item xs={12} sm={6} md={4}>
-                                                    <Input
-                                                        type="text"
-                                                        label="Search Employee"
-                                                        placeholder="Enter employee name"
-                                                        value={employee}
-                                                        onChange={handleSearch}
-                                                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                                        variant="bordered"
-                                                        aria-label="Search employees"
-                                                        classNames={{
-                                                            inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                                                        }}
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12} sm={6} md={4}>
-                                                    <Input
-                                                        label="Select Date"
-                                                        type="date"
-                                                        variant="bordered"
-                                                        onChange={handleDateChange}
-                                                        value={new Date(selectedDate).toISOString().slice(0, 10) || ''}
-                                                        startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
-                                                        aria-label="Select date for timesheet"
-                                                        classNames={{
-                                                            inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                                                        }}
-                                                    />
-                                                </Grid>
-                                            </>
-                                        )}
-                                    </Grid>
-                                </Box>
-                            </CardContent>
-                            <Divider />                           
-                            <CardContent>
-                                {/* Two Column Layout for Present and Absent Users */}
-                                <Grid container spacing={3}>
-                                    {/* Present Users - Attendance Table */}
-                                    <Grid item xs={12} md={canViewAllAttendance ? 9 : 12}>
-                                        {error ? (
-                                            <HeroCard className="p-4 bg-danger-50 border-danger-200">
-                                                <Box className="flex items-center gap-3">
-                                                    <ExclamationTriangleIcon className="w-5 h-5 text-danger" />
-                                                    <Typography color="error" variant="body1">{error}</Typography>
-                                                </Box>
-                                            </HeroCard>
-                                        ) : (                                            
-                                            <Box 
-                                                role="region"
-                                                aria-label="Present employees attendance table"
-                                                className="border-r border-gray-200 pr-4"
-                                                sx={{ borderRightColor: 'rgba(0, 0, 0, 0.1)' }}
-                                            >
-                                                 
-                                            
-                                                <Box className="mb-4">
-                                                    <Typography 
-                                                        variant="h6" 
-                                                        className="font-semibold text-blue-600 flex items-center gap-2"
-                                                    >
-                                                        <CheckCircleIcon className="w-5 h-5" />
-                                                        Present Employees ({totalRows})
-                                                    </Typography>
-                                                </Box>
-                                                <ScrollShadow
-                                                    orientation="horizontal"
-                                                    className="overflow-y-hidden"
-                                                >
-                                                    <Skeleton className="rounded-lg" isLoaded={isLoaded}>
-                                                        <Table
-                                                            selectionMode="multiple"
-                                                            selectionBehavior="toggle"
-                                                            isCompact
-                                                            removeWrapper
-                                                            aria-label="Employee attendance timesheet table"
-                                                            isHeaderSticky
-                                                            classNames={{
-                                                                base: "max-h-[520px] overflow-auto",
-                                                                table: "min-h-[200px] w-full",
-                                                                thead: "z-10",
-                                                                tbody: "overflow-y-auto",
-                                                            }}
-                                                        >
-                                                            <TableHeader columns={columns}>
-                                                                {(column) => (
-                                                                    <TableColumn key={column.uid} align="start">
-                                                                        <Box className="flex items-center gap-2">
-                                                                            {column.icon && <column.icon className="w-4 h-4" />}
-                                                                            <span className="text-sm font-medium">{column.name}</span>
-                                                                        </Box>
-                                                                    </TableColumn>
-                                                                )}
-                                                            </TableHeader>
-                                                            <TableBody 
-                                                                items={attendances}
-                                                                emptyContent={
-                                                                    <Box className="flex flex-col items-center justify-center py-8">
-                                                                        <ClockIcon className="w-12 h-12 text-default-300 mb-4" />
-                                                                        <Typography variant="body1" color="textSecondary">
-                                                                            No attendance records found
-                                                                        </Typography>
-                                                                    </Box>
-                                                                }
-                                                            >
-                                                                {(attendance) => (
-                                                                    <TableRow key={attendance.id || attendance.user_id}>
-                                                                        {(columnKey) => renderCell(attendance, columnKey)}
-                                                                    </TableRow>
-                                                                )}
-                                                            </TableBody>
-                                                        </Table>
-                                                    </Skeleton>
-                                                </ScrollShadow>
-                                                {totalRows > perPage && (
-                                                    <Box className="py-4 flex justify-center">
-                                                        <Pagination
-                                                            initialPage={1}
-                                                            isCompact
-                                                            showControls
-                                                            showShadow
-                                                            color="primary"
-                                                            variant="bordered"
-                                                            page={currentPage}
-                                                            total={lastPage}
-                                                            onChange={handlePageChange}
-                                                            aria-label="Timesheet pagination"
-                                                        />
-                                                    </Box>
-                                                )}
-                                            </Box>
-                                        )}
-                                    </Grid>
 
-                                    {/* Absent Users Section */}
-                                    {canViewAllAttendance && (
-                                        <Grid item xs={12} md={3}>
-                                            <AbsentUsersInlineCard 
-                                                absentUsers={absentUsers}
-                                                selectedDate={selectedDate}
-                                                getUserLeave={getUserLeave}
-                                            />
-                                        </Grid>
-                                    )}
-                                </Grid>
-                            </CardContent>
-                        </GlassCard>
-                    </Grow>
-                    {/* End of Main Card Content */}
-                </Grid>
-            </Grid>
-        </Box>
-    );
+                                        {/* Absent Users Section */}
+                                        {canViewAllAttendance && (
+                                            <div className="lg:w-80 lg:flex-shrink-0 h-full">
+                                                <AbsentUsersInlineCard 
+                                                    absentUsers={absentUsers}
+                                                    selectedDate={selectedDate}
+                                                    getUserLeave={getUserLeave}
+                                                    isLoaded={isLoaded}
+                                                    onMarkAsPresent={onMarkAsPresent}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                        {/* End of Main Card Content */}
+                    </div>
+                </div>
+            </div>
+        )}
+
+        
+    </>
+);
 };
 
 

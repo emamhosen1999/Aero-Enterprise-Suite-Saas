@@ -72,7 +72,7 @@ class Payslip extends Model
      */
     public function getFormattedPayslipNumberAttribute()
     {
-        return 'PAY-' . str_pad($this->payslip_number, 6, '0', STR_PAD_LEFT);
+        return 'PAY-'.str_pad($this->payslip_number, 6, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -97,6 +97,7 @@ class Payslip extends Model
     public static function generatePayslipNumber()
     {
         $lastPayslip = self::orderBy('id', 'desc')->first();
+
         return $lastPayslip ? $lastPayslip->payslip_number + 1 : 1;
     }
 

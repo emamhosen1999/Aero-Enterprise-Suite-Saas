@@ -1,23 +1,10 @@
-import React, { useState, useCallback } from "react";
-import {
-    Box,
-    Typography,
-    IconButton,
-    Stack,
-    useMediaQuery,
-    Tooltip as MuiTooltip,
-    CardContent,
-    CardHeader,
-    TextField,
-    CircularProgress
-} from "@mui/material";
-import {
-    Edit as EditIcon,
-    Delete as DeleteIcon,
-} from "@mui/icons-material";
-import { useTheme, alpha } from "@mui/material/styles";
-import { usePage } from "@inertiajs/react";
-import { toast } from "react-toastify";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { usePage, router } from "@inertiajs/react";
+import { showToast } from '@/utils/toastUtils';
+import { debounce } from "lodash";
+import StatsCards from '@/Components/StatsCards';
+
 import {
     Table,
     TableHeader,
@@ -35,13 +22,18 @@ import {
     DropdownMenu,
     DropdownItem,
     Card,
+    CardHeader,
     CardBody,
     Divider,
     ScrollShadow,
     Select,
     SelectItem,
+    Link,
+    Spinner,
+    CircularProgress,
     Input,
-    Link
+    Avatar,
+    Skeleton
 } from "@heroui/react";
 import {
     CalendarDaysIcon,
@@ -62,7 +54,8 @@ import {
     NoSymbolIcon,
     DocumentArrowUpIcon,
     DocumentCheckIcon,
-    XCircleIcon
+    XCircleIcon,
+    PlusIcon
 } from '@heroicons/react/24/outline';
 import {
     CheckCircleIcon as CheckCircleSolid,
@@ -70,10 +63,10 @@ import {
     ClockIcon as ClockSolid,
     ExclamationTriangleIcon as ExclamationTriangleSolid,
     PlayCircleIcon as PlayCircleSolid,
-    ArrowPathIcon as ArrowPathSolid
+    ArrowPathIcon as ArrowPathSolid,
+    PlusIcon as PlusIconSolid
 } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import GlassCard from "@/Components/GlassCard";
 import { jsPDF } from "jspdf";
 
 const DailyWorksTable = ({ 
@@ -95,62 +88,175 @@ const DailyWorksTable = ({
     onPageChange
 }) => {
     const { auth, users, jurisdictions } = usePage().props;
-    const theme = useTheme();
     const isLargeScreen = useMediaQuery('(min-width: 1025px)');
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
     const isMobile = useMediaQuery('(max-width: 640px)');
 
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    // Handle refresh functionality
+    const handleRefresh = useCallback(() => {
+        router.reload({ only: ['allData', 'reports_with_daily_works'], onSuccess: () => {
+            showToast.success('Daily works data refreshed successfully');
+        }});
+    }, []);
+
     const [isUpdating, setIsUpdating] = useState(false);
     const [updatingWorkId, setUpdatingWorkId] = useState(null);
+    
+    // Mobile tab state - persist across pagination
+    const [selectedTab, setSelectedTab] = useState("structure");
+    
+    // Mobile accordion state - persist across all updates and re-renders
+    const [expandedItems, setExpandedItems] = useState(new Set());
+    
+    // Function to toggle expanded state for a specific work item
+    const toggleExpanded = useCallback((workId) => {
+        setExpandedItems(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(workId)) {
+                newSet.delete(workId);
+            } else {
+                newSet.add(workId);
+            }
+            return newSet;
+        });
+    }, []);
+
+    // Preserve expanded state across data updates
+    useEffect(() => {
+        // When allData changes, preserve expanded items that still exist
+        if (allData && allData.length > 0) {
+            const currentWorkIds = new Set(allData.map(work => work.id));
+            setExpandedItems(prev => {
+                const preserved = new Set();
+                prev.forEach(id => {
+                    if (currentWorkIds.has(id)) {
+                        preserved.add(id);
+                    }
+                });
+                return preserved;
+            });
+        }
+    }, [allData]);
 
     // Permission-based access control using designations
     const userIsAdmin = auth.roles?.includes('Administrator') || auth.roles?.includes('Super Administrator') || false;
     const userIsSE = auth.designation === 'Supervision Engineer' || false;
     const userIsQCI = auth.designation === 'Quality Control Inspector' || auth.designation === 'Asst. Quality Control Inspector' || false;
+    
+    // Helper function to check if current user is the incharge of a specific work
+    const isUserInchargeOfWork = (work) => {
+        return work?.incharge && String(work.incharge) === String(auth.user?.id);
+    };
+    
+    // Check if user can assign for a specific work (admin or incharge of the work)
+    const canUserAssign = (work) => {
+        return userIsAdmin || isUserInchargeOfWork(work);
+    };
 
     // Use available data with fallbacks
     const availableInCharges = allInCharges || users || [];
     const availableJuniors = juniors || users || [];
     const availableJurisdictions = jurisdictions || [];
 
+    // Filter incharges to only show users who are incharge of any jurisdiction
+    // Get unique incharge IDs from jurisdictions
+    const jurisdictionInchargeIds = [...new Set(
+        availableJurisdictions
+            .map(jurisdiction => jurisdiction.incharge)
+            .filter(id => id) // Remove nulls
+    )];
+
+    // Filter available incharges to only those who manage jurisdictions
+    const jurisdictionInCharges = availableInCharges.filter(user => 
+        jurisdictionInchargeIds.includes(user.id)
+    );
+
+    // Fallback to availableInCharges if no jurisdiction incharges found
+    const finalInCharges = jurisdictionInCharges.length > 0 ? jurisdictionInCharges : availableInCharges;
+
+    // Function to get available assignees based on selected incharge
+    const getAvailableAssignees = (inchargeId) => {
+        if (!inchargeId) return [];
+        return users?.filter(user => user.report_to === parseInt(inchargeId)) || [];
+    };
+
+    // Function to get the appropriate status key for the dropdown
+    const getStatusKey = (status, inspectionResult) => {
+        if (!status) return 'new';
+        
+        const statusLower = status.toLowerCase();
+        
+        // Handle completed status with inspection result
+        if (statusLower === 'completed' && inspectionResult) {
+            return `completed:${inspectionResult.toLowerCase()}`;
+        }
+        
+        // Handle composite status (already in correct format)
+        if (statusLower.includes(':')) {
+            return statusLower;
+        }
+        
+        // Map legacy statuses to new format
+        const statusMap = {
+            'new': 'new',
+            'resubmission': 'resubmission', 
+            'emergency': 'emergency',
+            'completed': 'completed:pass' // Default to pass if no inspection result
+        };
+        
+        return statusMap[statusLower] || 'new';
+    };
+
     // Status configuration - standardized across the application
     const statusConfig = {
         'new': {
             color: 'primary',
-            icon: ExclamationTriangleSolid,
-            bgColor: alpha(theme.palette.primary.main, 0.1),
-            textColor: theme.palette.primary.main,
-            label: 'New Work',
-            description: 'Newly created work item'
+            icon: PlusIconSolid,
+            label: 'New',
+        },
+        'completed:pass': {
+            color: 'success',
+            icon: CheckCircleSolid,
+            label: 'Completed: Passed',
+           
+        },
+        'completed:fail': {
+            color: 'danger',
+            icon: XCircleSolid,
+            label: 'Completed: Failed',
+           
         },
         'resubmission': {
             color: 'warning',
             icon: ArrowPathSolid,
-            bgColor: alpha(theme.palette.warning.main, 0.1),
-            textColor: theme.palette.warning.main,
-            label: 'Resubmission Required',
-            description: 'Work needs to be resubmitted'
-        },
-        'completed': {
-            color: 'success',
-            icon: CheckCircleSolid,
-            bgColor: alpha(theme.palette.success.main, 0.1),
-            textColor: theme.palette.success.main,
-            label: 'Completed',
-            description: 'Work has been completed successfully'
+            label: 'Resubmission',
+            
         },
         'emergency': {
             color: 'danger',
             icon: ExclamationTriangleSolid,
-            bgColor: alpha(theme.palette.error.main, 0.1),
-            textColor: theme.palette.error.main,
-            label: 'Emergency Work',
-            description: 'Urgent work requiring immediate attention'
+            label: 'Emergency',
+           
         }
     };
 
     const getWorkTypeIcon = (type, className = "w-4 h-4") => {
-        const iconClass = `${className} flex-shrink-0`;
+        const iconClass = `${className} shrink-0`;
         
         switch (type?.toLowerCase()) {
             case "embankment":
@@ -175,7 +281,51 @@ const DailyWorksTable = ({
         }
     };
 
-    const getStatusChip = (status) => {
+    const getStatusChip = (status, inspectionResult = null) => {
+        // If status is 'completed' and inspection_result exists, use the composite status
+        if (status === 'completed' && inspectionResult) {
+            const compositeStatus = `completed:${inspectionResult}`;
+            const config = statusConfig[compositeStatus] || statusConfig['new'];
+            const StatusIcon = config.icon;
+            
+            return (
+                <Chip
+                    size="sm"
+                    variant="flat"
+                    color={config.color}
+                    startContent={<StatusIcon className="w-3 h-3" />}
+                    classNames={{
+                        base: "h-6",
+                        content: "text-xs font-medium"
+                    }}
+                >
+                    {config.label}
+                </Chip>
+            );
+        }
+
+        // For composite status (e.g., 'completed:pass'), use it directly
+        if (status && status.includes(':')) {
+            const config = statusConfig[status] || statusConfig['new'];
+            const StatusIcon = config.icon;
+            
+            return (
+                <Chip
+                    size="sm"
+                    variant="flat"
+                    color={config.color}
+                    startContent={<StatusIcon className="w-3 h-3" />}
+                    classNames={{
+                        base: "h-6",
+                        content: "text-xs font-medium"
+                    }}
+                >
+                    {config.label}
+                </Chip>
+            );
+        }
+
+        // Default status display
         const config = statusConfig[status] || statusConfig['new'];
         const StatusIcon = config.icon;
 
@@ -226,12 +376,12 @@ const DailyWorksTable = ({
     };
 
     const getUserInfo = (userId) => {
-        if (!userId) return { name: 'Unassigned', profile_image: null };
+        if (!userId) return { name: 'Unassigned', profile_image_url: null, profile_image: null };
         
         const user = availableInCharges?.find((u) => String(u.id) === String(userId)) || 
                     availableJuniors?.find((u) => String(u.id) === String(userId)) ||
                     users?.find((u) => String(u.id) === String(userId));
-        return user || { name: 'Unassigned', profile_image: null };
+        return user || { name: 'Unassigned', profile_image_url: null, profile_image: null };
     };
 
     const getJurisdictionInfo = (jurisdictionId) => {
@@ -353,125 +503,53 @@ const DailyWorksTable = ({
             }
         });
 
-        toast.promise(promise, {
-            pending: {
-                render() {
-                    return (
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <CircularProgress />
-                            <span style={{ marginLeft: '8px' }}>Uploading RFI file...</span>
-                        </div>
-                    );
-                },
-                icon: false,
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard?.background || 'rgba(255,255,255,0.1)',
-                    border: theme.glassCard?.border || '1px solid rgba(255,255,255,0.2)',
-                    color: theme.palette.text.primary,
-                },
-            },
-            success: {
-                render({ data }) {
-                    return (
-                        <>
-                            {data.map((message, index) => (
-                                <div key={index}>{message}</div>
-                            ))}
-                        </>
-                    );
-                },
-                icon: '🟢',
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard?.background || 'rgba(255,255,255,0.1)',
-                    border: theme.glassCard?.border || '1px solid rgba(255,255,255,0.2)',
-                    color: theme.palette.text.primary,
-                },
-            },
-            error: {
-                render({ data }) {
-                    return <>{data}</>;
-                },
-                icon: '🔴',
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard?.background || 'rgba(255,255,255,0.1)',
-                    border: theme.glassCard?.border || '1px solid rgba(255,255,255,0.2)',
-                    color: theme.palette.text.primary,
-                },
-            },
+        showToast.promise(promise, {
+            loading: 'Uploading RFI file...',
+            success: (data) => data.join(', '),
+            error: (data) => data,
         });
     };
 
-    // Handle status updates
+    // Handle status updates - simplified approach
     const updateWorkStatus = useCallback(async (work, newStatus) => {
         if (updatingWorkId === work.id) return;
 
         setUpdatingWorkId(work.id);
         const promise = new Promise(async (resolve, reject) => {
             try {
-                // Prepare update data with logical field assignments
-                const updateData = {
-                    id: work.id,
-                    status: newStatus,
-                    // Include required fields with standardized fallbacks
-                    date: work.date || new Date().toISOString().split('T')[0],
-                    number: work.number || `RFI-${Date.now()}`,
-                    planned_time: work.planned_time || '09:00',
-                    type: work.type || 'Standard',
-                    description: work.description || 'Work description pending',
-                    location: work.location || 'Location to be determined',
-                    side: work.side || 'Both'
-                };
-
-                // Logical field assignments based on status
-                if (newStatus === 'completed') {
-                    // Auto-set completion time to current time if not already set
-                    updateData.completion_time = work.completion_time || new Date().toISOString();
-                    
-                    // Auto-set submission time to current time if not already set
-                    updateData.submission_time = work.submission_time || new Date().toISOString();
-                    
-                    // If not structure type, capture document
-                    if (!(work.type?.toLowerCase() === 'structure')) {
-                        const pdfFile = await captureDocument(work.number);
-                        if (pdfFile) {
-                            await uploadImage(work.id, pdfFile);
-                        }
-                    }
-                } else if (newStatus === 'resubmission') {
-                    // Increment resubmission count
-                    updateData.resubmission_count = (work.resubmission_count || 0) + 1;
-                } else if (newStatus === 'new') {
-                    // Reset completion and submission times for new status
-                    updateData.completion_time = null;
-                    updateData.submission_time = null;
+                // Parse composite status (e.g., 'completed:pass' -> status: 'completed', inspection_result: 'pass')
+                let actualStatus = newStatus;
+                let inspectionResult = null;
+                
+                if (newStatus.includes(':')) {
+                    const [statusPart, resultPart] = newStatus.split(':');
+                    actualStatus = statusPart;
+                    inspectionResult = resultPart;
                 }
 
-                const response = await axios.post(route('dailyWorks.update'), updateData);
+                // Simple status update - only send what's needed
+                const updateData = {
+                    id: work.id,
+                    status: actualStatus,
+                };
+
+                // Add inspection result if it exists
+                if (inspectionResult) {
+                    updateData.inspection_result = inspectionResult;
+                }
+
+                const response = await axios.post(route('dailyWorks.updateStatus'), updateData);
 
                 if (response.status === 200) {
+                    // Update local state with the response data
                     setData(prevWorks =>
                         prevWorks.map(w =>
-                            w.id === work.id ? { 
-                                ...w, 
-                                status: newStatus,
-                                ...(newStatus === 'completed' && {
-                                    completion_time: updateData.completion_time,
-                                    submission_time: updateData.submission_time
-                                }),
-                                ...(newStatus === 'resubmission' && {
-                                    resubmission_count: updateData.resubmission_count
-                                }),
-                                ...(newStatus === 'new' && {
-                                    completion_time: null,
-                                    submission_time: null
-                                })
-                            } : w
+                            w.id === work.id ? response.data.dailyWork : w
                         )
                     );
-                    resolve(response.data.message || "Work status updated successfully");
+                    
+                    const statusLabel = statusConfig[newStatus]?.label || `${actualStatus}${inspectionResult ? ` - ${inspectionResult}` : ''}`;
+                    resolve(response.data.message || `Work status updated to ${statusLabel}`);
                 }
             } catch (error) {
                 let errorMsg = "Failed to update work status";
@@ -493,12 +571,205 @@ const DailyWorksTable = ({
             }
         });
 
-        toast.promise(promise, {
-            pending: "Updating work status...",
-            success: "Work status updated successfully!",
-            error: "Failed to update work status"
+        showToast.promise(promise, {
+            loading: 'Updating work status...',
+            success: (data) => data || "Work status updated successfully!",
+            error: (data) => data || "Failed to update work status",
         });
     }, [setData, updatingWorkId]);
+
+    // Handle completion time updates
+    const updateCompletionTime = useCallback(async (work, completionTime) => {
+        try {
+            const response = await axios.post(route('dailyWorks.updateCompletionTime'), {
+                id: work.id,
+                completion_time: completionTime,
+            });
+
+            if (response.status === 200) {
+                setData(prevWorks =>
+                    prevWorks.map(w =>
+                        w.id === work.id ? response.data.dailyWork : w
+                    )
+                );
+                showToast.success('Completion time updated successfully');
+            }
+        } catch (error) {
+            showToast.error('Failed to update completion time');
+        }
+    }, [setData]);
+
+    // Handle submission time updates
+    const updateSubmissionTime = useCallback(async (work, submissionTime) => {
+        try {
+            const response = await axios.post(route('dailyWorks.updateSubmissionTime'), {
+                id: work.id,
+                submission_time: submissionTime,
+            });
+
+            if (response.status === 200) {
+                setData(prevWorks =>
+                    prevWorks.map(w =>
+                        w.id === work.id ? response.data.dailyWork : w
+                    )
+                );
+                showToast.success('Submission time updated successfully');
+            }
+        } catch (error) {
+            showToast.error('Failed to update submission time');
+        }
+    }, [setData]);
+
+  
+
+    // Create a ref to store the current allData and setData
+    const allDataRef = useRef(allData);
+    const setDataRef = useRef(setData);
+    allDataRef.current = allData;
+    setDataRef.current = setData;
+
+ 
+
+    // Debounced function for updating incharge
+    const debouncedUpdateIncharge = useMemo(
+        () => debounce(async (workId, inchargeId) => {
+            try {
+                const work = allDataRef.current?.find(w => w.id === workId);
+                if (!work) {
+                    showToast.error('Work not found');
+                    return;
+                }
+
+                const response = await axios.post(route('dailyWorks.updateIncharge'), {
+                    id: work.id,
+                    incharge: inchargeId,
+                });
+
+                if (response.status === 200) {
+                    setDataRef.current(prevWorks =>
+                        prevWorks.map(w =>
+                            w.id === work.id ? response.data.dailyWork : w
+                        )
+                    );
+                    showToast.success('Incharge updated successfully');
+                }
+            } catch (error) {
+                console.error('Error updating incharge:', error);
+                showToast.error('Failed to update incharge');
+            }
+        }, 500), // 0.5 second delay for dropdowns
+        []
+    );
+
+    // Debounced function for updating assigned user
+    const debouncedUpdateAssigned = useMemo(
+        () => debounce(async (workId, assignedId) => {
+            try {
+                const work = allDataRef.current?.find(w => w.id === workId);
+                if (!work) {
+                    showToast.error('Work not found');
+                    return;
+                }
+
+                const response = await axios.post(route('dailyWorks.updateAssigned'), {
+                    id: work.id,
+                    assigned: assignedId,
+                });
+
+                if (response.status === 200) {
+                    setDataRef.current(prevWorks =>
+                        prevWorks.map(w =>
+                            w.id === work.id ? response.data.dailyWork : w
+                        )
+                    );
+                    showToast.success('Assigned user updated successfully');
+                }
+            } catch (error) {
+                console.error('Error updating assigned user:', error);
+                showToast.error('Failed to update assigned user');
+            }
+        }, 500), // 0.5 second delay for dropdowns
+        []
+    );
+
+    // Debounced function for updating completion time
+    const debouncedUpdateCompletionTime = useMemo(
+        () => debounce(async (workId, completionTime) => {
+            try {
+                const work = allDataRef.current?.find(w => w.id === workId);
+                if (!work) {
+                    showToast.error('Work not found');
+                    return;
+                }
+
+                const response = await axios.post(route('dailyWorks.updateCompletionTime'), {
+                    id: work.id,
+                    completion_time: completionTime,
+                });
+
+                if (response.status === 200) {
+                    setDataRef.current(prevWorks =>
+                        prevWorks.map(w =>
+                            w.id === work.id ? response.data.dailyWork : w
+                        )
+                    );
+                    showToast.success('Completion time updated successfully');
+                }
+            } catch (error) {
+                console.error('Error updating completion time:', error);
+                showToast.error('Failed to update completion time');
+            }
+        }, 800), // 0.8 second delay for time inputs
+        []
+    );
+
+    // Debounced function for updating RFI submission time
+    const debouncedUpdateSubmissionTime = useMemo(
+        () => debounce(async (workId, submissionTime) => {
+            try {
+                const work = allDataRef.current?.find(w => w.id === workId);
+                if (!work) {
+                    showToast.error('Work not found');
+                    return;
+                }
+
+                const response = await axios.post(route('dailyWorks.updateSubmissionTime'), {
+                    id: work.id,
+                    rfi_submission_date: submissionTime,
+                });
+
+                if (response.status === 200) {
+                    setDataRef.current(prevWorks =>
+                        prevWorks.map(w =>
+                            w.id === work.id ? response.data.dailyWork : w
+                        )
+                    );
+                    showToast.success('RFI submission time updated successfully');
+                }
+            } catch (error) {
+                console.error('Error updating RFI submission time:', error);
+                showToast.error('Failed to update RFI submission time');
+            }
+        }, 800), // 0.8 second delay for time inputs
+        []
+    );
+
+    // Cleanup debounced functions on unmount
+    useEffect(() => {
+        return () => {
+         
+            debouncedUpdateIncharge.cancel();
+            debouncedUpdateAssigned.cancel();
+            debouncedUpdateCompletionTime.cancel();
+            debouncedUpdateSubmissionTime.cancel();
+        };
+    }, [
+   
+        debouncedUpdateIncharge,
+        debouncedUpdateAssigned,
+        debouncedUpdateCompletionTime,
+        debouncedUpdateSubmissionTime
+    ]);
 
     // Handle general field updates
     const handleChange = async (taskId, taskNumber, key, value, type) => {
@@ -506,7 +777,7 @@ const DailyWorksTable = ({
             // Find the current work to get all its data
             const currentWork = allData?.find(work => work.id === taskId);
             if (!currentWork) {
-                toast.error('Work not found');
+                showToast.error('Work not found');
                 return;
             }
 
@@ -573,13 +844,13 @@ const DailyWorksTable = ({
                     )
                 );
 
-                toast.success(response.data.message || `Task updated successfully`, {
+                showToast.success(response.data.message || `Task updated successfully`, {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard?.background || 'rgba(255,255,255,0.1)',
-                        border: theme.glassCard?.border || '1px solid rgba(255,255,255,0.2)',
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
             }
@@ -598,191 +869,619 @@ const DailyWorksTable = ({
                 errorMessage = error.response.statusText;
             }
 
-            toast.error(errorMessage, {
+            showToast.error(errorMessage, {
                 icon: '🔴',
                 style: {
                     backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard?.background || 'rgba(255,255,255,0.1)',
-                    border: theme.glassCard?.border || '1px solid rgba(255,255,255,0.2)',
-                    color: theme.palette.text.primary,
+                    background: 'var(--theme-content1)',
+                    border: '1px solid var(--theme-divider)',
+                    color: 'var(--theme-primary)',
                 }
             });
         }
     };
 
-    // Mobile card component - matching Leave page pattern
-    const MobileDailyWorkCard = ({ work }) => {
-        const inchargeUser = getUserInfo(work.incharge);
-        const assignedUser = getUserInfo(work.assigned);
-        const statusConf = statusConfig[work.status] || statusConfig['new'];
+    // Mobile tabs and accordion component - organized by work types
+    const MobileDailyWorkCard = ({ works, selectedTab, setSelectedTab, expandedItems, toggleExpanded }) => {
+        
+        // Define work types and their corresponding data
+        const workTypes = [
+            { key: "structure", label: "Structure", icon: "🏗️" },
+            { key: "embankment", label: "Embankment", icon: "🏔️" },
+            { key: "pavement", label: "Pavement", icon: "🛣️" }
+        ];
 
-        return (
-            <GlassCard className="mb-2" shadow="sm">
-                <CardContent className="p-3">
-                    <Box className="flex items-start justify-between mb-3">
-                        <Box className="flex items-center gap-3 flex-1">
-                            <Box className="flex flex-col">
-                                <Typography variant="body2" fontWeight="bold" className="text-primary">
+        // Group works by type
+        const groupedWorks = useMemo(() => {
+            const groups = {
+                structure: [],
+                embankment: [],
+                pavement: []
+            };
+
+            works.forEach(work => {
+                const workType = work.type?.toLowerCase() || 'structure';
+                if (groups[workType]) {
+                    groups[workType].push(work);
+                } else {
+                    groups.structure.push(work); // Default to structure if type doesn't match
+                }
+            });
+
+            return groups;
+        }, [works]);
+
+        // Mobile Loading Skeleton
+        const MobileLoadingSkeleton = () => {
+            return (
+                <div className="space-y-2">
+                    {/* Tab skeleton */}
+                    <div className="flex overflow-x-auto border-b border-divider mb-3 scrollbar-hide">
+                        {workTypes.map((type) => (
+                            <div key={type.key} className="flex items-center gap-2 px-3 py-2.5 min-w-fit">
+                                <Skeleton className="w-6 h-6 rounded" />
+                                <Skeleton className="w-16 h-4 rounded" />
+                                <Skeleton className="w-6 h-5 rounded-full" />
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* Card skeletons */}
+                    {Array.from({ length: 5 }).map((_, index) => (
+                        <Card
+                            key={index}
+                            radius={getThemeRadius()}
+                            className="mb-2 bg-content1/98 backdrop-blur-sm border border-divider/30"
+                        >
+                            <CardHeader className="pb-2 px-3 py-3 flex flex-col relative">
+                                {/* Status chip skeleton */}
+                                <div className="flex flex-row justify-end mb-2 w-full">
+                                    <Skeleton className="w-24 h-6 rounded-full" />
+                                </div>
+                                
+                                {/* Main content skeleton */}
+                                <div className="flex flex-row items-start gap-3 w-full pr-10">
+                                    <Skeleton className="w-8 h-8 rounded-lg" />
+                                    <div className="min-w-0 flex-1 flex flex-col space-y-2">
+                                        <Skeleton className="w-32 h-4 rounded" />
+                                        <div className="flex flex-row items-center gap-2">
+                                            <Skeleton className="w-3 h-3 rounded" />
+                                            <Skeleton className="w-20 h-3 rounded" />
+                                        </div>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <Skeleton className="w-3 h-3 rounded" />
+                                            <Skeleton className="w-40 h-3 rounded" />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Dropdown button skeleton */}
+                                <Skeleton className="absolute bottom-2 right-3 w-8 h-8 rounded-full" />
+                            </CardHeader>
+                        </Card>
+                    ))}
+                </div>
+            );
+        };
+
+        // Show loading skeleton when loading
+        if (loading) {
+            return <MobileLoadingSkeleton />;
+        }
+
+        // Individual work accordion item component
+        const WorkAccordionItem = ({ work, index, isExpanded, onToggle }) => {
+            const inchargeUser = getUserInfo(work.incharge);
+            const assignedUser = getUserInfo(work.assigned);
+            const statusConf = statusConfig[work.status] || statusConfig['new'];
+
+            return (
+                <Card
+                    key={work.id}
+                    radius={getThemeRadius()}
+                    className="mb-2 bg-content1/98 backdrop-blur-sm border border-divider/30 shadow-sm hover:shadow-md transition-all duration-200"
+                    style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}
+                >
+                    {/* Collapsible Header */}
+                    <CardHeader className="pb-2 px-3 py-3 flex flex-col relative">
+                        {/* Row 1: Status chip */}
+                        <div className="flex flex-row justify-end mb-2 w-full">
+                            {getStatusChip(work.status, work.inspection_result)}
+                        </div>
+                        
+                        {/* Row 2: Main content only */}
+                        <div className="flex flex-row items-start gap-3 w-full pr-10">
+                            <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
+                                <DocumentIcon className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="min-w-0 flex-1 flex flex-col">
+                                <div className="font-semibold text-sm text-default-800 leading-normal mb-1">
                                     {work.number}
-                                </Typography>
-                                <Typography variant="caption" color="textSecondary">
-                                    {formatDate(work.date)}
-                                </Typography>
-                            </Box>
-                        </Box>
-                        <Box className="flex items-center gap-2">
-                            {getStatusChip(work.status)}
-                            {userIsAdmin && (
-                                <Dropdown>
-                                    <DropdownTrigger>
-                                        <IconButton size="small">
-                                            <EllipsisVerticalIcon className="w-4 h-4" />
-                                        </IconButton>
-                                    </DropdownTrigger>
-                                    <DropdownMenu aria-label="Work actions">
-                                        <DropdownItem
-                                            key="edit"
-                                            startContent={<PencilIcon className="w-4 h-4" />}
-                                            onPress={() => {
-                                                setCurrentRow(work);
-                                                openModal("editDailyWork");
+                                </div>
+                                <div className="flex flex-row items-center gap-2 text-xs text-default-500 mb-0.5">
+                                    <CalendarDaysIcon className="w-3 h-3" />
+                                    <span>{formatDate(work.date)}</span>
+                                </div>
+                                {work.location && (
+                                    <div className="flex flex-row items-center gap-2 text-xs text-default-400">
+                                        <MapPinIcon className="w-3 h-3" />
+                                        <span className="truncate">{work.location}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Dropdown button - positioned absolutely at bottom right */}
+                        <button
+                            onClick={() => onToggle()}
+                            className="absolute bottom-2 right-3 w-8 h-8 rounded-full bg-default-100/80 hover:bg-default-200/80 border border-default-200/50 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
+                            aria-label={isExpanded ? "Collapse details" : "Expand details"}
+                        >
+                            <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                <svg className="w-4 h-4 text-default-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </button>
+                    </CardHeader>
+
+                    {/* Collapsible Content */}
+                    {isExpanded && (
+                        <CardBody className="pt-0 px-3 pb-3">
+                            <div className="space-y-3">
+                        {/* Basic Information - Compact Grid */}
+                        <div className="grid grid-cols-1 gap-2 text-xs">
+                            {/* Description */}
+                            {work.description && (
+                                <div className="flex items-start gap-2">
+                                    <DocumentTextIcon className="w-3.5 h-3.5 text-default-400 mt-0.5 shrink-0" />
+                                    <span className="text-default-600 flex-1 leading-relaxed">
+                                        {work.description}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Jurisdiction */}
+                            <div className="flex items-center gap-2">
+                                <BuildingOfficeIcon className="w-3.5 h-3.5 text-default-400" />
+                                <span className="text-default-600">
+                                    {getJurisdictionInfo(work.jurisdiction_id)?.name || 'Not assigned'}
+                                </span>
+                            </div>
+
+                            {/* Side and Layers in one row */}
+                            <div className="flex items-center gap-4">
+                                {work.side && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-default-400">Side:</span>
+                                        <Chip size="sm" variant="flat" color="default" className="capitalize text-xs">
+                                            {work.side}
+                                        </Chip>
+                                    </div>
+                                )}
+                                {work.qty_layer && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-default-400">Layers:</span>
+                                        <span className="text-default-600 font-medium">{work.qty_layer}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Resubmission Count */}
+                            {work.resubmission_count > 0 && (
+                                <div className="flex items-center gap-2">
+                                    <Chip size="sm" variant="flat" color="warning" className="text-xs">
+                                        {work.resubmission_count} resubmissions
+                                    </Chip>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Timing Information - Compact */}
+                        <div className="bg-content2/20 p-2.5 rounded-md">
+                            <h4 className="text-xs font-semibold text-default-700 mb-2">Timing</h4>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <ClockIcon className="w-3.5 h-3.5 text-default-400" />
+                                    <span className="text-xs text-default-600">
+                                        Planned: {work.planned_time || 'Not set'}
+                                    </span>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircleIcon className="w-3.5 h-3.5 text-default-400" />
+                                        <span className="text-xs font-medium text-default-600">Completion Time:</span>
+                                    </div>
+                                    <Input
+                                        size="sm"
+                                        type="datetime-local"
+                                        variant="bordered"
+                                        radius={getThemeRadius()}
+                                        value={work.completion_time
+                                            ? new Date(work.completion_time).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)
+                                            : ''
+                                        }
+                                        onChange={(e) => debouncedUpdateCompletionTime(work.id, e.target.value)}
+                                        classNames={{
+                                            input: "text-sm",
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Personnel Assignment - Compact */}
+                        <div className="bg-content2/20 p-2.5 rounded-md">
+                            <h4 className="text-xs font-semibold text-default-700 mb-2">Personnel</h4>
+                            <div className="space-y-3">
+                                {/* In-charge */}
+                                {userIsAdmin && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <UserIcon className="w-4 h-4 text-default-500" />
+                                            <span className="text-xs font-medium text-default-600">In-charge:</span>
+                                        </div>
+                                        <Select
+                                            size="sm"
+                                            variant="bordered"
+                                            radius={getThemeRadius()}
+                                            placeholder="Select in-charge"
+                                            aria-label="Select in-charge person"
+                                            selectedKeys={work.incharge && finalInCharges.find(user => user.id === parseInt(work.incharge)) 
+                                                ? [String(work.incharge)] 
+                                                : []}
+                                            onSelectionChange={(keys) => {
+                                                const selectedKey = Array.from(keys)[0];
+                                                if (selectedKey) {
+                                                    debouncedUpdateIncharge(work.id, selectedKey);
+                                                }
+                                            }}
+                                            classNames={{
+                                                trigger: "min-h-8 w-full",
+                                                value: "text-sm leading-tight",
+                                                popoverContent: "w-64"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                            renderValue={(items) => {
+                                                if (items.length === 0) {
+                                                    return (
+                                                        <div className="flex items-center gap-2">
+                                                            <UserIcon className="w-4 h-4 text-default-400" />
+                                                            <span className="text-sm">Select in-charge</span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return items.map((item) => (
+                                                    <div key={item.key} className="flex items-center gap-2">
+                                                        <Avatar
+                                                            src={inchargeUser.profile_image_url || inchargeUser.profile_image}
+                                                            size="sm"
+                                                            name={inchargeUser.name}
+                                                            className="w-5 h-5"
+                                                        />
+                                                        <span className="text-sm font-medium">{inchargeUser.name}</span>
+                                                    </div>
+                                                ));
                                             }}
                                         >
-                                            Edit Work
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            key="delete"
-                                            className="text-danger"
-                                            color="danger"
-                                            startContent={<TrashIcon className="w-4 h-4" />}
-                                            onPress={() => handleClickOpen(work.id, "deleteDailyWork")}
+                                            {finalInCharges.map((user) => (
+                                                <SelectItem key={String(user.id)} textValue={user.name}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar
+                                                            src={user.profile_image_url || user.profile_image}
+                                                            size="sm"
+                                                            name={user.name}
+                                                            className="w-6 h-6"
+                                                        />
+                                                        <div>
+                                                            <div className="text-sm font-medium">{user.name}</div>
+                                                            <div className="text-xs text-default-400">{user.role_name || 'Team Member'}</div>
+                                                        </div>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </Select>
+                                    </div>
+                                )}
+
+                                {/* Assigned To */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <UserIcon className="w-4 h-4 text-default-500" />
+                                        <span className="text-xs font-medium text-default-600">Assigned to:</span>
+                                    </div>
+                                    {canUserAssign(work) ? (
+                                        <Select
+                                            size="sm"
+                                            variant="bordered"
+                                            radius={getThemeRadius()}
+                                            placeholder="Select assignee"
+                                            aria-label="Select assigned person"
+                                            selectedKeys={work.assigned && getAvailableAssignees(work.incharge).find(user => user.id === parseInt(work.assigned))
+                                                ? [String(work.assigned)]
+                                                : []}
+                                            onSelectionChange={(keys) => {
+                                                const selectedKey = Array.from(keys)[0];
+                                                if (selectedKey) {
+                                                    debouncedUpdateAssigned(work.id, selectedKey);
+                                                }
+                                            }}
+                                            classNames={{
+                                                trigger: "min-h-8 w-full",
+                                                value: "text-sm leading-tight",
+                                                popoverContent: "w-64"
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                            renderValue={(items) => {
+                                                if (items.length === 0) {
+                                                    return (
+                                                        <div className="flex items-center gap-2">
+                                                            <UserIcon className="w-4 h-4 text-default-400" />
+                                                            <span className="text-sm">Select assignee</span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return items.map((item) => (
+                                                    <div key={item.key} className="flex items-center gap-2">
+                                                        <Avatar
+                                                            src={assignedUser.profile_image_url || assignedUser.profile_image}
+                                                            size="sm"
+                                                            name={assignedUser.name}
+                                                            className="w-5 h-5"
+                                                        />
+                                                        <span className="text-sm font-medium">{assignedUser.name}</span>
+                                                    </div>
+                                                ));
+                                            }}
                                         >
-                                            Delete Work
-                                        </DropdownItem>
-                                    </DropdownMenu>
-                                </Dropdown>
-                            )}
-                        </Box>
-                    </Box>
+                                            {getAvailableAssignees(work.incharge).map((user) => (
+                                                <SelectItem key={String(user.id)} textValue={user.name}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar
+                                                            src={user.profile_image_url || user.profile_image}
+                                                            size="sm"
+                                                            name={user.name}
+                                                            className="w-6 h-6"
+                                                        />
+                                                        <div>
+                                                            <div className="text-sm font-medium">{user.name}</div>
+                                                            <div className="text-xs text-default-400">{user.designation_title || user.designation?.title || 'Staff'}</div>
+                                                        </div>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </Select>
+                                    ) : (
+                                        assignedUser.name !== 'Unassigned' ? (
+                                            <User
+                                                size="sm"
+                                                name={assignedUser.name}
+                                                description="Assigned"
+                                                avatarProps={{
+                                                    size: "sm",
+                                                    src: assignedUser.profile_image_url || assignedUser.profile_image,
+                                                }}
+                                                classNames={{
+                                                    name: "text-sm font-medium",
+                                                    description: "text-xs text-default-400"
+                                                }}
+                                            />
+                                        ) : (
+                                            <Chip size="sm" variant="flat" color="default">
+                                                Unassigned
+                                            </Chip>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
-                    <Divider className="my-3" />
-
-                    <Stack spacing={2}>
-                        <Box className="flex items-center gap-2">
-                            {getWorkTypeIcon(work.type, "w-4 h-4")}
-                            <Typography variant="body2" fontWeight="medium" className="capitalize">
-                                {work.type || 'Standard Work'}
-                            </Typography>
-                        </Box>
-
-                        <Box className="flex items-center gap-2">
-                            <MapPinIcon className="w-4 h-4 text-default-500" />
-                            <Typography variant="body2" color="textSecondary">
-                                {work.location || 'Location not specified'}
-                            </Typography>
-                        </Box>
-
-                        {work.description && (
-                            <Box className="flex items-start gap-2">
-                                <DocumentTextIcon className="w-4 h-4 text-default-500 mt-0.5 flex-shrink-0" />
-                                <Typography variant="body2" color="textSecondary" className="flex-1 break-words">
-                                    {work.description}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        <Box className="flex items-center gap-2">
-                            <BuildingOfficeIcon className="w-4 h-4 text-default-500" />
-                            <Typography variant="body2" color="textSecondary">
-                                Jurisdiction: {getJurisdictionInfo(work.jurisdiction_id)?.name || 'Not assigned'}
-                            </Typography>
-                        </Box>
-
-                        {work.side && (
-                            <Box className="flex items-center gap-2">
-                                <MapPinIcon className="w-4 h-4 text-default-500" />
-                                <Typography variant="body2" color="textSecondary">
-                                    Road Side: {work.side}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {work.qty_layer && (
-                            <Box className="flex items-center gap-2">
-                                <DocumentTextIcon className="w-4 h-4 text-default-500" />
-                                <Typography variant="body2" color="textSecondary">
-                                    Layers: {work.qty_layer}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {userIsAdmin && inchargeUser.name !== 'Unassigned' && (
-                            <Box className="flex items-center gap-2">
-                                <UserIcon className="w-4 h-4 text-default-500" />
-                                <Typography variant="body2" color="textSecondary">
-                                    In-charge: {inchargeUser.name}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {userIsAdmin && inchargeUser.name === 'Unassigned' && (
-                            <Box className="flex items-center gap-2">
-                                <UserIcon className="w-4 h-4 text-default-500" />
-                                <Chip size="sm" variant="flat" color="default">
-                                    No In-charge
-                                </Chip>
-                            </Box>
-                        )}
-
-                        {userIsSE && assignedUser.name !== 'Unassigned' && (
-                            <Box className="flex items-center gap-2">
-                                <UserIcon className="w-4 h-4 text-default-500" />
-                                <Typography variant="body2" color="textSecondary">
-                                    Assigned: {assignedUser.name}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        {userIsSE && assignedUser.name === 'Unassigned' && (
-                            <Box className="flex items-center gap-2">
-                                <UserIcon className="w-4 h-4 text-default-500" />
-                                <Chip size="sm" variant="flat" color="default">
-                                    Unassigned
-                                </Chip>
-                            </Box>
-                        )}
-                    </Stack>
-
-                    {(userIsAdmin || userIsSE) && (
-                        <>
-                            <Divider className="my-3" />
-                            <Box className="flex gap-2 flex-wrap">
-                                {Object.keys(statusConfig).map((status) => (
-                                    <Button
-                                        key={status}
+                        {/* Status Management - Compact */}
+                        {(userIsAdmin || userIsSE) && (
+                            <div className="bg-content2/20 p-2.5 rounded-md">
+                                <h4 className="text-xs font-semibold text-default-700 mb-2">Status</h4>
+                                
+                                {/* Status Dropdown */}
+                                <div className="space-y-2">
+                                    <span className="text-xs font-medium text-default-600">Current Status:</span>
+                                    <Select
                                         size="sm"
-                                        variant={work.status === status ? "solid" : "bordered"}
-                                        color={statusConfig[status].color}
-                                        isLoading={updatingWorkId === work.id}
-                                        onPress={() => updateWorkStatus(work, status)}
-                                        startContent={
-                                            updatingWorkId !== work.id ? 
-                                            React.createElement(statusConfig[status].icon, {
-                                                className: "w-3 h-3"
-                                            }) : null
-                                        }
+                                        color={(() => {
+                                            const statusKey = getStatusKey(work.status, work.inspection_result);
+                                            return statusConfig[statusKey]?.color || 'default';
+                                        })()}
+                                        variant="bordered"
+                                        placeholder="Select status"
+                                        aria-label="Select work status"
+                                        selectedKeys={work.status ? [getStatusKey(work.status, work.inspection_result)] : []}
+                                        onSelectionChange={(keys) => {
+                                            const selectedKey = Array.from(keys)[0];
+                                            if (selectedKey) {
+                                                updateWorkStatus(work, selectedKey);
+                                            }
+                                        }}
+                                        isDisabled={updatingWorkId === work.id}
+                                        radius={getThemeRadius()}
                                         classNames={{
-                                            base: "flex-1 min-w-[80px]"
+                                            trigger: `min-h-8 w-full transition-colors`,
+                                            value: "text-sm font-medium",
+                                            popoverContent: "min-w-[210px]"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                        renderValue={(items) => {
+                                            if (items.length === 0) {
+                                                return (
+                                                    <div className="flex items-center gap-2">
+                                                        <ExclamationTriangleSolid className="w-4 h-4 text-default-400" />
+                                                        <span className="text-sm">Select status</span>
+                                                    </div>
+                                                );
+                                            }
+                                            const statusKey = getStatusKey(work.status, work.inspection_result);
+                                            const currentStatus = statusConfig[statusKey] || statusConfig['new'];
+                                            const StatusIcon = currentStatus.icon;
+                                            return (
+                                                <div className="flex items-center gap-2">
+                                                    <StatusIcon className="w-4 h-4" />
+                                                    <span className="text-sm font-medium">{currentStatus.label}</span>
+                                                </div>
+                                            );
                                         }}
                                     >
-                                        {statusConfig[status].label}
+                                        {Object.keys(statusConfig).map((status) => {
+                                            const config = statusConfig[status];
+                                            const StatusIcon = config.icon;
+                                            return (
+                                                <SelectItem 
+                                                    key={status} 
+                                                    textValue={config.label}
+                                                    color={config.color}
+                                                    startContent={<StatusIcon className="w-4 h-4" />}
+                                                    classNames={{
+                                                        title: "text-sm font-medium",
+                                                        description: "text-sm"
+                                                    }}
+                                                >
+                                                    {config.label}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                    </Select>
+                                </div>
+
+                                {/* RFI Submission Date (Admin only) */}
+                                {userIsAdmin && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <CalendarDaysIcon className="w-4 h-4 text-default-500" />
+                                            <span className="text-xs font-medium text-default-600">RFI Submission Date:</span>
+                                        </div>
+                                        <Input
+                                            size="sm"
+                                            type="date"
+                                            variant="bordered"
+                                            radius={getThemeRadius()}
+                                            value={work.rfi_submission_date ? 
+                                                new Date(work.rfi_submission_date).toISOString().slice(0, 10) : ''
+                                            }
+                                            onChange={(e) => debouncedUpdateSubmissionTime(work.id, e.target.value)}
+                                            classNames={{
+                                                input: "text-sm",
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        {userIsAdmin && (
+                            <div className="flex items-center justify-between pt-2 border-t border-divider">
+                                <span className="text-xs text-default-500">Actions:</span>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        color="primary"
+                                        radius={getThemeRadius()}
+                                        onPress={() => {
+                                            setCurrentRow(work);
+                                            openModal("editDailyWork");
+                                        }}
+                                        startContent={<PencilIcon className="w-4 h-4" />}
+                                    >
+                                        Edit
                                     </Button>
-                                ))}
-                            </Box>
-                        </>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        color="danger"
+                                        radius={getThemeRadius()}
+                                        onPress={() => handleClickOpen(work.id, "deleteDailyWork")}
+                                        startContent={<TrashIcon className="w-4 h-4" />}
+                                    >
+                                        Delete
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                        </CardBody>
                     )}
-                </CardContent>
-            </GlassCard>
+                </Card>
+            );
+        };
+
+        return (
+            <div className="w-full">
+                {/* Custom Tab Headers - Compact */}
+                <div className="flex overflow-x-auto border-b border-divider mb-3 scrollbar-hide">
+                    {workTypes.map((type) => (
+                        <button
+                            key={type.key}
+                            onClick={() => setSelectedTab(type.key)}
+                            className={`flex items-center gap-2 px-3 py-2.5 min-w-fit whitespace-nowrap border-b-2 transition-all duration-200 ${
+                                selectedTab === type.key
+                                    ? 'border-primary text-primary font-semibold bg-primary/5'
+                                    : 'border-transparent text-default-500 hover:text-default-700 hover:bg-default-50/50'
+                            }`}
+                        >
+                            <span className="text-base">{type.icon}</span>
+                            <span className="font-medium text-sm">{type.label}</span>
+                            <Chip 
+                                size="sm" 
+                                variant="flat" 
+                                color={selectedTab === type.key ? "primary" : "default"}
+                                className="text-xs min-w-[20px] h-5"
+                            >
+                                {groupedWorks[type.key]?.length || 0}
+                            </Chip>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Tab Content - Compact */}
+                <div className="pt-1">
+                    {workTypes.map((type) => (
+                        <div key={type.key} className={selectedTab === type.key ? 'block' : 'hidden'}>
+                            {groupedWorks[type.key]?.length > 0 ? (
+                                <div className="space-y-2">
+                                    {groupedWorks[type.key].map((work, index) => (
+                                        <WorkAccordionItem 
+                                            key={work.id} 
+                                            work={work} 
+                                            index={index}
+                                            isExpanded={expandedItems.has(work.id)}
+                                            onToggle={() => toggleExpanded(work.id)}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <div className="text-4xl mb-3">{type.icon}</div>
+                                    <div className="text-default-500 text-sm">
+                                        No {type.label.toLowerCase()} works found
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
         );
     };
 
@@ -792,6 +1491,8 @@ const DailyWorksTable = ({
         }
     }, [onPageChange]);
 
+    const cellBaseClasses = "text-xs sm:text-sm md:text-base whitespace-nowrap";
+
     const renderCell = useCallback((work, columnKey) => {
         const inchargeUser = getUserInfo(work.incharge);
         const assignedUser = getUserInfo(work.assigned);
@@ -799,36 +1500,44 @@ const DailyWorksTable = ({
         switch (columnKey) {
             case "date":
                 return (
-                    <TableCell>
-                        <Box className="flex items-center gap-1">
+                    <TableCell className={cellBaseClasses}>
+                        <div className="flex items-center justify-center gap-1 whitespace-nowrap">
                             <CalendarDaysIcon className="w-3 h-3 text-default-500" />
-                            <Typography variant="body2" className="text-sm font-medium">
+                            <span className="text-sm font-medium">
                                 {formatDate(work.date)}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "number":
                 return (
-                    <TableCell>
-                        <Box className="flex flex-col">
-                            {work.status === 'completed' && work.file ? (
+                    <TableCell className="max-w-32">
+                        <div className="flex flex-col items-center justify-center gap-1 w-full whitespace-nowrap">
+                            {(work.status === 'completed' || work.status?.startsWith('completed:')) && work.file ? (
                                 <Link
                                     isExternal
                                     href={work.file}
-                                    color="success"
+                                    color={(() => {
+                                        const statusKey = getStatusKey(work.status, work.inspection_result);
+                                        return statusConfig[statusKey]?.color || 'default';
+                                    })()}
                                     size="sm"
-                                    className="font-medium"
+                                    className="font-medium text-center"
+                                    title={work.number}
                                 >
                                     {work.number}
                                 </Link>
-                            ) : work.status === 'completed' && !work.file ? (
+                            ) : (work.status === 'completed' || work.status?.startsWith('completed:')) && !work.file ? (
                                 <Link
                                     href="#"
-                                    color="danger"
+                                    color={(() => {
+                                        const statusKey = getStatusKey(work.status, work.inspection_result);
+                                        return statusConfig[statusKey]?.color || 'default';
+                                    })()}
                                     size="sm"
-                                    className="font-medium"
+                                    className="font-medium text-center"
+                                    title={work.number}
                                     onPress={async () => {
                                         const pdfFile = await captureDocument(work.number);
                                         if (pdfFile) {
@@ -839,30 +1548,41 @@ const DailyWorksTable = ({
                                     {work.number}
                                 </Link>
                             ) : (
-                                <Typography variant="body2" className="text-sm font-medium text-primary">
+                                <span 
+                                    className="text-sm font-medium text-primary text-center"
+                                    title={work.number}
+                                >
                                     {work.number}
-                                </Typography>
+                                </span>
                             )}
                             {work.reports?.map(report => (
-                                <Typography key={report.ref_no} variant="caption" color="textSecondary" className="text-xs">
+                                <span 
+                                    key={report.ref_no} 
+                                    className="text-xs text-default-500 text-center"
+                                    title={`• ${report.ref_no}`}
+                                >
                                     • {report.ref_no}
-                                </Typography>
+                                </span>
                             ))}
-                        </Box>
+                        </div>
                     </TableCell>
                 );
 
             case "status":
                 return (
-                    <TableCell>
-                        <Box className="flex items-center gap-2">
+                    <TableCell className="min-w-56">
+                        <div className="flex items-center justify-center gap-2 w-full">
                             {(userIsAdmin || userIsSE) ? (
                                 <Select
                                     size="sm"
+                                    color={(() => {
+                                        const statusKey = getStatusKey(work.status, work.inspection_result);
+                                        return statusConfig[statusKey]?.color || 'default';
+                                    })()}
                                     variant="bordered"
                                     placeholder="Select status"
                                     aria-label="Select work status"
-                                    selectedKeys={work.status ? [work.status] : []}
+                                    selectedKeys={work.status ? [getStatusKey(work.status, work.inspection_result)] : []}
                                     onSelectionChange={(keys) => {
                                         const selectedKey = Array.from(keys)[0];
                                         if (selectedKey) {
@@ -870,10 +1590,14 @@ const DailyWorksTable = ({
                                         }
                                     }}
                                     isDisabled={updatingWorkId === work.id}
+                                    radius={getThemeRadius()}
                                     classNames={{
-                                        trigger: "min-h-10 w-full bg-white/50 hover:bg-white/80 focus:bg-white/90 transition-colors",
-                                        value: "text-xs",
-                                        popoverContent: "min-w-[240px]"
+                                        trigger: `min-h-10 w-full transition-colors`,
+                                        value: "text-sm font-medium",
+                                        popoverContent: "min-w-[210px]"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
                                     renderValue={(items) => {
                                         if (items.length === 0) {
@@ -884,11 +1608,12 @@ const DailyWorksTable = ({
                                                 </div>
                                             );
                                         }
-                                        const currentStatus = statusConfig[work.status] || statusConfig['new'];
+                                        const statusKey = getStatusKey(work.status, work.inspection_result);
+                                        const currentStatus = statusConfig[statusKey] || statusConfig['new'];
                                         const StatusIcon = currentStatus.icon;
                                         return (
                                             <div className="flex items-center gap-2">
-                                                <StatusIcon className="w-4 h-4" style={{ color: currentStatus.textColor }} />
+                                                <StatusIcon className="w-4 h-4" />
                                                 <span className="text-xs font-medium">{currentStatus.label}</span>
                                             </div>
                                         );
@@ -901,11 +1626,12 @@ const DailyWorksTable = ({
                                             <SelectItem 
                                                 key={status} 
                                                 textValue={config.label}
-                                                startContent={<StatusIcon className="w-4 h-4" style={{ color: config.textColor }} />}
-                                                description={config.description}
+                                                color={config.color}
+                                                startContent={<StatusIcon className="w-4 h-4" />}
+                                           
                                                 classNames={{
                                                     title: "text-sm font-medium",
-                                                    description: "text-xs"
+                                                    description: "text-sm"
                                                 }}
                                             >
                                                 {config.label}
@@ -914,142 +1640,155 @@ const DailyWorksTable = ({
                                     })}
                                 </Select>
                             ) : (
-                                getStatusChip(work.status)
+                                getStatusChip(work.status, work.inspection_result)
                             )}
-                        </Box>
+                        </div>
                     </TableCell>
                 );
 
             case "type":
                 return (
-                    <TableCell>
-                        <Box className="flex items-center gap-2">
+                    <TableCell className={cellBaseClasses}>
+                        <div className="flex items-center justify-center gap-2">
                             {getWorkTypeIcon(work.type, "w-4 h-4")}
-                            <Typography variant="body2" className="text-sm font-medium capitalize">
+                            <span className="text-sm font-medium capitalize">
                                 {work.type || 'Standard Work'}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "description":
                 return (
-                    <TableCell>
-                        <MuiTooltip title={work.description || "No description provided"} arrow>
-                            <Typography 
-                                variant="body2" 
-                                className="max-w-xs truncate cursor-help text-sm"
-                                color="textSecondary"
+                    <TableCell className={`max-w-60 ${cellBaseClasses}`}>
+                        <div className="w-full">
+                            <span 
+                                className="text-sm text-default-600 leading-tight line-clamp-2 break-words"
+                                style={{
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    wordBreak: 'break-word',
+                                    lineHeight: '1.3',
+                                    maxHeight: '2.6em'
+                                }}
+                                title={work.description || "No description provided"}
                             >
                                 {work.description || "No description provided"}
-                            </Typography>
-                        </MuiTooltip>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "location":
                 return (
-                    <TableCell>
-                        <Box className="flex flex-col gap-1">
-                            <Box className="flex items-center gap-2">
-                                <MapPinIcon className="w-3 h-3 text-default-500" />
-                                <Typography variant="body2" className="text-sm font-medium">
+                    <TableCell className="max-w-48">
+                        <div className="flex flex-col items-center justify-center gap-1">
+                            <div className="flex items-center justify-center gap-2">
+                                <MapPinIcon className="w-3 h-3 text-default-500 shrink-0" />
+                                <span 
+                                    className="text-sm font-medium leading-tight line-clamp-2 break-words text-center"
+                                    style={{
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        wordBreak: 'break-word',
+                                        lineHeight: '1.3',
+                                        maxHeight: '2.6em'
+                                    }}
+                                    title={work.location || 'Location not specified'}
+                                >
                                     {work.location || 'Location not specified'}
-                                </Typography>
-                            </Box>
-                            
-                        </Box>
-                    </TableCell>
-                );
-
-            case "inspection_details":
-                return (
-                    <TableCell>
-                        <Input
-                            size="sm"
-                            variant="bordered"
-                            placeholder="Enter inspection details..."
-                            value={work.inspection_details || ''}
-                            onChange={(e) => handleChange(work.id, work.number, 'inspection_details', e.target.value)}
-                            classNames={{
-                                input: "text-xs",
-                                inputWrapper: "min-h-10 bg-white/50 hover:bg-white/80 focus-within:bg-white/90 transition-colors",
-                                innerWrapper: "text-xs"
-                            }}
-                            startContent={<DocumentCheckIcon className="w-4 h-4 text-default-400" />}
-                        />
+                                </span>
+                            </div>
+                        </div>
                     </TableCell>
                 );
 
             case "side":
                 return (
                     <TableCell>
-                        <Chip 
-                            size="sm" 
-                            variant="flat" 
-                            color="default"
-                            className="capitalize"
-                        >
-                            {work.side || 'Both Sides'}
-                        </Chip>
+                        <div className="flex items-center justify-center">
+                            <Chip 
+                                size="sm" 
+                                variant="flat" 
+                                color="default"
+                                className="capitalize"
+                            >
+                                {work.side || 'Both Sides'}
+                            </Chip>
+                        </div>
                     </TableCell>
                 );
 
             case "qty_layer":
                 return (
                     <TableCell>
-                        <Typography variant="body2" className="text-sm">
-                            {work.qty_layer ? `${work.qty_layer} layers` : 'N/A'}
-                        </Typography>
+                        <div className="flex items-center justify-center">
+                            <span className="text-sm">
+                                {work.qty_layer ? work.qty_layer : 'N/A'}
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "planned_time":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center justify-center gap-1">
                             <ClockIcon className="w-3 h-3 text-default-500" />
-                            <Typography variant="body2" className="text-sm">
+                            <span className="text-sm">
                                 {work.planned_time || 'Not set'}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "resubmission_count":
                 return (
                     <TableCell>
-                        <Chip 
-                            size="sm" 
-                            variant="flat" 
-                            color={work.resubmission_count > 0 ? "warning" : "default"}
-                        >
-                            {work.resubmission_count || 0}
-                        </Chip>
+                        <div className="flex items-center justify-center">
+                            <Chip 
+                                size="sm" 
+                                variant="flat" 
+                                color={work.resubmission_count > 0 ? "warning" : "default"}
+                            >
+                                {work.resubmission_count || 0}
+                            </Chip>
+                        </div>
                     </TableCell>
                 );
 
             case "incharge":
                 return (
-                    <TableCell>
-                        {userIsAdmin ? (
-                            <Select
-                                size="sm"
-                                variant="bordered"
-                                placeholder="Select in-charge"
-                                aria-label="Select in-charge person"
-                                selectedKeys={work.incharge ? [String(work.incharge)] : []}
-                                onSelectionChange={(keys) => {
-                                    const selectedKey = Array.from(keys)[0];
-                                    if (selectedKey) {
-                                        handleChange(work.id, work.number, 'incharge', selectedKey);
-                                    }
-                                }}
-                                classNames={{
-                                    trigger: "min-h-10 w-full bg-white/50 hover:bg-white/80 focus:bg-white/90 transition-colors",
-                                    value: "text-xs",
-                                    popoverContent: "min-w-[280px]"
-                                }}
+                    <TableCell className="w-64">
+                        <div className="flex items-center justify-center">
+                            {userIsAdmin ? (
+                                <Select
+                                    size="sm"
+                                    variant="bordered"
+                                    radius={getThemeRadius()}
+                                    placeholder="Select in-charge"
+                                    aria-label="Select in-charge person"
+                                    selectedKeys={work.incharge && finalInCharges.find(user => user.id === parseInt(work.incharge)) 
+                                        ? [String(work.incharge)] 
+                                        : []}
+                                    onSelectionChange={(keys) => {
+                                        const selectedKey = Array.from(keys)[0];
+                                        if (selectedKey) {
+                                            debouncedUpdateIncharge(work.id, selectedKey);
+                                        }
+                                    }}
+                                    classNames={{
+                                        trigger: "min-h-10 w-full bg-white/50 hover:bg-white/80 focus:bg-white/90 transition-colors",
+                                        value: "text-sm leading-tight",
+                                        popoverContent: "w-64"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
                                 renderValue={(items) => {
                                     if (items.length === 0) {
                                         return (
@@ -1060,21 +1799,32 @@ const DailyWorksTable = ({
                                         );
                                     }
                                     return items.map((item) => (
-                                        <div key={item.key} className="flex items-center gap-2">
-                                            <img
-                                                src={inchargeUser.profile_image || '/default-avatar.png'}
-                                                alt={inchargeUser.name}
-                                                className="w-6 h-6 rounded-full object-cover"
-                                                onError={(e) => {
-                                                    e.target.src = '/default-avatar.png';
-                                                }}
+                                        <div key={item.key} className="flex items-center justify-center gap-2">
+                                           
+                                            <Avatar
+                                                src={inchargeUser.profile_image_url || inchargeUser.profile_image}
+                                                size="sm"
+                                                name={inchargeUser.name}
+                                                showFallback
                                             />
-                                            <span className="text-xs font-medium">{inchargeUser.name}</span>
+                                            <span 
+                                                className="text-xs font-medium leading-tight break-words"
+                                                style={{
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 1,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    wordBreak: 'break-word'
+                                                }}
+                                                title={inchargeUser.name}
+                                            >
+                                                {inchargeUser.name}
+                                            </span>
                                         </div>
                                     ));
                                 }}
                             >
-                                {availableInCharges?.map((incharge) => (
+                                {finalInCharges?.map((incharge) => (
                                     <SelectItem key={incharge.id} textValue={incharge.name}>
                                         <User
                                             size="sm"
@@ -1082,25 +1832,39 @@ const DailyWorksTable = ({
                                             description={`Employee ID: ${incharge.employee_id || 'N/A'}`}
                                             avatarProps={{
                                                 size: "sm",
-                                                src: incharge.profile_image,
+                                                src: incharge.profile_image_url || incharge.profile_image,
                                             }}
                                         />
                                     </SelectItem>
                                 ))}
                             </Select>
                         ) : (
-                            <Box className="flex items-center gap-2">
+                            <div className="flex items-center justify-center gap-2">
                                 {inchargeUser.name !== 'Unassigned' ? (
                                     <User
                                         size="sm"
-                                        name={inchargeUser.name}
+                                        name={
+                                            <span 
+                                                style={{
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 1,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    wordBreak: 'break-word',
+                                                    lineHeight: '1.3'
+                                                }}
+                                                title={inchargeUser.name}
+                                            >
+                                                {inchargeUser.name}
+                                            </span>
+                                        }
                                         description="In-charge"
                                         avatarProps={{
                                             size: "sm",
-                                            src: inchargeUser.profile_image,
+                                            src: inchargeUser.profile_image_url || inchargeUser.profile_image,
                                         }}
                                         classNames={{
-                                            name: "text-xs font-medium",
+                                            name: "text-xs font-medium leading-tight",
                                             description: "text-xs text-default-400"
                                         }}
                                     />
@@ -1109,86 +1873,189 @@ const DailyWorksTable = ({
                                         Unassigned
                                     </Chip>
                                 )}
-                            </Box>
+                            </div>
                         )}
+                        </div>
                     </TableCell>
                 );
 
             case "assigned":
                 return (
-                    <TableCell>
-                        <Box className="flex items-center gap-2">
-                            {assignedUser.name !== 'Unassigned' ? (
-                                <User
+                    <TableCell className="w-64 text-center">
+                        <div className="flex items-center justify-center">
+                            {canUserAssign(work) ? (
+                                <Select
                                     size="sm"
-                                    name={assignedUser.name}
-                                    description="Assigned"
-                                    avatarProps={{
-                                        size: "sm",
-                                        src: assignedUser.profile_image,
+                                    variant="bordered"
+                                    radius={getThemeRadius()}
+                                    placeholder="Select assignee"
+                                    aria-label="Select assigned person"
+                                    selectedKeys={work.assigned && getAvailableAssignees(work.incharge).find(user => user.id === parseInt(work.assigned))
+                                        ? [String(work.assigned)]
+                                        : []}
+                                    onSelectionChange={(keys) => {
+                                        const selectedKey = Array.from(keys)[0];
+                                        if (selectedKey) {
+                                            debouncedUpdateAssigned(work.id, selectedKey);
+                                        }
                                     }}
                                     classNames={{
-                                        name: "text-xs font-medium",
-                                        description: "text-xs text-default-400"
+                                        trigger: "min-h-10 w-full bg-white/50 hover:bg-white/80 focus:bg-white/90 transition-colors",
+                                        value: "text-sm leading-tight text-center",
+                                        popoverContent: "w-64"
                                     }}
-                                />
-                            ) : (
-                                <Chip size="sm" variant="flat" color="default">
-                                    Unassigned
-                                </Chip>
-                            )}
-                        </Box>
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                    renderValue={(items) => {
+                                        if (items.length === 0) {
+                                        return (
+                                            <div className="flex items-center gap-2">
+                                                <UserIcon className="w-4 h-4 text-default-400" />
+                                                <span className="text-xs">Select assignee</span>
+                                            </div>
+                                        );
+                                    }
+                                    return items.map((item) => (
+                                        <div key={item.key} className="flex items-center gap-2">
+                                            <Avatar
+                                                src={assignedUser.profile_image_url || assignedUser.profile_image}
+                                                size="sm"
+                                                name={assignedUser.name}
+                                                showFallback
+                                            />
+                                            <span 
+                                                className="text-xs font-medium leading-tight break-words"
+                                                style={{
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 1,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    wordBreak: 'break-word'
+                                                }}
+                                                title={assignedUser.name}
+                                            >
+                                                {assignedUser.name}
+                                            </span>
+                                        </div>
+                                    ));
+                                }}
+                            >
+                                {getAvailableAssignees(work.incharge)?.map((assignee) => (
+                                    <SelectItem key={assignee.id} textValue={assignee.name}>
+                                        <User
+                                            size="sm"
+                                            name={assignee.name}
+                                            description={assignee.designation_title || assignee.designation?.title || 'Staff'}
+                                            avatarProps={{
+                                                size: "sm",
+                                                src: assignee.profile_image_url || assignee.profile_image,
+                                            }}
+                                        />
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                        ) : (
+                            <div className="flex items-center justify-center gap-2">
+                                {assignedUser.name !== 'Unassigned' ? (
+                                    <User
+                                        size="sm"
+                                        name={
+                                            <span 
+                                                style={{
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 1,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    wordBreak: 'break-word',
+                                                    lineHeight: '1.3'
+                                                }}
+                                                title={assignedUser.name}
+                                            >
+                                                {assignedUser.name}
+                                            </span>
+                                        }
+                                        description="Assigned"
+                                        avatarProps={{
+                                            size: "sm",
+                                            src: assignedUser.profile_image_url || assignedUser.profile_image,
+                                        }}
+                                        classNames={{
+                                            name: "text-xs font-medium leading-tight",
+                                            description: "text-xs text-default-400"
+                                        }}
+                                    />
+                                ) : (
+                                    <Chip size="sm" variant="flat" color="default">
+                                        Unassigned
+                                    </Chip>
+                                )}
+                            </div>
+                        )}
+                        </div>
                     </TableCell>
                 );
 
             case "completion_time":
                 return (
                     <TableCell>
-                        <Input
-                            size="sm"
-                            type="datetime-local"
-                            variant="bordered"
-                            value={work.completion_time
-                                ? new Date(work.completion_time).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)
-                                : ''
-                            }
-                            onChange={(e) => handleChange(work.id, work.number, 'completion_time', e.target.value)}
-                            classNames={{
-                                input: "text-xs",
-                                inputWrapper: "min-h-10 bg-white/50 hover:bg-white/80 focus-within:bg-white/90 transition-colors"
-                            }}
-                            startContent={<CheckCircleIcon className="w-4 h-4 text-default-400" />}
-                        />
+                        <div className="flex items-center justify-center">
+                            <Input
+                                size="sm"
+                                type="datetime-local"
+                                variant="bordered"
+                                value={work.completion_time
+                                    ? new Date(work.completion_time).toLocaleString('sv-SE').replace(' ', 'T').slice(0, 16)
+                                    : ''
+                                }
+                                onChange={(e) => debouncedUpdateCompletionTime(work.id, e.target.value)}
+                                startContent={
+                                    <CheckCircleIcon className="w-4 h-4 text-default-400" />
+                                }
+                                classNames={{
+                                    input: "text-xs text-center",
+                                    inputWrapper: "min-h-10 bg-content2/50 hover:bg-content2/80 focus-within:bg-content2/90 border-divider/50 hover:border-divider data-[focus]:border-primary"
+                                }}
+                                style={{
+                                    fontFamily: 'var(--font-family)',
+                                }}
+                            />
+                        </div>
                     </TableCell>
                 );
-
-           
 
             case "rfi_submission_date":
                 return (
                     <TableCell>
                         {userIsAdmin ? (
-                            <Input
-                                size="sm"
-                                type="date"
-                                variant="bordered"
-                                value={work.rfi_submission_date ? 
-                                    new Date(work.rfi_submission_date).toISOString().slice(0, 10) : ''
-                                }
-                                onChange={(e) => handleChange(work.id, work.number, 'rfi_submission_date', e.target.value)}
-                                classNames={{
-                                    input: "text-xs",
-                                    inputWrapper: "min-h-10 bg-white/50 hover:bg-white/80 focus-within:bg-white/90 transition-colors"
-                                }}
-                                startContent={<CalendarDaysIcon className="w-4 h-4 text-default-400" />}
-                            />
+                            <div className="flex items-center justify-center">
+                                <Input
+                                    size="sm"
+                                    type="date"
+                                    variant="bordered"
+                                    value={work.rfi_submission_date ? 
+                                        new Date(work.rfi_submission_date).toISOString().slice(0, 10) : ''
+                                    }
+                                    onChange={(e) => debouncedUpdateSubmissionTime(work.id, e.target.value)}
+                                    startContent={
+                                        <CalendarDaysIcon className="w-4 h-4 text-default-400" />
+                                    }
+                                    classNames={{
+                                        input: "text-xs text-center",
+                                        inputWrapper: "min-h-10 bg-content2/50 hover:bg-content2/80 focus-within:bg-content2/90 border-divider/50 hover:border-divider data-[focus]:border-primary"
+                                    }}
+                                    style={{
+                                        fontFamily: 'var(--font-family)',
+                                    }}
+                                />
+                            </div>
                         ) : (
-                            <Box className="flex items-center gap-1">
+                            <div className="flex items-center justify-center gap-1">
                                 <CalendarDaysIcon className="w-3 h-3 text-default-500" />
-                                <Typography variant="body2" className="text-sm">
+                                <span className="text-sm">
                                     {work.rfi_submission_date ? formatDate(work.rfi_submission_date) : 'Not set'}
-                                </Typography>
-                            </Box>
+                                </span>
+                            </div>
                         )}
                     </TableCell>
                 );
@@ -1196,81 +2063,82 @@ const DailyWorksTable = ({
             case "actions":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center justify-center gap-1">
                             <Tooltip content="Edit Work">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => {
+                                <Button
+                                    isIconOnly
+                                    size="sm"
+                                    variant="ghost"
+                                    color="primary"
+                                    radius={getThemeRadius()}
+                                    onPress={() => {
                                         if (updatingWorkId === work.id) return;
                                         setCurrentRow(work);
                                         openModal("editDailyWork");
                                     }}
-                                    sx={{
-                                        background: alpha(theme.palette.primary.main, 0.1),
-                                        '&:hover': {
-                                            background: alpha(theme.palette.primary.main, 0.2)
-                                        }
-                                    }}
+                                    className="min-w-8 h-8"
                                 >
                                     <PencilIcon className="w-4 h-4" />
-                                </IconButton>
+                                </Button>
                             </Tooltip>
                             <Tooltip content="Delete Work" color="danger">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => {
+                                <Button
+                                    isIconOnly
+                                    size="sm"
+                                    variant="ghost"
+                                    color="danger"
+                                    radius={getThemeRadius()}
+                                    onPress={() => {
                                         if (updatingWorkId === work.id) return;
                                         setCurrentRow(work);
                                         handleClickOpen(work.id, "deleteDailyWork");
                                     }}
-                                    sx={{
-                                        background: alpha(theme.palette.error.main, 0.1),
-                                        '&:hover': {
-                                            background: alpha(theme.palette.error.main, 0.2)
-                                        }
-                                    }}
+                                    className="min-w-8 h-8"
                                 >
                                     <TrashIcon className="w-4 h-4" />
-                                </IconButton>
+                                </Button>
                             </Tooltip>
-                        </Box>
+                        </div>
                     </TableCell>
                 );
 
             default:
                 return <TableCell>{work[columnKey]}</TableCell>;
         }
-    }, [userIsAdmin, userIsSE, updatingWorkId, theme, setCurrentRow, openModal, handleClickOpen, handleChange]);
+    }, [userIsAdmin, userIsSE, updatingWorkId, setCurrentRow, openModal, handleClickOpen, handleChange]);
 
     const columns = [
-        { name: "Date", uid: "date", icon: CalendarDaysIcon, sortable: true },
-        { name: "RFI Number", uid: "number", icon: DocumentIcon, sortable: true },
-        { name: "Status", uid: "status", icon: ClockIconOutline, sortable: true },
-        { name: "Work Type", uid: "type", icon: DocumentTextIcon, sortable: true },
-        { name: "Description", uid: "description", icon: DocumentTextIcon, sortable: false },
-        { name: "Location", uid: "location", icon: MapPinIcon, sortable: true },
-        { name: "Inspection Results", uid: "inspection_details", icon: DocumentCheckIcon, sortable: false },
-        { name: "Road Side", uid: "side", sortable: true },
-        { name: "Layer Quantity", uid: "qty_layer", sortable: true },
-        ...(userIsAdmin ? [{ name: "In-Charge", uid: "incharge", icon: UserIcon, sortable: true }] : []),
-        { name: "Assigned To", uid: "assigned", icon: UserIcon, sortable: true },
-        { name: "Planned Time", uid: "planned_time", icon: ClockIcon, sortable: true },
-        { name: "Completion Time", uid: "completion_time", icon: CheckCircleIcon, sortable: true },
-        { name: "Resubmissions", uid: "resubmission_count", icon: ArrowPathIcon, sortable: true },
-        ...(userIsAdmin ? [{ name: "RFI Submission Date", uid: "rfi_submission_date", icon: CalendarDaysIcon, sortable: true }] : []),
-        ...(userIsAdmin ? [{ name: "Actions", uid: "actions", sortable: false }] : [])
+        { name: "Date", uid: "date", icon: CalendarDaysIcon, sortable: true, width: "w-24" },
+        { name: "RFI Number", uid: "number", icon: DocumentIcon, sortable: true, width: "w-32" },
+        { name: "Status", uid: "status", icon: ClockIconOutline, sortable: true, width: "w-56" },
+        { name: "Work Type", uid: "type", icon: DocumentTextIcon, sortable: true, width: "w-28" },
+        { name: "Description", uid: "description", icon: DocumentTextIcon, sortable: false, width: "w-60" },
+        { name: "Location", uid: "location", icon: MapPinIcon, sortable: true, width: "w-48" },
+        { name: "Road Side", uid: "side", sortable: true, width: "w-20" },
+        { name: "Layer Quantity", uid: "qty_layer", sortable: true, width: "w-24" },
+        ...(userIsAdmin ? [{ name: "In-Charge", uid: "incharge", icon: UserIcon, sortable: true, width: "w-64" }] : []),
+        { name: "Assigned To", uid: "assigned", icon: UserIcon, sortable: true, width: "w-64" },
+        { name: "Planned Time", uid: "planned_time", icon: ClockIcon, sortable: true, width: "w-28" },
+        { name: "Completion Time", uid: "completion_time", icon: CheckCircleIcon, sortable: true, width: "w-56" },
+        { name: "Resubmissions", uid: "resubmission_count", icon: ArrowPathIcon, sortable: true, width: "w-28" },
+        ...(userIsAdmin ? [{ name: "RFI Submission Date", uid: "rfi_submission_date", icon: CalendarDaysIcon, sortable: true, width: "w-36" }] : []),
+        ...(userIsAdmin ? [{ name: "Actions", uid: "actions", sortable: false, width: "w-20" }] : [])
     ];
 
     if (isMobile) {
         return (
-            <Box className="space-y-4">
+            <div className="space-y-4">
                 <ScrollShadow className="max-h-[70vh]">
-                    {allData?.map((work) => (
-                        <MobileDailyWorkCard key={work.id} work={work} />
-                    ))}
+                    <MobileDailyWorkCard 
+                        works={allData || []} 
+                        selectedTab={selectedTab}
+                        setSelectedTab={setSelectedTab}
+                        expandedItems={expandedItems}
+                        toggleExpanded={toggleExpanded}
+                    />
                 </ScrollShadow>
-                {totalRows > 30 && (
-                    <Box className="flex justify-center pt-4">
+                {!isMobile && totalRows > 30 && (
+                    <div className="flex justify-center pt-4">
                         <Pagination
                             showControls
                             showShadow
@@ -1280,62 +2148,181 @@ const DailyWorksTable = ({
                             total={lastPage}
                             onChange={handlePageChange}
                             size="sm"
+                            radius={getThemeRadius()}
+                            classNames={{
+                                wrapper: "bg-content1/80 backdrop-blur-md border-divider/50",
+                                item: "bg-content1/50 border-divider/30",
+                                cursor: "bg-primary/20 backdrop-blur-md"
+                            }}
+                            style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
                         />
-                    </Box>
+                    </div>
                 )}
-            </Box>
+            </div>
         );
     }
 
+    // Desktop Table Loading Skeleton
+    const DesktopLoadingSkeleton = () => {
+        return (
+            <div className="max-h-[84vh] overflow-y-auto">
+                {/* Header skeleton */}
+                <div className="flex items-center justify-between mb-4 px-2">
+                    <Skeleton className="w-32 h-6 rounded" />
+                    <Skeleton className="w-20 h-8 rounded" />
+                </div>
+                
+                <ScrollShadow className="max-h-[70vh]">
+                    <div className="border border-divider rounded-lg overflow-hidden">
+                        {/* Table header skeleton */}
+                        <div className="bg-default-100/80 backdrop-blur-md border-b border-divider">
+                            <div className="flex">
+                                {columns.map((column, index) => (
+                                    <div key={index} className="flex-1 p-3 flex items-center justify-center gap-1">
+                                        <Skeleton className="w-3 h-3 rounded" />
+                                        <Skeleton className="w-16 h-4 rounded" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        {/* Table body skeleton */}
+                        <div className="divide-y divide-divider">
+                            {Array.from({ length: 8 }).map((_, rowIndex) => (
+                                <div key={rowIndex} className="flex bg-content1 hover:bg-content2/50">
+                                    {columns.map((column, colIndex) => (
+                                        <div key={colIndex} className="flex-1 p-3 flex items-center justify-center">
+                                            {column.uid === 'status' ? (
+                                                <Skeleton className="w-32 h-8 rounded" />
+                                            ) : column.uid === 'description' ? (
+                                                <div className="w-full space-y-1">
+                                                    <Skeleton className="w-full h-3 rounded" />
+                                                    <Skeleton className="w-3/4 h-3 rounded" />
+                                                </div>
+                                            ) : column.uid === 'incharge' || column.uid === 'assigned' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Skeleton className="w-8 h-8 rounded-full" />
+                                                    <Skeleton className="w-20 h-4 rounded" />
+                                                </div>
+                                            ) : column.uid === 'completion_time' || column.uid === 'rfi_submission_date' ? (
+                                                <Skeleton className="w-32 h-8 rounded" />
+                                            ) : column.uid === 'actions' ? (
+                                                <div className="flex gap-1">
+                                                    <Skeleton className="w-8 h-8 rounded" />
+                                                    <Skeleton className="w-8 h-8 rounded" />
+                                                </div>
+                                            ) : column.uid === 'side' || column.uid === 'resubmission_count' ? (
+                                                <Skeleton className="w-16 h-6 rounded-full" />
+                                            ) : (
+                                                <Skeleton className="w-20 h-4 rounded" />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </ScrollShadow>
+                
+                {/* Pagination skeleton */}
+                <div className="py-4 flex justify-center">
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="w-8 h-8 rounded" />
+                        <Skeleton className="w-8 h-8 rounded" />
+                        <Skeleton className="w-8 h-8 rounded" />
+                        <Skeleton className="w-8 h-8 rounded" />
+                        <Skeleton className="w-8 h-8 rounded" />
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Show loading skeleton when loading
+    if (loading) {
+        return <DesktopLoadingSkeleton />;
+    }
+
     return (
-        <Box sx={{ maxHeight: "84vh", overflowY: "auto" }}>
+        <div className="max-h-[84vh] overflow-y-auto">
+            {/* Table Header with Refresh Button */}
+            <div className="flex items-center justify-between mb-4 px-2">
+                <h3 className="text-lg font-semibold text-default-700">Daily Works</h3>
+                <Button
+                    variant="flat"
+                    color="primary"
+                    size="sm"
+                    radius={getThemeRadius()}
+                    style={{
+                        backgroundColor: 'rgba(var(--color-primary), 0.1)',
+                        borderColor: 'rgba(var(--color-primary), 0.3)',
+                        color: 'var(--color-text)'
+                    }}
+                    onClick={handleRefresh}
+                    startContent={<ArrowPathIcon className="w-4 h-4" />}
+                >
+                    Refresh
+                </Button>
+            </div>
+            
             <ScrollShadow className="max-h-[70vh]">
                 <Table
-                    isStriped
                     selectionMode="none"
                     isCompact
-                    isHeaderSticky
                     removeWrapper
+                    isStriped
                     aria-label="Daily Works Management Table"
+                    isHeaderSticky
+                    radius={getThemeRadius()}
                     classNames={{
-                        wrapper: "min-h-[200px]",
-                        table: "min-h-[300px]",
-                        thead: "[&>tr]:first:shadow-small bg-default-100/80",
-                        tbody: "divide-y divide-default-200/50",
-                        tr: "group hover:bg-default-50/50 transition-colors h-12",
-                        td: "py-2 px-3 text-sm",
-                        th: "py-2 px-3 text-xs font-semibold"
+                        base: "max-h-[520px] overflow-auto",
+                        table: "min-h-[200px] w-full",
+                        thead: "z-10",
+                        tbody: "overflow-y-auto",
+                        th: "bg-default-100 text-default-700 font-semibold",
+                        td: "text-default-600",
+                    }}
+                    style={{
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
                     }}
                 >
                     <TableHeader columns={columns}>
                         {(column) => (
                             <TableColumn 
                                 key={column.uid} 
-                                align={column.uid === "actions" ? "center" : "start"}
-                                className="bg-default-100/80 backdrop-blur-md"
+                                align={column.uid === "description" ? "start" : "center"}
+                                className={`bg-default-100/80 backdrop-blur-md ${column.width || ''}`}
+                                style={{
+                                    minWidth: column.uid === "description" ? "240px" : 
+                                            column.uid === "location" ? "192px" :
+                                            column.uid === "number" ? "128px" :
+                                            column.uid === "status" ? "192px" :
+                                            "auto"
+                                }}
                             >
-                                <Box className="flex items-center gap-1">
+                                <div className={`flex items-center gap-1 ${column.uid === "description" ? "justify-start" : "justify-center"}`}>
                                     {column.icon && <column.icon className="w-3 h-3" />}
                                     <span className="text-xs font-semibold">{column.name}</span>
-                                </Box>
+                                </div>
                             </TableColumn>
                         )}
                     </TableHeader>
                     <TableBody 
                         items={allData || []}
                         emptyContent={
-                            <Box className="flex flex-col items-center justify-center py-8 text-center">
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
                                 <DocumentTextIcon className="w-12 h-12 text-default-300 mb-4" />
-                                <Typography variant="h6" color="textSecondary">
+                                <h6 className="text-lg font-medium text-default-600">
                                     No daily works found
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
+                                </h6>
+                                <span className="text-sm text-default-500">
                                     No work logs available for the selected period
-                                </Typography>
-                            </Box>
+                                </span>
+                            </div>
                         }
-                        isLoading={loading}
-                        loadingContent={<CircularProgress size={40} />}
                     >
                         {(work) => (
                             <TableRow 
@@ -1347,8 +2334,8 @@ const DailyWorksTable = ({
                     </TableBody>
                 </Table>
             </ScrollShadow>
-            {totalRows > 30 && (
-                <Box className="py-4 flex justify-center">
+            {!isMobile && totalRows > 30 && (
+                <div className="py-4 flex justify-center">
                     <Pagination
                         showControls
                         showShadow
@@ -1358,13 +2345,19 @@ const DailyWorksTable = ({
                         total={lastPage}
                         onChange={handlePageChange}
                         size={isMediumScreen ? "sm" : "md"}
+                        radius={getThemeRadius()}
+                        classNames={{
+                            wrapper: "bg-content1/80 backdrop-blur-md border-divider/50",
+                            item: "bg-content1/50 border-divider/30",
+                            cursor: "bg-primary/20 backdrop-blur-md"
+                        }}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
                     />
-                    <div className="ml-4 text-xs text-gray-500">
-                        Page {currentPage} of {lastPage} (Total: {totalRows} records)
-                    </div>
-                </Box>
+                </div>
             )}
-        </Box>
+        </div>
     );
 };
 

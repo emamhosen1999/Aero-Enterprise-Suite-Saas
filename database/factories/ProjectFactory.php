@@ -2,11 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\HRM\Department;
 use App\Models\Project;
 use App\Models\User;
-use App\Models\HRM\Department;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Carbon\Carbon;
 
 class ProjectFactory extends Factory
 {
@@ -19,7 +18,7 @@ class ProjectFactory extends Factory
 
         return [
             'project_name' => $this->faker->sentence(3),
-            'project_code' => 'PRJ-' . $this->faker->unique()->randomNumber(6),
+            'project_code' => 'PRJ-'.$this->faker->unique()->randomNumber(6),
             'description' => $this->faker->paragraph(),
             'start_date' => $startDate,
             'end_date' => $endDate,
@@ -43,7 +42,7 @@ class ProjectFactory extends Factory
 
     public function inProgress(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => 'in_progress',
             'progress' => $this->faker->numberBetween(10, 80),
         ]);
@@ -51,7 +50,7 @@ class ProjectFactory extends Factory
 
     public function completed(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => 'completed',
             'progress' => 100,
         ]);
@@ -59,14 +58,14 @@ class ProjectFactory extends Factory
 
     public function highPriority(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'priority' => 'high',
         ]);
     }
 
     public function criticalHealth(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'health_status' => 'critical',
         ]);
     }

@@ -1,17 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import dayjs from 'dayjs';
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Grow,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { Select, SelectItem, Input } from "@heroui/react";
 import { 
-  Select, 
-  SelectItem, 
   Card, 
   CardBody, 
   CardHeader,
@@ -32,22 +25,22 @@ import {
 import {
   XCircleIcon as XCircleSolid
 } from '@heroicons/react/24/solid';
-import GlassCard from '@/Components/GlassCard.jsx';
-import PageHeader from '@/Components/PageHeader.jsx';
+import { motion } from "framer-motion";
 import App from '@/Layouts/App.jsx';
+
 import LeaveEmployeeTable from '@/Tables/LeaveEmployeeTable.jsx';
 import LeaveForm from '@/Forms/LeaveForm.jsx';
 import DeleteLeaveForm from '@/Forms/DeleteLeaveForm.jsx';
 import BulkLeaveModal from '@/Components/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Components/BulkDelete/BulkDeleteModal.jsx';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
 const LeavesEmployee = ({ title, allUsers }) => {
   const { auth } = usePage().props;
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+  const isMobile = useMediaQuery('(max-width: 640px)');
+  const isTablet = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
     const [totalRows, setTotalRows] = useState(0);
       const [lastPage, setLastPage] = useState(0);
   // State management
@@ -73,6 +66,22 @@ const LeavesEmployee = ({ title, allUsers }) => {
     year: new Date().getFullYear() 
   });
 
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+      const [isMediumScreen, setIsMediumScreen] = useState(false);
+     
+         
+      
+      useEffect(() => {
+          const checkScreenSize = () => {
+              
+              setIsLargeScreen(window.innerWidth >= 1025);
+              setIsMediumScreen(window.innerWidth >= 641 && window.innerWidth <= 1024);
+          };
+          
+          checkScreenSize();
+          window.addEventListener('resize', checkScreenSize);
+          return () => window.removeEventListener('resize', checkScreenSize);
+      }, []);
   // Function to update pagination metadata
   const updatePaginationMetadata = useCallback((metadata) => {
     if (metadata) {
@@ -85,6 +94,20 @@ const LeavesEmployee = ({ title, allUsers }) => {
       }));
     }
   }, []);
+   // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
 
    // Fetch leaves data with error handling
   const fetchLeaves = useCallback(async () => {
@@ -150,7 +173,7 @@ const LeavesEmployee = ({ title, allUsers }) => {
         
         // Use toast promise pattern for safety
         const promise = Promise.reject('Failed to load leave data. Please try again.');
-        toast.promise(
+        showToast.promise(
           promise,
           {
             error: {
@@ -452,7 +475,7 @@ const LeavesEmployee = ({ title, allUsers }) => {
       
       // Use toast promise pattern for safety
       const promise = Promise.resolve();
-      toast.promise(
+      showToast.promise(
         promise,
         {
           success: {
@@ -486,7 +509,7 @@ const LeavesEmployee = ({ title, allUsers }) => {
     
     // Use toast promise pattern for safety
     const promise = Promise.resolve();
-    toast.promise(
+    showToast.promise(
       promise,
       {
         success: {
@@ -580,25 +603,25 @@ const LeavesEmployee = ({ title, allUsers }) => {
       label: "Add Leave",
       icon: <PlusIcon className="w-4 h-4" />,
       onPress: () => openModal('add_leave'),
-      className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
+      className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
     },
     {
       label: "Add Bulk",
       icon: <CalendarIcon className="w-4 h-4" />,
       onPress: () => openModal('bulk_leave'),
-      className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
+      className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
     },
     {
       label: "Current Year",
       icon: <CalendarIcon className="w-4 h-4" />,
       onPress: () => handleFilterChange('year', new Date().getFullYear()),
-      className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
+      className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
     },
     {
       label: "Refresh",
       icon: <ArrowPathIcon className="w-4 h-4" />,
       onPress: fetchLeaves,
-      className: "bg-gradient-to-r from-[rgba(var(--theme-success-rgb),0.8)] to-[rgba(var(--theme-success-rgb),1)] text-white font-medium hover:opacity-90"
+      className: "bg-linear-to-r from-[rgba(var(--theme-success-rgb),0.8)] to-[rgba(var(--theme-success-rgb),1)] text-white font-medium hover:opacity-90"
     }
   ];
 
@@ -606,12 +629,25 @@ const LeavesEmployee = ({ title, allUsers }) => {
   const renderLeaveTypeCards = () => {
     if (!leavesData.leaveTypes.length) {
       return (
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardBody className="text-center py-8">
-            <ChartBarIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <Typography variant="body1" color="textSecondary">
+        <Card 
+          className="text-center py-8"
+          style={{
+            background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+            border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
+            borderRadius: getThemeRadius(),
+          }}
+        >
+          <CardBody>
+            <ChartBarIcon 
+              className="w-12 h-12 mx-auto mb-4 opacity-40"
+              style={{ color: 'var(--theme-foreground)' }}
+            />
+            <p 
+              className="opacity-70"
+              style={{ color: 'var(--theme-foreground)' }}
+            >
               No leave types available
-            </Typography>
+            </p>
           </CardBody>
         </Card>
       );
@@ -634,51 +670,75 @@ const LeavesEmployee = ({ title, allUsers }) => {
           return (
             <Card 
               key={type} 
-              className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-200"
+              className="transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                background: `color-mix(in srgb, var(--theme-content2) 60%, transparent)`,
+                border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
+                borderRadius: getThemeRadius(),
+              }}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
-                  <CalendarIcon className="w-5 h-5" />
-                  <Typography 
-                    variant={isMobile ? "subtitle1" : "h6"} 
-                    className="font-semibold truncate"
+                  <CalendarIcon 
+                    className="w-5 h-5"
+                    style={{ color: 'var(--theme-primary)' }}
+                  />
+                  <h3 
+                    className={`font-semibold truncate ${isMobile ? 'text-base' : 'text-lg'}`}
+                    style={{ color: 'var(--theme-foreground)' }}
                   >
                     {type}
-                  </Typography>
+                  </h3>
                 </div>
               </CardHeader>
               <CardBody className="pt-0">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <div className="text-center">
-                      <Typography variant="caption" color="textSecondary">
+                      <p 
+                        className="text-xs opacity-70 mb-1"
+                        style={{ color: 'var(--theme-foreground)' }}
+                      >
                         Used
-                      </Typography>
-                      <Typography 
-                        variant={isMobile ? "h6" : "h5"} 
-                        className="font-bold text-red-400"
+                      </p>
+                      <p 
+                        className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}
+                        style={{ color: 'var(--theme-danger)' }}
                       >
                         {usedDays}
-                      </Typography>
+                      </p>
                     </div>
-                    <Divider orientation="vertical" className="h-8" />
+                    <Divider 
+                      orientation="vertical" 
+                      className="h-8"
+                      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-content3) 50%, transparent)' }}
+                    />
                     <div className="text-center">
-                      <Typography variant="caption" color="textSecondary">
+                      <p 
+                        className="text-xs opacity-70 mb-1"
+                        style={{ color: 'var(--theme-foreground)' }}
+                      >
                         Remaining
-                      </Typography>
-                      <Typography 
-                        variant={isMobile ? "h6" : "h5"} 
-                        className="font-bold text-green-400"
+                      </p>
+                      <p 
+                        className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}
+                        style={{ color: 'var(--theme-success)' }}
                       >
                         {remainingDays}
-                      </Typography>
+                      </p>
                     </div>
                   </div>
                   {totalDays > 0 && (
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="w-full h-2 rounded-full overflow-hidden"
+                      style={{ backgroundColor: 'color-mix(in srgb, var(--theme-content3) 40%, transparent)' }}
+                    >
                       <div 
-                        className="bg-gradient-to-r from-red-400 to-orange-400 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(usedDays / totalDays) * 100}%` }}
+                        className="h-full transition-all duration-300 rounded-full"
+                        style={{ 
+                          width: `${(usedDays / totalDays) * 100}%`,
+                          background: `linear-gradient(90deg, var(--theme-danger), color-mix(in srgb, var(--theme-danger) 80%, var(--theme-warning)))`
+                        }}
                       />
                     </div>
                   )}
@@ -778,159 +838,283 @@ const LeavesEmployee = ({ title, allUsers }) => {
         />
       )}
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>        <Grow in>
-          <GlassCard>
-            <PageHeader
-              title="My Leaves"
-              subtitle="Your leave requests and balances"
-              icon={<PresentationChartLineIcon className="w-8 h-8" />}
-              variant="gradient"
-              actionButtons={[
-                {
-                  label: "Add Leave",
-                  icon: <PlusIcon className="w-4 h-4" />,
-                  onPress: () => openModal('add_leave'),
-                  className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
-                },
-                {
-                  label: "Current Year",
-                  icon: <CalendarIcon className="w-4 h-4" />,
-                  onPress: () => handleFilterChange('year', new Date().getFullYear()),
-                  className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
-                },
-                {
-                  label: "Refresh",
-                  icon: <ArrowPathIcon className="w-4 h-4" />,
-                  onPress: fetchLeaves,
-                  className: "bg-gradient-to-r from-[rgba(var(--theme-success-rgb),0.8)] to-[rgba(var(--theme-success-rgb),1)] text-white font-medium hover:opacity-90"
-                }
-              ]}
-            >
-              <div className="p-6">
+      <div 
+          className="flex flex-col w-full h-full p-4"
+          role="main"
+          aria-label="My Attendance Management"
+      >
+          <div className="space-y-4">
+              <div className="w-full">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full max-w-7xl mx-auto"
+                >
+                  <Card 
+                    className="transition-all duration-200"
+                    style={{
+                        border: `var(--borderWidth, 2px) solid transparent`,
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                        transform: `scale(var(--scale, 1))`,
+                        background: `linear-gradient(135deg, 
+                            var(--theme-content1, #FAFAFA) 20%, 
+                            var(--theme-content2, #F4F4F5) 10%, 
+                            var(--theme-content3, #F1F3F4) 20%)`,
+                    }}
+                  >
+                 
 
-                {/* Filters Section - Matching LeavesAdmin */}
-                <div className="mb-6">
-                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-                    <div className="w-full sm:w-auto sm:min-w-[200px]">
-                      <Select
-                        label="Select Year"
-                        variant="bordered"
-                        selectedKeys={[String(filters.year)]}
-                        onSelectionChange={(keys) => {
-                          const selectedYear = Array.from(keys)[0];
-                          if (selectedYear) {
-                            handleFilterChange('year', Number(selectedYear));
-                          }
+                    <CardHeader 
+                        className="border-b p-0"
+                        style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            background: `linear-gradient(135deg, 
+                                color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
                         }}
-                        startContent={<CalendarIcon className="w-4 h-4" />}
-                        classNames={{
-                          trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                          popoverContent: "bg-white/10 backdrop-blur-lg border-white/20",
-                        }}
-                        size={isMobile ? "sm" : "md"}
-                      >
-                        {yearOptions.map((year) => (
-                          <SelectItem key={year.key} value={year.value}>
-                            {year.label}
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    </div>
+                    >
+                        <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'} w-full`}>
+                            <div className="flex flex-col space-y-4">
+                                {/* Main Header Content */}
+                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                    {/* Title Section */}
+                                    <div className="flex items-center gap-3 lg:gap-4">
+                                        <div 
+                                            className={`
+                                                ${isLargeScreen ? 'p-3' : isMediumScreen ? 'p-2.5' : 'p-2'} 
+                                                rounded-xl flex items-center justify-center
+                                            `}
+                                            style={{
+                                                background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                borderWidth: `var(--borderWidth, 2px)`,
+                                                borderRadius: `var(--borderRadius, 12px)`,
+                                            }}
+                                        >
+                                            <PresentationChartLineIcon 
+                                                className={`
+                                                    ${isLargeScreen ? 'w-8 h-8' : isMediumScreen ? 'w-6 h-6' : 'w-5 h-5'}
+                                                `}
+                                                style={{ color: 'var(--theme-primary)' }}
+                                            />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h4 
+                                                className={`
+                                                    ${isLargeScreen ? 'text-2xl' : isMediumScreen ? 'text-xl' : 'text-lg'}
+                                                    font-bold text-foreground
+                                                    ${!isLargeScreen ? 'truncate' : ''}
+                                                `}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            >
+                                                My Leaves
+                                            </h4>
+                                            <p 
+                                                className={`
+                                                    ${isLargeScreen ? 'text-sm' : 'text-xs'} 
+                                                    text-default-500
+                                                    ${!isLargeScreen ? 'truncate' : ''}
+                                                `}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                            >
+                                                Your leave requests and balances
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </CardHeader>
 
-                    <div className="flex gap-2">
-                      <Button
-                        variant="flat"
-                        color="primary"
-                        size={isMobile ? "sm" : "md"}
-                        onPress={fetchLeaves}
-                        isLoading={loading}
-                        startContent={!loading && !tableLoading && <ArrowPathIcon className="w-4 h-4" />}
-                      >
-                        Refresh
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                    <CardBody className="pt-4">
 
-                {/* Leave Types Summary */}
-                <div className="mb-6">
-                  <Typography variant="h6" className="mb-4 flex items-center gap-2">
-                    <ChartBarIcon className="w-5 h-5" />
-                    Leave Balance Summary
-                  </Typography>
-                  {renderLeaveTypeCards()}
-                </div>
+                      {/* Filters Section */}
+                      <div className="mb-6">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                          <div className="w-full sm:w-auto sm:min-w-[200px]">
+                            <Select
+                              label="Select Year"
+                              selectedKeys={[String(filters.year)]}
+                              onSelectionChange={(keys) => {
+                                const year = Number(Array.from(keys)[0]);
+                                handleFilterChange('year', year);
+                              }}
+                              className="w-full"
+                              variant="bordered"
+                              style={{
+                                '--input-background': 'color-mix(in srgb, var(--theme-content2) 50%, transparent)',
+                                '--input-border': 'color-mix(in srgb, var(--theme-content3) 50%, transparent)',
+                                '--input-hover-border': 'var(--theme-primary)',
+                                '--input-focus-border': 'var(--theme-primary)',
+                                '--input-color': 'var(--theme-foreground)',
+                                '--input-placeholder': 'color-mix(in srgb, var(--theme-foreground) 60%, transparent)',
+                                borderRadius: getThemeRadius(),
+                              }}
+                              startContent={<CalendarIcon className="w-4 h-4 opacity-70" />}
+                            >
+                              {yearOptions.map((year) => (
+                                <SelectItem key={year.key} value={year.value}>
+                                  {year.label}
+                                </SelectItem>
+                              ))}
+                            </Select>
+                          </div>
 
-                {/* Leave History Table */}
-                <div className="min-h-96">
-                  <Typography variant="h6" className="mb-4 flex items-center gap-2">
-                    <CalendarIcon className="w-5 h-5" />
-                    Leave History
-                  </Typography>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="flat"
+                              color="primary"
+                              size={isMobile ? "sm" : "md"}
+                              onPress={fetchLeaves}
+                              isLoading={loading}
+                              startContent={!loading && !tableLoading && <ArrowPathIcon className="w-4 h-4" />}
+                            >
+                              Refresh
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
 
-                  {tableLoading ? ( // Use tableLoading for the table spinner
-                    <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                      <CardBody className="text-center py-12">
-                        <CircularProgress size={40} />
-                        <Typography className="mt-4" color="textSecondary">
-                          Loading leave data...
-                        </Typography>
-                      </CardBody>
-                    </Card>
-                  ) : error ? (
-                    <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                      <CardBody className="text-center py-12">
-                        <XCircleSolid className="w-16 h-16 mx-auto mb-4 text-red-400" />
-                        <Typography variant="h6" className="mb-2">
-                          Error Loading Data
-                        </Typography>
-                        <Typography color="textSecondary">
-                          {error}
-                        </Typography>
-                      </CardBody>
-                    </Card>
-                  ) : leaves.length > 0 ? (
-                    <div className="overflow-hidden rounded-lg">
-                      <LeaveEmployeeTable
-                        ref={leaveTableRef}
-                        leaves={leaves}
-                        allUsers={allUsers || []}
-                        handleClickOpen={handleClickOpen}
-                        setCurrentLeave={handleSetCurrentLeave}
-                        openModal={openModal}
-                        setLeaves={setLeaves}
-                        setCurrentPage={handlePageChange}
-                        currentPage={pagination.page}
-                        totalRows={totalRows}
-                        lastPage={lastPage}
-                        perPage={pagination.perPage}
-                        selectedMonth={filters.selectedMonth}
-                        employee={''}
-                        isAdminView={false}
-                        fetchLeavesStats={fetchLeavesStats}
-                        updatePaginationMetadata={updatePaginationMetadata}
-                        onBulkDelete={handleBulkDelete}
-                        canDeleteLeaves={true}
-                    />
-                    </div>
-                  ) : (
-                    <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                      <CardBody className="text-center py-12">
-                        <CalendarIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                        <Typography variant="h6" className="mb-2">
-                          No Leave Records Found
-                        </Typography>
-                        <Typography color="textSecondary">
-                          You haven't submitted any leave requests for {filters.year}.
-                        </Typography>                      </CardBody>
-                    </Card>
-                  )}
-                </div>
+                      {/* Leave Types Summary */}
+                      <div className="mb-6">
+                        <h2 
+                          className="text-lg font-semibold mb-4 flex items-center gap-2"
+                          style={{ color: 'var(--theme-foreground)' }}
+                        >
+                          <ChartBarIcon className="w-5 h-5" />
+                          Leave Balance Summary
+                        </h2>
+                        {renderLeaveTypeCards()}
+                      </div>
+
+                      {/* Leave History Table */}
+                      <div className="min-h-96">
+                        <h2 
+                          className="text-lg font-semibold mb-4 flex items-center gap-2"
+                          style={{ color: 'var(--theme-foreground)' }}
+                        >
+                          <CalendarIcon className="w-5 h-5" />
+                          Leave History
+                        </h2>
+
+                        {tableLoading ? ( // Use tableLoading for the table spinner
+                          <Card 
+                            className="text-center py-12"
+                            style={{
+                              background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                              border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
+                              borderRadius: getThemeRadius(),
+                            }}
+                          >
+                            <CardBody>
+                              <div className="flex justify-center mb-4">
+                                <div className="animate-spin rounded-full h-10 w-10 border-2 border-t-transparent" style={{ borderColor: 'var(--theme-primary)' }}></div>
+                              </div>
+                              <p 
+                                className="opacity-70"
+                                style={{ color: 'var(--theme-foreground)' }}
+                              >
+                                Loading leave data...
+                              </p>
+                            </CardBody>
+                          </Card>
+                        ) : error ? (
+                          <Card 
+                            className="text-center py-12"
+                            style={{
+                              background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                              border: `1px solid color-mix(in srgb, var(--theme-danger) 30%, transparent)`,
+                              borderRadius: getThemeRadius(),
+                            }}
+                          >
+                            <CardBody>
+                              <XCircleSolid 
+                                className="w-16 h-16 mx-auto mb-4"
+                                style={{ color: 'var(--theme-danger)' }}
+                              />
+                              <h3 
+                                className="text-lg font-semibold mb-2"
+                                style={{ color: 'var(--theme-foreground)' }}
+                              >
+                                Error Loading Data
+                              </h3>
+                              <p 
+                                className="opacity-70"
+                                style={{ color: 'var(--theme-foreground)' }}
+                              >
+                                {error}
+                              </p>
+                            </CardBody>
+                          </Card>
+                        ) : leaves.length > 0 ? (
+                          <div className="overflow-hidden rounded-lg">
+                            <LeaveEmployeeTable
+                              ref={leaveTableRef}
+                              leaves={leaves}
+                              allUsers={allUsers || []}
+                              handleClickOpen={handleClickOpen}
+                              setCurrentLeave={handleSetCurrentLeave}
+                              openModal={openModal}
+                              setLeaves={setLeaves}
+                              setCurrentPage={handlePageChange}
+                              currentPage={pagination.page}
+                              totalRows={totalRows}
+                              lastPage={lastPage}
+                              perPage={pagination.perPage}
+                              selectedMonth={filters.selectedMonth}
+                              employee={''}
+                              isAdminView={false}
+                              fetchLeavesStats={fetchLeavesStats}
+                              updatePaginationMetadata={updatePaginationMetadata}
+                              onBulkDelete={handleBulkDelete}
+                              canDeleteLeaves={true}
+                          />
+                          </div>
+                        ) : (
+                          <Card 
+                            className="text-center py-12"
+                            style={{
+                              background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+                              border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
+                              borderRadius: getThemeRadius(),
+                            }}
+                          >
+                            <CardBody>
+                              <CalendarIcon 
+                                className="w-16 h-16 mx-auto mb-4 opacity-40"
+                                style={{ color: 'var(--theme-foreground)' }}
+                              />
+                              <h3 
+                                className="text-lg font-semibold mb-2"
+                                style={{ color: 'var(--theme-foreground)' }}
+                              >
+                                No Leave Records Found
+                              </h3>
+                              <p 
+                                className="opacity-70"
+                                style={{ color: 'var(--theme-foreground)' }}
+                              >
+                                You haven't submitted any leave requests for {filters.year}.
+                              </p>
+                            </CardBody>
+                          </Card>
+                        )}
+                      </div>
+                    </CardBody>
+                  </Card>
+                </motion.div>
+
               </div>
-            </PageHeader>
-          </GlassCard>
-        </Grow>
-      </Box>
+          </div>
+      </div>
+
+      
     </>
   );
 };

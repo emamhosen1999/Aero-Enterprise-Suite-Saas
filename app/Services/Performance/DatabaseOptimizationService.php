@@ -2,8 +2,8 @@
 
 namespace App\Services\Performance;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -17,8 +17,8 @@ class DatabaseOptimizationService
      */
     public function getOptimizedUsers(array $filters = [])
     {
-        $cacheKey = 'users_' . md5(serialize($filters));
-        
+        $cacheKey = 'users_'.md5(serialize($filters));
+
         return Cache::remember($cacheKey, 300, function () use ($filters) {
             $query = DB::table('users')
                 ->leftJoin('departments', 'users.department', '=', 'departments.id')
@@ -34,11 +34,11 @@ class DatabaseOptimizationService
                 ->where('users.deleted_at', null);
 
             // Apply filters
-            if (!empty($filters['department'])) {
+            if (! empty($filters['department'])) {
                 $query->where('users.department', $filters['department']);
             }
-            
-            if (!empty($filters['status'])) {
+
+            if (! empty($filters['status'])) {
                 $query->where('users.active', $filters['status'] === 'active');
             }
 
@@ -52,7 +52,7 @@ class DatabaseOptimizationService
     public function getAttendanceStats($userId = null, $startDate = null, $endDate = null)
     {
         $cacheKey = "attendance_stats_{$userId}_{$startDate}_{$endDate}";
-        
+
         return Cache::remember($cacheKey, 600, function () use ($userId, $startDate, $endDate) {
             $query = DB::table('attendances')
                 ->select(
@@ -73,8 +73,8 @@ class DatabaseOptimizationService
             }
 
             return $query->groupBy(DB::raw('DATE(created_at)'))
-                        ->orderBy('date', 'desc')
-                        ->get();
+                ->orderBy('date', 'desc')
+                ->get();
         });
     }
 
@@ -93,21 +93,21 @@ class DatabaseOptimizationService
                 'leaves' => ['user_id', 'status', 'from_date', 'to_date'],
                 'daily_works' => ['user_id', 'date', 'status'],
                 'model_has_roles' => ['model_id', 'role_id'],
-                'model_has_permissions' => ['model_id', 'permission_id']
+                'model_has_permissions' => ['model_id', 'permission_id'],
             ];
 
             foreach ($missingIndexes as $table => $columns) {
                 foreach ($columns as $column) {
                     $indexName = "idx_{$table}_{$column}";
-                    
+
                     // Check if index exists
-                    $indexExists = DB::select("
+                    $indexExists = DB::select('
                         SELECT COUNT(*) as count 
                         FROM INFORMATION_SCHEMA.STATISTICS 
                         WHERE table_schema = DATABASE() 
                         AND table_name = ? 
                         AND index_name = ?
-                    ", [$table, $indexName]);
+                    ', [$table, $indexName]);
 
                     if ($indexExists[0]->count == 0) {
                         $optimizations[] = "ALTER TABLE `{$table}` ADD INDEX `{$indexName}` (`{$column}`)";
@@ -117,7 +117,8 @@ class DatabaseOptimizationService
 
             return $optimizations;
         } catch (\Exception $e) {
-            Log::error('Database optimization failed: ' . $e->getMessage());
+            Log::error('Database optimization failed: '.$e->getMessage());
+
             return [];
         }
     }
@@ -149,7 +150,8 @@ class DatabaseOptimizationService
 
             return $cleaned;
         } catch (\Exception $e) {
-            Log::error('Database cleanup failed: ' . $e->getMessage());
+            Log::error('Database cleanup failed: '.$e->getMessage());
+
             return ['error' => $e->getMessage()];
         }
     }

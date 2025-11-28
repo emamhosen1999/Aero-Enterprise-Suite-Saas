@@ -168,7 +168,7 @@ const ProjectPortfolioMatrix = ({
             </Card>
 
             {/* Matrix Visualization */}
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <Card className="bg-white/5 backdrop-blur-xs border-white/10">
                 <CardBody className="p-6">
                     <div className="relative">
                         {/* Matrix Grid */}
@@ -351,7 +351,7 @@ const ProjectPortfolioMatrix = ({
             </div>
 
             {/* Portfolio Summary */}
-            <Card className="bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border-primary-500/20">
+            <Card className="bg-linear-to-r from-primary-500/10 to-secondary-500/10 border-primary-500/20">
                 <CardBody className="p-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div className="text-center">

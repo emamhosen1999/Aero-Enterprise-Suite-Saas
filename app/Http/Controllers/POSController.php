@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Services\POSService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -30,7 +29,7 @@ class POSController extends Controller
             'products' => $products,
             'categories' => $categories,
             'customers' => $customers,
-            'recentSales' => $recentSales
+            'recentSales' => $recentSales,
         ]);
     }
 
@@ -48,7 +47,7 @@ class POSController extends Controller
             'stats' => $stats,
             'recentTransactions' => $recentTransactions,
             'topProducts' => $topProducts,
-            'chartData' => $chartData
+            'chartData' => $chartData,
         ]);
     }
 
@@ -68,7 +67,7 @@ class POSController extends Controller
             'tax_amount' => 'nullable|numeric|min:0',
             'discount_amount' => 'nullable|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
-            'amount_received' => 'required|numeric|min:0'
+            'amount_received' => 'required|numeric|min:0',
         ]);
 
         $transaction = $this->posService->processTransaction($request->all());
@@ -76,7 +75,7 @@ class POSController extends Controller
         return response()->json([
             'success' => true,
             'transaction' => $transaction,
-            'receipt_data' => $this->posService->generateReceipt($transaction)
+            'receipt_data' => $this->posService->generateReceipt($transaction),
         ]);
     }
 
@@ -88,7 +87,7 @@ class POSController extends Controller
         $reportData = $this->posService->getSalesReports();
 
         return Inertia::render('POS/Reports/Index', [
-            'reportData' => $reportData
+            'reportData' => $reportData,
         ]);
     }
 
@@ -100,7 +99,7 @@ class POSController extends Controller
         $request->validate([
             'report_type' => 'required|in:daily,weekly,monthly,custom',
             'start_date' => 'required_if:report_type,custom|date',
-            'end_date' => 'required_if:report_type,custom|date|after_or_equal:start_date'
+            'end_date' => 'required_if:report_type,custom|date|after_or_equal:start_date',
         ]);
 
         $reportData = $this->posService->generateReport(
@@ -111,7 +110,7 @@ class POSController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $reportData
+            'data' => $reportData,
         ]);
     }
 
@@ -125,7 +124,7 @@ class POSController extends Controller
 
         return Inertia::render('POS/Transactions/Index', [
             'transactions' => $transactions,
-            'paymentMethods' => $paymentMethods
+            'paymentMethods' => $paymentMethods,
         ]);
     }
 
@@ -138,7 +137,7 @@ class POSController extends Controller
 
         return response()->json([
             'success' => true,
-            'transaction' => $transaction
+            'transaction' => $transaction,
         ]);
     }
 
@@ -148,7 +147,7 @@ class POSController extends Controller
     public function voidTransaction(Request $request, $id)
     {
         $request->validate([
-            'reason' => 'required|string|max:255'
+            'reason' => 'required|string|max:255',
         ]);
 
         $result = $this->posService->voidTransaction($id, $request->reason);
@@ -156,13 +155,13 @@ class POSController extends Controller
         if ($result) {
             return response()->json([
                 'success' => true,
-                'message' => 'Transaction voided successfully'
+                'message' => 'Transaction voided successfully',
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Failed to void transaction'
+            'message' => 'Failed to void transaction',
         ], 400);
     }
 
@@ -176,7 +175,7 @@ class POSController extends Controller
 
         return Inertia::render('POS/Products/Index', [
             'products' => $products,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -195,7 +194,7 @@ class POSController extends Controller
             'stock_quantity' => 'required|integer|min:0',
             'min_stock_level' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $product = $this->posService->createProduct($request->all());
@@ -210,15 +209,15 @@ class POSController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|max:100|unique:products,sku,' . $id,
-            'barcode' => 'nullable|string|max:100|unique:products,barcode,' . $id,
+            'sku' => 'required|string|max:100|unique:products,sku,'.$id,
+            'barcode' => 'nullable|string|max:100|unique:products,barcode,'.$id,
             'category_id' => 'required|exists:product_categories,id',
             'price' => 'required|numeric|min:0',
             'cost' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'min_stock_level' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $product = $this->posService->updateProduct($id, $request->all());
@@ -234,7 +233,7 @@ class POSController extends Controller
         $customers = $this->posService->getAllCustomers();
 
         return Inertia::render('POS/Customers/Index', [
-            'customers' => $customers
+            'customers' => $customers,
         ]);
     }
 
@@ -248,7 +247,7 @@ class POSController extends Controller
             'email' => 'nullable|email|unique:customers,email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
-            'loyalty_points' => 'nullable|integer|min:0'
+            'loyalty_points' => 'nullable|integer|min:0',
         ]);
 
         $customer = $this->posService->createCustomer($request->all());
@@ -266,7 +265,7 @@ class POSController extends Controller
 
         return Inertia::render('POS/Settings/Index', [
             'settings' => $settings,
-            'taxRates' => $taxRates
+            'taxRates' => $taxRates,
         ]);
     }
 
@@ -282,7 +281,7 @@ class POSController extends Controller
             'receipt_footer' => 'nullable|string',
             'auto_print_receipt' => 'boolean',
             'loyalty_program_enabled' => 'boolean',
-            'points_per_dollar' => 'nullable|numeric|min:0'
+            'points_per_dollar' => 'nullable|numeric|min:0',
         ]);
 
         $this->posService->updateSettings($request->all());
@@ -296,14 +295,14 @@ class POSController extends Controller
     public function searchProducts(Request $request)
     {
         $request->validate([
-            'query' => 'required|string|min:1'
+            'query' => 'required|string|min:1',
         ]);
 
         $products = $this->posService->searchProducts($request->query);
 
         return response()->json([
             'success' => true,
-            'products' => $products
+            'products' => $products,
         ]);
     }
 
@@ -316,7 +315,7 @@ class POSController extends Controller
 
         return response()->json([
             'success' => true,
-            'receipt_data' => $receiptData
+            'receipt_data' => $receiptData,
         ]);
     }
 }

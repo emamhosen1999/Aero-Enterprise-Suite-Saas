@@ -64,9 +64,12 @@ class QualityInspection extends Model
     public function passRate()
     {
         $total = $this->checkpoints()->count();
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
 
         $passed = $this->checkpoints()->where('result', 'pass')->count();
+
         return ($passed / $total) * 100;
     }
 

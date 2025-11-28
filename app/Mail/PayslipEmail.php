@@ -5,9 +5,9 @@ namespace App\Mail;
 use App\Models\HRM\Payslip;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 
 class PayslipEmail extends Mailable
@@ -15,6 +15,7 @@ class PayslipEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $payslip;
+
     public $pdfContent;
 
     /**
@@ -32,7 +33,7 @@ class PayslipEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Payslip for ' . $this->payslip->pay_period,
+            subject: 'Payslip for '.$this->payslip->pay_period,
         );
     }
 
@@ -57,7 +58,7 @@ class PayslipEmail extends Mailable
     public function attachments(): array
     {
         return [
-            Attachment::fromData(fn() => $this->pdfContent, 'payslip.pdf')
+            Attachment::fromData(fn () => $this->pdfContent, 'payslip.pdf')
                 ->withMime('application/pdf'),
         ];
     }

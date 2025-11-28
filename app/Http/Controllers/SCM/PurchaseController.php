@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
+use App\Models\InventoryItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
-use App\Models\InventoryItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -60,7 +60,7 @@ class PurchaseController extends Controller
             'items.*.description' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($validated, $request) {
+        DB::transaction(function () use ($validated) {
             // Calculate totals
             $subtotal = 0;
             $totalTax = 0;
@@ -218,7 +218,7 @@ class PurchaseController extends Controller
     public function destroy(PurchaseOrder $purchase)
     {
         // Only allow deletion of draft or cancelled orders
-        if (!in_array($purchase->status, ['draft', 'cancelled'])) {
+        if (! in_array($purchase->status, ['draft', 'cancelled'])) {
             return Redirect::route('scm.purchases.index')->with('error', 'Only draft or cancelled orders can be deleted.');
         }
 
@@ -267,7 +267,8 @@ class PurchaseController extends Controller
     private function generatePoNumber()
     {
         $lastPo = PurchaseOrder::latest('id')->first();
-        $nextNumber = $lastPo ? (int)substr($lastPo->po_number, 3) + 1 : 1;
-        return 'PO-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastPo ? (int) substr($lastPo->po_number, 3) + 1 : 1;
+
+        return 'PO-'.str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 }

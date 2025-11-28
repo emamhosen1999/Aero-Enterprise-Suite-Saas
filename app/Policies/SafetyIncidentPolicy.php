@@ -24,13 +24,13 @@ class SafetyIncidentPolicy
     public function view(User $user, SafetyIncident $safetyIncident): bool
     {
         // Basic permission check
-        if (!$user->can('hr.safety.incidents.view')) {
+        if (! $user->can('hr.safety.incidents.view')) {
             return false;
         }
 
         // Employees can view incidents they're involved in
         if ($user->hasRole('Employee')) {
-            return $safetyIncident->participants()->where('user_id', $user->id)->exists() || 
+            return $safetyIncident->participants()->where('user_id', $user->id)->exists() ||
                    $safetyIncident->reported_by === $user->id;
         }
 

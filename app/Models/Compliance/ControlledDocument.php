@@ -2,11 +2,11 @@
 
 namespace App\Models\Compliance;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\User;
 
 class ControlledDocument extends Model
 {
@@ -39,7 +39,7 @@ class ControlledDocument extends Model
         'template_category',
         'workflow_stage',
         'approval_required',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -50,56 +50,87 @@ class ControlledDocument extends Model
         'tags' => 'json',
         'is_template' => 'boolean',
         'approval_required' => 'boolean',
-        'metadata' => 'json'
+        'metadata' => 'json',
     ];
 
     // Status constants
     const STATUS_DRAFT = 'draft';
+
     const STATUS_UNDER_REVIEW = 'under_review';
+
     const STATUS_PENDING_APPROVAL = 'pending_approval';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_SUPERSEDED = 'superseded';
+
     const STATUS_OBSOLETE = 'obsolete';
+
     const STATUS_ARCHIVED = 'archived';
 
     // Category constants
     const CATEGORY_POLICY = 'policy';
+
     const CATEGORY_PROCEDURE = 'procedure';
+
     const CATEGORY_WORK_INSTRUCTION = 'work_instruction';
+
     const CATEGORY_FORM = 'form';
+
     const CATEGORY_STANDARD = 'standard';
+
     const CATEGORY_SPECIFICATION = 'specification';
+
     const CATEGORY_MANUAL = 'manual';
+
     const CATEGORY_PLAN = 'plan';
 
     // Type constants
     const TYPE_QUALITY = 'quality';
+
     const TYPE_SAFETY = 'safety';
+
     const TYPE_ENVIRONMENTAL = 'environmental';
+
     const TYPE_REGULATORY = 'regulatory';
+
     const TYPE_OPERATIONAL = 'operational';
+
     const TYPE_TECHNICAL = 'technical';
+
     const TYPE_ADMINISTRATIVE = 'administrative';
 
     // Confidentiality level constants
     const CONFIDENTIALITY_PUBLIC = 'public';
+
     const CONFIDENTIALITY_INTERNAL = 'internal';
+
     const CONFIDENTIALITY_CONFIDENTIAL = 'confidential';
+
     const CONFIDENTIALITY_RESTRICTED = 'restricted';
 
     // Access level constants
     const ACCESS_PUBLIC = 'public';
+
     const ACCESS_ALL_EMPLOYEES = 'all_employees';
+
     const ACCESS_DEPARTMENT = 'department';
+
     const ACCESS_ROLE_BASED = 'role_based';
+
     const ACCESS_RESTRICTED = 'restricted';
 
     // Workflow stage constants
     const WORKFLOW_CREATION = 'creation';
+
     const WORKFLOW_REVIEW = 'review';
+
     const WORKFLOW_APPROVAL = 'approval';
+
     const WORKFLOW_PUBLICATION = 'publication';
+
     const WORKFLOW_MAINTENANCE = 'maintenance';
 
     /**
@@ -166,6 +197,7 @@ class ControlledDocument extends Model
         if ($this->next_review_date) {
             return now()->diffInDays($this->next_review_date, false);
         }
+
         return 0;
     }
 
@@ -190,7 +222,9 @@ class ControlledDocument extends Model
      */
     public function getFormattedFileSize(): string
     {
-        if (!$this->file_size) return 'Unknown';
+        if (! $this->file_size) {
+            return 'Unknown';
+        }
 
         $bytes = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB'];
@@ -201,7 +235,7 @@ class ControlledDocument extends Model
             $unitIndex++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$unitIndex];
+        return round($bytes, 2).' '.$units[$unitIndex];
     }
 
     /**
@@ -275,7 +309,7 @@ class ControlledDocument extends Model
     {
         return $query->whereIn('confidentiality_level', [
             self::CONFIDENTIALITY_CONFIDENTIAL,
-            self::CONFIDENTIALITY_RESTRICTED
+            self::CONFIDENTIALITY_RESTRICTED,
         ]);
     }
 }

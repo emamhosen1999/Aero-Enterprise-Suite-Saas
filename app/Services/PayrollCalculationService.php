@@ -85,7 +85,9 @@ class PayrollCalculationService
         $remainingIncome = $annualIncome;
 
         foreach ($taxSlabs as $slab) {
-            if ($remainingIncome <= 0) break;
+            if ($remainingIncome <= 0) {
+                break;
+            }
 
             $taxableInThisSlab = min($remainingIncome, $slab->max_income - $slab->min_income);
             $tax = $taxableInThisSlab * ($slab->tax_rate / 100);
@@ -103,9 +105,16 @@ class PayrollCalculationService
     public function calculateProfessionalTax($grossSalary)
     {
         // Professional tax rates (can be made configurable)
-        if ($grossSalary <= 15000) return 0;
-        if ($grossSalary <= 20000) return 150;
-        if ($grossSalary <= 25000) return 200;
+        if ($grossSalary <= 15000) {
+            return 0;
+        }
+        if ($grossSalary <= 20000) {
+            return 150;
+        }
+        if ($grossSalary <= 25000) {
+            return 200;
+        }
+
         return 300;
     }
 
@@ -118,6 +127,7 @@ class PayrollCalculationService
         $pfCap = 15000; // PF calculation cap
 
         $pfBaseSalary = min($basicSalary, $pfCap);
+
         return $pfBaseSalary * ($pfRate / 100);
     }
 
@@ -141,9 +151,12 @@ class PayrollCalculationService
      */
     protected function calculateOvertime($overtimeHours, $dailySalary)
     {
-        if ($overtimeHours <= 0) return 0;
+        if ($overtimeHours <= 0) {
+            return 0;
+        }
 
         $hourlyRate = $dailySalary / 8; // 8 hours per day
+
         return $overtimeHours * $hourlyRate * 1.5; // 1.5x rate for overtime
     }
 
@@ -160,7 +173,7 @@ class PayrollCalculationService
             'type' => 'housing_allowance',
             'amount' => $basicSalary * ($housingRate / 100),
             'is_taxable' => true,
-            'description' => 'Housing Allowance'
+            'description' => 'Housing Allowance',
         ];
 
         // Transport Allowance (flat rate, tax-free up to 1600)
@@ -169,7 +182,7 @@ class PayrollCalculationService
             'type' => 'transport_allowance',
             'amount' => $transportAllowance,
             'is_taxable' => false,
-            'description' => 'Transport Allowance'
+            'description' => 'Transport Allowance',
         ];
 
         // Medical Allowance (flat rate, tax-free up to 1250)
@@ -178,7 +191,7 @@ class PayrollCalculationService
             'type' => 'medical_allowance',
             'amount' => $medicalAllowance,
             'is_taxable' => false,
-            'description' => 'Medical Allowance'
+            'description' => 'Medical Allowance',
         ];
 
         // Performance Bonus (if applicable)
@@ -187,7 +200,7 @@ class PayrollCalculationService
                 'type' => 'performance_bonus',
                 'amount' => $additionalData['performance_bonus'],
                 'is_taxable' => true,
-                'description' => 'Performance Bonus'
+                'description' => 'Performance Bonus',
             ];
         }
 
@@ -209,7 +222,7 @@ class PayrollCalculationService
             $deductions[] = [
                 'type' => 'income_tax',
                 'amount' => $incomeTax,
-                'description' => 'Income Tax'
+                'description' => 'Income Tax',
             ];
         }
 
@@ -219,7 +232,7 @@ class PayrollCalculationService
             $deductions[] = [
                 'type' => 'professional_tax',
                 'amount' => $professionalTax,
-                'description' => 'Professional Tax'
+                'description' => 'Professional Tax',
             ];
         }
 
@@ -239,7 +252,7 @@ class PayrollCalculationService
             $deductions[] = [
                 'type' => 'pf_deduction',
                 'amount' => $pfAmount,
-                'description' => 'Provident Fund'
+                'description' => 'Provident Fund',
             ];
         }
 
@@ -249,7 +262,7 @@ class PayrollCalculationService
             $deductions[] = [
                 'type' => 'esi_deduction',
                 'amount' => $esiAmount,
-                'description' => 'Employee State Insurance'
+                'description' => 'Employee State Insurance',
             ];
         }
 
@@ -268,7 +281,7 @@ class PayrollCalculationService
             $deductions[] = [
                 'type' => 'loan_deduction',
                 'amount' => $additionalData['loan_deduction'],
-                'description' => 'Loan Deduction'
+                'description' => 'Loan Deduction',
             ];
         }
 
@@ -277,7 +290,7 @@ class PayrollCalculationService
             $deductions[] = [
                 'type' => 'advance_deduction',
                 'amount' => $additionalData['advance_deduction'],
-                'description' => 'Advance Salary Deduction'
+                'description' => 'Advance Salary Deduction',
             ];
         }
 
@@ -294,7 +307,7 @@ class PayrollCalculationService
 
         while ($current <= $endDate) {
             // Skip weekends (Saturday = 6, Sunday = 0)
-            if (!in_array($current->dayOfWeek, [0, 6])) {
+            if (! in_array($current->dayOfWeek, [0, 6])) {
                 $workingDays++;
             }
             $current->addDay();
@@ -328,7 +341,9 @@ class PayrollCalculationService
 
         foreach ($employeeIds as $employeeId) {
             $employee = User::find($employeeId);
-            if (!$employee) continue;
+            if (! $employee) {
+                continue;
+            }
 
             try {
                 $calculation = $this->calculatePayroll($employee, $payPeriodStart, $payPeriodEnd);

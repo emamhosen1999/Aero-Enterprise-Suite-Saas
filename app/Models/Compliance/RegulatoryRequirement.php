@@ -40,23 +40,35 @@ class RegulatoryRequirement extends Model
 
     // Status constants
     const STATUS_PENDING = 'pending';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLIANT = 'compliant';
+
     const STATUS_NON_COMPLIANT = 'non_compliant';
+
     const STATUS_NOT_APPLICABLE = 'not_applicable';
 
     // Priority constants
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_MEDIUM = 'medium';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_CRITICAL = 'critical';
 
     // Type constants
     const TYPE_SAFETY = 'safety';
+
     const TYPE_ENVIRONMENTAL = 'environmental';
+
     const TYPE_FINANCIAL = 'financial';
+
     const TYPE_DATA_PROTECTION = 'data_protection';
+
     const TYPE_EMPLOYMENT = 'employment';
+
     const TYPE_QUALITY = 'quality';
 
     /**

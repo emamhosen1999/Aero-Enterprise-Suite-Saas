@@ -27,32 +27,32 @@ class BuildApp extends Command
      */
     public function handle()
     {
-		$this->info('Building...');
-		$this->info("Running 'npm run build'...");
+        $this->info('Building...');
+        $this->info("Running 'npm run build'...");
 
-		$result = Process::run('npm run build');
-		$this->info($result->output());
+        $result = Process::run('npm run build');
+        $this->info($result->output());
 
-		$this->info("Building 'index.html'...");
+        $this->info("Building 'index.html'...");
 
-		$content = file_get_contents(config('app.url'));
+        $content = file_get_contents(config('app.url'));
 
-		// If content has "hot" files, throw an error
-		if ($content) {
+        // If content has "hot" files, throw an error
+        if ($content) {
 
-		}
+        }
 
-		$content = Str::replace(config('app.url') . '/build/assets/', '', $content);
-		$content = Str::replace("window.app_base_url = 'https://erp.dhakabypass.com'", "window.app_base_url = '" . config('app.exposed_url') . "'", $content);
+        $content = Str::replace(config('app.url').'/build/assets/', '', $content);
+        $content = Str::replace("window.app_base_url = 'https://erp.dhakabypass.com'", "window.app_base_url = '".config('app.exposed_url')."'", $content);
 
-		file_put_contents(
-			public_path('build/assets/index.html'), $content
-		);
+        file_put_contents(
+            public_path('build/assets/index.html'), $content
+        );
 
-		$this->info('Synchronizing Capacitor assets...');
-		$result = Process::run('npx cap sync');
-		$this->info($result->output());
+        $this->info('Synchronizing Capacitor assets...');
+        $result = Process::run('npx cap sync');
+        $this->info($result->output());
 
-		$this->info('Application built.');
+        $this->info('Application built.');
     }
 }

@@ -2,14 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\HRM\Payroll;
-use App\Models\HRM\PayrollAllowance;
-use App\Models\HRM\PayrollDeduction;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PayrollReportExport;
+use App\Models\HRM\Payroll;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PayrollReportService
 {
@@ -60,7 +56,7 @@ class PayrollReportService
                 'income_tax',
                 'professional_tax',
                 'pf_deduction',
-                'esi_deduction'
+                'esi_deduction',
             ]);
 
             $incomeTax = $taxDeductions->where('deduction_type', 'income_tax')->sum('amount');
@@ -84,7 +80,7 @@ class PayrollReportService
         }
 
         return [
-            'period' => $startDate->format('M Y') . ' to ' . $endDate->format('M Y'),
+            'period' => $startDate->format('M Y').' to '.$endDate->format('M Y'),
             'total_employees' => count($taxData),
             'total_income_tax' => collect($taxData)->sum('income_tax'),
             'total_professional_tax' => collect($taxData)->sum('professional_tax'),
@@ -119,7 +115,7 @@ class PayrollReportService
                 'bank_name' => $employee->bank_name ?? 'N/A',
                 'net_salary' => $payroll->net_salary,
                 'pay_period' => $payroll->pay_period_start->format('M Y'),
-                'remarks' => 'Salary for ' . $payroll->pay_period_start->format('M Y'),
+                'remarks' => 'Salary for '.$payroll->pay_period_start->format('M Y'),
             ];
 
             $totalAmount += $payroll->net_salary;
@@ -249,8 +245,8 @@ class PayrollReportService
      */
     public function exportToExcel($reportData, $reportType, $filename = null)
     {
-        if (!$filename) {
-            $filename = $reportType . '_report_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+        if (! $filename) {
+            $filename = $reportType.'_report_'.now()->format('Y_m_d_H_i_s').'.xlsx';
         }
 
         return Excel::download(new PayrollReportExport($reportData, $reportType), $filename);
@@ -266,7 +262,7 @@ class PayrollReportService
         foreach ($payrolls as $payroll) {
             $department = $payroll->employee->department ?? 'Unknown';
 
-            if (!isset($departmentData[$department])) {
+            if (! isset($departmentData[$department])) {
                 $departmentData[$department] = [
                     'employee_count' => 0,
                     'total_gross' => 0,
@@ -295,7 +291,7 @@ class PayrollReportService
             foreach ($payroll->allowances as $allowance) {
                 $type = $allowance->allowance_type;
 
-                if (!isset($allowanceData[$type])) {
+                if (! isset($allowanceData[$type])) {
                     $allowanceData[$type] = [
                         'description' => $this->formatAllowanceType($type),
                         'total_amount' => 0,
@@ -322,7 +318,7 @@ class PayrollReportService
             foreach ($payroll->deductions as $deduction) {
                 $type = $deduction->deduction_type;
 
-                if (!isset($deductionData[$type])) {
+                if (! isset($deductionData[$type])) {
                     $deductionData[$type] = [
                         'description' => $this->formatDeductionType($type),
                         'total_amount' => 0,

@@ -23,7 +23,7 @@ class TrainingSession extends Model
         'instructor_id',
         'status',
         'max_participants',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
@@ -72,6 +72,7 @@ class TrainingSession extends Model
     public function isInProgress()
     {
         $now = now();
+
         return $now->gte($this->start_time) && $now->lte($this->end_time);
     }
 

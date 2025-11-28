@@ -2,10 +2,10 @@
 
 namespace App\Models\Compliance;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 class RiskMitigationAction extends Model
 {
@@ -26,7 +26,7 @@ class RiskMitigationAction extends Model
         'actual_cost',
         'effectiveness_rating',
         'notes',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -36,20 +36,27 @@ class RiskMitigationAction extends Model
         'cost_estimate' => 'decimal:2',
         'actual_cost' => 'decimal:2',
         'effectiveness_rating' => 'decimal:2',
-        'metadata' => 'json'
+        'metadata' => 'json',
     ];
 
     // Status constants
     const STATUS_PLANNED = 'planned';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_OVERDUE = 'overdue';
 
     // Priority constants
     const PRIORITY_LOW = 'low';
+
     const PRIORITY_MEDIUM = 'medium';
+
     const PRIORITY_HIGH = 'high';
+
     const PRIORITY_CRITICAL = 'critical';
 
     /**
@@ -84,6 +91,7 @@ class RiskMitigationAction extends Model
         if ($this->due_date) {
             return now()->diffInDays($this->due_date, false);
         }
+
         return 0;
     }
 

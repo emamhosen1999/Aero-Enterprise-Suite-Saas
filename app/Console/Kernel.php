@@ -15,16 +15,6 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\SendAttendanceReminders::class,
-        \App\Console\Commands\TestTenantProvisioning::class,
-        \App\Console\Commands\CreateTenantCommand::class,
-        \App\Console\Commands\CleanupEmptyTenantDatabases::class,
-        \App\Console\Commands\TestMultiTenantAuth::class,
-        \App\Console\Commands\TestDomainRouting::class,
-        \App\Console\Commands\TestUrlPatterns::class,
-        \App\Console\Commands\TenantMaintenanceCommand::class,
-        \App\Console\Commands\TenantHealthDashboardCommand::class,
-        \App\Console\Commands\TenantPerformanceOptimizerCommand::class,
-        \App\Console\Commands\TenantAdvancedFeaturesTestCommand::class,
     ];
 
     /**
@@ -63,8 +53,42 @@ class Kernel extends ConsoleKernel
         $schedule->command('model:prune', [
             '--model' => [
                 \App\Models\NotificationLog::class,
-            ]
+            ],
         ])->daily();
+
+        // Leave management scheduled tasks
+        // Reset annual leaves and process carry forwards - runs on January 1st at midnight
+        $schedule->command('leave:reset-annual')
+            ->yearly()
+            ->timezone(config('app.timezone', 'UTC'))
+            ->at('00:00')
+            ->before(function () {
+                Log::info('Starting annual leave reset process');
+            })
+            ->onSuccess(function () {
+                Log::info('Annual leave reset completed successfully');
+            })
+            ->onFailure(function () {
+                Log::error('Annual leave reset failed');
+            })
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/leave-reset.log'));
+
+        // Accrue monthly earned leaves - runs on 1st of each month at midnight
+        $schedule->command('leave:accrue-monthly')
+            ->monthlyOn(1, '00:00')
+            ->timezone(config('app.timezone', 'UTC'))
+            ->before(function () {
+                Log::info('Starting monthly leave accrual process');
+            })
+            ->onSuccess(function () {
+                Log::info('Monthly leave accrual completed successfully');
+            })
+            ->onFailure(function () {
+                Log::error('Monthly leave accrual failed');
+            })
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/leave-accrual.log'));
     }
 
     /**
@@ -72,7 +96,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__ . '/Commands');
+        $this->load(__DIR__.'/Commands');
 
         require base_path('routes/console.php');
     }

@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { Box, Typography, useMediaQuery, useTheme as useMuiTheme } from '@mui/material';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, usePage } from "@inertiajs/react";
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import {
   Button,
   Accordion,
@@ -11,10 +11,10 @@ import {
   Input,
   Avatar,
   Badge,
-  Tooltip
+  Tooltip,
+  Card
 } from "@heroui/react";
 import {
-  XMarkIcon,
   ChevronRightIcon,
   ChevronDownIcon,
   ShieldCheckIcon,
@@ -22,10 +22,8 @@ import {
   HomeIcon,
   StarIcon,
   ClockIcon
-} from "@heroicons/react/24/outline";
-import GlassCard from "@/Components/GlassCard.jsx";
-import { GRADIENT_PRESETS, getTextGradientClasses, getIconGradientClasses } from '@/utils/gradientUtils.js';
-import { getThemePrimaryColor, hexToRgba } from '@/theme.jsx';
+} from "@heroicons/react/24/outline"; 
+  
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../../../public/assets/images/logo.png';
 
@@ -39,118 +37,94 @@ const highlightSearchMatch = (text, searchTerm) => {
   return parts.map((part, index) => {
     if (part.toLowerCase() === searchTerm.toLowerCase()) {
       return (
-        <span 
+        <Chip 
           key={index} 
-          className="bg-primary/20 text-primary-300 px-1 py-0.5 rounded-md font-semibold border border-primary/30 shadow-sm"
-          style={{ 
-            background: 'rgba(59, 130, 246, 0.15)',
-            color: '#93C5FD',
-            border: '1px solid rgba(59, 130, 246, 0.3)'
-          }}
+          size="sm"
+          color="primary"
+          variant="flat"
+          className="px-1 py-0.5 font-semibold"
         >
           {part}
-        </span>
+        </Chip>
       );
     }
     return part;
   });
 };
 
-// Custom hook for sidebar state management
+// Custom hook for sidebar layout state management with selective localStorage persistence
 const useSidebarState = () => {
+  // Initialize sidebar layout state from localStorage for UI persistence only
   const [openSubMenus, setOpenSubMenus] = useState(() => {
     try {
-      const saved = localStorage.getItem('sidebar-open-submenus');
-      return saved ? new Set(JSON.parse(saved)) : new Set();
+      const stored = localStorage.getItem('sidebar_open_submenus');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
     } catch {
       return new Set();
     }
   });
 
-  const saveSubMenuState = useCallback((newSubMenus) => {
+  // Save layout state to localStorage when it changes
+  const updateOpenSubMenus = useCallback((newOpenSubMenus) => {
+    // Ensure we always have a valid Set
+    const validSet = newOpenSubMenus instanceof Set ? newOpenSubMenus : new Set();
+    setOpenSubMenus(validSet);
     try {
-      localStorage.setItem('sidebar-open-submenus', JSON.stringify(Array.from(newSubMenus)));
+      localStorage.setItem('sidebar_open_submenus', JSON.stringify([...validSet]));
     } catch (error) {
-      console.warn('Failed to save submenu state to localStorage:', error);
+      console.warn('Failed to save sidebar state to localStorage:', error);
     }
   }, []);
 
-  const clearAllState = useCallback(() => {
+  const clearAllState = () => {
+    const clearedState = new Set();
+    setOpenSubMenus(clearedState);
     try {
-      localStorage.removeItem('sidebar-open-submenus');
-      localStorage.removeItem('sidebar-open');
-      setOpenSubMenus(new Set());
+      localStorage.setItem('sidebar_open_submenus', JSON.stringify([]));
     } catch (error) {
-      console.warn('Failed to clear sidebar state:', error);
+      console.warn('Failed to clear sidebar state in localStorage:', error);
     }
-  }, []);
+  };
 
   return {
     openSubMenus,
-    setOpenSubMenus,
-    saveSubMenuState,
+    setOpenSubMenus: updateOpenSubMenus,
     clearAllState
   };
 };
 
 const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
-  const muiTheme = useMuiTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const isMobile = useMediaQuery('(max-width: 640px)');
+  const isTablet = useMediaQuery('(max-width: 768px)');
   const { auth, app } = usePage().props;
   
   const {
     openSubMenus,
-    setOpenSubMenus,
-    saveSubMenuState,
+    setOpenSubMenus: updateOpenSubMenus,
     clearAllState
   } = useSidebarState();
-
+  
   const [activePage, setActivePage] = useState(url);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const searchTimeoutRef = useRef(null);
   
-  // Debounce search term to improve performance
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    searchTimeoutRef.current = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 200); // 200ms delay
-    
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchTerm]);
+  // HeroUI will handle theming automatically through semantic colors
   
-  // Stable references for theme colors
-  const themeColor = useMemo(() => getThemePrimaryColor(muiTheme), [muiTheme]);
-  const themeColorRgba = useMemo(() => hexToRgba(themeColor, 0.5), [themeColor]);
-  
-  // Stable grouped pages reference with search filtering
-  const groupedPages = useMemo(() => {
+  // Fresh grouped pages - always recalculate for latest data
+  const groupedPages = (() => {
     let allPages = pages;
     
-    // Filter pages based on debounced search term
-    if (debouncedSearchTerm.trim()) {
-      const searchLower = debouncedSearchTerm.toLowerCase();
+    // Filter pages based on search term
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
       
       const filterPagesRecursively = (pagesList) => {
         return pagesList.filter(page => {
-          // Check if page name matches
           const nameMatches = page.name.toLowerCase().includes(searchLower);
           
-          // Check if any submenu items match
           let hasMatchingSubMenu = false;
           if (page.subMenu) {
             const filteredSubMenu = filterPagesRecursively(page.subMenu);
             hasMatchingSubMenu = filteredSubMenu.length > 0;
-            // Update the page with filtered submenu for display
             if (hasMatchingSubMenu) {
               page = { ...page, subMenu: filteredSubMenu };
             }
@@ -167,16 +141,15 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     const settingsPages = allPages.filter(page => page.category === 'settings');
     
     return { mainPages, settingsPages };
-  }, [pages, debouncedSearchTerm]);
+  })();
 
   // Auto-expand menus when searching
   useEffect(() => {
-    if (debouncedSearchTerm.trim()) {
-      // Expand all menus that have matching items when searching
+    if (searchTerm.trim()) {
       const expandAllWithMatches = (pagesList, expandedSet = new Set()) => {
         pagesList.forEach(page => {
           if (page.subMenu) {
-            const searchLower = debouncedSearchTerm.toLowerCase();
+            const searchLower = searchTerm.toLowerCase();
             const hasMatches = page.subMenu.some(subPage => {
               const matches = subPage.name.toLowerCase().includes(searchLower);
               if (subPage.subMenu) {
@@ -195,31 +168,25 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       };
       
       const newExpandedMenus = expandAllWithMatches(pages);
-      setOpenSubMenus(newExpandedMenus);
+      updateOpenSubMenus(newExpandedMenus);
     }
-  }, [debouncedSearchTerm, pages]);
+  }, [searchTerm, pages]);
 
-  // Update active page when URL changes (optimized)
+  // Update active page when URL changes
   useEffect(() => {
     setActivePage(url);
     
-    // Auto-expand parent menu if a submenu item is active
+    // Auto-expand parent menus if a submenu item is active
     const expandParentMenus = (menuItems, targetUrl, parentNames = []) => {
       for (const page of menuItems) {
         const currentParents = [...parentNames, page.name];
         
-        // Check if this page matches the current URL
         if (page.route && "/" + page.route === targetUrl) {
-          // Expand all parent menus
-          setOpenSubMenus(prev => {
-            const newSet = new Set([...prev, ...currentParents.slice(0, -1)]);
-            saveSubMenuState(newSet);
-            return newSet;
-          });
+          const newSet = new Set([...openSubMenus, ...currentParents.slice(0, -1)]);
+          updateOpenSubMenus(newSet);
           return true;
         }
         
-        // Check submenu recursively
         if (page.subMenu) {
           if (expandParentMenus(page.subMenu, targetUrl, currentParents)) {
             return true;
@@ -230,35 +197,29 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     };
     
     expandParentMenus(pages, url);
-  }, [url, pages, saveSubMenuState]);
+  }, [url, pages]);
 
-  // Stable callback handlers
-  const handleSubMenuToggle = useCallback((pageName) => {
-    setOpenSubMenus(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(pageName)) {
-        newSet.delete(pageName);
-      } else {
-        newSet.add(pageName);
-      }
-      
-      // Save to localStorage
-      saveSubMenuState(newSet);
-      
-      return newSet;
-    });
-  }, [saveSubMenuState]);
+  // Simple callback handlers - no useCallback for fresh execution
+  const handleSubMenuToggle = (pageName) => {
+    const newSet = new Set(openSubMenus);
+    if (newSet.has(pageName)) {
+      newSet.delete(pageName);
+    } else {
+      newSet.add(pageName);
+    }
+    updateOpenSubMenus(newSet);
+  };
 
-  const handlePageClick = useCallback((pageName) => {
-    setActivePage(pageName);
+  const handlePageClick = (pageRoute) => {
+    setActivePage("/" + pageRoute);
     // Clear search when navigating to a page
     setSearchTerm('');
     if (isMobile) {
       toggleSideBar();
     }
-  }, [isMobile, toggleSideBar]);
+  };
 
-  const renderCompactMenuItem = useCallback((page, isSubMenu = false, level = 0) => {
+  const renderCompactMenuItem = (page, isSubMenu = false, level = 0) => {
     const isActive = activePage === "/" + page.route;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
@@ -268,11 +229,6 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       }
     );
     const isExpanded = openSubMenus.has(page.name);
-    const activeStyle = isActive || hasActiveSubPage ? {
-      background: themeColorRgba,
-      borderLeft: `3px solid ${themeColor}`,
-      color: themeColor,
-    } : {};
     
     // Enhanced responsive sizing
     const paddingLeft = level === 0 ? (isMobile ? 'px-3' : 'px-2') : level === 1 ? (isMobile ? 'px-4' : 'px-3') : (isMobile ? 'px-5' : 'px-4');
@@ -292,7 +248,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             variant="light"
             color={hasActiveSubPage ? "primary" : "default"}
             startContent={
-              <div style={hasActiveSubPage ? { color: 'white' } : {}}>
+              <div style={{ color: hasActiveSubPage ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}>
                 {React.cloneElement(page.icon, { className: iconSize })}
               </div>
             }
@@ -302,29 +258,51 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 transition={{ duration: 0.2, ease: "easeInOut" }}
               >
                 <ChevronRightIcon 
-                  className="w-3 h-3"
-                  style={isExpanded ? { color: themeColor } : {}}
+                  className={`w-3 h-3`}
+                  style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
                 />
               </motion.div>
             }
-            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent hover:bg-white/10 transition-all duration-200 rounded-xl mb-0.5`}
-            style={activeStyle}
+            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
+            style={hasActiveSubPage ? {
+              backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
+              border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
+              borderRadius: `var(--borderRadius, 8px)`
+            } : {
+              border: `var(--borderWidth, 2px) solid transparent`,
+              borderRadius: `var(--borderRadius, 8px)`
+            }}
+            onMouseEnter={(e) => {
+              if (!hasActiveSubPage) {
+                e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+              }
+              e.target.style.borderRadius = `var(--borderRadius, 8px)`;
+            }}
+            onMouseLeave={(e) => {
+              if (!hasActiveSubPage) {
+                e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+              }
+            }}
             onPress={() => handleSubMenuToggle(page.name)}
             size="sm"
           >
             <div className="flex items-center justify-between w-full">
-              <span className={`${textSize} font-medium`} style={hasActiveSubPage ? { color: 'white' } : {}}>
+              <span 
+                className={`${textSize} font-medium flex-1 mr-2 whitespace-nowrap`} 
+                style={{ color: hasActiveSubPage ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}
+              >
                 {highlightSearchMatch(page.name, searchTerm)}
               </span>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
+                className="shrink-0"
               >
                 <Chip
                   size="sm"
                   variant="flat"
+                  color={hasActiveSubPage ? "primary" : "default"}
                   className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'} transition-all duration-300`}
-                  style={hasActiveSubPage ? { background: themeColorRgba, color: 'white' } : {}}
                 >
                   {page.subMenu.length}
                 </Chip>
@@ -342,7 +320,12 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 border-l-2 border-primary/20 pl-3`}>
+                <div 
+                  className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
+                  style={{ 
+                    borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
+                  }}
+                >
                   {page.subMenu.map((subPage, index) => (
                     <motion.div
                       key={`subitem-${page.name}-${subPage.name}-${level}-${index}`}
@@ -379,19 +362,40 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             variant="light"
             startContent={
               <motion.div 
-                style={isActive ? { color: 'white' } : {}}
+                style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
               >
                 {React.cloneElement(page.icon, { className: iconSize })}
               </motion.div>
             }
-            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent hover:bg-white/10 transition-all duration-200 rounded-xl mb-0.5`}
-            style={isActive ? { background: themeColorRgba, borderLeft: `3px solid ${themeColor}`, color: 'white' } : {}}
-            onPress={() => handlePageClick(page.name)}
+            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
+            style={isActive ? {
+              backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
+              border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
+              borderRadius: `var(--borderRadius, 8px)`
+            } : {
+              border: `var(--borderWidth, 2px) solid transparent`,
+              borderRadius: `var(--borderRadius, 8px)`
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+              }
+              e.target.style.borderRadius = `var(--borderRadius, 8px)`;
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+              }
+            }}
+            onPress={() => handlePageClick(page.route)}
             size="sm"
           >
-            <span className={`${textSize} font-medium`} style={isActive ? { color: 'white' } : {}}>
+            <span 
+              className={`${textSize} font-medium whitespace-nowrap`}
+              style={{ color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}
+            >
               {highlightSearchMatch(page.name, searchTerm)}
             </span>
           </Button>
@@ -411,7 +415,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           variant="light"
           color={hasActiveSubPage ? "primary" : "default"}
           startContent={
-            <div style={hasActiveSubPage ? { color: 'white' } : {}}>
+            <div style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
               {React.cloneElement(page.icon, { className: iconSize })}
             </div>
           }
@@ -422,28 +426,46 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             >
               <ChevronRightIcon 
                 className="w-3 h-3"
-                style={isExpanded ? { color: 'white' } : {}}
+                style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
               />
             </motion.div>
           }
-          className={`w-full justify-start ${height} ${paddingLeft} bg-transparent hover:bg-white/10 transition-all duration-200 rounded-xl mb-0.5`}
-          style={activeStyle}
+          className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
+          style={hasActiveSubPage ? {
+            backgroundColor: `var(--theme-primary, #006FEE)`,
+            border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
+            borderRadius: `var(--borderRadius, 8px)`,
+            color: `var(--theme-primary-foreground, #FFFFFF)`
+          } : {
+            borderRadius: `var(--borderRadius, 8px)`
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = `var(--theme-content2, #F4F4F5)`;
+            e.target.style.borderRadius = `var(--borderRadius, '8px')`;
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+          }}
           onPress={() => handleSubMenuToggle(page.name)}
           size="sm"
         >
           <div className="flex items-center justify-between w-full">
-            <span className={`${textSize} font-medium`} style={hasActiveSubPage ? { color: 'white' } : {}}>
+            <span 
+              className={`${textSize} font-medium flex-1 mr-2 whitespace-nowrap`} 
+              style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}
+            >
               {highlightSearchMatch(page.name, searchTerm)}
             </span>
             <motion.div
               whileHover={{ scale: 1.1 }}
               transition={{ duration: 0.2 }}
+              className="shrink-0"
             >
               <Chip
                 size="sm"
                 variant="flat"
+                color={hasActiveSubPage ? "primary" : "default"}
                 className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'} transition-all duration-300`}
-                style={hasActiveSubPage ? { background: themeColorRgba, color: 'white' } : {}}
               >
                 {page.subMenu?.length || 0}
               </Chip>
@@ -461,7 +483,12 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 border-l-2 border-primary/20 pl-3`}>
+              <div 
+                className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
+                style={{ 
+                  borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
+                }}
+              >
                 {page.subMenu?.map((subPage, index) => (
                   <motion.div
                     key={`category-subitem-${page.name}-${subPage.name}-${level}-${index}`}
@@ -478,9 +505,9 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         </AnimatePresence>
       </motion.div>
     );
-  }, [activePage, openSubMenus, handleSubMenuToggle, handlePageClick, themeColor, themeColorRgba, isMobile, searchTerm]);
+  };
 
-  const renderMenuItem = useCallback((page, isSubMenu = false, level = 0) => {
+  const renderMenuItem = (page, isSubMenu = false, level = 0) => {
     const isActive = page.route && activePage === "/" + page.route;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
@@ -498,10 +525,9 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       return (
         <div key={`full-menu-item-${page.name}-${level}`} className="w-full">
           <Button
-            variant="light"
             color={hasActiveSubPage ? "primary" : "default"}
             startContent={
-              <div>
+              <div style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
                 {page.icon}
               </div>
             }
@@ -510,20 +536,35 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 className={`w-4 h-4 transition-all duration-300 ${
                   isExpanded ? 'rotate-90' : ''
                 }`}
-                style={isExpanded ? { color: themeColor } : {}}
+                style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
               />
             }
-            className={`w-full justify-start h-14 ${paddingLeft} pr-4 bg-transparent hover:bg-white/10 transition-all duration-300 group hover:scale-105 ${
-              hasActiveSubPage 
-                ? `${GRADIENT_PRESETS.accentCard} border-l-4 border-blue-500 shadow-lg` 
-                : 'hover:border-l-4 hover:border-blue-500/30'
-            }`}
+            variant={hasActiveSubPage ? "flat" : "light"}
+            className={`w-full justify-start h-14 ${paddingLeft} pr-4 transition-all duration-300 group hover:scale-105`}
+            style={hasActiveSubPage ? {
+              backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
+              border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
+              borderRadius: `var(--borderRadius, 8px)`
+            } : {
+              border: `var(--borderWidth, 2px) solid transparent`,
+              borderRadius: `var(--borderRadius, 8px)`
+            }}
+            onMouseEnter={(e) => {
+              if (!hasActiveSubPage) {
+                e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!hasActiveSubPage) {
+                e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+              }
+            }}
             onPress={() => handleSubMenuToggle(page.name)}
             size="md"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col items-start">
-                <span className={`font-semibold text-sm ${hasActiveSubPage ? 'text-white' : 'text-foreground'}`}>
+                <span className={`font-semibold text-sm`} style={{ color: hasActiveSubPage ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}>
                   {highlightSearchMatch(page.name, searchTerm)}
                 </span>
                 <span className="text-xs text-default-400 group-hover:text-default-500 transition-colors">
@@ -532,12 +573,9 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               </div>
               <Chip
                 size="sm"
+                color={hasActiveSubPage ? "primary" : "default"}
                 variant="flat"
-                className={`transition-all duration-300 ${
-                  hasActiveSubPage 
-                    ? `${GRADIENT_PRESETS.accentCard} text-white` 
-                    : 'bg-white/10 text-default-500 group-hover:bg-white/20'
-                }`}
+                className="transition-all duration-300"
               >
                 {page.subMenu.length}
               </Chip>
@@ -548,7 +586,12 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
             isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
           }`}>
-            <div className={`${marginLeft} mt-2 space-y-1 border-l-2 border-primary/20 pl-4 relative`}>
+            <div 
+              className={`${marginLeft} mt-2 space-y-1 pl-4 relative`}
+              style={{ 
+                borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
+              }}
+            >
               {page.subMenu.map((subPage, index) => (
                 <div
                   key={`full-submenu-${page.name}-${subPage.name}-${level}-${index}`}
@@ -575,21 +618,36 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           method={page.method}
           preserveState
           preserveScroll
-          variant="light"
           startContent={
-            <div >
+            <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
               {page.icon}
             </div>
           }
-          className={`w-full justify-start h-11 ${paddingLeft} pr-4 bg-transparent hover:bg-white/10 transition-all duration-300 group hover:scale-105 ${
-            isActive 
-              ? `${GRADIENT_PRESETS.accentCard} border-l-3 border-blue-500 text-white shadow-md` 
-              : 'hover:border-l-3 hover:border-blue-500/30'
-          }`}
-          onPress={() => handlePageClick(page.name)}
+          color={isActive ? "primary" : "default"}
+          variant={isActive ? "flat" : "light"}
+          className={`w-full justify-start h-11 ${paddingLeft} pr-4 transition-all duration-300 group hover:scale-105`}
+          style={isActive ? {
+            backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
+            border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
+            borderRadius: `var(--borderRadius, 8px)`
+          } : {
+            border: `var(--borderWidth, 2px) solid transparent`,
+            borderRadius: `var(--borderRadius, 8px)`
+          }}
+          onMouseEnter={(e) => {
+            if (!isActive) {
+              e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive) {
+              e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+            }
+          }}
+          onPress={() => handlePageClick(page.route)}
           size="sm"
         >
-          <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-foreground'}`}>
+          <span className="text-sm font-medium" style={{ color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}>
             {highlightSearchMatch(page.name, searchTerm)}
           </span>
         </Button>
@@ -611,23 +669,40 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         </div>
       </div>
     );
-  }, [activePage, openSubMenus, handleSubMenuToggle, handlePageClick, searchTerm]);
+  };
 
-  const SidebarContent = useMemo(() => (
+  const SidebarContent = (
     <motion.div 
       className="flex flex-col h-full w-full overflow-hidden"
+      style={{ 
+        fontFamily: `var(--fontFamily, 'Inter')`,
+        transform: `scale(var(--scale, 1))`,
+        transformOrigin: 'top left'
+      }}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
       {/* Fixed Header - Using PageHeader theming */}
       <motion.div 
-        className={`${GRADIENT_PRESETS.pageHeader} flex-shrink-0`}
+        className="shrink-0"
+        style={{ 
+          backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
+          borderColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`,
+          borderWidth: `var(--borderWidth, 2px)`,
+          borderStyle: 'solid',
+          borderRadius: `var(--borderRadius, 8px) var(--borderRadius, 8px) 0 0`
+        }}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <div className="p-3 border-b border-white/10">
+        <div 
+          className="p-3" 
+          style={{ 
+            borderBottom: `var(--borderWidth, '2px') solid var(--theme-divider, #E4E4E7)`
+          }}
+        >
           <div className="flex items-center justify-between mb-3">
             <motion.div 
               className="flex items-center gap-3"
@@ -637,7 +712,16 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             >
               {/* Enhanced Logo Display */}
               <div className="relative">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xl overflow-hidden ${GRADIENT_PRESETS.iconContainer}`}>
+                <div 
+                  className="w-10 h-10 flex items-center justify-center shadow-xl overflow-hidden"
+                  style={{ 
+                    backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
+                    borderColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`,
+                    borderWidth: `var(--borderWidth, 2px)`,
+                    borderStyle: 'solid',
+                    borderRadius: `var(--borderRadius, 8px)`
+                  }}
+                >
                   <img 
                     src={logo} 
                     alt={`${app?.name || 'Company'} Logo`} 
@@ -648,73 +732,48 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                       e.target.nextSibling.style.display = 'block';
                     }}
                   />
-                  <Typography 
-                    variant="body2" 
-                    className="font-black text-white text-sm absolute inset-0 flex items-center justify-center"
-                    style={{ display: 'none' }}
+                  <div 
+                    className="font-black text-sm absolute inset-0 flex items-center justify-center"
+                    style={{ 
+                      display: 'none',
+                      color: 'var(--theme-foreground, #11181C)'
+                    }}
                   >
                     A
-                  </Typography>
+                  </div>
                 </div>
                 {/* Status Indicator */}
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse shadow-lg"></div>
+                <div 
+                  className="absolute -top-1 -right-1 w-3 h-3 animate-pulse shadow-lg"
+                  style={{ 
+                    backgroundColor: 'var(--theme-success, #17C964)',
+                    borderColor: 'var(--theme-background, #FFFFFF)',
+                    borderWidth: `var(--borderWidth, '2px')`,
+                    borderStyle: 'solid',
+                    borderRadius: '50%'
+                  }}
+                ></div>
               </div>
               
               {/* Brand Information */}
               <div className="flex flex-col leading-tight">
-                <Typography variant="body1" className={`font-bold text-base ${GRADIENT_PRESETS.gradientText}`}>
+                <h1 
+                  className="font-bold text-base"
+                  style={{ color: `var(--theme-primary, #006FEE)` }}
+                >
                   {app?.name || 'Company Name'}
-                </Typography>
-                <Typography variant="caption" className="text-default-400 text-xs font-medium">
-                  Enterprise Suite
-                </Typography>
+                </h1>
+                <p 
+                  className="text-xs font-medium"
+                  style={{ color: `var(--theme-foreground-500, #71717A)` }}
+                >
+                  aeos365
+                </p>
               </div>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Button
-                isIconOnly
-                variant="light"
-                size="sm"
-                onPress={toggleSideBar}
-                className="text-foreground hover:bg-white/10 transition-all duration-200 min-w-6 w-6 h-6"
-              >
-                <XMarkIcon className="w-3 h-3" />
-              </Button>
             </motion.div>
           </div>
           
-          {/* User Info - Fixed size */}
-          {auth.user && (
-            <motion.div 
-              className={`p-2 rounded-lg backdrop-blur-sm transition-all duration-300 ${GRADIENT_PRESETS.accentCard}`}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="flex items-center gap-2">
-                <Avatar
-                  size="sm"
-                  src={auth.user.profile_image}
-                  fallback={auth.user.first_name?.charAt(0)}
-                  className="w-6 h-6 flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <Typography variant="caption" className="font-medium text-foreground truncate block">
-                    {auth.user.first_name} {auth.user.last_name}
-                  </Typography>
-                  {auth.user.roles && auth.user.roles.length > 0 && (
-                    <Typography variant="caption" className="text-default-400 text-xs truncate block">
-                      {auth.user.roles[0].name}
-                    </Typography>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
+         
         </div>
       </motion.div>
 
@@ -740,13 +799,31 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 placeholder="Search navigation..."
                 value={searchTerm}
                 onValueChange={setSearchTerm}
-                startContent={<MagnifyingGlassIcon className="w-3 h-3 text-default-400" />}
+                startContent={
+                  <MagnifyingGlassIcon 
+                    className="w-3 h-3" 
+                    style={{ color: `var(--theme-foreground-400, #A1A1AA)` }}
+                  />
+                }
                 isClearable
                 variant="bordered"
                 className="text-xs"
                 classNames={{
                   input: "text-xs",
-                  inputWrapper: "h-8 min-h-8 bg-white/5 border-white/10 hover:border-white/20 focus-within:border-primary/50"
+                  inputWrapper: "h-8 min-h-8"
+                }}
+                style={{
+                  backgroundColor: `var(--theme-content2, #F4F4F5)`,
+                  borderColor: `var(--theme-divider, #E4E4E7)`,
+                  borderRadius: `var(--borderRadius, 8px)`,
+                  borderWidth: `var(--borderWidth, 2px)`,
+                  borderStyle: 'solid'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = `var(--theme-primary, #006FEE)`;
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = `var(--theme-divider, #E4E4E7)`;
                 }}
               />
             </motion.div>
@@ -760,11 +837,17 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 transition={{ duration: 0.3, delay: 0.6 }}
               >
                 <div className="flex items-center gap-2 px-2 py-1">
-                  <HomeIcon className="w-3 h-3 text-primary" />
-                  <Typography variant="caption" className="text-primary font-bold text-xs uppercase tracking-wide">
+                  <HomeIcon 
+                    className="w-3 h-3" 
+                    style={{ color: `var(--theme-primary, #006FEE)` }}
+                  />
+                  <span 
+                    className="font-bold text-xs uppercase tracking-wide"
+                    style={{ color: `var(--theme-primary, #006FEE)` }}
+                  >
                     Main
-                  </Typography>
-                  <div className="flex-1 h-px bg-primary/20"></div>
+                  </span>
+                  <Divider className="flex-1" />
                 </div>
                 {groupedPages.mainPages.map((page, index) => (
                   <motion.div
@@ -788,11 +871,20 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 transition={{ duration: 0.3, delay: 0.8 }}
               >
                 <div className="flex items-center gap-2 px-2 py-1">
-                  <ShieldCheckIcon className="w-3 h-3 text-warning" />
-                  <Typography variant="caption" className="text-warning font-bold text-xs uppercase tracking-wide">
+                  <ShieldCheckIcon 
+                    className="w-3 h-3" 
+                    style={{ color: `var(--theme-warning, #F5A524)` }}
+                  />
+                  <span 
+                    className="font-bold text-xs uppercase tracking-wide"
+                    style={{ color: `var(--theme-warning, #F5A524)` }}
+                  >
                     Admin
-                  </Typography>
-                  <div className="flex-1 h-px bg-warning/20"></div>
+                  </span>
+                  <div 
+                    className="flex-1 h-px"
+                    style={{ backgroundColor: `color-mix(in srgb, var(--theme-warning, #F5A524) 20%, transparent)` }}
+                  ></div>
                 </div>
                 {groupedPages.settingsPages.map((page, index) => (
                   <motion.div
@@ -817,9 +909,9 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               >
                 <div className="flex items-center gap-2 px-2 py-1">
                   <StarIcon className="w-3 h-3 text-secondary" />
-                  <Typography variant="caption" className="text-secondary font-bold text-xs uppercase tracking-wide">
+                  <span className="text-secondary font-bold text-xs uppercase tracking-wide">
                     Modules
-                  </Typography>
+                  </span>
                   <div className="flex-1 h-px bg-secondary/20"></div>
                 </div>
                 {pages.map((page, index) => (
@@ -843,30 +935,49 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <MagnifyingGlassIcon className="w-8 h-8 text-default-300 mb-3" />
-                <Typography variant="body2" className="text-default-400 text-center text-sm font-medium mb-1">
+                <MagnifyingGlassIcon 
+                  className="w-8 h-8 mb-3" 
+                  style={{ color: `var(--theme-foreground-300, #D4D4D8)` }}
+                />
+                <p 
+                  className="text-center text-sm font-medium mb-1"
+                  style={{ color: `var(--theme-foreground-400, #A1A1AA)` }}
+                >
                   No results found
-                </Typography>
-                <Typography variant="caption" className="text-default-300 text-center text-xs">
+                </p>
+                <p 
+                  className="text-center text-xs"
+                  style={{ color: `var(--theme-foreground-300, #D4D4D8)` }}
+                >
                   Try searching with different keywords
-                </Typography>
+                </p>
               </motion.div>
             )}
 
             {/* Quick Actions - New Feature */}
             {!searchTerm.trim() && (
               <motion.div 
-                className="space-y-1 mt-6 pt-4 border-t border-white/10"
+                className="space-y-1 mt-6 pt-4"
+                style={{ borderTop: `1px solid var(--theme-divider, #E4E4E7)` }}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 1.0 }}
               >
                 <div className="flex items-center gap-2 px-2 py-1">
-                  <ClockIcon className="w-3 h-3 text-success" />
-                  <Typography variant="caption" className="text-success font-bold text-xs uppercase tracking-wide">
+                  <ClockIcon 
+                    className="w-3 h-3" 
+                    style={{ color: `var(--theme-success, #17C964)` }}
+                  />
+                  <span 
+                    className="font-bold text-xs uppercase tracking-wide"
+                    style={{ color: `var(--theme-success, #17C964)` }}
+                  >
                     Quick Actions
-                  </Typography>
-                  <div className="flex-1 h-px bg-success/20"></div>
+                  </span>
+                  <div 
+                    className="flex-1 h-px"
+                    style={{ backgroundColor: `var(--theme-success, #17C964)20` }}
+                  ></div>
                 </div>
                 
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -874,7 +985,18 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                     variant="light"
                     size="sm"
                     startContent={<ClockIcon className="w-3 h-3" />}
-                    className="w-full justify-start h-8 px-4 bg-transparent hover:bg-success/10 transition-all duration-200 rounded-xl text-xs"
+                    className="w-full justify-start h-8 px-4 bg-transparent transition-all duration-200 text-xs"
+                    style={{
+                      '--button-hover': `var(--theme-success, #17C964)10`,
+                      borderRadius: `var(--borderRadius, '8px')`
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = `var(--theme-success, #17C964)10`;
+                      e.target.style.borderRadius = `var(--borderRadius, '8px')`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
                   >
                     Recent Activities
                   </Button>
@@ -885,7 +1007,18 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                     variant="light"
                     size="sm"
                     startContent={<StarIcon className="w-3 h-3" />}
-                    className="w-full justify-start h-8 px-4 bg-transparent hover:bg-warning/10 transition-all duration-200 rounded-xl text-xs"
+                    className="w-full justify-start h-8 px-4 bg-transparent transition-all duration-200 text-xs"
+                    style={{
+                      '--button-hover': `var(--theme-warning, #F5A524)10`,
+                      borderRadius: `var(--borderRadius, '8px')`
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = `var(--theme-warning, #F5A524)10`;
+                      e.target.style.borderRadius = `var(--borderRadius, '8px')`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
                   >
                     Favorites
                   </Button>
@@ -898,54 +1031,95 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
 
       {/* Fixed Footer - Using PageHeader theming */}
       <motion.div 
-        className="p-2 border-t border-white/10 flex-shrink-0"
+        className="p-2 shrink-0"
+        style={{ borderTop: `1px solid var(--theme-divider, #E4E4E7)` }}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 1.1 }}
       >
-        <div className={`flex items-center justify-between p-2 rounded-md backdrop-blur-sm transition-all duration-300 ${GRADIENT_PRESETS.accentCard}`}>
+        <Card 
+          className="flex items-center justify-between p-2 transition-all duration-300" 
+          shadow="sm"
+          style={{ 
+            backgroundColor: `var(--theme-content1, #FAFAFA)`,
+            borderRadius: `var(--borderRadius, '8px')`,
+            borderWidth: `var(--borderWidth, '2px')`,
+            borderColor: `var(--theme-divider, #E4E4E7)`,
+            borderStyle: 'solid'
+          }}
+        >
           <div className="flex items-center gap-1">
             <motion.div 
-              className="w-1.5 h-1.5 bg-green-400 rounded-full"
+              className="w-1.5 h-1.5"
+              style={{ 
+                backgroundColor: `var(--theme-success, #17C964)`,
+                borderRadius: '50%'
+              }}
               animate={{ opacity: [1, 0.5, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            <span className="text-xs font-medium text-foreground">Online</span>
+            <span 
+              className="text-xs font-medium"
+              style={{ color: `var(--theme-foreground, #11181C)` }}
+            >
+              Online
+            </span>
           </div>
-          <Typography variant="caption" className="text-default-500 text-xs">
+          <span 
+            className="text-xs"
+            style={{ color: `var(--theme-foreground-500, #71717A)` }}
+          >
             v2.1.0
-          </Typography>
-        </div>
+          </span>
+        </Card>
       </motion.div>
     </motion.div>
-  ), [
-    auth.user, 
-    groupedPages.mainPages, 
-    groupedPages.settingsPages, 
-    renderCompactMenuItem, 
-    toggleSideBar,
-    searchTerm
-  ]);
+  );
+  
   // Unified Sidebar for both Mobile and Desktop
   return (
-    <Box sx={{ 
-      p: isMobile ? 0 : 1, 
-      height: '100vh', // Fix to viewport height
-      width: 'fit-content',
-      minWidth: isMobile ? '260px' : '240px',
-      maxWidth: isMobile ? '280px' : '280px',
-      overflow: 'hidden', // Prevent container scrolling
-      position: 'relative',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      <div className="h-full flex flex-col">
-        <GlassCard className="h-full flex flex-col overflow-hidden">
+    <motion.div 
+      className={`
+        ${isMobile ? 'p-0' : 'p-4'} 
+        h-screen
+        ${isMobile ? 'min-w-[260px]' : 'min-w-[240px]'}
+        w-auto
+        max-w-[400px]
+        overflow-visible
+        relative
+        flex
+        flex-col
+        bg-transparent
+        shrink-0
+      `}
+      initial={false}
+      animate={{ 
+        minWidth: isMobile ? 260 : 240,
+        transition: { duration: 0.3, ease: "easeInOut" }
+      }}
+    >
+      <div className="h-full flex flex-col bg-transparent">
+        <Card 
+          className="h-full flex flex-col overflow-visible"
+          style={{
+            background: `linear-gradient(to bottom right, 
+              var(--theme-content1, #FAFAFA) 20%, 
+              var(--theme-content2, #F4F4F5) 10%, 
+              var(--theme-content3, #F1F3F4) 20%)`,
+            borderColor: `var(--theme-divider, #E4E4E7)`,
+            borderWidth: `var(--borderWidth, 2px)`,
+            borderStyle: 'solid',
+            borderRadius: `var(--borderRadius, 8px)`
+          }}
+        >
           {SidebarContent}
-        </GlassCard>
+        </Card>
       </div>
-    </Box>
+    </motion.div>
   );
 });
+
+// Add display name for debugging
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

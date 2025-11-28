@@ -11,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class TrainingMaterial extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'training_id',
@@ -22,7 +22,7 @@ class TrainingMaterial extends Model implements HasMedia
         'is_required',
         'order',
         'created_by',
-        'visibility'
+        'visibility',
     ];
 
     protected $casts = [

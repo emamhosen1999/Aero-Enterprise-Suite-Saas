@@ -16,12 +16,12 @@ class AccountsPayable extends Model
         'due_date',
         'status',
         'description',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
-        'due_date' => 'date'
+        'due_date' => 'date',
     ];
 
     /**

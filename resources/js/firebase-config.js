@@ -18,7 +18,11 @@ const messaging = getMessaging(app);
 
 export const requestNotificationPermission = async () => {
     try {
-        const vapidKey = import.meta.env.VITE_VAPID_KEY;
+        // Support both old REACT_APP and new VITE naming conventions
+        const vapidKey = import.meta.env.VITE_VAPID_KEY 
+            || import.meta.env.REACT_APP_VAPID_ID 
+            || 'BIB_ue-OutyDEoIxodVhJkdkmUif0C_4pOjd6CCK5U1FxicXrzSh1m8oHjm5su8jCELdd0osPgEdd_7DeYk2JxI';
+        
         const token = await getToken(messaging, { vapidKey });
         if (token) {
             return token;

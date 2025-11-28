@@ -11,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class TrainingAssignment extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'training_id',
@@ -22,7 +22,7 @@ class TrainingAssignment extends Model implements HasMedia
         'is_required',
         'instructions',
         'created_by',
-        'passing_score'
+        'passing_score',
     ];
 
     protected $casts = [
@@ -74,6 +74,7 @@ class TrainingAssignment extends Model implements HasMedia
         }
 
         $hoursUntilDue = now()->diffInHours($this->due_date, false);
+
         return $hoursUntilDue >= 0 && $hoursUntilDue <= 24;
     }
 
@@ -92,7 +93,7 @@ class TrainingAssignment extends Model implements HasMedia
     {
         $submission = $this->getUserSubmission($user);
 
-        if (!$submission || $submission->score === null) {
+        if (! $submission || $submission->score === null) {
             return false;
         }
 

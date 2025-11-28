@@ -101,6 +101,6 @@ class ReturnRequest extends Model
     {
         return $this->expected_return_date &&
             $this->expected_return_date < now()->toDateString() &&
-            !in_array($this->status, ['received', 'processed', 'completed']);
+            ! in_array($this->status, ['received', 'processed', 'completed']);
     }
 }

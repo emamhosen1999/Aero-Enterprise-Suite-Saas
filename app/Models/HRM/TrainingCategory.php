@@ -16,7 +16,7 @@ class TrainingCategory extends Model
         'description',
         'is_active',
         'created_by',
-        'parent_id'
+        'parent_id',
     ];
 
     protected $casts = [

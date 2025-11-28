@@ -33,7 +33,7 @@ class QualityNCR extends Model
         'requires_verification',
         'verification_date',
         'verified_by',
-        'inspection_id'
+        'inspection_id',
     ];
 
     protected $casts = [

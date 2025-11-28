@@ -3,469 +3,265 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tenant;
-use App\Models\PlatformUser;
 use App\Models\User;
+use App\Services\DeviceAuthService;
+use App\Services\ModernAuthenticationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Stancl\Tenancy\Facades\Tenancy;
+use Inertia\Response;
 
 class LoginController extends Controller
 {
+    protected ModernAuthenticationService $authService;
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/dashboard';
+    protected DeviceAuthService $deviceAuthService;
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('guest')->except('logout');
+    public function __construct(
+        ModernAuthenticationService $authService,
+        DeviceAuthService $deviceAuthService
+    ) {
+        $this->authService = $authService;
+        $this->deviceAuthService = $deviceAuthService;
     }
 
     /**
-     * Show the application's login form.
+     * Display the login view.
      */
-    public function showLoginForm()
+    public function create(): Response
     {
-        return Inertia::render('Auth/Login');
-    }
-
-    /**
-     * Show the application's login form (alias for route compatibility).
-     */
-    public function create()
-    {
-        return $this->showLoginForm();
-    }
-
-    /**
-     * Handle a login request to the application.
-     * This method implements context-aware authentication:
-     * - Central domain: Only allow platform users (super admin, support, billing)
-     * - Tenant domain: Only allow tenant users
-     */
-    public function login(Request $request)
-    {
-        $this->validateLogin($request);
-
-        // Determine context based on current domain/route
-        $isTenantContext = $this->isTenantContext($request);
-
-        if ($isTenantContext) {
-            // On tenant domain - only allow tenant users
-            return $this->attemptTenantUserLogin($request);
-        } else {
-            // On central domain - only allow platform users
-            return $this->attemptPlatformUserLogin($request);
-        }
-    }
-
-    /**
-     * Determine if we're in a tenant context
-     */
-    protected function isTenantContext($request)
-    {
-        // Check if we have an active tenant context
-        if (tenant()) {
-            return true;
-        }
-
-        // Check route name patterns
-        $routeName = $request->route()->getName();
-        if (str_starts_with($routeName, 'tenant.')) {
-            return true;
-        }
-
-        // Check domain patterns
-        $host = $request->getHost();
-        $centralDomains = ['127.0.0.1', 'localhost', 'aero-hr.com', 'platform.aero-hr.com'];
-        
-        return !in_array($host, $centralDomains);
-    }
-
-    /**
-     * Attempt platform user login (super admin, support, billing)
-     */
-    protected function attemptPlatformUserLogin(Request $request)
-    {
-        $credentials = $this->credentials($request);
-
-        // Use PlatformUser model for authentication
-        $platformUser = PlatformUser::where('email', $credentials['email'])
-            ->where('is_active', true)
-            ->first();
-
-        if ($platformUser && Hash::check($credentials['password'], $platformUser->password)) {
-            Auth::login($platformUser, $request->filled('remember'));
-            $request->session()->regenerate();
-
-            Log::info('Platform user logged in', [
-                'email' => $credentials['email'],
-                'role' => $platformUser->role,
-                'ip' => $request->ip()
-            ]);
-
-            return $this->sendPlatformLoginResponse($request, $platformUser->role);
-        }
-
-        // If platform authentication fails, show error
-        return back()->withErrors([
-            'email' => 'These credentials do not match our platform records.',
-        ])->onlyInput('email');
-    }
-
-    /**
-     * Send the response after platform user authentication
-     */
-    protected function sendPlatformLoginResponse(Request $request, $role)
-    {
-        $this->clearLoginAttempts($request);
-
-        if ($response = $this->authenticated($request, $this->guard()->user())) {
-            return $response;
-        }
-
-        // Redirect based on role
-        $redirectPath = match($role) {
-            'super_admin' => '/admin',
-            'support' => '/support',
-            'billing' => '/billing',
-            default => '/dashboard'
-        };
-
-        return redirect()->intended($redirectPath)
-            ->with('success', 'Welcome to the platform dashboard!');
-    }
-
-    /**
-     * Handle a login request (alias for route compatibility).
-     */
-    public function store(Request $request)
-    {
-        return $this->login($request);
-    }
-
-    /**
-     * Validate the user login request.
-     */
-    protected function validateLogin(Request $request)
-    {
-        $request->validate([
-            $this->username() => 'required|string|email',
-            'password' => 'required|string',
+        return Inertia::render('Auth/Login', [
+            'canResetPassword' => true,
+            'status' => session('status'),
+            'deviceBlocked' => session('device_blocked', false),
+            'deviceMessage' => session('device_message'),
+            'blockedDeviceInfo' => session('blocked_device_info'),
         ]);
     }
 
     /**
-     * Attempt to log the user into their tenant.
+     * Handle an incoming authentication request.
      */
-    protected function attemptTenantUserLogin(Request $request)
+    public function store(Request $request)
     {
-        $credentials = $this->credentials($request);
-        $email = $credentials['email'];
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+            'remember' => 'boolean',
+        ]);
 
-        // First, find which tenant this user belongs to
-        $tenant = $this->findUserTenant($email);
+        $email = $request->email;
+        $password = $request->password;
+        $remember = $request->boolean('remember');
 
-        if (!$tenant) {
-            $this->incrementLoginAttempts($request);
-            throw ValidationException::withMessages([
-                $this->username() => [trans('auth.failed')],
-            ]);
-        }
+        // Check rate limiting
+        $key = 'login.'.$request->ip();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
 
-        // Initialize the tenant context
-        try {
-            Tenancy::initialize($tenant);
-
-            // Attempt authentication in the tenant database
-            if (Auth::attempt($credentials, $request->filled('remember'))) {
-                $request->session()->regenerate();
-                $this->clearLoginAttempts($request);
-
-                $user = Auth::user();
-                
-                Log::info('Tenant user logged in', [
-                    'tenant_id' => $tenant->id,
-                    'user_id' => $user->id,
-                    'email' => $email,
-                    'ip' => $request->ip()
-                ]);
-
-                return $this->sendTenantLoginResponse($request, $tenant);
-            }
-
-            // Authentication failed
-            $this->incrementLoginAttempts($request);
-            throw ValidationException::withMessages([
-                $this->username() => [trans('auth.failed')],
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Tenant login error', [
-                'tenant_id' => $tenant->id,
-                'email' => $email,
-                'error' => $e->getMessage()
-            ]);
+            $this->authService->logAuthenticationEvent(
+                null,
+                'login_rate_limited',
+                'failure',
+                $request,
+                ['email' => $email, 'retry_after' => $seconds]
+            );
 
             throw ValidationException::withMessages([
-                $this->username() => ['Login failed. Please try again.'],
+                'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
             ]);
-        } finally {
-            // Always end tenancy context
-            Tenancy::end();
-        }
-    }
-
-    /**
-     * Find which tenant a user belongs to based on their email.
-     */
-    protected function findUserTenant(string $email)
-    {
-        // Look up user in all active tenants
-        $tenants = Tenant::where('status', 'active')->get();
-
-        foreach ($tenants as $tenant) {
-            try {
-                Tenancy::initialize($tenant);
-                
-                $userExists = DB::table('users')
-                    ->where('email', $email)
-                    ->exists();
-
-                if ($userExists) {
-                    Tenancy::end();
-                    return $tenant;
-                }
-
-                Tenancy::end();
-            } catch (\Exception $e) {
-                Tenancy::end();
-                Log::warning('Error checking user in tenant', [
-                    'tenant_id' => $tenant->id,
-                    'email' => $email,
-                    'error' => $e->getMessage()
-                ]);
-                continue;
-            }
         }
 
-        return null;
-    }
+        // Check if account is locked
+        if ($this->authService->isAccountLocked($email)) {
+            $this->authService->logAuthenticationEvent(
+                null,
+                'login_account_locked',
+                'failure',
+                $request,
+                ['email' => $email]
+            );
 
-    /**
-     * Send the response after the tenant user was authenticated.
-     */
-    protected function sendTenantLoginResponse(Request $request, Tenant $tenant)
-    {
-        // Check if we're already on the correct subdomain
-        $currentHost = $request->getHost();
-        $expectedSubdomain = $tenant->slug . '.' . config('app.main_domain', 'mysoftwaredomain.com');
-
-        if ($currentHost !== $expectedSubdomain) {
-            // Redirect to the tenant's subdomain
-            $protocol = $request->isSecure() ? 'https' : 'http';
-            $redirectUrl = "{$protocol}://{$expectedSubdomain}/dashboard";
-
-            // Store authentication token for seamless transition
-            $token = $this->generateTenantLoginToken($tenant, Auth::user());
-            $redirectUrl .= "?token={$token}";
-
-            return redirect()->away($redirectUrl);
-        }
-
-        // Already on correct subdomain, redirect to dashboard
-        return redirect()->intended('/dashboard')
-            ->with('success', 'Welcome back!');
-    }
-
-    /**
-     * Generate a secure token for tenant login transition.
-     */
-    protected function generateTenantLoginToken(Tenant $tenant, User $user)
-    {
-        $payload = [
-            'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
-            'expires_at' => now()->addMinutes(5)->timestamp,
-        ];
-
-        return encrypt($payload);
-    }
-
-    /**
-     * Handle token-based login for tenant transitions.
-     */
-    public function loginWithToken(Request $request)
-    {
-        $token = $request->get('token');
-        
-        if (!$token) {
-            return redirect('/')->with('error', 'Invalid login token.');
-        }
-
-        try {
-            $payload = decrypt($token);
-            
-            // Check if token is expired
-            if ($payload['expires_at'] < now()->timestamp) {
-                return redirect('/')->with('error', 'Login token has expired.');
-            }
-
-            // Find the tenant
-            $tenant = Tenant::find($payload['tenant_id']);
-            if (!$tenant || $tenant->status !== 'active') {
-                return redirect('/')->with('error', 'Tenant not found or inactive.');
-            }
-
-            // Initialize tenant context and find user
-            Tenancy::initialize($tenant);
-            
-            $user = User::find($payload['user_id']);
-            if (!$user) {
-                Tenancy::end();
-                return redirect('/')->with('error', 'User not found.');
-            }
-
-            // Log the user in
-            Auth::login($user);
-            $request->session()->regenerate();
-
-            Log::info('User logged in via token', [
-                'tenant_id' => $tenant->id,
-                'user_id' => $user->id,
-                'ip' => $request->ip()
+            throw ValidationException::withMessages([
+                'email' => 'This account has been temporarily locked due to multiple failed login attempts.',
             ]);
-
-            return redirect('/dashboard')->with('success', 'Welcome back!');
-
-        } catch (\Exception $e) {
-            Log::error('Token login failed', [
-                'error' => $e->getMessage(),
-                'ip' => $request->ip()
-            ]);
-
-            return redirect('/')->with('error', 'Invalid login token.');
         }
+
+        // Find user
+        $user = User::where('email', $email)->first();
+
+        // Validate credentials
+        if (! $user || ! Hash::check($password, $user->password)) {
+            RateLimiter::hit($key, 60); // 1 minute decay
+
+            $this->authService->recordFailedAttempt(
+                $email,
+                $request,
+                $user ? 'invalid_password' : 'invalid_email'
+            );
+
+            $this->authService->logAuthenticationEvent(
+                $user,
+                'login_failed',
+                'failure',
+                $request,
+                ['email' => $email, 'reason' => 'invalid_credentials']
+            );
+
+            throw ValidationException::withMessages([
+                'email' => 'The provided credentials are incorrect.',
+            ]);
+        }
+
+        // Check if user account is active
+        if (! $user->active) {
+            $this->authService->logAuthenticationEvent(
+                $user,
+                'login_inactive_account',
+                'failure',
+                $request
+            );
+
+            throw ValidationException::withMessages([
+                'email' => 'This account has been deactivated. Please contact your administrator.',
+            ]);
+        }
+
+        // NEW SECURE DEVICE BINDING LOGIC
+        // Get device_id from request (UUIDv4 from frontend)
+        $deviceId = $request->input('device_id') ?? $request->header('X-Device-ID');
+
+        if (! $deviceId) {
+            throw ValidationException::withMessages([
+                'device_id' => 'Device identification is required for security.',
+            ]);
+        }
+
+        // Check if user can login from this device
+        $deviceCheck = $this->deviceAuthService->canLoginFromDevice($user, $deviceId);
+
+        if (! $deviceCheck['allowed']) {
+            $blockedDevice = $deviceCheck['device'] ?? null;
+
+            $this->authService->logAuthenticationEvent(
+                $user,
+                'login_device_blocked',
+                'failure',
+                $request,
+                [
+                    'device_id' => $deviceId,
+                    'blocked_by_device' => $blockedDevice?->id,
+                    'message' => $deviceCheck['message'],
+                ]
+            );
+
+            $deviceBlockedData = [
+                'blocked' => true,
+                'message' => $deviceCheck['message'],
+                'blocked_device_info' => $blockedDevice ? [
+                    'device_name' => $blockedDevice->device_name,
+                    'browser' => $blockedDevice->browser,
+                    'platform' => $blockedDevice->platform,
+                    'device_type' => $blockedDevice->device_type,
+                    'ip_address' => $blockedDevice->ip_address,
+                    'last_used_at' => $blockedDevice->last_used_at ?
+                        $blockedDevice->last_used_at->format('M j, Y g:i A') : null,
+                ] : null,
+            ];
+
+            throw ValidationException::withMessages([
+                'device_blocking' => [$deviceCheck['message']],
+                'device_blocking_data' => [json_encode($deviceBlockedData)],
+            ]);
+        }
+
+        // Clear rate limiting on successful login
+        RateLimiter::clear($key);
+
+        // Login user
+        Auth::login($user, $remember);
+
+        // Regenerate session for security
+        $request->session()->regenerate();
+
+        // Register/update device with secure token
+        $device = $this->deviceAuthService->registerDevice($user, $request, $deviceId);
+
+        if (! $device) {
+            // If device registration failed, log out and throw error
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'device_id' => 'Failed to register device. Please try again.',
+            ]);
+        }
+
+        // Update login statistics
+        $this->authService->updateLoginStats($user, $request);
+
+        // Track session
+        $this->authService->trackUserSession($user, $request);
+
+        // Log successful login
+        $this->authService->logAuthenticationEvent(
+            $user,
+            'login_success',
+            'success',
+            $request
+        );
+
+        return redirect()->intended(route('dashboard'));
     }
 
     /**
-     * Log the user out of the application.
+     * Destroy an authenticated session.
      */
-    public function logout(Request $request)
+    public function destroy(Request $request)
     {
         $user = Auth::user();
-        $isSuperAdmin = $user && $user->is_super_admin;
 
-        Auth::logout();
+        if ($user) {
+            // Get device_id from request
+            $deviceId = $request->header('X-Device-ID') ?? $request->input('device_id');
+
+            if ($deviceId) {
+                // Find and deactivate the device
+                $device = \App\Models\UserDevice::where('user_id', $user->id)
+                    ->where('device_id', $deviceId)
+                    ->first();
+
+                if ($device) {
+                    $device->deactivate();
+                }
+            }
+
+            // Log logout event
+            $this->authService->logAuthenticationEvent(
+                $user,
+                'logout',
+                'success',
+                $request
+            );
+
+            // Update session tracking if exists
+            $sessionId = session()->getId();
+            DB::table('user_sessions')
+                ->where('session_id', $sessionId)
+                ->update([
+                    'is_current' => false,
+                    'updated_at' => now(),
+                ]);
+        }
+
+        Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Redirect super admins to main site, tenant users to their landing
-        if ($isSuperAdmin) {
-            return redirect('/')->with('success', 'You have been logged out.');
-        }
-
-        // For tenant users, redirect to main domain
-        $protocol = $request->isSecure() ? 'https' : 'http';
-        $mainDomain = config('app.main_domain', 'mysoftwaredomain.com');
-        
-        return redirect()->away("{$protocol}://{$mainDomain}")
-            ->with('success', 'You have been logged out.');
-    }
-
-    /**
-     * Get the login username to be used by the controller.
-     */
-    public function username()
-    {
-        return 'email';
-    }
-
-    /**
-     * Get the needed authorization credentials from the request.
-     */
-    protected function credentials(Request $request)
-    {
-        return $request->only($this->username(), 'password');
-    }
-
-    /**
-     * Get the guard to be used during authentication.
-     */
-    protected function guard()
-    {
-        return Auth::guard();
-    }
-
-    /**
-     * Determine if the user has too many failed login attempts.
-     */
-    protected function hasTooManyLoginAttempts(Request $request)
-    {
-        return RateLimiter::tooManyAttempts(
-            $this->throttleKey($request),
-            5 // max attempts
-        );
-    }
-
-    /**
-     * Increment the login attempts for the user.
-     */
-    protected function incrementLoginAttempts(Request $request)
-    {
-        RateLimiter::hit(
-            $this->throttleKey($request),
-            60 * 5 // 5 minutes
-        );
-    }
-
-    /**
-     * Clear the login attempts for the user.
-     */
-    protected function clearLoginAttempts(Request $request)
-    {
-        RateLimiter::clear($this->throttleKey($request));
-    }
-
-    /**
-     * Get the throttle key for the given request.
-     */
-    protected function throttleKey(Request $request)
-    {
-        return Str::transliterate(Str::lower($request->input($this->username())) . '|' . $request->ip());
-    }
-
-    /**
-     * The user has been authenticated.
-     */
-    protected function authenticated(Request $request, $user)
-    {
-        return null;
-    }
-
-    /**
-     * Log the user out (alias for route compatibility).
-     */
-    public function destroy(Request $request)
-    {
-        return $this->logout($request);
+        return redirect('/login');
     }
 }

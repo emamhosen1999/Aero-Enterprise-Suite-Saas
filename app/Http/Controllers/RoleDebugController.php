@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Services\Role\RolePermissionService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /**
  * Role Debug Controller
- * 
+ *
  * Helps diagnose live server role/permission issues
  */
 class RoleDebugController extends Controller
@@ -120,7 +120,7 @@ class RoleDebugController extends Controller
     {
         try {
             $this->rolePermissionService->resetCache();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Permission cache cleared successfully',
@@ -142,10 +142,10 @@ class RoleDebugController extends Controller
     public function testRole(Request $request)
     {
         $roleId = $request->get('role_id', 1);
-        
+
         try {
             $role = Role::with('permissions')->findOrFail($roleId);
-            
+
             $debug = [
                 'role' => [
                     'id' => $role->id,
@@ -187,11 +187,11 @@ class RoleDebugController extends Controller
     {
         $roleId = $request->get('role_id', 1);
         $permissionName = $request->get('permission', 'core.dashboard.view');
-        
+
         try {
             $role = Role::findOrFail($roleId);
             $permission = Permission::where('name', $permissionName)->firstOrFail();
-            
+
             $beforeState = [
                 'has_permission_via_eloquent' => $role->hasPermissionTo($permission),
                 'has_permission_via_can' => $role->hasPermissionTo($permissionName),

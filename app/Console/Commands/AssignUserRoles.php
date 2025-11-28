@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
+use Illuminate\Console\Command;
 use Spatie\Permission\Models\Role;
 
 class AssignUserRoles extends Command
@@ -28,13 +28,14 @@ class AssignUserRoles extends Command
     public function handle()
     {
         $superAdminId = $this->argument('super-admin-id') ?? 18;
-        
+
         // Check if roles exist
         $superAdminRole = Role::where('name', 'Super Administrator')->first();
         $employeeRole = Role::where('name', 'Employee')->first();
-        
-        if (!$superAdminRole || !$employeeRole) {
+
+        if (! $superAdminRole || ! $employeeRole) {
             $this->error('Required roles not found. Please run the seeder first.');
+
             return 1;
         }
 
@@ -49,9 +50,10 @@ class AssignUserRoles extends Command
 
         // Get all users
         $users = User::all();
-        
+
         if ($users->isEmpty()) {
             $this->error('No users found in the database.');
+
             return 1;
         }
 
@@ -61,7 +63,7 @@ class AssignUserRoles extends Command
         foreach ($users as $user) {
             // Clear existing roles first
             $user->syncRoles([]);
-            
+
             if ($user->id == $superAdminId) {
                 $user->assignRole('Super Administrator');
                 $superAdminUser = $user;
@@ -72,33 +74,33 @@ class AssignUserRoles extends Command
             }
         }
 
-        if (!$superAdminUser) {
+        if (! $superAdminUser) {
             $this->warn("⚠️  User with ID {$superAdminId} not found. No Super Administrator assigned.");
         }
 
         $this->info("✅ Employee role assigned to {$employeeCount} users.");
-        $this->info("🎉 Role assignment completed successfully!");
-        
+        $this->info('🎉 Role assignment completed successfully!');
+
         // Verify the assignments
         $this->info('Verifying role assignments...');
-        
+
         // Check if user with provided ID has Super Administrator role
         $verificationSuperAdmin = User::find($superAdminId);
         if ($verificationSuperAdmin && $verificationSuperAdmin->hasRole('Super Administrator')) {
             $this->info("✅ Verified: User {$superAdminId} has Super Administrator role");
-        } else if ($verificationSuperAdmin) {
+        } elseif ($verificationSuperAdmin) {
             $this->error("❌ Verification failed: User {$superAdminId} does NOT have Super Administrator role");
         }
-        
+
         // Reset permissions cache again
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-        
+
         $this->info('Done! Please clear all application caches for changes to take effect:');
         $this->info('php artisan cache:clear');
         $this->info('php artisan config:clear');
         $this->info('php artisan route:clear');
         $this->info('php artisan permission:cache-reset');
-        
+
         return 0;
     }
 }

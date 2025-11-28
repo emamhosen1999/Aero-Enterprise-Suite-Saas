@@ -2,17 +2,18 @@
 
 namespace App\Http\Requests\HR;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\HRM\Onboarding;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateOnboardingRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $onboarding = $this->route('id') ? Onboarding::find($this->route('id')) : null;
-        if (!$onboarding) {
+        if (! $onboarding) {
             return false;
         }
+
         return $this->user()?->can('hr.onboarding.update') ?? false;
     }
 
@@ -38,7 +39,7 @@ class UpdateOnboardingRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('tasks')) {
+        if (! $this->has('tasks')) {
             $this->merge(['tasks' => []]);
         }
     }

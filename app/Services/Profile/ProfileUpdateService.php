@@ -94,15 +94,18 @@ class ProfileUpdateService
         switch ($key) {
             case 'department':
                 $user->department_id = $value;
-                return 'Department updated to ' . Department::find($value)->name;
+
+                return 'Department updated to '.Department::find($value)->name;
 
             case 'designation':
                 $user->designation_id = $value;
-                return 'Designation updated to ' . Designation::find($value)->title;
+
+                return 'Designation updated to '.Designation::find($value)->title;
 
             case 'report_to':
                 $user->report_to = $value;
-                return 'Report to updated to ' . User::find($value)->name;
+
+                return 'Report to updated to '.User::find($value)->name;
 
             case 'marital_status':
                 $user->{$key} = $value;
@@ -110,7 +113,8 @@ class ProfileUpdateService
                     $user->employment_of_spouse = null;
                     $user->number_of_children = null;
                 }
-                return $this->getFieldDisplayName($key) . ' updated to ' . $value . '.';
+
+                return $this->getFieldDisplayName($key).' updated to '.$value.'.';
 
             case 'pf_contribution':
                 $user->{$key} = $value;
@@ -123,7 +127,7 @@ class ProfileUpdateService
                     $user->total_pf_rate = 0;
                 }
 
-                return $this->getFieldDisplayName($key) . ' updated to ' . $messageValue . '.';
+                return $this->getFieldDisplayName($key).' updated to '.$messageValue.'.';
 
             case 'esi_contribution':
                 $user->{$key} = $value;
@@ -136,12 +140,13 @@ class ProfileUpdateService
                     $user->total_esi_rate = 0;
                 }
 
-                return $this->getFieldDisplayName($key) . ' updated to ' . $messageValue . '.';
+                return $this->getFieldDisplayName($key).' updated to '.$messageValue.'.';
 
             default:
                 if (array_key_exists($key, $this->fieldNames) && ($user->{$key} !== $value)) {
                     $user->{$key} = $value;
-                    return $this->getFieldDisplayName($key) . ' updated to ' . $value . '.';
+
+                    return $this->getFieldDisplayName($key).' updated to '.$value.'.';
                 }
                 break;
         }

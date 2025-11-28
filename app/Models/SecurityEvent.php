@@ -22,7 +22,7 @@ class SecurityEvent extends Model
         'investigated',
         'investigation_notes',
         'investigated_at',
-        'investigated_by'
+        'investigated_by',
     ];
 
     protected $casts = [
@@ -30,7 +30,7 @@ class SecurityEvent extends Model
         'investigated' => 'boolean',
         'investigated_at' => 'datetime',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
     ];
 
     /**

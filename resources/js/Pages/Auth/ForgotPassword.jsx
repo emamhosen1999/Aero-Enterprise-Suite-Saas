@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { 
     EnvelopeIcon,
@@ -10,17 +10,13 @@ import {
 import { Input, Button as HeroButton, Checkbox as HeroCheckbox } from '@heroui/react';
 import AuthLayout from '@/Components/AuthLayout';
 import Button from '@/Components/Button';
-import { useTheme } from '@mui/material/styles';
-import { Typography } from '@mui/material';
 
 export default function ForgotPassword({ status }) {
-    const { props } = usePage();
     const { data, setData, post, processing, errors } = useForm({
         email: '',
     });
 
     const [showSuccess, setShowSuccess] = useState(false);
-    const theme = useTheme();
 
     useEffect(() => {
         if (status) {
@@ -32,52 +28,7 @@ export default function ForgotPassword({ status }) {
 
     const submit = (e) => {
         e.preventDefault();
-        
-        // Determine if we're on a tenant domain
-        const isTenantDomain = () => {
-            if (typeof window === 'undefined') return false;
-            
-            const host = window.location.hostname;
-            const pathname = window.location.pathname;
-            
-            // Development: check for path-based routing
-            if (host === '127.0.0.1' || host === 'localhost') {
-                return pathname.startsWith('/tenant/');
-            }
-            
-            // Production: check if it's not a central domain
-            const centralDomains = ['aero-hr.com', 'aero-hr.local', 'aero.com'];
-            return !centralDomains.includes(host);
-        };
-
-        const getCurrentTenantInfo = () => {
-            if (!isTenantDomain()) return null;
-            
-            const host = window.location.hostname;
-            const pathname = window.location.pathname;
-            
-            // Development: extract from path
-            if (host === '127.0.0.1' || host === 'localhost') {
-                const match = pathname.match(/\/tenant\/([^\/]+)/);
-                return match ? { domain: match[1], name: match[1] } : null;
-            }
-            
-            // Production: extract from subdomain
-            const parts = host.split('.');
-            if (parts.length >= 3) {
-                return { domain: parts[0], name: parts[0] };
-            }
-            
-            return null;
-        };
-
-        const tenantInfo = getCurrentTenantInfo();
-        
-        if (isTenantDomain() && tenantInfo) {
-            post(route('tenant.password.email', { tenant: tenantInfo.domain }));
-        } else {
-            post(route('central.password.email'));
-        }
+        post(route('password.email'));
     };
 
     return (
@@ -103,7 +54,7 @@ export default function ForgotPassword({ status }) {
                 >
                     <div className="flex items-center">
                         <motion.div
-                            className="flex-shrink-0"
+                            className="shrink-0"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.2, type: "spring", stiffness: 500 }}
@@ -148,32 +99,8 @@ export default function ForgotPassword({ status }) {
                         errorMessage={errors.email}
                         autoComplete="username"
                         autoFocus
-                        required
-                        startContent={
-                            <EnvelopeIcon className="w-4 h-4 text-default-400 pointer-events-none flex-shrink-0" />
-                        }
-                        classNames={{
-                            base: "w-full",
-                            mainWrapper: "w-full",
-                            input: [
-                                "bg-transparent",
-                                "text-black dark:text-white",
-                                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                            ],
-                            innerWrapper: "bg-transparent",
-                            inputWrapper: [
-                                "shadow-xl",
-                                "bg-default-200/50",
-                                "dark:bg-default/60",
-                                "backdrop-blur-xl",
-                                "backdrop-saturate-200",
-                                "hover:bg-default-200/70",
-                                "dark:hover:bg-default/70",
-                                "group-data-[focused=true]:bg-default-200/50",
-                                "dark:group-data-[focused=true]:bg-default/60",
-                                "!cursor-text",
-                            ],
-                        }}
+                        isRequired
+                        startContent={<EnvelopeIcon className="w-4 h-4 text-default-400" />}
                     />
                 </motion.div>
 
@@ -182,16 +109,16 @@ export default function ForgotPassword({ status }) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <Button
+                    <HeroButton
                         type="submit"
-                        variant="primary"
+                        color="primary"
                         size="lg"
                         className="w-full"
-                        loading={processing}
+                        isLoading={processing}
                         disabled={processing}
                     >
                         {processing ? 'Sending...' : 'Send reset link'}
-                    </Button>
+                    </HeroButton>
                 </motion.div>
 
                 <motion.div
@@ -202,7 +129,7 @@ export default function ForgotPassword({ status }) {
                 >
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Link
-                            href={route('login', props.isTenant && props.tenant ? { tenant: props.tenant } : {})}
+                            href={route('login')}
                             className="inline-flex items-center text-sm font-medium transition-colors duration-200"
                             style={{ color: theme.palette.text.secondary }}
                         >
@@ -227,7 +154,7 @@ export default function ForgotPassword({ status }) {
             >
                 <div className="flex items-start">
                     <motion.div
-                        className="flex-shrink-0"
+                        className="shrink-0"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.5, type: "spring", stiffness: 500 }}
@@ -285,15 +212,9 @@ export default function ForgotPassword({ status }) {
                             transition={{ duration: 0.6, delay: 1.2 }}
                             className="mt-3"
                         >
-                            <Typography
-                                variant="caption"
-                                color="text.secondary"
-                                textAlign="center"
-                                display="block"
-                                sx={{ opacity: 0.6, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}
-                            >
+                            <p className="text-xs text-default-500 text-center opacity-60">
                                 © 2025 Emam Hosen. All rights reserved.
-                            </Typography>
+                            </p>
                         </motion.div>
         </AuthLayout>
     );

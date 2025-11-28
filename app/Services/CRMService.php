@@ -2,12 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\CRM\Lead;
 use App\Models\CRM\Customer;
+use App\Models\CRM\Lead;
+use App\Models\CRM\LeadSource;
 use App\Models\CRM\Opportunity;
 use App\Models\CRM\SalesStage;
-use App\Models\CRM\LeadSource;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class CRMService
@@ -55,19 +54,19 @@ class CRMService
         $query = Lead::with(['source', 'assignedTo', 'customer']);
 
         // Apply filters
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['source'])) {
+        if (! empty($filters['source'])) {
             $query->where('source_id', $filters['source']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('email', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('company', 'like', '%' . $filters['search'] . '%');
+                $q->where('name', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('email', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('company', 'like', '%'.$filters['search'].'%');
             });
         }
 
@@ -99,19 +98,19 @@ class CRMService
         $query = Customer::with(['assignedTo']);
 
         // Apply filters
-        if (!empty($filters['type'])) {
+        if (! empty($filters['type'])) {
             $query->where('type', $filters['type']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('email', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('company', 'like', '%' . $filters['search'] . '%');
+                $q->where('name', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('email', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('company', 'like', '%'.$filters['search'].'%');
             });
         }
 
@@ -126,18 +125,18 @@ class CRMService
         $query = Opportunity::with(['customer', 'stage', 'assignedTo']);
 
         // Apply filters
-        if (!empty($filters['stage'])) {
+        if (! empty($filters['stage'])) {
             $query->where('stage_id', $filters['stage']);
         }
 
-        if (!empty($filters['assigned_to'])) {
+        if (! empty($filters['assigned_to'])) {
             $query->where('assigned_to', $filters['assigned_to']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%')
-                    ->orWhere('description', 'like', '%' . $filters['search'] . '%');
+                $q->where('name', 'like', '%'.$filters['search'].'%')
+                    ->orWhere('description', 'like', '%'.$filters['search'].'%');
             });
         }
 

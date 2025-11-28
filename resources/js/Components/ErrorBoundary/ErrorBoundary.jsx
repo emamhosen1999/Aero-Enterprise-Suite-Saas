@@ -110,7 +110,7 @@ class ErrorBoundary extends React.Component {
                         <Card className="mb-6 bg-primary-50 dark:bg-primary-950/20 border-l-4 border-l-primary">
                             <CardBody className="text-left">
                                 <p className="text-sm">
-                                    <strong>Error ID:</strong> <code className="font-mono bg-default-100 px-1 rounded">{errorId}</code>
+                                    <strong>Error ID:</strong> <code className="font-mono bg-default-100 px-1 rounded-sm">{errorId}</code>
                                 </p>
                                 <p className="text-sm text-default-600 mt-1">
                                     Please provide this ID when contacting support.

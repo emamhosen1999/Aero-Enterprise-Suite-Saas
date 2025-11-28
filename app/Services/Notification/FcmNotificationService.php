@@ -2,11 +2,9 @@
 
 namespace App\Services\Notification;
 
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
-use Kreait\Laravel\Firebase;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Config;
 
 class FcmNotificationService
 {
@@ -20,10 +18,10 @@ class FcmNotificationService
     /**
      * Send a notification to a specific device
      *
-     * @param string $deviceToken
-     * @param string $title
-     * @param string $body
-     * @param array $data
+     * @param  string  $deviceToken
+     * @param  string  $title
+     * @param  string  $body
+     * @param  array  $data
      * @return bool
      */
     public function sendNotification($deviceToken, $title, $body, $data = [])
@@ -32,18 +30,19 @@ class FcmNotificationService
             'device_token' => $deviceToken,
             'title' => $title,
             'body' => $body,
-            'data' => $data
+            'data' => $data,
         ]);
 
         if (empty($deviceToken)) {
             Log::error('FCM Notification Error: Device token is empty');
+
             return false;
         }
 
         try {
             // Create notification
             $notification = Notification::create($title, $body);
-            
+
             // Create message
             $message = CloudMessage::withTarget('token', $deviceToken)
                 ->withNotification($notification)
@@ -63,10 +62,10 @@ class FcmNotificationService
 
             // Send the message
             $response = $this->messaging->send($message);
-            
+
             Log::debug('FCM Notification Sent', [
                 'message_id' => $response,
-                'fcm_token' => $deviceToken
+                'fcm_token' => $deviceToken,
             ]);
 
             return true;
@@ -76,35 +75,32 @@ class FcmNotificationService
             $this->handleInvalidToken($deviceToken);
             Log::error('FCM Token not found or invalid', [
                 'fcm_token' => $deviceToken,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
-            
+
         } catch (\Kreait\Firebase\Exception\Messaging\InvalidMessage $e) {
             Log::error('FCM Invalid Message', [
                 'fcm_token' => $deviceToken,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
-            
+
         } catch (\Exception $e) {
             Log::error('FCM Notification Error', [
                 'fcm_token' => $deviceToken,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Send a multicast notification to multiple devices
-     * 
-     * @param array $deviceTokens
-     * @param string $title
-     * @param string $body
-     * @param array $data
-     * @return array
      */
     public function sendMulticastNotification(array $deviceTokens, string $title, string $body, array $data = []): array
     {
@@ -114,7 +110,7 @@ class FcmNotificationService
 
         try {
             $notification = Notification::create($title, $body);
-            
+
             $message = CloudMessage::new()
                 ->withNotification($notification)
                 ->withData($data)
@@ -122,40 +118,40 @@ class FcmNotificationService
                 ->withHighPriority();
 
             $report = $this->messaging->sendMulticast($message, $deviceTokens);
-            
+
             return [
                 'successful' => $report->successes()->count(),
                 'failed' => $report->failures()->count(),
                 'invalid_tokens' => $report->invalidTokens(),
             ];
-            
+
         } catch (\Exception $e) {
             Log::error('FCM Multicast Error', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return [
                 'successful' => 0,
                 'failed' => count($deviceTokens),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
 
     /**
      * Handle invalid/expired FCM tokens
-     * 
-     * @param string $deviceToken
+     *
+     * @param  string  $deviceToken
      * @return void
      */
     protected function handleInvalidToken($deviceToken)
     {
         Log::warning('Invalid FCM token detected', [
             'fcm_token' => $deviceToken,
-            'action' => 'Token should be removed from database'
+            'action' => 'Token should be removed from database',
         ]);
-        
+
         // Example: Remove the token from your database
         // User::where('fcm_token', $deviceToken)->update(['fcm_token' => null]);
     }

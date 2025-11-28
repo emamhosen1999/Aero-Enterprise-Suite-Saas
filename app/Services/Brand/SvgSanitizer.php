@@ -2,8 +2,8 @@
 
 namespace App\Services\Brand;
 
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class SvgSanitizer
 {
@@ -57,14 +57,14 @@ class SvgSanitizer
     {
         try {
             // Basic validation
-            if (!$this->isValidSvg($svgContent)) {
+            if (! $this->isValidSvg($svgContent)) {
                 throw new Exception('Invalid SVG content provided');
             }
 
             // Remove dangerous elements and attributes
             $sanitized = $this->removeDangerousElements($svgContent);
             $sanitized = $this->removeDangerousAttributes($sanitized);
-            
+
             // Clean up whitespace and normalize
             $sanitized = $this->normalizeContent($sanitized);
 
@@ -73,7 +73,7 @@ class SvgSanitizer
         } catch (Exception $e) {
             Log::error('SVG sanitization failed', [
                 'error' => $e->getMessage(),
-                'content_length' => strlen($svgContent)
+                'content_length' => strlen($svgContent),
             ]);
             throw $e;
         }
@@ -85,22 +85,23 @@ class SvgSanitizer
     public function isValidSvg(string $content): bool
     {
         // Basic structure check
-        if (!str_contains($content, '<svg') || !str_contains($content, '</svg>')) {
+        if (! str_contains($content, '<svg') || ! str_contains($content, '</svg>')) {
             return false;
         }
 
         // Check for XML declaration issues
-        if (str_contains($content, '<?xml') && !str_starts_with(trim($content), '<?xml')) {
+        if (str_contains($content, '<?xml') && ! str_starts_with(trim($content), '<?xml')) {
             return false;
         }
 
         // Try to load as DOMDocument for structure validation
         try {
-            $dom = new \DOMDocument();
+            $dom = new \DOMDocument;
             $dom->loadXML($content, LIBXML_NOERROR | LIBXML_NOWARNING);
-            
+
             // Check if it has an SVG root element
             $svgElements = $dom->getElementsByTagName('svg');
+
             return $svgElements->length > 0;
 
         } catch (Exception $e) {
@@ -116,14 +117,14 @@ class SvgSanitizer
         foreach ($this->dangerousElements as $element) {
             // Remove opening and closing tags
             $content = preg_replace(
-                '/<' . preg_quote($element, '/') . '[^>]*>.*?<\/' . preg_quote($element, '/') . '>/si',
+                '/<'.preg_quote($element, '/').'[^>]*>.*?<\/'.preg_quote($element, '/').'>/si',
                 '',
                 $content
             );
-            
+
             // Remove self-closing tags
             $content = preg_replace(
-                '/<' . preg_quote($element, '/') . '[^>]*\/>/si',
+                '/<'.preg_quote($element, '/').'[^>]*\/>/si',
                 '',
                 $content
             );
@@ -141,14 +142,14 @@ class SvgSanitizer
             if (str_contains($attribute, ':')) {
                 // Handle protocol-based attributes like javascript:
                 $content = preg_replace(
-                    '/\s[^=]*=\s*["\']?' . preg_quote($attribute, '/') . '[^"\'>\s]*/i',
+                    '/\s[^=]*=\s*["\']?'.preg_quote($attribute, '/').'[^"\'>\s]*/i',
                     '',
                     $content
                 );
             } else {
                 // Handle regular attributes
                 $content = preg_replace(
-                    '/\s' . preg_quote($attribute, '/') . '\s*=\s*["\'][^"\']*["\']/i',
+                    '/\s'.preg_quote($attribute, '/').'\s*=\s*["\'][^"\']*["\']/i',
                     '',
                     $content
                 );
@@ -165,11 +166,11 @@ class SvgSanitizer
     {
         // Remove comments
         $content = preg_replace('/<!--.*?-->/s', '', $content);
-        
+
         // Remove excessive whitespace
         $content = preg_replace('/\s+/', ' ', $content);
         $content = preg_replace('/>\s+</', '><', $content);
-        
+
         // Trim
         $content = trim($content);
 
@@ -184,9 +185,9 @@ class SvgSanitizer
         $dimensions = ['width' => null, 'height' => null, 'viewBox' => null];
 
         try {
-            $dom = new \DOMDocument();
+            $dom = new \DOMDocument;
             $dom->loadXML($svgContent, LIBXML_NOERROR | LIBXML_NOWARNING);
-            
+
             $svgElement = $dom->getElementsByTagName('svg')->item(0);
             if ($svgElement) {
                 $dimensions['width'] = $svgElement->getAttribute('width');
@@ -218,19 +219,20 @@ class SvgSanitizer
         try {
             // First sanitize
             $optimized = $this->sanitize($svgContent);
-            
+
             // Remove unnecessary attributes
             $optimized = $this->removeUnnecessaryAttributes($optimized);
-            
+
             // Optimize paths (basic optimization)
             $optimized = $this->optimizePaths($optimized);
-            
+
             return $optimized;
 
         } catch (Exception $e) {
             Log::warning('SVG optimization failed, returning sanitized version', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return $this->sanitize($svgContent);
         }
     }
@@ -252,7 +254,7 @@ class SvgSanitizer
 
         foreach ($unnecessaryAttributes as $attr) {
             $content = preg_replace(
-                '/\s' . preg_quote($attr, '/') . '\s*=\s*["\'][^"\']*["\']/i',
+                '/\s'.preg_quote($attr, '/').'\s*=\s*["\'][^"\']*["\']/i',
                 '',
                 $content
             );
@@ -275,7 +277,8 @@ class SvgSanitizer
                 $path = preg_replace('/\s*([MmLlHhVvCcSsQqTtAaZz])\s*/', '$1', $path);
                 // Remove unnecessary spaces around numbers
                 $path = preg_replace('/\s+/', ' ', $path);
-                return 'd="' . trim($path) . '"';
+
+                return 'd="'.trim($path).'"';
             },
             $content
         );

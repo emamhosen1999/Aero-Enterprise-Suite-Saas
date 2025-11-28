@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Spinner } from '@heroui/react';
 
 /**
  * Enhanced Loading Component with Better UX
@@ -13,14 +13,12 @@ import { Box, CircularProgress, Typography } from '@mui/material';
  */
 
 const LoadingSpinner = React.memo(({ 
-    size = 40, 
-    thickness = 4, 
+    size = 'lg', 
     color = 'primary',
     className = '' 
 }) => (
-    <CircularProgress 
+    <Spinner 
         size={size} 
-        thickness={thickness} 
         color={color}
         className={className}
         role="status"
@@ -36,41 +34,32 @@ const LoadingOverlay = React.memo(({
     backdrop = true,
     className = ''
 }) => (
-    <Box
-        className={`${className} fixed inset-0 z-50 flex flex-col items-center justify-center`}
-        sx={{
+    <div
+        className={`${className} fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-300`}
+        style={{
             background: backdrop 
                 ? 'linear-gradient(135deg, rgba(15, 20, 25, 0.9) 0%, rgba(20, 25, 30, 0.8) 100%)' 
                 : 'transparent',
             backdropFilter: backdrop ? 'blur(8px)' : 'none',
-            transition: 'all 0.3s ease'
         }}
         role="status"
         aria-live="polite"
         aria-label={message}
     >
-        <Box className="text-center">
-            <LoadingSpinner size={60} thickness={3} />
+        <div className="text-center">
+            <LoadingSpinner size="xl" />
             
-            <Typography 
-                variant="h6" 
-                className="mt-4 text-white font-medium"
-                component="div"
-            >
+            <h2 className="mt-4 text-xl font-medium text-white">
                 {message}
-            </Typography>
+            </h2>
             
             {subtitle && (
-                <Typography 
-                    variant="body2" 
-                    className="mt-2 text-white/70"
-                    component="div"
-                >
+                <p className="mt-2 text-sm text-white/70">
                     {subtitle}
-                </Typography>
+                </p>
             )}
-        </Box>
-    </Box>
+        </div>
+    </div>
 ));
 
 LoadingOverlay.displayName = 'LoadingOverlay';
@@ -80,21 +69,21 @@ const SkeletonCard = React.memo(({
     className = '',
     animated = true 
 }) => (
-    <Box
-        className={`${className} bg-white/10 rounded-xl border border-white/20`}
-        sx={{ 
+    <div
+        className={`${className} bg-default-100 dark:bg-default-50 rounded-xl border border-divider`}
+        style={{ 
             height: `${height}px`,
             animation: animated ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none'
         }}
         role="status"
         aria-label="Loading content"
     >
-        <Box className="p-6 space-y-4">
-            <Box className="h-4 bg-white/20 rounded w-3/4"></Box>
-            <Box className="h-4 bg-white/20 rounded w-1/2"></Box>
-            <Box className="h-4 bg-white/20 rounded w-2/3"></Box>
-        </Box>
-    </Box>
+        <div className="p-6 space-y-4">
+            <div className="h-4 bg-default-200 rounded-sm w-3/4"></div>
+            <div className="h-4 bg-default-200 rounded-sm w-1/2"></div>
+            <div className="h-4 bg-default-200 rounded-sm w-2/3"></div>
+        </div>
+    </div>
 ));
 
 SkeletonCard.displayName = 'SkeletonCard';
@@ -104,53 +93,53 @@ const SkeletonTable = React.memo(({
     columns = 4,
     className = '' 
 }) => (
-    <Box className={`${className} bg-white/10 rounded-xl border border-white/20 overflow-hidden`}>
+    <div className={`${className} bg-default-100 dark:bg-default-50 rounded-xl border border-divider overflow-hidden`}>
         {/* Header */}
-        <Box className="p-4 border-b border-white/10">
-            <Box className="grid gap-4" sx={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+        <div className="p-4 border-b border-divider">
+            <div className={`grid gap-4 grid-cols-${columns}`}>
                 {Array.from({ length: columns }).map((_, i) => (
-                    <Box 
+                    <div 
                         key={i} 
-                        className="h-4 bg-white/20 rounded animate-pulse" 
+                        className="h-4 bg-default-200 rounded-sm animate-pulse" 
                     />
                 ))}
-            </Box>
-        </Box>
+            </div>
+        </div>
         
         {/* Rows */}
-        <Box className="divide-y divide-white/10">
+        <div className="divide-y divide-divider">
             {Array.from({ length: rows }).map((_, rowIndex) => (
-                <Box key={rowIndex} className="p-4">
-                    <Box className="grid gap-4" sx={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+                <div key={rowIndex} className="p-4">
+                    <div className={`grid gap-4 grid-cols-${columns}`}>
                         {Array.from({ length: columns }).map((_, colIndex) => (
-                            <Box 
+                            <div 
                                 key={colIndex} 
-                                className="h-3 bg-white/15 rounded animate-pulse"
-                                sx={{ 
+                                className="h-3 bg-default-200 rounded-sm animate-pulse"
+                                style={{ 
                                     animationDelay: `${(rowIndex * columns + colIndex) * 0.1}s`
                                 }}
                             />
                         ))}
-                    </Box>
-                </Box>
+                    </div>
+                </div>
             ))}
-        </Box>
-    </Box>
+        </div>
+    </div>
 ));
 
 SkeletonTable.displayName = 'SkeletonTable';
 
 const InlineLoader = React.memo(({ 
-    size = 20, 
+    size = 'sm', 
     className = '',
     message = 'Loading...' 
 }) => (
-    <Box className={`${className} flex items-center gap-2`} role="status">
-        <LoadingSpinner size={size} thickness={4} />
-        <Typography variant="body2" className="text-gray-600">
+    <div className={`${className} flex items-center gap-2`} role="status">
+        <LoadingSpinner size={size} />
+        <span className="text-sm text-foreground-600">
             {message}
-        </Typography>
-    </Box>
+        </span>
+    </div>
 ));
 
 InlineLoader.displayName = 'InlineLoader';
@@ -160,33 +149,25 @@ const PageLoader = React.memo(({
     subtitle = 'Please wait while we prepare your content',
     className = '' 
 }) => (
-    <Box 
+    <div 
         className={`${className} min-h-screen flex flex-col items-center justify-center p-8`}
         role="status"
         aria-live="polite"
     >
-        <Box className="text-center max-w-md">
-            <LoadingSpinner size={80} thickness={2} />
+        <div className="text-center max-w-md">
+            <LoadingSpinner size="xl" />
             
-            <Typography 
-                variant="h5" 
-                className="mt-6 font-semibold text-gray-800 dark:text-white"
-                component="h1"
-            >
+            <h1 className="mt-6 text-2xl font-semibold text-foreground">
                 {message}
-            </Typography>
+            </h1>
             
             {subtitle && (
-                <Typography 
-                    variant="body1" 
-                    className="mt-3 text-gray-600 dark:text-gray-300"
-                    component="p"
-                >
+                <p className="mt-3 text-base text-foreground-600">
                     {subtitle}
-                </Typography>
+                </p>
             )}
-        </Box>
-    </Box>
+        </div>
+    </div>
 ));
 
 PageLoader.displayName = 'PageLoader';

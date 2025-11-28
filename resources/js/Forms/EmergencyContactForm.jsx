@@ -1,23 +1,34 @@
 import {
-    CardContent,
-    CircularProgress,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Grid,
-    IconButton,
-    TextField,
-    Typography
-} from "@mui/material";
+    Button,
+    Input,
+    Spinner,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
+} from "@heroui/react";
 import React, {useEffect, useState} from "react";
 import GlassCard from "@/Components/GlassCard.jsx";
-import ClearIcon from '@mui/icons-material/Clear';
-import GlassDialog from "@/Components/GlassDialog.jsx";
-import {useTheme} from "@mui/material/styles";
-import LoadingButton from "@mui/lab/LoadingButton";
-import {toast} from "react-toastify";
+import { X, Phone } from 'lucide-react';
+import { showToast } from "@/utils/toastUtils";
 
 const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
     const [initialUserData, setInitialUserData] = useState({
         id: user.id,
         emergency_contact_primary_name: user.emergency_contact_primary_name || '',
@@ -38,7 +49,6 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
     const [errors, setErrors] = useState({});
     const [processing, setProcessing] = useState(false);
 
-    const theme = useTheme();
     const handleChange = (key, value) => {
         setInitialUserData((prevUser) => {
             const updatedData = { ...prevUser, [key]: value };
@@ -91,13 +101,13 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
 
             if (response.status === 200) {
                 setUser(response.data.user);
-                toast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Emergency contact updated successfully', {
+                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Emergency contact updated successfully', {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 closeModal();
@@ -111,49 +121,49 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                 if (error.response.status === 422) {
                     // Handle validation errors
                     setErrors(error.response.data.errors || {});
-                    toast.error(error.response.data.error || 'Failed to update emergency contact.', {
+                    showToast.error(error.response.data.error || 'Failed to update emergency contact.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 } else {
                     // Handle other HTTP errors
-                    toast.error('An unexpected error occurred. Please try again later.', {
+                    showToast.error('An unexpected error occurred. Please try again later.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 }
                 console.error(error.response.data);
             } else if (error.request) {
                 // The request was made but no response was received
-                toast.error('No response received from the server. Please check your internet connection.', {
+                showToast.error('No response received from the server. Please check your internet connection.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error(error.request);
             } else {
                 // Something happened in setting up the request that triggered an Error
-                toast.error('An error occurred while setting up the request.', {
+                showToast.error('An error occurred while setting up the request.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error('Error', error.message);
@@ -166,135 +176,218 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
 
 
     return (
-        <GlassDialog open={open} onClose={closeModal}>
-            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-                <Typography>Personal Information</Typography>
-                <IconButton
-                    variant="outlined"
-                    color="primary"
-                    onClick={closeModal}
-                    sx={{ position: "absolute", top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
+        <Modal
+            isOpen={open}
+            onOpenChange={processing ? undefined : closeModal}
+            size="2xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "bg-content1",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+            }}
+            style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}
+        >
+            <ModalContent>
+                <ModalHeader className="flex gap-3 items-center" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderBottom: '1px solid var(--theme-divider)'
+                }}>
+                    <div className="p-2 rounded-lg" style={{
+                        background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                        borderRadius: `var(--borderRadius, 8px)`,
+                    }}>
+                        <Phone size={20} style={{ color: 'var(--theme-primary)' }} />
+                    </div>
+                    <span className="text-lg font-semibold" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        Emergency Contact Information
+                    </span>
+                </ModalHeader>
             <form onSubmit={handleSubmit}>
-                <DialogContent>
-                    <Grid container spacing={2}>
+                <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <div className="space-y-6">
                         {/* Primary Contact Section */}
-                        <Grid item xs={12}>
+                        <div>
                             <GlassCard>
-                                <CardContent>
-                                    <Typography variant="h5" gutterBottom>
+                                <div className="p-4">
+                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                                         Primary Contact
-                                    </Typography>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={12} md={6}>
-                                            <TextField
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Input
                                                 label="Name"
-                                                required
-                                                fullWidth
+                                                isRequired
                                                 value={changedUserData.emergency_contact_primary_name || initialUserData.emergency_contact_primary_name || ""}
                                                 onChange={(e) => handleChange("emergency_contact_primary_name", e.target.value)}
-                                                error={Boolean(errors.bank_name)}
-                                                helperText={errors.bank_name}
+                                                isInvalid={Boolean(errors.emergency_contact_primary_name)}
+                                                errorMessage={errors.emergency_contact_primary_name}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
                                             />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <TextField
+                                        </div>
+                                        <div>
+                                            <Input
                                                 label="Relationship"
-                                                required
-                                                fullWidth
+                                                isRequired
                                                 value={changedUserData.emergency_contact_primary_relationship || initialUserData.emergency_contact_primary_relationship || ""}
                                                 onChange={(e) => handleChange("emergency_contact_primary_relationship", e.target.value)}
-                                                error={Boolean(errors.bank_name)}
-                                                helperText={errors.bank_name}
+                                                isInvalid={Boolean(errors.emergency_contact_primary_relationship)}
+                                                errorMessage={errors.emergency_contact_primary_relationship}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
                                             />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <TextField
+                                        </div>
+                                        <div>
+                                            <Input
                                                 label="Phone"
-                                                required
-                                                fullWidth
+                                                isRequired
                                                 value={changedUserData.emergency_contact_primary_phone || initialUserData.emergency_contact_primary_phone || ""}
                                                 onChange={(e) => handleChange("emergency_contact_primary_phone", e.target.value)}
-                                                error={Boolean(errors.bank_name)}
-                                                helperText={errors.bank_name}
+                                                isInvalid={Boolean(errors.emergency_contact_primary_phone)}
+                                                errorMessage={errors.emergency_contact_primary_phone}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
                                             />
-                                        </Grid>
-                                    </Grid>
-                                </CardContent>
+                                        </div>
+                                    </div>
+                                </div>
                             </GlassCard>
-                        </Grid>
+                        </div>
 
                         {/* Secondary Contact Section */}
-                        <Grid item xs={12}>
+                        <div>
                             <GlassCard>
-                                <CardContent>
-                                    <Typography variant="h5" gutterBottom>
+                                <div className="p-4">
+                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                                         Secondary Contact
-                                    </Typography>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={12} md={6}>
-                                            <TextField
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Input
                                                 label="Name"
-                                                fullWidth
                                                 value={changedUserData.emergency_contact_secondary_name || initialUserData.emergency_contact_secondary_name || ""}
                                                 onChange={(e) => handleChange("emergency_contact_secondary_name", e.target.value)}
-                                                error={Boolean(errors.bank_name)}
-                                                helperText={errors.bank_name}
+                                                isInvalid={Boolean(errors.emergency_contact_secondary_name)}
+                                                errorMessage={errors.emergency_contact_secondary_name}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
                                             />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <TextField
+                                        </div>
+                                        <div>
+                                            <Input
                                                 label="Relationship"
-                                                fullWidth
                                                 value={changedUserData.emergency_contact_secondary_relationship || initialUserData.emergency_contact_secondary_relationship || ""}
                                                 onChange={(e) => handleChange("emergency_contact_secondary_relationship", e.target.value)}
-                                                error={Boolean(errors.bank_name)}
-                                                helperText={errors.bank_name}
+                                                isInvalid={Boolean(errors.emergency_contact_secondary_relationship)}
+                                                errorMessage={errors.emergency_contact_secondary_relationship}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
                                             />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <TextField
+                                        </div>
+                                        <div>
+                                            <Input
                                                 label="Phone"
-                                                fullWidth
                                                 value={changedUserData.emergency_contact_secondary_phone || initialUserData.emergency_contact_secondary_phone || ""}
                                                 onChange={(e) => handleChange("emergency_contact_secondary_phone", e.target.value)}
-                                                error={Boolean(errors.bank_name)}
-                                                helperText={errors.bank_name}
+                                                isInvalid={Boolean(errors.emergency_contact_secondary_phone)}
+                                                errorMessage={errors.emergency_contact_secondary_phone}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                classNames={{
+                                                    input: "text-small",
+                                                    inputWrapper: "min-h-unit-10"
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
                                             />
-                                        </Grid>
-                                    </Grid>
-                                </CardContent>
+                                        </div>
+                                    </div>
+                                </div>
                             </GlassCard>
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "16px",
-                    }}
-                >
-                    <LoadingButton
-                        disabled={!dataChanged}
-                        sx={{
-                            borderRadius: "50px",
-                            padding: "6px 16px",
+                        </div>
+                    </div>
+                </ModalBody>
+                <ModalFooter style={{
+                    borderTop: '1px solid var(--theme-divider)',
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <Button
+                        onPress={closeModal}
+                        isDisabled={processing}
+                        variant="light"
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
                         }}
-                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        isDisabled={!dataChanged}
+                        variant="bordered"
                         color="primary"
                         type="submit"
-                        loading={processing}
+                        isLoading={processing}
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
                     >
                         Submit
-                    </LoadingButton>
-                </DialogActions>
+                    </Button>
+                </ModalFooter>
             </form>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
     );
 };
 

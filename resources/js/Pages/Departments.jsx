@@ -1,14 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import {
-    Box,
-    Typography,
-    CircularProgress,
-    Grow,
-    Fade,
-    useTheme,
-    useMediaQuery,
-} from '@mui/material';
+import { motion } from 'framer-motion';
 import {
     Select,
     SelectItem,
@@ -18,10 +10,11 @@ import {
     Divider,
     Chip,
     Button,
-    Input,
     ButtonGroup,
     User,
-    Pagination
+    Pagination,
+    Input,
+    Spinner
 } from "@heroui/react";
 import {
     BuildingOffice2Icon,
@@ -49,15 +42,16 @@ import App from '@/Layouts/App.jsx';
 import DepartmentTable from '@/Tables/DepartmentTable.jsx';
 import DepartmentForm from '@/Forms/DepartmentForm.jsx';
 import DeleteDepartmentForm from '@/Forms/DeleteDepartmentForm.jsx';
+import { useTheme } from '@/Contexts/ThemeContext';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastUtils';
 import dayjs from 'dayjs';
 
 const Departments = ({ title, departments: initialDepartments, managers, parentDepartments, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    const { theme } = useTheme();
+    const [isMobile] = useState(window.innerWidth < 640);
+    const [isTablet] = useState(window.innerWidth < 768);
     
     // State for departments data
     const [departmentsData, setDepartmentsData] = useState(initialDepartments || { data: [] });
@@ -123,7 +117,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
             setDepartmentsData(response.data.departments);
         } catch (error) {
             console.error('Error fetching departments:', error);
-            toast.error('Failed to load departments data');
+            showToast.error('Failed to load departments data');
         } finally {
             setLoading(false);
         }
@@ -194,7 +188,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                 <CardBody className="p-4 flex flex-col h-full">
                     {/* Card Header with Department Info */}
                     <div className="flex items-start gap-3 mb-3 pb-3 border-b border-white/10">
-                        <div className="flex justify-center items-center h-10 w-10 rounded-lg bg-primary/20 text-primary flex-shrink-0">
+                        <div className="flex justify-center items-center h-10 w-10 rounded-lg bg-primary/20 text-primary shrink-0">
                             <BuildingOfficeIcon className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -227,7 +221,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                         {/* Location */}
                         {department.location && (
                             <div className="flex items-center gap-2 text-sm">
-                                <MapPinIcon className="w-4 h-4 text-default-400 flex-shrink-0" />
+                                <MapPinIcon className="w-4 h-4 text-default-400 shrink-0" />
                                 <span className="text-default-600 text-xs line-clamp-1">{department.location}</span>
                             </div>
                         )}
@@ -235,7 +229,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                         {/* Established Date */}
                         {department.established_date && (
                             <div className="flex items-center gap-2 text-sm">
-                                <CalendarIcon className="w-4 h-4 text-default-400 flex-shrink-0" />
+                                <CalendarIcon className="w-4 h-4 text-default-400 shrink-0" />
                                 <span className="text-default-600 text-xs">
                                     {dayjs(department.established_date).format('MMM D, YYYY')}
                                 </span>
@@ -244,7 +238,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                         
                         {/* Employees Count */}
                         <div className="flex items-center gap-2 text-sm">
-                            <UsersIcon className="w-4 h-4 text-default-400 flex-shrink-0" />
+                            <UsersIcon className="w-4 h-4 text-default-400 shrink-0" />
                             <span className="text-default-600 text-xs">
                                 {department.employee_count || 0} {department.employee_count === 1 ? 'Employee' : 'Employees'}
                             </span>
@@ -343,7 +337,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                 label: isMobile ? "Add" : "Add Department",
                 icon: <PlusIcon className="w-4 h-4" />,
                 onPress: () => openModal('add_department'),
-                className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
+                className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
             });
         }
 
@@ -362,8 +356,12 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
         <App>
             <Head title={title} />
             
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <Grow in={true} timeout={800}>
+            <div className="flex justify-center p-2">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                >
                     <GlassCard>
                         <PageHeader
                             title="Department Management"
@@ -381,16 +379,10 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                                     <div className="flex-1">
                                         <Input
                                             label="Search Departments"
-                                            variant="bordered"
                                             placeholder="Search by name, code, or location..."
                                             value={filters.search}
-                                            onValueChange={(value) => handleFilterChange('search', value)}
-                                            startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                                            classNames={{
-                                                input: "bg-transparent",
-                                                inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                                            }}
-                                            size={isMobile ? "sm" : "md"}
+                                            onChange={(e) => handleFilterChange('search', e.target.value)}
+                                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                         />
                                     </div>
 
@@ -432,8 +424,12 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
 
                                 {/* Filters Section */}
                                 {showFilters && (
-                                    <Fade in={true} timeout={300}>
-                                        <div className="mb-6 p-4 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="mb-6 p-4 bg-white/5 backdrop-blur-md rounded-lg border border-white/10"
+                                    >
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                                 <Select
                                                     label="Status"
@@ -513,27 +509,26 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                                                     )}
                                                 </div>
                                             )}
-                                        </div>
-                                    </Fade>
+                                        </motion.div>
                                 )}
 
                                 {/* Content Area */}
                                 <div className="bg-white/5 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden">
                                     <div className="p-4 border-b border-white/10">
-                                        <Typography variant="h6" className="font-semibold text-foreground">
+                                        <h3 className="text-lg font-semibold text-foreground">
                                             {viewMode === 'table' ? 'Department Table' : 'Department Grid'} 
                                             <span className="text-sm text-default-500 ml-2">
                                                 ({departmentsData.total || 0} {departmentsData.total === 1 ? 'department' : 'departments'})
                                             </span>
-                                        </Typography>
+                                        </h3>
                                     </div>
                                     
                                     {loading ? (
                                         <div className="text-center py-8">
-                                            <CircularProgress size={40} />
-                                            <Typography className="mt-4" color="textSecondary">
+                                            <Spinner size="lg" />
+                                            <p className="mt-4 text-default-500">
                                                 Loading departments data...
-                                            </Typography>
+                                            </p>
                                         </div>
                                     ) : viewMode === 'table' ? (
                                         <DepartmentTable
@@ -567,12 +562,12 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                                             ) : (
                                                 <div className="text-center py-8">
                                                     <BuildingOffice2Icon className="w-12 h-12 mx-auto text-default-300 mb-2" />
-                                                    <Typography variant="body1" color="textSecondary">
+                                                    <p className="text-default-500 mb-1">
                                                         No departments found
-                                                    </Typography>
-                                                    <Typography variant="caption" color="textSecondary">
+                                                    </p>
+                                                    <p className="text-xs text-default-400">
                                                         Try adjusting your search or filters
-                                                    </Typography>
+                                                    </p>
                                                 </div>
                                             )}
                                             
@@ -600,8 +595,8 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
                             </div>
                         </PageHeader>
                     </GlassCard>
-                </Grow>
-            </Box>
+                </motion.div>
+            </div>
             
             {/* Department Form Modal */}
             {(modalState.type === 'add_department' || modalState.type === 'edit_department') && (

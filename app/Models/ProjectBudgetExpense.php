@@ -24,7 +24,7 @@ class ProjectBudgetExpense extends Model
         'approved_by',
         'approved_at',
         'notes',
-        'receipt_file_path'
+        'receipt_file_path',
     ];
 
     protected $casts = [

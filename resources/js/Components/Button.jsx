@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
-import { useTheme } from '@mui/material/styles';
 
 const Button = forwardRef(({ 
     children, 
@@ -16,82 +15,110 @@ const Button = forwardRef(({
     iconPosition = 'left',
     ...props 
 }, ref) => {
-    const theme = useTheme();
+    // Custom theme for consistent styling
+    const glassTheme = {
+        palette: {
+            primary: { 
+                main: '#3b82f6', 
+                dark: '#2563eb',
+                contrastText: '#ffffff' 
+            },
+            secondary: { 
+                main: '#64748b', 
+                dark: '#475569',
+                contrastText: '#ffffff' 
+            },
+            error: { 
+                main: '#ef4444', 
+                dark: '#dc2626',
+                contrastText: '#ffffff' 
+            },
+            success: { 
+                main: '#10b981', 
+                dark: '#059669',
+                contrastText: '#ffffff' 
+            },
+            text: { 
+                primary: '#ffffff' 
+            }
+        },
+        mode: 'dark'
+    };
     
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden';
+    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden';
     
     const getVariantStyles = () => {
         switch (variant) {
             case 'primary':
                 return {
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                    color: theme.palette.primary.contrastText,
+                    background: `linear-gradient(135deg, ${glassTheme.palette.primary.main}, ${glassTheme.palette.secondary.main})`,
+                    color: glassTheme.palette.primary.contrastText,
                     border: 'none',
-                    boxShadow: `0 4px 15px ${theme.palette.primary.main}30, 0 2px 8px rgba(0, 0, 0, 0.1)`,
+                    boxShadow: `0 4px 15px ${glassTheme.palette.primary.main}30, 0 2px 8px rgba(0, 0, 0, 0.1)`,
                     '&:hover': {
-                        boxShadow: `0 6px 20px ${theme.palette.primary.main}40, 0 4px 12px rgba(0, 0, 0, 0.15)`,
+                        boxShadow: `0 6px 20px ${glassTheme.palette.primary.main}40, 0 4px 12px rgba(0, 0, 0, 0.15)`,
                         transform: 'translateY(-2px)'
                     }
                 };
             case 'secondary':
                 return {
-                    background: theme.palette.mode === 'dark'
+                    background: glassTheme.mode === 'dark'
                         ? 'rgba(255, 255, 255, 0.1)'
                         : 'rgba(255, 255, 255, 0.8)',
                     backdropFilter: 'blur(10px) saturate(180%)',
-                    color: theme.palette.text.primary,
-                    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
+                    color: glassTheme.palette.text.primary,
+                    border: `1px solid ${glassTheme.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
                     '&:hover': {
-                        background: theme.palette.mode === 'dark'
+                        background: glassTheme.mode === 'dark'
                             ? 'rgba(255, 255, 255, 0.15)'
                             : 'rgba(255, 255, 255, 0.9)',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                         transform: 'translateY(-1px)'
                     }
                 };
-            case 'outline':
+            case 'outline-solid':
                 return {
                     background: 'transparent',
-                    color: theme.palette.primary.main,
-                    border: `2px solid ${theme.palette.primary.main}40`,
+                    color: glassTheme.palette.primary.main,
+                    border: `2px solid ${glassTheme.palette.primary.main}40`,
                     backdropFilter: 'blur(5px)',
                     '&:hover': {
-                        background: `${theme.palette.primary.main}10`,
-                        border: `2px solid ${theme.palette.primary.main}60`,
+                        background: `${glassTheme.palette.primary.main}10`,
+                        border: `2px solid ${glassTheme.palette.primary.main}60`,
                         transform: 'translateY(-1px)'
                     }
                 };
             case 'ghost':
                 return {
                     background: 'transparent',
-                    color: theme.palette.text.primary,
+                    color: glassTheme.palette.text.primary,
                     border: 'none',
                     '&:hover': {
-                        background: theme.palette.mode === 'dark'
+                        background: glassTheme.mode === 'dark'
                             ? 'rgba(255, 255, 255, 0.05)'
                             : 'rgba(0, 0, 0, 0.05)',
                     }
                 };
             case 'danger':
                 return {
-                    background: `linear-gradient(135deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`,
-                    color: theme.palette.error.contrastText,
+                    background: `linear-gradient(135deg, ${glassTheme.palette.error.main}, ${glassTheme.palette.error.dark})`,
+                    color: glassTheme.palette.error.contrastText,
                     border: 'none',
-                    boxShadow: `0 4px 15px ${theme.palette.error.main}30, 0 2px 8px rgba(0, 0, 0, 0.1)`,
+                    boxShadow: `0 4px 15px ${glassTheme.palette.error.main}30, 0 2px 8px rgba(0, 0, 0, 0.1)`,
                     '&:hover': {
-                        boxShadow: `0 6px 20px ${theme.palette.error.main}40, 0 4px 12px rgba(0, 0, 0, 0.15)`,
+                        boxShadow: `0 6px 20px ${glassTheme.palette.error.main}40, 0 4px 12px rgba(0, 0, 0, 0.15)`,
                         transform: 'translateY(-2px)'
                     }
                 };
             case 'success':
                 return {
-                    background: `linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
-                    color: theme.palette.success.contrastText,
+                    background: `linear-gradient(135deg, ${glassTheme.palette.success.main}, ${glassTheme.palette.success.dark})`,
+                    color: glassTheme.palette.success.contrastText,
                     border: 'none',
-                    boxShadow: `0 4px 15px ${theme.palette.success.main}30, 0 2px 8px rgba(0, 0, 0, 0.1)`,
+                    boxShadow: `0 4px 15px ${glassTheme.palette.success.main}30, 0 2px 8px rgba(0, 0, 0, 0.1)`,
                     '&:hover': {
-                        boxShadow: `0 6px 20px ${theme.palette.success.main}40, 0 4px 12px rgba(0, 0, 0, 0.15)`,
+                        boxShadow: `0 6px 20px ${glassTheme.palette.success.main}40, 0 4px 12px rgba(0, 0, 0, 0.15)`,
                         transform: 'translateY(-2px)'
                     }
                 };
@@ -134,7 +161,7 @@ const Button = forwardRef(({
             {/* Shimmer effect for primary buttons */}
             {variant === 'primary' && !isDisabled && (
                 <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
                     initial={{ x: '-100%' }}
                     animate={{ x: '100%' }}
                     transition={{

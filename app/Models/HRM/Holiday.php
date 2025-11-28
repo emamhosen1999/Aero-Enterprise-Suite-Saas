@@ -2,9 +2,9 @@
 
 namespace App\Models\HRM;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Holiday extends Model
 {
@@ -14,13 +14,13 @@ class Holiday extends Model
         'title',
         'description',
         'from_date',
-        'to_date', 
+        'to_date',
         'type',
         'is_recurring',
         'recurrence_pattern',
         'is_active',
         'created_by',
-        'updated_by'
+        'updated_by',
     ];
 
     protected $dates = [
@@ -32,20 +32,20 @@ class Holiday extends Model
         'from_date' => 'date',
         'to_date' => 'date',
         'is_recurring' => 'boolean',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     protected $appends = [
-        'duration'
+        'duration',
     ];
 
     // Holiday types
     public const TYPES = [
         'public' => 'Public Holiday',
-        'religious' => 'Religious Holiday', 
+        'religious' => 'Religious Holiday',
         'national' => 'National Holiday',
         'company' => 'Company Holiday',
-        'optional' => 'Optional Holiday'
+        'optional' => 'Optional Holiday',
     ];
 
     // Scopes
@@ -77,13 +77,13 @@ class Holiday extends Model
 
     public function getDurationAttribute()
     {
-        if (!$this->from_date || !$this->to_date) {
+        if (! $this->from_date || ! $this->to_date) {
             return 1;
         }
-        
+
         $fromDate = Carbon::parse($this->from_date);
         $toDate = Carbon::parse($this->to_date);
-        
+
         // Calculate the absolute difference and add 1 for inclusive counting
         return abs($toDate->diffInDays($fromDate)) + 1;
     }
@@ -96,6 +96,7 @@ class Holiday extends Model
     public function getIsOngoingAttribute()
     {
         $now = Carbon::now();
+
         return Carbon::parse($this->from_date)->lte($now) && Carbon::parse($this->to_date)->gte($now);
     }
 
@@ -130,44 +131,44 @@ class Holiday extends Model
     public static function getUpcomingHolidays($limit = 5)
     {
         return self::active()
-                  ->upcoming()
-                  ->orderBy('from_date', 'asc')
-                  ->limit($limit)
-                  ->get();
+            ->upcoming()
+            ->orderBy('from_date', 'asc')
+            ->limit($limit)
+            ->get();
     }
 
     public static function getHolidaysInRange(Carbon $startDate, Carbon $endDate)
     {
         return self::active()
-                  ->where(function ($query) use ($startDate, $endDate) {
-                      $query->whereBetween('from_date', [$startDate, $endDate])
-                            ->orWhereBetween('to_date', [$startDate, $endDate])
-                            ->orWhere(function ($q) use ($startDate, $endDate) {
-                                $q->where('from_date', '<=', $startDate)
-                                  ->where('to_date', '>=', $endDate);
-                            });
-                  })
-                  ->orderBy('from_date', 'asc')
-                  ->get();
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('from_date', [$startDate, $endDate])
+                    ->orWhereBetween('to_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('from_date', '<=', $startDate)
+                            ->where('to_date', '>=', $endDate);
+                    });
+            })
+            ->orderBy('from_date', 'asc')
+            ->get();
     }
 
     public static function getTotalWorkingDays($year = null)
     {
         $year = $year ?? Carbon::now()->year;
         $totalDays = Carbon::create($year)->isLeapYear() ? 366 : 365;
-        
+
         // Calculate holiday days using the duration accessor
         $holidays = self::whereYear('from_date', $year)
-                       ->active()
-                       ->get();
-        
+            ->active()
+            ->get();
+
         $holidayDays = $holidays->sum(function ($holiday) {
             return $holiday->duration;
         });
-        
+
         // Subtract weekends (assuming 52 weeks * 2 days = 104 weekend days)
         $weekendDays = 104;
-        
+
         return $totalDays - $holidayDays - $weekendDays;
     }
 }

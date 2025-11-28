@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
-import { TrendingUpIcon, TrendingDownIcon, MoreVertIcon } from '@heroicons/react/24/outline';
+import { Button } from '@nextui-org/react';
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import GlassCard from '../GlassCard.jsx';
-import { useTheme } from '@mui/material/styles';
+
 
 const MetricsWidget = ({ 
   title, 
@@ -16,18 +16,8 @@ const MetricsWidget = ({
   sparklineData = [],
   onClick
 }) => {
-  const theme = useTheme();
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
-  const [isHovered, setIsHovered] = useState(false);
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setDarkMode(localStorage.getItem('darkMode') === 'true');
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  const [isHovered, setIsHovered] = useState(false);
 
   const calculateTrend = () => {
     if (!previousValue || previousValue === 0) return { trend: 0, isPositive: true };
@@ -57,7 +47,7 @@ const MetricsWidget = ({
           stroke={color}
           strokeWidth="2"
           points={points}
-          className="drop-shadow-sm"
+          className="drop-shadow-xs"
         />
       </svg>
     );
@@ -72,83 +62,65 @@ const MetricsWidget = ({
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
     >
-      <Box sx={{ p: 3, position: 'relative' }}>
+      <div className="p-6 relative">
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box
-              sx={{
-                p: 1.5,
-                borderRadius: '12px',
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-4">
+            <div 
+              className="p-3 rounded-xl border flex items-center justify-center"
+              style={{
                 background: `linear-gradient(135deg, ${color}20, ${color}10)`,
-                border: `1px solid ${color}30`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                borderColor: `${color}30`,
               }}
             >
               <IconComponent 
-                style={{ 
-                  width: '24px', 
-                  height: '24px', 
-                  color: color,
-                }} 
+                className="w-6 h-6"
+                style={{ color: color }}
               />
-            </Box>
-            <Typography variant="subtitle2" sx={{ 
-              color: 'text.secondary',
-              fontWeight: 600,
-              fontSize: '0.875rem'
-            }}>
+            </div>
+            <h4 className="text-sm font-semibold text-default-600">
               {title}
-            </Typography>
-          </Box>
+            </h4>
+          </div>
           {interactive && (
-            <IconButton size="small" sx={{ opacity: isHovered ? 1 : 0, transition: 'opacity 0.2s' }}>
-              <MoreVertIcon style={{ width: '16px', height: '16px' }} />
-            </IconButton>
+            <Button
+              isIconOnly
+              variant="light"
+              size="sm"
+              className={`transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <EllipsisVerticalIcon className="w-4 h-4" />
+            </Button>
           )}
-        </Box>
+        </div>
 
         {/* Main Value */}
-        <Box sx={{ mb: 2 }}>
-          <Typography 
-            variant="h3" 
-            sx={{ 
-              fontWeight: 800,
-              color: 'text.primary',
-              fontSize: { xs: '1.75rem', sm: '2.25rem' },
-              lineHeight: 1,
-              background: `linear-gradient(135deg, ${color}, ${color}CC)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+        <div className="mb-4">
+          <h2 
+            className="text-3xl sm:text-4xl font-extrabold leading-none bg-gradient-to-r bg-clip-text text-transparent"
+            style={{
+              backgroundImage: `linear-gradient(135deg, ${color}, ${color}CC)`
             }}
           >
             {typeof value === 'number' ? value.toLocaleString() : value}
-            <span style={{ fontSize: '0.6em', marginLeft: '0.25rem' }}>{unit}</span>
-          </Typography>
-        </Box>
+            <span className="text-xl ml-1">{unit}</span>
+          </h2>
+        </div>
 
         {/* Trend Indicator */}
         {previousValue && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <div className="flex items-center gap-2 mb-4">
             {isPositive ? (
-              <TrendingUpIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
+              <ArrowTrendingUpIcon className="w-4 h-4 text-success" />
             ) : (
-              <TrendingDownIcon style={{ width: '16px', height: '16px', color: '#ef4444' }} />
+              <ArrowTrendingDownIcon className="w-4 h-4 text-danger" />
             )}
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: isPositive ? '#10b981' : '#ef4444',
-                fontWeight: 600,
-                fontSize: '0.75rem'
-              }}
+            <span 
+              className={`text-xs font-semibold ${isPositive ? 'text-success' : 'text-danger'}`}
             >
               {trend.toFixed(1)}% {isPositive ? 'increase' : 'decrease'}
-            </Typography>
-          </Box>
+            </span>
+          </div>
         )}
 
         {/* Sparkline */}
@@ -156,21 +128,14 @@ const MetricsWidget = ({
 
         {/* Interactive Glow Effect */}
         {interactive && isHovered && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+          <div
+            className="absolute inset-0 rounded-xl pointer-events-none transition-opacity duration-300"
+            style={{
               background: `radial-gradient(circle at center, ${color}15 0%, transparent 70%)`,
-              borderRadius: 'inherit',
-              pointerEvents: 'none',
-              transition: 'opacity 0.3s ease',
             }}
           />
         )}
-      </Box>
+      </div>
     </GlassCard>
   );
 };

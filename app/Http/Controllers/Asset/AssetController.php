@@ -88,7 +88,7 @@ class AssetController extends Controller
         // Handle asset history creation
         $asset->assetHistories()->create([
             'action' => 'created',
-            'notes' => 'Asset created by ' . Auth::user()->name,
+            'notes' => 'Asset created by '.Auth::user()->name,
             'user_id' => Auth::id(),
         ]);
 
@@ -121,7 +121,7 @@ class AssetController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'asset_tag' => 'required|string|max:50|unique:assets,asset_tag,' . $asset->id,
+            'asset_tag' => 'required|string|max:50|unique:assets,asset_tag,'.$asset->id,
             'serial_number' => 'nullable|string|max:100',
             'model' => 'nullable|string|max:100',
             'asset_category_id' => 'required|exists:asset_categories,id',
@@ -155,7 +155,7 @@ class AssetController extends Controller
         if ($oldStatus != $validated['asset_status_id']) {
             $asset->assetHistories()->create([
                 'action' => 'status_changed',
-                'notes' => 'Status changed from ' . AssetStatus::find($oldStatus)->name . ' to ' . AssetStatus::find($validated['asset_status_id'])->name,
+                'notes' => 'Status changed from '.AssetStatus::find($oldStatus)->name.' to '.AssetStatus::find($validated['asset_status_id'])->name,
                 'user_id' => Auth::id(),
             ]);
         }
@@ -165,7 +165,7 @@ class AssetController extends Controller
             $asset->assetHistories()->create([
                 'action' => 'assignment_changed',
                 'notes' => $validated['assigned_to_id']
-                    ? 'Assigned to ' . User::find($validated['assigned_to_id'])->name
+                    ? 'Assigned to '.User::find($validated['assigned_to_id'])->name
                     : 'Unassigned',
                 'user_id' => Auth::id(),
             ]);
@@ -204,7 +204,7 @@ class AssetController extends Controller
 
         $asset->assetHistories()->create([
             'action' => 'checked_out',
-            'notes' => 'Checked out to ' . User::find($validated['checked_out_to_id'])->name,
+            'notes' => 'Checked out to '.User::find($validated['checked_out_to_id'])->name,
             'user_id' => Auth::id(),
         ]);
 
@@ -236,7 +236,7 @@ class AssetController extends Controller
 
         $asset->assetHistories()->create([
             'action' => 'checked_in',
-            'notes' => 'Checked in by ' . Auth::user()->name . ($validated['checkin_notes'] ? '. Notes: ' . $validated['checkin_notes'] : ''),
+            'notes' => 'Checked in by '.Auth::user()->name.($validated['checkin_notes'] ? '. Notes: '.$validated['checkin_notes'] : ''),
             'user_id' => Auth::id(),
         ]);
 

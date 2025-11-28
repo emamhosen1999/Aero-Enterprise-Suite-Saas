@@ -16,15 +16,22 @@ class Offboarding extends Model
 
     // Status constants
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_IN_PROGRESS = 'in_progress'; // changed from in-progress
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     // Reason constants
     public const REASON_RESIGNATION = 'resignation';
+
     public const REASON_TERMINATION = 'termination';
+
     public const REASON_RETIREMENT = 'retirement';
+
     public const REASON_END_CONTRACT = 'end-of-contract';
+
     public const REASON_OTHER = 'other';
 
     protected $fillable = [
@@ -91,6 +98,7 @@ class Offboarding extends Model
             return 0.0;
         }
         $completed = $this->tasks->where('status', 'completed')->count();
+
         return round(($completed / $total) * 100, 2);
     }
 

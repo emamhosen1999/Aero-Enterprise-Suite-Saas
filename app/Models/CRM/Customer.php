@@ -2,10 +2,10 @@
 
 namespace App\Models\CRM;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\User;
 
 class Customer extends Model
 {
@@ -42,14 +42,18 @@ class Customer extends Model
      * Customer types
      */
     const TYPE_INDIVIDUAL = 'individual';
+
     const TYPE_BUSINESS = 'business';
+
     const TYPE_ENTERPRISE = 'enterprise';
 
     /**
      * Customer statuses
      */
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
+
     const STATUS_PROSPECT = 'prospect';
 
     /**

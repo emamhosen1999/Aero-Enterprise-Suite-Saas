@@ -24,7 +24,7 @@ class ProjectTimeEntry extends Model
         'approved',
         'approved_by',
         'approved_at',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
@@ -75,7 +75,7 @@ class ProjectTimeEntry extends Model
      */
     public function getBillableAmountAttribute(): float
     {
-        if (!$this->billable || !$this->hourly_rate) {
+        if (! $this->billable || ! $this->hourly_rate) {
             return 0;
         }
 

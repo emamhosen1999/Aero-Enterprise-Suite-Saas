@@ -1,28 +1,22 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import {
-    Box,
-    Typography,
-    CircularProgress,
-    Grow,
-    useTheme,
-    useMediaQuery,
-    Grid,
-} from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Select, 
-    SelectItem, 
     Card, 
     CardBody, 
     CardHeader,
     Divider,
     Chip,
     Button,
-    Input,
     Tabs,
     Tab,
     Spacer,
-    ButtonGroup
+    ButtonGroup,
+    Input,
+    Select,
+    SelectItem,
+    Spinner,
+    Skeleton
 } from "@heroui/react";
 import { 
     CalendarIcon, 
@@ -38,15 +32,16 @@ import {
     ExclamationTriangleIcon,
     PresentationChartLineIcon,
     AdjustmentsHorizontalIcon,
-
+    UserGroupIcon,
+    DocumentTextIcon,
+    CalendarDaysIcon
 } from "@heroicons/react/24/outline";
 import { 
     MagnifyingGlassIcon 
 } from '@heroicons/react/24/solid';
-import GlassCard from '@/Components/GlassCard.jsx';
+import App from '@/Layouts/App.jsx';
 import PageHeader from '@/Components/PageHeader.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
-import App from '@/Layouts/App.jsx';
 import LeaveEmployeeTable from '@/Tables/LeaveEmployeeTable.jsx';
 import LeaveForm from '@/Forms/LeaveForm.jsx';
 import DeleteLeaveForm from '@/Forms/DeleteLeaveForm.jsx';
@@ -54,15 +49,41 @@ import BulkLeaveModal from '@/Components/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Components/BulkDelete/BulkDeleteModal.jsx';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import { toast } from 'react-toastify';
-import Fade from '@mui/material/Fade';
+import { showToast } from '@/utils/toastUtils';
 
 
 const LeavesAdmin = ({ title, allUsers }) => {
     const { auth } = usePage().props;
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+    
+    // Custom media queries
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     // State management - Enhanced for admin view
     const [loading, setLoading] = useState(false);
@@ -127,8 +148,64 @@ const LeavesAdmin = ({ title, allUsers }) => {
         pending: 0,
         approved: 0,
         rejected: 0,
-        total: 0
+        total: 0,
+        thisMonth: 0,
+        thisWeek: 0,
+        totalDaysUsed: 0,
+        totalDaysRemaining: 0
     });
+
+    // Prepare stats data for StatsCards component
+    const statsData = useMemo(() => [
+        {
+            title: "Total Leaves",
+            value: leaveStats.total,
+            icon: <DocumentTextIcon />,
+            color: "text-primary",
+            iconBg: "bg-primary/20",
+            description: "All leave requests"
+        },
+        {
+            title: "Pending",
+            value: leaveStats.pending,
+            icon: <ClockIcon />,
+            color: "text-warning",
+            iconBg: "bg-warning/20",
+            description: "Awaiting approval"
+        },
+        {
+            title: "Approved",
+            value: leaveStats.approved,
+            icon: <CheckCircleIcon />,
+            color: "text-success",
+            iconBg: "bg-success/20",
+            description: "Approved requests"
+        },
+        {
+            title: "Rejected",
+            value: leaveStats.rejected,
+            icon: <XCircleIcon />,
+            color: "text-danger",
+            iconBg: "bg-danger/20",
+            description: "Rejected requests"
+        },
+        {
+            title: "This Month",
+            value: leaveStats.thisMonth,
+            icon: <CalendarDaysIcon />,
+            color: "text-secondary",
+            iconBg: "bg-secondary/20",
+            description: "Current month"
+        },
+        {
+            title: "This Week",
+            value: leaveStats.thisWeek,
+            icon: <CalendarIcon />,
+            color: "text-primary",
+            iconBg: "bg-primary/20",
+            description: "Current week"
+        }
+    ], [leaveStats]);
 
     // Check permissions using new system
     const canManageLeaves = auth.permissions?.includes('leaves.view') || false;
@@ -303,14 +380,14 @@ const LeavesAdmin = ({ title, allUsers }) => {
             if (response.status === 200) {
                 fetchLeavesData();
                 const toastPromise = Promise.resolve();
-                toast.promise(toastPromise, {
+                showToast.promise(toastPromise, {
                     success: 'Selected leaves approved successfully'
                 });
             }
         } catch (error) {
             console.error('Error bulk approving leaves:', error);
             const toastPromise = Promise.reject(error);
-            toast.promise(toastPromise, {
+            showToast.promise(toastPromise, {
                 error: 'Failed to approve selected leaves'
             });
         }
@@ -327,14 +404,14 @@ const LeavesAdmin = ({ title, allUsers }) => {
             if (response.status === 200) {
                 fetchLeavesData();
                 const toastPromise = Promise.resolve();
-                toast.promise(toastPromise, {
+                showToast.promise(toastPromise, {
                     success: 'Selected leaves rejected successfully'
                 });
             }
         } catch (error) {
             console.error('Error bulk rejecting leaves:', error);
             const toastPromise = Promise.reject(error);
-            toast.promise(toastPromise, {
+            showToast.promise(toastPromise, {
                 error: 'Failed to reject selected leaves'
             });
         }
@@ -346,60 +423,36 @@ const LeavesAdmin = ({ title, allUsers }) => {
         setModalStates(prev => ({ ...prev, bulk_delete: true }));
     }, []);
 
-    
-
-    // Prepare stats data for StatsCards component
-    const statsData = useMemo(() => [
-        {
-            title: "Pending",
-            value: leaveStats.pending,
-            icon: <ClockIcon />,
-            color: "text-orange-400",
-            iconBg: "bg-orange-500/20",
-            description: "Awaiting approval"
-        },
-        {
-            title: "Approved", 
-            value: leaveStats.approved,
-            icon: <CheckCircleIcon />,
-            color: "text-green-400",
-            iconBg: "bg-green-500/20",
-            description: "Successfully approved"
-        },
-        {
-            title: "Rejected",
-            value: leaveStats.rejected,
-            icon: <XCircleIcon />,
-            color: "text-red-400", 
-            iconBg: "bg-red-500/20",
-            description: "Declined requests"
-        },
-        {
-            title: "Total",
-            value: leaveStats.total,
-            icon: <ChartBarIcon />,
-            color: "text-blue-400",
-            iconBg: "bg-blue-500/20", 
-            description: "All leave requests"
-        }
-    ], [leaveStats]);
-
     // Early return if no permissions
     if (!canManageLeaves) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <GlassCard>
-                    <CardBody className="p-8 text-center">
-                        <ExclamationTriangleIcon className="w-16 h-16 text-warning-500 mx-auto mb-4" />
-                        <Typography variant="h6" className="mb-2">
-                            Access Denied
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                            You don't have permission to view leave management.
-                        </Typography>
-                    </CardBody>
-                </GlassCard>
-            </Box>
+            <>
+                <Head title={title} />
+                <div className="flex justify-center p-4">
+                    <Card 
+                        className="w-full max-w-md"
+                        style={{
+                            border: `var(--borderWidth, 2px) solid transparent`,
+                            borderRadius: `var(--borderRadius, 12px)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                            background: `linear-gradient(135deg, 
+                                var(--theme-content1, #FAFAFA) 20%, 
+                                var(--theme-content2, #F4F4F5) 10%, 
+                                var(--theme-content3, #F1F3F4) 20%)`,
+                        }}
+                    >
+                        <CardBody className="p-8 text-center">
+                            <ExclamationTriangleIcon className="w-16 h-16 text-warning mx-auto mb-4" />
+                            <h6 className="text-lg font-semibold mb-2">
+                                Access Denied
+                            </h6>
+                            <p className="text-sm text-default-500">
+                                You don't have permission to view leave management.
+                            </p>
+                        </CardBody>
+                    </Card>
+                </div>
+            </>
         );
     }
     const [modalStates, setModalStates] = useState({
@@ -521,7 +574,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                 }
             } catch (error) {
                 const toastPromise = Promise.reject(error);
-                toast.promise(toastPromise, {
+                showToast.promise(toastPromise, {
                     error: 'Error fetching additional items.'
                 });
                 console.error(`Error fetching additional items from page ${pagination.currentPage + 1}:`, error);
@@ -624,18 +677,40 @@ const LeavesAdmin = ({ title, allUsers }) => {
                 break;
             }
 
-            case 'bulk_add':
-            case 'single_add': {
+            case 'bulk_add': {
                 const addedCount = responseData.added_count || 1;
                 const newTotal = totalRows + addedCount;
                 
-                // For bulk additions or if we're on the last page, refresh data
-                if (operation === 'bulk_add' || (leaves.length < itemsPerPage)) {
-                    setTotalRows(newTotal);
-                    updatePaginationMetadata(newTotal);
-                    fetchLeavesData(currentPage, itemsPerPage);
+                // For bulk additions, always refresh data to ensure proper filtering
+                setTotalRows(newTotal);
+                updatePaginationMetadata(newTotal);
+                fetchLeavesData(currentPage, itemsPerPage);
+                break;
+            }
+            
+            case 'single_add': {
+                const addedCount = responseData.added_count || 1;
+                const newTotal = totalRows + addedCount;
+                const newLeave = responseData.leave;
+                
+                // Check if the new leave matches current filters
+                const matchesCurrentFilters = newLeave && leaveMatchesFilters(newLeave);
+                
+                if (matchesCurrentFilters) {
+                    // If leave matches filters and we're on the last page with room, add it directly
+                    if (leaves.length < itemsPerPage) {
+                        const updatedLeaves = sortLeavesByFromDate([...leaves, newLeave]);
+                        setLeaves(updatedLeaves);
+                        setTotalRows(newTotal);
+                        updatePaginationMetadata(newTotal);
+                    } else {
+                        // If page is full, refresh to maintain proper pagination
+                        setTotalRows(newTotal);
+                        updatePaginationMetadata(newTotal);
+                        fetchLeavesData(currentPage, itemsPerPage);
+                    }
                 } else {
-                    // For single additions on full pages, just update total count
+                    // If leave doesn't match filters, just update total count without adding to view
                     setTotalRows(newTotal);
                     updatePaginationMetadata(newTotal);
                 }
@@ -663,7 +738,9 @@ const LeavesAdmin = ({ title, allUsers }) => {
         fetchLeavesStats, 
         updatePaginationMetadata, 
         fetchLeavesData, 
-        fetchAdditionalItemsIfNeeded
+        fetchAdditionalItemsIfNeeded,
+        leaveMatchesFilters,
+        sortLeavesByFromDate
     ]);
 
     // Optimistic UI for add/edit
@@ -685,28 +762,8 @@ const LeavesAdmin = ({ title, allUsers }) => {
         };
         handlePostOperationUpdate('edit', responseData);
         
-        const toastPromise = Promise.resolve(['Leave updated!']);
-        toast.promise(toastPromise, {
-            success: {
-                render({ data }) {
-                    return (
-                        <>
-                            {data.map((message, index) => (
-                                <div key={index}>{message}</div>
-                            ))}
-                        </>
-                    );
-                },
-                icon: '🟢',
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard.background,
-                    border: theme.glassCard.border,
-                    color: theme.palette.text.primary,
-                },
-            },
-        });
-    }, [fetchLeavesData, fetchLeavesStats, theme]);
+        // Toast is handled by the LeaveForm component, no need for duplicate toast here
+    }, [handlePostOperationUpdate]);
 
     // Bulk add handler using unified post-operation update
     const addBulkLeavesOptimized = useCallback((responseData) => {
@@ -770,7 +827,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
     return (
         <>
             <Head title={title} />
-
+            
             {/* Modals - Enhanced for admin */}
             {modalStates.add_leave && (
                 <LeaveForm
@@ -780,6 +837,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                     setLeavesData={setLeavesData}
                     currentLeave={null}
                     allUsers={allUsers}
+                    departments={departments}
                     setTotalRows={setTotalRows}
                     setLastPage={setLastPage}
                     setLeaves={setLeaves}
@@ -788,7 +846,6 @@ const LeavesAdmin = ({ title, allUsers }) => {
                     selectedMonth={filters.selectedMonth}
                     addLeaveOptimized={addLeaveOptimized}
                     fetchLeavesStats={fetchLeavesStats}
-
                 />
             )}
             {modalStates.edit_leave && (
@@ -799,6 +856,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                     setLeavesData={setLeavesData}
                     currentLeave={currentLeave}
                     allUsers={allUsers}
+                    departments={departments}
                     setTotalRows={setTotalRows}
                     setLastPage={setLastPage}
                     setLeaves={setLeaves}
@@ -807,7 +865,6 @@ const LeavesAdmin = ({ title, allUsers }) => {
                     selectedMonth={filters.selectedMonth}
                     updateLeaveOptimized={updateLeaveOptimized}
                     fetchLeavesStats={fetchLeavesStats}
-
                 />
             )}
 
@@ -829,10 +886,10 @@ const LeavesAdmin = ({ title, allUsers }) => {
                     open={modalStates.bulk_leave}
                     onClose={() => closeModal("bulk_leave")}
                     onSuccess={(responseData) => {
-                        // Use the same optimization pattern as single leave
                         addBulkLeavesOptimized(responseData);
                     }}
                     allUsers={allUsers}
+                    departments={departments}
                     leavesData={leavesData}
                     isAdmin={true}
                 />
@@ -843,241 +900,396 @@ const LeavesAdmin = ({ title, allUsers }) => {
                     open={modalStates.bulk_delete}
                     onClose={() => closeModal("bulk_delete")}
                     onSuccess={(responseData) => {
-                        // Use the bulk deletion optimization
                         deleteBulkLeavesOptimized(responseData);
                     }}
                     selectedLeaves={selectedLeavesForBulkDelete}
                     allUsers={allUsers}
                 />
             )}
-
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <Grow in>
-                    <GlassCard>
-                        <PageHeader
-                            title="Leave Management"
-                            subtitle="Manage employee leave requests and approvals"
-                            icon={<PresentationChartLineIcon className="w-8 h-8" />}
-                            variant="gradient"
-                            actionButtons={[
-                                ...(canCreateLeaves ? [{
-                                    label: "Add Leave",
-                                    icon: <PlusIcon className="w-4 h-4" />,
-                                    onPress: () => openModalNew('add_leave'),
-                                    className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
-                                }] : []),
-                                ...(canCreateLeaves ? [{
-                                    label: "Add Bulk",
-                                    icon: <CalendarIcon className="w-4 h-4" />,
-                                    onPress: () => openModalNew('bulk_leave'),
-                                    className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
-                                }] : []),
-                                {
-                                    label: "Export",
-                                    icon: <DocumentArrowDownIcon className="w-4 h-4" />,
-                                    variant: "bordered",
-                                    className: "border-[rgba(var(--theme-primary-rgb),0.3)] bg-[rgba(var(--theme-primary-rgb),0.05)] hover:bg-[rgba(var(--theme-primary-rgb),0.1)]"
-                                }
-                            ]}
+            
+            <div 
+                className="flex flex-col w-full h-full p-4"
+                role="main"
+                aria-label="Leave Management"
+            >
+                <div className="space-y-4">
+                    <div className="w-full">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
                         >
-                            <div className="p-6">
-                                {/* Quick Stats */}
-                                <StatsCards stats={statsData} />
-                                {/* Filters Section - Matching Employee View */}
-                                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                                    <div className="flex-1">
-                                        <Input
-                                            label="Search Employee"
-                                            variant="bordered"
-                                            placeholder="Search by name or ID..."
-                                            value={filters.employee}
-                                            onValueChange={value => handleFilterChange('employee', value)}
-                                            startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                                            classNames={{
-                                                input: "bg-transparent",
-                                                inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                                            }}
-                                            size={isMobile ? "sm" : "md"}
-                                        />
-                                    </div>
-                                    <div className="flex gap-2 items-end">
-                                        <ButtonGroup variant="bordered" className="bg-white/5">
-                                            <Button
-                                                isIconOnly={isMobile}
-                                                color={showFilters ? 'primary' : 'default'}
-                                                onPress={() => setShowFilters(!showFilters)}
-                                                className={showFilters ? 'bg-purple-500/20' : 'bg-white/5'}
-                                            >
-                                                <AdjustmentsHorizontalIcon className="w-4 h-4" />
-                                                {!isMobile && <span className="ml-1">Filters</span>}
-                                            </Button>
-                                        </ButtonGroup>
-                                    </div>
-                                </div>
-                                {showFilters && (
-                                    <Fade in={true} timeout={300}>
-                                        <div className="mb-6 p-4 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                <Select
-                                                label="Leave Status"
-                                                selectionMode="multiple"
-                                                variant="bordered"
-                                                selectedKeys={filters.status}
-                                                onSelectionChange={keys => handleFilterChange('status', Array.from(keys))}
-                                                classNames={{ trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15" }}
-                                                >
-                                                <SelectItem key="pending" value="pending">Pending</SelectItem>
-                                                <SelectItem key="approved" value="approved">Approved</SelectItem>
-                                                <SelectItem key="rejected" value="rejected">Rejected</SelectItem>
-                                                <SelectItem key="new" value="new">New</SelectItem>
-                                                </Select>
-
-                                                <Select
-                                                label="Leave Type"
-                                                variant="bordered"
-                                                selectionMode="multiple"
-                                                selectedKeys={filters.leaveType}
-                                                onSelectionChange={keys => handleFilterChange('leaveType', Array.from(keys))}
-                                                classNames={{ trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15" }}
-                                                >
-                                                {leaveTypeOptions.map(option => (
-                                                    <SelectItem key={option.key} value={option.value}>{option.label}</SelectItem>
-                                                ))}
-                                                </Select>
-
-                                                <Select
-                                                label="Department"
-                                                variant="bordered"
-                                                selectionMode="multiple"
-                                                selectedKeys={filters.department}
-                                                onSelectionChange={keys => handleFilterChange('department', Array.from(keys))}
-                                                classNames={{ trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15" }}
-                                                >
-                                                {departments.map(department => (
-                                                    <SelectItem key={department.id} value={department.id}>{department.name}</SelectItem>
-                                                ))}
-                                                </Select>
-
-                                                <Input
-                                                    label="Month/Year"
-                                                    type="month"
-                                                    value={filters.selectedMonth}
-                                                    onChange={handleMonthChange}
-                                                    startContent={<CalendarIcon className="w-4 h-4" />}
-                                                    variant="bordered"
-                                                    classNames={{ inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15" }}
-                                                    size={isMobile ? "sm" : "md"}
-                                                />
-                                            </div>
-                                            {/* Active Filters as Chips */}
-                                            {(filters.employee || 
-                                              (Array.isArray(filters.status) && filters.status.length > 0) || 
-                                              (Array.isArray(filters.leaveType) && filters.leaveType.length > 0) || 
-                                              (Array.isArray(filters.department) && filters.department.length > 0)) && (
-                                                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/10">
-                                                {filters.employee && (
-                                                    <Chip variant="flat" color="primary" size="sm" onClose={() => handleFilterChange('employee', '')}>
-                                                    Employee: {filters.employee}
-                                                    </Chip>
-                                                )}
-                                                {Array.isArray(filters.status) && filters.status.map(stat => (
-                                                    <Chip key={stat} variant="flat" color="secondary" size="sm" onClose={() => handleFilterChange('status', filters.status.filter(s => s !== stat))}>
-                                                    Status: {stat}
-                                                    </Chip>
-                                                ))}
-                                                {Array.isArray(filters.leaveType) && filters.leaveType.map(type => (
-                                                    <Chip key={type} variant="flat" color="warning" size="sm" onClose={() => handleFilterChange('leaveType', filters.leaveType.filter(t => t !== type))}>
-                                                    Type: {type}
-                                                    </Chip>
-                                                ))}
-                                                {Array.isArray(filters.department) && filters.department.map(depId => {
-                                                    const department = departments.find(dep => String(dep.id) === String(depId));
-                                                    return (
-                                                        <Chip key={depId} variant="flat" color="success" size="sm" onClose={() => handleFilterChange('department', filters.department.filter(d => d !== depId))}>
-                                                            Department: {department?.name || `ID: ${depId}`}
-                                                        </Chip>
-                                                    );
-                                                })}
+                            <Card 
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                <CardHeader 
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col space-y-4">
+                                            {/* Main Header Content */}
+                                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                                {/* Title Section */}
+                                                <div className="flex items-center gap-3 lg:gap-4">
+                                                    <div 
+                                                        className={`
+                                                            ${!isMobile ? 'p-3' : 'p-2'} 
+                                                            rounded-xl flex items-center justify-center
+                                                        `}
+                                                        style={{
+                                                            background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                            borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                            borderWidth: `var(--borderWidth, 2px)`,
+                                                            borderRadius: `var(--borderRadius, 12px)`,
+                                                        }}
+                                                    >
+                                                        <PresentationChartLineIcon 
+                                                            className={`
+                                                                ${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}
+                                                            `}
+                                                            style={{ color: 'var(--theme-primary)' }}
+                                                        />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <h4 
+                                                            className={`
+                                                                ${!isMobile ? 'text-2xl' : 'text-xl'}
+                                                                font-bold text-foreground
+                                                                ${isMobile ? 'truncate' : ''}
+                                                            `}
+                                                            style={{
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        >
+                                                            Leave Management
+                                                        </h4>
+                                                        <p 
+                                                            className={`
+                                                                ${!isMobile ? 'text-sm' : 'text-xs'} 
+                                                                text-default-500
+                                                                ${isMobile ? 'truncate' : ''}
+                                                            `}
+                                                            style={{
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        >
+                                                            Manage employee leave requests and approvals
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            )}
+                                                
+                                                {/* Action Buttons */}
+                                                <div className="flex gap-2 flex-wrap">
+                                                    {canCreateLeaves && (
+                                                        <Button
+                                                            color="primary"
+                                                            variant="shadow"
+                                                            startContent={<PlusIcon className="w-4 h-4" />}
+                                                            onPress={() => openModalNew('add_leave')}
+                                                            size={isMobile ? "sm" : "md"}
+                                                            className="font-semibold"
+                                                            style={{
+                                                                borderRadius: `var(--borderRadius, 8px)`,
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        >
+                                                            Add Leave
+                                                        </Button>
+                                                    )}
+                                                    {canCreateLeaves && (
+                                                        <Button
+                                                            color="secondary"
+                                                            variant="flat"
+                                                            startContent={<CalendarIcon className="w-4 h-4" />}
+                                                            onPress={() => openModalNew('bulk_leave')}
+                                                            size={isMobile ? "sm" : "md"}
+                                                            className="font-semibold"
+                                                            style={{
+                                                                borderRadius: `var(--borderRadius, 8px)`,
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        >
+                                                            Bulk Add
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        color="default"
+                                                        variant="bordered"
+                                                        startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+                                                        size={isMobile ? "sm" : "md"}
+                                                        className="font-semibold"
+                                                        style={{
+                                                            borderRadius: `var(--borderRadius, 8px)`,
+                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                        }}
+                                                    >
+                                                        Export
+                                                    </Button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </Fade>
-                                )}
-                                {/* Table Section */}
-                                <div className="min-h-96">
-                                    <Typography variant="h6" className="mb-4 flex items-center gap-2">
-                                        <ChartBarIcon className="w-5 h-5" />
-                                        Leave Requests Management
-                                    </Typography>
+                                    </div>
+                                </CardHeader>
 
-                                    {loading ? (
-                                        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                                            <CardBody className="text-center py-12">
-                                                <CircularProgress size={40} />
-                                                <Typography className="mt-4" color="textSecondary">
-                                                    Loading leave data...
-                                                </Typography>
-                                            </CardBody>
-                                        </Card>
-                                    ) : leaves && leaves.length > 0 ? (
-                                        <div className="overflow-hidden rounded-lg">
-                                            <LeaveEmployeeTable
-                                                ref={leaveTableRef}
-                                                totalRows={totalRows}
-                                                lastPage={lastPage}
-                                                setCurrentPage={handlePageChange}
-                                                setPerPage={handlePerPageChange}
-                                                perPage={pagination.perPage}
-                                                currentPage={pagination.currentPage}
-                                                handleClickOpen={handleClickOpen}
-                                                setCurrentLeave={setCurrentLeave}
-                                                openModal={openModal}
-                                                leaves={memoizedLeaves}
-                                                allUsers={allUsers}
-                                                setLeaves={setLeaves}
-                                                employee={filters.employee}
-                                                selectedMonth={filters.selectedMonth}
-                                                isAdminView={true}
-                                                onBulkApprove={handleBulkApprove}
-                                                onBulkReject={handleBulkReject}
-                                                canApproveLeaves={canApproveLeaves}
-                                                canEditLeaves={canEditLeaves}
-                                                    canDeleteLeaves={canDeleteLeaves}
-                                                    fetchLeavesStats={fetchLeavesStats}
-                                                    onBulkDelete={handleBulkDelete}
+                                <CardBody className="p-6">
+                                    {/* Stats Cards */}
+                                    <StatsCards stats={statsData} className="mb-6" />
+                                    {/* Filters Section - Matching Employee View */}
+                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                                        <div className="flex-1">
+                                            <Input
+                                                label="Search Employee"
+                                                placeholder="Search by name or ID..."
+                                                value={filters.employee}
+                                                onChange={(e) => handleFilterChange('employee', e.target.value)}
+                                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                                                variant="bordered"
+                                                size="sm"
+                                                radius={getThemeRadius()}
+                                                className="w-full"
+                                                classNames={{
+                                                    input: "text-sm",
+                                                }}
+                                                style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}
+                                                aria-label="Search employees"
                                             />
                                         </div>
-                                    ) : error ? (
-                                        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                                            <CardBody className="text-center py-12">
-                                                <ExclamationTriangleIcon className="w-16 h-16 text-warning-500 mx-auto mb-4" />
-                                                <Typography variant="h6" className="mb-2">
-                                                    No Data Found
-                                                </Typography>
-                                                <Typography color="textSecondary">
-                                                    {error}
-                                                </Typography>
-                                            </CardBody>
-                                        </Card>
-                                    ) : (
-                                        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                                            <CardBody className="text-center py-12">
-                                                <CalendarIcon className="w-16 h-16 text-default-400 mx-auto mb-4" />
-                                                <Typography variant="h6" className="mb-2">
-                                                    No Leave Records Found
-                                                </Typography>
-                                                <Typography color="textSecondary">
-                                                    No leave records found for the selected criteria.
-                                                </Typography>
-                                            </CardBody>
-                                        </Card>
+                                        <div className="flex gap-2 items-end">
+                                            <ButtonGroup 
+                                                variant="bordered" 
+                                                radius={getThemeRadius()}
+                                                className="bg-white/5"
+                                            >
+                                                <Button
+                                                    isIconOnly={isMobile}
+                                                    color={showFilters ? 'primary' : 'default'}
+                                                    onPress={() => setShowFilters(!showFilters)}
+                                                    className={showFilters ? 'bg-purple-500/20' : 'bg-white/5'}
+                                                >
+                                                    <AdjustmentsHorizontalIcon className="w-4 h-4" />
+                                                    {!isMobile && <span className="ml-1">Filters</span>}
+                                                </Button>
+                                            </ButtonGroup>
+                                        </div>
+                                    </div>
+                                    {showFilters && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -20 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <div className="mb-6 p-4 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    <Select
+                                                        label="Leave Status"
+                                                        placeholder="Select status..."
+                                                        selectionMode="multiple"
+                                                        selectedKeys={new Set(filters.status)}
+                                                        onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys))}
+                                                        variant="bordered"
+                                                        size="sm"
+                                                        radius={getThemeRadius()}
+                                                        className="w-full"
+                                                        classNames={{
+                                                            trigger: "text-sm",
+                                                        }}
+                                                        style={{
+                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                        }}
+                                                        aria-label="Filter by leave status"
+                                                    >
+                                                        <SelectItem key="pending" value="pending">Pending</SelectItem>
+                                                        <SelectItem key="approved" value="approved">Approved</SelectItem>
+                                                        <SelectItem key="rejected" value="rejected">Rejected</SelectItem>
+                                                        <SelectItem key="new" value="new">New</SelectItem>
+                                                    </Select>
+                                            
+                                                    <Select
+                                                        label="Leave Type"
+                                                        placeholder="Select leave types"
+                                                        selectionMode="multiple"
+                                                        selectedKeys={new Set(filters.leaveType)}
+                                                        onSelectionChange={(keys) => handleFilterChange('leaveType', Array.from(keys))}
+                                                        variant="bordered"
+                                                        size="sm"
+                                                        radius={getThemeRadius()}
+                                                        className="w-full"
+                                                        classNames={{
+                                                            trigger: "text-sm",
+                                                        }}
+                                                        style={{
+                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                        }}
+                                                        aria-label="Filter by leave type"
+                                                    >
+                                                        {leaveTypeOptions.map(option => (
+                                                            <SelectItem key={option.value} value={option.value}>
+                                                                {option.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </Select>
+
+                                                    <Select
+                                                        label="Department"
+                                                        placeholder="Select departments"
+                                                        selectionMode="multiple"
+                                                        selectedKeys={new Set(filters.department)}
+                                                        onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys))}
+                                                        variant="bordered"
+                                                        size="sm"
+                                                        radius={getThemeRadius()}
+                                                        className="w-full"
+                                                        classNames={{
+                                                            trigger: "text-sm",
+                                                        }}
+                                                        style={{
+                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                        }}
+                                                        aria-label="Filter by department"
+                                                    >
+                                                        {departments.map(department => (
+                                                            <SelectItem key={department.id} value={department.id}>
+                                                                {department.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </Select>
+
+                                                    <Input
+                                                        label="Month/Year"
+                                                        type="month"
+                                                        value={filters.selectedMonth}
+                                                        onChange={handleMonthChange}
+                                                        startContent={<CalendarIcon className="w-4 h-4 text-default-400" />}
+                                                        variant="bordered"
+                                                        size="sm"
+                                                        radius={getThemeRadius()}
+                                                        className="w-full"
+                                                        classNames={{
+                                                            input: "text-sm",
+                                                        }}
+                                                        style={{
+                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                        }}
+                                                        aria-label="Select month and year for filtering"
+                                                    />
+                                                </div>
+                                                {/* Active Filters as Chips */}
+                                                {(filters.employee || 
+                                                (Array.isArray(filters.status) && filters.status.length > 0) || 
+                                                (Array.isArray(filters.leaveType) && filters.leaveType.length > 0) || 
+                                                (Array.isArray(filters.department) && filters.department.length > 0)) && (
+                                                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/10">
+                                                    {filters.employee && (
+                                                        <Chip variant="flat" color="primary" size="sm" onClose={() => handleFilterChange('employee', '')}>
+                                                        Employee: {filters.employee}
+                                                        </Chip>
+                                                    )}
+                                                    {Array.isArray(filters.status) && filters.status.map(stat => (
+                                                        <Chip key={stat} variant="flat" color="secondary" size="sm" onClose={() => handleFilterChange('status', filters.status.filter(s => s !== stat))}>
+                                                        Status: {stat}
+                                                        </Chip>
+                                                    ))}
+                                                    {Array.isArray(filters.leaveType) && filters.leaveType.map(type => (
+                                                        <Chip key={type} variant="flat" color="warning" size="sm" onClose={() => handleFilterChange('leaveType', filters.leaveType.filter(t => t !== type))}>
+                                                        Type: {type}
+                                                        </Chip>
+                                                    ))}
+                                                    {Array.isArray(filters.department) && filters.department.map(depId => {
+                                                        const department = departments.find(dep => String(dep.id) === String(depId));
+                                                        return (
+                                                            <Chip key={depId} variant="flat" color="success" size="sm" onClose={() => handleFilterChange('department', filters.department.filter(d => d !== depId))}>
+                                                                Department: {department?.name || `ID: ${depId}`}
+                                                            </Chip>
+                                                        );
+                                                    })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
                                     )}
-                                </div>
-                            </div>
-                        </PageHeader>
-                    </GlassCard>
-                </Grow>
-            </Box>
+                                    {/* Table Section */}
+                                    <div className="min-h-96">
+                                        <div className="mb-4 flex items-center gap-2 font-semibold text-lg">
+                                            <ChartBarIcon className="w-5 h-5" />
+                                            Leave Requests Management
+                                        </div>
+
+                                        {loading ? (
+                                            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+                                                <CardBody className="text-center py-12">
+                                                    <Spinner size="lg" />
+                                                    <p className="mt-4 text-default-500">
+                                                        Loading leave data...
+                                                    </p>
+                                                </CardBody>
+                                            </Card>
+                                        ) : leaves && leaves.length > 0 ? (
+                                            <div className="overflow-hidden rounded-lg">
+                                                <LeaveEmployeeTable
+                                                    ref={leaveTableRef}
+                                                    totalRows={totalRows}
+                                                    lastPage={lastPage}
+                                                    setCurrentPage={handlePageChange}
+                                                    setPerPage={handlePerPageChange}
+                                                    perPage={pagination.perPage}
+                                                    currentPage={pagination.currentPage}
+                                                    handleClickOpen={handleClickOpen}
+                                                    setCurrentLeave={setCurrentLeave}
+                                                    openModal={openModal}
+                                                    leaves={memoizedLeaves}
+                                                    allUsers={allUsers}
+                                                    setLeaves={setLeaves}
+                                                    employee={filters.employee}
+                                                    selectedMonth={filters.selectedMonth}
+                                                    isAdminView={true}
+                                                    onBulkApprove={handleBulkApprove}
+                                                    onBulkReject={handleBulkReject}
+                                                    canApproveLeaves={canApproveLeaves}
+                                                    canEditLeaves={canEditLeaves}
+                                                        canDeleteLeaves={canDeleteLeaves}
+                                                        fetchLeavesStats={fetchLeavesStats}
+                                                        onBulkDelete={handleBulkDelete}
+                                                />
+                                            </div>
+                                        ) : error ? (
+                                            <div className="text-center py-12">
+                                                <ExclamationTriangleIcon className="w-16 h-16 text-warning mx-auto mb-4" />
+                                                <h3 className="text-lg font-semibold mb-2">No Data Found</h3>
+                                                <p className="text-default-500">{error}</p>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12">
+                                                <CalendarIcon className="w-16 h-16 text-default-400 mx-auto mb-4" />
+                                                <h3 className="text-lg font-semibold mb-2">No Leave Records Found</h3>
+                                                <p className="text-default-500">No leave records found for the selected criteria.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
         </>
     );
 };

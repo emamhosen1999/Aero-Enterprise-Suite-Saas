@@ -131,7 +131,7 @@ class PerformanceReviewController extends Controller
             'reviewer',
             'department',
             'template',
-            'competencyRatings.competency.category'
+            'competencyRatings.competency.category',
         ])->findOrFail($id);
 
         return Inertia::render('HR/Performance/Show', [
@@ -149,7 +149,7 @@ class PerformanceReviewController extends Controller
             'reviewer',
             'department',
             'template',
-            'competencyRatings.competency.category'
+            'competencyRatings.competency.category',
         ])->findOrFail($id);
 
         return Inertia::render('HR/Performance/Edit', [
@@ -257,7 +257,7 @@ class PerformanceReviewController extends Controller
         $template = PerformanceReviewTemplate::with([
             'creator',
             'defaultForDepartment',
-            'competencyCategories.competencies'
+            'competencyCategories.competencies',
         ])->findOrFail($id);
 
         return Inertia::render('HR/Performance/Templates/Show', [
@@ -273,7 +273,7 @@ class PerformanceReviewController extends Controller
         $template = PerformanceReviewTemplate::with([
             'creator',
             'defaultForDepartment',
-            'competencyCategories.competencies'
+            'competencyCategories.competencies',
         ])->findOrFail($id);
 
         return Inertia::render('HR/Performance/Templates/Edit', [

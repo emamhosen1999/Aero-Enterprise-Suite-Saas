@@ -7,7 +7,7 @@ export default function OffboardingShow() {
   const tasks = offboarding?.tasks || [];
   const statusBadge = (status) => {
     const s = status === 'in-progress' ? 'in_progress' : status;
-    const base = 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border';
+    const base = 'inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium border';
     const map = {
       pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
       in_progress: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -18,7 +18,7 @@ export default function OffboardingShow() {
   };
   const progressBar = (p) => (
     <div className="flex items-center gap-2">
-      <div className="w-32 h-2 bg-gray-200 rounded overflow-hidden">
+      <div className="w-32 h-2 bg-gray-200 rounded-sm overflow-hidden">
         <div className="h-full bg-indigo-500" style={{ width: `${p||0}%` }} />
       </div>
       <span className="text-xs tabular-nums">{p ?? 0}%</span>
@@ -35,7 +35,7 @@ export default function OffboardingShow() {
       </div>
       <div className="grid md:grid-cols-3 gap-6">
         <div className="col-span-2 space-y-4">
-          <div className="bg-white shadow rounded p-4">
+          <div className="bg-white shadow-sm rounded-sm p-4">
             <h2 className="font-medium mb-3">Overview</h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-gray-600">Employee</dt><dd>{offboarding.employee?.name}</dd>
@@ -48,7 +48,7 @@ export default function OffboardingShow() {
             </dl>
             {offboarding.notes && <p className="mt-3 text-sm text-gray-700 whitespace-pre-line">{offboarding.notes}</p>}
           </div>
-          <div className="bg-white shadow rounded">
+          <div className="bg-white shadow-sm rounded-sm">
             <div className="flex items-center justify-between px-4 py-3 border-b">
               <h3 className="font-medium">Tasks ({tasks.length})</h3>
             </div>
@@ -74,7 +74,7 @@ export default function OffboardingShow() {
           </div>
         </div>
         <div className="space-y-4">
-          <div className="bg-white shadow rounded p-4">
+          <div className="bg-white shadow-sm rounded-sm p-4">
             <h2 className="font-medium mb-3">Actions</h2>
             <ul className="space-y-2 text-sm">
               <li><Link href={route('hr.offboarding.index')} className="link">Back to List</Link></li>

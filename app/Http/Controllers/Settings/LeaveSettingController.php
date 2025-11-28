@@ -12,6 +12,7 @@ class LeaveSettingController extends Controller
     public function index(): \Inertia\Response
     {
         $leaveSettings = LeaveSetting::all();
+
         return Inertia::render('Settings/LeaveSettings', [
             'title' => 'Leave Settings',
             'leaveTypes' => $leaveSettings,
@@ -26,7 +27,9 @@ class LeaveSettingController extends Controller
             'eligibility' => 'nullable|string',
             'carry_forward' => 'required|boolean',
             'earned_leave' => 'required|boolean',
-            'specialConditions' => 'nullable|string',
+            'requires_approval' => 'nullable|boolean',
+            'auto_approve' => 'nullable|boolean',
+            'special_conditions' => 'nullable|string',
         ]);
 
         try {
@@ -36,7 +39,9 @@ class LeaveSettingController extends Controller
                 'eligibility' => $request->input('eligibility'),
                 'carry_forward' => $request->input('carry_forward'),
                 'earned_leave' => $request->input('earned_leave'),
-                'specialConditions' => $request->input('specialConditions'),
+                'requires_approval' => $request->input('requires_approval', true),
+                'auto_approve' => $request->input('auto_approve', false),
+                'special_conditions' => $request->input('special_conditions'),
             ]);
 
             return response()->json([
@@ -59,7 +64,9 @@ class LeaveSettingController extends Controller
             'eligibility' => 'nullable|string',
             'carry_forward' => 'required|boolean',
             'earned_leave' => 'required|boolean',
-            'specialConditions' => 'nullable|string',
+            'requires_approval' => 'nullable|boolean',
+            'auto_approve' => 'nullable|boolean',
+            'special_conditions' => 'nullable|string',
         ]);
 
         try {
@@ -70,7 +77,9 @@ class LeaveSettingController extends Controller
                 'eligibility' => $request->input('eligibility'),
                 'carry_forward' => $request->input('carry_forward'),
                 'earned_leave' => $request->input('earned_leave'),
-                'specialConditions' => $request->input('specialConditions'),
+                'requires_approval' => $request->input('requires_approval', true),
+                'auto_approve' => $request->input('auto_approve', false),
+                'special_conditions' => $request->input('special_conditions'),
             ]);
 
             return response()->json([
@@ -99,6 +108,4 @@ class LeaveSettingController extends Controller
             return response()->json(['message' => 'Failed to delete leave type.'], 500);
         }
     }
-
-
 }

@@ -2,16 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\LogisticsCarrier;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Models\SCM\ProcurementRequest;
-use App\Models\SCM\DemandForecast;
-use App\Models\SCM\ProductionPlan;
-use App\Models\SCM\ReturnRequest;
-use App\Models\SCM\TradeDocument;
-use App\Models\SCM\CustomsDeclaration;
-use App\Models\LogisticsCarrier;
 
 class SCMAdvancedSeeder extends Seeder
 {

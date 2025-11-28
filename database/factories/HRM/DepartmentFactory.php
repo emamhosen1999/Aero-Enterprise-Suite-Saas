@@ -22,7 +22,7 @@ class DepartmentFactory extends Factory
                 'Customer Service',
                 'Research & Development',
                 'Quality Assurance',
-                'Project Management'
+                'Project Management',
             ]),
             'description' => $this->faker->sentence(),
             'created_at' => now(),

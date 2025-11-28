@@ -9,8 +9,10 @@ use Inertia\Inertia;
 
 class CompanySettingController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $companySettings = CompanySetting::first() ? CompanySetting::first() : [];
+
         return Inertia::render('Settings/CompanySettings', [
             'title' => 'Company Settings',
             'companySettings' => $companySettings,
@@ -57,5 +59,4 @@ class CompanySettingController extends Controller
             ], 500);
         }
     }
-
 }

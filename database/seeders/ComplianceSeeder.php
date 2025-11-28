@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Models\Compliance\ComplianceAudit;
+use App\Models\Compliance\CompliancePolicy;
+use App\Models\Compliance\ComplianceTrainingRecord;
+use App\Models\Compliance\ControlledDocument;
+use App\Models\Compliance\RegulatoryRequirement;
+use App\Models\Compliance\RiskAssessment;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Models\Compliance\CompliancePolicy;
-use App\Models\Compliance\RegulatoryRequirement;
-use App\Models\Compliance\RiskAssessment;
-use App\Models\Compliance\ComplianceAudit;
-use App\Models\Compliance\ComplianceTrainingRecord;
-use App\Models\Compliance\ControlledDocument;
-use App\Models\User;
 
 class ComplianceSeeder extends Seeder
 {
@@ -179,7 +179,7 @@ class ComplianceSeeder extends Seeder
     {
         // Get the first user or create one
         $user = User::first();
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'name' => 'System Administrator',
                 'email' => 'admin@company.com',
@@ -204,7 +204,7 @@ class ComplianceSeeder extends Seeder
                 'next_review_date' => now()->addMonths(6),
                 'owner_id' => $user->id,
                 'requires_acknowledgment' => true,
-                'tags' => ['ethics', 'conduct', 'mandatory']
+                'tags' => ['ethics', 'conduct', 'mandatory'],
             ],
             [
                 'policy_id' => 'POL-002',
@@ -220,7 +220,7 @@ class ComplianceSeeder extends Seeder
                 'next_review_date' => now()->addMonths(9),
                 'owner_id' => $user->id,
                 'requires_acknowledgment' => true,
-                'tags' => ['security', 'data-protection', 'mandatory']
+                'tags' => ['security', 'data-protection', 'mandatory'],
             ],
             [
                 'policy_id' => 'POL-003',
@@ -236,8 +236,8 @@ class ComplianceSeeder extends Seeder
                 'next_review_date' => now()->addMonths(2),
                 'owner_id' => $user->id,
                 'requires_acknowledgment' => true,
-                'tags' => ['safety', 'health', 'mandatory']
-            ]
+                'tags' => ['safety', 'health', 'mandatory'],
+            ],
         ];
 
         foreach ($policies as $policyData) {
@@ -260,7 +260,7 @@ class ComplianceSeeder extends Seeder
                 'status' => RegulatoryRequirement::STATUS_IN_PROGRESS,
                 'priority' => RegulatoryRequirement::PRIORITY_HIGH,
                 'assigned_to' => $user->id,
-                'compliance_percentage' => 75.0
+                'compliance_percentage' => 75.0,
             ],
             [
                 'requirement_number' => 'REQ-SOX-001',
@@ -276,8 +276,8 @@ class ComplianceSeeder extends Seeder
                 'status' => RegulatoryRequirement::STATUS_COMPLIANT,
                 'priority' => RegulatoryRequirement::PRIORITY_CRITICAL,
                 'assigned_to' => $user->id,
-                'compliance_percentage' => 100.0
-            ]
+                'compliance_percentage' => 100.0,
+            ],
         ];
 
         foreach ($requirements as $requirementData) {
@@ -302,7 +302,7 @@ class ComplianceSeeder extends Seeder
                 'assessment_date' => now()->subMonths(2),
                 'next_review_date' => now()->addMonths(4),
                 'owner_id' => $user->id,
-                'notes' => 'Regular security audits and training required'
+                'notes' => 'Regular security audits and training required',
             ],
             [
                 'risk_id' => 'RISK-002',
@@ -317,8 +317,8 @@ class ComplianceSeeder extends Seeder
                 'assessment_date' => now()->subMonths(1),
                 'next_review_date' => now()->addMonths(5),
                 'owner_id' => $user->id,
-                'notes' => 'Compliance monitoring system in place'
-            ]
+                'notes' => 'Compliance monitoring system in place',
+            ],
         ];
 
         foreach ($risks as $riskData) {
@@ -343,7 +343,7 @@ class ComplianceSeeder extends Seeder
                 'overall_rating' => ComplianceAudit::RATING_GOOD,
                 'summary' => 'Security controls are generally effective with minor improvements needed',
                 'follow_up_required' => true,
-                'follow_up_date' => now()->addMonths(3)
+                'follow_up_date' => now()->addMonths(3),
             ],
             [
                 'audit_id' => 'AUD-2024-002',
@@ -357,8 +357,8 @@ class ComplianceSeeder extends Seeder
                 'auditor_id' => $user->id,
                 'auditee_department' => 'Human Resources',
                 'risk_level' => ComplianceAudit::RISK_LOW,
-                'summary' => 'Audit in progress'
-            ]
+                'summary' => 'Audit in progress',
+            ],
         ];
 
         foreach ($audits as $auditData) {
@@ -382,7 +382,7 @@ class ComplianceSeeder extends Seeder
                 'score' => 92.0,
                 'passing_score' => 80.0,
                 'duration_hours' => 2.5,
-                'certificate_number' => 'CERT-SEC-001'
+                'certificate_number' => 'CERT-SEC-001',
             ],
             [
                 'record_id' => 'TRN-002',
@@ -396,8 +396,8 @@ class ComplianceSeeder extends Seeder
                 'expiry_date' => now()->addMonths(12),
                 'status' => ComplianceTrainingRecord::STATUS_SCHEDULED,
                 'passing_score' => 85.0,
-                'duration_hours' => 4.0
-            ]
+                'duration_hours' => 4.0,
+            ],
         ];
 
         foreach ($trainingRecords as $trainingData) {
@@ -423,7 +423,7 @@ class ComplianceSeeder extends Seeder
                 'access_level' => ControlledDocument::ACCESS_ALL_EMPLOYEES,
                 'is_template' => false,
                 'approval_required' => true,
-                'tags' => ['QMS', 'quality', 'manual']
+                'tags' => ['QMS', 'quality', 'manual'],
             ],
             [
                 'document_id' => 'DOC-POL-001',
@@ -442,8 +442,8 @@ class ComplianceSeeder extends Seeder
                 'access_level' => ControlledDocument::ACCESS_ROLE_BASED,
                 'is_template' => false,
                 'approval_required' => true,
-                'tags' => ['procedure', 'document-control']
-            ]
+                'tags' => ['procedure', 'document-control'],
+            ],
         ];
 
         foreach ($documents as $documentData) {

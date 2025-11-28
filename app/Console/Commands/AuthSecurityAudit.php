@@ -5,11 +5,11 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
 
 class AuthSecurityAudit extends Command
 {
     protected $signature = 'auth:security-audit';
+
     protected $description = 'Audit authentication system for ISO 27001/27002 compliance';
 
     public function handle()
@@ -67,6 +67,7 @@ class AuthSecurityAudit extends Command
         }
 
         $this->info('✅ Security audit complete.');
+
         return Command::SUCCESS;
     }
 
@@ -75,7 +76,7 @@ class AuthSecurityAudit extends Command
         if ($actual === $expected) {
             $this->line("✔ {$label}");
         } else {
-            $this->error("✘ {$label} - Expected: " . json_encode($expected) . ", Found: " . json_encode($actual));
+            $this->error("✘ {$label} - Expected: ".json_encode($expected).', Found: '.json_encode($actual));
         }
     }
 }

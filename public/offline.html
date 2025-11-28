@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Aero Enterprise Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 400px;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        p {
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .checking {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>It looks like you're not connected to the internet. Don't worry, we'll keep trying to reconnect you.</p>
+        
+        <button class="button" onclick="checkConnection()">Try Again</button>
+        
+        <div class="status" id="status">
+            Checking connection...
+        </div>
+    </div>
+
+    <script>
+        let isChecking = false;
+        
+        function updateStatus(message, isLoading = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = isLoading ? 'status checking' : 'status';
+        }
+        
+        async function checkConnection() {
+            if (isChecking) return;
+            
+            isChecking = true;
+            updateStatus('Checking connection...', true);
+            
+            try {
+                // Try to fetch a small resource
+                const response = await fetch('/', { 
+                    cache: 'no-cache',
+                    method: 'HEAD'
+                });
+                
+                if (response.ok) {
+                    updateStatus('Connection restored! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    updateStatus('Still offline. We\'ll keep trying...');
+                }
+            } catch (error) {
+                updateStatus('Still offline. Check your internet connection.');
+            } finally {
+                isChecking = false;
+            }
+        }
+        
+        // Auto-check connection every 30 seconds
+        setInterval(checkConnection, 30000);
+        
+        // Check when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                setTimeout(checkConnection, 1000);
+            }
+        });
+        
+        // Check connection on load
+        setTimeout(checkConnection, 2000);
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+            updateStatus('Connection restored! Redirecting...');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        });
+        
+        window.addEventListener('offline', () => {
+            updateStatus('Connection lost. Trying to reconnect...');
+        });
+    </script>
+</body>
+</html>

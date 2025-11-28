@@ -1,16 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
-import { 
-  Box, 
-  Typography, 
-  useTheme, 
-  useMediaQuery, 
-  Grow, 
-  Fade
-} from '@mui/material';
+import { motion } from 'framer-motion';
 import { 
   Button, 
-  Input, 
   Chip, 
   Card,
   CardBody,
@@ -30,9 +22,10 @@ import {
   ModalFooter,
   DateInput,
   Textarea,
+  useDisclosure,
+  Input,
   Select,
-  SelectItem,
-  useDisclosure
+  SelectItem
 } from "@heroui/react";
 
 import { 
@@ -53,13 +46,14 @@ import App from "@/Layouts/App.jsx";
 import GlassCard from "@/Components/GlassCard.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import useTheme from '@/theme';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastUtils';
 
 const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const { theme } = useTheme();
+  const [isMobile] = useState(window.innerWidth < 640);
+  const [isTablet] = useState(window.innerWidth < 768);
   
   const [holidays, setHolidays] = useState(initialHolidays);
   const [searchTerm, setSearchTerm] = useState('');
@@ -166,11 +160,11 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
           setHolidays(prev => [...prev, response.data.holiday]);
         }
         
-        toast.success(selectedHoliday ? 'Holiday updated successfully!' : 'Holiday created successfully!');
+        showToast.success(selectedHoliday ? 'Holiday updated successfully!' : 'Holiday created successfully!');
         handleModalClose();
       }
     } catch (error) {
-      toast.error('Failed to save holiday. Please try again.');
+      showToast.error('Failed to save holiday. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -184,11 +178,11 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
     try {
       await axios.delete(route('holiday.destroy', selectedHoliday.id));
       setHolidays(prev => prev.filter(h => h.id !== selectedHoliday.id));
-      toast.success('Holiday deleted successfully!');
+      showToast.success('Holiday deleted successfully!');
       onDeleteClose();
       setSelectedHoliday(null);
     } catch (error) {
-      toast.error('Failed to delete holiday. Please try again.');
+      showToast.error('Failed to delete holiday. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -336,8 +330,12 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
     <>
       <Head title={title} />
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-        <Grow in timeout={800}>
+      <div className="flex justify-center p-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
           <GlassCard>
             <PageHeader
               title="Company Holidays"
@@ -349,7 +347,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                   label: isMobile ? "Add" : "Add Holiday",
                   icon: <PlusIcon className="w-4 h-4" />,
                   onClick: onAddOpen,
-                  className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
+                  className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
                 }
               ]}
             >
@@ -362,29 +360,19 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                   <div className="flex-1">
                     <Input
                       label="Search Holidays"
-                      variant="bordered"
                       placeholder="Search by holiday name..."
                       value={searchTerm}
-                      onValueChange={setSearchTerm}
-                      startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
-                      classNames={{
-                        input: "bg-transparent",
-                        inputWrapper: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                      }}
-                      size={isMobile ? "sm" : "md"}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                     />
                   </div>
 
                   <div className="flex gap-2 items-end">
                     <Select
                       label="Year"
-                      variant="bordered"
                       selectedKeys={[selectedYear]}
                       onSelectionChange={(keys) => setSelectedYear(Array.from(keys)[0])}
                       className="w-32"
-                      classNames={{
-                        trigger: "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15",
-                      }}
                     >
                       <SelectItem key="all" value="all">All Years</SelectItem>
                       {availableYears.map(year => (
@@ -408,8 +396,12 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
 
                 {/* Active Filters */}
                 {(searchTerm || selectedYear !== new Date().getFullYear().toString()) && (
-                  <Fade in timeout={300}>
-                    <div className="mb-4 flex flex-wrap gap-2">
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mb-4 flex flex-wrap gap-2"
+                  >
                       {searchTerm && (
                         <Chip
                           variant="flat"
@@ -430,19 +422,18 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                           Year: {selectedYear === 'all' ? 'All Years' : selectedYear}
                         </Chip>
                       )}
-                    </div>
-                  </Fade>
+                    </motion.div>
                 )}
 
                 {/* Holidays Table */}
                 <div className="bg-white/5 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden">
                   <div className="p-4 border-b border-white/10">
-                    <Typography variant="h6" className="font-semibold text-foreground">
+                    <h3 className="text-lg font-semibold text-foreground">
                       Company Holidays
                       <span className="text-sm text-default-500 ml-2">
                         ({filteredHolidays.length} {filteredHolidays.length === 1 ? 'holiday' : 'holidays'})
                       </span>
-                    </Typography>
+                    </h3>
                   </div>
                   
                   <Table
@@ -476,8 +467,8 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
               </div>
             </PageHeader>
           </GlassCard>
-        </Grow>
-      </Box>
+        </motion.div>
+      </div>
 
       {/* Add/Edit Holiday Modal */}
       <Modal 
@@ -486,10 +477,10 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
         size="2xl"
         backdrop="blur"
         classNames={{
-          backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20",
-          base: "border-[#292f46] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md",
-          header: "border-b-[1px] border-[#292f46]",
-          footer: "border-t-[1px] border-[#292f46]",
+          backdrop: "bg-linear-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20",
+          base: "border-[#292f46] bg-linear-to-br from-white/10 to-white/5 backdrop-blur-md",
+          header: "border-b border-[#292f46]",
+          footer: "border-t border-[#292f46]",
         }}
       >
         <ModalContent>

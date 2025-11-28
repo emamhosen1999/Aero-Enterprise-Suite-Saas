@@ -1,21 +1,11 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
-import { 
-  Box, 
-  Typography, 
-  useTheme, 
-  useMediaQuery, 
-  Grow, 
-  Grid,
-  Card,
-  CardContent,
-  CardActions
-} from '@mui/material';
+import { motion } from 'framer-motion';
 import { 
   Button, 
   Input, 
   Chip, 
-  Card as HeroCard,
+  Card,
   CardBody,
   CardHeader,
   Divider,
@@ -25,6 +15,7 @@ import {
   User,
   Tooltip
 } from "@heroui/react";
+import { useTheme } from '@/Contexts/ThemeContext';
 
 import { 
   CalendarDaysIcon,
@@ -147,8 +138,8 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
     <>
       <Head title={title} />
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-        <Grow in timeout={800}>
+      <div className="flex justify-center p-2">
+        <div>
           <GlassCard>
             <PageHeader
               title="Time Off Management"
@@ -160,7 +151,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                   label: isMobile ? "Request" : "Request Time Off",
                   icon: <PlusIcon className="w-4 h-4" />,
                   onClick: () => router.visit(route('leaves-employee')),
-                  className: "bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white font-medium hover:opacity-90"
+                  className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
                 }
               ]}
             >
@@ -438,8 +429,8 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
               </div>
             </PageHeader>
           </GlassCard>
-        </Grow>
-      </Box>
+        </div>
+      </div>
     </>
   );
 };

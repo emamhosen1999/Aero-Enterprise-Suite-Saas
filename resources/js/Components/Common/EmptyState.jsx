@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button } from '@mui/material';
+import { Button } from '@nextui-org/react';
 
 const EmptyState = ({ 
     title, 
@@ -10,53 +10,34 @@ const EmptyState = ({
     onAction 
 }) => {
     return (
-        <Box 
-            display="flex" 
-            flexDirection="column" 
-            alignItems="center" 
-            justifyContent="center" 
-            textAlign="center"
-            py={8}
-            px={4}
-        >
+        <div className="flex flex-col items-center justify-center text-center py-8 px-4">
             {icon && (
-                <Box mb={3} className="opacity-50">
+                <div className="mb-3 opacity-50">
                     {icon}
-                </Box>
+                </div>
             )}
             
-            <Typography 
-                variant="h6" 
-                className="text-gray-800 dark:text-white font-semibold mb-2"
-            >
+            <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">
                 {title}
-            </Typography>
+            </h3>
             
             {description && (
-                <Typography 
-                    variant="body2" 
-                    className="text-gray-600 dark:text-gray-300 mb-4 max-w-md"
-                >
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 max-w-md">
                     {description}
-                </Typography>
+                </p>
             )}
             
             {action && actionText && onAction && (
                 <Button
-                    variant="contained"
-                    onClick={onAction}
-                    sx={{
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                        boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
-                        '&:hover': {
-                            boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)',
-                        }
-                    }}
+                    color="primary"
+                    variant="solid"
+                    onPress={onAction}
+                    className="bg-gradient-to-r from-blue-500 to-blue-700 shadow-lg hover:shadow-xl transition-shadow"
                 >
                     {actionText}
                 </Button>
             )}
-        </Box>
+        </div>
     );
 };
 

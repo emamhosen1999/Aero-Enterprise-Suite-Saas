@@ -2,9 +2,9 @@
 
 namespace App\Services\Logging;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Enhanced Application Logging Service
@@ -20,7 +20,7 @@ class ApplicationLogger
         'warning' => 4,
         'notice' => 5,
         'info' => 6,
-        'debug' => 7
+        'debug' => 7,
     ];
 
     /**
@@ -38,7 +38,7 @@ class ApplicationLogger
             'method' => request()->method(),
             'url' => request()->fullUrl(),
             'timestamp' => Carbon::now()->toISOString(),
-            'session_id' => session()->getId()
+            'session_id' => session()->getId(),
         ], $context);
 
         Log::log($level, $action, $enrichedContext);
@@ -57,7 +57,7 @@ class ApplicationLogger
                 'query' => $query,
                 'execution_time_ms' => $executionTime,
                 'bindings' => $bindings,
-                'performance_impact' => 'high'
+                'performance_impact' => 'high',
             ], 'warning');
         }
     }
@@ -70,7 +70,7 @@ class ApplicationLogger
         $securityContext = array_merge([
             'event_type' => 'security',
             'severity' => $severity,
-            'requires_investigation' => in_array($severity, ['critical', 'alert', 'emergency'])
+            'requires_investigation' => in_array($severity, ['critical', 'alert', 'emergency']),
         ], $context);
 
         $this->logUserAction($event, $securityContext, $severity);
@@ -90,7 +90,7 @@ class ApplicationLogger
             'process_name' => $process,
             'process_status' => $status,
             'business_data' => $data,
-            'process_type' => 'business_logic'
+            'process_type' => 'business_logic',
         ], $status === 'failed' ? 'error' : 'info');
     }
 
@@ -107,13 +107,13 @@ class ApplicationLogger
                 'user_id' => $context['user_id'] ?? null,
                 'ip_address' => $context['ip_address'] ?? null,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
         } catch (\Exception $e) {
             // Fallback to file logging if database fails
             Log::error('Failed to store audit log', [
                 'original_action' => $action,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -135,7 +135,7 @@ class ApplicationLogger
     {
         try {
             $startDate = Carbon::now()->subDays($days);
-            
+
             $logs = DB::table('audit_logs')
                 ->where('created_at', '>=', $startDate)
                 ->where('context', 'like', '%execution_time_ms%')
@@ -150,7 +150,7 @@ class ApplicationLogger
                 if (isset($context['execution_time_ms'])) {
                     $totalQueries++;
                     $averageResponseTime += $context['execution_time_ms'];
-                    
+
                     if ($context['execution_time_ms'] > 1000) {
                         $slowQueries[] = $context;
                     }
@@ -163,10 +163,10 @@ class ApplicationLogger
                 'average_response_time' => $totalQueries > 0 ? round($averageResponseTime / $totalQueries, 2) : 0,
                 'slow_queries_count' => count($slowQueries),
                 'slow_queries' => array_slice($slowQueries, 0, 10), // Top 10 slowest
-                'generated_at' => Carbon::now()->toISOString()
+                'generated_at' => Carbon::now()->toISOString(),
             ];
         } catch (\Exception $e) {
-            return ['error' => 'Failed to generate performance report: ' . $e->getMessage()];
+            return ['error' => 'Failed to generate performance report: '.$e->getMessage()];
         }
     }
 }

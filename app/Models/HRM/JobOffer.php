@@ -24,7 +24,7 @@ class JobOffer extends Model
         'response_date',
         'negotiation_notes',
         'created_by',
-        'approved_by'
+        'approved_by',
     ];
 
     protected $casts = [
@@ -72,7 +72,7 @@ class JobOffer extends Model
      */
     public function isPending(): bool
     {
-        return $this->status === 'sent' && !$this->isExpired();
+        return $this->status === 'sent' && ! $this->isExpired();
     }
 
     /**
@@ -80,7 +80,7 @@ class JobOffer extends Model
      */
     public function getFormattedSalaryAttribute(): string
     {
-        return $this->salary_currency . ' ' . number_format($this->salary_offered, 2);
+        return $this->salary_currency.' '.number_format($this->salary_offered, 2);
     }
 
     /**
@@ -88,7 +88,7 @@ class JobOffer extends Model
      */
     public function getDaysUntilDeadlineAttribute(): ?int
     {
-        if (!$this->response_deadline) {
+        if (! $this->response_deadline) {
             return null;
         }
 

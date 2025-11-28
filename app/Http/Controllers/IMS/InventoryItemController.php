@@ -4,10 +4,7 @@ namespace App\Http\Controllers\IMS;
 
 use App\Http\Controllers\Controller;
 use App\Models\InventoryItem;
-use App\Models\InventoryLocation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class InventoryItemController extends Controller
@@ -67,7 +64,7 @@ class InventoryItemController extends Controller
                 'manufacturer',
                 'stockMovements' => function ($query) {
                     $query->latest()->limit(10);
-                }
+                },
             ]),
         ]);
     }
@@ -83,7 +80,7 @@ class InventoryItemController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|max:50|unique:inventory_items,sku,' . $item->id,
+            'sku' => 'required|string|max:50|unique:inventory_items,sku,'.$item->id,
             'description' => 'nullable|string',
             'category_id' => 'required|exists:inventory_categories,id',
             'unit_id' => 'required|exists:inventory_units,id',

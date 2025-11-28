@@ -31,7 +31,7 @@ class StoreOffboardingRequest extends FormRequest
 
     public function prepareForValidation(): void
     {
-        if (!$this->has('tasks')) {
+        if (! $this->has('tasks')) {
             $this->merge(['tasks' => []]);
         }
     }

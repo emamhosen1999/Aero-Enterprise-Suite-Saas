@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
+use App\Models\InventoryItem;
 use App\Models\SCM\ProductionPlan;
 use App\Models\SCM\ProductionPlanMaterial;
-use App\Models\InventoryItem;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -243,7 +242,7 @@ class ProductionPlanController extends Controller
 
     public function hold(ProductionPlan $productionPlan)
     {
-        if (!in_array($productionPlan->status, ['scheduled', 'in_progress'])) {
+        if (! in_array($productionPlan->status, ['scheduled', 'in_progress'])) {
             return Redirect::back()->with('error', 'Only scheduled or in-progress plans can be put on hold.');
         }
 
@@ -267,7 +266,8 @@ class ProductionPlanController extends Controller
     private function generatePlanNumber()
     {
         $lastPlan = ProductionPlan::latest('id')->first();
-        $nextNumber = $lastPlan ? (int)substr($lastPlan->plan_number, 3) + 1 : 1;
-        return 'PP-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastPlan ? (int) substr($lastPlan->plan_number, 3) + 1 : 1;
+
+        return 'PP-'.str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 }

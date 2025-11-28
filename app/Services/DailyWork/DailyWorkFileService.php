@@ -7,8 +7,6 @@ use App\Models\NCR;
 use App\Models\Objection;
 use App\Models\Tasks;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Validation\ValidationException;
 
 class DailyWorkFileService
 {
@@ -20,29 +18,29 @@ class DailyWorkFileService
         $this->validateRfiFileRequest($request);
 
         $task = DailyWork::find($request->taskId);
-        
-        if (!$request->hasFile('file')) {
+
+        if (! $request->hasFile('file')) {
             throw new \Exception('No file uploaded');
         }
 
         $newRfiFile = $request->file('file');
-        
+
         // Clear old file from 'rfi_files' collection if it exists
         $task->clearMediaCollection('rfi_files');
-        
+
         // Add the new RFI file to the 'rfi_files' collection
         $task->addMediaFromRequest('file')->toMediaCollection('rfi_files');
-        
+
         // Get the new file URL
         $newRfiFileUrl = $task->getFirstMediaUrl('rfi_files');
-        
+
         // Store the URL in the task
         $task->file = $newRfiFileUrl;
         $task->save();
 
         return [
             'message' => 'RFI file uploaded successfully',
-            'url' => $newRfiFileUrl
+            'url' => $newRfiFileUrl,
         ];
     }
 
@@ -55,12 +53,12 @@ class DailyWorkFileService
         $selectedReport = $request->input('selected_report');
 
         $task = Tasks::findOrFail($taskId);
-        
+
         // Split the selected option into type and id
-        list($type, $id) = explode('_', $selectedReport);
+        [$type, $id] = explode('_', $selectedReport);
 
         $attachmentResult = $this->processReportAttachment($task, $type, $id);
-        
+
         // Update the timestamp of the task
         $task->touch();
 
@@ -69,7 +67,7 @@ class DailyWorkFileService
 
         return [
             'message' => $attachmentResult['message'],
-            'updatedRowData' => $updatedTask
+            'updatedRowData' => $updatedTask,
         ];
     }
 
@@ -82,7 +80,7 @@ class DailyWorkFileService
         $task = Tasks::findOrFail($taskId);
 
         $detachmentResult = $this->processReportDetachment($task);
-        
+
         // Update the timestamp of the task
         $task->touch();
 
@@ -91,7 +89,7 @@ class DailyWorkFileService
 
         return [
             'message' => $detachmentResult['message'],
-            'updatedRowData' => $updatedTask
+            'updatedRowData' => $updatedTask,
         ];
     }
 
@@ -126,14 +124,14 @@ class DailyWorkFileService
     private function attachNcr(Tasks $task, string $ncrNo): array
     {
         $ncr = NCR::where('ncr_no', $ncrNo)->firstOrFail();
-        
+
         // Check if the NCR is already attached to the task
-        if (!$task->ncrs()->where('ncr_no', $ncr->ncr_no)->exists()) {
+        if (! $task->ncrs()->where('ncr_no', $ncr->ncr_no)->exists()) {
             $task->ncrs()->attach($ncr->id);
         }
 
         return [
-            'message' => "NCR {$ncrNo} attached to {$task->number} successfully."
+            'message' => "NCR {$ncrNo} attached to {$task->number} successfully.",
         ];
     }
 
@@ -143,14 +141,14 @@ class DailyWorkFileService
     private function attachObjection(Tasks $task, string $objNo): array
     {
         $objection = Objection::where('obj_no', $objNo)->firstOrFail();
-        
+
         // Check if the Objection is already attached to the task
-        if (!$task->objections()->where('obj_no', $objection->obj_no)->exists()) {
+        if (! $task->objections()->where('obj_no', $objection->obj_no)->exists()) {
             $task->objections()->attach($objection->id);
         }
 
         return [
-            'message' => "Objection {$objNo} attached to {$task->number} successfully."
+            'message' => "Objection {$objNo} attached to {$task->number} successfully.",
         ];
     }
 
@@ -162,20 +160,20 @@ class DailyWorkFileService
         // If task has NCRs, detach them
         if ($task->ncrs->count() > 0) {
             $detachedNCRs = $task->ncrs()->detach();
-            $message = $detachedNCRs > 0 
-                ? "NCR detached from task {$task->number} successfully." 
+            $message = $detachedNCRs > 0
+                ? "NCR detached from task {$task->number} successfully."
                 : "No NCRs were attached to task {$task->number}.";
-            
+
             return ['message' => $message];
         }
-        
+
         // If task has Objections, detach them
         if ($task->objections->count() > 0) {
             $detachedObjections = $task->objections()->detach();
-            $message = $detachedObjections > 0 
-                ? "Objection detached from task {$task->number} successfully." 
+            $message = $detachedObjections > 0
+                ? "Objection detached from task {$task->number} successfully."
                 : "No Objections were attached to task {$task->number}.";
-            
+
             return ['message' => $message];
         }
 

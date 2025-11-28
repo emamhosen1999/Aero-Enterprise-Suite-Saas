@@ -6,15 +6,16 @@ import {
     CheckCircleIcon,
     ExclamationTriangleIcon 
 } from '@heroicons/react/24/outline';
+import { Button as HeroButton } from '@heroui/react';
 import AuthLayout from '@/Components/AuthLayout';
-import Button from '@/Components/Button';
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from '@/Contexts/ThemeContext';
 
 export default function VerifyEmail({ status }) {
     const { post, processing } = useForm({});
     const { app } = usePage().props;
     const [emailSent, setEmailSent] = useState(false);
-    const theme = useTheme();
+    const { isDark } = useTheme();
+    const primaryColor = getThemePrimaryColor();
 
     const submit = (e) => {
         e.preventDefault();
@@ -35,9 +36,9 @@ export default function VerifyEmail({ status }) {
                 <motion.div
                     className="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center relative overflow-hidden"
                     style={{
-                        background: `linear-gradient(135deg, ${theme.palette.primary.main}20, ${theme.palette.secondary.main}20)`,
+                        background: `linear-gradient(135deg, ${hexToRgba(primaryColor, 0.2)}, ${hexToRgba(primaryColor, 0.1)})`,
                         backdropFilter: 'blur(10px)',
-                        border: `1px solid ${theme.palette.primary.main}30`
+                        border: `1px solid ${hexToRgba(primaryColor, 0.3)}`
                     }}
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
@@ -50,14 +51,14 @@ export default function VerifyEmail({ status }) {
                 >
                     <EnvelopeIcon 
                         className="w-10 h-10" 
-                        style={{ color: theme.palette.primary.main }}
+                        style={{ color: primaryColor }}
                     />
                     
                     {/* Pulse animation */}
                     <motion.div
                         className="absolute inset-0 rounded-2xl"
                         style={{
-                            background: `linear-gradient(135deg, ${theme.palette.primary.main}10, ${theme.palette.secondary.main}10)`
+                            background: `linear-gradient(135deg, ${hexToRgba(primaryColor, 0.1)}, ${hexToRgba(primaryColor, 0.05)})`
                         }}
                         animate={{ 
                             scale: [1, 1.1, 1],
@@ -105,14 +106,12 @@ export default function VerifyEmail({ status }) {
                     transition={{ delay: 0.3 }}
                 >
                     <h3 
-                        className="text-lg font-medium mb-3"
-                        style={{ color: theme.palette.text.primary }}
+                        className={`text-lg font-medium mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}
                     >
                         Please verify your email address
                     </h3>
                     <p 
-                        className="text-sm leading-relaxed"
-                        style={{ color: theme.palette.text.secondary }}
+                        className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
                     >
                         We've sent a verification link to your email address. 
                         Click the link in the email to verify your account and continue to {app?.name || 'the application'}.
@@ -127,16 +126,16 @@ export default function VerifyEmail({ status }) {
                     transition={{ delay: 0.4 }}
                 >
                     <form onSubmit={submit}>
-                        <Button
+                        <HeroButton
                             type="submit"
-                            variant="primary"
+                            color="primary"
                             size="lg"
                             className="w-full"
-                            loading={processing}
+                            isLoading={processing}
                             disabled={processing}
                         >
                             {processing ? 'Sending...' : 'Resend verification email'}
-                        </Button>
+                        </HeroButton>
                     </form>
 
                     <motion.div
@@ -170,7 +169,7 @@ export default function VerifyEmail({ status }) {
                 >
                     <div className="flex items-start">
                         <motion.div
-                            className="flex-shrink-0 mr-3 mt-0.5"
+                            className="shrink-0 mr-3 mt-0.5"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.6, type: "spring", stiffness: 500 }}
@@ -207,13 +206,13 @@ export default function VerifyEmail({ status }) {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.9 }}
                 >
-                    <p className="text-sm" style={{ color: theme.palette.text.secondary }}>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                         Still having trouble?{' '}
                         <motion.span whileHover={{ scale: 1.05 }} className="inline-block">
                             <Link
                                 href="#"
                                 className="font-medium transition-colors duration-200"
-                                style={{ color: 'var(--theme-primary)' }}
+                                style={{ color: primaryColor }}
                             >
                                 Contact support
                             </Link>

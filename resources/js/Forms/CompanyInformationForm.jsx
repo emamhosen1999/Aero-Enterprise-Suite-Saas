@@ -1,22 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import {
-    CardActions,
-    CardContent,
-    CardHeader,
-    FormControl,
-    Grid,
-    InputLabel,
-    MenuItem,
+    Button,
+    Input,
+    Textarea,
     Select,
-    TextField,
-    Typography,
-    Grow,
-    Box, FormHelperText
-} from '@mui/material';
-import LoadingButton from "@mui/lab/LoadingButton";
+    SelectItem,
+    Card,
+    CardBody,
+    CardHeader,
+    CardFooter,
+} from '@heroui/react';
+import { motion } from 'framer-motion';
 import GlassCard from '@/Components/GlassCard'; // Assuming GlassCard is a custom component
-import {toast} from "react-toastify";
-import {useTheme} from "@mui/material/styles";
+import { showToast } from "@/utils/toastUtils";
+
 import {getCountries} from '@/Props/countries.jsx'
 const CompanyInformationForm = ({settings, setSettings}) => {
 
@@ -25,7 +22,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
 
     const [states, setStates] = useState([]);
 
-    const theme = useTheme();
+
     const [formData, setFormData] = useState({
         companyName: settings.companyName || '',
         contactPerson: settings.contactPerson || '',
@@ -86,7 +83,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
             if (response.status === 200) {
                 setSettings(response.data.companySettings);
                 setErrors({});
-                toast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Company settings updated successfully', {
+                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Company settings updated successfully', {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
@@ -101,7 +98,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
             if (error.response) {
                 if (error.response.status === 422) {
                     setErrors(error.response.data.errors || {});
-                    toast.error(error.response.data.error || 'Failed to update company settings.', {
+                    showToast.error(error.response.data.error || 'Failed to update company settings.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
@@ -111,7 +108,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
                         }
                     });
                 } else {
-                    toast.error('An unexpected error occurred. Please try again later.', {
+                    showToast.error('An unexpected error occurred. Please try again later.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
@@ -123,7 +120,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
                 }
                 console.error(error.response.data);
             } else if (error.request) {
-                toast.error('No response received from the server. Please check your internet connection.', {
+                showToast.error('No response received from the server. Please check your internet connection.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
@@ -134,7 +131,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
                 });
                 console.error(error.request);
             } else {
-                toast.error('An error occurred while setting up the request.', {
+                showToast.error('An error occurred while setting up the request.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',

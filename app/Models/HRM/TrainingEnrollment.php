@@ -21,7 +21,7 @@ class TrainingEnrollment extends Model
         'feedback',
         'certificate_issued',
         'approved_by',
-        'rejected_reason'
+        'rejected_reason',
     ];
 
     protected $casts = [

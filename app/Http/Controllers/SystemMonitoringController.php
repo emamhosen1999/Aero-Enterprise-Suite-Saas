@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
-use App\Services\Performance\DatabaseOptimizationService;
-use App\Services\Logging\ApplicationLogger;
-use Carbon\Carbon;
 
 /**
  * System Monitoring Controller
@@ -24,19 +22,22 @@ class SystemMonitoringController extends Controller
     public function index()
     {
         try {
-            $logger = new \App\Services\Logging\ApplicationLogger();
+            $logger = new \App\Services\Logging\ApplicationLogger;
             $logger->logUserAction('System Monitoring Dashboard Accessed');
         } catch (\Exception $e) {
             Log::info('System Monitoring Dashboard Accessed');
-        }        return Inertia::render('Administration/SystemMonitoringEnhanced', [
+        }
+
+        return Inertia::render('Administration/SystemMonitoringEnhanced', [
             'title' => 'Enterprise System Monitoring',
-            'initialData' => $this->getSystemOverview()
+            'initialData' => $this->getSystemOverview(),
         ]);
     }
 
     /**
      * Get system overview data
-     */    public function getSystemOverview()
+     */
+    public function getSystemOverview()
     {
         return Cache::remember('system_overview', 300, function () {
             return [
@@ -49,8 +50,9 @@ class SystemMonitoringController extends Controller
                 'security_metrics' => $this->getSecurityMetrics(),
                 'capacity_planning' => $this->getCapacityPlanningData(),
                 'service_availability' => $this->getServiceAvailability(),
-                'compliance_metrics' => $this->getComplianceMetrics()
-            ];        });
+                'compliance_metrics' => $this->getComplianceMetrics(),
+            ];
+        });
     }
 
     /**
@@ -81,7 +83,7 @@ class SystemMonitoringController extends Controller
     private function getPerformanceSummary()
     {
         $last24h = Carbon::now()->subDay();
-        
+
         $metrics = DB::table('performance_metrics')
             ->where('created_at', '>=', $last24h)
             ->selectRaw('
@@ -103,7 +105,7 @@ class SystemMonitoringController extends Controller
             'metrics' => $metrics,
             'slow_queries_count' => $slowQueries,
             'avg_response_time' => $metrics->avg('avg_time') ?? 0,
-            'total_requests' => $metrics->sum('total_requests')
+            'total_requests' => $metrics->sum('total_requests'),
         ];
     }
 
@@ -113,7 +115,7 @@ class SystemMonitoringController extends Controller
     private function getErrorSummary()
     {
         $last24h = Carbon::now()->subDay();
-        
+
         $errorCounts = DB::table('error_logs')
             ->where('created_at', '>=', $last24h)
             ->selectRaw('
@@ -134,7 +136,7 @@ class SystemMonitoringController extends Controller
             'total_errors' => $errorCounts->total_errors ?? 0,
             'unresolved_errors' => $errorCounts->unresolved_errors ?? 0,
             'affected_users' => $errorCounts->affected_users ?? 0,
-            'recent_errors' => $recentErrors
+            'recent_errors' => $recentErrors,
         ];
     }
 
@@ -144,7 +146,7 @@ class SystemMonitoringController extends Controller
     private function getUserActivitySummary()
     {
         $last24h = Carbon::now()->subDay();
-        
+
         return [
             'active_users' => DB::table('audit_logs')
                 ->where('created_at', '>=', $last24h)
@@ -159,7 +161,7 @@ class SystemMonitoringController extends Controller
                 ->groupBy('action')
                 ->orderBy('count', 'desc')
                 ->limit(5)
-                ->get()
+                ->get(),
         ];
     }
 
@@ -172,19 +174,19 @@ class SystemMonitoringController extends Controller
             'database' => $this->checkDatabaseHealth(),
             'cache' => $this->checkCacheHealth(),
             'storage' => $this->checkStorageHealth(),
-            'queues' => $this->checkQueueHealth()
+            'queues' => $this->checkQueueHealth(),
         ];
 
-        $overallStatus = collect($health)->every(fn($check) => $check['status'] === 'healthy') 
-            ? 'healthy' 
-            : (collect($health)->contains(fn($check) => $check['status'] === 'critical') 
-                ? 'critical' 
+        $overallStatus = collect($health)->every(fn ($check) => $check['status'] === 'healthy')
+            ? 'healthy'
+            : (collect($health)->contains(fn ($check) => $check['status'] === 'critical')
+                ? 'critical'
                 : 'warning');
 
         return [
             'overall_status' => $overallStatus,
             'checks' => $health,
-            'last_check' => now()->toISOString()
+            'last_check' => now()->toISOString(),
         ];
     }
 
@@ -201,13 +203,13 @@ class SystemMonitoringController extends Controller
             return [
                 'status' => $responseTime < 100 ? 'healthy' : ($responseTime < 500 ? 'warning' : 'critical'),
                 'response_time' => round($responseTime, 2),
-                'message' => $responseTime < 100 ? 'Database responding normally' : 'Database response time elevated'
+                'message' => $responseTime < 100 ? 'Database responding normally' : 'Database response time elevated',
             ];
         } catch (\Exception $e) {
             return [
                 'status' => 'critical',
                 'response_time' => null,
-                'message' => 'Database connection failed: ' . $e->getMessage()
+                'message' => 'Database connection failed: '.$e->getMessage(),
             ];
         }
     }
@@ -218,19 +220,19 @@ class SystemMonitoringController extends Controller
     private function checkCacheHealth()
     {
         try {
-            $testKey = 'health_check_' . now()->timestamp;
+            $testKey = 'health_check_'.now()->timestamp;
             Cache::put($testKey, 'test', 10);
             $retrieved = Cache::get($testKey);
             Cache::forget($testKey);
 
             return [
                 'status' => $retrieved === 'test' ? 'healthy' : 'warning',
-                'message' => $retrieved === 'test' ? 'Cache working normally' : 'Cache read/write issues'
+                'message' => $retrieved === 'test' ? 'Cache working normally' : 'Cache read/write issues',
             ];
         } catch (\Exception $e) {
             return [
                 'status' => 'critical',
-                'message' => 'Cache system failed: ' . $e->getMessage()
+                'message' => 'Cache system failed: '.$e->getMessage(),
             ];
         }
     }
@@ -250,12 +252,12 @@ class SystemMonitoringController extends Controller
                 'status' => $usedPercent < 80 ? 'healthy' : ($usedPercent < 90 ? 'warning' : 'critical'),
                 'used_percent' => round($usedPercent, 1),
                 'free_space' => $this->formatBytes($freeBytes),
-                'message' => $usedPercent < 80 ? 'Storage space adequate' : 'Storage space running low'
+                'message' => $usedPercent < 80 ? 'Storage space adequate' : 'Storage space running low',
             ];
         } catch (\Exception $e) {
             return [
                 'status' => 'warning',
-                'message' => 'Could not check storage: ' . $e->getMessage()
+                'message' => 'Could not check storage: '.$e->getMessage(),
             ];
         }
     }
@@ -273,12 +275,12 @@ class SystemMonitoringController extends Controller
                 'status' => $failedJobs < 10 ? 'healthy' : ($failedJobs < 50 ? 'warning' : 'critical'),
                 'failed_jobs' => $failedJobs,
                 'pending_jobs' => $pendingJobs,
-                'message' => $failedJobs < 10 ? 'Queue processing normally' : 'High number of failed jobs'
+                'message' => $failedJobs < 10 ? 'Queue processing normally' : 'High number of failed jobs',
             ];
         } catch (\Exception $e) {
             return [
                 'status' => 'warning',
-                'message' => 'Could not check queues: ' . $e->getMessage()
+                'message' => 'Could not check queues: '.$e->getMessage(),
             ];
         }
     }
@@ -289,7 +291,7 @@ class SystemMonitoringController extends Controller
     private function getDatabaseStats()
     {
         try {
-            $tables = DB::select("
+            $tables = DB::select('
                 SELECT 
                     table_name,
                     table_rows,
@@ -298,15 +300,15 @@ class SystemMonitoringController extends Controller
                 WHERE table_schema = DATABASE()
                 ORDER BY (data_length + index_length) DESC
                 LIMIT 10
-            ");
+            ');
 
             return [
                 'largest_tables' => $tables,
-                'total_tables' => count(DB::select("SHOW TABLES"))
+                'total_tables' => count(DB::select('SHOW TABLES')),
             ];
         } catch (\Exception $e) {
             return [
-                'error' => 'Could not retrieve database stats: ' . $e->getMessage()
+                'error' => 'Could not retrieve database stats: '.$e->getMessage(),
             ];
         }
     }
@@ -316,13 +318,13 @@ class SystemMonitoringController extends Controller
      */
     private function formatBytes($bytes, $precision = 2)
     {
-        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
 
-        return round($bytes, $precision) . ' ' . $units[$i];
+        return round($bytes, $precision).' '.$units[$i];
     }
 
     /**
@@ -330,7 +332,7 @@ class SystemMonitoringController extends Controller
      */
     private function getPerformanceMetrics($period)
     {
-        $hours = match($period) {
+        $hours = match ($period) {
             '1h' => 1,
             '6h' => 6,
             '24h' => 24,
@@ -359,7 +361,7 @@ class SystemMonitoringController extends Controller
      */
     private function getErrorMetrics($period)
     {
-        $hours = match($period) {
+        $hours = match ($period) {
             '1h' => 1,
             '6h' => 6,
             '24h' => 24,
@@ -382,7 +384,7 @@ class SystemMonitoringController extends Controller
                 ->groupBy('error_type')
                 ->orderBy('count', 'desc')
                 ->limit(10)
-                ->get()
+                ->get(),
         ];
     }
 
@@ -391,7 +393,7 @@ class SystemMonitoringController extends Controller
      */
     private function getUserMetrics($period)
     {
-        $hours = match($period) {
+        $hours = match ($period) {
             '1h' => 1,
             '6h' => 6,
             '24h' => 24,
@@ -415,7 +417,7 @@ class SystemMonitoringController extends Controller
                 ->groupBy('users.id', 'users.name')
                 ->orderBy('action_count', 'desc')
                 ->limit(10)
-                ->get()
+                ->get(),
         ];
     }
 
@@ -427,7 +429,7 @@ class SystemMonitoringController extends Controller
         return [
             'server_load' => $this->getServerLoad(),
             'memory_usage' => $this->getMemoryUsage(),
-            'uptime' => $this->getSystemUptime()
+            'uptime' => $this->getSystemUptime(),
         ];
     }
 
@@ -435,20 +437,23 @@ class SystemMonitoringController extends Controller
     {
         if (function_exists('sys_getloadavg')) {
             $load = sys_getloadavg();
+
             return [
                 '1min' => $load[0],
                 '5min' => $load[1],
-                '15min' => $load[2]
+                '15min' => $load[2],
             ];
         }
+
         return null;
     }
 
     private function getMemoryUsage()
-    {        return [
+    {
+        return [
             'current' => memory_get_usage(true),
             'peak' => memory_get_peak_usage(true),
-            'limit' => ini_get('memory_limit')
+            'limit' => ini_get('memory_limit'),
         ];
     }
 
@@ -456,8 +461,10 @@ class SystemMonitoringController extends Controller
     {
         if (PHP_OS_FAMILY === 'Linux') {
             $uptime = file_get_contents('/proc/uptime');
+
             return floatval(explode(' ', $uptime)[0]);
         }
+
         return null;
     }
 
@@ -474,19 +481,20 @@ class SystemMonitoringController extends Controller
                 'query_performance' => $this->getQueryPerformanceStats(),
                 'connection_pool' => $this->getConnectionPoolStats(),
                 'replication_status' => $this->getReplicationStatus(),
-                'backup_status' => $this->getBackupStatus()
+                'backup_status' => $this->getBackupStatus(),
             ];
-            
+
             return $stats;
         } catch (\Exception $e) {
-            \Log::error('Database stats error: ' . $e->getMessage());
+            \Log::error('Database stats error: '.$e->getMessage());
+
             return ['error' => 'Unable to retrieve database statistics'];
         }
     }
 
     private function getAllTablesAnalysis()
     {
-        $tables = DB::select("
+        $tables = DB::select('
             SELECT 
                 TABLE_NAME,
                 TABLE_ROWS,
@@ -502,7 +510,7 @@ class SystemMonitoringController extends Controller
             FROM information_schema.TABLES 
             WHERE TABLE_SCHEMA = DATABASE()
             ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC
-        ");
+        ');
 
         return [
             'tables' => $tables,
@@ -511,15 +519,15 @@ class SystemMonitoringController extends Controller
                 'total_size_mb' => array_sum(array_column($tables, 'size_mb')),
                 'total_rows' => array_sum(array_column($tables, 'TABLE_ROWS')),
                 'largest_table' => $tables[0] ?? null,
-                'engines_used' => array_unique(array_column($tables, 'ENGINE'))
-            ]
+                'engines_used' => array_unique(array_column($tables, 'ENGINE')),
+            ],
         ];
     }
 
     private function getIndexAnalysis()
     {
         try {
-            $indexes = DB::select("
+            $indexes = DB::select('
                 SELECT 
                     TABLE_NAME,
                     INDEX_NAME,
@@ -531,9 +539,9 @@ class SystemMonitoringController extends Controller
                 FROM information_schema.STATISTICS 
                 WHERE TABLE_SCHEMA = DATABASE()
                 ORDER BY TABLE_NAME, INDEX_NAME
-            ");
+            ');
 
-            $duplicateIndexes = DB::select("
+            $duplicateIndexes = DB::select('
                 SELECT 
                     TABLE_NAME,
                     COUNT(*) as duplicate_count,
@@ -542,7 +550,7 @@ class SystemMonitoringController extends Controller
                 WHERE TABLE_SCHEMA = DATABASE()
                 GROUP BY TABLE_NAME, COLUMN_NAME
                 HAVING COUNT(*) > 1
-            ");
+            ');
 
             return [
                 'indexes' => $indexes,
@@ -550,9 +558,9 @@ class SystemMonitoringController extends Controller
                 'summary' => [
                     'total_indexes' => count($indexes),
                     'duplicate_count' => count($duplicateIndexes),
-                    'unique_indexes' => count(array_filter($indexes, fn($i) => $i->NON_UNIQUE == 0)),
-                    'fulltext_indexes' => count(array_filter($indexes, fn($i) => $i->INDEX_TYPE == 'FULLTEXT'))
-                ]
+                    'unique_indexes' => count(array_filter($indexes, fn ($i) => $i->NON_UNIQUE == 0)),
+                    'fulltext_indexes' => count(array_filter($indexes, fn ($i) => $i->INDEX_TYPE == 'FULLTEXT')),
+                ],
             ];
         } catch (\Exception $e) {
             return ['error' => 'Index analysis unavailable'];
@@ -562,7 +570,7 @@ class SystemMonitoringController extends Controller
     private function getStorageAnalysis()
     {
         try {
-            $storage = DB::select("
+            $storage = DB::select('
                 SELECT 
                     ENGINE,
                     COUNT(*) as table_count,
@@ -571,9 +579,9 @@ class SystemMonitoringController extends Controller
                 FROM information_schema.TABLES 
                 WHERE TABLE_SCHEMA = DATABASE()
                 GROUP BY ENGINE
-            ");
+            ');
 
-            $fragmentation = DB::select("
+            $fragmentation = DB::select('
                 SELECT 
                     TABLE_NAME,
                     ROUND(DATA_FREE / 1024 / 1024, 2) as fragmentation_mb,
@@ -583,12 +591,12 @@ class SystemMonitoringController extends Controller
                 AND DATA_FREE > 0
                 ORDER BY DATA_FREE DESC
                 LIMIT 10
-            ");
+            ');
 
             return [
                 'by_engine' => $storage,
                 'fragmentation' => $fragmentation,
-                'recommendations' => $this->getStorageRecommendations($fragmentation)
+                'recommendations' => $this->getStorageRecommendations($fragmentation),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Storage analysis unavailable'];
@@ -604,10 +612,11 @@ class SystemMonitoringController extends Controller
                     'type' => 'optimize',
                     'table' => $table->TABLE_NAME,
                     'message' => "Table {$table->TABLE_NAME} has {$table->fragmentation_percent}% fragmentation. Consider running OPTIMIZE TABLE.",
-                    'priority' => $table->fragmentation_percent > 50 ? 'high' : 'medium'
+                    'priority' => $table->fragmentation_percent > 50 ? 'high' : 'medium',
                 ];
             }
         }
+
         return $recommendations;
     }
 
@@ -634,8 +643,8 @@ class SystemMonitoringController extends Controller
                 'performance_summary' => [
                     'total_queries_24h' => DB::table('performance_metrics')->where('created_at', '>=', now()->subDay())->count(),
                     'avg_execution_time' => DB::table('performance_metrics')->where('created_at', '>=', now()->subDay())->avg('execution_time_ms'),
-                    'slowest_query_time' => DB::table('performance_metrics')->where('created_at', '>=', now()->subDay())->max('execution_time_ms')
-                ]
+                    'slowest_query_time' => DB::table('performance_metrics')->where('created_at', '>=', now()->subDay())->max('execution_time_ms'),
+                ],
             ];
         } catch (\Exception $e) {
             return ['error' => 'Query performance data unavailable'];
@@ -647,11 +656,11 @@ class SystemMonitoringController extends Controller
         try {
             $connections = DB::select("SHOW STATUS LIKE 'Threads_%'");
             $maxConnections = DB::select("SHOW VARIABLES LIKE 'max_connections'");
-            
+
             return [
                 'active_connections' => collect($connections)->firstWhere('Variable_name', 'Threads_connected')->Value ?? 0,
                 'max_connections' => collect($maxConnections)->first()->Value ?? 0,
-                'connection_utilization' => round((collect($connections)->firstWhere('Variable_name', 'Threads_connected')->Value ?? 0) / (collect($maxConnections)->first()->Value ?? 1) * 100, 2)
+                'connection_utilization' => round((collect($connections)->firstWhere('Variable_name', 'Threads_connected')->Value ?? 0) / (collect($maxConnections)->first()->Value ?? 1) * 100, 2),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Connection pool data unavailable'];
@@ -665,7 +674,7 @@ class SystemMonitoringController extends Controller
             return [
                 'status' => 'not_configured',
                 'lag' => null,
-                'last_check' => now()
+                'last_check' => now(),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Replication status unavailable'];
@@ -678,22 +687,22 @@ class SystemMonitoringController extends Controller
             // Check for recent backup files or backup logs
             $backupPath = storage_path('backups');
             $backups = [];
-            
+
             if (is_dir($backupPath)) {
-                $files = glob($backupPath . '/*.sql');
+                $files = glob($backupPath.'/*.sql');
                 foreach ($files as $file) {
                     $backups[] = [
                         'filename' => basename($file),
                         'size_mb' => round(filesize($file) / 1024 / 1024, 2),
-                        'created_at' => date('Y-m-d H:i:s', filemtime($file))
+                        'created_at' => date('Y-m-d H:i:s', filemtime($file)),
                     ];
                 }
             }
-            
+
             return [
                 'recent_backups' => array_slice($backups, -5),
                 'last_backup' => $backups ? max(array_column($backups, 'created_at')) : null,
-                'backup_status' => $backups ? 'available' : 'none'
+                'backup_status' => $backups ? 'available' : 'none',
             ];
         } catch (\Exception $e) {
             return ['error' => 'Backup status unavailable'];
@@ -710,7 +719,7 @@ class SystemMonitoringController extends Controller
             'memory' => $this->getMemoryUsage(),
             'disk' => $this->getDiskUsage(),
             'network' => $this->getNetworkStats(),
-            'processes' => $this->getProcessStats()
+            'processes' => $this->getProcessStats(),
         ];
     }
 
@@ -719,13 +728,15 @@ class SystemMonitoringController extends Controller
         try {
             if (PHP_OS_FAMILY === 'Linux') {
                 $load = sys_getloadavg();
+
                 return [
                     'load_1min' => $load[0] ?? 0,
                     'load_5min' => $load[1] ?? 0,
                     'load_15min' => $load[2] ?? 0,
-                    'cores' => $this->getCpuCores()
+                    'cores' => $this->getCpuCores(),
                 ];
             }
+
             return ['error' => 'CPU stats not available on this platform'];
         } catch (\Exception $e) {
             return ['error' => 'CPU stats unavailable'];
@@ -737,6 +748,7 @@ class SystemMonitoringController extends Controller
         if (PHP_OS_FAMILY === 'Linux') {
             return (int) shell_exec('nproc') ?: 1;
         }
+
         return 1;
     }
 
@@ -744,11 +756,12 @@ class SystemMonitoringController extends Controller
     {
         try {
             $path = storage_path();
+
             return [
                 'total_space' => disk_total_space($path),
                 'free_space' => disk_free_space($path),
                 'used_space' => disk_total_space($path) - disk_free_space($path),
-                'usage_percent' => round(((disk_total_space($path) - disk_free_space($path)) / disk_total_space($path)) * 100, 2)
+                'usage_percent' => round(((disk_total_space($path) - disk_free_space($path)) / disk_total_space($path)) * 100, 2),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Disk usage unavailable'];
@@ -762,7 +775,7 @@ class SystemMonitoringController extends Controller
             return [
                 'active_sessions' => DB::table('sessions')->count(),
                 'requests_per_minute' => $this->getRequestsPerMinute(),
-                'bandwidth_usage' => 'monitoring_required'
+                'bandwidth_usage' => 'monitoring_required',
             ];
         } catch (\Exception $e) {
             return ['error' => 'Network stats unavailable'];
@@ -786,7 +799,7 @@ class SystemMonitoringController extends Controller
             return [
                 'php_processes' => $this->getPhpProcessCount(),
                 'memory_per_process' => memory_get_usage(true),
-                'max_execution_time' => ini_get('max_execution_time')
+                'max_execution_time' => ini_get('max_execution_time'),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Process stats unavailable'];
@@ -798,6 +811,7 @@ class SystemMonitoringController extends Controller
         if (PHP_OS_FAMILY === 'Linux') {
             return (int) shell_exec("ps aux | grep -c '[p]hp'") ?: 1;
         }
+
         return 1;
     }
 
@@ -811,7 +825,7 @@ class SystemMonitoringController extends Controller
             'failed_attempts' => $this->getFailedLoginAttempts(),
             'suspicious_activities' => $this->getSuspiciousActivities(),
             'security_events' => $this->getSecurityEvents(),
-            'access_patterns' => $this->getAccessPatterns()
+            'access_patterns' => $this->getAccessPatterns(),
         ];
     }
 
@@ -819,6 +833,7 @@ class SystemMonitoringController extends Controller
     {
         try {
             $last24h = now()->subDay();
+
             return [
                 'successful_logins_24h' => DB::table('activity_log')
                     ->where('description', 'User Login')
@@ -829,7 +844,7 @@ class SystemMonitoringController extends Controller
                     ->where('created_at', '>=', $last24h)
                     ->distinct('causer_id')
                     ->count(),
-                'avg_session_duration' => $this->getAverageSessionDuration()
+                'avg_session_duration' => $this->getAverageSessionDuration(),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Authentication stats unavailable'];
@@ -864,7 +879,7 @@ class SystemMonitoringController extends Controller
             return [
                 'high_frequency_ips' => $suspiciousIPs,
                 'unusual_access_patterns' => $this->getUnusualAccessPatterns(),
-                'potential_threats' => $this->getPotentialThreats()
+                'potential_threats' => $this->getPotentialThreats(),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Suspicious activity monitoring unavailable'];
@@ -882,7 +897,7 @@ class SystemMonitoringController extends Controller
 
             return [
                 'after_hours_access' => $unusualHours,
-                'weekend_access' => $this->getWeekendAccess()
+                'weekend_access' => $this->getWeekendAccess(),
             ];
         } catch (\Exception $e) {
             return [];
@@ -907,7 +922,7 @@ class SystemMonitoringController extends Controller
             'sql_injection_attempts' => 0, // Would need request log analysis
             'xss_attempts' => 0,
             'csrf_violations' => 0,
-            'brute_force_attempts' => $this->getBruteForceAttempts()
+            'brute_force_attempts' => $this->getBruteForceAttempts(),
         ];
     }
 
@@ -931,7 +946,7 @@ class SystemMonitoringController extends Controller
                     'User Role Changed',
                     'Permission Modified',
                     'System Settings Changed',
-                    'Password Reset'
+                    'Password Reset',
                 ])
                 ->where('created_at', '>=', now()->subDay())
                 ->orderBy('created_at', 'desc')
@@ -948,7 +963,7 @@ class SystemMonitoringController extends Controller
             return [
                 'peak_hours' => $this->getPeakAccessHours(),
                 'geographic_distribution' => $this->getGeographicDistribution(),
-                'device_types' => $this->getDeviceTypes()
+                'device_types' => $this->getDeviceTypes(),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Access pattern analysis unavailable'];
@@ -1024,7 +1039,7 @@ class SystemMonitoringController extends Controller
             'growth_trends' => $this->getGrowthTrends(),
             'resource_forecasting' => $this->getResourceForecasting(),
             'capacity_alerts' => $this->getCapacityAlerts(),
-            'scaling_recommendations' => $this->getScalingRecommendations()
+            'scaling_recommendations' => $this->getScalingRecommendations(),
         ];
     }
 
@@ -1043,7 +1058,7 @@ class SystemMonitoringController extends Controller
             return [
                 'user_growth' => $userGrowth,
                 'data_growth' => $dataGrowth,
-                'traffic_growth' => $this->getTrafficGrowthTrends()
+                'traffic_growth' => $this->getTrafficGrowthTrends(),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Growth trend analysis unavailable'];
@@ -1091,32 +1106,32 @@ class SystemMonitoringController extends Controller
     private function getResourceForecasting()
     {
         $currentResources = $this->getSystemResources();
-        
+
         return [
             'database_size_projection' => $this->projectDatabaseSize(),
             'user_capacity_projection' => $this->projectUserCapacity(),
             'storage_requirements' => $this->projectStorageRequirements(),
-            'performance_projection' => $this->projectPerformanceRequirements()
+            'performance_projection' => $this->projectPerformanceRequirements(),
         ];
     }
 
     private function projectDatabaseSize()
     {
         try {
-            $currentSize = DB::selectOne("
+            $currentSize = DB::selectOne('
                 SELECT ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as size_mb
                 FROM information_schema.TABLES 
                 WHERE TABLE_SCHEMA = DATABASE()
-            ");
+            ');
 
             // Simple linear projection based on last month's growth
             $monthlyGrowth = 0.1; // 10% monthly growth assumption
-            
+
             return [
                 'current_size_mb' => $currentSize->size_mb ?? 0,
                 'projected_3_months' => round(($currentSize->size_mb ?? 0) * (1 + $monthlyGrowth) ** 3, 2),
                 'projected_6_months' => round(($currentSize->size_mb ?? 0) * (1 + $monthlyGrowth) ** 6, 2),
-                'projected_12_months' => round(($currentSize->size_mb ?? 0) * (1 + $monthlyGrowth) ** 12, 2)
+                'projected_12_months' => round(($currentSize->size_mb ?? 0) * (1 + $monthlyGrowth) ** 12, 2),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Database size projection unavailable'];
@@ -1133,7 +1148,7 @@ class SystemMonitoringController extends Controller
                 'current_users' => $currentUsers,
                 'projected_3_months' => round($currentUsers * (1 + $monthlyGrowthRate) ** 3),
                 'projected_6_months' => round($currentUsers * (1 + $monthlyGrowthRate) ** 6),
-                'projected_12_months' => round($currentUsers * (1 + $monthlyGrowthRate) ** 12)
+                'projected_12_months' => round($currentUsers * (1 + $monthlyGrowthRate) ** 12),
             ];
         } catch (\Exception $e) {
             return ['error' => 'User capacity projection unavailable'];
@@ -1147,12 +1162,12 @@ class SystemMonitoringController extends Controller
 
         if (isset($diskUsage['used_space'])) {
             $currentUsedGB = $diskUsage['used_space'] / (1024 ** 3);
-            
+
             return [
                 'current_used_gb' => round($currentUsedGB, 2),
                 'projected_3_months_gb' => round($currentUsedGB * (1 + $monthlyGrowthRate) ** 3, 2),
                 'projected_6_months_gb' => round($currentUsedGB * (1 + $monthlyGrowthRate) ** 6, 2),
-                'projected_12_months_gb' => round($currentUsedGB * (1 + $monthlyGrowthRate) ** 12, 2)
+                'projected_12_months_gb' => round($currentUsedGB * (1 + $monthlyGrowthRate) ** 12, 2),
             ];
         }
 
@@ -1173,8 +1188,8 @@ class SystemMonitoringController extends Controller
                     'database_indexing',
                     'caching_strategy',
                     'query_optimization',
-                    'server_scaling'
-                ]
+                    'server_scaling',
+                ],
             ];
         } catch (\Exception $e) {
             return ['error' => 'Performance projection unavailable'];
@@ -1184,7 +1199,7 @@ class SystemMonitoringController extends Controller
     private function getCapacityAlerts()
     {
         $alerts = [];
-        
+
         // Check disk usage
         $diskUsage = $this->getDiskUsage();
         if (isset($diskUsage['usage_percent']) && $diskUsage['usage_percent'] > 80) {
@@ -1192,24 +1207,24 @@ class SystemMonitoringController extends Controller
                 'type' => 'storage',
                 'severity' => $diskUsage['usage_percent'] > 90 ? 'critical' : 'warning',
                 'message' => "Disk usage at {$diskUsage['usage_percent']}%",
-                'recommendation' => 'Consider storage cleanup or expansion'
+                'recommendation' => 'Consider storage cleanup or expansion',
             ];
         }
 
         // Check database size
         try {
-            $dbSize = DB::selectOne("
+            $dbSize = DB::selectOne('
                 SELECT ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as size_mb
                 FROM information_schema.TABLES 
                 WHERE TABLE_SCHEMA = DATABASE()
-            ");
+            ');
 
             if ($dbSize && $dbSize->size_mb > 1000) { // Alert if DB > 1GB
                 $alerts[] = [
                     'type' => 'database',
                     'severity' => 'info',
                     'message' => "Database size: {$dbSize->size_mb} MB",
-                    'recommendation' => 'Monitor growth and consider archiving old data'
+                    'recommendation' => 'Monitor growth and consider archiving old data',
                 ];
             }
         } catch (\Exception $e) {
@@ -1222,7 +1237,7 @@ class SystemMonitoringController extends Controller
     private function getScalingRecommendations()
     {
         $recommendations = [];
-        
+
         // Analyze current performance
         try {
             $avgResponseTime = DB::table('performance_metrics')
@@ -1234,7 +1249,7 @@ class SystemMonitoringController extends Controller
                     'category' => 'performance',
                     'priority' => 'high',
                     'recommendation' => 'Optimize slow queries and consider database scaling',
-                    'impact' => 'Improve user experience and system responsiveness'
+                    'impact' => 'Improve user experience and system responsiveness',
                 ];
             }
 
@@ -1244,7 +1259,7 @@ class SystemMonitoringController extends Controller
                     'category' => 'database',
                     'priority' => 'medium',
                     'recommendation' => 'Increase database connection pool size',
-                    'impact' => 'Prevent connection bottlenecks'
+                    'impact' => 'Prevent connection bottlenecks',
                 ];
             }
 
@@ -1255,7 +1270,7 @@ class SystemMonitoringController extends Controller
                     'category' => 'infrastructure',
                     'priority' => 'high',
                     'recommendation' => 'Increase server memory allocation',
-                    'impact' => 'Prevent out-of-memory errors'
+                    'impact' => 'Prevent out-of-memory errors',
                 ];
             }
 
@@ -1264,7 +1279,7 @@ class SystemMonitoringController extends Controller
                 'category' => 'monitoring',
                 'priority' => 'medium',
                 'recommendation' => 'Implement comprehensive performance monitoring',
-                'impact' => 'Better visibility into system performance'
+                'impact' => 'Better visibility into system performance',
             ];
         }
 
@@ -1280,7 +1295,7 @@ class SystemMonitoringController extends Controller
             'uptime' => $this->getUptimeMetrics(),
             'service_health' => $this->getServiceHealthChecks(),
             'incident_history' => $this->getIncidentHistory(),
-            'sla_compliance' => $this->getSLACompliance()
+            'sla_compliance' => $this->getSLACompliance(),
         ];
     }
 
@@ -1288,12 +1303,12 @@ class SystemMonitoringController extends Controller
     {
         try {
             $uptime = $this->getSystemUptime();
-            
+
             return [
                 'system_uptime_hours' => $uptime ? round($uptime / 3600, 2) : null,
                 'application_start_time' => Cache::get('app_start_time', now()->toISOString()),
                 'last_restart' => $this->getLastRestartTime(),
-                'availability_percentage' => $this->calculateAvailabilityPercentage()
+                'availability_percentage' => $this->calculateAvailabilityPercentage(),
             ];
         } catch (\Exception $e) {
             return ['error' => 'Uptime metrics unavailable'];
@@ -1321,18 +1336,20 @@ class SystemMonitoringController extends Controller
             if ($totalRequests > 0) {
                 return round((($totalRequests - $errorRequests) / $totalRequests) * 100, 3);
             }
-            
+
             return 99.9; // Default assumption
         } catch (\Exception $e) {
             return null;
         }
-    }    private function getServiceHealthChecks()
+    }
+
+    private function getServiceHealthChecks()
     {
         return [
             'database_connectivity' => $this->checkDatabaseHealth(),
             'file_system_access' => $this->checkFileSystemHealth(),
             'external_services' => $this->checkExternalServices(),
-            'cache_system' => $this->checkCacheHealth()
+            'cache_system' => $this->checkCacheHealth(),
         ];
     }
 
@@ -1340,10 +1357,10 @@ class SystemMonitoringController extends Controller
     {
         try {
             $testFile = storage_path('logs/health_check.tmp');
-            file_put_contents($testFile, 'health_check_' . time());
+            file_put_contents($testFile, 'health_check_'.time());
             $content = file_get_contents($testFile);
             unlink($testFile);
-            
+
             return ['status' => 'healthy', 'writable' => true, 'readable' => true];
         } catch (\Exception $e) {
             return ['status' => 'unhealthy', 'error' => $e->getMessage()];
@@ -1356,7 +1373,7 @@ class SystemMonitoringController extends Controller
         return [
             'mail_service' => ['status' => 'not_tested'],
             'notification_service' => ['status' => 'not_tested'],
-            'backup_service' => ['status' => 'not_tested']
+            'backup_service' => ['status' => 'not_tested'],
         ];
     }
 
@@ -1380,7 +1397,7 @@ class SystemMonitoringController extends Controller
         try {
             $availabilityTarget = 99.9; // 99.9% uptime SLA
             $responseTimeTarget = 500; // 500ms response time SLA
-            
+
             $actualAvailability = $this->calculateAvailabilityPercentage();
             $actualResponseTime = DB::table('performance_metrics')
                 ->where('created_at', '>=', now()->subDay())
@@ -1390,13 +1407,13 @@ class SystemMonitoringController extends Controller
                 'availability' => [
                     'target' => $availabilityTarget,
                     'actual' => $actualAvailability,
-                    'compliant' => $actualAvailability >= $availabilityTarget
+                    'compliant' => $actualAvailability >= $availabilityTarget,
                 ],
                 'response_time' => [
                     'target' => $responseTimeTarget,
                     'actual' => round($actualResponseTime, 2),
-                    'compliant' => $actualResponseTime <= $responseTimeTarget
-                ]
+                    'compliant' => $actualResponseTime <= $responseTimeTarget,
+                ],
             ];
         } catch (\Exception $e) {
             return ['error' => 'SLA compliance calculation unavailable'];
@@ -1412,7 +1429,7 @@ class SystemMonitoringController extends Controller
             'iso_27001' => $this->getISO27001Compliance(),
             'iso_20000' => $this->getISO20000Compliance(),
             'data_protection' => $this->getDataProtectionCompliance(),
-            'audit_trail' => $this->getAuditTrailCompliance()
+            'audit_trail' => $this->getAuditTrailCompliance(),
         ];
     }
 
@@ -1423,17 +1440,17 @@ class SystemMonitoringController extends Controller
             'encryption' => $this->checkEncryptionCompliance(),
             'backup_procedures' => $this->checkBackupCompliance(),
             'incident_management' => $this->checkIncidentManagementCompliance(),
-            'user_access_review' => $this->checkUserAccessReviewCompliance()
+            'user_access_review' => $this->checkUserAccessReviewCompliance(),
         ];
 
-        $passedChecks = count(array_filter($checks, fn($check) => $check['compliant'] ?? false));
+        $passedChecks = count(array_filter($checks, fn ($check) => $check['compliant'] ?? false));
         $totalChecks = count($checks);
         $complianceScore = round(($passedChecks / $totalChecks) * 100, 1);
 
         return [
             'compliance_score' => $complianceScore,
             'checks' => $checks,
-            'recommendations' => $this->getISO27001Recommendations($checks)
+            'recommendations' => $this->getISO27001Recommendations($checks),
         ];
     }
 
@@ -1448,7 +1465,7 @@ class SystemMonitoringController extends Controller
             return [
                 'compliant' => $usersWithoutRoles === 0,
                 'details' => "Users without assigned roles: {$usersWithoutRoles}",
-                'score' => $usersWithoutRoles === 0 ? 100 : 75
+                'score' => $usersWithoutRoles === 0 ? 100 : 75,
             ];
         } catch (\Exception $e) {
             return ['compliant' => false, 'details' => 'Cannot verify access control', 'score' => 0];
@@ -1459,25 +1476,25 @@ class SystemMonitoringController extends Controller
     {
         $httpsEnabled = request()->secure();
         $databaseEncryption = env('DB_ENCRYPT', false);
-        
+
         return [
             'compliant' => $httpsEnabled,
-            'details' => 'HTTPS: ' . ($httpsEnabled ? 'Enabled' : 'Disabled') . ', DB Encryption: ' . ($databaseEncryption ? 'Enabled' : 'Disabled'),
-            'score' => ($httpsEnabled ? 50 : 0) + ($databaseEncryption ? 50 : 0)
+            'details' => 'HTTPS: '.($httpsEnabled ? 'Enabled' : 'Disabled').', DB Encryption: '.($databaseEncryption ? 'Enabled' : 'Disabled'),
+            'score' => ($httpsEnabled ? 50 : 0) + ($databaseEncryption ? 50 : 0),
         ];
     }
 
     private function checkBackupCompliance()
     {
         $backupStatus = $this->getBackupStatus();
-        $hasRecentBackup = isset($backupStatus['last_backup']) && 
-                          $backupStatus['last_backup'] && 
+        $hasRecentBackup = isset($backupStatus['last_backup']) &&
+                          $backupStatus['last_backup'] &&
                           Carbon::parse($backupStatus['last_backup'])->isAfter(now()->subDays(7));
 
         return [
             'compliant' => $hasRecentBackup,
-            'details' => 'Last backup: ' . ($backupStatus['last_backup'] ?? 'Never'),
-            'score' => $hasRecentBackup ? 100 : 0
+            'details' => 'Last backup: '.($backupStatus['last_backup'] ?? 'Never'),
+            'score' => $hasRecentBackup ? 100 : 0,
         ];
     }
 
@@ -1500,7 +1517,7 @@ class SystemMonitoringController extends Controller
             return [
                 'compliant' => $resolutionRate >= 95,
                 'details' => "Incident resolution rate: {$resolutionRate}%",
-                'score' => $resolutionRate
+                'score' => $resolutionRate,
             ];
         } catch (\Exception $e) {
             return ['compliant' => false, 'details' => 'Cannot verify incident management', 'score' => 0];
@@ -1515,8 +1532,8 @@ class SystemMonitoringController extends Controller
 
             return [
                 'compliant' => $reviewCompliant,
-                'details' => 'Last access review: ' . ($lastAccessReview ?? 'Never'),
-                'score' => $reviewCompliant ? 100 : 50
+                'details' => 'Last access review: '.($lastAccessReview ?? 'Never'),
+                'score' => $reviewCompliant ? 100 : 50,
             ];
         } catch (\Exception $e) {
             return ['compliant' => false, 'details' => 'Cannot verify access review', 'score' => 0];
@@ -1528,7 +1545,7 @@ class SystemMonitoringController extends Controller
         $recommendations = [];
 
         foreach ($checks as $checkName => $result) {
-            if (!($result['compliant'] ?? false)) {
+            if (! ($result['compliant'] ?? false)) {
                 switch ($checkName) {
                     case 'access_control':
                         $recommendations[] = 'Assign appropriate roles to all users';
@@ -1562,8 +1579,8 @@ class SystemMonitoringController extends Controller
             'recommendations' => [
                 'Implement formal change approval process',
                 'Enhance release documentation',
-                'Automate configuration tracking'
-            ]
+                'Automate configuration tracking',
+            ],
         ];
     }
 
@@ -1578,8 +1595,8 @@ class SystemMonitoringController extends Controller
             'recommendations' => [
                 'Implement automated data anonymization',
                 'Enhance consent tracking mechanisms',
-                'Regular data protection impact assessments'
-            ]
+                'Regular data protection impact assessments',
+            ],
         ];
     }
 
@@ -1606,13 +1623,13 @@ class SystemMonitoringController extends Controller
                 'total_events_logged' => $auditTrailCoverage,
                 'user_coverage_percent' => $coveragePercent,
                 'compliant' => $coveragePercent >= 95,
-                'recommendations' => $coveragePercent < 95 ? ['Increase audit logging coverage', 'Monitor all user activities'] : []
+                'recommendations' => $coveragePercent < 95 ? ['Increase audit logging coverage', 'Monitor all user activities'] : [],
             ];
         } catch (\Exception $e) {
             return [
                 'audit_trail_score' => 0,
                 'compliant' => false,
-                'error' => 'Cannot verify audit trail compliance'
+                'error' => 'Cannot verify audit trail compliance',
             ];
         }
     }
@@ -1629,7 +1646,7 @@ class SystemMonitoringController extends Controller
             'performance_bottlenecks' => $this->identifyPerformanceBottlenecks(),
             'security_recommendations' => $this->getSecurityOptimizations(),
             'cache_analysis' => $this->analyzeCacheUsage(),
-            'recommendations' => $this->generateOptimizationRecommendations()
+            'recommendations' => $this->generateOptimizationRecommendations(),
         ];
     }
 
@@ -1638,10 +1655,10 @@ class SystemMonitoringController extends Controller
      */
     private function analyzeDependencies()
     {
-        $packageJson = file_exists(base_path('package.json')) ? 
+        $packageJson = file_exists(base_path('package.json')) ?
             json_decode(file_get_contents(base_path('package.json')), true) : null;
-        
-        $composerJson = file_exists(base_path('composer.json')) ? 
+
+        $composerJson = file_exists(base_path('composer.json')) ?
             json_decode(file_get_contents(base_path('composer.json')), true) : null;
 
         return [
@@ -1663,7 +1680,7 @@ class SystemMonitoringController extends Controller
         $slowQueries = [];
 
         // Check for tables without indexes
-        $unindexedTables = DB::select("
+        $unindexedTables = DB::select('
             SELECT TABLE_NAME, TABLE_ROWS 
             FROM information_schema.TABLES 
             WHERE TABLE_SCHEMA = DATABASE() 
@@ -1673,33 +1690,33 @@ class SystemMonitoringController extends Controller
                 FROM information_schema.STATISTICS 
                 WHERE TABLE_SCHEMA = DATABASE()
             )
-        ");
+        ');
 
-        if (!empty($unindexedTables)) {
+        if (! empty($unindexedTables)) {
             $suggestions[] = [
                 'type' => 'indexing',
                 'priority' => 'high',
                 'message' => 'Large tables found without indexes',
-                'tables' => array_column($unindexedTables, 'TABLE_NAME')
+                'tables' => array_column($unindexedTables, 'TABLE_NAME'),
             ];
         }
 
         // Check for tables with excessive size
-        $largeTables = DB::select("
+        $largeTables = DB::select('
             SELECT TABLE_NAME, 
                    ROUND(((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024), 2) AS size_mb
             FROM information_schema.TABLES 
             WHERE TABLE_SCHEMA = DATABASE() 
             AND ((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024) > 10
             ORDER BY size_mb DESC
-        ");
+        ');
 
-        if (!empty($largeTables)) {
+        if (! empty($largeTables)) {
             $suggestions[] = [
                 'type' => 'storage',
                 'priority' => 'medium',
                 'message' => 'Large tables that may need optimization',
-                'tables' => $largeTables
+                'tables' => $largeTables,
             ];
         }
 
@@ -1719,7 +1736,7 @@ class SystemMonitoringController extends Controller
             'storage_usage' => [],
             'log_files' => [],
             'temporary_files' => [],
-            'recommendations' => []
+            'recommendations' => [],
         ];
 
         // Check storage directories
@@ -1734,25 +1751,25 @@ class SystemMonitoringController extends Controller
         // Check log files
         $logPath = storage_path('logs');
         if (is_dir($logPath)) {
-            $logFiles = glob($logPath . '/*.log');
+            $logFiles = glob($logPath.'/*.log');
             foreach ($logFiles as $logFile) {
                 $size = filesize($logFile);
                 if ($size > 10 * 1024 * 1024) { // Files larger than 10MB
                     $analysis['log_files'][] = [
                         'file' => basename($logFile),
                         'size_mb' => round($size / 1024 / 1024, 2),
-                        'modified' => date('Y-m-d H:i:s', filemtime($logFile))
+                        'modified' => date('Y-m-d H:i:s', filemtime($logFile)),
                     ];
                 }
             }
         }
 
         // Generate recommendations
-        if (!empty($analysis['log_files'])) {
+        if (! empty($analysis['log_files'])) {
             $analysis['recommendations'][] = [
                 'type' => 'cleanup',
                 'priority' => 'medium',
-                'message' => 'Large log files detected. Consider log rotation.'
+                'message' => 'Large log files detected. Consider log rotation.',
             ];
         }
 
@@ -1775,12 +1792,12 @@ class SystemMonitoringController extends Controller
             LIMIT 10
         ");
 
-        if (!empty($largeResultQueries)) {
+        if (! empty($largeResultQueries)) {
             $bottlenecks[] = [
                 'type' => 'database',
                 'issue' => 'Queries returning large result sets',
                 'impact' => 'high',
-                'queries' => count($largeResultQueries)
+                'queries' => count($largeResultQueries),
             ];
         }
 
@@ -1793,12 +1810,12 @@ class SystemMonitoringController extends Controller
             LIMIT 5
         ");
 
-        if (!empty($memoryIssues)) {
+        if (! empty($memoryIssues)) {
             $bottlenecks[] = [
                 'type' => 'memory',
                 'issue' => 'High memory usage detected',
                 'impact' => 'medium',
-                'instances' => count($memoryIssues)
+                'instances' => count($memoryIssues),
             ];
         }
 
@@ -1817,7 +1834,7 @@ class SystemMonitoringController extends Controller
             $recommendations[] = [
                 'type' => 'configuration',
                 'priority' => 'critical',
-                'message' => 'Debug mode is enabled. This should be disabled in production.'
+                'message' => 'Debug mode is enabled. This should be disabled in production.',
             ];
         }
 
@@ -1826,16 +1843,16 @@ class SystemMonitoringController extends Controller
             $recommendations[] = [
                 'type' => 'database',
                 'priority' => 'high',
-                'message' => 'Database has no password set.'
+                'message' => 'Database has no password set.',
             ];
         }
 
         // Check for HTTPS enforcement
-        if (!request()->isSecure() && app()->environment('production')) {
+        if (! request()->isSecure() && app()->environment('production')) {
             $recommendations[] = [
                 'type' => 'encryption',
                 'priority' => 'high',
-                'message' => 'HTTPS is not enforced in production environment.'
+                'message' => 'HTTPS is not enforced in production environment.',
             ];
         }
 
@@ -1851,7 +1868,7 @@ class SystemMonitoringController extends Controller
             'config_cached' => file_exists(bootstrap_path('cache/config.php')),
             'routes_cached' => file_exists(bootstrap_path('cache/routes-v7.php')),
             'views_cached' => file_exists(storage_path('framework/views')),
-            'cache_size' => 0
+            'cache_size' => 0,
         ];
 
         // Check cache directory size
@@ -1874,29 +1891,29 @@ class SystemMonitoringController extends Controller
                 'Configure database query cache',
                 'Implement Redis for session and cache storage',
                 'Enable Gzip compression on web server',
-                'Optimize images and static assets'
+                'Optimize images and static assets',
             ],
             'performance_improvements' => [
                 'Implement lazy loading for large datasets',
                 'Add database indexes for frequently queried columns',
                 'Use queue workers for time-consuming tasks',
                 'Implement CDN for static assets',
-                'Consider database connection pooling'
+                'Consider database connection pooling',
             ],
             'security_enhancements' => [
                 'Enable CSRF protection on all forms',
                 'Implement rate limiting on API endpoints',
                 'Use HTTPS for all communications',
                 'Regular security updates for dependencies',
-                'Implement proper input validation and sanitization'
+                'Implement proper input validation and sanitization',
             ],
             'maintenance_tasks' => [
                 'Set up automated backups',
                 'Implement log rotation',
                 'Monitor disk space usage',
                 'Regular dependency updates',
-                'Database maintenance and optimization'
-            ]
+                'Database maintenance and optimization',
+            ],
         ];
     }
 
@@ -1905,7 +1922,7 @@ class SystemMonitoringController extends Controller
      */
     private function getDirectorySize($dir)
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return 0;
         }
 
@@ -1929,7 +1946,7 @@ class SystemMonitoringController extends Controller
     private function checkTableFragmentation()
     {
         try {
-            $fragmentation = DB::select("
+            $fragmentation = DB::select('
                 SELECT TABLE_NAME, 
                        ROUND(DATA_FREE / 1024 / 1024, 2) as fragmentation_mb,
                        ROUND((DATA_FREE / (DATA_LENGTH + INDEX_LENGTH + DATA_FREE)) * 100, 2) as fragmentation_percent
@@ -1938,7 +1955,7 @@ class SystemMonitoringController extends Controller
                 AND DATA_FREE > 0
                 ORDER BY fragmentation_mb DESC
                 LIMIT 10
-            ");
+            ');
 
             return $fragmentation;
         } catch (\Exception $e) {
@@ -1952,11 +1969,11 @@ class SystemMonitoringController extends Controller
     private function getDatabaseSize()
     {
         try {
-            $result = DB::selectOne("
+            $result = DB::selectOne('
                 SELECT ROUND(SUM((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024), 2) as size_mb
                 FROM information_schema.TABLES 
                 WHERE TABLE_SCHEMA = DATABASE()
-            ");
+            ');
 
             return $result->size_mb ?? 0;
         } catch (\Exception $e) {

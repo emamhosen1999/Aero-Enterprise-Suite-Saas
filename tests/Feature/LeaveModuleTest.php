@@ -13,12 +13,13 @@ class LeaveModuleTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $leaveSetting;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create a test user
         $this->user = User::factory()->create([
             'email' => 'test@example.com',
@@ -52,20 +53,20 @@ class LeaveModuleTest extends TestCase
         $response = $this->postJson(route('leave-add'), $leaveData);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'success',
-                    'message',
-                    'leave' => [
-                        'id',
-                        'user_id',
-                        'leave_type',
-                        'from_date',
-                        'to_date',
-                        'no_of_days',
-                        'reason',
-                        'status',
-                    ]
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'leave' => [
+                    'id',
+                    'user_id',
+                    'leave_type',
+                    'from_date',
+                    'to_date',
+                    'no_of_days',
+                    'reason',
+                    'status',
+                ],
+            ]);
 
         $this->assertDatabaseHas('leaves', [
             'user_id' => $this->user->id,
@@ -88,27 +89,27 @@ class LeaveModuleTest extends TestCase
         $response = $this->getJson(route('leaves.paginate'));
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'success',
-                    'leaves' => [
-                        'data' => [
-                            '*' => [
-                                'id',
-                                'user_id',
-                                'leave_type',
-                                'from_date',
-                                'to_date',
-                                'no_of_days',
-                                'reason',
-                                'status',
-                            ]
-                        ]
+            ->assertJsonStructure([
+                'success',
+                'leaves' => [
+                    'data' => [
+                        '*' => [
+                            'id',
+                            'user_id',
+                            'leave_type',
+                            'from_date',
+                            'to_date',
+                            'no_of_days',
+                            'reason',
+                            'status',
+                        ],
                     ],
-                    'leavesData' => [
-                        'leaveTypes',
-                        'leaveCountsByUser',
-                    ]
-                ]);
+                ],
+                'leavesData' => [
+                    'leaveTypes',
+                    'leaveCountsByUser',
+                ],
+            ]);
     }
 
     /** @test */
@@ -136,10 +137,10 @@ class LeaveModuleTest extends TestCase
         $response = $this->postJson(route('leave-update'), $updateData);
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'message',
-                    'leave',
-                ]);
+            ->assertJsonStructure([
+                'message',
+                'leave',
+            ]);
 
         $this->assertDatabaseHas('leaves', [
             'id' => $leave->id,
@@ -162,7 +163,7 @@ class LeaveModuleTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-                ->assertJsonStructure(['message']);
+            ->assertJsonStructure(['message']);
 
         $this->assertDatabaseMissing('leaves', [
             'id' => $leave->id,
@@ -187,11 +188,11 @@ class LeaveModuleTest extends TestCase
         $response = $this->postJson(route('leave-add'), $invalidData);
 
         $response->assertStatus(422)
-                ->assertJsonStructure([
-                    'success',
-                    'errors',
-                    'message'
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'errors',
+                'message',
+            ]);
     }
 
     /** @test */
@@ -202,12 +203,12 @@ class LeaveModuleTest extends TestCase
         $response = $this->getJson(route('leaves.paginate'));
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'success',
-                    'leaves',
-                    'leavesData',
-                    'message', // Should include empty state message
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'leaves',
+                'leavesData',
+                'message', // Should include empty state message
+            ]);
     }
 
     /** @test */
@@ -236,10 +237,10 @@ class LeaveModuleTest extends TestCase
         $response = $this->postJson(route('leave-add'), $overlappingData);
 
         $response->assertStatus(422)
-                ->assertJsonStructure([
-                    'success',
-                    'error',
-                    'message'
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'error',
+                'message',
+            ]);
     }
 }

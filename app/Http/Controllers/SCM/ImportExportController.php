@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\SCM\TradeDocument;
 use App\Models\SCM\CustomsDeclaration;
+use App\Models\SCM\TradeDocument;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ImportExportController extends Controller
@@ -130,7 +129,7 @@ class ImportExportController extends Controller
 
     public function downloadDocument(TradeDocument $document)
     {
-        if (!$document->file_path || !Storage::disk('public')->exists($document->file_path)) {
+        if (! $document->file_path || ! Storage::disk('public')->exists($document->file_path)) {
             return Redirect::back()->with('error', 'File not found.');
         }
 
@@ -233,15 +232,17 @@ class ImportExportController extends Controller
     private function generateDocumentNumber()
     {
         $lastDocument = TradeDocument::latest('id')->first();
-        $nextNumber = $lastDocument ? (int)substr($lastDocument->document_number, 3) + 1 : 1;
-        return 'TD-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastDocument ? (int) substr($lastDocument->document_number, 3) + 1 : 1;
+
+        return 'TD-'.str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 
     private function generateDeclarationNumber()
     {
         $lastDeclaration = CustomsDeclaration::latest('id')->first();
-        $nextNumber = $lastDeclaration ? (int)substr($lastDeclaration->declaration_number, 3) + 1 : 1;
-        return 'CD-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastDeclaration ? (int) substr($lastDeclaration->declaration_number, 3) + 1 : 1;
+
+        return 'CD-'.str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 
     private function getCountryCodes()

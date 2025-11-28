@@ -1,171 +1,209 @@
 import React from 'react';
-import {styled} from '@mui/material/styles';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Chip from '@mui/material/Chip';
-import HomeIcon from '@mui/icons-material/Home';
-import {Link, usePage} from '@inertiajs/react';
-import {Box, Grid} from '@mui/material';
-import Grow from '@mui/material/Grow';
+import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
+import { HomeIcon } from '@heroicons/react/24/outline';
+import { Link, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { getPages } from '@/Props/pages.jsx';
+import { getSettingsPages } from '@/Props/settings.jsx';
 
-const StyledBreadcrumb = styled(Chip)(({ theme }) => {
-    const backgroundColor =
-        theme.palette.mode === 'light'
-            ? theme.palette.grey[100]
-            : theme.palette.grey[800];
-    return {
-        backdropFilter: 'blur(16px) saturate(200%)',
-        background: theme.glassCard.background,
-        border: theme.glassCard.color,
-        height: theme.spacing(3),
-        color: theme.palette.text.primary,
-        fontWeight: theme.typography.fontWeightRegular,
-        '&:hover, &:focus': {
-            cursor: 'pointer',
-            backgroundColor: 'rgba(17, 25, 40, 0.7)',
-        },
-        '&:active': {
-            boxShadow: theme.shadows[1],
-            backgroundColor: 'rgba(17, 25, 40, 0.7)',
-        },
+const Breadcrumb = () => {
+    const { props, url } = usePage();
+    const { title, auth } = props;
+    
+    // Get permissions and determine if we're on a settings page
+    const permissions = auth?.permissions || [];
+    const roles = auth?.roles || [];
+    const isSettingsPage = url.startsWith('/settings') || url.includes('settings');
+    
+    // Get the appropriate pages data
+    const pages = isSettingsPage 
+        ? getSettingsPages(permissions, auth) 
+        : getPages(roles, permissions, auth);
+    
+    // Function to find a page by route name in nested structure
+    const findPageByRoute = (pages, routeName) => {
+        for (const page of pages) {
+            // Check if this page matches
+            if (page.route === routeName) {
+                return page;
+            }
+            // Check subMenu if it exists
+            if (page.subMenu) {
+                for (const subPage of page.subMenu) {
+                    if (subPage.route === routeName) {
+                        return { parent: page, page: subPage };
+                    }
+                    // Check nested subMenu
+                    if (subPage.subMenu) {
+                        for (const nestedPage of subPage.subMenu) {
+                            if (nestedPage.route === routeName) {
+                                return { parent: page, subParent: subPage, page: nestedPage };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     };
-});
-
-
-const Breadcrumb = ({ }) => {
-    const {props} = usePage();
-    const {title, auth, job} = props;
     
     // Generate breadcrumb items based on current route
     const generateBreadcrumbs = () => {
-        const currentRoute = route().current();
         const breadcrumbs = [];
-
-        // Add home breadcrumb with fallback
+        let currentRoute;
+        
         try {
-            breadcrumbs.push({
-                label: "Home",
-                icon: <HomeIcon fontSize="small" />,
-                href: route('dashboard'),
-                component: "a"
-            });
+            currentRoute = route().current();
         } catch (error) {
-            // Fallback if dashboard route doesn't exist
-            breadcrumbs.push({
-                label: "Home",
-                icon: <HomeIcon fontSize="small" />,
-                href: "/",
-                component: "a"
-            });
+            console.warn('Route function not available:', error);
+            currentRoute = null;
         }
-
-        try {
-            // Handle different route patterns
-            if (currentRoute?.startsWith('hr.recruitment')) {
-                // Add HR Recruitment base breadcrumb
-                breadcrumbs.push({
-                    label: "Recruitment",
-                    href: route('hr.recruitment.index'),
-                    component: Link
-                });
-
-                // Handle specific recruitment routes
-                if (currentRoute === 'hr.recruitment.show' && job) {
-                    breadcrumbs.push({
-                        label: job.title || 'Job Details',
-                        href: null, // Current page, no link
-                        component: "span"
-                    });
-                } else if (currentRoute === 'hr.recruitment.applications.index' && job) {
-                    // Only add job link if we have a valid job ID
-                    if (job.id) {
-                        breadcrumbs.push({
-                            label: job.title || 'Job',
-                            href: route('hr.recruitment.show', { id: job.id }),
-                            component: Link
-                        });
-                    }
-                    breadcrumbs.push({
-                        label: "Applications",
-                        href: null, // Current page, no link
-                        component: "span"
-                    });
-                } else if (currentRoute === 'hr.recruitment.create') {
-                    breadcrumbs.push({
-                        label: "Create Job",
-                        href: null, // Current page, no link
-                        component: "span"
-                    });
-                } else if (currentRoute === 'hr.recruitment.edit' && job && job.id) {
-                    breadcrumbs.push({
-                        label: job.title || 'Job',
-                        href: route('hr.recruitment.show', { id: job.id }),
-                        component: Link
-                    });
-                    breadcrumbs.push({
-                        label: "Edit",
-                        href: null, // Current page, no link
-                        component: "span"
-                    });
+        
+        // Always add Home breadcrumb first
+        breadcrumbs.push({
+            label: "Home",
+            icon: <HomeIcon className="w-4 h-4" />,
+            href: (() => {
+                try {
+                    return route('dashboard');
+                } catch {
+                    return '/';
                 }
-            } else if (currentRoute === 'profile' && auth?.user?.id) {
+            })(),
+            key: 'home'
+        });
+        
+        if (!currentRoute) {
+            // Fallback if no route found
+            breadcrumbs.push({
+                label: title || 'Current Page',
+                icon: null,
+                href: null,
+                key: 'current'
+            });
+            return breadcrumbs;
+        }
+        
+        // Find the current page in the pages data
+        const pageData = findPageByRoute(pages, currentRoute);
+        
+        if (pageData) {
+            if (pageData.parent && pageData.subParent) {
+                // Three-level deep: Parent > SubParent > Current
                 breadcrumbs.push({
-                    label: title || 'Profile',
-                    href: route('profile', { user: auth.user.id }),
-                    component: Link
+                    label: pageData.parent.name,
+                    icon: React.cloneElement(pageData.parent.icon, { className: "w-4 h-4" }),
+                    href: pageData.parent.route ? (() => {
+                        try {
+                            return route(pageData.parent.route);
+                        } catch {
+                            return null;
+                        }
+                    })() : null,
+                    key: 'parent'
+                });
+                breadcrumbs.push({
+                    label: pageData.subParent.name,
+                    icon: React.cloneElement(pageData.subParent.icon, { className: "w-4 h-4" }),
+                    href: pageData.subParent.route ? (() => {
+                        try {
+                            return route(pageData.subParent.route);
+                        } catch {
+                            return null;
+                        }
+                    })() : null,
+                    key: 'subparent'
+                });
+                breadcrumbs.push({
+                    label: pageData.page.name,
+                    icon: React.cloneElement(pageData.page.icon, { className: "w-4 h-4" }),
+                    href: null, // Current page
+                    key: 'current'
+                });
+            } else if (pageData.parent) {
+                // Two-level deep: Parent > Current
+                breadcrumbs.push({
+                    label: pageData.parent.name,
+                    icon: React.cloneElement(pageData.parent.icon, { className: "w-4 h-4" }),
+                    href: pageData.parent.route ? (() => {
+                        try {
+                            return route(pageData.parent.route);
+                        } catch {
+                            return null;
+                        }
+                    })() : null,
+                    key: 'parent'
+                });
+                breadcrumbs.push({
+                    label: pageData.page.name,
+                    icon: React.cloneElement(pageData.page.icon, { className: "w-4 h-4" }),
+                    href: null, // Current page
+                    key: 'current'
                 });
             } else {
-                // Default fallback - just add the title without trying to generate route
+                // Top-level page
                 breadcrumbs.push({
-                    label: title || 'Page',
-                    href: null, // Current page, no link
-                    component: "span"
+                    label: pageData.name,
+                    icon: React.cloneElement(pageData.icon, { className: "w-4 h-4" }),
+                    href: null, // Current page
+                    key: 'current'
                 });
             }
-        } catch (error) {
-            // Fallback in case of any route generation errors
-            console.warn('Breadcrumb route generation error:', error);
+        } else {
+            // Fallback if page not found in data
             breadcrumbs.push({
-                label: title || 'Page',
+                label: title || 'Current Page',
+                icon: null,
                 href: null,
-                component: "span"
+                key: 'current'
             });
         }
-
+        
         return breadcrumbs;
     };
 
     const breadcrumbs = generateBreadcrumbs();
 
     return (
-        <Box sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            p: 1.5,
-        }}>
-            <Grow in>
-                <Grid container>
-                    <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'right' }}>
-                            <Box>
-                                <Breadcrumbs aria-label="breadcrumb">
-                                    {breadcrumbs.map((breadcrumb, index) => (
-                                        <StyledBreadcrumb
-                                            key={index}
-                                            component={breadcrumb.component}
-                                            href={breadcrumb.href}
-                                            label={breadcrumb.label}
-                                            icon={breadcrumb.icon}
-                                            onClick={breadcrumb.href ? undefined : (e) => e.preventDefault()}
-                                            style={breadcrumb.href ? {} : { cursor: 'default', opacity: 0.8 }}
-                                        />
-                                    ))}
-                                </Breadcrumbs>
-                            </Box>
-                        </Box>
-                    </Grid>
-                </Grid>
-            </Grow>
-        </Box>
+        <div className="px-4 py-2">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-full max-w-7xl "
+            >
+                <Breadcrumbs
+                    separator="/"
+                    classNames={{
+                        list: "flex flex-wrap items-center gap-1.5",
+                        separator: "text-[var(--theme-text-secondary,#6b7280)] mx-1.5 text-sm",
+                        base: "w-full"
+                    }}
+                >
+                    {breadcrumbs.map((breadcrumb) => (
+                        <BreadcrumbItem
+                            key={breadcrumb.key}
+                            startContent={breadcrumb.icon}
+                            className={`
+                                text-sm font-medium transition-colors duration-200
+                                ${breadcrumb.href 
+                                    ? 'text-[var(--theme-text-secondary,#6b7280)] hover:text-[var(--theme-primary,#0070f3)] cursor-pointer' 
+                                    : 'text-[var(--theme-text,#374151)] cursor-default'
+                                }
+                            `}
+                        >
+                            {breadcrumb.href ? (
+                                <Link href={breadcrumb.href} className="hover:underline">
+                                    {breadcrumb.label}
+                                </Link>
+                            ) : (
+                                breadcrumb.label
+                            )}
+                        </BreadcrumbItem>
+                    ))}
+                </Breadcrumbs>
+            </motion.div>
+        </div>
     );
 };
 

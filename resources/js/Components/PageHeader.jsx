@@ -1,7 +1,6 @@
 import React from 'react';
-import {Typography, useMediaQuery, useTheme} from '@mui/material';
-import {Button, Divider} from "@heroui/react";
-import {GRADIENT_PRESETS} from '@/utils/gradientUtils.js';
+import { Button, Divider } from "@heroui/react";
+
 
 /**
  * Theme-aware consistent page header component
@@ -22,26 +21,17 @@ const PageHeader = ({
                         children,
                         variant = 'default'
                     }) => {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+    const isMobile = window.innerWidth < 640; // Simple mobile detection
     const getHeaderStyles = () => {
         switch (variant) {
             case 'minimal':
                 return "bg-white/10 backdrop-blur-md border-b border-white/10";
             case 'gradient':
-                return "bg-gradient-to-br from-white/20 via-white/10 to-transparent backdrop-blur-xl border-b border-white/20";
+                return "bg-linear-to-br from-white/20 via-white/10 to-transparent backdrop-blur-xl border-b border-white/20";
             default:
-                return GRADIENT_PRESETS.pageHeader;
+                return "bg-background/80 backdrop-blur-md border-b border-divider";
         }
-    };
-    const getIconStyles = () => {
-        return "p-3 rounded-xl " + GRADIENT_PRESETS.iconContainer + " backdrop-blur-sm";
-    };
-    const getTitleStyles = () => {
-        return GRADIENT_PRESETS.gradientText;
-    };
-    const getDefaultButtonStyles = () => {
-        return GRADIENT_PRESETS.secondaryButton + " transition-all duration-300";
     };
 
     return (
@@ -52,38 +42,28 @@ const PageHeader = ({
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-4">
                             {icon && (
-                                <div className={getIconStyles()}>
+                                <div className="p-3 rounded-xl bg-primary/10 backdrop-blur-sm">
                                     {React.cloneElement(icon, {
-                                        style: {
-                                            color: 'var(--theme-primary)',
-                                            ...icon.props.style
-                                        }
+                                        className: `${icon.props.className || ''} text-primary`,
+                                        ...icon.props
                                     })}
                                 </div>
                             )}
                             <div>
-                                <Typography
-                                    variant={isMobile ? "h5" : "h4"}
-                                    className={getTitleStyles()}
-                                    style={{
-                                        fontFamily: 'var(--font-current)',
-                                        transition: 'all var(--transition)'
-                                    }}
-                                >
+                                <h4
+                                    className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-foreground`}>
                                     {title}
-                                </Typography>
+                                </h4>
                                 {subtitle && (
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            color: 'text.secondary',
+                                    <p
+                                        className="text-sm text-default-500 mt-1"
+                                        style={{
                                             fontFamily: 'var(--font-current)',
-                                            transition: 'all var(--transition)',
-                                            mt: 0.5
+                                            transition: 'all var(--transition)'
                                         }}
                                     >
                                         {subtitle}
-                                    </Typography>
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -100,20 +80,12 @@ const PageHeader = ({
                                         <Button
                                             key={index}
                                             color={button.color || "primary"}
-                                            variant={button.variant || "flat"}
+                                            variant={button.variant || "solid"}
                                             startContent={button.icon}
                                             onPress={button.onPress}
                                             isDisabled={button.isDisabled}
                                             isLoading={button.isLoading}
-                                            className={
-                                                button.className || getDefaultButtonStyles()
-                                            }
                                             size={isMobile ? "sm" : "md"}
-                                            style={{
-                                                fontFamily: 'var(--font-current)',
-                                                transition: 'all var(--transition)',
-                                                ...button.style
-                                            }}
                                         >
                                             {button.label}
                                         </Button>

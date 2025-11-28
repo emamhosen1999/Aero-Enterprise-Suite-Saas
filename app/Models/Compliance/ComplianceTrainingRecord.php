@@ -2,10 +2,10 @@
 
 namespace App\Models\Compliance;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 class ComplianceTrainingRecord extends Model
 {
@@ -33,7 +33,7 @@ class ComplianceTrainingRecord extends Model
         'notes',
         'reminder_sent',
         'last_reminder_date',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -46,30 +46,44 @@ class ComplianceTrainingRecord extends Model
         'passing_score' => 'decimal:2',
         'duration_hours' => 'decimal:2',
         'cost' => 'decimal:2',
-        'metadata' => 'json'
+        'metadata' => 'json',
     ];
 
     // Status constants
     const STATUS_SCHEDULED = 'scheduled';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_EXPIRED = 'expired';
 
     // Training type constants
     const TYPE_MANDATORY = 'mandatory';
+
     const TYPE_OPTIONAL = 'optional';
+
     const TYPE_REFRESHER = 'refresher';
+
     const TYPE_CERTIFICATION = 'certification';
 
     // Category constants
     const CATEGORY_SAFETY = 'safety';
+
     const CATEGORY_COMPLIANCE = 'compliance';
+
     const CATEGORY_REGULATORY = 'regulatory';
+
     const CATEGORY_QUALITY = 'quality';
+
     const CATEGORY_SECURITY = 'security';
+
     const CATEGORY_ENVIRONMENTAL = 'environmental';
+
     const CATEGORY_ETHICS = 'ethics';
 
     /**
@@ -133,6 +147,7 @@ class ComplianceTrainingRecord extends Model
         if ($this->expiry_date) {
             return now()->diffInDays($this->expiry_date, false);
         }
+
         return 0;
     }
 
@@ -144,6 +159,7 @@ class ComplianceTrainingRecord extends Model
         if ($this->completion_date) {
             return $this->completion_date->diffInDays(now());
         }
+
         return 0;
     }
 

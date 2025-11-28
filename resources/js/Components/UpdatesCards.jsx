@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Box, CardContent, CardHeader, Divider, Grid, Grow, Popover, Typography } from '@mui/material';
-import { Avatar, AvatarGroup, Skeleton, Card as HeroCard, Chip } from "@heroui/react";
-import GlassCard from "@/Components/GlassCard.jsx";
+import { Avatar, AvatarGroup, Skeleton, Card, Chip, Popover, PopoverContent, PopoverTrigger, CardHeader, CardBody, Divider } from "@heroui/react";
+import { motion } from 'framer-motion';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { usePage } from "@inertiajs/react";
-import { useTheme } from "@mui/material/styles";
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import axios from 'axios';
@@ -17,13 +16,43 @@ import {
     XCircleIcon,
     DocumentTextIcon,
     SunIcon,
-    UserIcon
+    UserIcon,
+    Bars3BottomLeftIcon
 } from '@heroicons/react/24/outline';
 
 dayjs.extend(isBetween);
 
+// Helper function to convert theme borderRadius to HeroUI radius values
+const getThemeRadius = () => {
+    if (typeof window === 'undefined') return 'lg';
+    
+    const rootStyles = getComputedStyle(document.documentElement);
+    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+    
+    const radiusValue = parseInt(borderRadius);
+    if (radiusValue === 0) return 'none';
+    if (radiusValue <= 4) return 'sm';
+    if (radiusValue <= 8) return 'md';
+    if (radiusValue <= 16) return 'lg';
+    return 'full';
+};
+
+// Get theme-aware card styles consistent with StatisticCard
+const getCardStyle = () => ({
+    background: `linear-gradient(135deg, 
+        var(--theme-content1, #FAFAFA) 20%, 
+        var(--theme-content2, #F4F4F5) 10%, 
+        var(--theme-content3, #F1F3F4) 20%)`,
+    borderColor: `transparent`,
+    borderWidth: `var(--borderWidth, 2px)`,
+    borderRadius: `var(--borderRadius, 12px)`,
+    fontFamily: `var(--fontFamily, "Inter")`,
+    transform: `scale(var(--scale, 1))`,
+    transition: 'all 0.2s ease-in-out',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+});
+
 const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
-    const theme = useTheme();
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectedLeave, setSelectedLeave] = useState(null);
 
@@ -63,86 +92,91 @@ const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
     };
 
     return (
-        <GlassCard sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardHeader
-                title={
-                    <Box className="flex items-center gap-3">
-                        <Box
-                            sx={{
-                                bgcolor: `${color}20`,
-                                borderRadius: '12px',
-                                p: 1,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                minWidth: 40,
-                                minHeight: 40
-                            }}
-                        >
-                            <IconComponent 
-                                style={{ 
-                                    width: '20px', 
-                                    height: '20px', 
-                                    color: color,
-                                    strokeWidth: 2
-                                }}
-                                aria-hidden="true"
-                            />
-                        </Box>
-                        <Typography 
-                            variant="h6"
-                            component="h2"
-                            sx={{ 
-                                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-                                fontWeight: 600
-                            }}
-                        >
-                            {title}
-                        </Typography>
-                    </Box>
-                }
-                sx={{ pb: 1 }}
-            />
-            <Divider />
-            <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <Card 
+            className="h-full flex flex-col"
+            radius={getThemeRadius()}
+            style={getCardStyle()}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, ${color} 50%, transparent)`;
+                e.currentTarget.style.borderRadius = `var(--borderRadius, 12px)`;
+                e.currentTarget.style.transform = `scale(calc(var(--scale, 1) * 1.02))`;
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
+                e.currentTarget.style.transform = `scale(var(--scale, 1))`;
+            }}
+        >
+            <CardHeader 
+                className="pb-2 p-4"
+                style={{
+                    background: `transparent`,
+                }}
+            >
+                <div className="flex items-center gap-3 w-full">
+                    <div 
+                        className="p-2 rounded-xl flex items-center justify-center min-w-[48px] min-h-[48px] flex-shrink-0"
+                        style={{
+                            backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+                            borderRadius: `var(--borderRadius, 12px)`,
+                            border: `var(--borderWidth, 1px) solid color-mix(in srgb, ${color} 25%, transparent)`
+                        }}
+                    >
+                        <IconComponent 
+                            className="w-6 h-6 stroke-2"
+                            style={{ color: color }}
+                            aria-hidden="true"
+                        />
+                    </div>
+                    <h2 
+                        className="text-lg font-bold text-foreground flex-1"
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
+                    >
+                        {title}
+                    </h2>
+                </div>
+            </CardHeader>
+            <CardBody 
+                className="flex-1 overflow-auto pt-0 p-4"
+                style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}
+            >
                 {items.map((item, index) => (
                     <React.Fragment key={index}>
-                        <Grow in timeout={300 + (index * 100)}>
-                            <CardContent 
-                                sx={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center',
-                                    py: 2
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, mr: 2 }}>
-                                    <Typography 
-                                        variant="body2" 
-                                        color="text.primary"
-                                        sx={{ 
-                                            fontSize: { xs: '0.875rem', sm: '1rem' },
-                                            lineHeight: 1.4
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: (index * 0.1), duration: 0.3 }}
+                            className="flex justify-between items-center py-2"
+                        >
+                                <div className="flex flex-col flex-1 mr-2">
+                                    <p 
+                                        className="text-sm leading-normal text-foreground"
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
                                         }}
                                     >
                                         {item.text}
-                                    </Typography>
+                                    </p>
                                     {item.leaves && item.leaves.length > 0 && (
-                                        <Typography 
-                                            variant="caption" 
-                                            color="text.secondary"
-                                            className="flex items-center gap-1 mt-1"
+                                        <p 
+                                            className="text-xs text-default-500 flex items-center gap-1 mt-1"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
                                         >
                                             <UserGroupIcon className="w-3 h-3" />
                                             {item.leaves.length} employee{item.leaves.length > 1 ? 's' : ''}
-                                        </Typography>
+                                        </p>
                                     )}
-                                </Box>
+                                </div>
                                 {item.leaves && (
                                     (() => {
                                         const leaves = item.leaves.filter((leave) => leave.leave_type === item.type);
                                         return leaves.length > 0 && (
-                                            <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+                                            <div className="flex gap-1 flex-shrink-0">
                                                 <AvatarGroup 
                                                     max={4} 
                                                     isBordered
@@ -154,8 +188,8 @@ const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
                                                             user && (
                                                                 <Avatar
                                                                     key={idx}
-                                                                    src={user.profile_image}
-                                                                    alt={`${user.name} - on leave`}
+                                                                    src={user.profile_image_url}
+                                                                    name={`${user.name} - on leave`}
                                                                     onClick={(e) => handleClick(e, leave)}
                                                                     className="cursor-pointer hover:scale-110 transition-transform"
                                                                     fallback={<UserIcon className="w-4 h-4" />}
@@ -164,133 +198,169 @@ const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
                                                         );
                                                     })}
                                                 </AvatarGroup>
-                                            </Box>
+                                            </div>
                                         );
                                     })()
                                 )}
-                            </CardContent>
-                        </Grow>
-                        {index < items.length - 1 && <Divider />}
+                        </motion.div>
+                        {index < items.length - 1 && <Divider style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                        }} />}
                     </React.Fragment>
                 ))}
-            </Box>
+            </CardBody>
 
             <Popover
                 id={id}
                 open={open}
                 anchorEl={anchorEl}
                 onClose={handleClose}
-                PaperProps={{
-                    sx: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard?.background || 'rgba(255, 255, 255, 0.9)',
-                        border: theme.glassCard?.border || '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: 2,
-                        boxShadow: theme.glassCard?.boxShadow || '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-                        padding: 2,
-                        minWidth: '300px'
-                    },
+                placement="bottom-start"
+                style={{
+                    borderColor: `var(--theme-divider, #E4E4E7)`,
+                    borderRadius: `var(--borderRadius, 12px)`,
+                    fontFamily: `var(--fontFamily, "Inter")`,
                 }}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
-                }}
-                role="dialog"
-                aria-labelledby="leave-details-title"
-                aria-describedby="leave-details-content"
             >
-                {selectedLeave && (
-                    <Box component="section" aria-labelledby="leave-details-title">
-                        <Typography 
-                            id="leave-details-title"
-                            variant="subtitle1" 
-                            fontWeight="600"
-                            className="flex items-center gap-2 mb-3"
-                        >
-                            <DocumentTextIcon className="w-5 h-5 text-primary" />
-                            Leave Details
-                        </Typography>
-                        <Box id="leave-details-content" className="space-y-2">
-                            <Box className="flex items-start gap-2">
-                                <UserIcon className="w-4 h-4 text-default-500 mt-0.5 flex-shrink-0" />
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" component="span">
-                                        Employee:
-                                    </Typography>
-                                    <Typography variant="body2" component="div" fontWeight="500">
-                                        {users.find((user) => String(user.id) === String(selectedLeave.user_id))?.name || 'Unknown'}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                            
-                            <Box className="flex items-start gap-2">
-                                <CalendarDaysIcon className="w-4 h-4 text-default-500 mt-0.5 flex-shrink-0" />
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" component="span">
-                                        Duration:
-                                    </Typography>
-                                    <Typography variant="body2" component="div" fontWeight="500">
-                                        {selectedLeave.from_date !== selectedLeave.to_date ?
-                                            `${new Date(selectedLeave.from_date).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric'
-                                            })} - ${new Date(selectedLeave.to_date).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric'
-                                            })}` :
-                                            new Date(selectedLeave.from_date).toLocaleDateString('en-US', {
-                                                month: 'long',
-                                                day: 'numeric',
-                                                year: 'numeric'
-                                            })
-                                        }
-                                    </Typography>
-                                </Box>
-                            </Box>
+                <PopoverContent
+                    style={{
+                        background: `var(--theme-content1, #FAFAFA)`,
+                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                        borderWidth: `var(--borderWidth, 2px)`,
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                        minWidth: '300px',
+                        padding: '16px'
+                    }}
+                >
+                    {selectedLeave && (
+                        <section aria-labelledby="leave-details-title">
+                            <h3 
+                                id="leave-details-title"
+                                className="text-lg font-semibold flex items-center gap-2 mb-3"
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                            >
+                                <DocumentTextIcon className="w-5 h-5 text-primary" />
+                                Leave Details
+                            </h3>
+                            <div id="leave-details-content" className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <UserIcon className="w-4 h-4 text-default-500 mt-0.5 shrink-0" />
+                                    <div>
+                                        <span 
+                                            className="text-xs text-default-500"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            Employee:
+                                        </span>
+                                        <div 
+                                            className="text-sm font-medium"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            {users.find((user) => String(user.id) === String(selectedLeave.user_id))?.name || 'Unknown'}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-2">
+                                    <CalendarDaysIcon className="w-4 h-4 text-default-500 mt-0.5 shrink-0" />
+                                    <div>
+                                        <span 
+                                            className="text-xs text-default-500"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            Duration:
+                                        </span>
+                                        <div 
+                                            className="text-sm font-medium"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            {selectedLeave.from_date !== selectedLeave.to_date ?
+                                                `${new Date(selectedLeave.from_date).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })} - ${new Date(selectedLeave.to_date).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}` :
+                                                new Date(selectedLeave.from_date).toLocaleDateString('en-US', {
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <Box className="flex items-start gap-2">
-                                <DocumentTextIcon className="w-4 h-4 text-default-500 mt-0.5 flex-shrink-0" />
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" component="span">
-                                        Reason:
-                                    </Typography>
-                                    <Typography variant="body2" component="div" fontWeight="500">
-                                        {selectedLeave.reason || 'No reason provided'}
-                                    </Typography>
-                                </Box>
-                            </Box>
+                                <div className="flex items-start gap-2">
+                                    <DocumentTextIcon className="w-4 h-4 text-default-500 mt-0.5 shrink-0" />
+                                    <div>
+                                        <span 
+                                            className="text-xs text-default-500"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            Reason:
+                                        </span>
+                                        <div 
+                                            className="text-sm font-medium"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            {selectedLeave.reason || 'No reason provided'}
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <Box className="flex items-center gap-2">
-                                {getLeaveStatusIcon(selectedLeave.status)}
-                                <Box>
-                                    <Typography variant="caption" color="text.secondary" component="span">
-                                        Status:
-                                    </Typography>
-                                    <Chip 
-                                        label={selectedLeave.status || 'Pending'} 
-                                        variant="flat" 
-                                        color={getLeaveStatusColor(selectedLeave.status)}
-                                        size="sm"
-                                        className="ml-2"
-                                    />
-                                </Box>
-                            </Box>
-                        </Box>
-                    </Box>
-                )}
+                                <div className="flex items-center gap-2">
+                                    {getLeaveStatusIcon(selectedLeave.status)}
+                                    <div>
+                                        <span 
+                                            className="text-xs text-default-500"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            Status:
+                                        </span>
+                                        <Chip 
+                                            label={selectedLeave.status || 'Pending'} 
+                                            variant="flat" 
+                                            color={getLeaveStatusColor(selectedLeave.status)}
+                                            size="sm"
+                                            className="ml-2"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    )}
+                </PopoverContent>
             </Popover>
-        </GlassCard>
+        </Card>
     );
 };
 
 const UpdatesCards = () => {
     const { auth } = usePage().props;
+    const isLargeScreen = useMediaQuery('(min-width: 1025px)');
+    const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [users, setUsers] = useState([]);
@@ -435,63 +505,82 @@ const UpdatesCards = () => {
 
     if (loading) {
         return (
-            <Box 
-                sx={{ p: 2 }}
-                component="section"
+            <section 
+                
                 aria-label="Employee updates loading"
             >
-                <Grid container spacing={3}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                     {[1, 2, 3].map((_, idx) => (
-                        <Grid item xs={12} sm={6} md={4} key={idx}>
-                            <HeroCard className="w-full h-full p-4" radius="lg">
+                        <div key={idx}>
+                            <Card 
+                                className="w-full h-full" 
+                                radius={getThemeRadius()}
+                                style={getCardStyle()}
+                            >
                                 <Skeleton className="rounded-lg mb-2" isLoaded={false}>
                                     <div className="h-6 w-2/3 rounded-lg bg-secondary" />
                                 </Skeleton>
                                 <Skeleton className="rounded-lg" isLoaded={false}>
                                     <div className="h-32 w-full rounded-lg bg-secondary-200" />
                                 </Skeleton>
-                            </HeroCard>
-                        </Grid>
+                            </Card>
+                        </div>
                     ))}
-                </Grid>
-            </Box>
+                </div>
+            </section>
         );
     }
 
     if (error) {
         return (
-            <Box 
-                sx={{ 
-                    p: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '200px'
-                }}
-            >
-                <HeroCard className="p-4 bg-danger-50 border-danger-200">
-                    <Box className="flex items-center gap-3">
-                        <ExclamationTriangleIcon className="w-5 h-5 text-danger" />
-                        <Typography color="error" variant="body1">
+            <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'} flex items-center justify-center min-h-[200px]`}>
+                <Card 
+                    
+                    radius={getThemeRadius()}
+                    style={{
+                        ...getCardStyle(),
+                        borderColor: `color-mix(in srgb, var(--theme-danger) 50%, transparent)`,
+                        background: `linear-gradient(135deg, 
+                            color-mix(in srgb, var(--theme-danger) 5%, var(--theme-content1)) 20%, 
+                            color-mix(in srgb, var(--theme-danger) 3%, var(--theme-content2)) 10%, 
+                            color-mix(in srgb, var(--theme-danger) 2%, var(--theme-content3)) 20%)`,
+                    }}
+                >
+                    <div className="flex items-center gap-3">
+                        <ExclamationTriangleIcon 
+                            className="w-5 h-5"
+                            style={{ color: 'var(--theme-danger)' }}
+                        />
+                        <p 
+                            className="text-base"
+                            style={{ 
+                                color: 'var(--theme-danger)',
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
                             Failed to load updates: {error}
-                        </Typography>
-                    </Box>
-                </HeroCard>
-            </Box>
+                        </p>
+                    </div>
+                </Card>
+            </div>
         );
     }
 
     return (
-        <Box 
-            sx={{ p: 2 }}
-            component="section"
+        <section 
+            className="p-4"
             aria-label="Employee Updates Dashboard"
         >
-            <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-stretch">
                 {sectionConfig.map((section, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={section.title} sx={{ display: 'flex' }}>
-                        <Grow in timeout={300 + (index * 100)} style={{ width: '100%' }}>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, width: '100%' }}>
+                    <div key={section.title} className="flex">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: (index * 0.1), duration: 0.3 }}
+                            className="w-full"
+                        >
+                            <div className="flex flex-col flex-grow w-full">
                                 <UpdateSection 
                                     title={section.title} 
                                     items={section.items} 
@@ -499,64 +588,88 @@ const UpdatesCards = () => {
                                     icon={section.icon}
                                     color={section.color}
                                 />
-                            </Box>
-                        </Grow>
-                    </Grid>
+                            </div>
+                        </motion.div>
+                    </div>
                 ))}
-            </Grid>
+            </div>
             
             {upcomingHoliday && (
-                <Grow in timeout={800}>
-                    <Box sx={{ mt: 3 }}>
-                        <GlassCard>
-                            <CardHeader
-                                title={
-                                    <Box className="flex items-center gap-3">
-                                        <Box
-                                            sx={{
-                                                bgcolor: '#f59e0b20',
-                                                borderRadius: '12px',
-                                                p: 1,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                minWidth: 40,
-                                                minHeight: 40
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8, duration: 0.3 }}
+                >
+                    <div className="mt-4">
+                        <Card
+                            radius={getThemeRadius()}
+                            style={getCardStyle()}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-warning) 50%, transparent)`;
+                                e.currentTarget.style.borderRadius = `var(--borderRadius, 12px)`;
+                                e.currentTarget.style.transform = `scale(calc(var(--scale, 1) * 1.02))`;
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
+                                e.currentTarget.style.transform = `scale(var(--scale, 1))`;
+                            }}
+                        >
+                            <CardHeader 
+                                className="pb-2 p-4"
+                                style={{
+                                    background: `transparent`,
+                                }}
+                            >
+                                <div className="flex items-center gap-3 w-full">
+                                    <div 
+                                        className="p-2 rounded-xl flex items-center justify-center min-w-[48px] min-h-[48px] flex-shrink-0"
+                                        style={{
+                                            backgroundColor: `color-mix(in srgb, var(--theme-warning) 15%, transparent)`,
+                                            borderRadius: `var(--borderRadius, 12px)`,
+                                            border: `var(--borderWidth, 1px) solid color-mix(in srgb, var(--theme-warning) 25%, transparent)`
+                                        }}
+                                    >
+                                        <SunIcon 
+                                            className="w-6 h-6 stroke-2"
+                                            style={{ color: 'var(--theme-warning)' }}
+                                            aria-hidden="true"
+                                        />
+                                    </div>
+                                    <h2 
+                                        className="text-lg font-bold text-foreground flex-1"
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    >
+                                        Upcoming Holiday
+                                    </h2>
+                                </div>
+                            </CardHeader>
+                            <CardBody 
+                                className="pt-0 p-4"
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div>
+                                        <p 
+                                            className="font-semibold text-foreground flex items-center gap-1 mt-1"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
                                             }}
                                         >
-                                            <SunIcon 
-                                                style={{ 
-                                                    width: '20px', 
-                                                    height: '20px', 
-                                                    color: '#f59e0b',
-                                                    strokeWidth: 2
-                                                }}
-                                                aria-hidden="true"
-                                            />
-                                        </Box>
-                                        <Typography 
-                                            variant="h6"
-                                            component="h2"
-                                            sx={{ 
-                                                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-                                                fontWeight: 600
+                                            <InformationCircleIcon className="w-4 h-4" />
+                                            {upcomingHoliday.title}
+                                        </p>
+                                        
+                                        <p 
+                                            className="text-sm text-default-500 flex items-center gap-1 mt-1"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
                                             }}
                                         >
-                                            Upcoming Holiday
-                                        </Typography>
-                                    </Box>
-                                }
-                            />
-                            <Divider />
-                            <CardContent>
-                                <Box className="flex items-center gap-3">
-                                    <CalendarDaysIcon className="w-5 h-5 text-primary" />
-                                    <Box>
-                                        <Typography variant="body1" fontWeight="600" color="text.primary">
-                                            {upcomingHoliday.name}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" className="flex items-center gap-1 mt-1">
-                                            <ClockIcon className="w-4 h-4" />
+                                            <CalendarDaysIcon className="w-4 h-4" />
                                             {new Date(upcomingHoliday.from_date).toLocaleDateString('en-US', {
                                                 month: 'long',
                                                 day: 'numeric',
@@ -566,15 +679,24 @@ const UpdatesCards = () => {
                                                 day: 'numeric',
                                                 year: 'numeric'
                                             })}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                            </CardContent>
-                        </GlassCard>
-                    </Box>
-                </Grow>
+                                        </p>
+                                        <p 
+                                            className="text-sm text-default-500 flex items-center gap-1 mt-1"
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                        >
+                                            <Bars3BottomLeftIcon className="w-4 h-4" />
+                                            {upcomingHoliday.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                </motion.div>
             )}
-        </Box>
+        </section>
     );
 };
 

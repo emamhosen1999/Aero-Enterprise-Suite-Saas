@@ -17,40 +17,42 @@ class DepartmentSeeder extends Seeder
     public function run()
     {
         $this->command->info('Starting Department seeding...');
-        
+
         try {
             // Check if departments table exists and has the correct structure
-            if (!Schema::hasTable('departments')) {
+            if (! Schema::hasTable('departments')) {
                 $this->command->error('Departments table does not exist. Please run migrations first.');
+
                 return;
             }
-            
+
             // Check if the table has all required columns
             $columns = Schema::getColumnListing('departments');
             $requiredColumns = ['name', 'code', 'description', 'parent_id', 'manager_id', 'location', 'is_active', 'established_date'];
             $missingColumns = array_diff($requiredColumns, $columns);
-            
-            if (!empty($missingColumns)) {
-                $this->command->error('Departments table is missing required columns: ' . implode(', ', $missingColumns));
-                $this->command->info('Available columns: ' . implode(', ', $columns));
+
+            if (! empty($missingColumns)) {
+                $this->command->error('Departments table is missing required columns: '.implode(', ', $missingColumns));
+                $this->command->info('Available columns: '.implode(', ', $columns));
                 $this->command->info('Please update your migration to include all required columns.');
+
                 return;
             }
-            
+
             // Instead of truncating, we'll use a safer approach
             // Disable foreign key checks temporarily
             $this->command->info('Disabling foreign key checks...');
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            
+
             // Clear existing departments safely
             $this->command->info('Clearing existing departments...');
             $deletedCount = Department::query()->delete();
             $this->command->info("Deleted {$deletedCount} existing departments.");
-            
+
             // Re-enable foreign key checks
             $this->command->info('Re-enabling foreign key checks...');
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            
+
             // Create parent departments
             $departments = [
                 [
@@ -174,31 +176,33 @@ class DepartmentSeeder extends Seeder
                     'updated_at' => now(),
                 ],
             ];
-        
+
             // Insert parent departments
-            $this->command->info('Inserting ' . count($departments) . ' parent departments...');
+            $this->command->info('Inserting '.count($departments).' parent departments...');
             try {
                 Department::insert($departments);
                 $this->command->info('Parent departments inserted successfully.');
             } catch (\Exception $e) {
-                $this->command->error('Error inserting parent departments: ' . $e->getMessage());
+                $this->command->error('Error inserting parent departments: '.$e->getMessage());
                 // Re-enable foreign key checks before exiting
                 DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
                 return;
             }
-        
+
             // Get parent department IDs
             $hr = Department::where('code', 'HR')->first();
             $it = Department::where('code', 'IT')->first();
             $fin = Department::where('code', 'FIN')->first();
             $ops = Department::where('code', 'OPS')->first();
-        
+
             // If parent departments don't exist, exit early
-            if (!$hr || !$it || !$fin || !$ops) {
+            if (! $hr || ! $it || ! $fin || ! $ops) {
                 $this->command->error('Parent departments were not properly created. Cannot create child departments.');
+
                 return;
             }
-        
+
             // Create child departments
             $childDepartments = [
                 // HR sub-departments
@@ -224,7 +228,7 @@ class DepartmentSeeder extends Seeder
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
-                
+
                 // IT sub-departments
                 [
                     'name' => 'IT Support',
@@ -248,7 +252,7 @@ class DepartmentSeeder extends Seeder
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
-                
+
                 // Finance sub-departments
                 [
                     'name' => 'Accounting',
@@ -272,7 +276,7 @@ class DepartmentSeeder extends Seeder
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
-                
+
                 // Operations sub-departments
                 [
                     'name' => 'Logistics',
@@ -297,21 +301,21 @@ class DepartmentSeeder extends Seeder
                     'updated_at' => now(),
                 ],
             ];
-        
+
             // Insert child departments
-            $this->command->info('Inserting ' . count($childDepartments) . ' child departments...');
+            $this->command->info('Inserting '.count($childDepartments).' child departments...');
             try {
                 Department::insert($childDepartments);
                 $this->command->info('Child departments inserted successfully.');
             } catch (\Exception $e) {
-                $this->command->error('Error inserting child departments: ' . $e->getMessage());
+                $this->command->error('Error inserting child departments: '.$e->getMessage());
                 // Continue execution since parent departments were already inserted
             }
-        
+
             $this->command->info('Department seeding completed successfully.');
-            $this->command->info('Total departments created: ' . Department::count());
+            $this->command->info('Total departments created: '.Department::count());
         } catch (\Exception $e) {
-            $this->command->error('An unexpected error occurred: ' . $e->getMessage());
+            $this->command->error('An unexpected error occurred: '.$e->getMessage());
             // Make sure foreign key checks are re-enabled
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }

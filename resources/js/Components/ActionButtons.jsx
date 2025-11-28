@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@heroui/react";
-import { useMediaQuery, useTheme } from '@mui/material';
 import { 
     DocumentArrowDownIcon,
     PlusIcon,
@@ -16,16 +15,32 @@ import {
  * @param {boolean} props.loading - Loading state for buttons
  */
 const ActionButtons = ({ buttons = [], loading = false }) => {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    // Custom responsive hook
+    const useResponsive = () => {
+        const [isMobile, setIsMobile] = useState(false);
+        
+        useEffect(() => {
+            const checkDevice = () => {
+                setIsMobile(window.innerWidth < 640);
+            };
+            
+            checkDevice();
+            window.addEventListener('resize', checkDevice);
+            return () => window.removeEventListener('resize', checkDevice);
+        }, []);
+        
+        return { isMobile };
+    };
+    
+    const { isMobile } = useResponsive();
 
     // Predefined button styles matching timesheet table
     const buttonStyles = {
-        primary: "bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30",
-        success: "bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30",
-        danger: "bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30",
-        warning: "bg-gradient-to-r from-orange-500/20 to-yellow-500/20 hover:from-orange-500/30 hover:to-yellow-500/30",
-        secondary: "bg-gradient-to-r from-gray-500/20 to-slate-500/20 hover:from-gray-500/30 hover:to-slate-500/30",
+        primary: "bg-linear-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30",
+        success: "bg-linear-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30",
+        danger: "bg-linear-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30",
+        warning: "bg-linear-to-r from-orange-500/20 to-yellow-500/20 hover:from-orange-500/30 hover:to-yellow-500/30",
+        secondary: "bg-linear-to-r from-gray-500/20 to-slate-500/20 hover:from-gray-500/30 hover:to-slate-500/30",
         bordered: "border-white/20 bg-white/5 hover:bg-white/10"
     };
 
@@ -35,7 +50,7 @@ const ActionButtons = ({ buttons = [], loading = false }) => {
             color: "primary",
             variant: "flat",
             icon: <PlusIcon className="w-4 h-4" />,
-            className: "bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium"
+            className: "bg-linear-to-r from-blue-500 to-purple-500 text-white font-medium"
         },
         export_excel: {
             color: "success",

@@ -29,7 +29,7 @@ class Project extends Model implements HasMedia
         'department_id',
         'progress',
         'color',
-        'notes'
+        'notes',
     ];
 
     protected $dates = [

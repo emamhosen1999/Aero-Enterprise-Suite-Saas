@@ -18,7 +18,7 @@ class JobHiringStage extends Model
         'is_active',
         'required_actions',
         'requires_approval',
-        'is_final'
+        'is_final',
     ];
 
     protected $casts = [
@@ -82,7 +82,7 @@ class JobHiringStage extends Model
     {
         $nextStage = $this->nextStage();
 
-        if (!$nextStage) {
+        if (! $nextStage) {
             return false;
         }
 
@@ -93,13 +93,13 @@ class JobHiringStage extends Model
             'previous_stage_id' => $this->id,
             'changed_by' => auth()->id(),
             'changed_at' => now(),
-            'notes' => $notes
+            'notes' => $notes,
         ]);
 
         // Update application
         $application->update([
             'current_stage_id' => $nextStage->id,
-            'last_status_change' => now()
+            'last_status_change' => now(),
         ]);
 
         return true;

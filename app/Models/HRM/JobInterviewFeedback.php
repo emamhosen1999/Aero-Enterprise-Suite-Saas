@@ -23,7 +23,7 @@ class JobInterviewFeedback extends Model
         'strengths',
         'weaknesses',
         'comments',
-        'recommendation'
+        'recommendation',
     ];
 
     protected $casts = [
@@ -58,7 +58,7 @@ class JobInterviewFeedback extends Model
             $this->technical_rating,
             $this->communication_rating,
             $this->cultural_fit_rating,
-            $this->overall_rating
+            $this->overall_rating,
         ]);
 
         return count($ratings) > 0 ? round(array_sum($ratings) / count($ratings), 2) : 0;

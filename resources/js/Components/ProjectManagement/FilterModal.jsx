@@ -180,6 +180,15 @@ const FilterModal = ({
                                     onValueChange={(value) => handleFilterChange('search', value)}
                                     startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                     variant="bordered"
+                                    color="default"
+                                    size="md"
+                                    isClearable
+                                    classNames={{
+                                        base: "max-w-full",
+                                        mainWrapper: "h-full",
+                                        input: "text-small",
+                                        inputWrapper: "h-full font-normal text-default-500 bg-content1/50 backdrop-blur-md border-divider/50 hover:bg-content1/80 focus-within:!bg-content1/80 data-[hover=true]:bg-content1/80 group-data-[focus=true]:bg-content1/80",
+                                    }}
                                 />
                             </CardBody>
                         </Card>
@@ -199,6 +208,21 @@ const FilterModal = ({
                                         selectedKeys={[localFilters.status]}
                                         onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0])}
                                         variant="bordered"
+                                        labelPlacement="outside"
+                                        placeholder="Choose a status"
+                                        classNames={{
+                                            base: "max-w-full",
+                                            mainWrapper: "h-full",
+                                            trigger: "h-full font-normal text-default-500 bg-content1/50 backdrop-blur-md border-divider/50 hover:bg-content1/80 data-[hover=true]:bg-content1/80 group-data-[focus=true]:bg-content1/80",
+                                            popoverContent: "bg-content1/80 backdrop-blur-lg border-divider/30",
+                                            listbox: "p-0",
+                                        }}
+                                        popoverProps={{
+                                            classNames: {
+                                                base: "before:bg-content1/50 backdrop-blur-md",
+                                                content: "p-0 border-small border-divider bg-content1/50",
+                                            }
+                                        }}
                                     >
                                         <SelectItem key="all" value="all">All Statuses</SelectItem>
                                         <SelectItem key="not_started" value="not_started">Not Started</SelectItem>
@@ -308,7 +332,24 @@ const FilterModal = ({
                                         maxValue={100}
                                         step={5}
                                         formatOptions={{style: "percent", minimumFractionDigits: 0}}
-                                        className="max-w-md"
+                                        color="primary"
+                                        size="md"
+                                        showTooltip={true}
+                                        showSteps={false}
+                                        showOutline={false}
+                                        hideValue={false}
+                                        hideThumb={false}
+                                        fillOffset={0}
+                                        classNames={{
+                                            base: "max-w-md",
+                                            track: "border-s-primary-100",
+                                            filler: "bg-gradient-to-r from-primary-500 to-primary-400",
+                                        }}
+                                        tooltipProps={{
+                                            classNames: {
+                                                content: "bg-content1/80 backdrop-blur-md border-divider",
+                                            }
+                                        }}
                                     />
                                     <div className="flex justify-between text-sm text-default-500 mt-2">
                                         <span>{localFilters.progressRange?.[0] || 0}%</span>
@@ -333,7 +374,24 @@ const FilterModal = ({
                                         maxValue={1000000}
                                         step={10000}
                                         formatOptions={{style: "currency", currency: "USD", minimumFractionDigits: 0}}
-                                        className="max-w-md"
+                                        color="secondary"
+                                        size="md"
+                                        showTooltip={true}
+                                        showSteps={false}
+                                        showOutline={false}
+                                        hideValue={false}
+                                        hideThumb={false}
+                                        fillOffset={0}
+                                        classNames={{
+                                            base: "max-w-md",
+                                            track: "border-s-secondary-100",
+                                            filler: "bg-gradient-to-r from-secondary-500 to-secondary-400",
+                                        }}
+                                        tooltipProps={{
+                                            classNames: {
+                                                content: "bg-content1/80 backdrop-blur-md border-divider",
+                                            }
+                                        }}
                                     />
                                     <div className="flex justify-between text-sm text-default-500 mt-2">
                                         <span>${(localFilters.budgetRange?.[0] || 0).toLocaleString()}</span>
@@ -464,7 +522,17 @@ const FilterModal = ({
                                             value={presetName}
                                             onValueChange={setPresetName}
                                             variant="bordered"
+                                            labelPlacement="outside"
+                                            color="default"
+                                            size="md"
+                                            isClearable
                                             className="flex-1"
+                                            classNames={{
+                                                base: "max-w-full",
+                                                mainWrapper: "h-full",
+                                                input: "text-small",
+                                                inputWrapper: "h-full font-normal text-default-500 bg-content1/50 backdrop-blur-md border-divider/50 hover:bg-content1/80 focus-within:!bg-content1/80 data-[hover=true]:bg-content1/80 group-data-[focus=true]:bg-content1/80",
+                                            }}
                                         />
                                         <Button
                                             color="primary"

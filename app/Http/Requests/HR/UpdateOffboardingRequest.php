@@ -2,17 +2,18 @@
 
 namespace App\Http\Requests\HR;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\HRM\Offboarding;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateOffboardingRequest extends FormRequest
 {
     public function authorize(): bool
     {
         $offboarding = $this->route('id') ? Offboarding::find($this->route('id')) : null;
-        if (!$offboarding) {
+        if (! $offboarding) {
             return false;
         }
+
         return $this->user()?->can('hr.offboarding.update') ?? false;
     }
 
@@ -39,7 +40,7 @@ class UpdateOffboardingRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('tasks')) {
+        if (! $this->has('tasks')) {
             $this->merge(['tasks' => []]);
         }
     }

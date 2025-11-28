@@ -13,6 +13,7 @@ class BulkLeaveControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private LeaveSetting $leaveSetting;
 
     protected function setUp(): void
@@ -33,14 +34,14 @@ class BulkLeaveControllerTest extends TestCase
     {
         // Create a user without permissions
         $unauthorizedUser = User::factory()->create();
-        
+
         $response = $this->actingAs($unauthorizedUser)
-                         ->postJson('/leaves/bulk/validate', [
-                             'user_id' => $this->user->id,
-                             'dates' => [Carbon::tomorrow()->format('Y-m-d')],
-                             'leave_type_id' => $this->leaveSetting->id,
-                             'reason' => 'Test unauthorized access'
-                         ]);
+            ->postJson('/leaves/bulk/validate', [
+                'user_id' => $this->user->id,
+                'dates' => [Carbon::tomorrow()->format('Y-m-d')],
+                'leave_type_id' => $this->leaveSetting->id,
+                'reason' => 'Test unauthorized access',
+            ]);
 
         $response->assertStatus(403);
     }
@@ -52,41 +53,41 @@ class BulkLeaveControllerTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['dates', 'leave_type_id', 'reason']);
+            ->assertJsonValidationErrors(['dates', 'leave_type_id', 'reason']);
     }
 
     public function test_validate_endpoint_returns_proper_response()
     {
         $dates = [
             Carbon::tomorrow()->format('Y-m-d'),
-            Carbon::tomorrow()->addDay()->format('Y-m-d')
+            Carbon::tomorrow()->addDay()->format('Y-m-d'),
         ];
 
         $response = $this->postJson('/leaves/bulk/validate', [
             'user_id' => $this->user->id,
             'dates' => $dates,
             'leave_type_id' => $this->leaveSetting->id,
-            'reason' => 'Test validation endpoint'
+            'reason' => 'Test validation endpoint',
         ]);
 
         $response->assertStatus(200)
-                ->assertJsonStructure([
-                    'success',
-                    'validation_results' => [
-                        '*' => [
-                            'date',
-                            'status',
-                            'errors',
-                            'warnings'
-                        ]
+            ->assertJsonStructure([
+                'success',
+                'validation_results' => [
+                    '*' => [
+                        'date',
+                        'status',
+                        'errors',
+                        'warnings',
                     ],
-                    'estimated_balance_impact' => [
-                        'leave_type',
-                        'current_balance',
-                        'requested_days',
-                        'remaining_balance'
-                    ]
-                ]);
+                ],
+                'estimated_balance_impact' => [
+                    'leave_type',
+                    'current_balance',
+                    'requested_days',
+                    'remaining_balance',
+                ],
+            ]);
 
         $this->assertTrue($response->json('success'));
         $this->assertCount(2, $response->json('validation_results'));
@@ -96,7 +97,7 @@ class BulkLeaveControllerTest extends TestCase
     {
         $dates = [
             Carbon::tomorrow()->format('Y-m-d'),
-            Carbon::tomorrow()->addDay()->format('Y-m-d')
+            Carbon::tomorrow()->addDay()->format('Y-m-d'),
         ];
 
         $response = $this->postJson('/leaves/bulk', [
@@ -104,28 +105,28 @@ class BulkLeaveControllerTest extends TestCase
             'dates' => $dates,
             'leave_type_id' => $this->leaveSetting->id,
             'reason' => 'Test bulk creation endpoint',
-            'allow_partial_success' => false
+            'allow_partial_success' => false,
         ]);
 
         $response->assertStatus(201)
-                ->assertJsonStructure([
-                    'success',
-                    'message',
-                    'created_leaves',
-                    'failed_dates',
-                    'summary' => [
-                        'total_requested',
-                        'successful',
-                        'failed'
-                    ],
-                    'leaves',
-                    'leavesData'
-                ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'created_leaves',
+                'failed_dates',
+                'summary' => [
+                    'total_requested',
+                    'successful',
+                    'failed',
+                ],
+                'leaves',
+                'leavesData',
+            ]);
 
         $this->assertTrue($response->json('success'));
         $this->assertEquals(2, $response->json('summary.successful'));
         $this->assertEquals(0, $response->json('summary.failed'));
-        
+
         // Verify leaves were actually created in database
         $this->assertDatabaseCount('leaves', 2);
         foreach ($dates as $date) {
@@ -133,7 +134,7 @@ class BulkLeaveControllerTest extends TestCase
                 'user_id' => $this->user->id,
                 'from_date' => $date,
                 'leave_type' => $this->leaveSetting->id,
-                'reason' => 'Test bulk creation endpoint'
+                'reason' => 'Test bulk creation endpoint',
             ]);
         }
     }
@@ -148,14 +149,14 @@ class BulkLeaveControllerTest extends TestCase
             'dates' => [$pastDate],
             'leave_type_id' => $this->leaveSetting->id,
             'reason' => 'Test validation error handling',
-            'allow_partial_success' => false
+            'allow_partial_success' => false,
         ]);
 
         $response->assertStatus(422);
         $this->assertFalse($response->json('success'));
         $this->assertEquals(0, $response->json('summary.successful'));
         $this->assertEquals(1, $response->json('summary.failed'));
-        
+
         // Verify no leaves were created
         $this->assertDatabaseCount('leaves', 0);
     }
@@ -170,19 +171,19 @@ class BulkLeaveControllerTest extends TestCase
             'dates' => [$pastDate, $futureDate],
             'leave_type_id' => $this->leaveSetting->id,
             'reason' => 'Test partial success mode',
-            'allow_partial_success' => true
+            'allow_partial_success' => true,
         ]);
 
         $response->assertStatus(201);
         $this->assertTrue($response->json('success'));
         $this->assertEquals(1, $response->json('summary.successful'));
         $this->assertEquals(1, $response->json('summary.failed'));
-        
+
         // Verify only valid leave was created
         $this->assertDatabaseCount('leaves', 1);
         $this->assertDatabaseHas('leaves', [
             'user_id' => $this->user->id,
-            'from_date' => $futureDate
+            'from_date' => $futureDate,
         ]);
     }
 
@@ -190,7 +191,7 @@ class BulkLeaveControllerTest extends TestCase
     {
         // Test with too many dates (more than 50)
         $dates = array_map(
-            fn($i) => Carbon::tomorrow()->addDays($i)->format('Y-m-d'),
+            fn ($i) => Carbon::tomorrow()->addDays($i)->format('Y-m-d'),
             range(0, 51)
         );
 
@@ -198,10 +199,10 @@ class BulkLeaveControllerTest extends TestCase
             'user_id' => $this->user->id,
             'dates' => $dates,
             'leave_type_id' => $this->leaveSetting->id,
-            'reason' => 'Test too many dates'
+            'reason' => 'Test too many dates',
         ]);
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors(['dates']);
+            ->assertJsonValidationErrors(['dates']);
     }
 }

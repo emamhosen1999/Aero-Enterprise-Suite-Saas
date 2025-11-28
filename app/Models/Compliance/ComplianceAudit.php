@@ -2,11 +2,11 @@
 
 namespace App\Models\Compliance;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\User;
 
 class ComplianceAudit extends Model
 {
@@ -34,7 +34,7 @@ class ComplianceAudit extends Model
         'follow_up_required',
         'follow_up_date',
         'certification_body',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -45,34 +45,49 @@ class ComplianceAudit extends Model
         'follow_up_required' => 'boolean',
         'metadata' => 'json',
         'audit_criteria' => 'json',
-        'recommendations' => 'json'
+        'recommendations' => 'json',
     ];
 
     // Status constants
     const STATUS_PLANNED = 'planned';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
+
     const STATUS_FOLLOW_UP = 'follow_up';
 
     // Type constants
     const TYPE_INTERNAL = 'internal';
+
     const TYPE_EXTERNAL = 'external';
+
     const TYPE_REGULATORY = 'regulatory';
+
     const TYPE_CERTIFICATION = 'certification';
+
     const TYPE_SURVEILLANCE = 'surveillance';
 
     // Risk level constants
     const RISK_LOW = 'low';
+
     const RISK_MEDIUM = 'medium';
+
     const RISK_HIGH = 'high';
+
     const RISK_CRITICAL = 'critical';
 
     // Rating constants
     const RATING_EXCELLENT = 'excellent';
+
     const RATING_GOOD = 'good';
+
     const RATING_SATISFACTORY = 'satisfactory';
+
     const RATING_NEEDS_IMPROVEMENT = 'needs_improvement';
+
     const RATING_UNSATISFACTORY = 'unsatisfactory';
 
     /**
@@ -131,6 +146,7 @@ class ComplianceAudit extends Model
         if ($this->start_date && $this->end_date) {
             return $this->start_date->diffInDays($this->end_date) + 1;
         }
+
         return 0;
     }
 

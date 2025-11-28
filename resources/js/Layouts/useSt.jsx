@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Link } from '@inertiajs/react';
-import { Box, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
 import Header from "@/Layouts/Header.jsx";
 import Breadcrumb from "@/Components/Breadcrumb.jsx";
 import BottomNav from "@/Layouts/BottomNav.jsx";
 import { usePage } from "@inertiajs/react";
-import useTheme from "@/theme.jsx";
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../css/theme-transitions.css';
 import Sidebar from "@/Layouts/Sidebar.jsx";
 import { Inertia } from '@inertiajs/inertia';
-import { getPages } from '@/Props/pages.jsx';
+import { getDynamicPages } from '@/Props/dynamicNavigation.jsx';
 import { getSettingsPages } from '@/Props/settings.jsx';
 import { HeroUIProvider, Button } from "@heroui/react";
 import SessionExpiredModal from '@/Components/SessionExpiredModal.jsx';
@@ -108,19 +108,21 @@ function App({ children }) {
     const [loading, setLoading] = useState(false);
 
     // Memoize pages to avoid unnecessary recalculations
+    // Navigation is now driven by the Module Permission Registry via auth.accessibleModules
     const pages = useMemo(() => {
         // Check if the current URL is specifically a settings page
-        // You can adjust this condition based on your actual settings routes
         const isSettingsPage = url.startsWith('/settings') || 
                               url.includes('settings') || 
                               url === '/settings';
         
-        return isSettingsPage ? getSettingsPages(permissions, auth) : getPages(permissions, auth);
-    }, [url, permissions]);
+        // For settings pages, use the settings navigation
+        // For all other pages, use dynamic navigation from Module Permission Registry
+        return isSettingsPage ? getSettingsPages(permissions, auth) : getDynamicPages(auth);
+    }, [url, permissions, auth?.accessibleModules]);
 
     // Theme and media query
     const theme = useTheme(darkMode ? 'dark' : 'light', themeId);
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));    // Persist darkMode, themeColor, and sidebar state
+    const isMobile = useMediaQuery('(max-width: 768px)');    // Persist darkMode, themeColor, and sidebar state
     
     
 
@@ -140,6 +142,10 @@ function App({ children }) {
 
     const toggleThemeDrawer = useCallback(() => {
         setThemeDrawerOpen(prev => !prev);
+    }, []);
+
+    const closeThemeDrawer = useCallback(() => {
+        setThemeDrawerOpen(false);
     }, []);
     
     const toggleSideBar = useCallback(() => {
@@ -221,13 +227,12 @@ function App({ children }) {
 
             
 return (
-        <ThemeProvider theme={theme}>
-            <HeroUIProvider>
-                {sessionExpired && <SessionExpiredModal setSessionExpired={setSessionExpired}/>}
-                <ThemeSettingDrawer
-                    themeId={themeId}
-                    setThemeId={handleSetThemeId}
-                    darkMode={darkMode}
+        <HeroUIProvider>
+            {sessionExpired && <SessionExpiredModal setSessionExpired={setSessionExpired}/>}
+            <ThemeSettingDrawer
+                themeId={themeId}
+                setThemeId={handleSetThemeId}
+                darkMode={darkMode}
                     toggleDarkMode={toggleDarkMode}
                     themeDrawerOpen={themeDrawerOpen}
                     toggleThemeDrawer={toggleThemeDrawer}
@@ -244,70 +249,49 @@ return (
                     pauseOnHover
                     theme={darkMode ? "dark" : "light"}
                 />
-                <CssBaseline />
                 <main id="app-main" className={darkMode ? "dark" : "light"}>
-                    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+                    <div className="flex h-screen overflow-hidden">
                         {/* Overlay for mobile sidebar */}
                         {isMobile && (
-                            <Box
+                            <div
                                 onClick={toggleSideBar}
-                                sx={{
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    bgcolor: 'rgba(0,0,0,0.5)',
-                                    zIndex: 1199,
-                                    opacity: sideBarOpen ? 1 : 0,
-                                    visibility: sideBarOpen ? 'visible' : 'hidden',
-                                    transition: 'opacity 0.2s ease',
-                                    pointerEvents: sideBarOpen ? 'auto' : 'none',
-                                }}
+                                className={`
+                                    fixed top-0 left-0 right-0 bottom-0 
+                                    bg-black/50 z-[1199]
+                                    transition-opacity duration-200
+                                    ${sideBarOpen ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}
+                                `}
                             />
                         )}
                         {/* Desktop Sidebar Area */}
                         {auth.user && (
-                            <Box
-                                sx={{
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    height: '100vh',
-                                    zIndex: 1200,
-                                    width: '280px',
-                                    transform: sideBarOpen ? 'translate3d(0, 0, 0)' : 'translate3d(-100%, 0, 0)',
-                                    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    overflowY: 'auto',
-                                    overflowX: 'hidden',
+                            <div
+                                className={`
+                                    fixed top-0 left-0 h-screen z-[1200] w-[280px]
+                                    transition-transform duration-200 ease-out
+                                    overflow-y-auto overflow-x-hidden
+                                    ${sideBarOpen ? 'translate-x-0' : '-translate-x-full'}
+                                `}
+                                style={{
                                     willChange: 'transform',
                                     backfaceVisibility: 'hidden',
                                 }}
                             >
                                 {sidebarContent}
-                            </Box>
+                            </div>
                         )}
                         {/* Main Content Area */}
-                        <Box
+                        <div
                             ref={contentRef}
-                            sx={{
-                                pb: `${bottomNavHeight}px`,
-                                display: 'flex',
-                                flex: 1,
-                                transition: 'margin 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                marginLeft: {
-                                    xs: 0,
-                                    md: sideBarOpen ? '280px' : '0'
-                                },
-                                width: {
-                                    xs: '100%',
-                                    md: sideBarOpen ? `calc(100% - 280px)` : '100%'
-                                },
-                                minWidth: 0, // Prevent flex-shrink issues
+                            className={`
+                                flex flex-1 flex-col h-screen overflow-auto
+                                transition-all duration-300 ease-out
+                                ${isMobile ? 'ml-0 w-full' : sideBarOpen ? 'ml-[280px] w-[calc(100%-280px)]' : 'ml-0 w-full'}
+                                min-w-0
+                            `}
+                            style={{
+                                paddingBottom: `${bottomNavHeight}px`,
                                 willChange: 'margin',
-                                flexDirection: 'column',
-                                height: '100vh',
-                                overflow: 'auto',
                             }}
                         >
                             {auth.user && (
@@ -333,11 +317,10 @@ return (
                                     sideBarOpen={sideBarOpen}
                                 />
                             )}
-                        </Box>
-                    </Box>
+                        </div>
+                    </div>
                 </main>
             </HeroUIProvider>
-        </ThemeProvider>
     );
 }
 

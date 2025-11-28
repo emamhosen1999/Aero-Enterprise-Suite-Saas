@@ -2,10 +2,10 @@
 
 namespace App\Models\Compliance;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 class DocumentRevision extends Model
 {
@@ -33,7 +33,7 @@ class DocumentRevision extends Model
         'superseded_date',
         'distribution_method',
         'notification_sent',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -43,22 +43,31 @@ class DocumentRevision extends Model
         'notification_sent' => 'boolean',
         'change_details' => 'json',
         'review_comments' => 'json',
-        'metadata' => 'json'
+        'metadata' => 'json',
     ];
 
     // Status constants
     const STATUS_DRAFT = 'draft';
+
     const STATUS_UNDER_REVIEW = 'under_review';
+
     const STATUS_PENDING_APPROVAL = 'pending_approval';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_ACTIVE = 'active';
+
     const STATUS_SUPERSEDED = 'superseded';
+
     const STATUS_REJECTED = 'rejected';
 
     // Distribution method constants
     const DISTRIBUTION_EMAIL = 'email';
+
     const DISTRIBUTION_PORTAL = 'portal';
+
     const DISTRIBUTION_PRINT = 'print';
+
     const DISTRIBUTION_TRAINING = 'training';
 
     /**
@@ -146,7 +155,9 @@ class DocumentRevision extends Model
      */
     public function getFormattedFileSize(): string
     {
-        if (!$this->file_size) return 'Unknown';
+        if (! $this->file_size) {
+            return 'Unknown';
+        }
 
         $bytes = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB'];
@@ -157,7 +168,7 @@ class DocumentRevision extends Model
             $unitIndex++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$unitIndex];
+        return round($bytes, 2).' '.$units[$unitIndex];
     }
 
     /**
@@ -166,7 +177,7 @@ class DocumentRevision extends Model
     public function getComparisonSummary(): array
     {
         $previous = $this->previousRevision;
-        if (!$previous) {
+        if (! $previous) {
             return ['type' => 'initial', 'message' => 'Initial version'];
         }
 
@@ -184,7 +195,7 @@ class DocumentRevision extends Model
             'type' => 'revision',
             'changes' => $changes,
             'previous_version' => $previous->getFormattedVersion(),
-            'revision_reason' => $this->revision_reason
+            'revision_reason' => $this->revision_reason,
         ];
     }
 

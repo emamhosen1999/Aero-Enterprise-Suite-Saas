@@ -2,14 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\AttendanceRule;
 use App\Models\Benefit;
 use App\Models\Competency;
 use App\Models\DocumentCategory;
 use App\Models\HRM\AttendanceType;
 use App\Models\SafetyTraining;
 use App\Models\Skill;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class CombinedSeeder extends Seeder
@@ -53,7 +51,7 @@ class CombinedSeeder extends Seeder
         $this->command->info('Setting up roles and permissions...');
 
         // Use the ComprehensiveRolePermissionSeeder directly
-        $permissionSeeder = new ComprehensiveRolePermissionSeeder();
+        $permissionSeeder = new ComprehensiveRolePermissionSeeder;
         $permissionSeeder->setCommand($this->command);
         $permissionSeeder->run();
 
@@ -67,37 +65,174 @@ class CombinedSeeder extends Seeder
     {
         $this->command->info('Creating attendance types and rules...');
 
-        // Create default attendance types if they don't exist
+        // Create all four attendance types if they don't exist
         if (AttendanceType::count() === 0) {
+            // 1. Geo Polygon - Multiple location boundaries
             AttendanceType::create([
-                'name' => 'Main Site Zone',
+                'name' => 'Geofence Location',
                 'slug' => 'geo_polygon',
+                'icon' => '📍',
+                'description' => 'Validate attendance using GPS location within defined polygon boundaries. Supports multiple locations.',
                 'config' => [
-                    'polygons' => [
-                        [[10.1, 123.5], [10.2, 123.5], [10.2, 123.6], [10.1, 123.6]]
-                    ]
-                ]
+                    'polygons' => [],
+                    'validation_mode' => 'any',
+                    'allow_without_location' => false,
+                ],
+                'priority' => 1,
+                'is_active' => true,
             ]);
 
+            // 2. WiFi/IP - Multiple office networks
             AttendanceType::create([
-                'name' => 'Office Wi-Fi',
+                'name' => 'Office Network',
                 'slug' => 'wifi_ip',
+                'icon' => '📶',
+                'description' => 'Validate attendance using office WiFi or IP address. Supports multiple office locations.',
                 'config' => [
-                    'allowed_ips' => ['192.168.0.100', '203.0.113.10']
-                ]
+                    'ip_locations' => [],
+                    'validation_mode' => 'any',
+                    'allow_without_network' => false,
+                ],
+                'priority' => 2,
+                'is_active' => true,
             ]);
 
-            // Create rules for the first user (typically admin)
-            AttendanceRule::create([
-                'attendance_type_id' => 1,
-                'applicable_to_type' => User::class,
-                'applicable_to_id' => 1
+            // 3. Route Waypoint - Multiple routes
+            AttendanceType::create([
+                'name' => 'Route Tracking',
+                'slug' => 'route_waypoint',
+                'icon' => '🛣️',
+                'description' => 'Validate attendance for field workers on defined routes. Supports multiple routes with tolerance settings.',
+                'config' => [
+                    'routes' => [],
+                    'validation_mode' => 'any',
+                    'allow_without_location' => false,
+                ],
+                'priority' => 3,
+                'is_active' => true,
             ]);
 
-            AttendanceRule::create([
-                'attendance_type_id' => 2,
-                'applicable_to_type' => User::class,
-                'applicable_to_id' => 1
+            // 4. QR Code - Complete implementation
+            AttendanceType::create([
+                'name' => 'QR Code',
+                'slug' => 'qr_code',
+                'icon' => '📱',
+                'description' => 'Validate attendance by scanning QR codes at designated locations. Supports time-limited and one-time use codes.',
+                'config' => [
+                    'qr_codes' => [],
+                    'code_expiry_hours' => 24,
+                    'one_time_use' => false,
+                    'require_location' => false,
+                    'max_distance' => 100,
+                ],
+                'priority' => 4,
+                'is_active' => true,
+            ]);
+
+            $this->command->info('✅ Created 4 attendance types: Geofence, Office Network, Route Tracking, QR Code');
+        } else {
+            // Update existing types to new multi-config format if needed
+            $this->updateExistingAttendanceTypes();
+        }
+    }
+
+    /**
+     * Update existing attendance types to new multi-config format
+     */
+    private function updateExistingAttendanceTypes(): void
+    {
+        $types = AttendanceType::all();
+
+        foreach ($types as $type) {
+            $config = $type->config ?? [];
+            $needsUpdate = false;
+
+            switch ($type->slug) {
+                case 'geo_polygon':
+                    if (! isset($config['polygons']) && isset($config['polygon'])) {
+                        // Migrate single polygon to array
+                        $config = [
+                            'polygons' => [
+                                [
+                                    'id' => 'polygon_1',
+                                    'name' => 'Primary Location',
+                                    'points' => $config['polygon'],
+                                    'is_active' => true,
+                                ],
+                            ],
+                            'validation_mode' => 'any',
+                            'allow_without_location' => $config['allow_without_location'] ?? false,
+                        ];
+                        $needsUpdate = true;
+                    }
+                    break;
+
+                case 'wifi_ip':
+                    if (! isset($config['ip_locations']) && (isset($config['allowed_ips']) || isset($config['allowed_ranges']))) {
+                        $config = [
+                            'ip_locations' => [
+                                [
+                                    'id' => 'office_1',
+                                    'name' => 'Primary Office',
+                                    'allowed_ips' => $config['allowed_ips'] ?? [],
+                                    'allowed_ranges' => $config['allowed_ranges'] ?? [],
+                                    'is_active' => true,
+                                ],
+                            ],
+                            'validation_mode' => 'any',
+                            'allow_without_network' => false,
+                        ];
+                        $needsUpdate = true;
+                    }
+                    break;
+
+                case 'route_waypoint':
+                case 'route-waypoint':
+                    if (! isset($config['routes']) && isset($config['waypoints'])) {
+                        $config = [
+                            'routes' => [
+                                [
+                                    'id' => 'route_1',
+                                    'name' => 'Primary Route',
+                                    'waypoints' => $config['waypoints'],
+                                    'tolerance' => $config['tolerance'] ?? 300,
+                                    'is_active' => true,
+                                ],
+                            ],
+                            'validation_mode' => 'any',
+                            'allow_without_location' => $config['allow_without_location'] ?? false,
+                        ];
+                        $needsUpdate = true;
+
+                        // Fix slug if needed
+                        if ($type->slug === 'route-waypoint') {
+                            $type->slug = 'route_waypoint';
+                        }
+                    }
+                    break;
+            }
+
+            if ($needsUpdate) {
+                $type->update(['config' => $config]);
+            }
+        }
+
+        // Ensure QR Code type exists
+        if (! AttendanceType::where('slug', 'qr_code')->exists()) {
+            AttendanceType::create([
+                'name' => 'QR Code',
+                'slug' => 'qr_code',
+                'icon' => '📱',
+                'description' => 'Validate attendance by scanning QR codes at designated locations.',
+                'config' => [
+                    'qr_codes' => [],
+                    'code_expiry_hours' => 24,
+                    'one_time_use' => false,
+                    'require_location' => false,
+                    'max_distance' => 100,
+                ],
+                'priority' => 4,
+                'is_active' => true,
             ]);
         }
     }
@@ -373,14 +508,14 @@ class CombinedSeeder extends Seeder
         // Check if any user exists
         $user = $userModel::first();
 
-        if (!$user) {
+        if (! $user) {
             // Create a default admin user
             $user = $userModel::create([
                 'name' => 'Test Administrator',
                 'email' => 'admin@example.com',
                 'password' => bcrypt('password'),
                 'user_name' => 'admin',
-                'employee_id' => 'EMP001'
+                'employee_id' => 'EMP001',
             ]);
             $this->command->info('Created admin user: admin@example.com / password');
         }
@@ -390,7 +525,7 @@ class CombinedSeeder extends Seeder
 
         if ($superAdminRole) {
             // Check if the user already has the role
-            if (!$user->hasRole('Super Administrator')) {
+            if (! $user->hasRole('Super Administrator')) {
                 $user->assignRole($superAdminRole);
                 $this->command->info("Assigned Super Administrator role to user: {$user->email}");
             } else {

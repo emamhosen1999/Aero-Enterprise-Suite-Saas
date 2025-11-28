@@ -12,12 +12,11 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-
 class AttendanceAdminExport
 {
     public function export($month)
     {
-        $from = Carbon::parse($month . '-01');
+        $from = Carbon::parse($month.'-01');
         $to = $from->copy()->endOfMonth();
         $monthName = $from->format('F Y');
 
@@ -31,7 +30,7 @@ class AttendanceAdminExport
 
         $symbolToTypeMap = $leaveTypes->pluck('type', 'symbol')->toArray();
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->getDefaultRowDimension()->setRowHeight(25);
 
@@ -39,12 +38,12 @@ class AttendanceAdminExport
         $sheet->setCellValue('A1', $headerTitle);
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->mergeCells("A1:Z1"); // Adjusted
+        $sheet->mergeCells('A1:Z1'); // Adjusted
 
         $sheet->setCellValue('A2', $monthName);
         $sheet->getStyle('A2')->getFont()->setBold(true);
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->mergeCells("A2:Z2"); // Adjusted
+        $sheet->mergeCells('A2:Z2'); // Adjusted
 
         // Header
         $sheet->setCellValue('A4', 'SL');
@@ -53,7 +52,7 @@ class AttendanceAdminExport
         $col = 'C';
         $dateMap = [];
         for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
-            $label = $date->format('d') . ' - ' . $date->format('D');
+            $label = $date->format('d').' - '.$date->format('D');
             $sheet->setCellValue("{$col}4", $label);
             $sheet->getStyle("{$col}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
             $dateMap[$col] = $date->toDateString();
@@ -128,9 +127,11 @@ class AttendanceAdminExport
                 for ($j = $i + 1; $j < $len; $j++) {
                     $letters[$j] = 'A';
                 }
+
                 return implode('', $letters);
             }
         }
-        return 'A' . str_repeat('A', $len);
+
+        return 'A'.str_repeat('A', $len);
     }
 }

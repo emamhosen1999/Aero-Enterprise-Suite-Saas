@@ -264,7 +264,7 @@ const QualityAnalytics = ({
                         <option value="6months">Last 6 Months</option>
                         <option value="1year">Last Year</option>
                     </select>
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center">
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-sm flex items-center">
                         <Download className="w-4 h-4 mr-2" />
                         Export Report
                     </button>
@@ -305,13 +305,13 @@ const QualityAnalytics = ({
             {/* Main Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Inspection Trends */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                             <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
                             Inspection Trends
                         </h3>
-                        <select className="text-sm border border-gray-300 rounded px-2 py-1">
+                        <select className="text-sm border border-gray-300 rounded-sm px-2 py-1">
                             <option>Last 6 Months</option>
                             <option>Last Year</option>
                         </select>
@@ -322,7 +322,7 @@ const QualityAnalytics = ({
                 </div>
 
                 {/* Quality Metrics Radar */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                             <Zap className="w-5 h-5 mr-2 text-blue-600" />
@@ -338,7 +338,7 @@ const QualityAnalytics = ({
             {/* Distribution Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Inspection Results */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <PieChart className="w-5 h-5 mr-2 text-blue-600" />
                         Inspection Results
@@ -349,7 +349,7 @@ const QualityAnalytics = ({
                 </div>
 
                 {/* NCR Severity */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
                         NCR Severity
@@ -360,7 +360,7 @@ const QualityAnalytics = ({
                 </div>
 
                 {/* Calibration Status */}
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <Target className="w-5 h-5 mr-2 text-green-600" />
                         Calibration Status
@@ -372,12 +372,12 @@ const QualityAnalytics = ({
             </div>
 
             {/* Quality Insights */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white p-6 rounded-lg shadow-xs border border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Quality Insights & Recommendations</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <div className="flex items-start space-x-3">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                             </div>
                             <div>
@@ -388,7 +388,7 @@ const QualityAnalytics = ({
                             </div>
                         </div>
                         <div className="flex items-start space-x-3">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
                             </div>
                             <div>
@@ -401,7 +401,7 @@ const QualityAnalytics = ({
                     </div>
                     <div className="space-y-4">
                         <div className="flex items-start space-x-3">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
                             </div>
                             <div>
@@ -412,7 +412,7 @@ const QualityAnalytics = ({
                             </div>
                         </div>
                         <div className="flex items-start space-x-3">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                             </div>
                             <div>

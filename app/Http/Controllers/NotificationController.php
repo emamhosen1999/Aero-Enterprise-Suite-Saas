@@ -5,13 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-
-use App\Models\User;
 
 class NotificationController extends Controller
 {
-
     public function sendPushNotification($token, $title, $body): \Illuminate\Http\JsonResponse
     {
 
@@ -40,7 +36,7 @@ class NotificationController extends Controller
 
         // Send POST request to Firebase Cloud Messaging
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $accessToken,
+            'Authorization' => 'Bearer '.$accessToken,
             'Content-Type' => 'application/json',
         ])->post($firebaseUrl, $notificationData);
 
@@ -61,7 +57,7 @@ class NotificationController extends Controller
         $credentials = json_decode(file_get_contents($keyFilePath), true);
 
         // Create JWT client and get the access token
-        $client = new \Google_Client();
+        $client = new \Google_Client;
         $client->setAuthConfig($keyFilePath);
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
         $client->setSubject($credentials['client_email']);
@@ -73,5 +69,4 @@ class NotificationController extends Controller
 
         return $client->getAccessToken()['access_token'];
     }
-
 }

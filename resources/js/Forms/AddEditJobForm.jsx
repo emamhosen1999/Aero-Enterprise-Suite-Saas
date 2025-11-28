@@ -23,8 +23,8 @@ import {
 import ClearIcon from '@mui/icons-material/Clear';
 import AddIcon from '@mui/icons-material/Add';
 import LoadingButton from "@mui/lab/LoadingButton";
-import { useTheme } from "@mui/material/styles";
-import { toast } from "react-toastify";
+
+import { showToast } from "@/utils/toastUtils";
 import GlassDialog from "@/Components/GlassDialog.jsx";
 import { usePage, router } from "@inertiajs/react";
 import axios from 'axios';
@@ -42,7 +42,7 @@ const AddEditJobForm = ({
     fetchJobStats
 }) => {
     const { auth } = usePage().props;
-    const theme = useTheme();
+
     const isEditing = !!job;
 
     // State management like LeaveForm
@@ -327,7 +327,7 @@ const AddEditJobForm = ({
             }
         });
 
-        toast.promise(
+        showToast.promise(
             promise,
             {
                 pending: {

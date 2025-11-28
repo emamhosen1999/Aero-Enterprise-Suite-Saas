@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\ModernAuthenticationService;
 use App\Models\User;
+use App\Services\ModernAuthenticationService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,12 +18,12 @@ use Inertia\Response;
 class RegisterController extends Controller
 {
     protected ModernAuthenticationService $authService;
-    
+
     public function __construct(ModernAuthenticationService $authService)
     {
         $this->authService = $authService;
     }
-    
+
     /**
      * Display the registration view.
      */
@@ -31,17 +31,17 @@ class RegisterController extends Controller
     {
         return Inertia::render('Auth/Register');
     }
-    
+
     /**
      * Handle an incoming registration request.
      */
     public function store(Request $request)
     {
         // Rate limiting for registration
-        $key = 'register.' . $request->ip();
+        $key = 'register.'.$request->ip();
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
-            
+
             $this->authService->logAuthenticationEvent(
                 null,
                 'registration_rate_limited',
@@ -49,21 +49,21 @@ class RegisterController extends Controller
                 $request,
                 ['email' => $request->email, 'retry_after' => $seconds]
             );
-            
+
             throw ValidationException::withMessages([
                 'email' => "Too many registration attempts. Please try again in {$seconds} seconds.",
             ]);
         }
-        
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'terms' => 'required|accepted',
         ]);
-        
+
         // Check if registration is allowed (you might want to add business logic here)
-        if (!$this->isRegistrationAllowed($request)) {
+        if (! $this->isRegistrationAllowed($request)) {
             $this->authService->logAuthenticationEvent(
                 null,
                 'registration_not_allowed',
@@ -71,12 +71,12 @@ class RegisterController extends Controller
                 $request,
                 ['email' => $request->email]
             );
-            
+
             throw ValidationException::withMessages([
                 'email' => 'Registration is currently disabled or restricted.',
             ]);
         }
-        
+
         try {
             $user = User::create([
                 'name' => $request->name,
@@ -91,10 +91,10 @@ class RegisterController extends Controller
                     'login_notifications' => true,
                 ]),
             ]);
-            
+
             // Clear rate limiting on successful registration
             RateLimiter::clear($key);
-            
+
             // Log successful registration
             $this->authService->logAuthenticationEvent(
                 $user,
@@ -102,22 +102,22 @@ class RegisterController extends Controller
                 'success',
                 $request
             );
-            
+
             event(new Registered($user));
-            
+
             Auth::login($user);
-            
+
             // Track initial session
             $this->authService->trackUserSession($user, $request);
-            
+
             // Update login stats for initial login
             $this->authService->updateLoginStats($user, $request);
-            
+
             return redirect(route('dashboard'));
-            
+
         } catch (\Exception $e) {
             RateLimiter::hit($key, 300); // 5 minutes decay for errors
-            
+
             $this->authService->logAuthenticationEvent(
                 null,
                 'registration_failed',
@@ -125,13 +125,13 @@ class RegisterController extends Controller
                 $request,
                 ['email' => $request->email, 'error' => $e->getMessage()]
             );
-            
+
             throw ValidationException::withMessages([
                 'email' => 'Registration failed. Please try again.',
             ]);
         }
     }
-    
+
     /**
      * Check if registration is allowed
      */
@@ -143,7 +143,7 @@ class RegisterController extends Controller
         // - Check if registration is enabled in settings
         // - Limit registrations during certain hours
         // - Require invitation codes
-        
+
         return true; // Allow all registrations for now
     }
 }

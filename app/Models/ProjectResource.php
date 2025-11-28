@@ -22,7 +22,7 @@ class ProjectResource extends Model
         'availability_status',
         'skills',
         'notes',
-        'active'
+        'active',
     ];
 
     protected $casts = [
@@ -96,6 +96,7 @@ class ProjectResource extends Model
     public function getIsActiveAttribute(): bool
     {
         $now = now();
+
         return $this->active &&
             $this->start_date <= $now &&
             $this->end_date >= $now;
@@ -130,6 +131,7 @@ class ProjectResource extends Model
     public function scopeCurrent($query)
     {
         $now = now();
+
         return $query->where('start_date', '<=', $now)
             ->where('end_date', '>=', $now);
     }

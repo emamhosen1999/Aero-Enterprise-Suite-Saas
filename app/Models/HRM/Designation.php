@@ -17,6 +17,7 @@ class Designation extends Model
         'title',
         'department_id',
         'parent_id',
+        'hierarchy_level',
         'is_active',
     ];
 
@@ -24,6 +25,7 @@ class Designation extends Model
         'id' => 'integer',
         'department_id' => 'integer',
         'parent_id' => 'integer',
+        'hierarchy_level' => 'integer',
         'is_active' => 'boolean',
     ];
 
@@ -49,6 +51,26 @@ class Designation extends Model
         return $query->where('is_active', true);
     }
 
+    public function scopeOrderedByHierarchy($query)
+    {
+        return $query->orderBy('hierarchy_level', 'asc');
+    }
+
+    // Helper methods for hierarchy
+    public function isTopLevel(): bool
+    {
+        return $this->hierarchy_level === 1 || $this->parent_id === null;
+    }
+
+    public function getHigherHierarchyDesignations()
+    {
+        return static::where('department_id', $this->department_id)
+            ->where('hierarchy_level', '<', $this->hierarchy_level)
+            ->where('is_active', true)
+            ->orderBy('hierarchy_level', 'asc')
+            ->get();
+    }
+
     // Accessors
     public function getEmployeeCountAttribute(): int
     {
@@ -61,6 +83,7 @@ class Designation extends Model
         $array = parent::toArray();
         $array['department_name'] = optional($this->department)->name;
         $array['employee_count'] = $this->employee_count;
+
         return $array;
     }
 }

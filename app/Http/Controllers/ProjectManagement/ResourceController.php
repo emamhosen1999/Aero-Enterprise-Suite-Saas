@@ -8,7 +8,6 @@ use App\Models\ProjectResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class ResourceController extends Controller
 {
@@ -149,6 +148,7 @@ class ResourceController extends Controller
             'total_allocation' => $resources->where('status', 'active')->sum('allocation_percentage'),
             'estimated_cost' => $resources->sum(function ($resource) {
                 $hours = $resource->allocation_percentage / 100 * 40; // Assuming 40 hours per week
+
                 return $hours * ($resource->hourly_rate ?? 0);
             }),
             'roles' => $resources->groupBy('role')->map->count(),

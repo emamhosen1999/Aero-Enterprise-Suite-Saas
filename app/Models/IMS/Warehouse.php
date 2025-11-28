@@ -85,6 +85,7 @@ class Warehouse extends Model
         if ($this->capacity > 0) {
             return round(($this->current_utilization / $this->capacity) * 100, 2);
         }
+
         return 0;
     }
 

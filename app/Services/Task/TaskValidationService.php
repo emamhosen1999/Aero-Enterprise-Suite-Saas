@@ -17,12 +17,12 @@ class TaskValidationService
             'date' => 'required|date',
             'number' => 'required|string',
             'time' => 'required|string',
-            'status' => 'required|string',
+            'status' => 'required|in:new,completed,resubmission,emergency',
             'type' => 'required|string',
             'description' => 'required|string',
             'location' => 'required|string|custom_location',
             'side' => 'required|string',
-            'qty_layer' => $request->input('type') === 'Embankment' ? 'required|string' : '',
+            'qty_layer' => 'nullable|string',
             'completion_time' => $request->input('status') === 'completed' ? 'required|string' : '',
             'inspection_details' => 'nullable|string',
         ], [
@@ -31,14 +31,14 @@ class TaskValidationService
             'time.required' => 'RFI Time is required.',
             'time.string' => 'RFI Time is not string.',
             'status.required' => 'Status is required.',
+            'status.in' => 'Status must be one of: new, completed, resubmission, emergency.',
             'type.required' => 'Type is required.',
             'description.required' => 'Description is required.',
             'location.required' => 'Location is required.',
             'location.custom_location' => 'The :attribute must start with \'K\' and be in the range K0 to K48.',
             'side.required' => 'Road Type is required.',
-            'qty_layer.required' => $request->input('type') === 'Embankment' ? 'Layer No. is required when the type is Embankment.' : '',
             'completion_time.required' => 'Completion time is required.',
-            'qty_layer.string' => 'Quantity/Layer No. is not string'
+            'qty_layer.string' => 'Quantity/Layer No. is not string',
         ]);
     }
 
@@ -52,12 +52,12 @@ class TaskValidationService
             'date' => 'required|date',
             'number' => 'required|string',
             'planned_time' => 'required|string',
-            'status' => 'required|string',
+            'status' => 'required|in:new,completed,resubmission,emergency',
             'type' => 'required|string',
             'description' => 'required|string',
             'location' => 'required|string|custom_location',
             'side' => 'required|string',
-            'qty_layer' => $request->input('type') === 'Embankment' ? 'required|string' : '',
+            'qty_layer' => 'nullable|string',
             'completion_time' => $request->input('status') === 'completed' ? 'required|string' : '',
             'inspection_details' => 'nullable|string',
         ], [
@@ -96,9 +96,9 @@ class TaskValidationService
         $index = $sheetIndex + 1;
         $referenceDate = $importedTasks[0][0] ?? null;
 
-        if (!$referenceDate) {
+        if (! $referenceDate) {
             throw ValidationException::withMessages([
-                'date' => "Sheet {$index} is missing a reference date."
+                'date' => "Sheet {$index} is missing a reference date.",
             ]);
         }
 
@@ -114,7 +114,7 @@ class TaskValidationService
 
         return [
             'referenceDate' => $referenceDate,
-            'validated' => true
+            'validated' => true,
         ];
     }
 
@@ -124,7 +124,7 @@ class TaskValidationService
     private function buildCustomAttributes(array $importedTasks, int $sheetIndex): array
     {
         $customAttributes = [];
-        
+
         foreach ($importedTasks as $rowIndex => $importedTask) {
             $taskNumber = $importedTask[1] ?? 'unknown';
             $date = $importedTask[0] ?? 'unknown';
@@ -167,13 +167,13 @@ class TaskValidationService
     private function getImportValidationMessages(): array
     {
         return [
-            '*.0.required' => ":attribute must have a valid date.",
-            '*.0.date_format' => ":attribute must be in the format Y-m-d.",
-            '*.1.required' => ":attribute must have a value.",
-            '*.2.required' => ":attribute must have a value.",
-            '*.2.in' => ":attribute must be either Embankment, Structure, or Pavement.",
-            '*.3.required' => ":attribute must have a value.",
-            '*.4.required' => ":attribute must have a value.",
+            '*.0.required' => ':attribute must have a valid date.',
+            '*.0.date_format' => ':attribute must be in the format Y-m-d.',
+            '*.1.required' => ':attribute must have a value.',
+            '*.2.required' => ':attribute must have a value.',
+            '*.2.in' => ':attribute must be either Embankment, Structure, or Pavement.',
+            '*.3.required' => ':attribute must have a value.',
+            '*.4.required' => ':attribute must have a value.',
         ];
     }
 }

@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 class TestRecruitmentModule extends Command
 {
     protected $signature = 'test:recruitment-module';
+
     protected $description = 'Test the recruitment module for industry standard compliance and consistency';
 
     public function handle()
@@ -45,7 +46,7 @@ class TestRecruitmentModule extends Command
         foreach ($models as $name => $class) {
             try {
                 if (class_exists($class)) {
-                    $instance = new $class();
+                    $instance = new $class;
                     $this->line("   ✅ Model $name exists and instantiates correctly");
                     $success++;
                 } else {
@@ -53,7 +54,7 @@ class TestRecruitmentModule extends Command
                     $errors++;
                 }
             } catch (\Exception $e) {
-                $this->error("   ❌ Model $name failed to instantiate: " . $e->getMessage());
+                $this->error("   ❌ Model $name failed to instantiate: ".$e->getMessage());
                 $errors++;
             }
         }
@@ -70,7 +71,7 @@ class TestRecruitmentModule extends Command
             'job_interview_feedback',
             'job_applicant_education',
             'job_applicant_experience',
-            'job_offers'
+            'job_offers',
         ];
 
         foreach ($tables as $table) {
@@ -79,7 +80,7 @@ class TestRecruitmentModule extends Command
                 $this->line("   ✅ Table $table exists and is accessible");
                 $success++;
             } catch (\Exception $e) {
-                $this->error("   ❌ Table $table is not accessible: " . $e->getMessage());
+                $this->error("   ❌ Table $table is not accessible: ".$e->getMessage());
                 $errors++;
             }
         }
@@ -88,7 +89,7 @@ class TestRecruitmentModule extends Command
         $this->newLine();
         $this->info('3. Testing Model Relationships...');
 
-        $job = new Job();
+        $job = new Job;
         $jobMethods = ['department', 'hiringManager', 'applications', 'hiringStages'];
 
         foreach ($jobMethods as $method) {
@@ -101,7 +102,7 @@ class TestRecruitmentModule extends Command
             }
         }
 
-        $application = new JobApplication();
+        $application = new JobApplication;
         $appMethods = ['job', 'applicant', 'currentStage', 'interviews', 'stageHistory', 'offers'];
 
         foreach ($appMethods as $method) {
@@ -121,7 +122,7 @@ class TestRecruitmentModule extends Command
         $industryMethods = [
             'isOpen', 'isClosed', 'daysUntilClosing', 'getSalaryRangeAttribute',
             'getJobTypeTextAttribute', 'getStatusTextAttribute', 'hasMultiplePositions',
-            'getFilledPositionsCount', 'isFullyFilled'
+            'getFilledPositionsCount', 'isFullyFilled',
         ];
 
         foreach ($industryMethods as $method) {
@@ -142,9 +143,9 @@ class TestRecruitmentModule extends Command
         $jobStatusEnums = ['draft', 'open', 'closed', 'on_hold', 'cancelled'];
         $applicationStatusEnums = ['new', 'in_review', 'shortlisted', 'interviewed', 'offered', 'hired', 'rejected', 'withdrawn'];
 
-        $this->line("   ✅ Job Types: " . implode(', ', $jobTypeEnums));
-        $this->line("   ✅ Job Statuses: " . implode(', ', $jobStatusEnums));
-        $this->line("   ✅ Application Statuses: " . implode(', ', $applicationStatusEnums));
+        $this->line('   ✅ Job Types: '.implode(', ', $jobTypeEnums));
+        $this->line('   ✅ Job Statuses: '.implode(', ', $jobStatusEnums));
+        $this->line('   ✅ Application Statuses: '.implode(', ', $applicationStatusEnums));
         $success += 3;
 
         // 6. Test Field Consistency
@@ -157,7 +158,7 @@ class TestRecruitmentModule extends Command
             'description', 'responsibilities', 'requirements', 'qualifications',
             'salary_min', 'salary_max', 'salary_currency', 'salary_visible',
             'benefits', 'posting_date', 'closing_date', 'status', 'hiring_manager_id',
-            'positions', 'is_featured', 'skills_required', 'custom_fields'
+            'positions', 'is_featured', 'skills_required', 'custom_fields',
         ];
 
         foreach ($requiredFields as $field) {

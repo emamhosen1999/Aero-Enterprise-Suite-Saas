@@ -21,24 +21,24 @@ class RecruitmentController extends Controller
     public function index(Request $request)
     {
         $jobs = Job::with([
-                'department',
-                'hiringManager',
-                'applications' => function($query) {
-                    $query->with(['applicant', 'currentStage']);
-                },
-                'hiringStages'
-            ])
+            'department',
+            'hiringManager',
+            'applications' => function ($query) {
+                $query->with(['applicant', 'currentStage']);
+            },
+            'hiringStages',
+        ])
             ->withCount([
                 'applications',
-                'applications as new_applications_count' => function($query) {
+                'applications as new_applications_count' => function ($query) {
                     $query->where('status', 'new');
                 },
-                'applications as shortlisted_applications_count' => function($query) {
+                'applications as shortlisted_applications_count' => function ($query) {
                     $query->where('status', 'shortlisted');
                 },
-                'applications as hired_applications_count' => function($query) {
+                'applications as hired_applications_count' => function ($query) {
                     $query->where('status', 'hired');
-                }
+                },
             ])
             ->when($request->search, function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%")
@@ -89,24 +89,24 @@ class RecruitmentController extends Controller
     public function indexData(Request $request)
     {
         $jobs = Job::with([
-                'department',
-                'hiringManager',
-                'applications' => function($query) {
-                    $query->with(['applicant', 'currentStage']);
-                },
-                'hiringStages'
-            ])
+            'department',
+            'hiringManager',
+            'applications' => function ($query) {
+                $query->with(['applicant', 'currentStage']);
+            },
+            'hiringStages',
+        ])
             ->withCount([
                 'applications',
-                'applications as new_applications_count' => function($query) {
+                'applications as new_applications_count' => function ($query) {
                     $query->where('status', 'new');
                 },
-                'applications as shortlisted_applications_count' => function($query) {
+                'applications as shortlisted_applications_count' => function ($query) {
                     $query->where('status', 'shortlisted');
                 },
-                'applications as hired_applications_count' => function($query) {
+                'applications as hired_applications_count' => function ($query) {
                     $query->where('status', 'hired');
-                }
+                },
             ])
             ->when($request->search, function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%")
@@ -175,14 +175,14 @@ class RecruitmentController extends Controller
             'positions' => 'required|integer|min:1',
             'is_featured' => 'boolean',
             'skills_required' => 'nullable|array',
-            'custom_fields' => 'nullable|array'
+            'custom_fields' => 'nullable|array',
         ]);
 
         // Set creator
         $validated['created_by'] = auth()->id();
 
         // Handle posting date
-        if ($validated['status'] === 'open' && !isset($validated['posting_date'])) {
+        if ($validated['status'] === 'open' && ! isset($validated['posting_date'])) {
             $validated['posting_date'] = now();
         }
 
@@ -195,17 +195,17 @@ class RecruitmentController extends Controller
             ['name' => 'Interview', 'sequence' => 3, 'is_active' => true, 'is_final' => false],
             ['name' => 'Offer', 'sequence' => 4, 'is_active' => true, 'is_final' => false],
             ['name' => 'Hired', 'sequence' => 5, 'is_active' => true, 'is_final' => true],
-            ['name' => 'Rejected', 'sequence' => 6, 'is_active' => true, 'is_final' => true]
+            ['name' => 'Rejected', 'sequence' => 6, 'is_active' => true, 'is_final' => true],
         ];
 
         foreach ($defaultStages as $stage) {
             JobHiringStage::create([
                 'job_id' => $job->id,
                 'name' => $stage['name'],
-                'description' => 'Default stage: ' . $stage['name'],
+                'description' => 'Default stage: '.$stage['name'],
                 'sequence' => $stage['sequence'],
                 'is_active' => $stage['is_active'],
-                'is_final' => $stage['is_final']
+                'is_final' => $stage['is_final'],
             ]);
         }
 
@@ -214,7 +214,7 @@ class RecruitmentController extends Controller
 
         return response()->json([
             'message' => 'Job position created successfully.',
-            'job' => $job
+            'job' => $job,
         ]);
     }
 
@@ -245,14 +245,14 @@ class RecruitmentController extends Controller
             'positions' => 'required|integer|min:1',
             'is_featured' => 'boolean',
             'skills_required' => 'nullable|array',
-            'custom_fields' => 'nullable|array'
+            'custom_fields' => 'nullable|array',
         ]);
 
         // Set creator
         $validated['created_by'] = auth()->id();
 
         // Handle posting date
-        if ($validated['status'] === 'open' && !isset($validated['posting_date'])) {
+        if ($validated['status'] === 'open' && ! isset($validated['posting_date'])) {
             $validated['posting_date'] = now();
         }
 
@@ -265,17 +265,17 @@ class RecruitmentController extends Controller
             ['name' => 'Interview', 'sequence' => 3, 'is_active' => true, 'is_final' => false],
             ['name' => 'Offer', 'sequence' => 4, 'is_active' => true, 'is_final' => false],
             ['name' => 'Hired', 'sequence' => 5, 'is_active' => true, 'is_final' => true],
-            ['name' => 'Rejected', 'sequence' => 6, 'is_active' => true, 'is_final' => true]
+            ['name' => 'Rejected', 'sequence' => 6, 'is_active' => true, 'is_final' => true],
         ];
 
         foreach ($defaultStages as $stage) {
             JobHiringStage::create([
                 'job_id' => $job->id,
                 'name' => $stage['name'],
-                'description' => 'Default stage: ' . $stage['name'],
+                'description' => 'Default stage: '.$stage['name'],
                 'sequence' => $stage['sequence'],
                 'is_active' => $stage['is_active'],
-                'is_final' => $stage['is_final']
+                'is_final' => $stage['is_final'],
             ]);
         }
 
@@ -284,7 +284,7 @@ class RecruitmentController extends Controller
 
         return response()->json([
             'message' => 'Job position created successfully.',
-            'job' => $job
+            'job' => $job,
         ]);
     }
 
@@ -298,7 +298,7 @@ class RecruitmentController extends Controller
             'hiringManager',
             'hiringStages',
             'applications.applicant',
-            'applications.currentStage'
+            'applications.currentStage',
         ])->findOrFail($id);
 
         // Get applications with detailed statistics
@@ -392,7 +392,7 @@ class RecruitmentController extends Controller
             'hiringManager',
             'hiringStages',
             'applications.applicant',
-            'applications.currentStage'
+            'applications.currentStage',
         ])->findOrFail($id);
 
         // Get applications with detailed statistics
@@ -506,7 +506,7 @@ class RecruitmentController extends Controller
                 'AUD',
                 'JPY',
                 'INR',
-                'CNY'
+                'CNY',
             ],
         ]);
     }
@@ -544,7 +544,7 @@ class RecruitmentController extends Controller
         ]);
 
         // If status changed from draft to open, set posting date to today if not provided
-        if ($job->status === 'draft' && $validated['status'] === 'open' && !isset($validated['posting_date'])) {
+        if ($job->status === 'draft' && $validated['status'] === 'open' && ! isset($validated['posting_date'])) {
             $validated['posting_date'] = now();
         }
 
@@ -583,11 +583,11 @@ class RecruitmentController extends Controller
             'positions' => 'required|integer|min:1',
             'is_featured' => 'boolean',
             'skills_required' => 'nullable|array',
-            'custom_fields' => 'nullable|array'
+            'custom_fields' => 'nullable|array',
         ]);
 
         // If status changed from draft to open, set posting date to today if not provided
-        if ($job->status === 'draft' && $validated['status'] === 'open' && !isset($validated['posting_date'])) {
+        if ($job->status === 'draft' && $validated['status'] === 'open' && ! isset($validated['posting_date'])) {
             $validated['posting_date'] = now();
         }
 
@@ -598,7 +598,7 @@ class RecruitmentController extends Controller
 
         return response()->json([
             'message' => 'Job position updated successfully.',
-            'job' => $job
+            'job' => $job,
         ]);
     }
 
@@ -616,7 +616,7 @@ class RecruitmentController extends Controller
             } elseif (request()->wantsJson() || request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete job with existing applications.'
+                    'message' => 'Cannot delete job with existing applications.',
                 ], 422);
             }
 
@@ -633,7 +633,7 @@ class RecruitmentController extends Controller
         } elseif (request()->wantsJson() || request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Job position deleted successfully.'
+                'message' => 'Job position deleted successfully.',
             ]);
         }
 
@@ -714,7 +714,7 @@ class RecruitmentController extends Controller
         $job = Job::with(['department'])->findOrFail($id);
 
         // Check if the job is open for applications
-        if (!$job->isOpen()) {
+        if (! $job->isOpen()) {
             return redirect()->route('hr.recruitment.show', $job->id)
                 ->with('error', 'This job is not open for applications.');
         }
@@ -750,7 +750,7 @@ class RecruitmentController extends Controller
         $job = Job::findOrFail($id);
 
         // Check if the job is open for applications
-        if (!$job->isOpen()) {
+        if (! $job->isOpen()) {
             return redirect()->route('hr.recruitment.show', $job->id)
                 ->with('error', 'This job is not open for applications.');
         }
@@ -777,7 +777,7 @@ class RecruitmentController extends Controller
 
         // Get the first stage for this job
         $firstStage = $job->hiringStages()->orderBy('sequence')->first();
-        if (!$firstStage) {
+        if (! $firstStage) {
             return redirect()->route('hr.recruitment.show', $job->id)
                 ->with('error', 'No hiring stages defined for this job.');
         }
@@ -817,7 +817,7 @@ class RecruitmentController extends Controller
                 'stageHistory.stage',
                 'interviews' => function ($query) {
                     $query->orderBy('scheduled_at');
-                }
+                },
             ])
             ->findOrFail($applicationId);
 
@@ -1062,14 +1062,14 @@ class RecruitmentController extends Controller
         $job = Job::findOrFail($id);
         $applications = $job->applications()->with(['applicant', 'currentStage'])->get();
 
-        $filename = 'job_applications_' . $job->id . '_' . now()->format('Y-m-d') . '.csv';
+        $filename = 'job_applications_'.$job->id.'_'.now()->format('Y-m-d').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
-        $callback = function() use ($applications) {
+        $callback = function () use ($applications) {
             $file = fopen('php://output', 'w');
 
             // CSV headers
@@ -1117,7 +1117,7 @@ class RecruitmentController extends Controller
             'department',
             'hiringManager',
             'applications.currentStage',
-            'hiringStages'
+            'hiringStages',
         ])->findOrFail($id);
 
         $report = [
@@ -1189,12 +1189,12 @@ class RecruitmentController extends Controller
 
         $job->update([
             'status' => 'published',
-            'posting_date' => now()
+            'posting_date' => now(),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Job posting published successfully'
+            'message' => 'Job posting published successfully',
         ]);
     }
 
@@ -1206,12 +1206,12 @@ class RecruitmentController extends Controller
         $job = Job::findOrFail($id);
 
         $job->update([
-            'status' => 'draft'
+            'status' => 'draft',
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Job posting unpublished successfully'
+            'message' => 'Job posting unpublished successfully',
         ]);
     }
 
@@ -1224,12 +1224,12 @@ class RecruitmentController extends Controller
 
         $job->update([
             'status' => 'closed',
-            'closing_date' => now()
+            'closing_date' => now(),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Job posting closed successfully'
+            'message' => 'Job posting closed successfully',
         ]);
     }
 }

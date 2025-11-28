@@ -37,7 +37,7 @@ class PunchRequest extends FormRequest
         // Sanitize inputs
         if ($this->has('qr_code')) {
             $this->merge([
-                'qr_code' => preg_replace('/[^A-Za-z0-9]/', '', $this->qr_code)
+                'qr_code' => preg_replace('/[^A-Za-z0-9]/', '', $this->qr_code),
             ]);
         }
     }

@@ -2,16 +2,17 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use App\Services\Role\RolePermissionService;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class DiagnoseRolePermissions extends Command
 {
     protected $signature = 'roles:diagnose {--fix : Attempt to fix detected issues} {--clear-cache : Clear all permission caches}';
+
     protected $description = 'Comprehensive diagnostic tool for role and permission issues';
 
     private RolePermissionService $rolePermissionService;
@@ -33,35 +34,35 @@ class DiagnoseRolePermissions extends Command
         // 1. Check database connectivity and tables
         $this->line('📊 Checking Database Structure...');
         $dbIssues = $this->checkDatabaseStructure();
-        if (!empty($dbIssues)) {
+        if (! empty($dbIssues)) {
             $issues = array_merge($issues, $dbIssues);
         }
 
         // 2. Check role-permission relationships
         $this->line('🔗 Checking Role-Permission Relationships...');
         $relationshipIssues = $this->checkRolePermissionRelationships();
-        if (!empty($relationshipIssues)) {
+        if (! empty($relationshipIssues)) {
             $issues = array_merge($issues, $relationshipIssues);
         }
 
         // 3. Check cache integrity
         $this->line('💾 Checking Cache Status...');
         $cacheIssues = $this->checkCacheIntegrity();
-        if (!empty($cacheIssues)) {
+        if (! empty($cacheIssues)) {
             $issues = array_merge($issues, $cacheIssues);
         }
 
         // 4. Test data retrieval methods
         $this->line('🎯 Testing Data Retrieval...');
         $dataIssues = $this->testDataRetrieval();
-        if (!empty($dataIssues)) {
+        if (! empty($dataIssues)) {
             $issues = array_merge($issues, $dataIssues);
         }
 
         // 5. Check Spatie permission installation
         $this->line('🔧 Checking Spatie Permission Setup...');
         $spatieIssues = $this->checkSpatieSetup();
-        if (!empty($spatieIssues)) {
+        if (! empty($spatieIssues)) {
             $issues = array_merge($issues, $spatieIssues);
         }
 
@@ -78,12 +79,12 @@ class DiagnoseRolePermissions extends Command
         }
 
         // Auto-fix if requested
-        if ($this->option('fix') && !empty($issues)) {
+        if ($this->option('fix') && ! empty($issues)) {
             $this->newLine();
             $this->warn('🔧 Attempting to fix detected issues...');
             $fixes = $this->attemptFixes($issues);
-            
-            if (!empty($fixes)) {
+
+            if (! empty($fixes)) {
                 $this->info('✅ Applied fixes:');
                 foreach ($fixes as $fix) {
                     $this->line("  • {$fix}");
@@ -101,7 +102,7 @@ class DiagnoseRolePermissions extends Command
 
         $this->newLine();
         $this->info('🏁 Diagnostic complete.');
-        
+
         // Return appropriate exit code
         return empty($issues) ? 0 : 1;
     }
@@ -113,9 +114,9 @@ class DiagnoseRolePermissions extends Command
         try {
             // Check if tables exist
             $requiredTables = ['roles', 'permissions', 'role_has_permissions', 'model_has_roles', 'model_has_permissions'];
-            
+
             foreach ($requiredTables as $table) {
-                if (!DB::getSchemaBuilder()->hasTable($table)) {
+                if (! DB::getSchemaBuilder()->hasTable($table)) {
                     $issues[] = "Missing table: {$table}";
                 }
             }
@@ -175,7 +176,7 @@ class DiagnoseRolePermissions extends Command
             if ($adminRole) {
                 $adminPermissions = $adminRole->permissions()->count();
                 $this->line("  Super Administrator has {$adminPermissions} permissions");
-                
+
                 if ($adminPermissions === 0) {
                     $issues[] = 'Super Administrator role has no permissions assigned';
                 }
@@ -201,10 +202,10 @@ class DiagnoseRolePermissions extends Command
             // Check permission cache
             $permissionCacheKey = config('permission.cache.key', 'spatie.permission.cache');
             $hasPermissionCache = Cache::has($permissionCacheKey);
-            $this->line("  Permission cache exists: " . ($hasPermissionCache ? 'Yes' : 'No'));
+            $this->line('  Permission cache exists: '.($hasPermissionCache ? 'Yes' : 'No'));
 
             // Test cache functionality
-            $testKey = 'role_diagnostic_test_' . time();
+            $testKey = 'role_diagnostic_test_'.time();
             Cache::put($testKey, 'test_value', 60);
             $testValue = Cache::get($testKey);
             Cache::forget($testKey);
@@ -227,7 +228,7 @@ class DiagnoseRolePermissions extends Command
         try {
             // Test enhanced service method
             $frontendData = $this->rolePermissionService->getRolesWithPermissionsForFrontend();
-            
+
             if (isset($frontendData['error'])) {
                 $issues[] = "Service method returned error: {$frontendData['error']}";
             }
@@ -285,13 +286,13 @@ class DiagnoseRolePermissions extends Command
 
             // Test permission registrar
             $registrar = app(\Spatie\Permission\PermissionRegistrar::class);
-            $this->line("  Permission registrar class: " . get_class($registrar));
+            $this->line('  Permission registrar class: '.get_class($registrar));
 
             // Test if User model has HasRoles trait
             $userModel = config('auth.providers.users.model');
             if ($userModel) {
-                $userInstance = new $userModel();
-                if (!method_exists($userInstance, 'hasRole')) {
+                $userInstance = new $userModel;
+                if (! method_exists($userInstance, 'hasRole')) {
                     $issues[] = "User model ({$userModel}) missing HasRoles trait";
                 }
             }
@@ -356,10 +357,10 @@ class DiagnoseRolePermissions extends Command
     {
         // Clear Spatie permission cache
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-        
+
         // Clear general caches
         Cache::flush();
-        
+
         // Clear artisan caches
         $this->call('cache:clear');
         $this->call('config:clear');

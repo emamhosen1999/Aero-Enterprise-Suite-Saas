@@ -12,8 +12,9 @@ class ReportController extends Controller
     public function showReports()
     {
         $user = Auth::user();
-        $title = "Report List";
-        return view('qcdoc/reports', compact( 'user','title'));
+        $title = 'Report List';
+
+        return view('qcdoc/reports', compact('user', 'title'));
     }
 
     public function allReports(Request $request)
@@ -21,7 +22,7 @@ class ReportController extends Controller
         $reports = Report::all();
 
         return response()->json([
-            'reports' => $reports
+            'reports' => $reports,
         ]);
     }
 
@@ -38,7 +39,7 @@ class ReportController extends Controller
                 'chainages' => 'required|string',
                 'details' => 'required|string',
                 'status' => 'required|string',
-            ],[
+            ], [
                 'obj_no.required' => 'Objection No. is required.',
                 'obj_no.numeric' => 'Objection No. must be a number.',
                 'obj_no.unique' => 'An Objection with the same Objection No. already exists.',
@@ -51,15 +52,14 @@ class ReportController extends Controller
                 'status.required' => 'Status is required.',
             ]);
 
-
             // Create a new objection instance
-            $objection = new Objection();
+            $objection = new Objection;
             $objection->obj_no = $validatedData['obj_no'];
             $objection->ref_no = $validatedData['ref_no'];
             $objection->obj_type = $validatedData['obj_type'];
             $objection->issue_date = $validatedData['issue_date'];
-//            $chainages = explode(' ', str_replace(',', ' ', $validatedData['chainages']));
-//            $objection->chainages = implode(', ', array_filter($chainages));
+            //            $chainages = explode(' ', str_replace(',', ' ', $validatedData['chainages']));
+            //            $objection->chainages = implode(', ', array_filter($chainages));
             $objection->chainages = $validatedData['chainages'];
             $objection->details = $validatedData['details'];
             $objection->status = $validatedData['status'];

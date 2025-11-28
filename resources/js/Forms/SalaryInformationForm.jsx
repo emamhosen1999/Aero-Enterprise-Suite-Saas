@@ -1,23 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    CardActions,
-    CardContent,
+    Card,
+    CardBody,
     CardHeader,
-    CircularProgress,
+    Spinner,
     Divider,
-    FormControl,
-    Grid,
-    InputAdornment,
-    InputLabel,
-    MenuItem,
     Select,
-    TextField,
-    Typography
-} from '@mui/material';
+    SelectItem,
+    Input,
+    Button
+} from '@heroui/react';
 import GlassCard from '@/Components/GlassCard';
-import LoadingButton from "@mui/lab/LoadingButton";
-import {useTheme} from "@mui/material/styles";
-import {toast} from "react-toastify"; // Assuming GlassCard is a custom component
+import { showToast } from "@/utils/toastUtils"; // Using consistent toast utility
 
 
 const SalaryInformationForm = ({user, setUser}) => {
@@ -45,8 +39,6 @@ const SalaryInformationForm = ({user, setUser}) => {
     const [dataChanged, setDataChanged] = useState(false);
     const [errors, setErrors] = useState({});
     const [processing, setProcessing] = useState(false);
-
-    const theme = useTheme();
 
     const handleChange = (key, value) => {
         setInitialUserData((prevUser) => {
@@ -135,37 +127,37 @@ const SalaryInformationForm = ({user, setUser}) => {
             if (response.status === 200) {
                 setUser(response.data.user);
                 setProcessing(false);
-                toast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Salary information updated successfully', {
+                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Salary information updated successfully', {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
             } else {
                 setProcessing(false);
                 setErrors(response.data.errors);
-                toast.error(response.data.error || 'Failed to update salary information.', {
+                showToast.error(response.data.error || 'Failed to update salary information.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
             }
         } catch (error) {
             setProcessing(false);
-            toast.error(error.response?.data?.message || 'An unexpected error occurred.', {
+            showToast.error(error.response?.data?.message || 'An unexpected error occurred.', {
                 icon: '🔴',
                 style: {
                     backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard.background,
-                    border: theme.glassCard.border,
-                    color: theme.palette.text.primary,
+                    background: 'var(--theme-content1)',
+                    border: '1px solid var(--theme-divider)',
+                    color: 'var(--theme-primary)',
                 }
             });
             console.error(error);
@@ -198,8 +190,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
@@ -245,8 +237,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
@@ -288,8 +280,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
@@ -332,8 +324,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
@@ -364,8 +356,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
@@ -421,8 +413,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
@@ -465,8 +457,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',
@@ -496,8 +488,8 @@ const SalaryInformationForm = ({user, setUser}) => {
                                                 PaperProps: {
                                                     sx: {
                                                         backdropFilter: 'blur(16px) saturate(200%)',
-                                                        background: theme.glassCard.background,
-                                                        border: theme.glassCard.border,
+                                                        background: 'var(--theme-content1)',
+                                                        border: '1px solid var(--theme-divider)',
                                                         borderRadius: 2,
                                                         boxShadow:
                                                             'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px',

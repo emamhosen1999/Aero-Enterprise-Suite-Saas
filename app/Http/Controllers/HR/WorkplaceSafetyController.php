@@ -53,11 +53,11 @@ class WorkplaceSafetyController extends Controller
             'summary' => [
                 'inspections' => $inspectionCount,
                 'incidents' => $incidentCount,
-                'trainings' => $trainingCount
+                'trainings' => $trainingCount,
             ],
             'recentInspections' => $recentInspections,
             'recentIncidents' => $recentIncidents,
-            'upcomingTrainings' => $upcomingTrainings
+            'upcomingTrainings' => $upcomingTrainings,
         ]);
     }
 
@@ -74,7 +74,7 @@ class WorkplaceSafetyController extends Controller
 
         return Inertia::render('HR/Safety/Inspections/Index', [
             'title' => 'Safety Inspections',
-            'inspections' => $inspections
+            'inspections' => $inspections,
         ]);
     }
 
@@ -97,7 +97,7 @@ class WorkplaceSafetyController extends Controller
         return Inertia::render('HR/Safety/Inspections/Create', [
             'title' => 'Create Safety Inspection',
             'departments' => $departments,
-            'inspectors' => $inspectors
+            'inspectors' => $inspectors,
         ]);
     }
 
@@ -139,7 +139,7 @@ class WorkplaceSafetyController extends Controller
             return redirect()->route('hr.safety.inspections.show', $inspection->id)
                 ->with('success', 'Safety inspection created successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to create safety inspection: ' . $e->getMessage());
+            Log::error('Failed to create safety inspection: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to create safety inspection. Please try again.')
@@ -159,7 +159,7 @@ class WorkplaceSafetyController extends Controller
 
         return Inertia::render('HR/Safety/Inspections/Show', [
             'title' => 'Safety Inspection Details',
-            'inspection' => $inspection
+            'inspection' => $inspection,
         ]);
     }
 
@@ -185,7 +185,7 @@ class WorkplaceSafetyController extends Controller
             'title' => 'Edit Safety Inspection',
             'inspection' => $inspection,
             'departments' => $departments,
-            'inspectors' => $inspectors
+            'inspectors' => $inspectors,
         ]);
     }
 
@@ -229,7 +229,7 @@ class WorkplaceSafetyController extends Controller
             return redirect()->route('hr.safety.inspections.show', $inspection->id)
                 ->with('success', 'Safety inspection updated successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to update safety inspection: ' . $e->getMessage());
+            Log::error('Failed to update safety inspection: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to update safety inspection. Please try again.')
@@ -250,7 +250,7 @@ class WorkplaceSafetyController extends Controller
 
         return Inertia::render('HR/Safety/Training/Index', [
             'title' => 'Safety Training',
-            'trainings' => $trainings
+            'trainings' => $trainings,
         ]);
     }
 
@@ -273,7 +273,7 @@ class WorkplaceSafetyController extends Controller
         return Inertia::render('HR/Safety/Training/Create', [
             'title' => 'Schedule Safety Training',
             'departments' => $departments,
-            'trainers' => $trainers
+            'trainers' => $trainers,
         ]);
     }
 
@@ -317,7 +317,7 @@ class WorkplaceSafetyController extends Controller
             return redirect()->route('hr.safety.training.show', $training->id)
                 ->with('success', 'Safety training scheduled successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to schedule safety training: ' . $e->getMessage());
+            Log::error('Failed to schedule safety training: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to schedule safety training. Please try again.')
@@ -337,7 +337,7 @@ class WorkplaceSafetyController extends Controller
 
         return Inertia::render('HR/Safety/Training/Show', [
             'title' => 'Safety Training Details',
-            'training' => $training
+            'training' => $training,
         ]);
     }
 
@@ -383,7 +383,7 @@ class WorkplaceSafetyController extends Controller
             return redirect()->route('hr.safety.training.show', $training->id)
                 ->with('success', 'Safety training updated successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to update safety training: ' . $e->getMessage());
+            Log::error('Failed to update safety training: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to update safety training. Please try again.')

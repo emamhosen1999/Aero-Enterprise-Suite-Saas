@@ -126,6 +126,7 @@ class LogisticsShipment extends Model
         if ($this->length && $this->width && $this->height) {
             return $this->length * $this->width * $this->height;
         }
+
         return null;
     }
 
@@ -137,6 +138,7 @@ class LogisticsShipment extends Model
         if ($this->carrier && $this->tracking_number && $this->carrier->tracking_url_format) {
             return str_replace('{tracking_number}', $this->tracking_number, $this->carrier->tracking_url_format);
         }
+
         return null;
     }
 }

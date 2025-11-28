@@ -38,9 +38,10 @@ class SetupApplication extends Command
                 $this->info(Artisan::output());
             } else {
                 $this->info('Operation cancelled.');
+
                 return 1;
             }
-        } else if (!$this->option('seed')) {
+        } elseif (! $this->option('seed')) {
             // Run migrations if not in seed-only mode
             $this->info('Running migrations...');
             Artisan::call('migrate', ['--force' => true]);
@@ -56,11 +57,11 @@ class SetupApplication extends Command
         $this->info(Artisan::output());
 
         $this->info('✅ Aero-HR application has been set up successfully!');
-        
+
         // Output final information
         $this->info('Application is now ready to use.');
         $this->info('You can login with admin@example.com / password');
-        
+
         // Run a development server if in local environment
         if (app()->environment('local')) {
             if ($this->confirm('Would you like to start a development server now?', false)) {

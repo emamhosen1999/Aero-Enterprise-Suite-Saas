@@ -24,7 +24,7 @@ class SafetyInspectionPolicy
     public function view(User $user, SafetyInspection $safetyInspection): bool
     {
         // Basic permission check
-        if (!$user->can('hr.safety.inspections.view')) {
+        if (! $user->can('hr.safety.inspections.view')) {
             return false;
         }
 

@@ -15,7 +15,6 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- SEO & Social Meta -->
     <meta name="description" content="{{ config('app.name') }} - Comprehensive Enterprise Resource Planning System for efficient business management">
@@ -55,6 +54,7 @@
     <!-- DNS Prefetch for Performance -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//translate.google.com">
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -124,15 +124,16 @@
 
         /* Enhanced Background System - Theme-based patterns load immediately */
         body {
-            /* Default fallback - will be overridden by theme patterns */
-            background: rgba(248, 250, 252, 1);
+            /* Base background - will be overridden by dynamic theme system */
+            background: var(--background, #ffffff);
             min-height: 100vh;
-            transition: background 0.3s ease;
+            transition: background 0.3s ease, background-color 0.3s ease;
+            /* Remove any fixed background patterns to allow theme system control */
         }
 
-        /* Dark mode fallback */
+        /* Dark mode fallback - also will be overridden by theme system */
         [data-theme-mode="dark"] body {
-            background: rgba(15, 20, 25, 1);
+            background: var(--background, #0a0a0a);
         }
 
         /* Enhanced Loading Screen - Optimized Performance & UX */

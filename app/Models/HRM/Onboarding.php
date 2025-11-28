@@ -16,8 +16,11 @@ class Onboarding extends Model
 
     // Status constants
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_IN_PROGRESS = 'in_progress'; // changed from in-progress
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
@@ -83,6 +86,7 @@ class Onboarding extends Model
             return 0.0;
         }
         $completed = $this->tasks->where('status', 'completed')->count();
+
         return round(($completed / $total) * 100, 2);
     }
 

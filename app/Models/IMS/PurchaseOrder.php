@@ -49,11 +49,17 @@ class PurchaseOrder extends Model
     ];
 
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PENDING = 'pending';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_ORDERED = 'ordered';
+
     const STATUS_PARTIALLY_RECEIVED = 'partially_received';
+
     const STATUS_RECEIVED = 'received';
+
     const STATUS_CANCELLED = 'cancelled';
 
     /**

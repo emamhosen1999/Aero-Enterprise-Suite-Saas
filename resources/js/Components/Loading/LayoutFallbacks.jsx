@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from 'react';
-import { Box, Paper, useTheme } from '@mui/material';
+
 import { ProgressiveSkeleton, SmartLoadingSpinner } from './EnhancedLoading';
 
 /**
@@ -15,7 +15,7 @@ import { ProgressiveSkeleton, SmartLoadingSpinner } from './EnhancedLoading';
 
 // Enhanced Header Fallback
 export const HeaderFallback = memo(() => {
-    const theme = useTheme();
+
     
     return (
         <Paper
@@ -68,7 +68,7 @@ HeaderFallback.displayName = 'HeaderFallback';
 
 // Enhanced Sidebar Fallback
 export const SidebarFallback = memo(() => {
-    const theme = useTheme();
+ 
     
     const menuItems = useMemo(() => 
         Array.from({ length: 8 }, (_, i) => ({
@@ -138,7 +138,7 @@ SidebarFallback.displayName = 'SidebarFallback';
 
 // Enhanced Content Fallback
 export const ContentFallback = memo(({ variant = 'page' }) => {
-    const theme = useTheme();
+
     
     const renderPageFallback = () => (
         <Box className="p-6 space-y-6">

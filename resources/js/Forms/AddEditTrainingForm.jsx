@@ -7,11 +7,18 @@ import {
     Box, 
     Grid, 
     Typography,
-    IconButton
+    IconButton,
+    Button,
+    TextField,
+    Select,
+    MenuItem,
+    InputLabel,
+    FormControl,
+    FormHelperText,
+    InputAdornment
 } from '@mui/material';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Button, Input, Select, SelectItem, Textarea, DatePicker } from '@heroui/react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
 const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, currentPage, perPage, filterData }) => {
@@ -42,7 +49,7 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
                 setCategories(response.data);
             } catch (error) {
                 console.error('Failed to fetch categories:', error);
-                toast.error('Failed to load training categories.');
+                showToast.error('Failed to load training categories.');
             }
         };
         
@@ -129,7 +136,7 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
                 response = await axios.post(route('hr.training.store'), formData);
             }
             
-            toast.success(response.data.message || `Training ${isEditing ? 'updated' : 'created'} successfully!`);
+            showToast.success(response.data.message || `Training ${isEditing ? 'updated' : 'created'} successfully!`);
             onClose();
             fetchData(currentPage, perPage, filterData);
         } catch (error) {
@@ -138,7 +145,7 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
             if (error.response && error.response.data && error.response.data.errors) {
                 setErrors(error.response.data.errors);
             } else {
-                toast.error(`Failed to ${isEditing ? 'update' : 'create'} training session.`);
+                showToast.error(`Failed to ${isEditing ? 'update' : 'create'} training session.`);
             }
         } finally {
             setLoading(false);
@@ -172,20 +179,18 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
                 <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
-                            <Input
+                            <TextField
                                 name="title"
                                 label="Training Title"
                                 placeholder="Enter training title"
                                 value={formData.title}
-                                onChange={(e) => handleChange({ target: { name: 'title', value: e.target.value }})}
-                                isInvalid={!!errors.title}
-                                errorMessage={errors.title}
-                                isRequired
-                                variant="bordered"
-                                classNames={{
-                                    input: "text-small",
-                                    inputWrapper: "h-unit-12",
-                                }}
+                                onChange={(e) => handleChange(e)}
+                                error={!!errors.title}
+                                helperText={errors.title}
+                                required
+                                variant="outlined"
+                                fullWidth
+                                size="small"
                             />
                         </Grid>
                         
@@ -234,38 +239,34 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
                         </Grid>
                         
                         <Grid item xs={12} md={6}>
-                            <Input
+                            <TextField
                                 name="instructor"
                                 label="Instructor"
                                 placeholder="Enter instructor name"
                                 value={formData.instructor}
-                                onChange={(e) => handleChange({ target: { name: 'instructor', value: e.target.value }})}
-                                isInvalid={!!errors.instructor}
-                                errorMessage={errors.instructor}
-                                variant="bordered"
-                                classNames={{
-                                    input: "text-small",
-                                    inputWrapper: "h-unit-12",
-                                }}
+                                onChange={(e) => handleChange(e)}
+                                error={!!errors.instructor}
+                                helperText={errors.instructor}
+                                variant="outlined"
+                                fullWidth
+                                size="small"
                             />
                         </Grid>
                         
                         <Grid item xs={6} md={3}>
-                            <Input
+                            <TextField
                                 name="duration"
                                 label="Duration"
                                 placeholder="Enter duration"
                                 type="number"
                                 value={formData.duration}
-                                onChange={(e) => handleChange({ target: { name: 'duration', value: e.target.value }})}
-                                isInvalid={!!errors.duration}
-                                errorMessage={errors.duration}
-                                isRequired
-                                variant="bordered"
-                                classNames={{
-                                    input: "text-small",
-                                    inputWrapper: "h-unit-12",
-                                }}
+                                onChange={(e) => handleChange(e)}
+                                error={!!errors.duration}
+                                helperText={errors.duration}
+                                required
+                                variant="outlined"
+                                fullWidth
+                                size="small"
                             />
                         </Grid>
                         
@@ -317,56 +318,50 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
                         </Grid>
                         
                         <Grid item xs={12} md={6}>
-                            <Input
+                            <TextField
                                 name="location"
                                 label="Location"
                                 placeholder="Enter training location"
                                 value={formData.location}
-                                onChange={(e) => handleChange({ target: { name: 'location', value: e.target.value }})}
-                                isInvalid={!!errors.location}
-                                errorMessage={errors.location}
-                                variant="bordered"
-                                classNames={{
-                                    input: "text-small",
-                                    inputWrapper: "h-unit-12",
-                                }}
+                                onChange={(e) => handleChange(e)}
+                                error={!!errors.location}
+                                helperText={errors.location}
+                                variant="outlined"
+                                fullWidth
+                                size="small"
                             />
                         </Grid>
                         
                         <Grid item xs={12} md={6}>
-                            <Input
+                            <TextField
                                 name="max_participants"
                                 label="Maximum Participants"
                                 placeholder="Enter max participants"
                                 type="number"
                                 value={formData.max_participants}
-                                onChange={(e) => handleChange({ target: { name: 'max_participants', value: e.target.value }})}
-                                isInvalid={!!errors.max_participants}
-                                errorMessage={errors.max_participants}
-                                variant="bordered"
-                                classNames={{
-                                    input: "text-small",
-                                    inputWrapper: "h-unit-12",
-                                }}
+                                onChange={(e) => handleChange(e)}
+                                error={!!errors.max_participants}
+                                helperText={errors.max_participants}
+                                variant="outlined"
+                                fullWidth
+                                size="small"
                             />
                         </Grid>
                         
                         <Grid item xs={12} md={6}>
-                            <Input
+                            <TextField
                                 name="cost"
                                 label="Cost"
                                 placeholder="Enter training cost"
                                 type="number"
                                 step="0.01"
                                 value={formData.cost}
-                                onChange={(e) => handleChange({ target: { name: 'cost', value: e.target.value }})}
-                                isInvalid={!!errors.cost}
-                                errorMessage={errors.cost}
-                                variant="bordered"
-                                classNames={{
-                                    input: "text-small",
-                                    inputWrapper: "h-unit-12",
-                                }}
+                                onChange={(e) => handleChange(e)}
+                                error={!!errors.cost}
+                                helperText={errors.cost}
+                                variant="outlined"
+                                fullWidth
+                                size="small"
                             />
                         </Grid>
                         
@@ -412,14 +407,14 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
             <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
                 <Button 
                     onClick={onClose} 
-                    variant="text"
+                    variant="light"
                 >
                     Cancel
                 </Button>
                 <Button 
                     onClick={handleSubmit}
-                    variant="primary"
-                    loading={loading}
+                    color="primary"
+                    isLoading={loading}
                 >
                     {isEditing ? 'Update Training' : 'Create Training'}
                 </Button>

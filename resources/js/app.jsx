@@ -6,7 +6,13 @@ import {createInertiaApp} from '@inertiajs/react';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
 import ErrorBoundary from './Components/ErrorBoundary/ErrorBoundary';
-import { AppStateProvider } from './Contexts/AppStateContext';
+import { ThemeProvider } from './Contexts/ThemeContext';
+import { HeroUIProvider } from '@heroui/react';
+import './theme/index.js';
+import { initializeDeviceAuth } from './utils/deviceAuth';
+
+// Initialize secure device authentication
+initializeDeviceAuth();
 
 // Enhanced axios configuration with interceptors
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -18,22 +24,12 @@ if (token) {
     axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
 }
 
-// Function to initialize CSRF token for authentication requests
-const initCsrfToken = async () => {
-    try {
-        await axios.get('/sanctum/csrf-cookie');
-        console.log('CSRF token cookie initialized');
-    } catch (error) {
-        console.error('Failed to initialize CSRF token:', error);
-    }
-};
-
 // Performance monitoring only in development or when explicitly enabled
 const ENABLE_MONITORING = import.meta.env.DEV || 
     (typeof window !== 'undefined' && window.location.search.includes('monitor=true')) ||
     (typeof window !== 'undefined' && localStorage.getItem('enable-monitoring') === 'true');
 
-// Optimized request interceptor
+// Optimized request interceptor (only for performance monitoring)
 if (ENABLE_MONITORING) {
     axios.interceptors.request.use(
         (config) => {
@@ -42,61 +38,64 @@ if (ENABLE_MONITORING) {
         },
         (error) => Promise.reject(error)
     );
-
-    // Response interceptor for performance monitoring and error handling
-    axios.interceptors.response.use(
-        (response) => {
-            if (response.config.metadata) {
-                const endTime = new Date();
-                const duration = endTime - response.config.metadata.startTime;
-                
-                // Log slow requests (> 2 seconds)
-                if (duration > 2000) {
-                    console.warn(`Slow API response: ${response.config.url} took ${duration}ms`);
-                }
-            }
-            return response;
-        },
-        (error) => {
-            // Enhanced error logging
-            if (error.response) {
-                console.error('API Error:', {
-                    status: error.response.status,
-                    url: error.config?.url,
-                    method: error.config?.method,
-                    data: error.response.data
-                });
-            }
-            // Handle CSRF token mismatch without full page reload
-            if (error.response && error.response.status === 419) {
-                // Refresh CSRF token and retry the request
-                const token = document.head.querySelector('meta[name="csrf-token"]');
-                if (token) {
-                    // Try to get a fresh CSRF token
-                    fetch('/csrf-token')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.csrf_token) {
-                                token.content = data.csrf_token;
-                                axios.defaults.headers.common['X-CSRF-TOKEN'] = data.csrf_token;
-                            }
-                        })
-                        .catch(() => {
-                            // If we can't refresh the token, navigate to login instead of reload
-                            if (typeof window !== 'undefined' && window.Inertia) {
-                                window.Inertia.visit('/login');
-                            }
-                        });
-                }
-            }
-            return Promise.reject(error);
-        }
-    );
 }
 
-// Make initCsrfToken globally available
-if (typeof window !== 'undefined') {
-    window.initCsrfToken = initCsrfToken;
+// CRITICAL: Response interceptor for error handling (ALWAYS enabled, not just in dev)
+axios.interceptors.response.use(
+    (response) => {
+        // Performance monitoring only when enabled
+        if (ENABLE_MONITORING && response.config.metadata) {
+            const endTime = new Date();
+            const duration = endTime - response.config.metadata.startTime;
+            
+            // Log slow requests (> 2 seconds)
+            if (duration > 2000) {
+                console.warn(`Slow API response: ${response.config.url} took ${duration}ms`);
+            }
+        }
+        return response;
+    },
+    (error) => {
+        // Enhanced error logging (always enabled)
+        if (error.response) {
+            console.error('API Error:', {
+                status: error.response.status,
+                url: error.config?.url,
+                method: error.config?.method,
+                data: error.response.data
+            });
+        }
+        
+        // CRITICAL: Handle session expiry (419 or 401 status codes) - ALWAYS enabled
+        if (error.response && (error.response.status === 419 || error.response.status === 401)) {
+            // Immediately redirect to login without showing modal
+            console.warn('Session expired or unauthenticated, redirecting to login');
+            
+            if (typeof window !== 'undefined' && window.Inertia) {
+                window.Inertia.visit('/login', {
+                    method: 'get',
+                    preserveState: false,
+                    preserveScroll: false,
+                    replace: true
+                });
+            } else {
+                window.location.href = '/login';
+            }
+            
+            return Promise.reject(error);
+        }
+        
+        return Promise.reject(error);
+    }
+);
+
+// Legacy code for CSRF token refresh (kept for compatibility but should not be needed)
+if (false) {
+    axios.interceptors.response.use(
+        // Placeholder for legacy code - already handled above
+        (response) => response,
+        (error) => Promise.reject(error)
+    );
 }
 
 createInertiaApp({
@@ -108,7 +107,7 @@ createInertiaApp({
     },
     title: (title) => {
         const page = window.Laravel?.inertiaProps || {};
-        const appName = page.app?.name || 'Aero Enterprise Suite';
+        const appName = page.app?.name || 'aeos365';
         return `${title} - ${appName}`;
     },
     resolve: (name) =>
@@ -124,9 +123,11 @@ createInertiaApp({
         
         root.render(
             <ErrorBoundary>
-                <AppStateProvider>
-                    <App {...props} />
-                </AppStateProvider>
+                <ThemeProvider>
+                    <HeroUIProvider>
+                        <App {...props} />
+                    </HeroUIProvider>
+                </ThemeProvider>
             </ErrorBoundary>
         );
         
@@ -181,6 +182,12 @@ createInertiaApp({
         }
     },
 }).then(() => {
+    // Initialize device authentication
+    initializeDeviceAuth();
+    
+    // Theme restoration is now handled by ThemeContext
+    console.log('App initialization complete - theme handled by ThemeContext');
+    
     // Initialize application monitoring only in development
     if (ENABLE_MONITORING && typeof window !== 'undefined') {
         // Monitor memory usage (throttled)

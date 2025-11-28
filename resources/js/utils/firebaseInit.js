@@ -12,6 +12,9 @@ export const initFirebase = async () => {
         // Request notification permission and get token
         const token = await requestNotificationPermission();
         if (token) {
+            // Store FCM token in localStorage for device identification service
+            localStorage.setItem('fcm_token', token);
+            
             try {
                 const response = await axios.post(route('updateFcmToken'), { fcm_token: token });
                 if (response.status === 200) {

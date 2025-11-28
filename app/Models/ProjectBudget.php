@@ -24,7 +24,7 @@ class ProjectBudget extends Model
         'start_date',
         'end_date',
         'status',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [

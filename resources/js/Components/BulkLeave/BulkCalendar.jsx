@@ -1,24 +1,35 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
-    Box, 
     Card, 
-    CardContent, 
+    CardBody, 
     CardHeader, 
     Button, 
     Chip, 
-    IconButton, 
-    Typography,
-    CircularProgress
-} from '@mui/material';
+    Spinner
+} from '@heroui/react';
 import { 
     ChevronLeftIcon, 
     ChevronRightIcon,
     CalendarDaysIcon 
 } from '@heroicons/react/24/outline';
-import { useTheme } from '@mui/material/styles';
-import GlassCard from '@/Components/GlassCard';
-import CalendarIcon from '@mui/icons-material/CalendarToday';
+
+import { Calendar } from 'lucide-react';
 import axios from 'axios';
+
+// Theme utility function
+const getThemeRadius = () => {
+    if (typeof window === 'undefined') return 'lg';
+    
+    const rootStyles = getComputedStyle(document.documentElement);
+    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+    
+    const radiusValue = parseInt(borderRadius);
+    if (radiusValue === 0) return 'none';
+    if (radiusValue <= 4) return 'sm';
+    if (radiusValue <= 8) return 'md';
+    if (radiusValue <= 12) return 'lg';
+    return 'xl';
+};
 
 const BulkCalendar = ({ 
     selectedDates = [], 
@@ -30,7 +41,7 @@ const BulkCalendar = ({
     userId = null,
     fetchFromAPI = false // Flag to determine if we should fetch data from API
 }) => {
-    const theme = useTheme();
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [apiCalendarData, setApiCalendarData] = useState({
         existingLeaves: existingLeaves,
@@ -242,99 +253,6 @@ const BulkCalendar = ({
         };
     }, [selectedDates, finalExistingLeaves, finalPublicHolidays, minDate, maxDate, loading]);
 
-    // Get date cell classes with consistent theming and loading state
-    const getDateCellClasses = useCallback((dayData, status) => {
-        if (!dayData.isCurrentMonth) {
-            return {
-                color: theme.palette.text.disabled,
-                cursor: 'not-allowed',
-                opacity: 0.3
-            };
-        }
-        
-        // Apply loading state styling
-        if (loading) {
-            return {
-                color: theme.palette.text.disabled,
-                cursor: 'not-allowed',
-                backgroundColor: theme.palette.action.disabledBackground,
-                opacity: 0.5,
-                pointerEvents: 'none'
-            };
-        }
-        
-        // Priority order: Selected > Existing Leave > Holiday > Today > Weekend > Default
-        if (status.isSelected) {
-            return {
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                fontWeight: 'bold',
-                border: `2px solid ${theme.palette.primary.dark}`,
-                boxShadow: `0 0 0 3px ${theme.palette.primary.main}30`,
-                transform: 'scale(1.05)',
-                zIndex: 10
-            };
-        } else if (status.hasExistingLeave) {
-            return {
-                backgroundColor: theme.palette.error.main,
-                color: theme.palette.error.contrastText,
-                border: `2px solid ${theme.palette.error.dark}`,
-                fontWeight: 500,
-                cursor: 'not-allowed'
-            };
-        } else if (status.isPublicHoliday) {
-            return {
-                backgroundColor: theme.palette.warning.main,
-                color: theme.palette.warning.contrastText,
-                border: `2px solid ${theme.palette.warning.dark}`,
-                fontWeight: 500,
-                cursor: 'not-allowed'
-            };
-        } else if (status.isToday) {
-            return {
-                backgroundColor: theme.palette.secondary.light,
-                color: theme.palette.secondary.contrastText,
-                fontWeight: 600,
-                border: `2px solid ${theme.palette.secondary.main}`,
-                boxShadow: `0 0 0 2px ${theme.palette.secondary.main}40`,
-                '&:hover': {
-                    backgroundColor: theme.palette.secondary.main,
-                    transform: 'scale(1.02)'
-                }
-            };
-        } else if (status.isWeekend) {
-            return {
-                color: theme.palette.text.secondary,
-                backgroundColor: theme.palette.action.hover,
-                border: `1px solid ${theme.palette.divider}`,
-                opacity: 0.7,
-                '&:hover': {
-                    backgroundColor: theme.palette.action.selected,
-                    opacity: 0.9
-                }
-            };
-        } else if (!status.selectable) {
-            // Only apply disabled styling for other non-selectable dates (not holidays/existing leaves)
-            return {
-                color: theme.palette.text.disabled,
-                cursor: 'not-allowed',
-                backgroundColor: theme.palette.action.disabledBackground,
-                opacity: 0.6
-            };
-        } else {
-            return {
-                color: theme.palette.text.primary,
-                border: `1px solid transparent`,
-                '&:hover': {
-                    backgroundColor: theme.palette.primary.main + '15',
-                    color: theme.palette.primary.main,
-                    border: `1px solid ${theme.palette.primary.main}30`,
-                    transform: 'scale(1.02)'
-                }
-            };
-        }
-    }, [theme, loading]);
-
     const monthYear = currentDate.toLocaleDateString('en-US', { 
         month: 'long', 
         year: 'numeric' 
@@ -343,161 +261,252 @@ const BulkCalendar = ({
     const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     return (
-        <GlassCard variant="outlined" sx={{ width: '100%' }}>
-            <CardHeader
-                title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <CalendarDaysIcon style={{ width: 20, height: 20, color: theme.palette.primary.main }} />
-                            <Typography variant="h6" component="h3">
-                                {monthYear}
-                            </Typography>
-                            {fetchFromAPI && loadedYear && (
-                                <Chip 
-                                    size="small" 
-                                    variant="outlined" 
-                                    color="primary" 
-                                    label={`Data: ${loadedYear}`}
-                                    sx={{ ml: 1, fontSize: '0.7rem' }}
-                                />
-                            )}
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <IconButton
-                                size="small"
-                                onClick={goToPreviousMonth}
-                                sx={{ color: 'text.secondary' }}
-                                disabled={loading}
-                            >
-                                <ChevronLeftIcon style={{ width: 16, height: 16 }} />
-                            </IconButton>
-                            <Button
-                                variant="text"
-                                size="small"
-                                onClick={goToToday}
-                                sx={{ 
-                                    minWidth: 'auto', 
-                                    px: 1.5, 
-                                    py: 0.5, 
-                                    fontSize: '0.75rem',
-                                    textTransform: 'none'
+        <Card 
+            radius={getThemeRadius()}
+            className="w-full shadow-sm border border-divider/50"
+            style={{
+                borderRadius: `var(--borderRadius, 12px)`,
+                fontFamily: `var(--fontFamily, "Inter")`,
+                background: `linear-gradient(135deg, 
+                    color-mix(in srgb, var(--theme-content1) 90%, transparent) 40%, 
+                    color-mix(in srgb, var(--theme-content2) 80%, transparent) 60%)`,
+            }}
+        >
+            <CardHeader className="pb-3 px-4 pt-4">
+                <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                        <CalendarDaysIcon 
+                            className="w-4 h-4 sm:w-5 sm:h-5" 
+                            style={{ color: 'var(--theme-primary)' }}
+                        />
+                        <h3 className="text-base sm:text-lg font-semibold" style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            {monthYear}
+                        </h3>
+                        {fetchFromAPI && loadedYear && (
+                            <Chip 
+                                size="sm" 
+                                variant="bordered" 
+                                color="primary" 
+                                className="ml-2 text-xs hidden sm:flex"
+                                radius={getThemeRadius()}
+                                style={{
+                                    borderColor: `var(--theme-primary)`,
+                                    color: `var(--theme-primary)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
                                 }}
-                                disabled={loading}
                             >
-                                Today
-                            </Button>
-                            <IconButton
-                                size="small"
-                                onClick={goToNextMonth}
-                                sx={{ color: 'text.secondary' }}
-                                disabled={loading}
-                            >
-                                <ChevronRightIcon style={{ width: 16, height: 16 }} />
-                            </IconButton>
-                        </Box>
-                    </Box>
-                }
-                sx={{ pb: 2 }}
-            />
-            <CardContent sx={{ pt: 0 }}>
+                                {loadedYear}
+                            </Chip>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onClick={goToPreviousMonth}
+                            isDisabled={loading}
+                            radius={getThemeRadius()}
+                            className="min-w-8 h-8"
+                            style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
+                            <ChevronLeftIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="light"
+                            onClick={goToToday}
+                            isDisabled={loading}
+                            radius={getThemeRadius()}
+                            className="px-2 py-1 text-xs hidden sm:flex"
+                            style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
+                            Today
+                        </Button>
+                        <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onClick={goToNextMonth}
+                            isDisabled={loading}
+                            radius={getThemeRadius()}
+                            className="min-w-8 h-8"
+                            style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
+                            <ChevronRightIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardBody className="pt-0 px-4 pb-4" style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}>
                 {loading && (
-                    <Box sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center', 
-                        py: 3,
-                        backgroundColor: theme.palette.action.hover,
-                        borderRadius: 2,
-                        mb: 3
+                    <div className="flex justify-center items-center py-4 rounded-lg mb-4" style={{
+                        background: `var(--theme-content2, #F4F4F5)`,
+                        borderColor: `var(--theme-divider, #E4E4E7)`,
                     }}>
-                        <CircularProgress size={24} />
-                        <Typography variant="body2" sx={{ ml: 2 }}>
+                        <Spinner size="sm" color="primary" />
+                        <span className="ml-2 text-xs sm:text-sm" style={{
+                            color: `var(--theme-foreground-600, #71717A)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
                             Loading calendar data for {currentDate.getFullYear()}...
-                        </Typography>
-                    </Box>
+                        </span>
+                    </div>
                 )}
                 
-                {/* Legend with consistent chip colors */}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                {/* Compact Legend */}
+                <div className="flex flex-wrap gap-1 sm:gap-2 mb-4">
                     <Chip 
-                        size="small" 
-                        variant="filled" 
+                        size="sm" 
                         color="primary" 
-                        label="Selected" 
-                        sx={{ fontWeight: 600 }}
-                    />
+                        variant="solid"
+                        radius={getThemeRadius()}
+                        className="text-xs font-medium"
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
+                    >
+                        Selected
+                    </Chip>
                     <Chip 
-                        size="small" 
-                        variant="filled" 
-                        color="error" 
-                        label="Existing Leave" 
-                        sx={{ opacity: 0.9 }}
-                    />
+                        size="sm" 
+                        color="danger" 
+                        variant="solid"
+                        radius={getThemeRadius()}
+                        className="text-xs"
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
+                    >
+                        Leave
+                    </Chip>
                     <Chip 
-                        size="small" 
-                        variant="filled" 
+                        size="sm" 
                         color="warning" 
-                        label="Holiday" 
-                        sx={{ opacity: 0.9 }}
-                    />
+                        variant="solid"
+                        radius={getThemeRadius()}
+                        className="text-xs"
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
+                    >
+                        Holiday
+                    </Chip>
                     <Chip 
-                        size="small" 
-                        variant="filled" 
+                        size="sm" 
                         color="secondary" 
-                        label="Today" 
-                        sx={{ fontWeight: 600 }}
-                    />
+                        variant="solid"
+                        radius={getThemeRadius()}
+                        className="text-xs font-medium hidden sm:flex"
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
+                    >
+                        Today
+                    </Chip>
                     <Chip 
-                        size="small" 
-                        variant="outlined" 
+                        size="sm" 
                         color="default" 
-                        label="Weekend" 
-                        sx={{ opacity: 0.7 }}
-                    />
-                </Box>
+                        variant="bordered"
+                        radius={getThemeRadius()}
+                        className="text-xs hidden sm:flex"
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
+                    >
+                        Weekend
+                    </Chip>
+                </div>
                 
-                {/* Week days header */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, mb: 1 }}>
+                {/* Week days header - compact */}
+                <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
                     {weekDays.map(day => (
-                        <Box 
+                        <div 
                             key={day} 
-                            sx={{ 
-                                textAlign: 'center', 
-                                py: 1,
-                                fontSize: '0.875rem',
-                                fontWeight: 'medium',
-                                color: 'text.secondary'
+                            className="flex items-center justify-center w-8 h-6 sm:w-10 sm:h-8 text-xs sm:text-sm font-medium"
+                            style={{
+                                color: `var(--theme-foreground-600, #71717A)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
                             }}
                         >
                             {day}
-                        </Box>
+                        </div>
                     ))}
-                </Box>
+                </div>
                 
-                {/* Calendar grid */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5 }}>
+                {/* Calendar grid - responsive */}
+                <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                     {calendarDays.map((dayData, index) => {
                         const status = getDateStatus(dayData);
-                        const cellStyles = getDateCellClasses(dayData, status);
                         
                         return (
-                            <Box
+                            <div
                                 key={index}
                                 onClick={() => handleDateClick(dayData)}
-                                sx={{
-                                    position: 'relative',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: 40,
-                                    height: 40,
-                                    minHeight: 40,
-                                    cursor: status.selectable ? 'pointer' : 'not-allowed',
-                                    borderRadius: 1.5,
-                                    transition: 'all 0.2s ease-in-out',
-                                    fontSize: '0.875rem',
-                                    userSelect: 'none',
-                                    ...cellStyles
+                                className={`
+                                    relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 min-h-8 sm:min-h-10
+                                    rounded-md transition-all duration-200 text-xs sm:text-sm select-none
+                                    ${status.selectable ? 'cursor-pointer' : 'cursor-not-allowed'}
+                                    ${!dayData.isCurrentMonth ? 'opacity-30' : ''}
+                                    ${loading ? 'opacity-50 pointer-events-none' : ''}
+                                    ${status.isSelected ? 'font-bold border-2 shadow-md scale-105 z-10' : ''}
+                                    ${status.hasExistingLeave && !status.isSelected ? 'border-2 font-medium cursor-not-allowed' : ''}
+                                    ${status.isPublicHoliday && !status.isSelected && !status.hasExistingLeave ? 'border-2 font-medium cursor-not-allowed' : ''}
+                                    ${status.isToday && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday ? 'font-semibold border-2 shadow-sm' : ''}
+                                    ${status.isWeekend && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday && !status.isToday ? 'border opacity-70' : ''}
+                                    ${!status.selectable && !status.hasExistingLeave && !status.isPublicHoliday && !status.isToday && !status.isWeekend ? 'cursor-not-allowed opacity-60' : ''}
+                                    ${status.selectable && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday && !status.isToday && !status.isWeekend ? 'border border-transparent hover:scale-105' : ''}
+                                `}
+                                style={{
+                                    backgroundColor: status.isSelected 
+                                        ? 'var(--theme-primary)' 
+                                        : status.hasExistingLeave && !status.isSelected 
+                                        ? 'var(--theme-danger)' 
+                                        : status.isPublicHoliday && !status.isSelected && !status.hasExistingLeave
+                                        ? 'var(--theme-warning)'
+                                        : status.isToday && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday
+                                        ? 'var(--theme-secondary-200)'
+                                        : status.isWeekend && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday && !status.isToday
+                                        ? 'var(--theme-content2)'
+                                        : loading
+                                        ? 'var(--theme-content2)'
+                                        : 'transparent',
+                                    color: status.isSelected 
+                                        ? 'var(--theme-primary-foreground)' 
+                                        : status.hasExistingLeave && !status.isSelected 
+                                        ? 'var(--theme-danger-foreground)' 
+                                        : status.isPublicHoliday && !status.isSelected && !status.hasExistingLeave
+                                        ? 'var(--theme-warning-foreground)'
+                                        : status.isToday && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday
+                                        ? 'var(--theme-secondary-800)'
+                                        : status.isWeekend && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday && !status.isToday
+                                        ? 'var(--theme-foreground-500)'
+                                        : !status.selectable && !status.hasExistingLeave && !status.isPublicHoliday && !status.isToday && !status.isWeekend
+                                        ? 'var(--theme-foreground-400)'
+                                        : 'var(--theme-foreground-900)',
+                                    borderColor: status.isSelected 
+                                        ? 'var(--theme-primary-600)' 
+                                        : status.hasExistingLeave && !status.isSelected 
+                                        ? 'var(--theme-danger-600)' 
+                                        : status.isPublicHoliday && !status.isSelected && !status.hasExistingLeave
+                                        ? 'var(--theme-warning-600)'
+                                        : status.isToday && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday
+                                        ? 'var(--theme-secondary-500)'
+                                        : status.isWeekend && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday && !status.isToday
+                                        ? 'var(--theme-divider)'
+                                        : 'transparent',
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
                                 }}
                                 role="button"
                                 tabIndex={status.selectable ? 0 : -1}
@@ -514,90 +523,81 @@ const BulkCalendar = ({
                             >
                                 {dayData.date}
                                 
-                                {/* Only weekend indicator for clean visual hierarchy */}
+                                {/* Weekend indicator - hidden on mobile */}
                                 {status.isWeekend && !status.isSelected && !status.hasExistingLeave && !status.isPublicHoliday && (
-                                    <Box 
-                                        sx={{ 
-                                            position: 'absolute', 
-                                            top: 2, 
-                                            right: 2, 
-                                            width: 4, 
-                                            height: 4, 
-                                            borderRadius: '50%', 
-                                            bgcolor: 'text.secondary',
-                                            opacity: 0.5
-                                        }} 
+                                    <div 
+                                        className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full opacity-50 hidden sm:block"
+                                        style={{ backgroundColor: 'var(--theme-foreground-500)' }}
                                     />
                                 )}
-                            </Box>
+                            </div>
                         );
                     })}
-                </Box>
+                </div>
                 
-                {/* Enhanced selection summary */}
+                {/* Selection summary - compact */}
                 {selectedDates.length > 0 && (
-                    <Box 
-                        sx={{ 
-                            mt: 3, 
-                            p: 2.5, 
-                            borderRadius: 2, 
-                            background: `linear-gradient(135deg, ${theme.palette.primary.light}20, ${theme.palette.primary.main}10)`,
-                            border: `1px solid ${theme.palette.primary.main}30`,
-                            backdropFilter: 'blur(8px)',
-                            position: 'relative',
-                            overflow: 'hidden'
-                        }}
-                    >
-                        <Box sx={{ position: 'relative', zIndex: 1 }}>
-                            <Typography variant="body2" color="primary.main" fontWeight="600" sx={{ mb: 1 }}>
+                    <div className="mt-4 p-3 sm:p-4 rounded-lg relative overflow-hidden" style={{
+                        background: `linear-gradient(135deg, 
+                            color-mix(in srgb, var(--theme-primary) 10%, transparent) 20%, 
+                            color-mix(in srgb, var(--theme-primary) 5%, transparent) 80%)`,
+                        border: `1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)`,
+                        borderRadius: `var(--borderRadius, 8px)`,
+                    }}>
+                        <div className="relative z-10">
+                            <p className="text-xs sm:text-sm font-semibold mb-2" style={{
+                                color: `var(--theme-primary)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 📅 {selectedDates.length} date{selectedDates.length !== 1 ? 's' : ''} selected
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {selectedDates.slice(0, 12).map(date => (
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                                {selectedDates.slice(0, 8).map(date => (
                                     <Chip 
                                         key={date} 
-                                        size="small" 
-                                        variant="filled" 
+                                        size="sm" 
                                         color="primary"
-                                        label={new Date(date).toLocaleDateString('en-US', { 
+                                        variant="solid"
+                                        radius={getThemeRadius()}
+                                        className="text-xs font-medium"
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    >
+                                        {new Date(date).toLocaleDateString('en-US', { 
                                             month: 'short', 
                                             day: 'numeric' 
                                         })}
-                                        sx={{ 
-                                            fontWeight: 500,
-                                            fontSize: '0.75rem'
-                                        }}
-                                    />
+                                    </Chip>
                                 ))}
-                                {selectedDates.length > 12 && (
+                                {selectedDates.length > 8 && (
                                     <Chip 
-                                        size="small" 
-                                        variant="outlined"
+                                        size="sm" 
                                         color="primary"
-                                        label={`+${selectedDates.length - 12} more`}
-                                        sx={{ fontWeight: 500 }}
-                                    />
+                                        variant="bordered"
+                                        radius={getThemeRadius()}
+                                        className="text-xs font-medium"
+                                        style={{
+                                            borderColor: `var(--theme-primary)`,
+                                            color: `var(--theme-primary)`,
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    >
+                                        +{selectedDates.length - 8} more
+                                    </Chip>
                                 )}
-                            </Box>
-                        </Box>
+                            </div>
+                        </div>
                         
-                        {/* Subtle background pattern */}
-                        <Box 
-                            sx={{
-                                position: 'absolute',
-                                top: -10,
-                                right: -10,
-                                width: 60,
-                                height: 60,
-                                borderRadius: '50%',
-                                background: `linear-gradient(45deg, ${theme.palette.primary.main}15, transparent)`,
-                                opacity: 0.3
-                            }}
+                        {/* Background decoration */}
+                        <div 
+                            className="absolute -top-2 -right-2 w-12 h-12 rounded-full opacity-30"
+                            style={{ backgroundColor: `var(--theme-primary)` }}
                         />
-                    </Box>
+                    </div>
                 )}
-            </CardContent>
-        </GlassCard>
+            </CardBody>
+        </Card>
     );
 };
 

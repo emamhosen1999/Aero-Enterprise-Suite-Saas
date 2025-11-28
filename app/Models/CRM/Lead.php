@@ -2,10 +2,10 @@
 
 namespace App\Models\CRM;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\User;
 
 class Lead extends Model
 {
@@ -37,9 +37,13 @@ class Lead extends Model
      * Lead statuses
      */
     const STATUS_NEW = 'new';
+
     const STATUS_CONTACTED = 'contacted';
+
     const STATUS_QUALIFIED = 'qualified';
+
     const STATUS_CONVERTED = 'converted';
+
     const STATUS_LOST = 'lost';
 
     /**

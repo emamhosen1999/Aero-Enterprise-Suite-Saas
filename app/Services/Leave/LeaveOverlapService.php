@@ -42,8 +42,8 @@ class LeaveOverlapService
             $toDate = $leave->to_date instanceof Carbon ? $leave->to_date : new Carbon($leave->to_date);
 
             return $fromDate->equalTo($toDate)
-                ? "\"{$leave->leave_type}\" leave already exists for: " . $fromDate->format('Y-m-d')
-                : "\"{$leave->leave_type}\" leave already exists from " . $fromDate->format('Y-m-d') . ' to ' . $toDate->format('Y-m-d');
+                ? "\"{$leave->leave_type}\" leave already exists for: ".$fromDate->format('Y-m-d')
+                : "\"{$leave->leave_type}\" leave already exists from ".$fromDate->format('Y-m-d').' to '.$toDate->format('Y-m-d');
         })->toArray();
     }
 
@@ -74,8 +74,8 @@ class LeaveOverlapService
             $toDate = $holiday->to_date instanceof Carbon ? $holiday->to_date : new Carbon($holiday->to_date);
 
             return $fromDate->equalTo($toDate)
-                ? "\"{$holiday->title}\" holiday on this date: " . $fromDate->format('Y-m-d')
-                : "\"{$holiday->title}\" holiday on this dates: " . $fromDate->format('Y-m-d') . ' to ' . $toDate->format('Y-m-d');
+                ? "\"{$holiday->title}\" holiday on this date: ".$fromDate->format('Y-m-d')
+                : "\"{$holiday->title}\" holiday on this dates: ".$fromDate->format('Y-m-d').' to '.$toDate->format('Y-m-d');
         })->toArray();
     }
 

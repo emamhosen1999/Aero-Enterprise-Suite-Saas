@@ -11,8 +11,8 @@ class AttendanceRateLimit
 {
     public function handle(Request $request, Closure $next)
     {
-        $key = 'attendance_punch:' . $request->user()->id;
-        
+        $key = 'attendance_punch:'.$request->user()->id;
+
         if (RateLimiter::tooManyAttempts($key, 5)) {
             return response()->json([
                 'status' => 'error',
@@ -55,11 +55,12 @@ class AttendanceRateLimit
         $dLat = deg2rad($lat2 - $lat1);
         $dLng = deg2rad($lng2 - $lng1);
 
-        $a = sin($dLat/2) * sin($dLat/2) +
+        $a = sin($dLat / 2) * sin($dLat / 2) +
              cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($dLng/2) * sin($dLng/2);
-        
-        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+             sin($dLng / 2) * sin($dLng / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
         return $earthRadius * $c;
     }
 }

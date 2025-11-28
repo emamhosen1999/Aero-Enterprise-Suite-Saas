@@ -1,13 +1,8 @@
 import React from 'react';
-import {
-    Box,
-    Typography,
-    useMediaQuery,
-    CardContent,
-    CardHeader,
-} from "@mui/material";
-import { useTheme, alpha } from "@mui/material/styles";
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { usePage } from "@inertiajs/react";
+
 import {
     Table,
     TableHeader,
@@ -20,7 +15,9 @@ import {
     CardBody,
     Divider,
     ScrollShadow,
-    Progress
+    Progress,
+    Button,
+    Skeleton
 } from "@heroui/react";
 import {
     CalendarDaysIcon,
@@ -39,15 +36,66 @@ import {
     ClockIcon as ClockSolid,
     ArrowPathIcon as ArrowPathSolid
 } from '@heroicons/react/24/solid';
-import GlassCard from "@/Components/GlassCard";
 
 
-const DailyWorkSummaryTable = ({ filteredData }) => {
-    const { auth } = usePage().props;
-    const theme = useTheme();
-    const isLargeScreen = useMediaQuery('(min-width: 1025px)');
-    const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
-    const isMobile = useMediaQuery('(max-width: 640px)');
+const DailyWorkSummaryTable = ({ filteredData, onRefresh, loading = false }) => {
+    const { theme } = useTheme();
+    const isMobile = useMediaQuery('(max-width: 1024px)');
+    
+    // Theme radius helper function (same as DailyWorksTable)
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const radiusValue = parseInt(getComputedStyle(document.documentElement)
+            .getPropertyValue('--borderRadius')?.trim() || '12');
+        
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    // Desktop Table Loading Skeleton (matching DailyWorksTable)
+    const DesktopLoadingSkeleton = () => {
+        return (
+            <div className="max-h-[84vh] overflow-y-auto">
+                {/* Header skeleton */}
+                <div className="flex items-center justify-between mb-4 px-2">
+                    <Skeleton className="w-32 h-6 rounded" />
+                    <Skeleton className="w-20 h-8 rounded" />
+                </div>
+                
+                <ScrollShadow className="max-h-[70vh]">
+                    <div className="border border-divider rounded-lg overflow-hidden">
+                        {/* Table header skeleton */}
+                        <div className="bg-default-100/80 backdrop-blur-md border-b border-divider">
+                            <div className="flex">
+                                {columns.map((column, index) => (
+                                    <div key={index} className="flex-1 p-3">
+                                        <Skeleton className="w-20 h-4 rounded" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        {/* Table body skeleton */}
+                        <div className="divide-y divide-divider">
+                            {Array.from({ length: 8 }).map((_, index) => (
+                                <div key={index} className="flex hover:bg-default-50/50 transition-colors">
+                                    {columns.map((column, colIndex) => (
+                                        <div key={colIndex} className="flex-1 p-3">
+                                            <Skeleton className="w-full h-4 rounded" />
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </ScrollShadow>
+            </div>
+        );
+    };
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString("en-US", {
@@ -97,119 +145,172 @@ const DailyWorkSummaryTable = ({ filteredData }) => {
         const pending = summary.totalDailyWorks - summary.completed;
 
         return (
-            <GlassCard className="mb-2" shadow="sm">
-                <CardContent className="p-3">
-                    <Box className="flex items-start justify-between mb-3">
-                        <Box className="flex items-center gap-3 flex-1">
-                            <Box className="flex flex-col">
-                                <Typography variant="body2" fontWeight="bold" className="text-primary">
+            <Card 
+                className="mb-2" 
+                shadow="sm"
+                radius={getThemeRadius()}
+                style={{
+                    border: `var(--borderWidth, 1px) solid var(--theme-divider, #E4E4E7)`,
+                    borderRadius: `var(--borderRadius, 12px)`,
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}
+            >
+                <CardBody className="p-3" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3 flex-1">
+                            <div className="flex flex-col">
+                                <span className="text-sm font-bold text-primary" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
                                     {formatDate(summary.date)}
-                                </Typography>
-                                <Typography variant="caption" color="textSecondary">
+                                </span>
+                                <span className="text-xs text-default-500" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
                                     {summary.totalDailyWorks} total works
-                                </Typography>
-                            </Box>
-                        </Box>
-                        <Box className="flex items-center gap-2">
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
                             <Chip
                                 size="sm"
                                 variant="flat"
                                 color={getPercentageColor(parseFloat(completionPercentage))}
                                 startContent={getPercentageIcon(parseFloat(completionPercentage))}
+                                radius={getThemeRadius()}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             >
                                 {completionPercentage}%
                             </Chip>
-                        </Box>
-                    </Box>
+                        </div>
+                    </div>
 
                     <Divider className="my-3" />
 
                     {/* Progress bars */}
-                    <Box className="space-y-3 mb-3">
-                        <Box>
-                            <Box className="flex justify-between items-center mb-1">
-                                <Typography variant="caption" className="text-xs">
+                    <div className="space-y-3 mb-3">
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
                                     Completion Progress
-                                </Typography>
-                                <Typography variant="caption" className="text-xs font-medium">
+                                </span>
+                                <span className="text-xs font-medium" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
                                     {summary.completed}/{summary.totalDailyWorks}
-                                </Typography>
-                            </Box>
+                                </span>
+                            </div>
                             <Progress
                                 value={parseFloat(completionPercentage)}
                                 color={getPercentageColor(parseFloat(completionPercentage))}
                                 size="sm"
+                                radius={getThemeRadius()}
                                 className="w-full"
+                                aria-label={`Completion progress: ${completionPercentage}%`}
                             />
-                        </Box>
+                        </div>
 
                         {summary.rfiSubmissions > 0 && (
-                            <Box>
-                                <Box className="flex justify-between items-center mb-1">
-                                    <Typography variant="caption" className="text-xs">
+                            <div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-xs text-default-600" style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         RFI Submission
-                                    </Typography>
-                                    <Typography variant="caption" className="text-xs font-medium">
+                                    </span>
+                                    <span className="text-xs font-medium" style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
                                         {summary.rfiSubmissions}/{summary.completed}
-                                    </Typography>
-                                </Box>
+                                    </span>
+                                </div>
                                 <Progress
                                     value={parseFloat(rfiSubmissionPercentage)}
                                     color={getPercentageColor(parseFloat(rfiSubmissionPercentage))}
                                     size="sm"
+                                    radius={getThemeRadius()}
                                     className="w-full"
+                                    aria-label={`RFI submission progress: ${rfiSubmissionPercentage}%`}
                                 />
-                            </Box>
+                            </div>
                         )}
-                    </Box>
+                    </div>
 
                     {/* Work type breakdown */}
-                    <Box className="grid grid-cols-3 gap-2">
-                        <Box className="flex flex-col items-center p-2 bg-white/5 rounded-lg">
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg" style={{
+                            borderRadius: `var(--borderRadius, 8px)`,
+                        }}>
                             {getWorkTypeIcon("embankment", summary.embankment)}
-                            <Typography variant="caption" className="text-xs mt-1">
+                            <span className="text-xs mt-1 text-default-600" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 Embankment
-                            </Typography>
-                            <Typography variant="body2" fontWeight="medium" className="text-xs">
+                            </span>
+                            <span className="text-xs font-medium" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 {summary.embankment}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                         
-                        <Box className="flex flex-col items-center p-2 bg-white/5 rounded-lg">
+                        <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg" style={{
+                            borderRadius: `var(--borderRadius, 8px)`,
+                        }}>
                             {getWorkTypeIcon("structure", summary.structure)}
-                            <Typography variant="caption" className="text-xs mt-1">
+                            <span className="text-xs mt-1 text-default-600" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 Structure
-                            </Typography>
-                            <Typography variant="body2" fontWeight="medium" className="text-xs">
+                            </span>
+                            <span className="text-xs font-medium" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 {summary.structure}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                         
-                        <Box className="flex flex-col items-center p-2 bg-white/5 rounded-lg">
+                        <div className="flex flex-col items-center p-2 bg-white/5 rounded-lg" style={{
+                            borderRadius: `var(--borderRadius, 8px)`,
+                        }}>
                             {getWorkTypeIcon("pavement", summary.pavement)}
-                            <Typography variant="caption" className="text-xs mt-1">
+                            <span className="text-xs mt-1 text-default-600" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 Pavement
-                            </Typography>
-                            <Typography variant="body2" fontWeight="medium" className="text-xs">
+                            </span>
+                            <span className="text-xs font-medium" style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>
                                 {summary.pavement}
-                            </Typography>
-                        </Box>
-                    </Box>
+                            </span>
+                        </div>
+                    </div>
 
                     {/* Additional metrics */}
                     <Divider className="my-3" />
-                    <Box className="flex justify-between text-xs">
-                        <Box className="flex items-center gap-1">
+                    <div className="flex justify-between text-xs">
+                        <div className="flex items-center gap-1">
                             <ArrowPathSolid className="w-3 h-3 text-warning" />
-                            <span>Resubmissions: {summary.resubmissions}</span>
-                        </Box>
-                        <Box className="flex items-center gap-1">
+                            <span style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>Resubmissions: {summary.resubmissions}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
                             <ClockSolid className="w-3 h-3 text-danger" />
-                            <span>Pending: {pending}</span>
-                        </Box>
-                    </Box>
-                </CardContent>
-            </GlassCard>
+                            <span style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}>Pending: {pending}</span>
+                        </div>
+                    </div>
+                </CardBody>
+            </Card>
         );
     };
 
@@ -226,36 +327,36 @@ const DailyWorkSummaryTable = ({ filteredData }) => {
             case "date":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <CalendarDaysIcon className="w-3 h-3 text-default-500" />
-                            <Typography variant="body2" className="text-sm font-medium">
+                            <span className="text-sm font-medium">
                                 {formatDate(summary.date)}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "totalDailyWorks":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <DocumentTextIcon className="w-3 h-3 text-primary" />
-                            <Typography variant="body2" className="text-sm font-bold">
+                            <span className="text-sm font-bold">
                                 {summary.totalDailyWorks}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "resubmissions":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <ArrowPathSolid className="w-3 h-3 text-warning" />
-                            <Typography variant="body2" className="text-sm">
+                            <span className="text-sm">
                                 {summary.resubmissions}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
@@ -264,48 +365,49 @@ const DailyWorkSummaryTable = ({ filteredData }) => {
             case "pavement":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             {getWorkTypeIcon(columnKey, summary[columnKey])}
-                            <Typography variant="body2" className="text-sm">
+                            <span className="text-sm">
                                 {summary[columnKey]}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "completed":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <CheckCircleSolid className="w-3 h-3 text-success" />
-                            <Typography variant="body2" className="text-sm font-medium text-success">
+                            <span className="text-sm font-medium text-success">
                                 {summary.completed}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "pending":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <ClockSolid className="w-3 h-3 text-danger" />
-                            <Typography variant="body2" className="text-sm font-medium text-danger">
+                            <span className="text-sm font-medium text-danger">
                                 {pending}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "completionPercentage":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <Progress
                                 value={parseFloat(completionPercentage)}
                                 color={getPercentageColor(parseFloat(completionPercentage))}
                                 size="sm"
                                 className="flex-1 min-w-[80px]"
+                                aria-label={`Daily work completion: ${completionPercentage}%`}
                             />
                             <Chip
                                 size="sm"
@@ -315,26 +417,26 @@ const DailyWorkSummaryTable = ({ filteredData }) => {
                             >
                                 {completionPercentage}%
                             </Chip>
-                        </Box>
+                        </div>
                     </TableCell>
                 );
 
             case "rfiSubmissions":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <DocumentIcon className="w-3 h-3 text-info" />
-                            <Typography variant="body2" className="text-sm">
+                            <span className="text-sm">
                                 {summary.rfiSubmissions}
-                            </Typography>
-                        </Box>
+                            </span>
+                        </div>
                     </TableCell>
                 );
 
             case "rfiSubmissionPercentage":
                 return (
                     <TableCell>
-                        <Box className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                             {summary.rfiSubmissions > 0 ? (
                                 <>
                                     <Progress
@@ -342,6 +444,7 @@ const DailyWorkSummaryTable = ({ filteredData }) => {
                                         color={getPercentageColor(parseFloat(rfiSubmissionPercentage))}
                                         size="sm"
                                         className="flex-1 min-w-[80px]"
+                                        aria-label={`RFI submission percentage: ${rfiSubmissionPercentage}%`}
                                     />
                                     <Chip
                                         size="sm"
@@ -353,11 +456,11 @@ const DailyWorkSummaryTable = ({ filteredData }) => {
                                     </Chip>
                                 </>
                             ) : (
-                                <Typography variant="body2" className="text-sm text-default-400">
+                                <span className="text-sm text-default-400">
                                     -
-                                </Typography>
+                                </span>
                             )}
-                        </Box>
+                        </div>
                     </TableCell>
                 );
 
@@ -382,72 +485,137 @@ const DailyWorkSummaryTable = ({ filteredData }) => {
 
     if (isMobile) {
         return (
-            <Box className="space-y-4">
+            <div className="space-y-4" style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}>
+                {onRefresh && (
+                    <div className="flex justify-end mb-4">
+                        <Button
+                            size="sm"
+                            variant="bordered"
+                            color="primary"
+                            radius={getThemeRadius()}
+                            startContent={<ArrowPathIcon className="w-4 h-4" />}
+                            onPress={onRefresh}
+                            aria-label="Refresh daily work summary table"
+                            style={{
+                                borderRadius: `var(--borderRadius, 8px)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
+                            Refresh Summary
+                        </Button>
+                    </div>
+                )}
                 <ScrollShadow className="max-h-[70vh]">
-                    {filteredData?.map((summary, index) => (
-                        <MobileSummaryCard key={index} summary={summary} />
-                    ))}
+                    {filteredData?.length > 0 ? (
+                        filteredData.map((summary, index) => (
+                            <MobileSummaryCard key={index} summary={summary} />
+                        ))
+                    ) : (
+                        <Card
+                            className="text-center py-8"
+                            radius={getThemeRadius()}
+                            style={{
+                                border: `var(--borderWidth, 1px) solid var(--theme-divider, #E4E4E7)`,
+                                borderRadius: `var(--borderRadius, 12px)`,
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
+                            <CardBody>
+                                <ChartBarIcon className="w-12 h-12 text-default-300 mb-4 mx-auto" />
+                                <h6 className="text-lg font-semibold text-default-600 mb-2" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
+                                    No summary data found
+                                </h6>
+                                <p className="text-sm text-default-500" style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}>
+                                    No work summary available for the selected period
+                                </p>
+                            </CardBody>
+                        </Card>
+                    )}
                 </ScrollShadow>
-            </Box>
+            </div>
         );
     }
 
+    // Show loading skeleton when loading  
+    if (loading) {
+        return <DesktopLoadingSkeleton />;
+    }
+
     return (
-        <Box sx={{ maxHeight: "70vh", overflowY: "auto" }}>
+        <div className="max-h-[84vh] overflow-y-auto">
+            
             <ScrollShadow className="max-h-[70vh]">
                 <Table
-                    isStriped
                     selectionMode="none"
                     isCompact
-                    isHeaderSticky
                     removeWrapper
+                    isStriped
                     aria-label="Daily Work Summary Table"
+                    isHeaderSticky
+                    radius={getThemeRadius()}
                     classNames={{
-                        wrapper: "min-h-[200px]",
-                        table: "min-h-[300px]",
-                        thead: "[&>tr]:first:shadow-small bg-default-100/80",
-                        tbody: "divide-y divide-default-200/50",
-                        tr: "group hover:bg-default-50/50 transition-colors h-12",
-                        td: "py-2 px-3 text-sm",
-                        th: "py-2 px-3 text-xs font-semibold"
+                        base: "max-h-[520px] overflow-auto",
+                        table: "min-h-[200px] w-full",
+                        thead: "z-10",
+                        tbody: "overflow-y-auto",
+                        th: "bg-default-100 text-default-700 font-semibold",
+                        td: "text-default-600",
+                    }}
+                    style={{
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        fontFamily: `var(--fontFamily, "Inter")`,
                     }}
                 >
                     <TableHeader columns={columns}>
                         {(column) => (
                             <TableColumn 
                                 key={column.uid} 
-                                className="bg-default-100/80 backdrop-blur-md"
+                                align={column.uid === "date" ? "start" : "center"}
+                                className={`bg-default-100/80 backdrop-blur-md ${column.width || ''}`}
+                                style={{
+                                    minWidth: column.uid === "date" ? "128px" : 
+                                            column.uid === "incharge" ? "192px" :
+                                            "auto"
+                                }}
                             >
-                                <Box className="flex items-center gap-1">
+                                <div className={`flex items-center gap-1 ${column.uid === "date" ? "justify-start" : "justify-center"}`}>
                                     {column.icon && <column.icon className="w-3 h-3" />}
                                     <span className="text-xs font-semibold">{column.name}</span>
-                                </Box>
+                                </div>
                             </TableColumn>
                         )}
                     </TableHeader>
                     <TableBody 
                         items={filteredData || []}
                         emptyContent={
-                            <Box className="flex flex-col items-center justify-center py-8 text-center">
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
                                 <ChartBarIcon className="w-12 h-12 text-default-300 mb-4" />
-                                <Typography variant="h6" color="textSecondary">
+                                <h6 className="text-lg font-medium text-default-600">
                                     No summary data found
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
+                                </h6>
+                                <span className="text-sm text-default-500">
                                     No work summary available for the selected period
-                                </Typography>
-                            </Box>
+                                </span>
+                            </div>
                         }
                     >
                         {(summary) => (
-                            <TableRow key={summary.date}>
+                            <TableRow 
+                                key={summary.date} 
+                            >
                                 {(columnKey) => renderCell(summary, columnKey)}
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
             </ScrollShadow>
-        </Box>
+        </div>
     );
 };
 

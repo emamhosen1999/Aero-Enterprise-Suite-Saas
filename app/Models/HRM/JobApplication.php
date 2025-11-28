@@ -11,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class JobApplication extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'job_id',
@@ -37,7 +37,7 @@ class JobApplication extends Model implements HasMedia
         'referral_source',
         'referrer_id',
         'skills',
-        'custom_fields'
+        'custom_fields',
     ];
 
     protected $casts = [
@@ -153,6 +153,6 @@ class JobApplication extends Model implements HasMedia
      */
     public function isActive()
     {
-        return !in_array($this->status, ['rejected', 'withdrawn', 'hired', 'declined_offer']);
+        return ! in_array($this->status, ['rejected', 'withdrawn', 'hired', 'declined_offer']);
     }
 }

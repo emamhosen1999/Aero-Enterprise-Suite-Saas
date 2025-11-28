@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Letter;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class LetterController extends Controller
@@ -55,7 +54,7 @@ class LetterController extends Controller
             $letter = Letter::find($request->id);
 
             // If task not found, return 404 error response
-            if (!$letter) {
+            if (! $letter) {
                 return response()->json(['error' => 'Letter not found'], 404);
             }
 
@@ -87,55 +86,54 @@ class LetterController extends Controller
                 ];
 
                 foreach ($fields as $key => $label) {
-                    if (array_key_exists($key, $validatedData) && $letter->$key !== $validatedData[$key]) {
+                    if (array_key_exists($key, $validatedData) && $validatedData[$key] !== $letter->$key) {
                         $letter->$key = $validatedData[$key];
                         $messages[] = "{$label} updated successfully to '{$validatedData[$key]}'";
                     }
                 }
             }
 
-
             // Additional fields update checks
             if ($request->has('status')) {
                 $request->validate(['status' => 'required|string']);
                 $letter->status = $request->status;
-                $messages[] = 'Letter status updated to ' . $letter->status;
+                $messages[] = 'Letter status updated to '.$letter->status;
             }
             if ($request->has('handling_status')) {
                 $request->validate(['handling_status' => 'required|string']);
                 $letter->handling_status = $request->handling_status;
-                $messages[] = 'Letter handling status updated to ' . $letter->handling_status;
+                $messages[] = 'Letter handling status updated to '.$letter->handling_status;
             }
             if ($request->has('received_date')) {
                 $request->validate(['received_date' => 'required|date']);
                 $letter->received_date = $request->received_date;
-                $messages[] = 'Letter received date updated to ' . $letter->received_date;
+                $messages[] = 'Letter received date updated to '.$letter->received_date;
             }
             if ($request->has('action_taken')) {
                 $request->validate(['action_taken' => 'nullable|string']);
                 $letter->action_taken = $request->action_taken;
-                $messages[] = 'Letter action taken updated to ' . $letter->action_taken;
+                $messages[] = 'Letter action taken updated to '.$letter->action_taken;
             }
             if ($request->has('need_reply')) {
                 $letter->need_reply = $request->need_reply;
-                $messages[] = $letter->memo_number . ' letter set to ' . ($request->need_reply ? 'needs reply' : 'does not need reply');
+                $messages[] = $letter->memo_number.' letter set to '.($request->need_reply ? 'needs reply' : 'does not need reply');
             }
             if ($request->has('forwarded_status')) {
                 $letter->forwarded_status = $request->forwarded_status;
-                $messages[] = $letter->memo_number . ' letter set to ' . ($request->forwarded_status ? 'forwarded' : 'not forwarded');
+                $messages[] = $letter->memo_number.' letter set to '.($request->forwarded_status ? 'forwarded' : 'not forwarded');
             }
             if ($request->has('need_forward')) {
                 $letter->need_forward = $request->need_forward;
-                $messages[] = $letter->memo_number . ' letter set to ' . ($request->need_forward ? 'needs forward' : 'does not need forward');
+                $messages[] = $letter->memo_number.' letter set to '.($request->need_forward ? 'needs forward' : 'does not need forward');
             }
             if ($request->has('replied_status')) {
                 $letter->replied_status = $request->replied_status;
-                $messages[] = $letter->memo_number . ' letter set to ' . ($request->replied_status ? 'replied' : 'not replied');
+                $messages[] = $letter->memo_number.' letter set to '.($request->replied_status ? 'replied' : 'not replied');
             }
 
             if ($request->has('dealt_by')) {
                 $letter->dealt_by = $request->dealt_by;
-                $messages[] = $letter->memo_number . ' letter dealt by ' . (User::find($request->dealt_by)->name ?? 'Unknown');
+                $messages[] = $letter->memo_number.' letter dealt by '.(User::find($request->dealt_by)->name ?? 'Unknown');
             }
             if ($request->has('completion_time')) {
                 $letter->completion_time = $request->completion_time;
@@ -155,6 +153,7 @@ class LetterController extends Controller
             if ($e instanceof \Illuminate\Session\TokenMismatchException) {
                 return response()->json(['error' => 'CSRF token mismatch'], 419);
             }
+
             // Other exceptions occurred, return error response
             return response()->json(['error' => $e->getMessage()], 500);
         }

@@ -1,549 +1,527 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Box, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { usePage } from "@inertiajs/react";
-import useTheme from "@/theme.jsx";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import '../../css/theme-transitions.css';
-import '../../css/smooth-animations.css';
 import { Inertia } from '@inertiajs/inertia';
 import { getPages } from '@/Props/pages.jsx';
 import { getSettingsPages } from '@/Props/settings.jsx';
-import { getSuperAdminPages } from '@/Props/superAdminPages.jsx';
-import { getSuperAdminSettingsPages } from '@/Props/superAdminSettings.jsx';
-import { HeroUIProvider } from "@heroui/react";
-import { applyThemeToRoot } from "@/utils/themeUtils.js";
-import {ScrollShadow} from "@heroui/scroll-shadow";
+import { ScrollShadow, Divider } from "@heroui/react";
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Direct imports - eager loading with smooth animations
 import Header from "@/Layouts/Header.jsx";
 import Sidebar from "@/Layouts/Sidebar.jsx";
 import Breadcrumb from "@/Components/Breadcrumb.jsx";
 import BottomNav from "@/Layouts/BottomNav.jsx";
-import SessionExpiredModal from '@/Components/SessionExpiredModal.jsx';
 import ThemeSettingDrawer from "@/Components/ThemeSettingDrawer.jsx";
+import UpdateNotification from '@/Components/UpdateNotification.jsx';
 import { FadeIn, SlideIn } from '@/Components/Animations/SmoothAnimations';
+import { useVersionManager } from '@/Hooks/useVersionManager.js';
+import AuthGuard from '@/Components/AuthGuard.jsx';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { TranslationProvider } from '@/Contexts/TranslationContext';
+import { GlobalAutoTranslator } from '@/Contexts/GlobalAutoTranslator';
+import { AppStateProvider } from '@/Contexts/AppStateContext';
 
+import '@/utils/serviceWorkerManager.js';
 import axios from 'axios';
 
-/**
- * Enhanced App Layout Component
- * Optimized for performance with direct component imports (eager loading)
- */
-function App({ children }) {
-    // ===== STATE MANAGEMENT =====
-    const [sessionExpired, setSessionExpired] = useState(false);
-    const [scrolled, setScrolled] = useState(false); // Track scroll position for shadow effect
-    let { auth, app, url, csrfToken } = usePage().props;
-    
-    // Memoize auth to prevent unnecessary re-renders
-    const memoizedAuth = useMemo(() => ({
-        user: auth?.user,
-        permissions: auth?.permissions,
-        id: auth?.user?.id,
-        permissionCount: auth?.permissions?.length
-    }), [auth?.user?.id, auth?.permissions?.length]);
-    
-    // Initialize persistent state with localStorage (only once per app lifecycle)
-    const [sideBarOpen, setSideBarOpen] = useState(() => {
-        try {
-            const saved = localStorage.getItem('sidebar-open');
-            return saved !== null ? JSON.parse(saved) : false;
-        } catch {
-            return false;
-        }
-    });
-    
-    const [darkMode, setDarkMode] = useState(() => {
-        try {
-            return localStorage.getItem('darkMode') === 'true';
-        } catch {
-            return false;
-        }
-    });
-    
-    const [themeColor, setThemeColor] = useState(() => {
-        try {
-            const stored = localStorage.getItem('themeColor');
-            return stored ? JSON.parse(stored) : {
-                name: "OCEAN", 
-                primary: "#0ea5e9", 
-                secondary: "#0284c7",
-                gradient: "from-sky-500 to-blue-600",
-                description: "Ocean Blue - Professional & Trustworthy"
-            };
-        } catch {
-            return {
-                name: "OCEAN", 
-                primary: "#0ea5e9", 
-                secondary: "#0284c7",
-                gradient: "from-sky-500 to-blue-600",
-                description: "Ocean Blue - Professional & Trustworthy"
-            };
-        }
-    });
-    
-    const [themeDrawerOpen, setThemeDrawerOpen] = useState(false);
-    const [bottomNavHeight, setBottomNavHeight] = useState(0);
-    const [loading, setLoading] = useState(false);
+// ===== STATIC LAYOUT CONTEXT =====
+// This context provides a stable API for header and sidebar to access layout state
+// without causing re-renders when that state changes
+const LayoutContext = React.createContext({
+  sideBarOpen: false,
+  toggleSideBar: () => {},
+  currentUrl: '',
+  pages: [],
+  auth: null,
+  app: null
+});
 
-    // Persistent refs
-    const contentRef = useRef(null);
-    const mainContentRef = useRef(null); // Reference for scroll shadow effect
-    const sessionCheckRef = useRef(null);
-    const layoutInitialized = useRef(false);
-
-    // ===== MEMOIZED COMPUTATIONS =====
-    // Memoize permissions and pages - critical for performance
-    const permissions = useMemo(() => memoizedAuth?.permissions || [], [memoizedAuth?.permissions]);
-    
-    const pages = useMemo(() => {
-        // Check if user is super admin and should see super admin navigation
-        if (memoizedAuth?.roles?.includes('Super Administrator')) {
-            const isSettingsPage = url.startsWith('/settings') || url.includes('settings');
-            return isSettingsPage ? getSuperAdminSettingsPages(permissions, memoizedAuth) : getSuperAdminPages(permissions, memoizedAuth);
-        }
-        
-        // Regular tenant user navigation
-        const isSettingsPage = url.startsWith('/settings') || url.includes('settings');
-        return isSettingsPage ? getSettingsPages(permissions, memoizedAuth) : getPages(permissions, memoizedAuth);
-    }, [url, permissions, memoizedAuth]);
-
-    // Theme and media query
-    const theme = useTheme(darkMode, themeColor);
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-    // ===== OPTIMIZED TOGGLE HANDLERS =====
-    const toggleDarkMode = useCallback(() => {
-        setDarkMode(prev => {
-            const newValue = !prev;
-            // Use RAF for smoother UI updates
-            requestAnimationFrame(() => {
-                localStorage.setItem('darkMode', newValue);
-            });
-            return newValue;
-        });
-    }, []);
-    
-    const toggleThemeColor = useCallback((color) => {
-        setThemeColor(color);
-        requestAnimationFrame(() => {
-            localStorage.setItem('themeColor', JSON.stringify(color));
-        });
-    }, []);
-    
-    const toggleThemeDrawer = useCallback(() => {
-        setThemeDrawerOpen(prev => !prev);
-    }, []);
-    
-    const toggleSideBar = useCallback(() => {
-        setSideBarOpen(prev => {
-            const newValue = !prev;
-            // Use RAF for smoother animations
-            requestAnimationFrame(() => {
-                localStorage.setItem('sidebar-open', JSON.stringify(newValue));
-            });
-            return newValue;
-        });
-    }, []);
-
+// ===== COMPLETELY STATIC HEADER WRAPPER =====
+// This component renders ONCE and never re-renders, regardless of any prop changes
+const StaticHeaderWrapper = React.memo(() => {
+  const contextValue = React.useContext(LayoutContext);
+  const [mounted, setMounted] = useState(false);
   
-    // ===== INITIALIZATION EFFECTS =====
-    // Initialize Firebase only when user is authenticated (one-time setup)
-    useEffect(() => {
-        if (!memoizedAuth?.user || layoutInitialized.current) return;
+  // Capture initial context values and freeze them
+  const frozenContext = useRef(contextValue);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  if (!mounted) return null;
+  
+  return (
+    <Header
+      url={frozenContext.current.currentUrl}
+      pages={frozenContext.current.pages}
+      toggleSideBar={frozenContext.current.toggleSideBar}
+      sideBarOpen={frozenContext.current.sideBarOpen}
+    />
+  );
+}, () => true); // Always return true to prevent ANY re-renders
 
-        let mounted = true;
-        
-        const loadFirebase = async () => {
-            try {
-                const { initFirebase } = await import("@/utils/firebaseInit.js");
-                if (mounted) {
-                    await initFirebase();
-                    layoutInitialized.current = true;
-                }
-            } catch (error) {
-                console.warn('Firebase initialization failed:', error);
-            }
-        };
+StaticHeaderWrapper.displayName = 'StaticHeaderWrapper';
 
-        loadFirebase();
-        
-        return () => {
-            mounted = false;
-        };
-    }, [memoizedAuth?.user?.id]);
+// ===== COMPLETELY STATIC SIDEBAR WRAPPER =====
+// This component renders ONCE and never re-renders, regardless of any prop changes
+const StaticSidebarWrapper = React.memo(() => {
+  const contextValue = React.useContext(LayoutContext);
+  const [mounted, setMounted] = useState(false);
+  
+  // Capture initial context values and freeze them
+  const frozenContext = useRef(contextValue);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  if (!mounted) return null;
+  
+  return (
+    <Sidebar
+      url={frozenContext.current.currentUrl}
+      pages={frozenContext.current.pages}
+      toggleSideBar={frozenContext.current.toggleSideBar}
+      sideBarOpen={frozenContext.current.sideBarOpen}
+    />
+  );
+}, () => true); // Always return true to prevent ANY re-renders
 
-    // Apply theme to root with optimized scheduling
-    useEffect(() => {
-        // Apply theme immediately
-        applyThemeToRoot(themeColor, darkMode);
-        
-        // Initialize background pattern from localStorage
-        const savedBackground = localStorage.getItem('aero-hr-background');
-        const backgroundPattern = savedBackground || 'pattern-glass-1'; 
-        
-        // Apply background pattern immediately
-        document.documentElement.setAttribute('data-background', backgroundPattern);
-        
-        // Apply theme mode for background variations
-        document.body.setAttribute('data-theme-mode', darkMode ? 'dark' : 'light');
-        
-        // Force immediate background application with theme colors for overlays
-        const root = document.documentElement;
-        root.style.setProperty('--theme-primary-rgb', hexToRgb(themeColor.primary));
-        root.style.setProperty('--theme-secondary-rgb', hexToRgb(themeColor.secondary));
-        root.style.setProperty('--theme-primary', themeColor.primary);
-        root.style.setProperty('--theme-secondary', themeColor.secondary);
-    }, [darkMode, themeColor]);
+StaticSidebarWrapper.displayName = 'StaticSidebarWrapper';
 
-    // Helper function to convert hex to RGB
-    const hexToRgb = (hex) => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        if (result) {
-            const r = parseInt(result[1], 16);
-            const g = parseInt(result[2], 16);
-            const b = parseInt(result[3], 16);
-            return `${r}, ${g}, ${b}`;
+// ===== MEMOIZED PAGE CONTENT =====
+const PageContent = React.memo(({ children, url }) => (
+  <AnimatePresence mode="wait">
+    <motion.div
+      key={url}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{
+        opacity: 1,
+        y: 0,
+        transition: {
+          duration: 0.3,
+          ease: "easeOut"
         }
-        return '14, 165, 233'; // fallback to ocean blue
+      }}
+      exit={{
+        opacity: 0,
+        y: -10,
+        transition: {
+          duration: 0.2,
+          ease: "easeIn"
+        }
+      }}
+      className="w-full"
+    >
+      {children}
+    </motion.div>
+  </AnimatePresence>
+));
+PageContent.displayName = 'PageContent';
+
+// ===== MAIN APP LAYOUT =====
+const App = React.memo(({ children }) => {
+  // ===== CORE STATE MANAGEMENT =====
+  const [loading, setLoading] = useState(false);
+  const [sideBarOpen, setSideBarOpen] = useState(() => {
+    try {
+      const stored = localStorage.getItem('sidebarOpen');
+      return stored ? JSON.parse(stored) : false;
+    } catch {
+      return false;
+    }
+  });
+  const [themeDrawerOpen, setThemeDrawerOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Get global page props
+  const { auth, app, url, roles } = usePage().props;
+
+  // Version manager for update notifications
+  const {
+    currentVersion,
+    isUpdateAvailable,
+    isChecking,
+    forceUpdate,
+    dismissUpdate
+  } = useVersionManager();
+
+  // ===== STATIC REFERENCE DATA (Never Changes After Initial Calculation) =====
+  // These values are calculated ONCE and then frozen to prevent any re-renders
+  const staticLayoutData = useMemo(() => {
+    const currentAuth = {
+      user: auth?.user,
+      permissions: auth?.permissions,
+      roles: auth?.roles,
+      id: auth?.user?.id,
+      permissionCount: auth?.permissions?.length
     };
-    
-    // Session check with optimized interval (persistent across navigations)
-    useEffect(() => {
-        if (!memoizedAuth?.user) return;
 
-        const checkSession = async () => {
-            try {
-                const response = await axios.get('/session-check');
-                if (!response.data.authenticated) {
-                    setSessionExpired(true);
-                    if (sessionCheckRef.current) {
-                        clearInterval(sessionCheckRef.current);
-                        sessionCheckRef.current = null;
-                    }
-                }
-            } catch (error) {
-                console.error('Session check failed:', error);
-                setSessionExpired(true);
-                if (sessionCheckRef.current) {
-                    clearInterval(sessionCheckRef.current);
-                    sessionCheckRef.current = null;
-                }
-            }
-        };
+    const permissions = currentAuth?.permissions || [];
+    const roles = currentAuth?.roles || [];
+    const isSettingsPage = url.startsWith('/settings') || url.includes('settings');
+    const pages = isSettingsPage 
+      ? getSettingsPages(permissions, currentAuth) 
+      : getPages(roles, permissions, currentAuth);
 
-        // Initial check after 10 seconds, then every 30 seconds
-        const initialTimeout = setTimeout(() => {
-            checkSession();
-            sessionCheckRef.current = setInterval(checkSession, 30000);
-        }, 10000);
+    return {
+      currentAuth,
+      permissions,
+      roles,
+      pages,
+      app,
+      url
+    };
+  }, []); // Empty dependency array - calculate ONLY ONCE
 
-        return () => {
-            clearTimeout(initialTimeout);
-            if (sessionCheckRef.current) {
-                clearInterval(sessionCheckRef.current);
-            }
-        };
-    }, [memoizedAuth?.user?.id]);
-        
-    // CSRF token setup (persistent)
-    useEffect(() => {
-        if (csrfToken) {
-            document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', csrfToken);
-            axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+  // Responsive breakpoints
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // Persistent refs
+  const contentRef = useRef(null);
+  const mainContentRef = useRef(null);
+  const layoutInitialized = useRef(false);
+
+  // ===== STATIC HANDLERS (Never Change Reference) =====
+  // These handlers maintain stable references to prevent re-renders
+  const staticToggleSideBar = useCallback(() => {
+    setSideBarOpen(prev => {
+      const newValue = !prev;
+      try {
+        localStorage.setItem('sidebarOpen', JSON.stringify(newValue));
+        localStorage.setItem('sidebar_has_interacted', 'true');
+      } catch (error) {
+        console.warn('Failed to save sidebar state to localStorage:', error);
+      }
+      return newValue;
+    });
+  }, []); // Empty dependency array - stable reference
+
+  const staticToggleThemeDrawer = useCallback(() => {
+    setThemeDrawerOpen(prev => !prev);
+  }, []); // Empty dependency array - stable reference
+
+  const staticCloseThemeDrawer = useCallback(() => {
+    setThemeDrawerOpen(false);
+  }, []); // Explicit close function
+
+  const staticHandleUpdate = useCallback(async () => {
+    setIsUpdating(true);
+    try {
+      await forceUpdate();
+    } catch (error) {
+      console.error('Update failed:', error);
+      setIsUpdating(false);
+    }
+  }, [forceUpdate]);
+
+  // ===== STATIC CONTEXT VALUE (Frozen After Initial Render) =====
+  // This context value is set ONCE and never changes to prevent any re-renders
+  const staticContextValue = useMemo(() => ({
+    sideBarOpen: false, // Always start with false - visual state managed by components internally
+    toggleSideBar: staticToggleSideBar,
+    currentUrl: staticLayoutData.url,
+    pages: staticLayoutData.pages,
+    auth: staticLayoutData.currentAuth,
+    app: staticLayoutData.app
+  }), []); // Empty dependency array - freeze the context value
+
+  // ===== EFFECTS (Same as before) =====
+  // Firebase initialization
+  useEffect(() => {
+    if (!staticLayoutData.currentAuth?.user || layoutInitialized.current) return;
+    let mounted = true;
+    const loadFirebase = async () => {
+      try {
+        const { initFirebase } = await import("@/utils/firebaseInit.js");
+        if (mounted) {
+          await initFirebase();
+          layoutInitialized.current = true;
         }
-    }, [csrfToken]);
+      } catch (error) {
+        console.warn('Firebase initialization failed:', error);
+      }
+    };
+    loadFirebase();
+    return () => { mounted = false; };
+  }, [staticLayoutData.currentAuth?.user?.id]);
 
-    // Inertia loading state with throttling (optimized for SPA navigation)
-    useEffect(() => {
-        let loadingTimeout;
-        
-        const start = () => {
-            // Only show loading for longer operations
-            loadingTimeout = setTimeout(() => setLoading(true), 250);
-        };
-        
-        const finish = () => {
-            clearTimeout(loadingTimeout);
-            setLoading(false);
-        };
-        
-        const unStart = Inertia.on('start', start);
-        const unFinish = Inertia.on('finish', finish);
-        
-        return () => {
-            clearTimeout(loadingTimeout);
-            unStart();
-            unFinish();
-        };
-    }, []);
+  // Theme background
+  useEffect(() => {
+    const savedBackground = localStorage.getItem('aero-hr-background');
+    const backgroundPattern = savedBackground || 'pattern-glass-1';
+    document.documentElement.setAttribute('data-background', backgroundPattern);
+  }, []);
 
-   
-
-    // Hide app loading screen with improved timing (one-time initialization)
-    useEffect(() => {
-        if (memoizedAuth?.user && window.AppLoader) {
-            // Give components time to mount and render
-            const timer = setTimeout(() => {
-                window.AppLoader.updateLoadingMessage('Almost ready...', 'Loading your dashboard');
-                
-                // Final hide after a brief moment
-                setTimeout(() => {
-                    window.AppLoader.hideLoading();
-                }, 300);
-            }, 200);
-            
-            return () => clearTimeout(timer);
+  // Responsive sidebar auto-close
+  useEffect(() => {
+    if (isMobile && sideBarOpen) {
+      const hasInteracted = localStorage.getItem('sidebar_has_interacted');
+      if (hasInteracted) {
+        setSideBarOpen(false);
+        try {
+          localStorage.setItem('sidebarOpen', JSON.stringify(false));
+        } catch (error) {
+          console.warn('Failed to save responsive sidebar state:', error);
         }
-    }, [memoizedAuth?.user]);
+      }
+    }
+  }, [isMobile]);
 
-    // ===== ENHANCED MEMOIZED LAYOUT COMPONENTS WITH ANIMATIONS =====
-    // These components are memoized to prevent re-rendering on page navigation
-    // with smooth entry animations for better UX
-    const headerContent = useMemo(() => (
-        memoizedAuth?.user ? (
-            <FadeIn delay={0.1} direction="down" duration={0.5}>
-                <Header
-                    url={url}
-                    pages={pages}
-                    darkMode={darkMode}
-                    toggleDarkMode={toggleDarkMode}
-                    toggleThemeDrawer={toggleThemeDrawer}
-                    sideBarOpen={sideBarOpen}
-                    toggleSideBar={toggleSideBar}
-                    themeDrawerOpen={themeDrawerOpen}
-                />
-            </FadeIn>
-        ) : null
-    ), [url, pages, darkMode, toggleDarkMode, toggleThemeDrawer, sideBarOpen, toggleSideBar, themeDrawerOpen, memoizedAuth?.user]);
+  // Session authentication is now handled by AuthGuard component
+  // No need for redundant session checking here
 
-    const sidebarContent = useMemo(() => (
-        memoizedAuth?.user ? (
-            <SlideIn direction="left" delay={0.2} duration={0.6}>
-                <Sidebar 
-                    url={url} 
-                    pages={pages} 
-                    toggleSideBar={toggleSideBar}
-                    sideBarOpen={sideBarOpen}
-                />
-            </SlideIn>
-        ) : null
-    ), [pages, toggleSideBar, sideBarOpen, memoizedAuth?.user]);
+  // Inertia loading state
+  useEffect(() => {
+    let loadingTimeout;
+    const start = () => {
+      loadingTimeout = setTimeout(() => setLoading(true), 250);
+    };
+    const finish = () => {
+      clearTimeout(loadingTimeout);
+      setLoading(false);
+    };
+    const unStart = Inertia.on('start', start);
+    const unFinish = Inertia.on('finish', finish);
+    return () => {
+      clearTimeout(loadingTimeout);
+      unStart();
+      unFinish();
+    };
+  }, []);
 
-    const breadcrumbContent = useMemo(() => (
-        memoizedAuth?.user ? (
-            <FadeIn delay={0.3} direction="right" duration={0.4}>
-                <Breadcrumb />
-            </FadeIn>
-        ) : null
-    ), [memoizedAuth?.user]);
+  // Hide app loading screen
+  useEffect(() => {
+    if (staticLayoutData.currentAuth?.user && window.AppLoader) {
+      const timer = setTimeout(() => {
+        window.AppLoader.updateLoadingMessage('Almost ready...', 'Loading your dashboard');
+        setTimeout(() => {
+          window.AppLoader.hideLoading();
+        }, 300);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [staticLayoutData.currentAuth?.user]);
 
-    const bottomNavContent = useMemo(() => (
-        memoizedAuth?.user && isMobile ? (
-            <SlideIn direction="up" delay={0.4} duration={0.5}>
-                <BottomNav
-                    setBottomNavHeight={setBottomNavHeight}
-                    contentRef={contentRef}
-                    auth={memoizedAuth}
-                    toggleSideBar={toggleSideBar}
-                    sideBarOpen={sideBarOpen}
-                />
-            </SlideIn>
-        ) : null
-    ), [memoizedAuth?.user, isMobile, setBottomNavHeight, toggleSideBar, sideBarOpen]);
+  // ===== MEMOIZED COMPONENTS THAT CAN RE-RENDER =====
+  const breadcrumbContent = useMemo(() => {
+    // Show breadcrumb for all pages, not just authenticated users
+    return <Breadcrumb />;
+  }, [url]);
 
-    // ===== RENDER =====
+  const bottomNavContent = useMemo(() => {
+    if (!staticLayoutData.currentAuth?.user || !isMobile) return null;
     return (
-        <ThemeProvider theme={theme}>
-            <HeroUIProvider>
-                {/* Global modals and overlays */}
-                {sessionExpired && (
-                    <SessionExpiredModal setSessionExpired={setSessionExpired}/>
-                )}
-                
-                <ThemeSettingDrawer
-                    toggleThemeColor={toggleThemeColor}
-                    themeColor={themeColor}
-                    darkMode={darkMode}
-                    toggleDarkMode={toggleDarkMode}
-                    toggleThemeDrawer={toggleThemeDrawer}
-                    themeDrawerOpen={themeDrawerOpen}
-                />
-                
-                <ToastContainer
-                    position="top-center"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="colored"
-                />
-                
-                <CssBaseline />
-                
-                {/* Main layout container */}
-                <main id="app-main" className={`${darkMode ? "dark" : "light"}`}>
-                    
-                    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-                        {/* Mobile overlay */}
-                        {isMobile && sideBarOpen && (
-                            <Box
-                                onClick={toggleSideBar}
-                                sx={{
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    bgcolor: 'rgba(0,0,0,0.5)',
-                                    zIndex: 1199,
-                                    transition: 'opacity 0.2s ease',
-                                    willChange: 'opacity',
-                                }}
-                            />
-                        )}
-                        
-                        {/* Persistent Sidebar */}
-                        {sidebarContent && (
-                            <Box
-                                sx={{
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    height: '100vh', // Fixed to viewport height
-                                    zIndex: 1200,
-                                    width: isMobile ? '280px' : '280px',
-                                    transform: sideBarOpen ? 'translate3d(0, 0, 0)' : 'translate3d(-100%, 0, 0)',
-                                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    overflow: 'hidden', // Prevent container scrolling
-                                    willChange: 'transform',
-                                    backfaceVisibility: 'hidden',
-                                    WebkitBackfaceVisibility: 'hidden',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    boxShadow: sideBarOpen ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
-                                }}
-                            >
-                                {sidebarContent}
-                            </Box>
-                        )}
-
-                        {/* Main content area - this is where page content updates */}
-                        <Box
-                            ref={contentRef}
-                            sx={{
-                                pb: `${bottomNavHeight}px`,
-                                display: 'flex',
-                                flex: 1,
-                                transition: 'margin 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                marginLeft: { 
-                                    xs: 0, 
-                                    md: sideBarOpen ? '280px' : '0' 
-                                },
-                                width: { 
-                                    xs: '100%', 
-                                    md: sideBarOpen ? 'calc(100% - 280px)' : '100%' 
-                                },
-                                minWidth: 0,
-                                maxWidth: '100vw',
-                                willChange: 'margin, width',
-                                flexDirection: 'column',
-                                height: '100vh',
-                                overflow: 'hidden', // Changed from 'auto' to 'hidden'
-                                position: 'relative',
-                            }}
-                        >
-                        
-
-                            {/* Persistent Header */}
-                            <Box
-                                sx={{
-                                    position: 'sticky',
-                                    top: 0,
-                                    zIndex: 5,
-                                
-                                }}
-                            >
-                                {headerContent}
-                                {breadcrumbContent}
-                            </Box>
-                            
-                            {/* Dynamic page content with smooth transitions */}
-                            <Box
-                                ref={mainContentRef}
-                                component="section"
-                                sx={{
-                                    flex: 1,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    overflow: 'auto',
-                                    position: 'relative',
-                                    WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
-                                    scrollbarWidth: 'thin',
-                                    '&::-webkit-scrollbar': {
-                                        width: '6px',
-                                    },
-                                    '&::-webkit-scrollbar-thumb': {
-                                        backgroundColor: theme => theme.palette.mode === 'dark' 
-                                            ? 'rgba(255,255,255,0.2)' 
-                                            : 'rgba(0,0,0,0.2)',
-                                        borderRadius: '3px',
-                                    },
-                                
-                                }}
-                                role="main"
-                                aria-label="Main content"
-                            >
-                                <ScrollShadow>
-                                    <motion.div
-                                        key={url} // Re-trigger animation on route change
-                                        initial={{ opacity: 0, y: 10, scale: 0.99 }}
-                                        animate={{ 
-                                            opacity: 1, 
-                                            y: 0, 
-                                            scale: 1,
-                                            transition: {
-                                                duration: 0.4,
-                                                ease: "easeOut"
-                                            }
-                                        }}
-                                        exit={{ 
-                                            opacity: 0, 
-                                            y: -5, 
-                                            scale: 1.01,
-                                            transition: {
-                                                duration: 0.2,
-                                                ease: "easeIn"
-                                            }
-                                        }}
-                                        style={{
-                                            width: '100%',
-                                            maxWidth: '100%',
-                                            margin: '0 auto'
-                                        }}
-                                    >
-                                        {children}
-                                    </motion.div>
-                                </ScrollShadow>
-                            </Box>
-                            
-                           
-                            
-                            {/* Persistent Bottom Navigation */}
-                            {bottomNavContent}
-                        </Box>
-                    </Box>
-                </main>
-            </HeroUIProvider>
-        </ThemeProvider>
+      <BottomNav
+  
+        contentRef={contentRef}
+        auth={staticLayoutData.currentAuth}
+        toggleSideBar={staticToggleSideBar}
+        sideBarOpen={sideBarOpen}
+        toggleThemeDrawer={staticToggleThemeDrawer}
+      />
     );
-}
+  }, [staticLayoutData.currentAuth?.user?.id, isMobile, sideBarOpen, staticToggleSideBar, staticToggleThemeDrawer]);
 
-// Export with memo to prevent unnecessary re-renders
-export default React.memo(App);
+  const themeDrawer = useMemo(() => (
+    <ThemeSettingDrawer
+      isOpen={themeDrawerOpen}
+      onClose={staticCloseThemeDrawer}
+    />
+  ), [themeDrawerOpen, staticCloseThemeDrawer]);
+
+  // ===== RENDER =====
+  return (
+    <TranslationProvider>
+      <GlobalAutoTranslator>
+        <AppStateProvider>
+          <LayoutContext.Provider value={staticContextValue}>
+            {/* Theme Settings Drawer */}
+            {themeDrawer}
+
+            <AuthGuard auth={auth} url={url}>
+          <div className="relative w-full h-screen overflow-hidden">
+            {/* Global Overlays and Modals */}
+            <UpdateNotification
+              isVisible={isUpdateAvailable}
+              onUpdate={staticHandleUpdate}
+              onDismiss={dismissUpdate}
+              isUpdating={isUpdating}
+              version={currentVersion}
+            />
+
+            <ToastContainer
+              position="top-center"
+              autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            
+            theme="colored"
+          />
+
+          {/* Floating Theme Settings Button - Hidden on Mobile */}
+          {staticLayoutData.currentAuth?.user && !isMobile && (
+            <div className="fixed bottom-8 right-8 z-50">
+              <motion.button
+                onClick={staticToggleThemeDrawer}
+                className="
+                  flex items-center justify-center
+                  w-16 h-16 
+                  bg-primary text-primary-foreground
+                  rounded-full shadow-xl hover:shadow-2xl
+                  transition-all duration-300 ease-out
+                  hover:scale-110 active:scale-95
+                  border-3 border-primary-200
+                  backdrop-blur-sm
+                  relative
+                "
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.4, type: "spring", stiffness: 260, damping: 20 }}
+              >
+                <svg 
+                  className="w-6 h-6" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+                  />
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                  />
+                </svg>
+              </motion.button>
+            </div>
+          )}
+
+          {/* Main Application Layout */}
+          <div className="flex h-full overflow-hidden">
+            {/* Mobile Sidebar Overlay */}
+            <AnimatePresence>
+              {isMobile && sideBarOpen && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.25,
+                    ease: [0.4, 0.0, 0.2, 1]
+                  }}
+                  onClick={staticToggleSideBar}
+                  className="fixed inset-0 bg-black/50 z-[40] lg:hidden backdrop-blur-sm"
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Sidebar: COMPLETELY STATIC - Never re-renders */}
+            <AnimatePresence mode="wait">
+              {sideBarOpen && (
+                <motion.aside
+                  initial={isMobile ?
+                    { x: "-100%", opacity: 0 } :
+                    { width: 0, opacity: 0 }
+                  }
+                  animate={isMobile ?
+                    { x: "0%", opacity: 1 } :
+                    { width: "auto", opacity: 1 }
+                  }
+                  exit={isMobile ?
+                    { x: "-100%", opacity: 0 } :
+                    { width: 0, opacity: 0 }
+                  }
+                  transition={{
+                    duration: isMobile ? 0.3 : 0.4,
+                    ease: [0.4, 0.0, 0.2, 1],
+                    opacity: { duration: isMobile ? 0.2 : 0.3 }
+                  }}
+                  className={`
+                    ${isMobile 
+                      ? 'fixed top-0 left-0 h-full z-[50]' 
+                      : 'relative h-full'
+                    }
+                    border-r border-divider
+                    flex-shrink-0
+                    overflow-hidden
+                  `}
+                >
+                  <StaticSidebarWrapper />
+                </motion.aside>
+              )}
+            </AnimatePresence>
+
+            {/* Main Content */}
+            <motion.main
+              ref={contentRef}
+              className="flex flex-1 flex-col h-full overflow-hidden"
+             
+              animate={{
+                transition: { 
+                  duration: 0.4, 
+                  ease: [0.4, 0.0, 0.2, 1]
+                }
+              }}
+            >
+              {/* Header: COMPLETELY STATIC - Never re-renders */}
+              <header className="sticky top-0 z-[30] border-b border-divider">
+                <StaticHeaderWrapper />
+                <Divider />
+                {breadcrumbContent}
+              </header>
+
+              {/* Page Content */}
+              <section 
+                ref={mainContentRef}
+                className="flex-1 overflow-auto"
+                role="main"
+                aria-label="Main content"
+              >
+                <ScrollShadow 
+                  className="h-full"
+                  hideScrollBar={false}
+                  size={40}
+                >
+                  <div className="min-h-full">
+                    <PageContent url={url}>
+                      {children}
+                    </PageContent>
+                  </div>
+                </ScrollShadow>
+              </section>
+
+              {/* Bottom Navigation */}
+              <footer className="sticky bottom-0 z-[30] border-t border-divider">
+                {bottomNavContent}
+                <Divider />
+              </footer>
+              {}
+            </motion.main>
+          </div>
+        </div>
+      </AuthGuard>
+    </LayoutContext.Provider>
+        </AppStateProvider>
+      </GlobalAutoTranslator>
+    </TranslationProvider>
+  );
+});
+
+App.displayName = 'App';
+
+export default App;

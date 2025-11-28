@@ -23,7 +23,7 @@ class Department extends Model
         'manager_id',
         'location',
         'is_active',
-        'established_date'
+        'established_date',
     ];
 
     protected $casts = [
@@ -88,6 +88,7 @@ class Department extends Model
     {
         $array = parent::toArray();
         $array['employee_count'] = $this->employees()->count();
+
         return $array;
     }
 }

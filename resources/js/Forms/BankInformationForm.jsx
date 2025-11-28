@@ -1,22 +1,33 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import {
-    CircularProgress,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Grid,
-    IconButton,
-    TextField,
-    Typography
-} from "@mui/material";
-import ClearIcon from '@mui/icons-material/Clear';
-import {useTheme} from "@mui/material/styles";
-import LoadingButton from "@mui/lab/LoadingButton";
-import {toast} from "react-toastify";
-import GlassDialog from "@/Components/GlassDialog.jsx";
-
+    Spinner,
+    Input,
+    Button,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
+} from "@heroui/react";
+import { X, CreditCard } from 'lucide-react';
+import { showToast } from "@/utils/toastUtils";
 
 const BankInformationForm = ({ user, setUser, open, closeModal }) => {
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
     const [initialUserData, setInitialUserData] = useState({
         id: user.id,
         bank_name: user.bank_name || '', // Default to empty string if not provided
@@ -31,8 +42,6 @@ const BankInformationForm = ({ user, setUser, open, closeModal }) => {
     const [dataChanged, setDataChanged] = useState(false);
     const [errors, setErrors] = useState({});
     const [processing, setProcessing] = useState(false);
-
-    const theme = useTheme();
 
     const handleChange = (key, value) => {
         setInitialUserData((prevUser) => {
@@ -85,13 +94,13 @@ const BankInformationForm = ({ user, setUser, open, closeModal }) => {
             if (response.status === 200) {
                 setUser(response.data.user);
                 setErrors({});
-                toast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Bank information updated successfully', {
+                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Bank information updated successfully', {
                     icon: '🟢',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 closeModal();
@@ -105,49 +114,49 @@ const BankInformationForm = ({ user, setUser, open, closeModal }) => {
                 if (error.response.status === 422) {
                     // Handle validation errors
                     setErrors(error.response.data.errors || {});
-                    toast.error(error.response.data.error || 'Failed to update bank information.', {
+                    showToast.error(error.response.data.error || 'Failed to update bank information.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 } else {
                     // Handle other HTTP errors
-                    toast.error('An unexpected error occurred. Please try again later.', {
+                    showToast.error('An unexpected error occurred. Please try again later.', {
                         icon: '🔴',
                         style: {
                             backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
+                            background: 'var(--theme-content1)',
+                            border: '1px solid var(--theme-divider)',
+                            color: 'var(--theme-primary)',
                         }
                     });
                 }
                 console.error(error.response.data);
             } else if (error.request) {
                 // The request was made but no response was received
-                toast.error('No response received from the server. Please check your internet connection.', {
+                showToast.error('No response received from the server. Please check your internet connection.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error(error.request);
             } else {
                 // Something happened in setting up the request that triggered an Error
-                toast.error('An error occurred while setting up the request.', {
+                showToast.error('An error occurred while setting up the request.', {
                     icon: '🔴',
                     style: {
                         backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
+                        background: 'var(--theme-content1)',
+                        border: '1px solid var(--theme-divider)',
+                        color: 'var(--theme-primary)',
                     }
                 });
                 console.error('Error', error.message);
@@ -158,88 +167,152 @@ const BankInformationForm = ({ user, setUser, open, closeModal }) => {
     };
 
     return (
-        <GlassDialog open={open} onClose={closeModal}>
-            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-                <Typography>Bank Information</Typography>
-                <IconButton
-                    variant="outlined"
-                    color="primary"
-                    onClick={closeModal}
-                    sx={{ position: 'absolute', top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
+        <Modal
+            isOpen={open}
+            onOpenChange={processing ? undefined : closeModal}
+            size="2xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "bg-content1",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+            }}
+            style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}
+        >
+            <ModalContent>
+                <ModalHeader className="flex gap-3 items-center" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderBottom: '1px solid var(--theme-divider)'
+                }}>
+                    <div className="p-2 rounded-lg" style={{
+                        background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                        borderRadius: `var(--borderRadius, 8px)`,
+                    }}>
+                        <CreditCard size={20} style={{ color: 'var(--theme-primary)' }} />
+                    </div>
+                    <span className="text-lg font-semibold" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        Bank Information
+                    </span>
+                </ModalHeader>
             <form onSubmit={handleSubmit}>
-                <DialogContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
+                <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <div className="grid grid-cols-1 gap-4">
+                        <div>
+                            <Input
                                 label="Bank Name"
-                                fullWidth
                                 value={changedUserData.bank_name || initialUserData.bank_name || ''}
                                 onChange={(e) => handleChange('bank_name', e.target.value)}
-                                error={Boolean(errors.bank_name)}
-                                helperText={errors.bank_name}
+                                isInvalid={Boolean(errors.bank_name)}
+                                errorMessage={errors.bank_name}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                size="small"
+                        </div>
+                        <div>
+                            <Input
                                 label="Bank Account No."
-                                fullWidth
                                 value={changedUserData.bank_account_no || initialUserData.bank_account_no || ''}
                                 onChange={(e) => handleChange('bank_account_no', e.target.value)}
-                                error={Boolean(errors.bank_account_no)}
-                                helperText={errors.bank_account_no}
+                                isInvalid={Boolean(errors.bank_account_no)}
+                                errorMessage={errors.bank_account_no}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Input
                                 label="IFSC Code"
-                                fullWidth
                                 value={changedUserData.ifsc_code || initialUserData.ifsc_code || ''}
                                 onChange={(e) => handleChange('ifsc_code', e.target.value)}
-                                error={Boolean(errors.ifsc_code)}
-                                helperText={errors.ifsc_code}
+                                isInvalid={Boolean(errors.ifsc_code)}
+                                errorMessage={errors.ifsc_code}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
+                        </div>
+                        <div>
+                            <Input
                                 label="PAN No."
-                                fullWidth
                                 value={changedUserData.pan_no || initialUserData.pan_no || ''}
                                 onChange={(e) => handleChange('pan_no', e.target.value)}
-                                error={Boolean(errors.pan_no)}
-                                helperText={errors.pan_no}
+                                isInvalid={Boolean(errors.pan_no)}
+                                errorMessage={errors.pan_no}
+                                variant="bordered"
+                                size="sm"
+                                radius={getThemeRadius()}
+                                classNames={{
+                                    input: "text-small",
+                                    inputWrapper: "min-h-unit-10"
+                                }}
+                                style={{
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
                             />
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '16px',
-                    }}
-                >
-                    <LoadingButton
-                        disabled={!dataChanged}
-                        sx={{
-                            borderRadius: '50px',
-                            padding: '6px 16px',
+                        </div>
+                    </div>
+                </ModalBody>
+                <ModalFooter style={{
+                    borderTop: '1px solid var(--theme-divider)',
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                }}>
+                    <Button
+                        onPress={closeModal}
+                        isDisabled={processing}
+                        variant="light"
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
                         }}
-                        variant="outlined"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        isDisabled={!dataChanged}
+                        variant="bordered"
                         color="primary"
                         type="submit"
-                        loading={processing}
+                        isLoading={processing}
+                        radius={getThemeRadius()}
+                        style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}
                     >
                         Submit
-                    </LoadingButton>
-                </DialogActions>
+                    </Button>
+                </ModalFooter>
             </form>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
     );
 };
 

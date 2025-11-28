@@ -163,7 +163,7 @@ const ProjectTimelineView = ({
             {/* Timeline Projects */}
             <div className="space-y-4">
                 {timelineData.map((project, index) => (
-                    <Card key={project.id} className="bg-white/5 backdrop-blur-sm border-white/10">
+                    <Card key={project.id} className="bg-white/5 backdrop-blur-xs border-white/10">
                         <CardBody className="p-4">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center space-x-3">
@@ -333,7 +333,7 @@ const ProjectTimelineView = ({
             </div>
 
             {/* Timeline Summary */}
-            <Card className="bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border-primary-500/20">
+            <Card className="bg-linear-to-r from-primary-500/10 to-secondary-500/10 border-primary-500/20">
                 <CardBody className="p-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div className="text-center">

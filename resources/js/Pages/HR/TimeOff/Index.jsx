@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { Box, Typography, useMediaQuery, useTheme, Grow, Grid, Card, CardContent } from '@mui/material';
+import { motion } from 'framer-motion';
 import { 
     CalendarIcon, 
     ClockIcon,
@@ -13,13 +13,14 @@ import {
 import GlassCard from '@/Components/GlassCard.jsx';
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
-import { GRADIENT_PRESETS } from '@/utils/gradientUtils.js';
+
+import useTheme from '@/theme';
 import App from "@/Layouts/App.jsx";
 import { Button } from "@heroui/react";
 
 const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [isMobile] = useState(window.innerWidth < 640);
 
     // Mock statistics for demo purposes
     const statsData = [
@@ -63,13 +64,13 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
             label: "View Calendar",
             icon: <CalendarIcon className="w-4 h-4" />,
             onPress: () => router.visit('/hr/time-off/calendar'),
-            className: GRADIENT_PRESETS.primaryButton
+            className: "bg-primary text-primary-foreground"
         },
         {
             label: "Manage Holidays",
             icon: <CalendarIcon className="w-4 h-4" />,
             onPress: () => router.visit('/holidays'),
-            className: GRADIENT_PRESETS.secondaryButton
+            className: "bg-secondary text-secondary-foreground"
         }
     ];
 
@@ -113,8 +114,12 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
         <>
             <Head title={title} />
             
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                <Grow in>
+            <div className="flex justify-center p-2">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                >
                     <GlassCard>
                         <PageHeader
                             title="Time-off Management"
@@ -129,9 +134,9 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
                                 
                                 {/* Quick Access Grid */}
                                 <div className="mb-8">
-                                    <Typography variant="h6" className="mb-4 text-white">
+                                    <h3 className="text-xl font-semibold mb-4 text-white">
                                         Quick Access
-                                    </Typography>
+                                    </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                         {quickAccessCards.map((card, index) => (
                                             <div 
@@ -143,12 +148,12 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
                                                     <div className="p-3 rounded-full bg-white/10 mb-4 group-hover:scale-110 transition-transform duration-300">
                                                         {card.icon}
                                                     </div>
-                                                    <Typography variant="h6" className="mb-2 text-white font-semibold">
+                                                    <h4 className="mb-2 text-white font-semibold text-lg">
                                                         {card.title}
-                                                    </Typography>
-                                                    <Typography variant="body2" className="text-gray-300 text-sm">
+                                                    </h4>
+                                                    <p className="text-gray-300 text-sm">
                                                         {card.description}
-                                                    </Typography>
+                                                    </p>
                                                 </div>
                                             </div>
                                         ))}
@@ -157,18 +162,18 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
 
                                 {/* Recent Activity */}
                                 <div className="mb-6">
-                                    <Typography variant="h6" className="mb-4 text-white">
+                                    <h3 className="text-xl font-semibold mb-4 text-white">
                                         Recent Activity
-                                    </Typography>
+                                    </h3>
                                     <div className="bg-white/5 backdrop-blur-md rounded-lg border border-white/10 p-6">
                                         <div className="text-center py-8">
                                             <ClockIcon className="w-16 h-16 mx-auto mb-4 text-default-300" />
-                                            <Typography variant="h6" className="mb-2 text-white">
+                                            <h4 className="text-xl font-semibold mb-2 text-white">
                                                 No Recent Activity
-                                            </Typography>
-                                            <Typography variant="body2" className="text-gray-400">
+                                            </h4>
+                                            <p className="text-gray-400">
                                                 Time-off requests and activities will appear here.
-                                            </Typography>
+                                            </p>
                                             <Button 
                                                 className="mt-4"
                                                 color="primary"
@@ -183,8 +188,8 @@ const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
                             </div>
                         </PageHeader>
                     </GlassCard>
-                </Grow>
-            </Box>
+                </motion.div>
+            </div>
         </>
     );
 };

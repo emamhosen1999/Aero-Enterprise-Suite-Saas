@@ -1,198 +1,291 @@
 import {
     Avatar,
-    Box,
-    CircularProgress,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    FormHelperText,
-    Grid,
-    IconButton,
-    InputLabel,
-    MenuItem,
-    TextField,
-    Typography
-} from "@mui/material";
-import React, {useEffect, useState} from "react";
-import ClearIcon from '@mui/icons-material/Clear';
-import GlassDialog from "@/Components/GlassDialog.jsx";
-import {PhotoCamera} from "@mui/icons-material";
-import {useTheme} from "@mui/material/styles";
-import LoadingButton from "@mui/lab/LoadingButton";
-import {toast} from "react-toastify";
-import {Input, SelectItem, Select} from "@heroui/react";
-import PasswordIcon from "@mui/icons-material/Password.js";
-import VisibilityOff from "@mui/icons-material/VisibilityOff.js";
-import Visibility from "@mui/icons-material/Visibility.js";
+    Button,
+    Spinner,
+    Select,
+    SelectItem,
+    Input,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    User,
+    Switch,
+    Chip,
+    Autocomplete,
+    AutocompleteItem
+} from "@heroui/react";
+import React, { useEffect, useState } from "react";
+import { X, Camera, Eye, EyeOff, Lock, UserIcon, CalendarIcon } from 'lucide-react';
+import { useForm } from 'laravel-precognition-react';
+import { showToast } from "@/utils/toastUtils";
 
-const AddEditUserForm = ({user, allUsers, departments, designations, setUsers, open, closeModal, editMode = false }) => {
+
+const AddEditUserForm = ({user, allUsers, departments, designations, roles, setUsers, open, closeModal, editMode = false }) => {
     
     const [showPassword, setShowPassword] = useState(false);
-    const [userData, setUserData] = useState({
-        id: user?.id || '',
-        name: user?.name || '',
-        user_name: user?.user_name || '',
-        gender: user?.gender || '',
-        birthday: user?.birthday || '',
-        date_of_joining: user?.date_of_joining || '',
-        address: user?.address || '',
-        employee_id: user?.employee_id || '',
-        phone: user?.phone || '',
-        email: user?.email || '',
-        department_id: user?.department_id || '',
-        designation_id: user?.designation_id || '',
-        report_to: user?.report_to || '',
-        password: '',
-        confirmPassword: '',
-        roles: user?.roles || []
-    });
-
-    const [errors, setErrors] = useState({});
-    const [processing, setProcessing] = useState(false);
     const [hover, setHover] = useState(false);
-    const [selectedImage, setSelectedImage] = useState(user?.profile_image || null);
+    const [selectedImage, setSelectedImage] = useState(user?.profile_image_url || user?.profile_image || null);
     const [selectedImageFile, setSelectedImageFile] = useState(null);
     const [allReportTo, setAllReportTo] = useState(allUsers);
+    const [themeRadius, setThemeRadius] = useState('lg');
+    const [filteredDesignations, setFilteredDesignations] = useState(designations || []);
+    const [filteredReportTo, setFilteredReportTo] = useState(allUsers || []);
 
-    const theme = useTheme();
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    // Set theme radius on mount (client-side only)
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setThemeRadius(getThemeRadius());
+        }
+    }, []);
+
+    // Initialize Precognition form with proper method and URL
+    const form = useForm(
+        editMode ? 'put' : 'post',
+        editMode && user?.id ? route('users.update', { user: user.id }) : route('users.store'),
+        {
+            id: user?.id || '',
+            name: user?.name || '',
+            user_name: user?.user_name || '',
+            gender: user?.gender || '',
+            birthday: user?.birthday || '',
+            date_of_joining: user?.date_of_joining || '',
+            address: user?.address || '',
+            employee_id: user?.employee_id || '',
+            phone: user?.phone || '',
+            email: user?.email || '',
+            department_id: user?.department_id || '',
+            designation_id: user?.designation_id || '',
+            report_to: user?.report_to || '',
+            password: '',
+            password_confirmation: '',
+            roles: user?.roles?.map(r => typeof r === 'object' ? r.name : r) || [],
+            single_device_login_enabled: user?.single_device_login_enabled || user?.single_device_login || false,
+            profile_image: null,
+        }
+    );
+
+    // Filter designations when department changes
+    useEffect(() => {
+        if (form.data.department_id) {
+            const filtered = designations?.filter(
+                designation => String(designation.department_id) === String(form.data.department_id)
+            ) || [];
+            setFilteredDesignations(filtered);
+            
+            // Clear designation if it doesn't belong to the selected department
+            if (form.data.designation_id) {
+                const isValid = filtered.some(
+                    d => String(d.id) === String(form.data.designation_id)
+                );
+                if (!isValid) {
+                    handleChange('designation_id', '');
+                }
+            }
+        } else {
+            // Show all designations if no department is selected
+            setFilteredDesignations(designations || []);
+        }
+    }, [form.data.department_id, designations]);
+
+    // Filter report to users when department and designation changes
+    useEffect(() => {
+        if (form.data.department_id && form.data.designation_id) {
+            // Find the selected designation to get its hierarchy level
+            const selectedDesignation = designations?.find(
+                d => String(d.id) === String(form.data.designation_id)
+            );
+            
+            if (!selectedDesignation) {
+                setFilteredReportTo([]);
+                handleChange('report_to', '');
+                return;
+            }
+
+            // Check if this is the top-level designation (hierarchy_level = 1)
+            if (selectedDesignation.hierarchy_level === 1) {
+                // Top-level positions don't report to anyone
+                setFilteredReportTo([]);
+                handleChange('report_to', '');
+                return;
+            }
+
+            // Filter users who:
+            // 1. Are in the same department
+            // 2. Have a designation with LOWER hierarchy_level (higher position)
+            // 3. Are not the current user (if editing)
+            const filtered = allUsers?.filter(u => {
+                const userDeptId = u.department_id || u.department?.id;
+                const deptMatch = String(userDeptId) === String(form.data.department_id);
+                
+                // Get the user's designation
+                const userDesignation = designations?.find(
+                    d => String(d.id) === String(u.designation_id)
+                );
+                
+                // Check if user has a higher hierarchy (lower hierarchy_level number)
+                const isHigherLevel = userDesignation && 
+                    userDesignation.hierarchy_level < selectedDesignation.hierarchy_level;
+                
+                const notSelf = !editMode || !form.data.id || u.id !== form.data.id;
+                
+                return deptMatch && isHigherLevel && notSelf;
+            }) || [];
+            
+            console.log('Selected designation:', selectedDesignation.title, 'Level:', selectedDesignation.hierarchy_level);
+            console.log('Filtered supervisors (higher hierarchy):', filtered.length, filtered);
+            
+            setFilteredReportTo(filtered);
+            
+            // Clear report_to if the selected user is no longer valid
+            if (form.data.report_to) {
+                const isValid = filtered.some(
+                    u => String(u.id) === String(form.data.report_to)
+                );
+                if (!isValid) {
+                    handleChange('report_to', '');
+                }
+            }
+        } else if (form.data.department_id) {
+            // If only department is selected, show all users in department
+            const filtered = allUsers?.filter(u => {
+                const userDeptId = u.department_id || u.department?.id;
+                const deptMatch = String(userDeptId) === String(form.data.department_id);
+                const notSelf = !editMode || !form.data.id || u.id !== form.data.id;
+                return deptMatch && notSelf;
+            }) || [];
+            
+            setFilteredReportTo(filtered);
+        } else {
+            // No department selected, show all users
+            const allExceptSelf = allUsers?.filter(u => !editMode || !form.data.id || u.id !== form.data.id) || [];
+            setFilteredReportTo(allExceptSelf);
+        }
+    }, [form.data.department_id, form.data.designation_id, allUsers, form.data.id, editMode, designations]);
+
+    
+
+
+
 
     // Initialize selected image if user has profile image
     useEffect(() => {
-        if (user?.profile_image) {
-            setSelectedImage(user.profile_image);
+        if (user?.profile_image_url || user?.profile_image) {
+            setSelectedImage(user.profile_image_url || user.profile_image);
         }
     }, [user]);
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        setProcessing(true);
-
-        // Create a FormData object to handle both text and file data
-        const formData = new FormData();
-
-        // Append the user data to FormData
-        Object.keys(userData).forEach(key => {
-            if (key === 'roles' && Array.isArray(userData[key])) {
-                // Handle roles array
-                userData[key].forEach((role, index) => {
-                    formData.append(`roles[${index}]`, role);
+    const handleSubmit = async () => {
+        // Validate file type if image is selected
+        if (selectedImageFile) {
+            const fileType = selectedImageFile.type;
+            if (!['image/jpeg', 'image/jpg', 'image/png'].includes(fileType)) {
+                showToast.error('Invalid file type. Only JPEG and PNG are allowed.', {
+                    icon: '🔴'
                 });
-            } else if (userData[key] !== null && userData[key] !== undefined) {
-                formData.append(key, userData[key]);
+                return;
+            }
+            form.setData('profile_image', selectedImageFile);
+        }
+
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                // Submit the form using Precognition with transform to handle boolean conversion
+                await form.submit({
+                    preserveScroll: true,
+                    transform: (data) => {
+                        // Convert boolean to proper format for backend
+                        // Laravel expects 0/1 or "0"/"1" for boolean fields when using FormData
+                        return {
+                            ...data,
+                            single_device_login_enabled: data.single_device_login_enabled ? 1 : 0,
+                        };
+                    },
+                    onSuccess: (response) => {
+                        if (setUsers) {
+                            if (editMode) {
+                                // Update the user in the list
+                                setUsers(prevUsers => 
+                                    prevUsers.map(u => 
+                                        u.id === response.data.user.id ? response.data.user : u
+                                    )
+                                );
+                            } else {
+                                // Add new user to the list
+                                setUsers(prevUsers => [...prevUsers, response.data.user]);
+                            }
+                        }
+                        closeModal();
+                        resolve([response.data.message || `User ${editMode ? 'updated' : 'created'} successfully`]);
+                    },
+                    onError: (errors) => {
+                        // Laravel Precognition automatically sets form.errors
+                        // Extract error messages for toast display
+                        const errorMessages = Object.values(errors).flat();
+                        if (errorMessages.length > 0) {
+                            reject(errorMessages.join(', '));
+                        } else {
+                            reject(`Failed to ${editMode ? 'update' : 'create'} user. Please check the form for errors.`);
+                        }
+                    },
+                });
+            } catch (error) {
+                console.error('Form submission error:', error);
+                
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        // Validation errors
+                        const errors = error.response.data.errors || {};
+                        const errorMessages = Object.values(errors).flat();
+                        reject(errorMessages.length > 0 ? errorMessages.join(', ') : 'Validation failed. Please check the form.');
+                    } else if (error.response.status === 500) {
+                        reject(error.response.data.message || 'Server error occurred. Please try again later.');
+                    } else {
+                        reject(`HTTP Error ${error.response.status}: ${error.response.data.message || 'An unexpected error occurred.'}`);
+                    }
+                } else if (error.request) {
+                    reject('No response received from the server. Please check your internet connection.');
+                } else {
+                    reject('An error occurred while setting up the request.');
+                }
             }
         });
 
-        // Check if a new image has been selected and add it to FormData
-        if (selectedImageFile) {
-            const fileType = selectedImageFile.type;
-            if (['image/jpeg', 'image/jpg', 'image/png'].includes(fileType)) {
-                formData.append('profile_image', selectedImageFile);
-            } else {
-                toast.error('Invalid file type. Only JPEG and PNG are allowed.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary
+        showToast.promise(
+            promise,
+            {
+                pending: `${editMode ? 'Updating' : 'Creating'} user...`,
+                success: {
+                    render({ data }) {
+                        return data.join(', ');
                     }
-                });
-                setProcessing(false);
-                return;
-            }
-        }
-
-        try {
-            // Determine whether to create or update based on editMode
-            const url = editMode ? route('updateUser', { id: user.id }) : route('addUser');
-            const method = editMode ? 'put' : 'post';
-            
-            const response = await axios[method](url, formData);
-
-            if (response.status === 200) {
-                if (setUsers) {
-                    if (editMode) {
-                        // Update the user in the list
-                        setUsers(prevUsers => 
-                            prevUsers.map(u => 
-                                u.id === response.data.user.id ? response.data.user : u
-                            )
-                        );
-                    } else {
-                        // Add new user to the list
-                        setUsers(prevUsers => [...prevUsers, response.data.user]);
+                },
+                error: {
+                    render({ data }) {
+                        return data;
                     }
                 }
-                
-                toast.success(response.data.messages?.length > 0
-                    ? response.data.messages.join(' ')
-                    : `User ${editMode ? 'updated' : 'added'} successfully`, {
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-                closeModal();
             }
-        } catch (error) {
-            setProcessing(false);
-            handleErrorResponse(error);
-        } finally {
-            setProcessing(false);
-        }
+        );
     };
 
-    // Error handling for different scenarios
-    const handleErrorResponse = (error) => {
-        if (error.response) {
-            if (error.response.status === 422) {
-                setErrors(error.response.data.errors || {});
-                toast.error(error.response.data.error || `Failed to ${editMode ? 'update' : 'add'} user.`, {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-            } else {
-                toast.error('An unexpected error occurred. Please try again later.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-            }
-        } else if (error.request) {
-            toast.error('No response received from the server. Please check your internet connection.', {
-                icon: '🔴',
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard.background,
-                    border: theme.glassCard.border,
-                    color: theme.palette.text.primary,
-                }
-            });
-        } else {
-            toast.error('An error occurred while setting up the request.', {
-                icon: '🔴',
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard.background,
-                    border: theme.glassCard.border,
-                    color: theme.palette.text.primary,
-                }
-            });
-        }
-    };
+
 
     // Handle file change for profile image preview and submission
     const handleImageChange = (event) => {
@@ -205,18 +298,11 @@ const AddEditUserForm = ({user, allUsers, departments, designations, setUsers, o
     };
 
     const handleChange = (key, value) => {
-        setUserData(prev => ({
-            ...prev,
-            [key]: value
-        }));
+        form.setData(key, value);
         
-        // Clear error for this field if it exists
-        if (errors[key]) {
-            setErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[key];
-                return newErrors;
-            });
+        // Trigger validation on blur for real-time feedback
+        if (form.touched(key)) {
+            form.validate(key);
         }
     };
 
@@ -225,495 +311,612 @@ const AddEditUserForm = ({user, allUsers, departments, designations, setUsers, o
         setShowPassword(!showPassword);
     };
 
+    // Check if form is valid and ready to submit
+    const isFormValid = () => {
+        if (editMode) {
+            // For edit mode, check if form has changes
+            return form.isDirty && !form.processing;
+        } else {
+            // For new user, check required fields
+            const hasRequiredFields = 
+                form.data.name?.trim() && 
+                form.data.user_name?.trim() && 
+                form.data.email?.trim() && 
+                form.data.password?.trim() && 
+                form.data.password_confirmation?.trim();
+            
+            const passwordsMatch = form.data.password === form.data.password_confirmation;
+            
+            return hasRequiredFields && passwordsMatch && !form.processing;
+        }
+    };
+
     return (
-        <GlassDialog
-            open={open}
+        <Modal 
+            isOpen={open} 
             onClose={closeModal}
-            fullWidth
-            maxWidth="md"
-            sx={{
-                '& .MuiPaper-root': {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    backgroundColor: theme.glassCard.background,
-                    border: theme.glassCard.border,
-                    borderRadius: '16px',
-                    color: theme.palette.text.primary,
-                    boxShadow: theme.glassCard.boxShadow,
-                }
+            size="3xl"
+            radius={themeRadius}
+            scrollBehavior="inside"
+            classNames={{
+                base: "backdrop-blur-md max-h-[95vh] my-2",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+                header: "border-b border-divider flex-shrink-0",
+                body: "overflow-y-auto max-h-[calc(95vh-160px)]",
+                footer: "border-t border-divider flex-shrink-0",
+                closeButton: "hover:bg-white/5 active:bg-white/10"
+            }}
+            style={{
+                border: `var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7)`,
+                borderRadius: `var(--borderRadius, 12px)`,
+                fontFamily: `var(--fontFamily, "Inter")`,
+                transform: `scale(var(--scale, 1))`,
             }}
         >
-            <DialogTitle sx={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', pb: 2 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                        {editMode ? 'Edit User' : 'Add New User'}
-                    </Typography>
-                    <IconButton
-                        aria-label="close"
-                        onClick={closeModal}
-                        sx={{
-                            color: theme.palette.grey[500],
-                            '&:hover': {
-                                color: theme.palette.primary.main,
-                            }
-                        }}
-                    >
-                        <ClearIcon />
-                    </IconButton>
-                </Box>
-            </DialogTitle>
+            <ModalContent>
+                {(onClose) => (
+                    <>
+                        <ModalHeader className="flex flex-col gap-1 py-4" style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <div className="flex items-center gap-2">
+                                <UserIcon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'var(--theme-primary)' }} />
+                                <div>
+                                    <span className="text-lg font-semibold" style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
+                                        {editMode ? 'Edit User' : 'Add New User'}
+                                    </span>
+                                    <p className="text-sm text-default-500 mt-0.5" style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}>
+                                        {editMode ? 'Update user information' : 'Create a new user account'}
+                                    </p>
+                                </div>
+                            </div>
+                        </ModalHeader>
+                        
+                        <ModalBody className="py-4 px-4 sm:py-6 sm:px-6 overflow-y-auto" style={{
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* Profile Image Upload */}
+                                <div className="flex justify-center mb-6">
+                                    <div 
+                                        className="relative group cursor-pointer"
+                                        onMouseEnter={() => setHover(true)}
+                                        onMouseLeave={() => setHover(false)}
+                                    >
+                                        <Avatar
+                                            src={selectedImage}
+                                            alt="Profile"
+                                            className="w-32 h-32 text-large transition-all duration-300"
+                                            style={{
+                                                border: `4px solid var(--theme-divider, #E4E4E7)`,
+                                                filter: hover ? 'brightness(70%)' : 'brightness(100%)',
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor="icon-button-file"
+                                            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-opacity duration-300"
+                                            style={{
+                                                opacity: hover ? 1 : 0,
+                                            }}
+                                        >
+                                            <input
+                                                accept="image/*"
+                                                id="icon-button-file"
+                                                type="file"
+                                                className="hidden"
+                                                onChange={handleImageChange}
+                                            />
+                                            <Camera className="w-8 h-8 text-white" />
+                                        </label>
+                                    </div>
+                                </div>
 
-            <DialogContent sx={{ pt: 3 }}>
-                <form onSubmit={handleSubmit}>
-                    <Grid container spacing={3}>
-                        {/* Profile Image Upload */}
-                        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                            <Box
-                                onMouseEnter={() => setHover(true)}
-                                onMouseLeave={() => setHover(false)}
-                                sx={{ position: 'relative' }}
-                            >
-                                <Avatar
-                                    src={selectedImage}
-                                    alt="Profile"
-                                    sx={{
-                                        width: 120,
-                                        height: 120,
-                                        border: '4px solid rgba(255, 255, 255, 0.1)',
-                                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-                                        filter: hover ? 'brightness(70%)' : 'brightness(100%)',
-                                        transition: 'all 0.3s ease',
-                                    }}
-                                />
-                                <Box
-                                    component="label"
-                                    htmlFor="icon-button-file"
-                                    sx={{
-                                        position: 'absolute',
-                                        top: '50%',
-                                        left: '50%',
-                                        transform: 'translate(-50%, -50%)',
-                                        opacity: hover ? 1 : 0,
-                                        transition: 'opacity 0.3s ease',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    <input
-                                        accept="image/*"
-                                        id="icon-button-file"
-                                        type="file"
-                                        style={{ display: 'none' }}
-                                        onChange={handleImageChange}
+                                {/* Basic Information */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input
+                                        label="Full Name"
+                                        placeholder="Enter full name"
+                                        value={form.data.name}
+                                        onChange={(e) => handleChange('name', e.target.value)}
+                                        onBlur={() => form.validate('name')}
+                                        isInvalid={form.invalid('name')}
+                                        errorMessage={form.errors.name}
+                                        isRequired
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            input: "text-small",
+                                            inputWrapper: "min-h-unit-10"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
                                     />
-                                    <PhotoCamera sx={{ color: 'white', fontSize: 32 }} />
-                                </Box>
-                            </Box>
-                        </Grid>
 
-                        {/* Basic Information */}
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
-                                    label="Full Name"
-                                    value={userData.name}
-                                    onChange={(e) => handleChange('name', e.target.value)}
-                                    error={!!errors.name}
-                                    helperText={errors.name}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
-                                    }}
-                                    InputLabelProps={{
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
-                                    }}
-                                    required
-                                />
-                            </FormControl>
-                        </Grid>
+                                    <Input
+                                        label="Username"
+                                        placeholder="Enter username"
+                                        value={form.data.user_name}
+                                        onChange={(e) => handleChange('user_name', e.target.value)}
+                                        onBlur={() => form.validate('user_name')}
+                                        isInvalid={form.invalid('user_name')}
+                                        errorMessage={form.errors.user_name}
+                                        isRequired
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            input: "text-small",
+                                            inputWrapper: "min-h-unit-10"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
-                                    label="Username"
-                                    value={userData.user_name}
-                                    onChange={(e) => handleChange('user_name', e.target.value)}
-                                    error={!!errors.user_name}
-                                    helperText={errors.user_name}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
-                                    }}
-                                    InputLabelProps={{
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
-                                    }}
-                                    required
-                                />
-                            </FormControl>
-                        </Grid>
+                                    <Input
+                                        label="Email"
+                                        type="email"
+                                        placeholder="Enter email address"
+                                        value={form.data.email}
+                                        onChange={(e) => handleChange('email', e.target.value)}
+                                        onBlur={() => form.validate('email')}
+                                        isInvalid={form.invalid('email')}
+                                        errorMessage={form.errors.email}
+                                        isRequired
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            input: "text-small",
+                                            inputWrapper: "min-h-unit-10"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
-                                    label="Email"
-                                    type="email"
-                                    value={userData.email}
-                                    onChange={(e) => handleChange('email', e.target.value)}
-                                    error={!!errors.email}
-                                    helperText={errors.email}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
-                                    }}
-                                    InputLabelProps={{
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
-                                    }}
-                                    required
-                                />
-                            </FormControl>
-                        </Grid>
+                                    <Input
+                                        label="Phone"
+                                        placeholder="Enter phone number"
+                                        value={form.data.phone}
+                                        onChange={(e) => handleChange('phone', e.target.value)}
+                                        onBlur={() => form.validate('phone')}
+                                        isInvalid={form.invalid('phone')}
+                                        errorMessage={form.errors.phone}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            input: "text-small",
+                                            inputWrapper: "min-h-unit-10"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
-                                    label="Phone"
-                                    value={userData.phone}
-                                    onChange={(e) => handleChange('phone', e.target.value)}
-                                    error={!!errors.phone}
-                                    helperText={errors.phone}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
-                                    }}
-                                    InputLabelProps={{
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
-                                    }}
-                                />
-                            </FormControl>
-                        </Grid>
+                                    <Select
+                                        label="Department"
+                                        placeholder="Select department"
+                                        selectedKeys={form.data.department_id ? new Set([String(form.data.department_id)]) : new Set()}
+                                        onSelectionChange={(keys) => {
+                                            const value = Array.from(keys)[0];
+                                            handleChange('department_id', value || '');
+                                        }}
+                                        onClose={() => form.validate('department_id')}
+                                        isInvalid={form.invalid('department_id')}
+                                        errorMessage={form.errors.department_id}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            trigger: "min-h-unit-10",
+                                            value: "text-small"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    >
+                                        {departments?.map((department) => (
+                                            <SelectItem key={department.id} value={department.id}>
+                                                {department.name}
+                                            </SelectItem>
+                                        ))}
+                                    </Select>
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <InputLabel id="department-label" sx={{ color: theme.palette.text.secondary }}>Department</InputLabel>
-                                <Select
-                                    labelId="department-label"
-                                    value={userData.department_id}
-                                    onChange={(e) => handleChange('department_id', e.target.value)}
-                                    label="Department"
-                                    error={!!errors.department_id}
-                                    sx={{
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        borderRadius: '8px',
-                                    }}
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
-                                    {departments?.map((department) => (
-                                        <MenuItem key={department.id} value={department.id}>
-                                            {department.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {errors.department_id && <FormHelperText error>{errors.department_id}</FormHelperText>}
-                            </FormControl>
-                        </Grid>
+                                    <Select
+                                        label="Designation"
+                                        placeholder="Select designation"
+                                        selectedKeys={form.data.designation_id ? new Set([String(form.data.designation_id)]) : new Set()}
+                                        onSelectionChange={(keys) => {
+                                            const value = Array.from(keys)[0];
+                                            handleChange('designation_id', value || '');
+                                        }}
+                                        onClose={() => form.validate('designation_id')}
+                                        isInvalid={form.invalid('designation_id')}
+                                        errorMessage={form.errors.designation_id}
+                                        isDisabled={!form.data.department_id || filteredDesignations.length === 0}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            trigger: "min-h-unit-10",
+                                            value: "text-small"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    >
+                                        {filteredDesignations?.map((designation) => (
+                                            <SelectItem key={designation.id} value={designation.id}>
+                                                {designation.title || designation.name}
+                                            </SelectItem>
+                                        ))}
+                                    </Select>
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <InputLabel id="designation-label" sx={{ color: theme.palette.text.secondary }}>Designation</InputLabel>
-                                <Select
-                                    labelId="designation-label"
-                                    value={userData.designation_id}
-                                    onChange={(e) => handleChange('designation_id', e.target.value)}
-                                    label="Designation"
-                                    error={!!errors.designation_id}
-                                    sx={{
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        borderRadius: '8px',
-                                    }}
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
-                                    {designations?.map((designation) => (
-                                        <MenuItem key={designation.id} value={designation.id}>
-                                            {designation.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {errors.designation_id && <FormHelperText error>{errors.designation_id}</FormHelperText>}
-                            </FormControl>
-                        </Grid>
+                                    <Select
+                                        label="Gender"
+                                        placeholder="Select gender"
+                                        selectedKeys={form.data.gender ? new Set([form.data.gender]) : new Set()}
+                                        onSelectionChange={(keys) => {
+                                            const value = Array.from(keys)[0];
+                                            handleChange('gender', value || '');
+                                        }}
+                                        onClose={() => form.validate('gender')}
+                                        isInvalid={form.invalid('gender')}
+                                        errorMessage={form.errors.gender}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            trigger: "min-h-unit-10",
+                                            value: "text-small"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    >
+                                        <SelectItem key="male" value="male">Male</SelectItem>
+                                        <SelectItem key="female" value="female">Female</SelectItem>
+                                        <SelectItem key="other" value="other">Other</SelectItem>
+                                    </Select>
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <InputLabel id="gender-label" sx={{ color: theme.palette.text.secondary }}>Gender</InputLabel>
-                                <Select
-                                    labelId="gender-label"
-                                    value={userData.gender}
-                                    onChange={(e) => handleChange('gender', e.target.value)}
-                                    label="Gender"
-                                    error={!!errors.gender}
-                                    sx={{
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        borderRadius: '8px',
-                                    }}
-                                >
-                                    <MenuItem value="">
-                                        <em>Select Gender</em>
-                                    </MenuItem>
-                                    <MenuItem value="male">Male</MenuItem>
-                                    <MenuItem value="female">Female</MenuItem>
-                                    <MenuItem value="other">Other</MenuItem>
-                                </Select>
-                                {errors.gender && <FormHelperText error>{errors.gender}</FormHelperText>}
-                            </FormControl>
-                        </Grid>
+                                    <Input
+                                        label="Employee ID"
+                                        placeholder="Enter employee ID"
+                                        value={form.data.employee_id}
+                                        onChange={(e) => handleChange('employee_id', e.target.value)}
+                                        onBlur={() => form.validate('employee_id')}
+                                        isInvalid={form.invalid('employee_id')}
+                                        errorMessage={form.errors.employee_id}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            input: "text-small",
+                                            inputWrapper: "min-h-unit-10"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
-                                    label="Employee ID"
-                                    value={userData.employee_id}
-                                    onChange={(e) => handleChange('employee_id', e.target.value)}
-                                    error={!!errors.employee_id}
-                                    helperText={errors.employee_id}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
-                                    }}
-                                    InputLabelProps={{
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
-                                    }}
-                                />
-                            </FormControl>
-                        </Grid>
+                                    <Input
+                                        label="Date of Birth"
+                                        type="date"
+                                        value={form.data.birthday}
+                                        onChange={(e) => handleChange('birthday', e.target.value)}
+                                        onBlur={() => form.validate('birthday')}
+                                        isInvalid={form.invalid('birthday')}
+                                        errorMessage={form.errors.birthday}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            input: "text-small",
+                                            inputWrapper: "min-h-unit-10"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
-                                    label="Date of Birth"
-                                    type="date"
-                                    value={userData.birthday}
-                                    onChange={(e) => handleChange('birthday', e.target.value)}
-                                    error={!!errors.birthday}
-                                    helperText={errors.birthday}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
-                                    }}
-                                    InputLabelProps={{
-                                        shrink: true,
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
-                                    }}
-                                />
-                            </FormControl>
-                        </Grid>
+                                    <Input
+                                        label="Date of Joining"
+                                        type="date"
+                                        value={form.data.date_of_joining}
+                                        onChange={(e) => handleChange('date_of_joining', e.target.value)}
+                                        onBlur={() => form.validate('date_of_joining')}
+                                        isInvalid={form.invalid('date_of_joining')}
+                                        errorMessage={form.errors.date_of_joining}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            input: "text-small",
+                                            inputWrapper: "min-h-unit-10"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
-                                    label="Date of Joining"
-                                    type="date"
-                                    value={userData.date_of_joining}
-                                    onChange={(e) => handleChange('date_of_joining', e.target.value)}
-                                    error={!!errors.date_of_joining}
-                                    helperText={errors.date_of_joining}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
-                                    }}
-                                    InputLabelProps={{
-                                        shrink: true,
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
-                                    }}
-                                />
-                            </FormControl>
-                        </Grid>
+                                    <div className="flex flex-col gap-1">
+                                        <Autocomplete
+                                            label="Reports To"
+                                            placeholder={
+                                                !form.data.department_id 
+                                                    ? "Select department first" 
+                                                    : !form.data.designation_id
+                                                    ? "Select designation first"
+                                                    : filteredReportTo.length === 0
+                                                    ? "No supervisor needed (Top-level position)"
+                                                    : "Search for a supervisor..."
+                                            }
+                                            selectedKey={form.data.report_to ? String(form.data.report_to) : null}
+                                            onSelectionChange={(key) => {
+                                                handleChange('report_to', key || '');
+                                            }}
+                                            isInvalid={form.invalid('report_to')}
+                                            errorMessage={form.errors.report_to}
+                                            isDisabled={!form.data.department_id || !form.data.designation_id || filteredReportTo.length === 0}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={themeRadius}
+                                            classNames={{
+                                                base: "w-full",
+                                            }}
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}
+                                            allowsCustomValue={false}
+                                            items={filteredReportTo || []}
+                                        >
+                                            {(user) => (
+                                                <AutocompleteItem key={user.id} textValue={user.name}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar
+                                                            src={user.profile_image_url || user.profile_image}
+                                                            name={user.name}
+                                                            size="sm"
+                                                            className="flex-shrink-0"
+                                                        />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-small font-medium">{user.name}</span>
+                                                            {user.email && (
+                                                                <span className="text-tiny text-default-400">{user.email}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </AutocompleteItem>
+                                            )}
+                                        </Autocomplete>
+                                        {form.data.designation_id && filteredReportTo.length === 0 && (
+                                            <p className="text-xs text-default-400 px-1" style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}>
+                                                This designation is at the top of the hierarchy and doesn't require a supervisor.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
 
-                        <Grid item xs={12} md={6}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <InputLabel id="report-to-label" sx={{ color: theme.palette.text.secondary }}>Reports To</InputLabel>
-                                <Select
-                                    labelId="report-to-label"
-                                    value={userData.report_to}
-                                    onChange={(e) => handleChange('report_to', e.target.value)}
-                                    label="Reports To"
-                                    error={!!errors.report_to}
-                                    sx={{
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        borderRadius: '8px',
-                                    }}
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
-                                    {allReportTo?.filter(u => u.id !== userData.id).map((user) => (
-                                        <MenuItem key={user.id} value={user.id}>
-                                            {user.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                                {errors.report_to && <FormHelperText error>{errors.report_to}</FormHelperText>}
-                            </FormControl>
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                <TextField
+                                {/* Address - Full Width */}
+                                <Input
                                     label="Address"
-                                    multiline
-                                    rows={3}
-                                    value={userData.address}
+                                    placeholder="Enter address"
+                                    value={form.data.address}
                                     onChange={(e) => handleChange('address', e.target.value)}
-                                    error={!!errors.address}
-                                    helperText={errors.address}
-                                    InputProps={{
-                                        sx: {
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                        }
+                                    onBlur={() => form.validate('address')}
+                                    isInvalid={form.invalid('address')}
+                                    errorMessage={form.errors.address}
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={themeRadius}
+                                    classNames={{
+                                        input: "text-small",
+                                        inputWrapper: "min-h-unit-10"
                                     }}
-                                    InputLabelProps={{
-                                        sx: {
-                                            color: theme.palette.text.secondary,
-                                        }
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
                                     }}
                                 />
-                            </FormControl>
-                        </Grid>
 
-                        {/* Password fields (only required for new users) */}
-                        {!editMode && (
-                            <>
-                                <Grid item xs={12} md={6}>
-                                    <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                        <TextField
+                                {/* Roles Selection */}
+                                <div className="col-span-full">
+                                    <Select
+                                        label="Roles"
+                                        placeholder="Select user roles"
+                                        selectionMode="multiple"
+                                        selectedKeys={new Set(form.data.roles)}
+                                        onSelectionChange={(keys) => {
+                                            const selectedRoles = Array.from(keys);
+                                            handleChange('roles', selectedRoles);
+                                        }}
+                                        onClose={() => form.validate('roles')}
+                                        isInvalid={form.invalid('roles')}
+                                        errorMessage={form.errors.roles}
+                                        variant="bordered"
+                                        size="sm"
+                                        radius={themeRadius}
+                                        classNames={{
+                                            trigger: "min-h-unit-10",
+                                            value: "text-small"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                        renderValue={(items) => {
+                                            return (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {items.map((item) => (
+                                                        <Chip key={item.key} size="sm" color="secondary" variant="flat">
+                                                            {item.textValue}
+                                                        </Chip>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }}
+                                    >
+                                        {roles?.map((role) => {
+                                            const roleName = typeof role === 'object' ? role.name : role;
+                                            return (
+                                                <SelectItem key={roleName} value={roleName} textValue={roleName}>
+                                                    {roleName}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                    </Select>
+                                </div>
+
+                                {/* Single Device Login Toggle */}
+                                <div className="col-span-full">
+                                    <div className="flex items-center justify-between p-4 rounded-lg border" style={{
+                                        borderColor: 'var(--theme-divider, #E4E4E7)',
+                                        background: 'color-mix(in srgb, var(--theme-content2) 30%, transparent)'
+                                    }}>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <Lock className="w-4 h-4" style={{ color: 'var(--theme-primary)' }} />
+                                                <span className="text-sm font-semibold" style={{
+                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                }}>Single Device Login</span>
+                                            </div>
+                                            <p className="text-xs text-default-500 mt-1" style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                            }}>
+                                                Restrict user to login from only one device at a time
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            isSelected={form.data.single_device_login_enabled}
+                                            onValueChange={(checked) => handleChange('single_device_login_enabled', checked)}
+                                            color={form.data.single_device_login_enabled ? "warning" : "default"}
+                                            size="sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Password fields (only for new users) */}
+                                {!editMode && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <Input
                                             label="Password"
                                             type={showPassword ? 'text' : 'password'}
-                                            value={userData.password}
+                                            placeholder="Enter password"
+                                            value={form.data.password}
                                             onChange={(e) => handleChange('password', e.target.value)}
-                                            error={!!errors.password}
-                                            helperText={errors.password}
-                                            required={!editMode}
-                                            InputProps={{
-                                                endAdornment: (
-                                                    <IconButton
-                                                        aria-label="toggle password visibility"
-                                                        onClick={handleTogglePasswordVisibility}
-                                                        edge="end"
-                                                    >
-                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                    </IconButton>
-                                                ),
-                                                sx: {
-                                                    background: 'rgba(255, 255, 255, 0.05)',
-                                                    borderRadius: '8px',
-                                                }
+                                            onBlur={() => form.validate('password')}
+                                            isInvalid={form.invalid('password')}
+                                            errorMessage={form.errors.password}
+                                            isRequired={!editMode}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={themeRadius}
+                                            endContent={
+                                                <button
+                                                    className="focus:outline-none"
+                                                    type="button"
+                                                    onClick={handleTogglePasswordVisibility}
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="w-4 h-4 text-default-400" />
+                                                    ) : (
+                                                        <Eye className="w-4 h-4 text-default-400" />
+                                                    )}
+                                                </button>
+                                            }
+                                            classNames={{
+                                                input: "text-small",
+                                                inputWrapper: "min-h-unit-10"
                                             }}
-                                            InputLabelProps={{
-                                                sx: {
-                                                    color: theme.palette.text.secondary,
-                                                }
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
                                             }}
                                         />
-                                    </FormControl>
-                                </Grid>
 
-                                <Grid item xs={12} md={6}>
-                                    <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                                        <TextField
+                                        <Input
                                             label="Confirm Password"
                                             type={showPassword ? 'text' : 'password'}
-                                            value={userData.confirmPassword}
-                                            onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                                            error={!!errors.confirmPassword}
-                                            helperText={errors.confirmPassword || (userData.password !== userData.confirmPassword && userData.confirmPassword ? 'Passwords do not match' : '')}
-                                            required={!editMode}
-                                            InputProps={{
-                                                endAdornment: (
-                                                    <IconButton
-                                                        aria-label="toggle password visibility"
-                                                        onClick={handleTogglePasswordVisibility}
-                                                        edge="end"
-                                                    >
-                                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                                    </IconButton>
-                                                ),
-                                                sx: {
-                                                    background: 'rgba(255, 255, 255, 0.05)',
-                                                    borderRadius: '8px',
-                                                }
+                                            placeholder="Confirm password"
+                                            value={form.data.password_confirmation}
+                                            onChange={(e) => handleChange('password_confirmation', e.target.value)}
+                                            onBlur={() => form.validate('password_confirmation')}
+                                            isInvalid={form.invalid('password_confirmation') || (form.data.password !== form.data.password_confirmation && form.data.password_confirmation)}
+                                            errorMessage={form.errors.password_confirmation || (form.data.password !== form.data.password_confirmation && form.data.password_confirmation ? 'Passwords do not match' : '')}
+                                            isRequired={!editMode}
+                                            variant="bordered"
+                                            size="sm"
+                                            radius={themeRadius}
+                                            endContent={
+                                                <button
+                                                    className="focus:outline-none"
+                                                    type="button"
+                                                    onClick={handleTogglePasswordVisibility}
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="w-4 h-4 text-default-400" />
+                                                    ) : (
+                                                        <Eye className="w-4 h-4 text-default-400" />
+                                                    )}
+                                                </button>
+                                            }
+                                            classNames={{
+                                                input: "text-small",
+                                                inputWrapper: "min-h-unit-10"
                                             }}
-                                            InputLabelProps={{
-                                                sx: {
-                                                    color: theme.palette.text.secondary,
-                                                }
+                                            style={{
+                                                fontFamily: `var(--fontFamily, "Inter")`,
                                             }}
                                         />
-                                    </FormControl>
-                                </Grid>
-                            </>
-                        )}
-                    </Grid>
-                </form>
-            </DialogContent>
-
-            <DialogActions sx={{ justifyContent: 'space-between', p: 3, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                <Button
-                    onClick={closeModal}
-                    variant="bordered"
-                    color="default"
-                    size="lg"
-                    className="bg-white/5 hover:bg-white/10 border border-white/10"
-                >
-                    Cancel
-                </Button>
-                <LoadingButton
-                    onClick={handleSubmit}
-                    loading={processing}
-                    loadingPosition="start"
-                    startIcon={<PasswordIcon />}
-                    variant="contained"
-                    sx={{
-                        background: 'linear-gradient(45deg, #3a7bd5 0%, #2456bd 100%)',
-                        boxShadow: '0 4px 20px 0 rgba(58, 123, 213, 0.4)',
-                        '&:hover': {
-                            background: 'linear-gradient(45deg, #2456bd 0%, #1a3c8a 100%)',
-                        },
-                    }}
-                >
-                    {editMode ? 'Update User' : 'Add User'}
-                </LoadingButton>
-            </DialogActions>
-        </GlassDialog>
+                                    </div>
+                                )}
+                            </form>
+                        </ModalBody>
+                        
+                        <ModalFooter className="flex justify-between px-4 sm:px-6 py-3 sm:py-4" style={{
+                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                        }}>
+                            <Button 
+                                variant="light" 
+                                onPress={closeModal}
+                                isDisabled={form.processing}
+                                radius={themeRadius}
+                                style={{
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            
+                            <Button
+                                variant="solid"
+                                color="primary"
+                                onPress={handleSubmit}
+                                isLoading={form.processing}
+                                isDisabled={!isFormValid()}
+                                radius={themeRadius}
+                                style={{
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                            >
+                                {editMode ? 'Update User' : 'Add User'}
+                            </Button>
+                        </ModalFooter>
+                    </>
+                )}
+            </ModalContent>
+        </Modal>
     );
 };
 

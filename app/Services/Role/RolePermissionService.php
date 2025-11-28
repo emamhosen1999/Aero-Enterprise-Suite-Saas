@@ -3,21 +3,22 @@
 namespace App\Services\Role;
 
 use Illuminate\Support\Collection;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /**
  * Enterprise Role Permission Service
- * 
+ *
  * Implements ISO 27001/27002 compliant role-based access control
  * Follows RBAC (Role-Based Access Control) industry standards
  */
 class RolePermissionService
-{    /**
+{
+    /**
      * Standard enterprise module definitions aligned with comprehensive permission system
      */
     private const ENTERPRISE_MODULES = [
@@ -26,19 +27,19 @@ class RolePermissionService
             'name' => 'Dashboard & Analytics',
             'permissions' => ['core.dashboard.view', 'core.stats.view', 'core.updates.view'],
             'description' => 'Core system dashboard and analytics',
-            'category' => 'core_system'
+            'category' => 'core_system',
         ],
 
-        // Self Service Module  
+        // Self Service Module
         'self-service' => [
             'name' => 'Self Service Portal',
             'permissions' => [
                 'attendance.own.view', 'attendance.own.punch',
                 'leave.own.view', 'leave.own.create', 'leave.own.update', 'leave.own.delete',
-                'communications.own.view', 'profile.own.view', 'profile.own.update', 'profile.password.change'
+                'communications.own.view', 'profile.own.view', 'profile.own.update', 'profile.password.change',
             ],
             'description' => 'Employee self-service capabilities',
-            'category' => 'self_service'
+            'category' => 'self_service',
         ],
 
         // Human Resource Management
@@ -52,10 +53,10 @@ class RolePermissionService
                 'holidays.view', 'holidays.create', 'holidays.update', 'holidays.delete',
                 'leaves.view', 'leaves.create', 'leaves.update', 'leaves.delete', 'leaves.approve', 'leaves.analytics',
                 'leave-settings.view', 'leave-settings.update',
-                'jurisdiction.view', 'jurisdiction.create', 'jurisdiction.update', 'jurisdiction.delete'
+                'jurisdiction.view', 'jurisdiction.create', 'jurisdiction.update', 'jurisdiction.delete',
             ],
             'description' => 'Human resources and employee management',
-            'category' => 'human_resources'
+            'category' => 'human_resources',
         ],
 
         // Project & Portfolio Management
@@ -65,10 +66,10 @@ class RolePermissionService
                 'daily-works.view', 'daily-works.create', 'daily-works.update', 'daily-works.delete', 'daily-works.import', 'daily-works.export',
                 'projects.analytics',
                 'tasks.view', 'tasks.create', 'tasks.update', 'tasks.delete', 'tasks.assign',
-                'reports.view', 'reports.create', 'reports.update', 'reports.delete'
+                'reports.view', 'reports.create', 'reports.update', 'reports.delete',
             ],
             'description' => 'Project management and portfolio tracking',
-            'category' => 'project_management'
+            'category' => 'project_management',
         ],
 
         // Document & Knowledge Management
@@ -76,10 +77,10 @@ class RolePermissionService
             'name' => 'Document & Knowledge Management',
             'permissions' => [
                 'letters.view', 'letters.create', 'letters.update', 'letters.delete',
-                'documents.view', 'documents.create', 'documents.update', 'documents.delete'
+                'documents.view', 'documents.create', 'documents.update', 'documents.delete',
             ],
             'description' => 'Document management and knowledge base',
-            'category' => 'document_management'
+            'category' => 'document_management',
         ],
 
         // Customer Relationship Management (Future)
@@ -88,10 +89,10 @@ class RolePermissionService
             'permissions' => [
                 'customers.view', 'customers.create', 'customers.update', 'customers.delete',
                 'leads.view', 'leads.create', 'leads.update', 'leads.delete',
-                'feedback.view', 'feedback.create', 'feedback.update', 'feedback.delete'
+                'feedback.view', 'feedback.create', 'feedback.update', 'feedback.delete',
             ],
             'description' => 'Customer relationship and lead management',
-            'category' => 'customer_relations'
+            'category' => 'customer_relations',
         ],
 
         // Supply Chain & Inventory Management (Future)
@@ -101,10 +102,10 @@ class RolePermissionService
                 'inventory.view', 'inventory.create', 'inventory.update', 'inventory.delete',
                 'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
                 'purchase-orders.view', 'purchase-orders.create', 'purchase-orders.update', 'purchase-orders.delete',
-                'warehousing.view', 'warehousing.manage'
+                'warehousing.view', 'warehousing.manage',
             ],
             'description' => 'Supply chain and inventory operations',
-            'category' => 'supply_chain'
+            'category' => 'supply_chain',
         ],
 
         // Retail & Sales Operations (Future)
@@ -112,10 +113,10 @@ class RolePermissionService
             'name' => 'Retail & Sales Operations',
             'permissions' => [
                 'pos.view', 'pos.operate',
-                'sales.view', 'sales.create', 'sales.analytics'
+                'sales.view', 'sales.create', 'sales.analytics',
             ],
             'description' => 'Point of sale and retail operations',
-            'category' => 'retail_sales'
+            'category' => 'retail_sales',
         ],
 
         // Financial Management & Accounting (Future)
@@ -125,10 +126,10 @@ class RolePermissionService
                 'accounts-payable.view', 'accounts-payable.manage',
                 'accounts-receivable.view', 'accounts-receivable.manage',
                 'ledger.view', 'ledger.manage',
-                'financial-reports.view', 'financial-reports.create'
+                'financial-reports.view', 'financial-reports.create',
             ],
             'description' => 'Financial management and accounting',
-            'category' => 'financial_management'
+            'category' => 'financial_management',
         ],
 
         // System Administration
@@ -141,40 +142,142 @@ class RolePermissionService
                 'company.settings', 'attendance.settings', 'email.settings', 'notification.settings',
                 'theme.settings', 'localization.settings', 'performance.settings', 'approval.settings',
                 'invoice.settings', 'salary.settings', 'system.settings',
-                'audit.view', 'audit.export', 'backup.create', 'backup.restore'
+                'audit.view', 'audit.export', 'backup.create', 'backup.restore',
             ],
             'description' => 'System administration and configuration',
-            'category' => 'system_administration'
-        ]
-    ];    /**
-     * Get all permissions grouped by module for frontend display
+            'category' => 'system_administration',
+        ],
+    ];
+
+    /**
+     * Get all permissions grouped dynamically by entity prefix for frontend display
+     *
+     * This method dynamically groups ALL permissions from the database by their entity prefix
+     * (e.g., "departments.view" -> "Departments", "modules.create" -> "Modules")
+     * No hardcoded module definitions needed - permissions are auto-discovered and grouped.
      */
     public function getPermissionsGroupedByModule(): array
     {
         $groupedPermissions = [];
-        
-        foreach (self::ENTERPRISE_MODULES as $moduleKey => $moduleConfig) {
-            $groupedPermissions[$moduleKey] = [
-                'name' => $moduleConfig['name'],
-                'description' => $moduleConfig['description'],
-                'category' => $moduleConfig['category'],
-                'permissions' => []
-            ];
-            
-            // Get actual permissions from database that match this module
-            foreach ($moduleConfig['permissions'] as $permissionName) {
-                $permission = Permission::where('name', $permissionName)->first();
-                if ($permission) {
-                    $groupedPermissions[$moduleKey]['permissions'][] = [
-                        'id' => $permission->id,
-                        'name' => $permission->name,
-                        'display_name' => $this->formatPermissionDisplayName($permission->name)
-                    ];
-                }
+
+        // Fetch ALL permissions from database and group dynamically by entity prefix
+        $allPermissions = Permission::orderBy('name')->get();
+
+        foreach ($allPermissions as $permission) {
+            // Extract entity prefix from permission name (e.g., "departments" from "departments.view")
+            $parts = explode('.', $permission->name);
+            $entityKey = $parts[0];
+
+            // Initialize the entity group if it doesn't exist
+            if (! isset($groupedPermissions[$entityKey])) {
+                $groupedPermissions[$entityKey] = [
+                    'name' => $this->formatEntityDisplayName($entityKey),
+                    'description' => "Permissions for {$this->formatEntityDisplayName($entityKey)}",
+                    'category' => $this->inferEntityCategory($entityKey),
+                    'permissions' => [],
+                ];
             }
+
+            // Add permission to its entity group
+            $groupedPermissions[$entityKey]['permissions'][] = [
+                'id' => $permission->id,
+                'name' => $permission->name,
+                'display_name' => $this->formatPermissionDisplayName($permission->name),
+            ];
         }
-        
+
+        // Sort groups alphabetically by entity name for consistent display
+        ksort($groupedPermissions);
+
         return $groupedPermissions;
+    }
+
+    /**
+     * Format entity key to display name
+     * Converts "departments" to "Departments", "daily-works" to "Daily Works"
+     */
+    private function formatEntityDisplayName(string $entityKey): string
+    {
+        return ucwords(str_replace(['-', '_'], ' ', $entityKey));
+    }
+
+    /**
+     * Infer category for an entity based on its name
+     * This provides logical grouping for UI organization
+     */
+    private function inferEntityCategory(string $entityKey): string
+    {
+        $categoryMap = [
+            // Core System
+            'core' => 'core_system',
+
+            // Self Service
+            'profile' => 'self_service',
+
+            // Human Resources
+            'employees' => 'human_resources',
+            'departments' => 'human_resources',
+            'designations' => 'human_resources',
+            'attendance' => 'human_resources',
+            'holidays' => 'human_resources',
+            'leaves' => 'human_resources',
+            'leave' => 'human_resources',
+            'leave-settings' => 'human_resources',
+            'jurisdiction' => 'human_resources',
+
+            // Project Management
+            'daily-works' => 'project_management',
+            'projects' => 'project_management',
+            'tasks' => 'project_management',
+            'reports' => 'project_management',
+
+            // Document Management
+            'letters' => 'document_management',
+            'documents' => 'document_management',
+
+            // CRM
+            'customers' => 'customer_relations',
+            'leads' => 'customer_relations',
+            'feedback' => 'customer_relations',
+
+            // Supply Chain
+            'inventory' => 'supply_chain',
+            'suppliers' => 'supply_chain',
+            'purchase-orders' => 'supply_chain',
+            'warehousing' => 'supply_chain',
+
+            // Retail
+            'pos' => 'retail_sales',
+            'sales' => 'retail_sales',
+
+            // Finance
+            'accounts-payable' => 'financial_management',
+            'accounts-receivable' => 'financial_management',
+            'ledger' => 'financial_management',
+            'financial-reports' => 'financial_management',
+
+            // System Administration
+            'users' => 'system_administration',
+            'roles' => 'system_administration',
+            'permissions' => 'system_administration',
+            'settings' => 'system_administration',
+            'company' => 'system_administration',
+            'email' => 'system_administration',
+            'notification' => 'system_administration',
+            'theme' => 'system_administration',
+            'localization' => 'system_administration',
+            'performance' => 'system_administration',
+            'approval' => 'system_administration',
+            'invoice' => 'system_administration',
+            'salary' => 'system_administration',
+            'system' => 'system_administration',
+            'audit' => 'system_administration',
+            'backup' => 'system_administration',
+            'modules' => 'system_administration',
+            'communications' => 'communications',
+        ];
+
+        return $categoryMap[$entityKey] ?? 'other';
     }
 
     /**
@@ -187,7 +290,7 @@ class RolePermissionService
         if (count($parts) >= 2) {
             $resource = ucfirst(str_replace('-', ' ', $parts[0]));
             $action = ucfirst($parts[1]);
-            
+
             // Handle special cases for actions
             $actionMap = [
                 'view' => 'View',
@@ -203,28 +306,31 @@ class RolePermissionService
                 'punch' => 'Punch',
                 'change' => 'Change',
                 'impersonate' => 'Impersonate',
-                'analytics' => 'View Analytics'
+                'analytics' => 'View Analytics',
             ];
-            
+
             $actionText = $actionMap[$parts[1]] ?? ucfirst($parts[1]);
-            
+
             // Handle "own" permissions
             if (count($parts) >= 3 && $parts[1] === 'own') {
                 $actionText = $actionMap[$parts[2]] ?? ucfirst($parts[2]);
+
                 return "{$actionText} Own {$resource}";
             }
-            
+
             return "{$actionText} {$resource}";
         }
-        
+
         return ucwords(str_replace(['.', '-', '_'], ' ', $permissionName));
-    }    /**
+    }
+
+    /**
      * Assign permissions to a role
      */
     public function assignPermissionsToRole(Role $role, array $permissions): void
     {
         $validPermissions = [];
-        
+
         foreach ($permissions as $permission) {
             $existingPermission = Permission::where('name', $permission)->first();
             if ($existingPermission) {
@@ -234,11 +340,13 @@ class RolePermissionService
             }
         }
 
-        if (!empty($validPermissions)) {
+        if (! empty($validPermissions)) {
             $role->syncPermissions(array_unique($validPermissions));
             Cache::forget('spatie.permission.cache');
         }
-    }    /**
+    }
+
+    /**
      * Get enterprise modules structure for frontend
      */
     public function getEnterpriseModules(): array
@@ -251,12 +359,12 @@ class RolePermissionService
      */
     public function getModulePermissions(string $moduleKey): Collection
     {
-        if (!isset(self::ENTERPRISE_MODULES[$moduleKey])) {
+        if (! isset(self::ENTERPRISE_MODULES[$moduleKey])) {
             return collect();
         }
 
         $modulePermissions = self::ENTERPRISE_MODULES[$moduleKey]['permissions'];
-        
+
         return Permission::whereIn('name', $modulePermissions)
             ->orderBy('name')
             ->get();
@@ -271,6 +379,7 @@ class RolePermissionService
             $query->orderBy('name');
         }])->get()->map(function ($role) {
             $role->module_permissions = $this->groupPermissionsByModule($role->permissions);
+
             return $role;
         });
     }
@@ -281,41 +390,43 @@ class RolePermissionService
     private function groupPermissionsByModule(Collection $permissions): array
     {
         $grouped = [];
-        
+
         foreach (self::ENTERPRISE_MODULES as $moduleKey => $moduleConfig) {
             $modulePermissions = $permissions->whereIn('name', $moduleConfig['permissions']);
-            
+
             if ($modulePermissions->isNotEmpty()) {
                 $grouped[$moduleKey] = [
                     'name' => $moduleConfig['name'],
-                    'permissions' => $modulePermissions->toArray()
+                    'permissions' => $modulePermissions->toArray(),
                 ];
             }
         }
-        
+
         return $grouped;
-    }    /**
+    }
+
+    /**
      * Check if a user can access a specific module
      */
     public function userCanAccessModule(string $moduleKey, $user = null): bool
     {
-        if (!$user) {
+        if (! $user) {
             $user = auth()->user();
         }
-        
-        if (!$user || !isset(self::ENTERPRISE_MODULES[$moduleKey])) {
+
+        if (! $user || ! isset(self::ENTERPRISE_MODULES[$moduleKey])) {
             return false;
         }
-        
+
         $modulePermissions = self::ENTERPRISE_MODULES[$moduleKey]['permissions'];
-        
+
         // Check if user has any permission for this module
         foreach ($modulePermissions as $permission) {
             if ($user->can($permission)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -324,24 +435,26 @@ class RolePermissionService
      */
     public function getUserAccessibleModules($user = null): array
     {
-        if (!$user) {
+        if (! $user) {
             $user = auth()->user();
         }
-        
-        if (!$user) {
+
+        if (! $user) {
             return [];
         }
-        
+
         $accessibleModules = [];
-        
+
         foreach (self::ENTERPRISE_MODULES as $moduleKey => $moduleConfig) {
             if ($this->userCanAccessModule($moduleKey, $user)) {
                 $accessibleModules[$moduleKey] = $moduleConfig;
             }
         }
-        
+
         return $accessibleModules;
-    }    /**
+    }
+
+    /**
      * Validate role permissions for consistency
      */
     public function validateRolePermissions(Role $role): array
@@ -350,11 +463,11 @@ class RolePermissionService
             'role' => $role->name,
             'valid' => true,
             'issues' => [],
-            'recommendations' => []
+            'recommendations' => [],
         ];
-        
+
         $permissions = $role->permissions->pluck('name');
-        
+
         // Check if role has permissions that don't exist in our module structure
         foreach ($permissions as $permission) {
             $found = false;
@@ -364,13 +477,13 @@ class RolePermissionService
                     break;
                 }
             }
-            
-            if (!$found) {
+
+            if (! $found) {
                 $validation['valid'] = false;
                 $validation['issues'][] = "Permission '{$permission}' is not defined in any module";
             }
         }
-        
+
         return $validation;
     }
 
@@ -385,27 +498,27 @@ class RolePermissionService
             'modules' => count(self::ENTERPRISE_MODULES),
             'permissions_by_module' => [],
             'roles_with_permissions' => Role::has('permissions')->count(),
-            'unused_permissions' => Permission::doesntHave('roles')->count()
+            'unused_permissions' => Permission::doesntHave('roles')->count(),
         ];
-        
+
         foreach (self::ENTERPRISE_MODULES as $moduleKey => $moduleConfig) {
             $stats['permissions_by_module'][$moduleKey] = [
                 'name' => $moduleConfig['name'],
                 'permission_count' => count($moduleConfig['permissions']),
-                'category' => $moduleConfig['category']
+                'category' => $moduleConfig['category'],
             ];
         }
-        
+
         return $stats;
     }
-    
+
     /**
      * Initialize enterprise system with default roles and permissions
      */
     public function initializeEnterpriseSystem(): array
     {
         $results = [];
-        
+
         try {
             // This method would typically set up default enterprise roles
             // For now, we'll just return system status
@@ -413,52 +526,52 @@ class RolePermissionService
             $results['roles_count'] = Role::count();
             $results['permissions_count'] = Permission::count();
             $results['modules_configured'] = count(self::ENTERPRISE_MODULES);
-            
+
         } catch (\Exception $e) {
             $results['status'] = 'Error during initialization';
             $results['error'] = $e->getMessage();
         }
-        
+
         return $results;
     }
-    
+
     /**
      * Audit role permissions for compliance
      */
     public function auditRolePermissions(): array
     {
         $audit = [];
-        
+
         try {
             $roles = Role::with('permissions')->get();
             $permissions = Permission::all();
-            
+
             $audit['total_roles'] = $roles->count();
             $audit['total_permissions'] = $permissions->count();
             $audit['roles_audit'] = [];
-            
+
             foreach ($roles as $role) {
                 $audit['roles_audit'][] = [
                     'role_name' => $role->name,
                     'role_id' => $role->id,
                     'permissions_count' => $role->permissions->count(),
-                    'permissions' => $role->permissions->pluck('name')->toArray()
+                    'permissions' => $role->permissions->pluck('name')->toArray(),
                 ];
             }
-            
+
             $audit['compliance_status'] = [
                 'rbac_implemented' => true,
                 'audit_trail_enabled' => true,
-                'least_privilege_enforced' => true
+                'least_privilege_enforced' => true,
             ];
-            
+
         } catch (\Exception $e) {
             $audit['error'] = $e->getMessage();
         }
-        
+
         return $audit;
     }
-    
+
     /**
      * Forget Spatie permission cache safely.
      */
@@ -467,7 +580,7 @@ class RolePermissionService
         try {
             // Clear Spatie permission cache
             app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-            
+
             // Clear all permission-related cache keys
             $cacheKeys = [
                 config('permission.cache.key', 'spatie.permission.cache'),
@@ -475,18 +588,18 @@ class RolePermissionService
                 'permissions_grouped_by_module',
                 'enterprise_modules_cache',
             ];
-            
+
             foreach ($cacheKeys as $key) {
                 Cache::forget($key);
             }
-            
+
             // Clear Laravel cache in production environment
             if (app()->environment('production')) {
                 Artisan::call('cache:clear');
                 Artisan::call('config:clear');
                 Artisan::call('view:clear');
             }
-            
+
         } catch (\Throwable $e) {
             Log::warning('Permission cache reset failed', ['error' => $e->getMessage()]);
         }
@@ -501,16 +614,16 @@ class RolePermissionService
             // Try to get from cache first
             $cacheKey = 'roles_with_permissions_frontend';
             $cachedData = Cache::get($cacheKey);
-            
-            if ($cachedData && is_array($cachedData) && !empty($cachedData)) {
+
+            if ($cachedData && is_array($cachedData) && ! empty($cachedData)) {
                 return $cachedData;
             }
-            
+
             // Get fresh data with multiple fallback strategies
             $roles = $this->getRolesWithFallback();
             $permissions = $this->getPermissionsWithFallback();
             $rolePermissions = $this->getRolePermissionRelationshipsWithFallback();
-            
+
             $data = [
                 'roles' => $roles,
                 'permissions' => $permissions,
@@ -519,19 +632,19 @@ class RolePermissionService
                 'timestamp' => now()->toISOString(),
                 'server_environment' => app()->environment(),
             ];
-            
+
             // Cache for 5 minutes in production, 1 minute in development
             $cacheMinutes = app()->environment('production') ? 5 : 1;
             Cache::put($cacheKey, $data, now()->addMinutes($cacheMinutes));
-            
+
             return $data;
-            
+
         } catch (\Throwable $e) {
             Log::error('Failed to get roles with permissions for frontend', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             // Return minimal safe structure to prevent frontend crashes
             return [
                 'roles' => [],
@@ -552,25 +665,28 @@ class RolePermissionService
         try {
             // Primary method: Eloquent with relationships
             $roles = Role::with(['permissions'])->orderBy('name')->get();
-            
+
             if ($roles->isNotEmpty()) {
                 return $roles->toArray();
             }
-            
+
             // Fallback 1: Raw query
             $rolesRaw = DB::table('roles')->orderBy('name')->get();
-            
+
             if ($rolesRaw->isNotEmpty()) {
                 Log::warning('Using fallback method for roles - Eloquent relationship failed');
+
                 return $rolesRaw->toArray();
             }
-            
+
             // Fallback 2: Basic role creation if none exist
             Log::error('No roles found in database - this should not happen in production');
+
             return [];
-            
+
         } catch (\Throwable $e) {
             Log::error('All role retrieval methods failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -583,24 +699,27 @@ class RolePermissionService
         try {
             // Primary method: Eloquent
             $permissions = Permission::orderBy('name')->get();
-            
+
             if ($permissions->isNotEmpty()) {
                 return $permissions->toArray();
             }
-            
+
             // Fallback: Raw query
             $permissionsRaw = DB::table('permissions')->orderBy('name')->get();
-            
+
             if ($permissionsRaw->isNotEmpty()) {
                 Log::warning('Using fallback method for permissions - Eloquent failed');
+
                 return $permissionsRaw->toArray();
             }
-            
+
             Log::error('No permissions found in database');
+
             return [];
-            
+
         } catch (\Throwable $e) {
             Log::error('All permission retrieval methods failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -615,15 +734,15 @@ class RolePermissionService
             $relationships = DB::table('role_has_permissions')
                 ->select('role_id', 'permission_id')
                 ->get();
-            
+
             if ($relationships->isNotEmpty()) {
                 return $relationships->toArray();
             }
-            
+
             // Fallback: Build relationships from role->permissions
             $fallbackRelationships = [];
             $roles = Role::with('permissions')->get();
-            
+
             foreach ($roles as $role) {
                 foreach ($role->permissions as $permission) {
                     $fallbackRelationships[] = [
@@ -632,17 +751,20 @@ class RolePermissionService
                     ];
                 }
             }
-            
-            if (!empty($fallbackRelationships)) {
+
+            if (! empty($fallbackRelationships)) {
                 Log::warning('Using fallback method for role-permission relationships');
+
                 return $fallbackRelationships;
             }
-            
+
             Log::error('No role-permission relationships found');
+
             return [];
-            
+
         } catch (\Throwable $e) {
             Log::error('All role-permission relationship retrieval methods failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -658,52 +780,52 @@ class RolePermissionService
             'repairs_made' => [],
             'validation_passed' => true,
         ];
-        
+
         try {
             // Check if role_has_permissions table has data
             $rolePermissionCount = DB::table('role_has_permissions')->count();
             $roleCount = Role::count();
             $permissionCount = Permission::count();
-            
+
             if ($rolePermissionCount === 0 && $roleCount > 0 && $permissionCount > 0) {
                 $report['issues_found'][] = 'role_has_permissions table is empty but roles and permissions exist';
                 $report['validation_passed'] = false;
-                
+
                 // Attempt to repair by re-seeding permissions
                 try {
                     Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\ComprehensiveRolePermissionSeeder']);
                     $report['repairs_made'][] = 'Re-seeded role-permission relationships';
                 } catch (\Throwable $e) {
-                    $report['issues_found'][] = 'Failed to repair via seeder: ' . $e->getMessage();
+                    $report['issues_found'][] = 'Failed to repair via seeder: '.$e->getMessage();
                 }
             }
-            
+
             // Check for orphaned relationships
             $orphanedRoleRelations = DB::table('role_has_permissions')
                 ->leftJoin('roles', 'role_has_permissions.role_id', '=', 'roles.id')
                 ->whereNull('roles.id')
                 ->count();
-                
+
             if ($orphanedRoleRelations > 0) {
                 $report['issues_found'][] = "Found {$orphanedRoleRelations} orphaned role relationships";
                 $report['validation_passed'] = false;
             }
-            
+
             $orphanedPermissionRelations = DB::table('role_has_permissions')
                 ->leftJoin('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
                 ->whereNull('permissions.id')
                 ->count();
-                
+
             if ($orphanedPermissionRelations > 0) {
                 $report['issues_found'][] = "Found {$orphanedPermissionRelations} orphaned permission relationships";
                 $report['validation_passed'] = false;
             }
-            
+
         } catch (\Throwable $e) {
-            $report['issues_found'][] = 'Validation failed: ' . $e->getMessage();
+            $report['issues_found'][] = 'Validation failed: '.$e->getMessage();
             $report['validation_passed'] = false;
         }
-        
+
         return $report;
     }
 
@@ -721,6 +843,7 @@ class RolePermissionService
             'ru' => $maxRoleUpdated?->timestamp ?? 0,
             'pu' => $maxPermUpdated?->timestamp ?? 0,
         ];
+
         return substr(hash('sha256', json_encode($counts)), 0, 16);
     }
 }

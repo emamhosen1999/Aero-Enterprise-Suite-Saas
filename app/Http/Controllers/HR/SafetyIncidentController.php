@@ -28,7 +28,7 @@ class SafetyIncidentController extends Controller
 
         return Inertia::render('HR/Safety/Incidents/Index', [
             'title' => 'Safety Incidents',
-            'incidents' => $incidents
+            'incidents' => $incidents,
         ]);
     }
 
@@ -51,7 +51,7 @@ class SafetyIncidentController extends Controller
         return Inertia::render('HR/Safety/Incidents/Create', [
             'title' => 'Report Safety Incident',
             'employees' => $employees,
-            'departments' => $departments
+            'departments' => $departments,
         ]);
     }
 
@@ -117,7 +117,7 @@ class SafetyIncidentController extends Controller
                 ->with('success', 'Safety incident reported successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to report safety incident: ' . $e->getMessage());
+            Log::error('Failed to report safety incident: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to report safety incident. Please try again.')
@@ -137,7 +137,7 @@ class SafetyIncidentController extends Controller
 
         return Inertia::render('HR/Safety/Incidents/Show', [
             'title' => 'Safety Incident Details',
-            'incident' => $incident
+            'incident' => $incident,
         ]);
     }
 
@@ -164,7 +164,7 @@ class SafetyIncidentController extends Controller
             'title' => 'Edit Safety Incident',
             'incident' => $incident,
             'employees' => $employees,
-            'departments' => $departments
+            'departments' => $departments,
         ]);
     }
 
@@ -246,7 +246,7 @@ class SafetyIncidentController extends Controller
 
             // Delete participants that weren't updated
             $participantsToDelete = array_diff($existingParticipantIds, $updatedParticipantIds);
-            if (!empty($participantsToDelete)) {
+            if (! empty($participantsToDelete)) {
                 SafetyIncidentParticipant::whereIn('id', $participantsToDelete)->delete();
             }
 
@@ -256,7 +256,7 @@ class SafetyIncidentController extends Controller
                 ->with('success', 'Safety incident updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to update safety incident: ' . $e->getMessage());
+            Log::error('Failed to update safety incident: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to update safety incident. Please try again.')
@@ -279,7 +279,7 @@ class SafetyIncidentController extends Controller
             return redirect()->route('hr.safety.incidents.index')
                 ->with('success', 'Safety incident deleted successfully.');
         } catch (\Exception $e) {
-            Log::error('Failed to delete safety incident: ' . $e->getMessage());
+            Log::error('Failed to delete safety incident: '.$e->getMessage());
 
             return redirect()->back()
                 ->with('error', 'Failed to delete safety incident.');

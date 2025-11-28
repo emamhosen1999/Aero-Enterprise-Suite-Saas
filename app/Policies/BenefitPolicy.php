@@ -24,7 +24,7 @@ class BenefitPolicy
     public function view(User $user, Benefit $benefit): bool
     {
         // Basic permission check
-        if (!$user->can('hr.benefits.view')) {
+        if (! $user->can('hr.benefits.view')) {
             return false;
         }
 

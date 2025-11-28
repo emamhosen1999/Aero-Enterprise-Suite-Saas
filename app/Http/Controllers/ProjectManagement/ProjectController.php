@@ -80,7 +80,7 @@ class ProjectController extends Controller
             'created_at',
             'updated_at',
             'health_status',
-            'risk_level'
+            'risk_level',
         ];
 
         if (in_array($sortField, $allowedSortFields)) {
@@ -418,7 +418,7 @@ class ProjectController extends Controller
 
         // Log audit trail
         foreach ($validated['project_ids'] as $projectId) {
-            Log::info("Bulk action performed", [
+            Log::info('Bulk action performed', [
                 'project_id' => $projectId,
                 'action' => $validated['action'],
                 'user_id' => Auth::id(),
@@ -487,7 +487,7 @@ class ProjectController extends Controller
             'progress',
             'spi',
             'cpi',
-            'methodology'
+            'methodology',
         ];
 
         // Generate export based on format
@@ -678,7 +678,7 @@ class ProjectController extends Controller
 
     private function exportToCsv($projects, $columns)
     {
-        $filename = 'projects_export_' . now()->format('Y_m_d_H_i_s') . '.csv';
+        $filename = 'projects_export_'.now()->format('Y_m_d_H_i_s').'.csv';
 
         return response()->stream(function () use ($projects, $columns) {
             $handle = fopen('php://output', 'w');
@@ -740,7 +740,7 @@ class ProjectController extends Controller
             case 'budget_spent':
                 return $project->budget_spent;
             case 'progress':
-                return $project->progress . '%';
+                return $project->progress.'%';
             case 'spi':
                 return $project->spi;
             case 'cpi':

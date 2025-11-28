@@ -17,7 +17,7 @@ class LeaveValidationService
             'user_id' => 'required|exists:users,id',
             'leaveType' => 'required|exists:leave_settings,type',
             'fromDate' => 'required|date|before_or_equal:toDate',
-            'toDate' => 'required|date|after_or_equal:fromDate|before:' . now()->addYear()->format('Y-m-d'),
+            'toDate' => 'required|date|after_or_equal:fromDate|before:'.now()->addYear()->format('Y-m-d'),
             'daysCount' => 'required|integer|min:1|max:365',
             'leaveReason' => 'required|string|max:500|min:5',
             'status' => 'nullable|in:new,pending,approved,rejected,New,Pending,Approved,Rejected',

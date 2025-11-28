@@ -7,11 +7,11 @@ use App\Models\User;
 use App\Models\WorkLocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class TaskCrudService
 {
     private TaskValidationService $validationService;
+
     private TaskNotificationService $notificationService;
 
     public function __construct(
@@ -28,7 +28,7 @@ class TaskCrudService
     public function create(Request $request): array
     {
         $validatedData = $this->validationService->validateAddRequest($request);
-        
+
         // Check if task with same number already exists
         $existingTask = Tasks::where('number', $validatedData['number'])->first();
         if ($existingTask) {
@@ -36,12 +36,12 @@ class TaskCrudService
         }
 
         $workLocation = $this->findWorkLocationForTask($validatedData['location']);
-        
-        if (!$workLocation) {
+
+        if (! $workLocation) {
             throw new \Exception('No work location found for the specified location');
         }
 
-        $task = new Tasks();
+        $task = new Tasks;
         $task->date = $validatedData['date'];
         $task->number = $validatedData['number'];
         $task->planned_time = $validatedData['time'];
@@ -58,7 +58,7 @@ class TaskCrudService
 
         return [
             'message' => 'Task added successfully',
-            'task' => $task
+            'task' => $task,
         ];
     }
 
@@ -68,10 +68,10 @@ class TaskCrudService
     public function update(Request $request): array
     {
         $validatedData = $this->validationService->validateUpdateRequest($request);
-        
+
         $task = Tasks::find($validatedData['id']);
-        
-        if (!$task) {
+
+        if (! $task) {
             throw new \Exception('Task not found');
         }
 
@@ -89,7 +89,7 @@ class TaskCrudService
         // Send notifications if status changed
         if ($oldStatus !== $task->status) {
             $this->notificationService->sendTaskStatusUpdateNotification($task, $oldStatus, $task->status);
-            
+
             if ($task->status === 'completed') {
                 $this->notificationService->sendTaskCompletionNotification($task);
             }
@@ -97,7 +97,7 @@ class TaskCrudService
 
         return [
             'messages' => $messages,
-            'task' => $task
+            'task' => $task,
         ];
     }
 
@@ -111,8 +111,8 @@ class TaskCrudService
         ]);
 
         $task = Tasks::find($request->id);
-        
-        if (!$task) {
+
+        if (! $task) {
             throw new \Exception('Task not found');
         }
 
@@ -127,12 +127,12 @@ class TaskCrudService
     public function getAllTasks(Request $request): array
     {
         $user = Auth::user();
-        
+
         $tasks = $this->buildTaskQuery($user)->get();
 
         return [
             'tasks' => $tasks,
-            'userInfo' => $this->getUserInfo($user)
+            'userInfo' => $this->getUserInfo($user),
         ];
     }
 
@@ -155,7 +155,7 @@ class TaskCrudService
     {
         $userWithDesignation = User::with('designation')->find($user->id);
         $userDesignationTitle = $userWithDesignation->designation?->title;
-        
+
         if ($userDesignationTitle === 'Supervision Engineer') {
             return Tasks::with('reports')->where('incharge', $user->user_name);
         }
@@ -178,7 +178,7 @@ class TaskCrudService
     {
         $userWithDesignation = User::with('designation')->find($user->id);
         $userDesignationTitle = $userWithDesignation->designation?->title;
-        
+
         if ($userDesignationTitle === 'Supervision Engineer') {
             return [
                 'incharges' => [],
@@ -217,7 +217,7 @@ class TaskCrudService
         ];
 
         foreach ($fields as $key => $label) {
-            if (array_key_exists($key, $validatedData) && $task->$key !== $validatedData[$key]) {
+            if (array_key_exists($key, $validatedData) && $validatedData[$key] !== $task->$key) {
                 $task->$key = $validatedData[$key];
                 $messages[] = "{$label} updated successfully to '{$validatedData[$key]}'";
             }
@@ -234,11 +234,11 @@ class TaskCrudService
         $messages = [];
 
         if ($request->has('assigned')) {
-            if (!empty($request->assigned)) {
+            if (! empty($request->assigned)) {
                 $request->validate(['assigned' => 'required|exists:users,id']);
                 $task->assigned = $request->assigned;
-                $messages[] = 'Task assigned to ' . User::find($request->assigned)->name;
-                
+                $messages[] = 'Task assigned to '.User::find($request->assigned)->name;
+
                 // Send assignment notification
                 $this->notificationService->sendTaskAssignmentNotification($task, $request->assigned);
             } else {
@@ -250,7 +250,7 @@ class TaskCrudService
         if ($request->has('incharge')) {
             $request->validate(['incharge' => 'required|exists:users,id']);
             $task->incharge = $request->incharge;
-            $messages[] = 'Task incharge updated to ' . User::find($request->incharge)->name;
+            $messages[] = 'Task incharge updated to '.User::find($request->incharge)->name;
         }
 
         return $messages;

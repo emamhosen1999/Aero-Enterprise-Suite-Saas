@@ -22,7 +22,7 @@ class JobInterview extends Model
         'type',
         'status',
         'interviewers',
-        'scheduled_by'
+        'scheduled_by',
     ];
 
     protected $casts = [
@@ -99,6 +99,7 @@ class JobInterview extends Model
     {
         $now = now();
         $endTime = $this->scheduled_at->copy()->addMinutes($this->duration_minutes);
+
         return $now->gte($this->scheduled_at) && $now->lte($endTime);
     }
 
@@ -108,6 +109,7 @@ class JobInterview extends Model
     public function hasEnded()
     {
         $endTime = $this->scheduled_at->copy()->addMinutes($this->duration_minutes);
+
         return now()->gt($endTime);
     }
 
@@ -116,7 +118,7 @@ class JobInterview extends Model
      */
     public function timeUntil()
     {
-        if (!$this->isUpcoming()) {
+        if (! $this->isUpcoming()) {
             return null;
         }
 

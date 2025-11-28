@@ -14,8 +14,8 @@ class LeaveFactory extends Factory
     public function definition(): array
     {
         $fromDate = $this->faker->dateTimeBetween('now', '+30 days');
-        $toDate = $this->faker->dateTimeBetween($fromDate, $fromDate->format('Y-m-d') . ' +7 days');
-        
+        $toDate = $this->faker->dateTimeBetween($fromDate, $fromDate->format('Y-m-d').' +7 days');
+
         $days = $fromDate->diff($toDate)->days + 1;
 
         return [

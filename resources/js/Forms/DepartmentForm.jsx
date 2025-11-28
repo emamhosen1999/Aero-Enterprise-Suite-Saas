@@ -1,45 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Grid,
-    FormControl,
-    FormHelperText,
-    InputLabel,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Input,
     Select,
-    MenuItem,
-    FormControlLabel,
+    SelectItem,
     Switch,
-    Box,
-    Typography,
-    Divider,
-    IconButton,
     Button,
-    useTheme,
-    useMediaQuery,
-} from '@mui/material';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import dayjs from 'dayjs';
+    Spinner
+} from '@heroui/react';
+import { Building2, Briefcase } from 'lucide-react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
-import GlassDialog from '@/Components/GlassDialog';
+import { showToast } from '@/utils/toastUtils';
 
 const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers = [], parentDepartments = [] }) => {
-    const theme = useTheme();
-    const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     
+    // Helper function to convert theme borderRadius to HeroUI radius values
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
     // Initial form state
     const initialFormState = {
         name: '',
         code: '',
         description: '',
-        parent_id: null,
-        manager_id: null,
+        parent_id: '',
+        manager_id: '',
         location: '',
         is_active: true,
         established_date: '',
@@ -54,281 +56,408 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                 name: department.name || '',
                 code: department.code || '',
                 description: department.description || '',
-                parent_id: department.parent_id || null,
-                manager_id: department.manager_id || null,
+                parent_id: department.parent_id || '',
+                manager_id: department.manager_id || '',
                 location: department.location || '',
                 is_active: department.is_active ?? true,
-                established_date: department.established_date ? dayjs(department.established_date).format('YYYY-MM-DD') : '',
+                established_date: department.established_date || '',
             });
         } else {
             setFormData(initialFormState);
         }
-        
-        // Clear errors when form opens/reopens
         setErrors({});
     }, [department, open]);
     
     // Handle input changes
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        
+    const handleChange = (name, value) => {
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: value
         }));
-        
-        // Clear specific error when field is updated
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
     };
     
     // Handle form submission
-    const handleSubmit = async () => {
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         setLoading(true);
         setErrors({});
-        
-        try {
-            // Prepare form data for API
-            const apiData = {
-                ...formData,
-                established_date: formData.established_date || null,
-            };
-            
-            let response;
-            
-            if (department?.id) {
-                // Update existing department
-                response = await axios.put(`/departments/${department.id}`, apiData);
-                toast.success('Department updated successfully');
-            } else {
-                // Create new department
-                response = await axios.post('/departments', apiData);
-                toast.success('Department created successfully');
-            }
-            
-            // Close modal and refresh data
-            onSuccess(response.data.department);
-            onClose();
-        } catch (error) {
-            console.error('Error saving department:', error);
-            
-            if (error.response?.data?.errors) {
-                setErrors(error.response.data.errors);
+
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const apiData = { 
+                    ...formData,
+                    parent_id: formData.parent_id || null,
+                    manager_id: formData.manager_id || null,
+                    established_date: formData.established_date || null,
+                };
                 
-                // Show toast for the first error
-                const firstError = Object.values(error.response.data.errors)[0];
-                if (firstError) {
-                    toast.error(firstError[0]);
+                let response;
+                if (department?.id) {
+                    response = await axios.put(`/departments/${department.id}`, apiData);
+                    resolve([response.data.message || 'Department updated successfully']);
+                } else {
+                    response = await axios.post('/departments', apiData);
+                    resolve([response.data.message || 'Department created successfully']);
                 }
-            } else {
-                toast.error('An error occurred while saving the department');
+                
+                onSuccess(response.data.department);
+                onClose();
+            } catch (error) {
+                console.error('Full error object:', error);
+
+                if (error.response) {
+                    if (error.response.status === 422) {
+                        setErrors(error.response.data.errors || {});
+                        const errorMessages = Object.values(error.response.data.errors || {}).flat();
+                        reject(errorMessages.length > 0 ? errorMessages.join(', ') : 'Validation failed');
+                    } else {
+                        reject(`HTTP Error ${error.response.status}: ${error.response.data.message || 'An unexpected error occurred'}`);
+                    }
+                } else if (error.request) {
+                    reject('No response received from the server. Please check your internet connection.');
+                } else {
+                    reject('An error occurred while setting up the request.');
+                }
+            } finally {
+                setLoading(false);
             }
-        } finally {
-            setLoading(false);
-        }
+        });
+
+        showToast.promise(promise, {
+            pending: {
+                render() {
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Spinner size="sm" />
+                            <span>Saving department...</span>
+                        </div>
+                    );
+                },
+                icon: false,
+                style: {
+                    backdropFilter: 'blur(16px) saturate(200%)',
+                    background: 'var(--theme-content1)',
+                    border: '1px solid var(--theme-divider)',
+                    color: 'var(--theme-primary)',
+                },
+            },
+            success: {
+                render({ data }) {
+                    return (
+                        <>
+                            {data.map((message, index) => (
+                                <div key={index}>{message}</div>
+                            ))}
+                        </>
+                    );
+                },
+                icon: '🟢',
+                style: {
+                    backdropFilter: 'blur(16px) saturate(200%)',
+                    background: 'var(--theme-content1)',
+                    border: '1px solid var(--theme-divider)',
+                    color: 'var(--theme-primary)',
+                },
+            },
+            error: {
+                render({ data }) {
+                    return <>{data}</>;
+                },
+                icon: '🔴',
+                style: {
+                    backdropFilter: 'blur(16px) saturate(200%)',
+                    background: 'var(--theme-content1)',
+                    border: '1px solid var(--theme-divider)',
+                    color: 'var(--theme-primary)',
+                },
+            },
+        });
     };
     
     return (
-        <GlassDialog
-            open={open}
-            onClose={loading ? undefined : onClose}
-            maxWidth="md"
-            fullWidth
-            fullScreen={fullScreen}
-            aria-labelledby="department-form-dialog"
+        <Modal
+            isOpen={open}
+            onOpenChange={loading ? undefined : onClose}
+            size="2xl"
+            radius={getThemeRadius()}
+            scrollBehavior="inside"
+            classNames={{
+                base: "bg-content1",
+                backdrop: "bg-black/50 backdrop-blur-sm",
+            }}
+            style={{
+                fontFamily: `var(--fontFamily, "Inter")`,
+            }}
         >
-            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-                <Typography variant="h6" component="div">
-                    {department ? 'Edit Department' : 'Create New Department'}
-                </Typography>
-                <IconButton edge="end" color="inherit" onClick={onClose} disabled={loading} aria-label="close">
-                    <XMarkIcon className="w-5 h-5" />
-                </IconButton>
-            </DialogTitle>
-            
-            <Divider />
-            
-            <DialogContent sx={{ pt: 2 }}>
-                <Grid container spacing={3}>
-                    {/* Basic Information */}
-                    <Grid item xs={12}>
-                        <Typography variant="subtitle1" color="primary" gutterBottom>
-                            Basic Information
-                        </Typography>
-                    </Grid>
-                    
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            name="name"
-                            label="Department Name"
-                            fullWidth
-                            required
-                            value={formData.name}
-                            onChange={handleChange}
-                            error={Boolean(errors.name)}
-                            helperText={errors.name?.[0] || ''}
-                            disabled={loading}
-                        />
-                    </Grid>
-                    
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            name="code"
-                            label="Department Code"
-                            fullWidth
-                            value={formData.code || ''}
-                            onChange={handleChange}
-                            error={Boolean(errors.code)}
-                            helperText={errors.code?.[0] || 'Unique identifier (e.g., HR001, FIN002)'}
-                            disabled={loading}
-                        />
-                    </Grid>
-                    
-                    <Grid item xs={12}>
-                        <TextField
-                            name="description"
-                            label="Description"
-                            fullWidth
-                            multiline
-                            rows={3}
-                            value={formData.description || ''}
-                            onChange={handleChange}
-                            error={Boolean(errors.description)}
-                            helperText={errors.description?.[0] || ''}
-                            disabled={loading}
-                        />
-                    </Grid>
-                    
-                    {/* Organizational Information */}
-                    <Grid item xs={12} sx={{ mt: 2 }}>
-                        <Typography variant="subtitle1" color="primary" gutterBottom>
-                            Organizational Information
-                        </Typography>
-                    </Grid>
-                    
-                    <Grid item xs={12} md={6}>
-                        <FormControl fullWidth error={Boolean(errors.parent_id)}>
-                            <InputLabel id="parent-department-label">Parent Department</InputLabel>
-                            <Select
-                                labelId="parent-department-label"
-                                name="parent_id"
-                                value={formData.parent_id || ''}
-                                onChange={handleChange}
-                                label="Parent Department"
-                                disabled={loading}
-                            >
-                                <MenuItem value="">
-                                    <em>None (Top-Level Department)</em>
-                                </MenuItem>
-                                {parentDepartments.map((parent) => (
-                                    // Don't allow setting self as parent
-                                    department?.id !== parent.id && (
-                                        <MenuItem key={parent.id} value={parent.id}>
-                                            {parent.name}
-                                        </MenuItem>
-                                    )
-                                ))}
-                            </Select>
-                            {errors.parent_id && <FormHelperText>{errors.parent_id[0]}</FormHelperText>}
-                        </FormControl>
-                    </Grid>
-                    
-                    <Grid item xs={12} md={6}>
-                        <FormControl fullWidth error={Boolean(errors.manager_id)}>
-                            <InputLabel id="manager-label">Department Manager</InputLabel>
-                            <Select
-                                labelId="manager-label"
-                                name="manager_id"
-                                value={formData.manager_id || ''}
-                                onChange={handleChange}
-                                label="Department Manager"
-                                disabled={loading}
-                            >
-                                <MenuItem value="">
-                                    <em>Not Assigned</em>
-                                </MenuItem>
-                                {managers.map((manager) => (
-                                    <MenuItem key={manager.id} value={manager.id}>
-                                        {manager.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            {errors.manager_id && <FormHelperText>{errors.manager_id[0]}</FormHelperText>}
-                        </FormControl>
-                    </Grid>
-                    
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            name="location"
-                            label="Location"
-                            fullWidth
-                            value={formData.location || ''}
-                            onChange={handleChange}
-                            error={Boolean(errors.location)}
-                            helperText={errors.location?.[0] || 'Physical location of the department'}
-                            disabled={loading}
-                        />
-                    </Grid>
-                    
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            name="established_date"
-                            label="Established Date"
-                            type="date"
-                            fullWidth
-                            value={formData.established_date || ''}
-                            onChange={handleChange}
-                            error={Boolean(errors.established_date)}
-                            helperText={errors.established_date?.[0] || ''}
-                            disabled={loading}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
-                    </Grid>
-                    
-                    <Grid item xs={12}>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={formData.is_active}
-                                    onChange={handleChange}
-                                    name="is_active"
-                                    color="success"
-                                    disabled={loading}
+            <ModalContent>
+                <ModalHeader className="flex gap-3 items-center" style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderBottom: '1px solid var(--theme-divider)'
+                }}>
+                    <div className="p-2 rounded-lg" style={{
+                        background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                        borderRadius: `var(--borderRadius, 8px)`,
+                    }}>
+                        <Building2 size={20} style={{ color: 'var(--theme-primary)' }} />
+                    </div>
+                    <span className="text-lg font-semibold" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        {department ? 'Edit Department' : 'Create New Department'}
+                    </span>
+                </ModalHeader>
+                <form onSubmit={handleSubmit}>
+                    <ModalBody className="py-4 px-4 sm:py-6 sm:px-6" style={{
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                            {/* Department Name */}
+                            <div className="col-span-2 md:col-span-1">
+                                <Input
+                                    label="Department Name"
+                                    placeholder="Enter department name"
+                                    value={formData.name}
+                                    onChange={(e) => handleChange('name', e.target.value)}
+                                    isInvalid={Boolean(errors.name)}
+                                    errorMessage={errors.name?.[0]}
+                                    isRequired
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={getThemeRadius()}
+                                    startContent={<Building2 size={16} className="text-default-400" />}
+                                    classNames={{
+                                        input: "text-small",
+                                        inputWrapper: "min-h-unit-10"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
                                 />
-                            }
-                            label="Department is active"
-                        />
-                        {errors.is_active && (
-                            <FormHelperText error>{errors.is_active[0]}</FormHelperText>
-                        )}
-                    </Grid>
-                </Grid>
-            </DialogContent>
-            
-            <Divider />
-            
-            <DialogActions sx={{ px: 3, py: 2 }}>
-                <Button 
-                    onClick={onClose} 
-                    disabled={loading}
-                    color="inherit"
-                >
-                    Cancel
-                </Button>
-                <Button 
-                    onClick={handleSubmit} 
-                    variant="contained" 
-                    color="primary"
-                    disabled={loading}
-                >
-                    {loading ? 'Saving...' : department ? 'Update Department' : 'Create Department'}
-                </Button>
-            </DialogActions>
-        </GlassDialog>
+                            </div>
+
+                            {/* Department Code */}
+                            <div className="col-span-2 md:col-span-1">
+                                <Input
+                                    label="Department Code"
+                                    placeholder="e.g., HR001, FIN002"
+                                    value={formData.code}
+                                    onChange={(e) => handleChange('code', e.target.value)}
+                                    isInvalid={Boolean(errors.code)}
+                                    errorMessage={errors.code?.[0]}
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={getThemeRadius()}
+                                    description="Unique identifier"
+                                    classNames={{
+                                        input: "text-small",
+                                        inputWrapper: "min-h-unit-10"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                />
+                            </div>
+
+                            {/* Description */}
+                            <div className="col-span-2">
+                                <Input
+                                    label="Description"
+                                    placeholder="Enter department description"
+                                    value={formData.description}
+                                    onChange={(e) => handleChange('description', e.target.value)}
+                                    isInvalid={Boolean(errors.description)}
+                                    errorMessage={errors.description?.[0]}
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={getThemeRadius()}
+                                    classNames={{
+                                        input: "text-small",
+                                        inputWrapper: "min-h-unit-10"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                />
+                            </div>
+
+                            {/* Parent Department */}
+                            <div className="col-span-2 md:col-span-1">
+                                <Select
+                                    label="Parent Department (Optional)"
+                                    placeholder="Select parent department"
+                                    selectedKeys={formData.parent_id ? new Set([String(formData.parent_id)]) : new Set()}
+                                    onSelectionChange={(keys) => {
+                                        const value = Array.from(keys)[0];
+                                        handleChange('parent_id', value || '');
+                                    }}
+                                    isInvalid={Boolean(errors.parent_id)}
+                                    errorMessage={errors.parent_id?.[0]}
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={getThemeRadius()}
+                                    description="None = Top-Level Department"
+                                    classNames={{
+                                        trigger: "min-h-unit-10",
+                                        value: "text-small"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                >
+                                    {parentDepartments?.filter(p => department?.id !== p.id).map((parent) => (
+                                        <SelectItem key={String(parent.id)} value={parent.id}>
+                                            {parent.name}
+                                        </SelectItem>
+                                    ))}
+                                </Select>
+                            </div>
+
+                            {/* Department Manager */}
+                            <div className="col-span-2 md:col-span-1">
+                                <Select
+                                    label="Department Manager (Optional)"
+                                    placeholder="Select manager"
+                                    selectedKeys={formData.manager_id ? new Set([String(formData.manager_id)]) : new Set()}
+                                    onSelectionChange={(keys) => {
+                                        const value = Array.from(keys)[0];
+                                        handleChange('manager_id', value || '');
+                                    }}
+                                    isInvalid={Boolean(errors.manager_id)}
+                                    errorMessage={errors.manager_id?.[0]}
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={getThemeRadius()}
+                                    startContent={<Briefcase size={16} className="text-default-400" />}
+                                    classNames={{
+                                        trigger: "min-h-unit-10",
+                                        value: "text-small"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                >
+                                    {managers?.map((manager) => (
+                                        <SelectItem key={String(manager.id)} value={manager.id}>
+                                            {manager.name}
+                                        </SelectItem>
+                                    ))}
+                                </Select>
+                            </div>
+
+                            {/* Location */}
+                            <div className="col-span-2 md:col-span-1">
+                                <Input
+                                    label="Location"
+                                    placeholder="Physical location"
+                                    value={formData.location}
+                                    onChange={(e) => handleChange('location', e.target.value)}
+                                    isInvalid={Boolean(errors.location)}
+                                    errorMessage={errors.location?.[0]}
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={getThemeRadius()}
+                                    classNames={{
+                                        input: "text-small",
+                                        inputWrapper: "min-h-unit-10"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                />
+                            </div>
+
+                            {/* Established Date */}
+                            <div className="col-span-2 md:col-span-1">
+                                <Input
+                                    type="date"
+                                    label="Established Date"
+                                    value={formData.established_date}
+                                    onChange={(e) => handleChange('established_date', e.target.value)}
+                                    isInvalid={Boolean(errors.established_date)}
+                                    errorMessage={errors.established_date?.[0]}
+                                    variant="bordered"
+                                    size="sm"
+                                    radius={getThemeRadius()}
+                                    classNames={{
+                                        input: "text-small",
+                                        inputWrapper: "min-h-unit-10"
+                                    }}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                />
+                            </div>
+
+                            {/* Active Status */}
+                            <div className="col-span-2">
+                                <div className="flex items-center justify-between p-4 rounded-lg border" style={{
+                                    borderColor: 'var(--theme-divider, #E4E4E7)',
+                                    background: 'color-mix(in srgb, var(--theme-content2) 30%, transparent)'
+                                }}>
+                                    <div className="flex-1">
+                                        <span className="text-sm font-semibold" style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}>Active Status</span>
+                                        <p className="text-xs text-default-500 mt-1" style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}>
+                                            Active departments can be assigned to employees
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        isSelected={formData.is_active}
+                                        onValueChange={(value) => handleChange('is_active', value)}
+                                        size="sm"
+                                        classNames={{
+                                            wrapper: "group-data-[selected=true]:bg-success"
+                                        }}
+                                        style={{
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                        }}
+                                    />
+                                </div>
+                                {errors.is_active && (
+                                    <p className="text-xs text-danger mt-1">{errors.is_active[0]}</p>
+                                )}
+                            </div>
+                        </div>
+                    </ModalBody>
+
+                    <ModalFooter style={{
+                        borderTop: '1px solid var(--theme-divider)',
+                        fontFamily: `var(--fontFamily, "Inter")`,
+                    }}>
+                        <Button
+                            onPress={onClose}
+                            isDisabled={loading}
+                            variant="light"
+                            radius={getThemeRadius()}
+                            style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            color="primary"
+                            isLoading={loading}
+                            radius={getThemeRadius()}
+                            style={{
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                            }}
+                        >
+                            {department ? 'Update Department' : 'Create Department'}
+                        </Button>
+                    </ModalFooter>
+                </form>
+            </ModalContent>
+        </Modal>
     );
 };
 
 export default DepartmentForm;
+

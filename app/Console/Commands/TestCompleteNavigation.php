@@ -2,22 +2,23 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class TestCompleteNavigation extends Command
 {
     protected $signature = 'test:complete-navigation';
+
     protected $description = 'Comprehensive test of navigation system';
 
     public function handle()
     {
         $this->info('=== COMPREHENSIVE NAVIGATION SYSTEM TEST ===');
         $this->newLine();
-        
+
         // Test 1: Check all required permissions exist
         $this->info('1. Testing Permission System...');
         $requiredPermissions = [
@@ -38,14 +39,14 @@ class TestCompleteNavigation extends Command
             'roles.view',
             'company.settings',
         ];
-        
+
         $missingPermissions = [];
         foreach ($requiredPermissions as $permission) {
-            if (!Permission::where('name', $permission)->exists()) {
+            if (! Permission::where('name', $permission)->exists()) {
                 $missingPermissions[] = $permission;
             }
         }
-        
+
         if (empty($missingPermissions)) {
             $this->info('✅ All navigation permissions exist');
         } else {
@@ -54,7 +55,7 @@ class TestCompleteNavigation extends Command
                 $this->line("   - {$perm}");
             }
         }
-        
+
         // Test 2: Check all required routes exist
         $this->newLine();
         $this->info('2. Testing Route System...');
@@ -78,14 +79,14 @@ class TestCompleteNavigation extends Command
             'admin.roles-management',
             'admin.settings.company',
         ];
-        
+
         $missingRoutes = [];
         foreach ($requiredRoutes as $route) {
-            if (!Route::has($route)) {
+            if (! Route::has($route)) {
                 $missingRoutes[] = $route;
             }
         }
-        
+
         if (empty($missingRoutes)) {
             $this->info('✅ All navigation routes exist');
         } else {
@@ -94,27 +95,27 @@ class TestCompleteNavigation extends Command
                 $this->line("   - {$route}");
             }
         }
-        
+
         // Test 3: Check role assignments
         $this->newLine();
         $this->info('3. Testing Role System...');
-        
+
         $superAdmin = Role::where('name', 'Super Administrator')->first();
         $admin = Role::where('name', 'Administrator')->first();
         $employee = Role::where('name', 'Employee')->first();
-        
+
         if ($superAdmin && $admin && $employee) {
             $this->info('✅ Core roles exist (Super Administrator, Administrator, Employee)');
-            
+
             // Check permission counts
             $superAdminPerms = $superAdmin->permissions->count();
             $adminPerms = $admin->permissions->count();
             $employeePerms = $employee->permissions->count();
-            
+
             $this->info("   - Super Administrator: {$superAdminPerms} permissions");
             $this->info("   - Administrator: {$adminPerms} permissions");
             $this->info("   - Employee: {$employeePerms} permissions");
-            
+
             if ($superAdminPerms >= $adminPerms && $adminPerms >= $employeePerms) {
                 $this->info('✅ Role hierarchy is correct');
             } else {
@@ -123,18 +124,18 @@ class TestCompleteNavigation extends Command
         } else {
             $this->warn('❌ Missing core roles');
         }
-        
+
         // Test 4: Check user permissions flow
         $this->newLine();
         $this->info('4. Testing User Permission Flow...');
-        
+
         $adminUser = User::role('Administrator')->first();
         if ($adminUser) {
             $userPermissions = $adminUser->getAllPermissions()->pluck('name')->toArray();
             $hasNavPermissions = array_intersect($requiredPermissions, $userPermissions);
-            
-            $this->info("✅ Admin user has " . count($hasNavPermissions) . " out of " . count($requiredPermissions) . " navigation permissions");
-            
+
+            $this->info('✅ Admin user has '.count($hasNavPermissions).' out of '.count($requiredPermissions).' navigation permissions');
+
             // Check if admin can access role management
             if ($adminUser->can('roles.view')) {
                 $this->info('✅ Administrator can access role management');
@@ -144,17 +145,17 @@ class TestCompleteNavigation extends Command
         } else {
             $this->warn('❌ No Administrator user found for testing');
         }
-        
+
         // Test 5: Check module toggle functionality
         $this->newLine();
         $this->info('5. Testing Module Toggle System...');
-        
+
         // Verify no duplicate permissions exist
         $duplicates = Permission::select('name')
             ->groupBy('name')
             ->havingRaw('count(*) > 1')
             ->pluck('name');
-            
+
         if ($duplicates->count() === 0) {
             $this->info('✅ No duplicate permissions found');
         } else {
@@ -163,19 +164,19 @@ class TestCompleteNavigation extends Command
                 $this->line("   - {$dup}");
             }
         }
-        
+
         // Final summary
         $this->newLine();
         $this->info('=== FINAL SUMMARY ===');
         $totalIssues = count($missingPermissions) + count($missingRoutes) + $duplicates->count();
-        
+
         if ($totalIssues === 0) {
             $this->info('🎉 All navigation system tests PASSED!');
             $this->info('The navigation system is properly configured and ready for production.');
         } else {
             $this->warn("⚠️ Found {$totalIssues} issues that need attention.");
         }
-        
+
         return $totalIssues === 0 ? 0 : 1;
     }
 }
