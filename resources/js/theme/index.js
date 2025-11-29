@@ -503,6 +503,79 @@ export const applyThemeToDocument = (theme) => {
   }
 };
 
+const DEFAULT_PRIMARY = '#006FEE';
+
+export const hexToRgba = (hex, alpha = 1) => {
+  if (!hex) {
+    return `rgba(0, 111, 238, ${alpha})`;
+  }
+
+  let normalized = hex.replace('#', '').trim();
+  if (normalized.length === 3) {
+    normalized = normalized.split('').map((char) => char + char).join('');
+  }
+
+  if (normalized.length !== 6 || Number.isNaN(Number.parseInt(normalized, 16))) {
+    return `rgba(0, 111, 238, ${alpha})`;
+  }
+
+  const value = Number.parseInt(normalized, 16);
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const readPrimaryFromSettings = () => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return null;
+  }
+
+  try {
+    const saved = localStorage.getItem('heroui-theme-settings');
+    if (!saved) {
+      return null;
+    }
+
+    const parsed = JSON.parse(saved);
+    return parsed?.customColors?.primary || null;
+  } catch (error) {
+    console.warn('Failed to parse theme settings while reading primary color:', error);
+    return null;
+  }
+};
+
+const readPrimaryFromCss = () => {
+  if (typeof window === 'undefined' || !window.document) {
+    return null;
+  }
+
+  const root = document.documentElement;
+  const computed = window.getComputedStyle(root);
+  const candidates = [
+    computed.getPropertyValue('--theme-primary'),
+    computed.getPropertyValue('--primary'),
+  ];
+
+  const match = candidates.find((value) => value && value.trim().length);
+  return match ? match.trim() : null;
+};
+
+export const getThemePrimaryColor = () => {
+  const fromSettings = readPrimaryFromSettings();
+  if (fromSettings) {
+    return fromSettings;
+  }
+
+  const fromCss = readPrimaryFromCss();
+  if (fromCss) {
+    return fromCss;
+  }
+
+  return DEFAULT_PRIMARY;
+};
+
 export default {
   heroUIThemes,
   darkModeColors,
@@ -512,5 +585,7 @@ export default {
   scalingOptions,
   getTheme,
   generateHeroUIConfig,
-  applyThemeToDocument
+  applyThemeToDocument,
+  getThemePrimaryColor,
+  hexToRgba
 };

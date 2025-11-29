@@ -25,7 +25,7 @@ import {
     opacityOptions 
 } from '../theme/index.js';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
-import GlassDialog from './GlassDialog';
+
 
 const ThemeSettingDrawer = ({ 
     isOpen,

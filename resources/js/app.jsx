@@ -98,6 +98,23 @@ if (false) {
     );
 }
 
+const tenantPages = import.meta.glob('./Tenant/Pages/**/*.jsx');
+const platformPages = import.meta.glob('./Platform/Pages/**/*.jsx');
+
+const resolveInertiaPage = (name) => {
+    const tenantKey = `./Tenant/Pages/${name}.jsx`;
+    if (tenantKey in tenantPages) {
+        return resolvePageComponent(tenantKey, tenantPages);
+    }
+
+    const platformKey = `./Platform/Pages/${name}.jsx`;
+    if (platformKey in platformPages) {
+        return resolvePageComponent(platformKey, platformPages);
+    }
+
+    throw new Error(`Unable to locate Inertia page: ${name}`);
+};
+
 createInertiaApp({
     progress: {
         color: '#29d',
@@ -116,11 +133,7 @@ createInertiaApp({
         const appName = page.app?.name || 'aeos365';
         return `${title} - ${appName}`;
     },
-    resolve: (name) =>
-        resolvePageComponent(
-            `./Pages/${name}.jsx`,
-            import.meta.glob('./Pages/**/*.jsx')
-        ),
+    resolve: resolveInertiaPage,
     setup({ el, App, props }) {
         const root = createRoot(el);
         
