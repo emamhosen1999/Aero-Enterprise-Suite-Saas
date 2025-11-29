@@ -452,11 +452,7 @@
             }
         }
 
-        /* Focus management */
-        :focus-visible {
-            outline: 2px solid var(--primary-color);
-            outline-offset: 2px;
-        }
+
 
         /* Print styles */
         @media print {

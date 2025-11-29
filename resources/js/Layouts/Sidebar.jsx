@@ -274,13 +274,13 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             }}
             onMouseEnter={(e) => {
               if (!hasActiveSubPage) {
-                e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
               }
-              e.target.style.borderRadius = `var(--borderRadius, 8px)`;
+              e.currentTarget.style.borderRadius = `var(--borderRadius, 8px)`;
             }}
             onMouseLeave={(e) => {
               if (!hasActiveSubPage) {
-                e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
               }
             }}
             onPress={() => handleSubMenuToggle(page.name)}
@@ -380,13 +380,13 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
-                e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
               }
-              e.target.style.borderRadius = `var(--borderRadius, 8px)`;
+              e.currentTarget.style.borderRadius = `var(--borderRadius, 8px)`;
             }}
             onMouseLeave={(e) => {
               if (!isActive) {
-                e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
               }
             }}
             onPress={() => handlePageClick(page.route)}
@@ -440,11 +440,15 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             borderRadius: `var(--borderRadius, 8px)`
           }}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = `var(--theme-content2, #F4F4F5)`;
-            e.target.style.borderRadius = `var(--borderRadius, '8px')`;
+            if (!hasActiveSubPage) {
+              e.currentTarget.style.backgroundColor = `var(--theme-content2, #F4F4F5)`;
+            }
+            e.currentTarget.style.borderRadius = `var(--borderRadius, 8px)`;
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
+            if (!hasActiveSubPage) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }
           }}
           onPress={() => handleSubMenuToggle(page.name)}
           size="sm"
@@ -551,12 +555,12 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             }}
             onMouseEnter={(e) => {
               if (!hasActiveSubPage) {
-                e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
               }
             }}
             onMouseLeave={(e) => {
               if (!hasActiveSubPage) {
-                e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
               }
             }}
             onPress={() => handleSubMenuToggle(page.name)}
@@ -636,12 +640,12 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           }}
           onMouseEnter={(e) => {
             if (!isActive) {
-              e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+              e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
             }
           }}
           onMouseLeave={(e) => {
             if (!isActive) {
-              e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
+              e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
             }
           }}
           onPress={() => handlePageClick(page.route)}
