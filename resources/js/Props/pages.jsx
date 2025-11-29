@@ -49,8 +49,8 @@ export const getPages = (roles, permissions, auth = null) => {
   // 2. Define the shared items list (so we don't write it twice)
   const workspaceItems = [
     ...(permissions.includes('daily-works.view') ? [
-      { name: 'Daily Works', icon: <DocumentTextIcon />, route: 'daily-works' },
-      { name: 'Daily Work Summary', icon: <ChartBarSquareIcon />, route: 'daily-works-summary' },
+      { name: 'Daily Work', icon: <DocumentTextIcon />, route: 'daily-works' },
+      { name: 'Work Summary', icon: <ChartBarSquareIcon />, route: 'daily-works-summary' },
     ] : []),
     
     ...(permissions.includes('attendance.own.view') ? [
@@ -113,18 +113,18 @@ export const getPages = (roles, permissions, auth = null) => {
         
         // Time & Attendance Management
         ...((permissions.includes('attendance.view') || permissions.includes('holidays.view') || permissions.includes('leaves.view') || permissions.includes('hr.timeoff.view')) ? [{
-          name: 'Time & Attendance',
+          name: 'Time',
           icon: <CalendarDaysIcon  />,
           category: 'time',
           subMenu: [
             ...(permissions.includes('attendance.view') ? [{ name: 'Attendance', icon: <CalendarDaysIcon  />, route: 'attendances' }] : []),
-            ...(permissions.includes('attendance.view') ? [{ name: 'Daily Timesheet', icon: <ClockIcon  />, route: 'timesheet' }] : []),
-            ...(permissions.includes('hr.timeoff.view') ? [{ name: 'Time-off Management', icon: <CalendarIcon  />, route: 'hr.timeoff.index' }] : []),
+            ...(permissions.includes('attendance.view') ? [{ name: 'Timesheet', icon: <ClockIcon  />, route: 'timesheet' }] : []),
+            ...(permissions.includes('hr.timeoff.view') ? [{ name: 'Time-off', icon: <CalendarIcon  />, route: 'hr.timeoff.index' }] : []),
             ...(permissions.includes('holidays.view') ? [{ name: 'Holidays', icon: <CalendarIcon  />, route: 'holidays' }] : []),
             ...(permissions.includes('leaves.view') ? [
               { name: 'Leaves', icon: <ArrowRightOnRectangleIcon  />, route: 'leaves' },
-              { name: 'Leaves Analytics', icon: <ChartBarSquareIcon  />, route: 'leave-summary' },
-              { name: 'Leaves Policies', icon: <Cog6ToothIcon  />, route: 'leave-settings' },
+              { name: 'Analytics', icon: <ChartBarSquareIcon  />, route: 'leave-summary' },
+              { name: 'Policies', icon: <Cog6ToothIcon  />, route: 'leave-settings' },
             ] : []),
           ]
         }] : []),
@@ -144,14 +144,14 @@ export const getPages = (roles, permissions, auth = null) => {
         
         // Performance & Development
         ...((permissions.includes('performance-reviews.view') || permissions.includes('training-sessions.view') || permissions.includes('hr.skills.view') || permissions.includes('hr.competencies.view')) ? [{
-          name: 'Dev',
+          name: 'Development',
           icon: <AcademicCapIcon  />,
           category: 'development',
           subMenu: [
             ...(permissions.includes('performance-reviews.view') ? [{ name: 'Reviews', icon: <ChartBarSquareIcon  />, route: 'hr.performance.index' }] : []),
             ...(permissions.includes('training-sessions.view') ? [{ name: 'Training', icon: <AcademicCapIcon  />, route: 'hr.training.index' }] : []),
             ...(permissions.includes('hr.skills.view') ? [{ name: 'Skills', icon: <AcademicCapIcon  />, route: 'hr.skills.index' }] : []),
-            ...(permissions.includes('hr.competencies.view') ? [{ name: 'Framework', icon: <ScaleIcon  />, route: 'hr.competencies.index' }] : []),
+            ...(permissions.includes('hr.competencies.view') ? [{ name: 'Competency', icon: <ScaleIcon  />, route: 'hr.competencies.index' }] : []),
           ]
         }] : []),
         
@@ -171,7 +171,7 @@ export const getPages = (roles, permissions, auth = null) => {
           icon: <ShieldCheckIcon  />,
           category: 'safety',
           subMenu: [
-            ...(permissions.includes('hr.safety.view') ? [{ name: 'Dashboard', icon: <ShieldCheckIcon  />, route: 'hr.safety.index' }] : []),
+            ...(permissions.includes('hr.safety.view') ? [{ name: 'Overview', icon: <ShieldCheckIcon  />, route: 'hr.safety.index' }] : []),
             ...(permissions.includes('hr.safety.incidents.view') ? [{ name: 'Incidents', icon: <DocumentTextIcon  />, route: 'hr.safety.incidents.index' }] : []),
             ...(permissions.includes('hr.safety.training.view') ? [{ name: 'Training', icon: <AcademicCapIcon  />, route: 'hr.safety.training.index' }] : []),
           ]
@@ -179,7 +179,7 @@ export const getPages = (roles, permissions, auth = null) => {
         
         // Document Management
         ...(permissions.includes('hr.documents.view') ? [{
-          name: 'Docs',
+          name: 'Documents',
           icon: <DocumentDuplicateIcon  />,
           category: 'documents',
           subMenu: [
@@ -196,7 +196,7 @@ export const getPages = (roles, permissions, auth = null) => {
           icon: <ChartBarSquareIcon  />,
           category: 'analytics',
           subMenu: [
-            { name: 'Dashboard', icon: <ChartBarSquareIcon  />, route: 'hr.analytics.index' },
+            { name: 'Overview', icon: <ChartBarSquareIcon  />, route: 'hr.analytics.index' },
             { name: 'Attendance', icon: <CalendarDaysIcon  />, route: 'hr.analytics.attendance' },
             { name: 'Performance', icon: <ChartBarSquareIcon  />, route: 'hr.analytics.performance' },
             { name: 'Recruitment', icon: <UserGroupIcon  />, route: 'hr.analytics.recruitment' },
@@ -210,7 +210,7 @@ export const getPages = (roles, permissions, auth = null) => {
           icon: <CurrencyDollarIcon  />,
           category: 'payroll',
           subMenu: [
-            { name: 'Dashboard', icon: <HomeIcon  />, route: 'hr.payroll.index' },
+            { name: 'Overview', icon: <HomeIcon  />, route: 'hr.payroll.index' },
             { name: 'Generate', icon: <DocumentTextIcon  />, route: 'hr.payroll.create' },
             { name: 'Payslips', icon: <DocumentDuplicateIcon  />, route: 'hr.selfservice.payslips' },
             { name: 'Reports', icon: <ChartBarSquareIcon  />, route: 'hr.payroll.reports' },
@@ -228,8 +228,8 @@ export const getPages = (roles, permissions, auth = null) => {
       priority: 4,
       module: 'events',
       subMenu: [
-        { name: 'Events', icon: <CalendarIcon  />, route: 'events.index' },
-        { name: 'Create Event', icon: <CalendarDaysIcon  />, route: 'events.create' },
+        { name: 'All Events', icon: <CalendarIcon  />, route: 'events.index' },
+        { name: 'New Event', icon: <CalendarDaysIcon  />, route: 'events.create' },
       ]
     }] : []),
     // 5. Project Management (Complete ERP Module)
@@ -281,7 +281,7 @@ export const getPages = (roles, permissions, auth = null) => {
           category: 'management',
           subMenu: [
             ...(permissions.includes('project-management.time-tracking.view') ? [
-              { name: 'Time Tracking', icon: <ClockIcon  />, route: 'project-management.time-tracking.index' },
+              { name: 'Time', icon: <ClockIcon  />, route: 'project-management.time-tracking.index' },
               { name: 'Time Reports', icon: <ChartBarSquareIcon  />, route: 'project-management.time-tracking.reports' },
             ] : []),
             ...(permissions.includes('project-management.budget.view') ? [
@@ -289,7 +289,7 @@ export const getPages = (roles, permissions, auth = null) => {
               { name: 'Budget Reports', icon: <DocumentTextIcon  />, route: 'project-management.project-budgets.reports' },
             ] : []),
             ...(permissions.includes('project-management.gantt.view') ? [
-              { name: 'Gantt Overview', icon: <ChartBarSquareIcon  />, route: 'project-management.gantt.index' },
+              { name: 'Gantt', icon: <ChartBarSquareIcon  />, route: 'project-management.gantt.index' },
             ] : []),
           ]
         }] : []),
@@ -299,20 +299,20 @@ export const getPages = (roles, permissions, auth = null) => {
     }] : []),
     // 6. DMS (Document Management System)
     ...(permissions.includes('dms.view') ? [{
-      name: 'DMS',
+      name: 'Documents',
       icon: <FolderIcon className="" />,
       priority: 6,
       module: 'dms',
       subMenu: [
-        { name: 'Dashboard', icon: <HomeIcon  />, route: 'dms.index' },
-        { name: 'Documents', icon: <DocumentTextIcon  />, route: 'dms.documents' },
+        { name: 'Overview', icon: <HomeIcon  />, route: 'dms.index' },
+        { name: 'Files', icon: <DocumentTextIcon  />, route: 'dms.documents' },
         { name: 'Upload', icon: <DocumentDuplicateIcon  />, route: 'dms.documents.create' },
         { name: 'Categories', icon: <FolderIcon  />, route: 'dms.categories' },
         { name: 'Shared', icon: <UserGroupIcon  />, route: 'dms.shared' },
         { name: 'Analytics', icon: <ChartBarSquareIcon  />, route: 'dms.analytics' },
         // Legacy document routes
         ...(permissions.includes('letters.view') ? [
-          { name: 'Correspondence', icon: <EnvelopeIcon  />, route: 'letters' },
+          { name: 'Letters', icon: <EnvelopeIcon  />, route: 'letters' },
         ] : []),
       ]
     }] : []),
@@ -363,12 +363,12 @@ export const getPages = (roles, permissions, auth = null) => {
       priority: 10,
       module: 'ims',
       subMenu: [
-        ...(permissions.includes('inventory.view') ? [{ name: 'Dashboard', icon: <HomeIcon  />, route: 'ims.index' }] : []),
+        ...(permissions.includes('inventory.view') ? [{ name: 'Overview', icon: <HomeIcon  />, route: 'ims.index' }] : []),
         ...(permissions.includes('inventory.view') ? [{ name: 'Products', icon: <CubeIcon  />, route: 'ims.products' }] : []),
         ...(permissions.includes('inventory.view') ? [{ name: 'Warehouse', icon: <BuildingStorefrontIcon  />, route: 'ims.warehouse' }] : []),
-        ...(permissions.includes('inventory.view') ? [{ name: 'Stock Movements', icon: <ArrowPathIcon  />, route: 'ims.stock-movements' }] : []),
+        ...(permissions.includes('inventory.view') ? [{ name: 'Stock', icon: <ArrowPathIcon  />, route: 'ims.stock-movements' }] : []),
         ...(permissions.includes('suppliers.view') ? [{ name: 'Suppliers', icon: <TruckIcon  />, route: 'ims.suppliers' }] : []),
-        ...(permissions.includes('purchase-orders.view') ? [{ name: 'Purchase Orders', icon: <DocumentTextIcon  />, route: 'ims.purchase-orders' }] : []),
+        ...(permissions.includes('purchase-orders.view') ? [{ name: 'Orders', icon: <DocumentTextIcon  />, route: 'ims.purchase-orders' }] : []),
         ...(permissions.includes('inventory.view') ? [{ name: 'Reports', icon: <ChartBarSquareIcon  />, route: 'ims.reports' }] : []),
       ]
     }] : []),
@@ -379,10 +379,10 @@ export const getPages = (roles, permissions, auth = null) => {
       priority: 11,
       module: 'lms',
       subMenu: [
-        ...(permissions.includes('lms.view') ? [{ name: 'Dashboard', icon: <HomeIcon  />, route: 'lms.dashboard' }] : []),
+        ...(permissions.includes('lms.view') ? [{ name: 'Overview', icon: <HomeIcon  />, route: 'lms.dashboard' }] : []),
         ...(permissions.includes('lms.courses.view') ? [{ name: 'Courses', icon: <AcademicCapIcon  />, route: 'lms.courses.index' }] : []),
-        ...(permissions.includes('lms.enrollments.view') ? [{ name: 'Enrollments', icon: <UserGroupIcon  />, route: 'lms.enrollments.index' }] : []),
-        ...(permissions.includes('lms.assessments.view') ? [{ name: 'Assessments', icon: <ClipboardDocumentCheckIcon  />, route: 'lms.assessments.index' }] : []),
+        ...(permissions.includes('lms.enrollments.view') ? [{ name: 'Enrolled', icon: <UserGroupIcon  />, route: 'lms.enrollments.index' }] : []),
+        ...(permissions.includes('lms.assessments.view') ? [{ name: 'Tests', icon: <ClipboardDocumentCheckIcon  />, route: 'lms.assessments.index' }] : []),
       ]
     }] : []),
     // 12. SCM (Supply Chain Management)
@@ -442,13 +442,13 @@ export const getPages = (roles, permissions, auth = null) => {
       priority: 16,
       module: 'compliance',
       subMenu: [
-        ...(permissions.includes('compliance.dashboard.view') ? [{ name: 'Dashboard', icon: <ChartBarSquareIcon  />, route: 'compliance.dashboard' }] : []),
+        ...(permissions.includes('compliance.dashboard.view') ? [{ name: 'Overview', icon: <ChartBarSquareIcon  />, route: 'compliance.dashboard' }] : []),
         ...(permissions.includes('compliance.policies.view') ? [{ name: 'Policies', icon: <DocumentTextIcon  />, route: 'compliance.policies.index' }] : []),
-        ...(permissions.includes('compliance.regulatory_requirements.view') ? [{ name: 'Regulatory Requirements', icon: <ScaleIcon  />, route: 'compliance.regulatory-requirements.index' }] : []),
-        ...(permissions.includes('compliance.risks.view') ? [{ name: 'Risk Assessments', icon: <ShieldCheckIcon  />, route: 'compliance.risks.index' }] : []),
+        ...(permissions.includes('compliance.regulatory_requirements.view') ? [{ name: 'Regulatory', icon: <ScaleIcon  />, route: 'compliance.regulatory-requirements.index' }] : []),
+        ...(permissions.includes('compliance.risks.view') ? [{ name: 'Risks', icon: <ShieldCheckIcon  />, route: 'compliance.risks.index' }] : []),
         ...(permissions.includes('compliance.audits.view') ? [{ name: 'Audits', icon: <ClipboardDocumentCheckIcon  />, route: 'compliance.audits.index' }] : []),
-        ...(permissions.includes('compliance.training_records.view') ? [{ name: 'Training Records', icon: <AcademicCapIcon  />, route: 'compliance.training-records.index' }] : []),
-        ...(permissions.includes('compliance.controlled_documents.view') ? [{ name: 'Controlled Documents', icon: <DocumentDuplicateIcon  />, route: 'compliance.controlled-documents.index' }] : []),
+        ...(permissions.includes('compliance.training_records.view') ? [{ name: 'Training', icon: <AcademicCapIcon  />, route: 'compliance.training-records.index' }] : []),
+        ...(permissions.includes('compliance.controlled_documents.view') ? [{ name: 'Controlled', icon: <DocumentDuplicateIcon  />, route: 'compliance.controlled-documents.index' }] : []),
       ]
     }] : []),
     // 17. Procurement

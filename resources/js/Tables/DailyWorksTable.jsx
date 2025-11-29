@@ -4,6 +4,7 @@ import { usePage, router } from "@inertiajs/react";
 import { showToast } from '@/utils/toastUtils';
 import { debounce } from "lodash";
 import StatsCards from '@/Components/StatsCards';
+import ProfileAvatar, { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 
 import {
     Table,
@@ -32,7 +33,6 @@ import {
     Spinner,
     CircularProgress,
     Input,
-    Avatar,
     Skeleton
 } from "@heroui/react";
 import {
@@ -163,10 +163,33 @@ const DailyWorksTable = ({
         return work?.incharge && String(work.incharge) === String(auth.user?.id);
     };
     
+    // Helper function to check if current user is the assignee of a specific work
+    const isUserAssigneeOfWork = (work) => {
+        return work?.assigned && String(work.assigned) === String(auth.user?.id);
+    };
+    
     // Check if user can assign for a specific work (admin or incharge of the work)
     const canUserAssign = (work) => {
         return userIsAdmin || isUserInchargeOfWork(work);
     };
+    
+    // Check if user can update status and completion time (admin, SE, or assignee of the work)
+    const canUserUpdateStatus = (work) => {
+        return userIsAdmin || userIsSE || isUserAssigneeOfWork(work);
+    };
+    
+    // Check if user should see the assigned column (not if they're just an assignee viewing their own work)
+    const shouldShowAssignedColumn = useMemo(() => {
+        // Admins and incharges should see the column
+        if (userIsAdmin) return true;
+        
+        // Check if user is incharge of any work
+        const isInchargeOfAnyWork = allData?.some(work => isUserInchargeOfWork(work));
+        if (isInchargeOfAnyWork) return true;
+        
+        // If user is only an assignee (not admin/incharge), hide the column
+        return false;
+    }, [userIsAdmin, allData, auth.user?.id]);
 
     // Use available data with fallbacks
     const availableInCharges = allInCharges || users || [];
@@ -1160,11 +1183,12 @@ const DailyWorksTable = ({
                                                 }
                                                 return items.map((item) => (
                                                     <div key={item.key} className="flex items-center gap-2">
-                                                        <Avatar
+                                                        <ProfileAvatar
                                                             src={inchargeUser.profile_image_url || inchargeUser.profile_image}
                                                             size="sm"
                                                             name={inchargeUser.name}
                                                             className="w-5 h-5"
+                                                            showBorder
                                                         />
                                                         <span className="text-sm font-medium">{inchargeUser.name}</span>
                                                     </div>
@@ -1174,11 +1198,12 @@ const DailyWorksTable = ({
                                             {finalInCharges.map((user) => (
                                                 <SelectItem key={String(user.id)} textValue={user.name}>
                                                     <div className="flex items-center gap-2">
-                                                        <Avatar
+                                                        <ProfileAvatar
                                                             src={user.profile_image_url || user.profile_image}
                                                             size="sm"
                                                             name={user.name}
                                                             className="w-6 h-6"
+                                                            showBorder
                                                         />
                                                         <div>
                                                             <div className="text-sm font-medium">{user.name}</div>
@@ -1191,7 +1216,8 @@ const DailyWorksTable = ({
                                     </div>
                                 )}
 
-                                {/* Assigned To */}
+                                {/* Assigned To - Hidden for assignees viewing their own work */}
+                                {(canUserAssign(work) || !isUserAssigneeOfWork(work)) && (
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <UserIcon className="w-4 h-4 text-default-500" />
@@ -1232,11 +1258,12 @@ const DailyWorksTable = ({
                                                 }
                                                 return items.map((item) => (
                                                     <div key={item.key} className="flex items-center gap-2">
-                                                        <Avatar
+                                                        <ProfileAvatar
                                                             src={assignedUser.profile_image_url || assignedUser.profile_image}
                                                             size="sm"
                                                             name={assignedUser.name}
                                                             className="w-5 h-5"
+                                                            showBorder
                                                         />
                                                         <span className="text-sm font-medium">{assignedUser.name}</span>
                                                     </div>
@@ -1246,11 +1273,12 @@ const DailyWorksTable = ({
                                             {getAvailableAssignees(work.incharge).map((user) => (
                                                 <SelectItem key={String(user.id)} textValue={user.name}>
                                                     <div className="flex items-center gap-2">
-                                                        <Avatar
+                                                        <ProfileAvatar
                                                             src={user.profile_image_url || user.profile_image}
                                                             size="sm"
                                                             name={user.name}
                                                             className="w-6 h-6"
+                                                            showBorder
                                                         />
                                                         <div>
                                                             <div className="text-sm font-medium">{user.name}</div>
@@ -1269,6 +1297,11 @@ const DailyWorksTable = ({
                                                 avatarProps={{
                                                     size: "sm",
                                                     src: assignedUser.profile_image_url || assignedUser.profile_image,
+                                                    name: assignedUser.name,
+                                                    ...getProfileAvatarTokens({
+                                                        name: assignedUser.name,
+                                                        size: 'sm',
+                                                    }),
                                                 }}
                                                 classNames={{
                                                     name: "text-sm font-medium",
@@ -1282,11 +1315,12 @@ const DailyWorksTable = ({
                                         )
                                     )}
                                 </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Status Management - Compact */}
-                        {(userIsAdmin || userIsSE) && (
+                        {/* Status Management - Compact (visible to admin, SE, or assignee) */}
+                        {canUserUpdateStatus(work) && (
                             <div className="bg-content2/20 p-2.5 rounded-md">
                                 <h4 className="text-xs font-semibold text-default-700 mb-2">Status</h4>
                                 
@@ -1572,7 +1606,7 @@ const DailyWorksTable = ({
                 return (
                     <TableCell className="min-w-56">
                         <div className="flex items-center justify-center gap-2 w-full">
-                            {(userIsAdmin || userIsSE) ? (
+                            {canUserUpdateStatus(work) ? (
                                 <Select
                                     size="sm"
                                     color={(() => {
@@ -1800,12 +1834,11 @@ const DailyWorksTable = ({
                                     }
                                     return items.map((item) => (
                                         <div key={item.key} className="flex items-center justify-center gap-2">
-                                           
-                                            <Avatar
+                                            <ProfileAvatar
                                                 src={inchargeUser.profile_image_url || inchargeUser.profile_image}
                                                 size="sm"
                                                 name={inchargeUser.name}
-                                                showFallback
+                                                showBorder
                                             />
                                             <span 
                                                 className="text-xs font-medium leading-tight break-words"
@@ -1833,6 +1866,11 @@ const DailyWorksTable = ({
                                             avatarProps={{
                                                 size: "sm",
                                                 src: incharge.profile_image_url || incharge.profile_image,
+                                                name: incharge.name,
+                                                ...getProfileAvatarTokens({
+                                                    name: incharge.name,
+                                                    size: 'sm',
+                                                }),
                                             }}
                                         />
                                     </SelectItem>
@@ -1862,6 +1900,11 @@ const DailyWorksTable = ({
                                         avatarProps={{
                                             size: "sm",
                                             src: inchargeUser.profile_image_url || inchargeUser.profile_image,
+                                            name: inchargeUser.name,
+                                            ...getProfileAvatarTokens({
+                                                name: inchargeUser.name,
+                                                size: 'sm',
+                                            }),
                                         }}
                                         classNames={{
                                             name: "text-xs font-medium leading-tight",
@@ -1918,11 +1961,11 @@ const DailyWorksTable = ({
                                     }
                                     return items.map((item) => (
                                         <div key={item.key} className="flex items-center gap-2">
-                                            <Avatar
+                                            <ProfileAvatar
                                                 src={assignedUser.profile_image_url || assignedUser.profile_image}
                                                 size="sm"
                                                 name={assignedUser.name}
-                                                showFallback
+                                                showBorder
                                             />
                                             <span 
                                                 className="text-xs font-medium leading-tight break-words"
@@ -1950,6 +1993,11 @@ const DailyWorksTable = ({
                                             avatarProps={{
                                                 size: "sm",
                                                 src: assignee.profile_image_url || assignee.profile_image,
+                                                name: assignee.name,
+                                                ...getProfileAvatarTokens({
+                                                    name: assignee.name,
+                                                    size: 'sm',
+                                                }),
                                             }}
                                         />
                                     </SelectItem>
@@ -1979,6 +2027,11 @@ const DailyWorksTable = ({
                                         avatarProps={{
                                             size: "sm",
                                             src: assignedUser.profile_image_url || assignedUser.profile_image,
+                                            name: assignedUser.name,
+                                            ...getProfileAvatarTokens({
+                                                name: assignedUser.name,
+                                                size: 'sm',
+                                            }),
                                         }}
                                         classNames={{
                                             name: "text-xs font-medium leading-tight",
@@ -2117,7 +2170,7 @@ const DailyWorksTable = ({
         { name: "Road Side", uid: "side", sortable: true, width: "w-20" },
         { name: "Layer Quantity", uid: "qty_layer", sortable: true, width: "w-24" },
         ...(userIsAdmin ? [{ name: "In-Charge", uid: "incharge", icon: UserIcon, sortable: true, width: "w-64" }] : []),
-        { name: "Assigned To", uid: "assigned", icon: UserIcon, sortable: true, width: "w-64" },
+        ...(shouldShowAssignedColumn ? [{ name: "Assigned To", uid: "assigned", icon: UserIcon, sortable: true, width: "w-64" }] : []),
         { name: "Planned Time", uid: "planned_time", icon: ClockIcon, sortable: true, width: "w-28" },
         { name: "Completion Time", uid: "completion_time", icon: CheckCircleIcon, sortable: true, width: "w-56" },
         { name: "Resubmissions", uid: "resubmission_count", icon: ArrowPathIcon, sortable: true, width: "w-28" },

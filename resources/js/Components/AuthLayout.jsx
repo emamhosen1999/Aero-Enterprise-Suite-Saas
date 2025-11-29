@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import AuthCard from '@/Components/AuthCard';
+import { 
+    ShieldCheckIcon
+} from '@heroicons/react/24/outline';
+import GlassCard from '@/Components/GlassCard';
 import { useTheme } from '@/Contexts/ThemeContext';
 
 import logo from '../../../public/assets/images/logo.png';
@@ -100,9 +103,26 @@ const AuthLayout = ({ children, title, subtitle }) => {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         className="w-full max-w-[420px]"
                     >
-                        <AuthCard
-                            contentClassName="p-3 sm:p-6 md:p-8 relative overflow-visible w-full rounded-2xl sm:rounded-3xl"
-                            className="w-full"
+                        <GlassCard 
+                            className="p-3 sm:p-4 md:p-6 relative overflow-visible w-full rounded-2xl sm:rounded-3xl"
+                            style={{
+                                borderRadius: `var(--borderRadius, 24px)`,
+                                borderWidth: `var(--borderWidth, 2px)`,
+                                borderStyle: 'solid',
+                                borderColor: 'color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)',
+                                fontFamily: `var(--fontFamily, 'Inter')`,
+                                transform: `scale(var(--scale, 1))`,
+                                background: `linear-gradient(to bottom right, 
+                                    color-mix(in srgb, var(--theme-content1, #FAFAFA) 98%, transparent), 
+                                    color-mix(in srgb, var(--theme-content2, #F4F4F5) 95%, transparent)
+                                )`,
+                                backdropFilter: 'blur(20px) saturate(200%)',
+                                boxShadow: `
+                                    0 20px 40px color-mix(in srgb, var(--theme-shadow, #000000) 10%, transparent),
+                                    0 8px 16px color-mix(in srgb, var(--theme-shadow, #000000) 8%, transparent),
+                                    inset 0 1px 0 color-mix(in srgb, var(--theme-background, #FFFFFF) 30%, transparent)
+                                `
+                            }}
                         >
                             {/* Logo at top of form card */}
                             <motion.div
@@ -203,7 +223,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
                                 animate={{ scale: [1, 1.3, 1] }}
                                 transition={{ duration: 4, repeat: Infinity, delay: 1.5 }}
                             />
-                        </AuthCard>
+                        </GlassCard>
                     </motion.div>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Avatar, AvatarGroup, Skeleton, Card, Chip, Popover, PopoverContent, PopoverTrigger, CardHeader, CardBody, Divider } from "@heroui/react";
+import { AvatarGroup, Skeleton, Card, Chip, Popover, PopoverContent, PopoverTrigger, CardHeader, CardBody, Divider } from "@heroui/react";
 import { motion } from 'framer-motion';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { usePage } from "@inertiajs/react";
@@ -19,6 +19,7 @@ import {
     UserIcon,
     Bars3BottomLeftIcon
 } from '@heroicons/react/24/outline';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 dayjs.extend(isBetween);
 
@@ -186,13 +187,14 @@ const UpdateSection = ({ title, items, users, icon: IconComponent, color }) => {
                                                         const user = users.find((user) => String(user.id) === String(leave.user_id));
                                                         return (
                                                             user && (
-                                                                <Avatar
+                                                                <ProfileAvatar
                                                                     key={idx}
                                                                     src={user.profile_image_url}
                                                                     name={`${user.name} - on leave`}
-                                                                    onClick={(e) => handleClick(e, leave)}
+                                                                    size="sm"
                                                                     className="cursor-pointer hover:scale-110 transition-transform"
-                                                                    fallback={<UserIcon className="w-4 h-4" />}
+                                                                    onClick={(e) => handleClick(e, leave)}
+                                                                    fallbackIcon={<UserIcon className="w-4 h-4" />}
                                                                 />
                                                             )
                                                         );

@@ -129,7 +129,7 @@ export default function OnboardingEdit({}) {
         </div>
         <div className="flex gap-3">
           <button type="submit" className="btn btn-primary" disabled={processing}>Save</button>
-          <Link href={route('hr.onboarding.show', onboarding.id)} className="btn">Cancel</Link>
+          <Link href={route('hr.onboarding.show', onboarding.id)} prefetch className="btn">Cancel</Link>
         </div>
       </form>
     </div>

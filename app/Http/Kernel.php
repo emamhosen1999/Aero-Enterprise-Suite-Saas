@@ -32,7 +32,6 @@ class Kernel extends HttpKernel
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class, // Locale detection before Inertia
-            \App\Http\Middleware\IdentifyDomainContext::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\Cors::class,
@@ -68,6 +67,8 @@ class Kernel extends HttpKernel
         'api_security' => \App\Http\Middleware\ApiSecurityMiddleware::class,
         'custom_permission' => \App\Http\Middleware\PermissionMiddleware::class,
         'role_hierarchy' => \App\Http\Middleware\RoleHierarchyMiddleware::class,
+        // Module Permission Registry Middleware
+        'module' => \App\Http\Middleware\CheckModuleAccess::class,
         // Device auth is now global middleware - no need for alias
     ];
 }

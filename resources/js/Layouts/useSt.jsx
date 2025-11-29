@@ -223,7 +223,7 @@ function App({ children }) {
     }, []);
 
     appRenderCount++;
-    console.log('App render count:', appRenderCount);
+  
 
             
 return (

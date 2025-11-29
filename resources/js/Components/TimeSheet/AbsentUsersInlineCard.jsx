@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-    Avatar,
     Input,
     Button,
     Spinner
@@ -24,6 +23,7 @@ import {
 
 
 import PageHeader from '@/Components/PageHeader';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 
 // Inline AbsentUsersCard component for the combined layout
@@ -313,13 +313,11 @@ export const AbsentUsersInlineCard = React.memo(({ absentUsers, selectedDate, ge
                                 <div className="flex flex-col gap-3">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                                            <Avatar 
+                                            <ProfileAvatar 
                                                 src={user.profile_image_url || user.profile_image} 
                                                 name={user.name}
-                                                isBordered
                                                 size="sm"
-                                                showFallback
-                                                radius={getThemeRadius()}
+                                                showBorder
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <p 

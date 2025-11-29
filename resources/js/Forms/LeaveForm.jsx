@@ -270,7 +270,7 @@ const LeaveForm = ({
                         }
                     } else {
                         // Fallback: use the server response data if optimized functions aren't available
-                        console.log("Using fallback data update mode");
+                     
                         if (response.data.leaves) {
                             // Handle consistent LeaveResourceCollection structure
                             setLeaves(response.data.leaves.data);

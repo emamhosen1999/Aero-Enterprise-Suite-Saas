@@ -18,7 +18,6 @@ import {
     PrinterIcon
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
-import PublicLayout from '../../../Layouts/PublicLayout';
 
 // Helper function to get theme radius from CSS variable
 const getThemeRadius = () => {
@@ -68,7 +67,6 @@ const CheckRegistration = ({ registration, event }) => {
     };
 
     return (
-        <PublicLayout>
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-background py-12 px-4">
             <Head title="Check Registration Status" />
 
@@ -283,7 +281,6 @@ const CheckRegistration = ({ registration, event }) => {
                 )}
             </div>
         </div>
-        </PublicLayout>
     );
 };
 

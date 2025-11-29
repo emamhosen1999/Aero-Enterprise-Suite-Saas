@@ -33,7 +33,6 @@ import {
 import { showToast } from '@/utils/toastUtils';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { getDeviceId, getDeviceHeaders } from '@/utils/deviceAuth';
-import AuthCard from '@/Components/AuthCard';
 
 /**
  * Enterprise Login Component for ERP System
@@ -628,10 +627,27 @@ export default function Login({
                     animate={uiState.isLoaded ? "visible" : "hidden"}
                     className={`w-full ${isMobile ? 'max-w-sm' : 'max-w-md'}`}
                 >
-                    <AuthCard
-                        contentClassName={isMobile ? 'p-6' : 'p-8'}
-                        className="w-full border-white/20 dark:border-white/10"
+                    <Card
+                        className="backdrop-blur-xl border-none shadow-2xl"
+                        style={{
+                            background: `linear-gradient(to bottom right, 
+                                color-mix(in srgb, var(--theme-content1, #FAFAFA) 98%, transparent), 
+                                color-mix(in srgb, var(--theme-content2, #F4F4F5) 95%, transparent)
+                            )`,
+                            borderColor: 'color-mix(in srgb, var(--theme-divider, #E4E4E7) 50%, transparent)',
+                            borderWidth: 'var(--borderWidth, 2px)',
+                            borderStyle: 'solid',
+                            borderRadius: `var(--borderRadius, ${isMobile ? '20px' : '24px'})`,
+                            fontFamily: 'var(--fontFamily, "Inter")',
+                            transform: `scale(var(--scale, 1))`,
+                            boxShadow: `
+                                0 20px 40px color-mix(in srgb, var(--theme-shadow, #000000) 15%, transparent),
+                                0 8px 16px color-mix(in srgb, var(--theme-shadow, #000000) 10%, transparent),
+                                inset 0 1px 0 color-mix(in srgb, var(--theme-background, #FFFFFF) 50%, transparent)
+                            `
+                        }}
                     >
+                        <div className={`${isMobile ? 'p-6' : 'p-8'}`}>
                             {/* Header Section */}
                             <motion.div
                                 variants={itemVariants}
@@ -1040,6 +1056,7 @@ export default function Login({
                                     {canResetPassword && (
                                         <Link
                                             href={route('password.request')}
+                                            prefetch
                                             className="text-sm font-medium transition-colors duration-200 hover:underline"
                                             style={{ color: 'var(--theme-primary, #006FEE)' }}
                                         >
@@ -1098,6 +1115,7 @@ export default function Login({
                                         Don't have an account?{' '}
                                         <Link
                                             href={route('register')}
+                                            prefetch
                                             className="font-semibold transition-colors duration-200 hover:underline"
                                             style={{ color: 'var(--theme-primary, #006FEE)' }}
                                         >
@@ -1130,7 +1148,8 @@ export default function Login({
                                     </p>
                                 </motion.div>
                             </form>
-                    </AuthCard>
+                        </div>
+                    </Card>
                 </motion.div>
             </div>
         </>

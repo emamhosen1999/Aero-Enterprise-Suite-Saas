@@ -124,13 +124,15 @@ class TenancyServiceProvider extends ServiceProvider
     protected function mapRoutes()
     {
         $this->app->booted(function () {
-            // Map admin routes (admin.platform.com)
+            // IMPORTANT: Order matters! More specific routes first.
+            
+            // 1. Map admin routes (admin.aero-enterprise-suite-saas.com)
             $this->mapAdminRoutes();
 
-            // Map platform routes (platform.com) - landing, registration
+            // 2. Map platform routes (aero-enterprise-suite-saas.com) - with domain constraint
             $this->mapPlatformRoutes();
 
-            // Map tenant routes ({tenant}.platform.com)
+            // 3. Map tenant routes (*.aero-enterprise-suite-saas.com) - catches all other subdomains
             $this->mapTenantRoutes();
         });
     }
@@ -146,7 +148,7 @@ class TenancyServiceProvider extends ServiceProvider
             return;
         }
 
-        $adminDomain = env('ADMIN_DOMAIN', 'admin.localhost');
+        $adminDomain = env('ADMIN_DOMAIN', 'admin.aero-enterprise-suite-saas.com');
 
         Route::domain($adminDomain)
             ->middleware([
@@ -158,11 +160,10 @@ class TenancyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Map platform/public routes for platform.com (landing, registration)
+     * Map platform/public routes for the main domain (landing, registration)
      *
-     * Platform routes are loaded without domain constraint - they work on any central domain.
-     * The web.php routes already handle the landing page, but platform.php adds
-     * registration and other platform-specific routes.
+     * Platform routes are bound to the central domain only.
+     * This prevents them from matching on tenant subdomains.
      */
     protected function mapPlatformRoutes(): void
     {
@@ -170,36 +171,45 @@ class TenancyServiceProvider extends ServiceProvider
             return;
         }
 
-        // Load platform routes without domain constraint
-        // These will work on any central domain (localhost, 127.0.0.1, platform.com, etc.)
-        Route::middleware([
-            'web',
-            IdentifyDomainContext::class,
-        ])
-            ->namespace(static::$controllerNamespace)
-            ->group(base_path('routes/platform.php'));
+        // Get all central domains (main domain, localhost, etc.)
+        $centralDomains = $this->getCentralDomainsWithoutAdmin();
+
+        foreach ($centralDomains as $domain) {
+            if (empty($domain)) {
+                continue;
+            }
+
+            Route::domain($domain)
+                ->middleware([
+                    'web',
+                    IdentifyDomainContext::class,
+                ])
+                ->namespace(static::$controllerNamespace)
+                ->group(base_path('routes/platform.php'));
+        }
     }
 
     /**
-     * Map tenant routes for {tenant}.platform.com
+     * Map tenant routes for tenant subdomains ({tenant}.platform.com)
      *
-     * Note: Tenant routes are NOT registered with a domain constraint.
-     * Instead, they use InitializeTenancyByDomain middleware which will:
+     * Tenant routes use InitializeTenancyByDomain middleware which will:
      * 1. Look up the domain in the domains table
      * 2. Initialize the tenant if found
      * 3. PreventAccessFromCentralDomains will block access from central domains
-     *
-     * This means for central domains, these routes won't work anyway.
-     * We don't call this method - tenant routes are included via tenant.php directly.
      */
     protected function mapTenantRoutes(): void
     {
-        // Tenant routes are now loaded via RouteServiceProvider or directly
-        // They only work when InitializeTenancyByDomain successfully identifies a tenant
-        // For central domains, PreventAccessFromCentralDomains will block access
+        if (! file_exists(base_path('routes/tenant.php'))) {
+            return;
+        }
 
-        // Don't register tenant routes here to avoid conflicts with web.php
-        // The routes/tenant.php file is included directly and protected by middleware
+        // Tenant routes are loaded without domain constraint.
+        // The InitializeTenancyByDomain middleware inside tenant.php
+        // will identify the tenant from the domain and initialize the connection.
+        // PreventAccessFromCentralDomains middleware blocks central domain access.
+        Route::middleware('web')
+            ->namespace(static::$controllerNamespace)
+            ->group(base_path('routes/tenant.php'));
     }
 
     protected function tenantCreatedJobs(): array
@@ -211,7 +221,7 @@ class TenancyServiceProvider extends ServiceProvider
         return [
             Jobs\CreateDatabase::class,
             Jobs\MigrateDatabase::class,
-            // Jobs\SeedDatabase::class,
+            Jobs\SeedDatabase::class,
         ];
     }
 

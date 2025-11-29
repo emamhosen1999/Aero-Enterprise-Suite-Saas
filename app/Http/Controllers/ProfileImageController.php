@@ -18,6 +18,16 @@ class ProfileImageController extends Controller
      */
     public function upload(Request $request): JsonResponse
     {
+        // Debug logging at start
+        Log::info('[ProfileImageUpload] Request received', [
+            'user_id' => $request->user_id ?? 'not provided',
+            'has_file' => $request->hasFile('profile_image'),
+            'file_valid' => $request->hasFile('profile_image') ? $request->file('profile_image')->isValid() : false,
+            'file_size' => $request->hasFile('profile_image') ? $request->file('profile_image')->getSize() : null,
+            'file_mime' => $request->hasFile('profile_image') ? $request->file('profile_image')->getMimeType() : null,
+            'auth_user_id' => Auth::id(),
+        ]);
+
         try {
             // Validate the request
             $validator = Validator::make($request->all(), [
@@ -32,34 +42,54 @@ class ProfileImageController extends Controller
             ]);
 
             if ($validator->fails()) {
+                Log::warning('[ProfileImageUpload] Validation failed', [
+                    'errors' => $validator->errors()->toArray(),
+                    'user_id' => $request->user_id,
+                ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed',
+                    'message' => 'Validation failed: '.implode(', ', $validator->errors()->all()),
                     'errors' => $validator->errors(),
                 ], 422);
             }
 
             // Get the user
             $user = User::findOrFail($request->user_id);
+            Log::info('[ProfileImageUpload] User found', ['target_user_id' => $user->id, 'target_user_name' => $user->name]);
 
             // Check if current user can update this user's profile
             if (! $this->canUpdateUserProfile($user)) {
+                Log::warning('[ProfileImageUpload] Authorization failed', [
+                    'auth_user_id' => Auth::id(),
+                    'target_user_id' => $user->id,
+                ]);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized to update this user\'s profile image',
                 ], 403);
             }
 
+            Log::info('[ProfileImageUpload] Authorization passed, proceeding with upload');
+
             // Clear any existing profile images (ensure only one image per user)
             if ($user->hasMedia('profile_images')) {
+                Log::info('[ProfileImageUpload] Clearing existing media');
                 $user->clearMediaCollection('profile_images');
             }
 
             // Upload new profile image
+            Log::info('[ProfileImageUpload] Adding media from request');
             $media = $user->addMediaFromRequest('profile_image')
                 ->usingName($user->name.' Profile Image')
                 ->usingFileName(time().'_profile.'.$request->file('profile_image')->getClientOriginalExtension())
                 ->toMediaCollection('profile_images');
+
+            Log::info('[ProfileImageUpload] Media added successfully', [
+                'media_id' => $media->id,
+                'media_url' => $media->getUrl(),
+            ]);
 
             // Save user to refresh model state
             $user->save();
@@ -67,7 +97,7 @@ class ProfileImageController extends Controller
             // Get fresh user data
             $user->refresh();
 
-            return response()->json([
+            $responseData = [
                 'success' => true,
                 'message' => 'Profile image uploaded successfully',
                 'user' => [
@@ -77,27 +107,48 @@ class ProfileImageController extends Controller
                 ],
                 'profile_image_url' => $user->profile_image_url,
                 'media_id' => $media->id,
-            ]);
+            ];
+
+            Log::info('[ProfileImageUpload] Success', $responseData);
+
+            return response()->json($responseData);
 
         } catch (FileDoesNotExist $e) {
+            Log::error('[ProfileImageUpload] FileDoesNotExist exception', [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user_id ?? null,
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'File does not exist or is not accessible',
+                'exception' => $e->getMessage(),
             ], 400);
         } catch (FileIsTooBig $e) {
+            Log::error('[ProfileImageUpload] FileIsTooBig exception', [
+                'message' => $e->getMessage(),
+                'user_id' => $request->user_id ?? null,
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'File is too large. Maximum size is 2MB.',
+                'exception' => $e->getMessage(),
             ], 400);
         } catch (\Exception $e) {
-            Log::error('Profile image upload error: '.$e->getMessage(), [
+            Log::error('[ProfileImageUpload] Unexpected exception', [
+                'message' => $e->getMessage(),
+                'exception_class' => get_class($e),
                 'user_id' => $request->user_id ?? null,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to upload profile image: '.$e->getMessage(),
+                'exception' => get_class($e).': '.$e->getMessage(),
             ], 500);
         }
     }

@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { 
     UserIcon,
     EnvelopeIcon, 
     LockClosedIcon,
+    ShieldCheckIcon,
     EyeIcon,
     EyeSlashIcon
 } from '@heroicons/react/24/outline';
-import { Input, Button as HeroButton } from '@heroui/react';
+import { Input, Button as HeroButton, Checkbox as HeroCheckbox } from '@heroui/react';
 import AuthLayout from '@/Components/AuthLayout';
+import Button from '@/Components/Button';
 import Checkbox from '@/Components/Checkbox';
 
 export default function Register() {
@@ -24,16 +26,6 @@ export default function Register() {
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
-
-    const COLORS = {
-        error: 'var(--theme-danger, #EF4444)',
-        warning: '#f59e0b',
-        caution: '#eab308',
-        primary: 'var(--theme-primary, #006FEE)',
-        success: 'var(--theme-success, #22C55E)',
-        track: 'color-mix(in srgb, var(--theme-foreground, #11181C) 15%, transparent)',
-        textSubtle: 'color-mix(in srgb, var(--theme-foreground, #11181C) 65%, transparent)'
-    };
 
     const calculatePasswordStrength = (password) => {
         let strength = 0;
@@ -73,17 +65,17 @@ export default function Register() {
         switch (passwordStrength) {
             case 0:
             case 1:
-                return COLORS.error;
+                return theme.palette.error.main;
             case 2:
-                return COLORS.warning;
+                return '#f59e0b';
             case 3:
-                return COLORS.caution;
+                return '#eab308';
             case 4:
-                return COLORS.primary;
+                return theme.palette.primary.main;
             case 5:
-                return COLORS.success;
+                return theme.palette.success.main;
             default:
-                return COLORS.track;
+                return theme.palette.grey[300];
         }
     };
 
@@ -102,7 +94,7 @@ export default function Register() {
         >
             <Head title="Register" />
 
-            <form onSubmit={submit} className="space-y-6">
+            <form onSubmit={submit} className="auth-form-spacing">{/* Using responsive spacing class */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -120,6 +112,35 @@ export default function Register() {
                         autoFocus
                         isRequired
                         startContent={<UserIcon className="w-4 h-4 text-default-400" />}
+                        InputProps={{
+                            startAdornment: (
+                                <UserIcon className="w-4 h-4 text-default-400 pointer-events-none shrink-0 mr-2" />
+                            ),
+                            sx: {
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                backdropFilter: 'blur(12px)',
+                                borderRadius: '12px',
+                                '&:hover': {
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                },
+                                '&.Mui-focused': {
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                },
+                            }
+                        }}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: 'primary.main',
+                                },
+                            },
+                        }}
                     />
                 </motion.div>
 
@@ -186,7 +207,7 @@ export default function Register() {
                                 <div className="flex items-center space-x-3">
                                     <div 
                                         className="flex-1 h-2 rounded-full overflow-hidden"
-                                        style={{ backgroundColor: COLORS.track }}
+                                        style={{ backgroundColor: theme.palette.grey[200] }}
                                     >
                                         <motion.div
                                             className="h-full rounded-full transition-all duration-500"
@@ -207,7 +228,7 @@ export default function Register() {
                                 </div>
                                 <motion.p
                                     className="text-xs"
-                                    style={{ color: COLORS.textSubtle }}
+                                    style={{ color: theme.palette.text.secondary }}
                                     initial={{ opacity: 0, y: -5 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 }}
@@ -311,11 +332,12 @@ export default function Register() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.7 }}
                 >
-                    <p className="text-sm" style={{ color: 'color-mix(in srgb, var(--theme-foreground, #11181C) 70%, transparent)' }}>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                         Already have an account?{' '}
                         <motion.span whileHover={{ scale: 1.05 }} className="inline-block">
                             <Link
                                 href={route('login')}
+                                prefetch
                                 className="font-medium transition-colors duration-200 hover:underline"
                                 style={{ color: 'var(--theme-primary)' }}
                             >

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link } from '@inertiajs/react';
 import { showToast } from '@/utils/toastUtils';
+import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 import { 
   Table, 
   TableBody, 
@@ -291,16 +292,13 @@ const UsersTable = ({
           <User
             className="w-fit max-w-full"
             avatarProps={{
-              radius: getThemeRadius(),
-              size: "sm",
               src: user?.profile_image_url || user?.profile_image,
-              showFallback: true,
               name: user?.name || "Unnamed User",
-              isBordered: true,
-              style: {
-                borderColor: `var(--theme-primary, #3B82F6)`,
-                borderWidth: '2px',
-              }
+              size: "sm",
+              ...getProfileAvatarTokens({
+                name: user?.name || "Unnamed User",
+                size: 'sm',
+              }),
             }}
             name={
               <span 
@@ -637,6 +635,7 @@ const UsersTable = ({
                   textValue="View Profile"
                   href={route('profile', { user: user.id })}
                   as={Link}
+                  prefetch
                   className="text-blue-500"
                   startContent={<UserIcon className="w-4 h-4" />}
                 >
@@ -719,6 +718,7 @@ const UsersTable = ({
                   textValue="View Devices"
                   href={route('admin.users.devices', { userId: user.id })}
                   as={Link}
+                  prefetch
                   startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
                   className="text-blue-500"
                 >

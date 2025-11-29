@@ -8,7 +8,6 @@ import {
     TableRow,
     TableCell,
     Chip,
-    Avatar,
     AvatarGroup,
     Progress,
     Button,
@@ -41,6 +40,7 @@ import {
     TrashIcon,
     ArrowsUpDownIcon,
 } from "@heroicons/react/24/outline";
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const ProjectListView = ({
     projects = [],
@@ -336,7 +336,7 @@ const ProjectListView = ({
                                         <AvatarGroup max={3} size="sm">
                                             {project.team_members?.slice(0, 3).map((member, index) => (
                                                 <Tooltip key={index} content={member.name}>
-                                                    <Avatar
+                                                    <ProfileAvatar
                                                         src={member.avatar}
                                                         name={member.name}
                                                         size="sm"

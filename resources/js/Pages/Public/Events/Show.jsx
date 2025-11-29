@@ -24,7 +24,6 @@ import {
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import { showToast } from '@/utils/toastUtils';
-import PublicLayout from '../../../Layouts/PublicLayout';
 
 // Helper function to get theme radius from CSS variable
 const getThemeRadius = () => {
@@ -94,7 +93,6 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
         .reduce((sum, se) => sum + parseFloat(se.joining_fee || 0), 0) || 0;
     
     return (
-        <PublicLayout>
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-secondary-50 to-background">
             <Head title={event.title} />
             
@@ -466,7 +464,6 @@ const PublicEventShow = ({ event, canRegister, registrationStatus, remainingSlot
                 </div>
             </div>
         </div>
-        </PublicLayout>
     );
 };
 

@@ -123,4 +123,7 @@ Route::middleware(['web'])->group(function () {
             ->name('sslcommerz')
             ->withoutMiddleware(['web']);
     });
+
+    // Authentication routes for central/platform domain
+    require __DIR__.'/auth.php';
 });

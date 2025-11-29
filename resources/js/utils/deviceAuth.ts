@@ -21,7 +21,7 @@ export function getDeviceId(): string {
     if (!deviceId) {
         deviceId = uuidv4();
         localStorage.setItem(DEVICE_ID_KEY, deviceId);
-        console.log('[Device Auth] New device ID generated:', deviceId);
+ 
     }
 
     return deviceId;
@@ -33,7 +33,7 @@ export function getDeviceId(): string {
  */
 export function clearDeviceId(): void {
     localStorage.removeItem(DEVICE_ID_KEY);
-    console.log('[Device Auth] Device ID cleared');
+
 }
 
 /**
@@ -124,7 +124,7 @@ export function initializeDeviceAuth(): void {
 
     // Ensure device ID is generated
     const deviceId = getDeviceId();
-    console.log('[Device Auth] Initialized with device ID:', deviceId);
+   
 }
 
 export default {

@@ -97,7 +97,7 @@ export default function OffboardingCreate() {
         </div>
         <div className="flex gap-3">
           <button type="submit" className="btn btn-primary" disabled={processing}>Create</button>
-          <Link href={route('hr.offboarding.index')} className="btn">Cancel</Link>
+          <Link href={route('hr.offboarding.index')} prefetch className="btn">Cancel</Link>
         </div>
       </form>
     </div>

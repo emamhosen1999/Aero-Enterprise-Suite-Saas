@@ -91,6 +91,17 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
         }
     ], [auth.user.id, auth.user.name]);
 
+    // ===== PREFETCH NAVIGATION ITEMS ON MOUNT =====
+    useEffect(() => {
+        // Prefetch all navigation destinations for instant transitions
+        // router.prefetch(url, visitOptions, prefetchOptions)
+        navItems.forEach(item => {
+            if (item.href && !item.action) {
+                router.prefetch(item.href, { method: 'get' }, { cacheFor: '1m' });
+            }
+        });
+    }, [navItems]);
+
     // ===== ENHANCED NAVIGATION HANDLER =====
     /**
      * Simplified navigation handler matching Header pattern
@@ -159,22 +170,15 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
         const IconComponent = item.icon;
 
         const buttonContent = (
-            <motion.div
+            <div
                 className="flex flex-col items-center justify-center gap-0.5 py-1 px-1"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.2 }}
             >
                 <div className="relative">
-                    <motion.div
-                        animate={{
-                            rotate: item.action === 'sidebar' && sideBarOpen ? 180 : 0,
-                            scale: isActive ? 1.1 : 1
-                        }}
-                        transition={{ duration: 0.3 }}
+                    <div
+                        className={`transition-transform duration-200 ${item.action === 'sidebar' && sideBarOpen ? 'rotate-180' : ''}`}
                     >
                         <IconComponent 
-                            className={`transition-all duration-300 ${
+                            className={`transition-all duration-200 ${
                                 isActive 
                                     ? 'w-5 h-5 text-primary' 
                                     : 'w-5 h-5 text-foreground/70'
@@ -188,32 +192,23 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
                                     : 'none'
                             }}
                         />
-                    </motion.div>
+                    </div>
                     
-                    {/* Enhanced Badge System */}
-                    <AnimatePresence>
-                        {item.badge && (
-                            <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="absolute -top-1 -right-1"
-                            >
-                                <Badge
-                                    content={item.badge}
-                                    color="danger"
-                                    size="sm"
-                                    className="animate-pulse"
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    {/* Badge System */}
+                    {item.badge && (
+                        <div className="absolute -top-1 -right-1">
+                            <Badge
+                                content={item.badge}
+                                color="danger"
+                                size="sm"
+                            />
+                        </div>
+                    )}
                 </div>
                 
                 {/* Compact Label Display */}
-                <motion.span
-                    className={`text-xs transition-all duration-300 mt-0.5 ${
+                <span
+                    className={`text-xs mt-0.5 ${
                         isActive 
                             ? 'font-semibold text-primary' 
                             : 'font-medium text-foreground/70'
@@ -224,14 +219,10 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
                             : 'var(--theme-foreground, #11181C)70',
                         fontSize: isActive ? '0.65rem' : '0.6rem'
                     }}
-                    animate={{ 
-                        scale: isActive ? 1.05 : 1,
-                        fontWeight: isActive ? 700 : 500
-                    }}
                 >
                     {item.label}
-                </motion.span>
-            </motion.div>
+                </span>
+            </div>
         );
 
         const buttonProps = {
@@ -267,20 +258,14 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
                 {buttonContent}
                 
                 {/* Active State Indicator */}
-                <AnimatePresence>
-                    {isActive && (
-                        <motion.div
-                            initial={{ scaleX: 0, opacity: 0 }}
-                            animate={{ scaleX: 1, opacity: 1 }}
-                            exit={{ scaleX: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 rounded-full"
-                            style={{
-                                backgroundColor: 'var(--theme-primary, #006FEE)'
-                            }}
-                        />
-                    )}
-                </AnimatePresence>
+                {isActive && (
+                    <div
+                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 rounded-full transition-all duration-200"
+                        style={{
+                            backgroundColor: 'var(--theme-primary, #006FEE)'
+                        }}
+                    />
+                )}
             </Button>
         );
 
@@ -301,24 +286,15 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
 
     // ===== MAIN RENDER =====
     return (
-        <motion.nav
+        <nav
             ref={bottomNavRef}
             role="navigation" 
             aria-label="Bottom navigation"
             className="block md:hidden w-full"
-           
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: [0.4, 0.0, 0.2, 1] }}
         >
             <div className="w-full h-full flex items-center px-4 py-1">
-                <motion.div
-                    layout
+                <div
                     className="mx-auto max-w-sm h-full w-full"
-                    animate={{
-                        height: 'auto'
-                    }}
-                    transition={{ duration: 0.3 }}
                 >
                     <Card
                         className="backdrop-blur-xl border-none shadow-2xl h-full"
@@ -347,13 +323,13 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
                         <div className="h-full flex items-center justify-center px-2 py-1">
                             {/* Equal Space Navigation - 5 Items */}
                             <div className="flex-1 flex items-center justify-around max-w-xs">
-                                {navItems.map((item, index) => renderNavButton(item, index))}
-                            </div>
+                            {navItems.map((item, index) => renderNavButton(item, index))}
                         </div>
-                    </Card>
-                </motion.div>
+                    </div>
+                </Card>
             </div>
-        </motion.nav>
+        </div>
+    </nav>
     );
 };
 

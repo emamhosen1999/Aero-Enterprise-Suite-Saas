@@ -34,7 +34,7 @@ import axios from 'axios';
 
 
 const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
-    console.log(currentRow)
+
     // Helper function to convert theme borderRadius to HeroUI radius values
     const getThemeRadius = () => {
         if (typeof window === 'undefined') return 'lg';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Divider, Link } from "@heroui/react";
-import { usePage } from '@inertiajs/react';
+import { Button, Divider } from "@heroui/react";
+import { Link, usePage, router } from '@inertiajs/react';
 import { 
   HeartIcon, 
   GlobeAltIcon,
@@ -22,10 +22,10 @@ const Footer = () => {
     const quickLinks = [
         { label: 'Dashboard', href: '/dashboard' },
         { label: 'Employees', href: '/employees' },
-        { label: 'Attendance', href: '/attendance-admin' },
-        { label: 'Leave Management', href: '/leaves-admin' },
-        { label: 'Timesheets', href: '/time-sheet' },
-        { label: 'User Management', href: '/users' },
+        { label: 'Attendance', href: '/attendances' },
+        { label: 'Leaves', href: '/leaves' },
+        { label: 'Timesheet', href: '/timesheet' },
+        { label: 'Users', href: '/users' },
         { label: 'Reports', href: '/reports' },
         { label: 'Settings', href: '/settings' }
     ];
@@ -108,8 +108,8 @@ const Footer = () => {
                                                 <Link
                                                     key={index}
                                                     href={link.href}
+                                                    prefetch
                                                     className="text-sm transition-all duration-200 p-2 rounded-lg"
-                                                    underline="hover"
                                                     style={isActive ? {
                                                         backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
                                                         border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
@@ -151,23 +151,24 @@ const Footer = () => {
                                         {contactInfo.map((contact, index) => {
                                             const IconComponent = contact.icon;
                                             return (
-                                                <Link
+                                                <a
                                                     key={index}
                                                     href={contact.href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
                                                     className="flex items-center gap-3 text-sm transition-all duration-200 p-2 rounded-lg"
-                                                    underline="none"
                                                     style={{
                                                         border: `var(--borderWidth, 2px) solid transparent`,
                                                         borderRadius: `var(--borderRadius, 8px)`,
                                                         color: `var(--theme-foreground, #11181C)`
                                                     }}
                                                     onMouseEnter={(e) => {
-                                                        e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
-                                                        e.target.style.color = `var(--theme-primary, #006FEE)`;
+                                                        e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
+                                                        e.currentTarget.style.color = `var(--theme-primary, #006FEE)`;
                                                     }}
                                                     onMouseLeave={(e) => {
-                                                        e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
-                                                        e.target.style.color = `var(--theme-foreground, #11181C)`;
+                                                        e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
+                                                        e.currentTarget.style.color = `var(--theme-foreground, #11181C)`;
                                                     }}
                                                 >
                                                     <div 
@@ -191,7 +192,7 @@ const Footer = () => {
                                                             {contact.value}
                                                         </div>
                                                     </div>
-                                                </Link>
+                                                </a>
                                             );
                                         })}
                                     </div>
@@ -212,25 +213,22 @@ const Footer = () => {
                                 <div className="flex justify-center md:justify-end gap-4">
                                     <Link
                                         href="/privacy"
-                                        color="foreground"
+                                        prefetch
                                         className="text-sm hover:text-primary transition-colors duration-200"
-                                        underline="hover"
                                     >
                                         Privacy Policy
                                     </Link>
                                     <Link
                                         href="/terms"
-                                        color="foreground"
+                                        prefetch
                                         className="text-sm hover:text-primary transition-colors duration-200"
-                                        underline="hover"
                                     >
                                         Terms of Service
                                     </Link>
                                     <Link
                                         href="/support"
-                                        color="foreground"
+                                        prefetch
                                         className="text-sm hover:text-primary transition-colors duration-200"
-                                        underline="hover"
                                     >
                                         Support
                                     </Link>

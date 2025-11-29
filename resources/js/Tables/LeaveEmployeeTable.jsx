@@ -8,6 +8,7 @@ import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 
 import { usePage } from "@inertiajs/react";
 import { showToast } from '@/utils/toastUtils';
+import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 import {
     Table,
     TableHeader,
@@ -29,7 +30,6 @@ import {
     Divider,
     ScrollShadow,
     Link,
-    Avatar 
 } from "@heroui/react";
 import {
     CalendarDaysIcon,
@@ -361,12 +361,13 @@ const LeaveEmployeeTable = React.forwardRef(({
                             {isAdminView && (
                                 <User
                         avatarProps={{
-                        radius: "lg",
-                        size: "sm",
                         src: user?.profile_image_url || user?.profile_image,
-                        showFallback: true, // Ensure fallback is always available
+                        size: "sm",
                         name: user?.name || "Unnamed User",
-                        isBordered: true,
+                        ...getProfileAvatarTokens({
+                            name: user?.name || "Unnamed User",
+                            size: 'sm',
+                        }),
                         }}
                         description={
                         user?.phone ? (
@@ -533,12 +534,13 @@ const LeaveEmployeeTable = React.forwardRef(({
                     <TableCell className="whitespace-nowrap">
                     <User
                         avatarProps={{
-                        radius: "lg",
-                        size: "sm",
                         src: user?.profile_image_url || user?.profile_image,
-                        showFallback: true, // Ensure fallback is always available
+                        size: "sm",
                         name: user?.name || "Unnamed User",
-                        isBordered: true,
+                        ...getProfileAvatarTokens({
+                            name: user?.name || "Unnamed User",
+                            size: 'sm',
+                        }),
                         }}
                         description={
                         user?.phone ? (

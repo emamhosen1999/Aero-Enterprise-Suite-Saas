@@ -222,18 +222,14 @@ const BulkCalendar = ({
             const fromDate = leave.from_date.split('T')[0]; // Get just the date part
             const toDate = leave.to_date.split('T')[0]; // Get just the date part
             
-            // Debug log for existing leaves (only when debugging specific issues)
-            // console.log(`Checking existing leave for ${dateString}: from ${fromDate} to ${toDate}, match: ${dateString >= fromDate && dateString <= toDate}`);
-            
+        
             return dateString >= fromDate && dateString <= toDate;
         });
         
         // Check for public holiday - direct string comparison
         const isPublicHoliday = finalPublicHolidays.includes(dateString);
         
-        // Debug log for holiday detection (only when debugging specific issues)
-        // console.log(`${dateString}: isPublicHoliday=${isPublicHoliday}, finalPublicHolidays includes check:`, finalPublicHolidays.includes(dateString));
-        
+    
         // Allow selection of past dates for bulk leave (removed isPast restriction)
         // Disable selectability during loading, for holidays, and existing leaves
         const selectable = !loading && 

@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 import {
     Chip,
     Divider,
@@ -167,10 +168,13 @@ const AttendanceAdminTable = ({
                     <div className="flex items-center gap-3 mb-4">
                         <User
                             avatarProps={{
-                                radius: getThemeRadius(),
-                                size: "md",
                                 src: data.profile_image_url || data.profile_image,
-                                fallback: <UserIcon className="w-6 h-6"/>
+                                name: data.name || 'Unknown',
+                                size: "md",
+                                ...getProfileAvatarTokens({
+                                    name: data.name || 'Unknown',
+                                    size: 'md',
+                                }),
                             }}
                             name={
                                 <span className="text-sm font-medium" style={{
@@ -552,10 +556,13 @@ const AttendanceAdminTable = ({
                                                 <TableCell className="whitespace-nowrap">
                                                     <User
                                                         avatarProps={{
-                                                            radius: "lg",
-                                                            size: isLargeScreen ? "md" : "sm",
                                                             src: data.profile_image_url || data.profile_image,
-                                                            fallback: <UserIcon className="w-6 h-6"/>
+                                                            name: data.name || 'Unknown User',
+                                                            size: isLargeScreen ? "md" : "sm",
+                                                            ...getProfileAvatarTokens({
+                                                                name: data.name || 'Unknown User',
+                                                                size: isLargeScreen ? 'md' : 'sm',
+                                                            }),
                                                         }}
                                                         name={data.name || 'Unknown User'}
                                                         description={`Employee ID: ${data.employee_id}` || `ID: ${data.user_id}`}

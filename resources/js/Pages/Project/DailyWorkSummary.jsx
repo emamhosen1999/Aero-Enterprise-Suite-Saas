@@ -28,7 +28,8 @@ import {
     DocumentTextIcon,
     ArrowPathIcon,
     FunnelIcon,
-    AdjustmentsHorizontalIcon
+    AdjustmentsHorizontalIcon,
+    MapPinIcon
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import DailyWorkSummaryTable from '@/Tables/DailyWorkSummaryTable.jsx';
@@ -66,7 +67,7 @@ const DailyWorkSummary = ({ auth, title, summary, jurisdictions, inCharges }) =>
         return 'full';
     };
 
-    const [dailyWorkSummary, setDailyWorkSummary] = useState(summary);
+    const [dailyWorkSummary] = useState(summary);
     const [filteredData, setFilteredData] = useState(summary);
     const [loading, setLoading] = useState(false);
     const [openModalType, setOpenModalType] = useState(null);
@@ -90,54 +91,85 @@ const DailyWorkSummary = ({ auth, title, summary, jurisdictions, inCharges }) =>
         return dailyWorkSummary.map(work => dayjs(work.date)).filter(date => date.isValid());
     }, [dailyWorkSummary]);
 
+    const renderSelectedBadges = useCallback((selectedIds, options, placeholder, labelKey = 'name') => {
+        if (!selectedIds || selectedIds.length === 0) {
+            return <span className="text-default-400 text-xs">{placeholder}</span>;
+        }
+
+        const normalized = selectedIds.map(String);
+        const labels = options
+            ?.filter((option) => normalized.includes(String(option.id)))
+            .map((option) => option[labelKey]) ?? [];
+
+        if (labels.length === 0) {
+            return <span className="text-default-400 text-xs">{placeholder}</span>;
+        }
+
+        return (
+            <div className="flex flex-wrap gap-1">
+                {labels.map((label) => (
+                    <span key={label} className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary">
+                        {label}
+                    </span>
+                ))}
+            </div>
+        );
+    }, []);
+
+    const jurisdictionOptions = useMemo(() => {
+        return jurisdictions?.map((j) => ({
+            ...j,
+            displayLabel: `${j.start_chainage} - ${j.end_chainage}`,
+        })) ?? [];
+    }, [jurisdictions]);
+
     const [filterData, setFilterData] = useState({
         startDate: dates.length > 0 ? dayjs.min(...dates).format('YYYY-MM-DD') : dayjs().subtract(30, 'days').format('YYYY-MM-DD'),
         endDate: dates.length > 0 ? dayjs.max(...dates).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
         status: 'all',
-        incharge: 'all',
+        incharge: [], // Array for multi-select
+        jurisdiction: [], // Array for multi-select
     });
 
-    // Refresh summary data
-    const handleRefresh = useCallback(async () => {
+    const fetchFilteredSummaries = useCallback(async () => {
         setLoading(true);
         try {
-            // Get date range for refresh
-            const startDate = filterData.startDate || dayjs().subtract(30, 'days').format('YYYY-MM-DD');
-            const endDate = filterData.endDate || dayjs().format('YYYY-MM-DD');
-            
-            const response = await axios.post(route('daily-works-summary.refresh'), {
-                startDate,
-                endDate
-            });
-            
-            if (response.data && response.data.summary) {
-                // Update local state instead of full page reload
-                setDailyWorkSummary(response.data.summary);
-                showToast.success('Summary data refreshed successfully');
-            } else if (response.data && response.data.message) {
-                // Fallback: fetch updated data
-                const summaryResponse = await axios.get(route('daily-works-summary.data'), {
-                    params: { startDate, endDate }
-                });
-                
-                if (summaryResponse.data && summaryResponse.data.summary) {
-                    setDailyWorkSummary(summaryResponse.data.summary);
-                }
-                
-                showToast.success('Summary data refreshed successfully');
+            const payload = {
+                startDate: filterData.startDate,
+                endDate: filterData.endDate,
+            };
+
+            if (filterData.incharge?.length) {
+                payload.incharge = filterData.incharge;
             }
+
+            if (filterData.jurisdiction?.length) {
+                payload.jurisdiction = filterData.jurisdiction;
+            }
+
+            const response = await axios.post(route('daily-works-summary.filter'), payload);
+            const summaries = response.data?.summaries ?? [];
+            setFilteredData(summaries);
+
+            return true;
         } catch (error) {
-            console.error('Failed to refresh summary:', error);
-            
-            if (error.response && error.response.data && error.response.data.message) {
-                showToast.error(error.response.data.message);
-            } else {
-                showToast.error('Failed to refresh summary data');
-            }
+            console.error('Failed to load filtered summary:', error);
+
+            const message = error.response?.data?.error || 'Failed to load summary data';
+            showToast.error(message);
+
+            return false;
         } finally {
             setLoading(false);
         }
     }, [filterData]);
+
+    const handleRefresh = useCallback(async () => {
+        const success = await fetchFilteredSummaries();
+        if (success) {
+            showToast.success('Summary data refreshed successfully');
+        }
+    }, [fetchFilteredSummaries]);
 
    
 
@@ -224,42 +256,8 @@ const DailyWorkSummary = ({ auth, title, summary, jurisdictions, inCharges }) =>
     }, [dates]);
 
     useEffect(() => {
-        const filteredWorks = dailyWorkSummary.filter(work => {
-            const workDate = dayjs(work.date);
-            const startDate = dayjs(filterData.startDate);
-            const endDate = dayjs(filterData.endDate);
-
-            return (
-                workDate.isBetween(startDate, endDate, null, '[]') &&
-                (filterData.incharge === 'all' || !filterData.incharge || work.incharge === filterData.incharge)
-            );
-        });
-
-        const merged = filteredWorks.reduce((acc, work) => {
-            const date = dayjs(work.date).format('YYYY-MM-DD');
-
-            if (!acc[date]) {
-                acc[date] = { ...work };
-            } else {
-                acc[date].totalDailyWorks += work.totalDailyWorks;
-                acc[date].resubmissions += work.resubmissions;
-                acc[date].embankment += work.embankment;
-                acc[date].structure += work.structure;
-                acc[date].pavement += work.pavement;
-                acc[date].pending += work.pending;
-                acc[date].completed += work.completed;
-                acc[date].rfiSubmissions += work.rfiSubmissions;
-                acc[date].completionPercentage =
-                    (acc[date].totalDailyWorks > 0 ? (acc[date].completed / acc[date].totalDailyWorks) * 100 : 0);
-                acc[date].rfiSubmissionPercentage =
-                    (acc[date].totalDailyWorks > 0 ? (acc[date].rfiSubmissions / acc[date].totalDailyWorks) * 100 : 0);
-            }
-
-            return acc;
-        }, {});
-
-        setFilteredData(Object.values(merged));
-    }, [filterData, dailyWorkSummary]);
+        fetchFilteredSummaries();
+    }, [fetchFilteredSummaries]);
 
     return (
         <>
@@ -440,98 +438,149 @@ const DailyWorkSummary = ({ auth, title, summary, jurisdictions, inCharges }) =>
                                                 transition={{ duration: 0.3 }}
                                             >
                                                 <div className="p-4 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                        {/* Date Range Filters */}
-                                                        <div className="sm:col-span-2 lg:col-span-2">
-                                                            <div className="flex flex-col gap-2">
-                                                                <label className="text-sm font-medium text-foreground" style={{
-                                                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                                                }}>
-                                                                    Date Range
-                                                                </label>
-                                                                <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                                                                    <Input
-                                                                        type="date"
-                                                                        label="Start date"
-                                                                        value={filterData.startDate}
-                                                                        onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                                                                        size="sm"
-                                                                        variant="bordered"
-                                                                        radius={getThemeRadius()}
-                                                                        aria-label="Select start date for filtering daily work summary"
-                                                                        classNames={{
-                                                                            input: "text-foreground",
-                                                                            inputWrapper: `bg-content2/50 hover:bg-content2/70 
-                                                                                         focus-within:bg-content2/90 border-divider/50 
-                                                                                         hover:border-divider data-[focus]:border-primary`,
-                                                                        }}
-                                                                        style={{
-                                                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                                                        }}
-                                                                    />
-                                                                    <span className="text-sm text-default-500 px-2" style={{
-                                                                        fontFamily: `var(--fontFamily, "Inter")`,
-                                                                    }}>
-                                                                        to
-                                                                    </span>
-                                                                    <Input
-                                                                        type="date"
-                                                                        label="End date"
-                                                                        value={filterData.endDate}
-                                                                        onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                                                                        size="sm"
-                                                                        variant="bordered"
-                                                                        radius={getThemeRadius()}
-                                                                        aria-label="Select end date for filtering daily work summary"
-                                                                        classNames={{
-                                                                            input: "text-foreground",
-                                                                            inputWrapper: `bg-content2/50 hover:bg-content2/70 
-                                                                                         focus-within:bg-content2/90 border-divider/50 
-                                                                                         hover:border-divider data-[focus]:border-primary`,
-                                                                        }}
-                                                                        style={{
-                                                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                        {/* Start Date Filter */}
+                                                        <Input
+                                                            type="date"
+                                                            label="Start Date"
+                                                            value={filterData.startDate}
+                                                            onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                                                            size="sm"
+                                                            variant="bordered"
+                                                            radius={getThemeRadius()}
+                                                            aria-label="Select start date"
+                                                            classNames={{
+                                                                input: "text-foreground",
+                                                                inputWrapper: `bg-content2/50 hover:bg-content2/70 
+                                                                             focus-within:bg-content2/90 border-divider/50 
+                                                                             hover:border-divider data-[focus]:border-primary`,
+                                                            }}
+                                                            style={{
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        />
+
+                                                        {/* End Date Filter */}
+                                                        <Input
+                                                            type="date"
+                                                            label="End Date"
+                                                            value={filterData.endDate}
+                                                            onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                                                            size="sm"
+                                                            variant="bordered"
+                                                            radius={getThemeRadius()}
+                                                            aria-label="Select end date"
+                                                            classNames={{
+                                                                input: "text-foreground",
+                                                                inputWrapper: `bg-content2/50 hover:bg-content2/70 
+                                                                             focus-within:bg-content2/90 border-divider/50 
+                                                                             hover:border-divider data-[focus]:border-primary`,
+                                                            }}
+                                                            style={{
+                                                                fontFamily: `var(--fontFamily, "Inter")`,
+                                                            }}
+                                                        />
                                                         
-                                                        {/* In Charge Filter */}
-                                                        {(auth.roles.includes('Administrator') || auth.designation === 'Supervision Engineer') && (
-                                                            <div>
-                                                                <Select
-                                                                    label="In Charge"
-                                                                    placeholder="Select in charge..."
-                                                                    selectedKeys={filterData.incharge ? [String(filterData.incharge)] : ["all"]}
-                                                                    onSelectionChange={(keys) => {
-                                                                        const value = Array.from(keys)[0];
-                                                                        handleFilterChange('incharge', value === "all" ? "all" : value);
-                                                                    }}
-                                                                    variant="bordered"
-                                                                    size="sm"
-                                                                    radius={getThemeRadius()}
-                                                                    className="w-full"
-                                                                    classNames={{
-                                                                        trigger: "text-sm",
-                                                                        value: "text-foreground",
-                                                                        listboxWrapper: "bg-content1",
-                                                                        popoverContent: "bg-content1",
-                                                                    }}
-                                                                    style={{
-                                                                        fontFamily: `var(--fontFamily, "Inter")`,
-                                                                    }}
-                                                                    aria-label="Filter by in charge"
-                                                                >
-                                                                    <SelectItem key="all" value="all">All</SelectItem>
-                                                                    {inCharges.map(inCharge => (
-                                                                        <SelectItem key={inCharge.id} value={inCharge.id}>
-                                                                            {inCharge.name}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </Select>
-                                                            </div>
+                                                        {/* In Charge Filter - Multi-select */}
+                                                        {(auth.roles.includes('Administrator') || auth.roles.includes('Super Administrator') || auth.designation === 'Supervision Engineer') && (
+                                                            <Select
+                                                                label="In Charge"
+                                                                placeholder="Select in charge..."
+                                                                selectionMode="multiple"
+                                                                selectedKeys={new Set(filterData.incharge || [])}
+                                                                onSelectionChange={(keys) => {
+                                                                    const values = Array.from(keys);
+                                                                    handleFilterChange('incharge', values);
+                                                                    // Reset jurisdiction when incharge changes
+                                                                    if (values.length > 0) {
+                                                                        handleFilterChange('jurisdiction', []);
+                                                                    }
+                                                                }}
+                                                                variant="bordered"
+                                                                size="sm"
+                                                                radius={getThemeRadius()}
+                                                                startContent={<UserIcon className="w-4 h-4 text-default-400" />}
+                                                                classNames={{
+                                                                    trigger: "text-sm min-h-unit-10",
+                                                                    value: "text-foreground",
+                                                                    listboxWrapper: "bg-content1",
+                                                                    popoverContent: "bg-content1",
+                                                                }}
+                                                                renderValue={() => renderSelectedBadges(filterData.incharge, inCharges, 'Select in charge...')}
+                                                                style={{
+                                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                                }}
+                                                                aria-label="Filter by in charge"
+                                                            >
+                                                                {inCharges.map(inCharge => (
+                                                                    <SelectItem key={String(inCharge.id)} value={String(inCharge.id)}>
+                                                                        {inCharge.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </Select>
                                                         )}
+
+                                                        {/* Jurisdiction Filter - Multi-select */}
+                                                        {(auth.roles.includes('Administrator') || auth.roles.includes('Super Administrator') || auth.designation === 'Supervision Engineer') && (
+                                                            <Select
+                                                                label="Jurisdiction"
+                                                                placeholder="Select jurisdiction..."
+                                                                selectionMode="multiple"
+                                                                selectedKeys={new Set(filterData.jurisdiction || [])}
+                                                                onSelectionChange={(keys) => {
+                                                                    const values = Array.from(keys);
+                                                                    handleFilterChange('jurisdiction', values);
+                                                                    // Reset incharge when jurisdiction is selected
+                                                                    if (values.length > 0) {
+                                                                        handleFilterChange('incharge', []);
+                                                                    }
+                                                                }}
+                                                                variant="bordered"
+                                                                size="sm"
+                                                                radius={getThemeRadius()}
+                                                                startContent={<MapPinIcon className="w-4 h-4 text-default-400" />}
+                                                                classNames={{
+                                                                    trigger: "text-sm min-h-unit-10",
+                                                                    value: "text-foreground",
+                                                                    listboxWrapper: "bg-content1",
+                                                                    popoverContent: "bg-content1",
+                                                                }}
+                                                                renderValue={() => renderSelectedBadges(filterData.jurisdiction, jurisdictionOptions, 'Select jurisdiction...', 'displayLabel')}
+                                                                style={{
+                                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                                }}
+                                                                aria-label="Filter by jurisdiction"
+                                                            >
+                                                                {jurisdictionOptions?.map(jurisdiction => (
+                                                                    <SelectItem key={String(jurisdiction.id)} value={String(jurisdiction.id)}>
+                                                                        {jurisdiction.displayLabel}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </Select>
+                                                        )}
+
+                                                        {/* Clear Filters Button */}
+                                                        <div className="flex items-end">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="flat"
+                                                                color="danger"
+                                                                onPress={() => {
+                                                                    setFilterData({
+                                                                        startDate: dates.length > 0 ? dayjs.min(...dates).format('YYYY-MM-DD') : dayjs().subtract(30, 'days').format('YYYY-MM-DD'),
+                                                                        endDate: dates.length > 0 ? dayjs.max(...dates).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+                                                                        status: 'all',
+                                                                        incharge: [],
+                                                                        jurisdiction: [],
+                                                                    });
+                                                                }}
+                                                                style={{
+                                                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                                                }}
+                                                            >
+                                                                Clear Filters
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </motion.div>

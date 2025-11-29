@@ -101,9 +101,15 @@ if (false) {
 createInertiaApp({
     progress: {
         color: '#29d',
-        delay: 100, // Reduced delay for better SPA feel
+        delay: 50, // Faster progress indicator
         includeCSS: true,
         showSpinner: false,
+    },
+    defaults: {
+        prefetch: {
+            cacheFor: '1m', // Cache prefetched pages for 1 minute
+            hoverDelay: 50, // Faster prefetch trigger (default 75ms)
+        },
     },
     title: (title) => {
         const page = window.Laravel?.inertiaProps || {};
@@ -149,7 +155,7 @@ createInertiaApp({
                     const perfData = performance.getEntriesByType('navigation')[0];
                     if (perfData) {
                         const loadTime = perfData.loadEventEnd - perfData.fetchStart;
-                        console.log(`Page load time: ${loadTime.toFixed(2)}ms`);
+
                         
                         // Log to backend only if load time is significant and user opted in
                         if (loadTime > 5000 && localStorage.getItem('performance-logging') === 'true') {
@@ -185,8 +191,7 @@ createInertiaApp({
     // Initialize device authentication
     initializeDeviceAuth();
     
-    // Theme restoration is now handled by ThemeContext
-    console.log('App initialization complete - theme handled by ThemeContext');
+
     
     // Initialize application monitoring only in development
     if (ENABLE_MONITORING && typeof window !== 'undefined') {

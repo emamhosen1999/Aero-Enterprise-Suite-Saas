@@ -149,7 +149,7 @@ const AttendanceAdmin = React.memo(({title}) => {
             });
 
             if (statsResponse.data.success) {
-                console.log('Fetched stats:', statsResponse.data.data);
+        
                 setStats(statsResponse.data.data);
             }
         } catch (error) {

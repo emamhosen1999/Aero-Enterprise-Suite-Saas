@@ -12,7 +12,6 @@ import {
     DropdownTrigger,
     DropdownMenu,
     DropdownItem,
-    Avatar,
     Badge,
     Switch,
     Chip,
@@ -33,6 +32,7 @@ import { Link, usePage, router } from '@inertiajs/react';
 import { useTheme } from '../Contexts/ThemeContext';
 import ThemeSettingDrawer from './ThemeSettingDrawer';
 import LanguageSwitcher from './LanguageSwitcher';
+import ProfileAvatar from './ProfileAvatar';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = ({ 
@@ -268,13 +268,11 @@ const Header = ({
                                             whileTap={{ scale: 0.95 }}
                                             className="flex items-center gap-2 cursor-pointer"
                                         >
-                                            <Avatar
+                                            <ProfileAvatar
                                                 size="sm"
                                                 src={auth.user.profile_photo_url}
                                                 name={auth.user.name}
-                                                className="border-2 border-primary/20"
-                                                showFallback
-                                                fallback={<UserIcon className="w-4 h-4" />}
+                                                showBorder
                                             />
                                             <div className="hidden md:block text-left">
                                                 <p className="text-sm font-medium text-foreground">{auth.user.name}</p>
@@ -327,12 +325,11 @@ const Header = ({
                                     animate={{ opacity: 1, x: 0 }}
                                     className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 backdrop-blur-sm"
                                 >
-                                    <Avatar
+                                    <ProfileAvatar
                                         src={auth.user.profile_photo_url}
                                         name={auth.user.name}
                                         size="md"
-                                        showFallback
-                                        fallback={<UserIcon className="w-5 h-5" />}
+                                        showBorder
                                     />
                                     <div>
                                         <p className="font-medium text-foreground">{auth.user.name}</p>

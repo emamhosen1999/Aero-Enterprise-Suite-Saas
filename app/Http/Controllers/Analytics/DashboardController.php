@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Analytics;
 
 use App\Http\Controllers\Controller;
-use App\Models\DailyWork;
+
 use App\Models\HRM\Attendance;
 use App\Models\HRM\Leave;
 use App\Models\Project;
@@ -18,7 +18,7 @@ class DashboardController extends Controller
         // Get summary statistics for dashboard
         $userCount = User::count();
         $projectCount = Project::count();
-        $taskCount = DailyWork::count();
+     
 
         // Get attendance statistics
         $attendanceStats = Attendance::selectRaw('date(created_at) as date, count(*) as count')
@@ -36,21 +36,17 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->get();
 
-        // Get task completion statistics
-        $taskStats = DailyWork::selectRaw('status, count(*) as count')
-            ->groupBy('status')
-            ->get();
 
         return Inertia::render('Analytics/Dashboards/Index', [
             'statistics' => [
                 'users' => $userCount,
                 'projects' => $projectCount,
-                'tasks' => $taskCount,
+              
             ],
             'attendanceStats' => $attendanceStats,
             'leaveStats' => $leaveStats,
             'projectStats' => $projectStats,
-            'taskStats' => $taskStats,
+        
         ]);
     }
 

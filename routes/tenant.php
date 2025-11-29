@@ -22,23 +22,23 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 */
 
 Route::middleware([
-    'web',
     IdentifyDomainContext::class,
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    // Tenant Dashboard
+    // Tenant Dashboard - redirect root to dashboard
     Route::get('/', function () {
-        return Inertia::render('Dashboard');
-    })->middleware('auth')->name('tenant.dashboard');
+        return redirect()->route('dashboard');
+    })->middleware('auth')->name('tenant.home');
 
-    // Include all the existing application routes for tenants
-    // These will use the tenant's database automatically
-
-    // Authentication routes for tenant
+    // Authentication routes for tenant (login, logout, password reset)
     require __DIR__.'/auth.php';
 
-    // HR Module routes (if tenant has access)
+    // Main application routes from web.php
+    // These contain dashboard, profile, settings, etc.
+    require __DIR__.'/web.php';
+
+    // HR Module routes
     if (file_exists(__DIR__.'/hr.php')) {
         require __DIR__.'/hr.php';
     }

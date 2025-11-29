@@ -3,13 +3,13 @@ import {
     Select,
     SelectItem,
     Input,
-    Avatar,
     Chip
 } from '@heroui/react';
 import { 
     MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const DepartmentEmployeeSelector = ({
     selectedDepartmentId,
@@ -206,11 +206,10 @@ const DepartmentEmployeeSelector = ({
                             textValue={user.name}
                         >
                             <div className="flex items-center gap-2 w-full">
-                                <Avatar
+                                <ProfileAvatar
                                     src={user.profile_image_url || user.profile_image}
                                     size="sm"
                                     name={user.name}
-                                    showFallback
                                 />
                                 <div className="flex flex-col flex-1">
                                     <span className="text-sm font-medium">{user.name}</span>

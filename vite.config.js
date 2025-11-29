@@ -9,6 +9,11 @@ const host = 'aero-enterprise-suite-saas.com';
 const certPath = 'C:/laragon/etc/ssl/laragon.crt'; 
 const keyPath = 'C:/laragon/etc/ssl/laragon.key';
 
+const allowedOrigins = [
+  'https://aero-enterprise-suite-saas.com',
+  'https://dbedc.aero-enterprise-suite-saas.com',
+];
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -34,7 +39,7 @@ export default defineConfig({
             cert: fs.readFileSync(certPath),
         },
         cors: {
-            origin: 'https://aero-enterprise-suite-saas.com',
+            origin: allowedOrigins,
             credentials: true,
         },
     },

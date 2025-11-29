@@ -238,11 +238,9 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     
     if (page.subMenu) {
       return (
-        <motion.div 
+        <div 
           key={`menu-item-${page.name}-${level}`} 
           className="w-full"
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.2 }}
         >
           <Button
             variant="light"
@@ -253,15 +251,10 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               </div>
             }
             endContent={
-              <motion.div
-                animate={{ rotate: isExpanded ? 90 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-              >
-                <ChevronRightIcon 
-                  className={`w-3 h-3`}
-                  style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
-                />
-              </motion.div>
+              <ChevronRightIcon 
+                className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
+              />
             }
             className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
             style={hasActiveSubPage ? {
@@ -293,81 +286,53 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               >
                 {highlightSearchMatch(page.name, searchTerm)}
               </span>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-                className="shrink-0"
+              <Chip
+                size="sm"
+                variant="flat"
+                color={hasActiveSubPage ? "primary" : "default"}
+                className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'}`}
               >
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  color={hasActiveSubPage ? "primary" : "default"}
-                  className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'} transition-all duration-300`}
-                >
-                  {page.subMenu.length}
-                </Chip>
-              </motion.div>
+                {page.subMenu.length}
+              </Chip>
             </div>
           </Button>
-          {/* Enhanced Submenu with AnimatePresence */}
-          <AnimatePresence>
-            {isExpanded && (
-              <motion.div
-                key={`submenu-${page.name}-${level}`}
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <div 
-                  className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
-                  style={{ 
-                    borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
-                  }}
-                >
-                  {page.subMenu.map((subPage, index) => (
-                    <motion.div
-                      key={`subitem-${page.name}-${subPage.name}-${level}-${index}`}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.2, delay: index * 0.05 }}
-                    >
-                      {renderCompactMenuItem(subPage, true, level + 1)}
-                    </motion.div>
-                  ))}
+          {/* Submenu with CSS transitions */}
+          <div
+            className={`overflow-hidden transition-all duration-200 ease-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
+          >
+            <div 
+              className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
+              style={{ 
+                borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
+              }}
+            >
+              {page.subMenu.map((subPage, index) => (
+                <div key={`subitem-${page.name}-${subPage.name}-${level}-${index}`}>
+                  {renderCompactMenuItem(subPage, true, level + 1)}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
       );
     }
     
     // No submenu - leaf item
     if (page.route) {
       return (
-        <motion.div
-          key={`route-item-${page.name}-${level}`}
-          whileHover={{ scale: 1.02, x: 2 }}
-          whileTap={{ scale: 0.98 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div key={`route-item-${page.name}-${level}`}>
           <Button
             as={Link}
             href={route(page.route)}
             method={page.method}
             preserveState
             preserveScroll
+            prefetch
             variant="light"
             startContent={
-              <motion.div 
-                style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
+              <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
                 {React.cloneElement(page.icon, { className: iconSize })}
-              </motion.div>
+              </div>
             }
             className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
             style={isActive ? {
@@ -399,17 +364,15 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               {highlightSearchMatch(page.name, searchTerm)}
             </span>
           </Button>
-        </motion.div>
+        </div>
       );
     }
     
     // Category header without route
     return (
-      <motion.div 
+      <div 
         key={`category-item-${page.name}-${level}`} 
         className="w-full"
-        whileHover={{ scale: 1.01 }}
-        transition={{ duration: 0.2 }}
       >
         <Button
           variant="light"
@@ -420,15 +383,10 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             </div>
           }
           endContent={
-            <motion.div
-              animate={{ rotate: isExpanded ? 90 : 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-            >
-              <ChevronRightIcon 
-                className="w-3 h-3"
-                style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
-              />
-            </motion.div>
+            <ChevronRightIcon 
+              className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+              style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
+            />
           }
           className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
           style={hasActiveSubPage ? {
@@ -460,54 +418,34 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             >
               {highlightSearchMatch(page.name, searchTerm)}
             </span>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.2 }}
-              className="shrink-0"
+            <Chip
+              size="sm"
+              variant="flat"
+              color={hasActiveSubPage ? "primary" : "default"}
+              className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'}`}
             >
-              <Chip
-                size="sm"
-                variant="flat"
-                color={hasActiveSubPage ? "primary" : "default"}
-                className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'} transition-all duration-300`}
-              >
-                {page.subMenu?.length || 0}
-              </Chip>
-            </motion.div>
+              {page.subMenu?.length || 0}
+            </Chip>
           </div>
         </Button>
-        {/* Enhanced Submenu with AnimatePresence */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              key={`category-submenu-${page.name}-${level}`}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div 
-                className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
-                style={{ 
-                  borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
-                }}
-              >
-                {page.subMenu?.map((subPage, index) => (
-                  <motion.div
-                    key={`category-subitem-${page.name}-${subPage.name}-${level}-${index}`}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
-                  >
-                    {renderCompactMenuItem(subPage, true, level + 1)}
-                  </motion.div>
-                ))}
+        {/* Submenu with CSS transitions */}
+        <div
+          className={`overflow-hidden transition-all duration-200 ease-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
+        >
+          <div 
+            className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
+            style={{ 
+              borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
+            }}
+          >
+            {page.subMenu?.map((subPage, index) => (
+              <div key={`category-subitem-${page.name}-${subPage.name}-${level}-${index}`}>
+                {renderCompactMenuItem(subPage, true, level + 1)}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -622,6 +560,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           method={page.method}
           preserveState
           preserveScroll
+          prefetch
           startContent={
             <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
               {page.icon}

@@ -30,7 +30,7 @@ export default function OffboardingShow() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Offboarding #{offboarding.id}</h1>
         <div className="flex gap-2">
-          <Link href={route('hr.offboarding.index')} className="btn">Back</Link>
+          <Link href={route('hr.offboarding.index')} prefetch className="btn">Back</Link>
         </div>
       </div>
       <div className="grid md:grid-cols-3 gap-6">
@@ -77,7 +77,7 @@ export default function OffboardingShow() {
           <div className="bg-white shadow-sm rounded-sm p-4">
             <h2 className="font-medium mb-3">Actions</h2>
             <ul className="space-y-2 text-sm">
-              <li><Link href={route('hr.offboarding.index')} className="link">Back to List</Link></li>
+              <li><Link href={route('hr.offboarding.index')} prefetch className="link">Back to List</Link></li>
             </ul>
           </div>
         </div>

@@ -30,8 +30,7 @@ import {
   ModalFooter,
   Input,
   Switch,
-  Pagination,
-  Avatar
+  Pagination
 } from "@heroui/react";
 import {
   PencilIcon,
@@ -55,7 +54,7 @@ import {
 } from "@heroicons/react/24/outline";
 import DeleteEmployeeModal from '@/Components/DeleteEmployeeModal';
 import ProfilePictureModal from '@/Components/ProfilePictureModal';
-import ProfileAvatar from '@/Components/ProfileAvatar';
+import ProfileAvatar, { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 
 const EmployeeTable = ({ 
   allUsers, 
@@ -863,12 +862,12 @@ const EmployeeTable = ({
                 }
                 return items.map((item) => (
                   <div key={item.key} className="flex items-center gap-2">
-                    <Avatar
+                    <ProfileAvatar
                       src={currentReportsTo.profile_image_url}
                       size="sm"
                       className="w-6 h-6 flex-shrink-0"
-                      showFallback
                       name={currentReportsTo.name}
+                      showBorder
                     />
                     <span className="text-sm font-medium truncate">{currentReportsTo.name}</span>
                   </div>
@@ -888,8 +887,11 @@ const EmployeeTable = ({
                       avatarProps={{
                         src: manager.profile_image_url,
                         size: "sm",
-                        showFallback: true,
                         name: manager.name,
+                        ...getProfileAvatarTokens({
+                          name: manager.name,
+                          size: 'sm',
+                        }),
                       }}
                     />
                   </SelectItem>
@@ -976,7 +978,9 @@ const EmployeeTable = ({
                 <DropdownItem 
                   key="edit" 
                   startContent={<PencilIcon className="w-4 h-4" />}
-                  onPress={() => router.visit(route('profile', { user: user.id }))}
+                  href={route('profile', { user: user.id })}
+                  as={Link}
+                  prefetch
                 >
                   Edit Profile
                 </DropdownItem>

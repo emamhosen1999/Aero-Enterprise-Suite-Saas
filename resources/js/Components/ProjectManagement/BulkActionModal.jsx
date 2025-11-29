@@ -20,7 +20,6 @@ import {
     DatePicker,
     Autocomplete,
     AutocompleteItem,
-    Avatar,
     AvatarGroup,
 } from "@heroui/react";
 import {
@@ -43,6 +42,7 @@ import {
     InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const BulkActionModal = ({ 
     isOpen, 
@@ -421,7 +421,7 @@ const BulkActionModal = ({
                             {availableUsers?.map((user) => (
                                 <AutocompleteItem key={user.id} value={user.id}>
                                     <div className="flex items-center space-x-3">
-                                        <Avatar src={user.avatar} name={user.name} size="sm" />
+                                        <ProfileAvatar src={user.avatar} name={user.name} size="sm" />
                                         <div>
                                             <div className="font-medium">{user.name}</div>
                                             <div className="text-sm text-default-500">{user.title} • {user.department}</div>
@@ -622,7 +622,7 @@ const BulkActionModal = ({
                                             </Chip>
                                             <AvatarGroup size="sm" max={3}>
                                                 {project.team_members?.slice(0, 3).map((member) => (
-                                                    <Avatar key={member.id} src={member.avatar} name={member.name} />
+                                                    <ProfileAvatar key={member.id} src={member.avatar} name={member.name} size="sm" />
                                                 ))}
                                             </AvatarGroup>
                                         </div>

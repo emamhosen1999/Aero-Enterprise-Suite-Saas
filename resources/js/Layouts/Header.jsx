@@ -11,18 +11,21 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Avatar,
+  DropdownSection,
   Input,
   Badge,
   Kbd,
   Tooltip,
   Card,
-  Chip
+  Chip,
+  Divider,
+  ScrollShadow
 } from "@heroui/react";
 
 
 import ProfileMenu from '@/Components/ProfileMenu';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 import { useScrollTrigger } from '@/Hooks/useScrollTrigger.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -150,17 +153,18 @@ const ProfileButton = React.memo(React.forwardRef(({ size = "sm", ...props }, re
     >
       {/* Avatar with enhanced styling */}
       <div className="relative">
-        <Avatar
+        <ProfileAvatar
           size={avatarSize}
           src={auth.user.profile_image_url || auth.user.profile_image}
           name={auth.user.name}
           className={`
-            ring-2 ring-white/20 transition-all duration-300 ease-out
-            ${isHovered ? 'ring-white/40 scale-105' : ''}
+            transition-all duration-300 ease-out
+            ${isHovered ? 'scale-105' : ''}
             ${isPressed ? 'scale-95' : ''}
             group-hover:shadow-lg group-hover:shadow-blue-500/20
           `}
-          radius='sm'
+          showBorder
+          isInteractive
         />
         
         {/* Online indicator */}
@@ -296,22 +300,18 @@ const MobileHeader = React.memo(({
       >
         {/* Enhanced Avatar with Status Indicators */}
         <div className="relative">
-          <Avatar
+          <ProfileAvatar
             size={avatarSize}
             src={auth.user.profile_image_url || auth.user.profile_image}
             name={auth.user.name}
             className={`
-              ring-2 ring-white/20 transition-all duration-300 ease-out
-              ${isHovered ? 'ring-white/40 scale-105' : ''}
+              transition-all duration-300 ease-out
+              ${isHovered ? 'scale-105' : ''}
               ${isPressed ? 'scale-95' : ''}
               group-hover:shadow-lg group-hover:shadow-blue-500/20
             `}
-            radius="md"
-            fallback={
-              <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-primary to-secondary text-white font-semibold">
-                {(auth.user.name || 'U').charAt(0).toUpperCase()}
-              </div>
-            }
+            showBorder
+            isInteractive
           />
           
           {/* Multi-state Status Indicator */}
@@ -535,25 +535,6 @@ const MobileHeader = React.memo(({
             {/* Language Switcher */}
             <LanguageSwitcher variant="minimal" size="sm" />
 
-            {/* Help & Support */}
-            <Tooltip content="Help & Support" placement="bottom">
-              <Button
-                isIconOnly
-                variant="light"
-                className="text-foreground hover:bg-white/10 transition-all duration-300 hover:scale-105 active:scale-95"
-                style={{
-                  color: 'var(--theme-foreground, inherit)',
-                  backgroundColor: 'transparent',
-                  borderRadius: 'var(--borderRadius, 8px)',
-                  '--hover-bg': 'var(--theme-foreground, #11181C)10'
-                }}
-                size="sm"
-                aria-label="Help and Support"
-              >
-                <QuestionMarkCircleIcon className="w-5 h-5" />
-              </Button>
-            </Tooltip>
-
             {/* Notifications */}
             <Dropdown 
               placement="bottom-end" 
@@ -708,6 +689,61 @@ const DesktopHeader = React.memo(({
     userStatus: 'online'
   });
 
+  // Navigation overflow state
+  const [visibleItemCount, setVisibleItemCount] = useState(10);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const navContainerRef = useRef(null);
+
+  // Calculate visible items based on container width
+  useEffect(() => {
+    const calculateVisibleItems = () => {
+      if (!navContainerRef.current) return;
+      
+      const containerWidth = navContainerRef.current.offsetWidth;
+      // Approximate width per menu item (including padding and gaps)
+      const itemWidth = isTablet ? 90 : 100;
+      const expandButtonWidth = 40;
+      const availableWidth = containerWidth - expandButtonWidth;
+      const maxVisible = Math.max(3, Math.floor(availableWidth / itemWidth));
+      
+      setVisibleItemCount(Math.min(maxVisible, currentPages.length));
+    };
+
+    calculateVisibleItems();
+    window.addEventListener('resize', calculateVisibleItems);
+    return () => window.removeEventListener('resize', calculateVisibleItems);
+  }, [currentPages.length, isTablet]);
+
+  // Split pages into visible and overflow
+  const visiblePages = currentPages.slice(0, visibleItemCount);
+  const overflowPages = currentPages.slice(visibleItemCount);
+  const hasOverflow = overflowPages.length > 0;
+
+  // Refs for expanded menu container and expand button
+  const expandedMenuRef = useRef(null);
+  const expandButtonRef = useRef(null);
+
+  // Close expanded menu when clicking outside
+  useEffect(() => {
+    if (!isExpanded) return;
+
+    const handleClickOutside = (event) => {
+      // Don't close if clicking inside the expanded menu
+      if (expandedMenuRef.current && expandedMenuRef.current.contains(event.target)) {
+        return;
+      }
+      // Don't close if clicking the expand button itself
+      if (expandButtonRef.current && expandButtonRef.current.contains(event.target)) {
+        return;
+      }
+      setIsExpanded(false);
+    };
+
+    // Use mousedown instead of click for better UX
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isExpanded]);
+
   // ===== ENHANCED NAVIGATION HANDLER =====
   /**
    * Handles module navigation with proper error handling and state management
@@ -837,22 +873,18 @@ const DesktopHeader = React.memo(({
       >
         {/* Enhanced Avatar with Status Indicators */}
         <div className="relative">
-          <Avatar
+          <ProfileAvatar
             size={avatarSize}
             src={auth.user.profile_image_url || auth.user.profile_image}
             name={auth.user.name}
             className={`
-              ring-2 ring-white/20 transition-all duration-300 ease-out
-              ${isHovered ? 'ring-white/40 scale-105' : ''}
+              transition-all duration-300 ease-out
+              ${isHovered ? 'scale-105' : ''}
               ${isPressed ? 'scale-95' : ''}
               group-hover:shadow-lg group-hover:shadow-blue-500/20
             `}
-            radius="md"
-            fallback={
-              <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-primary to-secondary text-white font-semibold">
-                {(auth.user.name || 'U').charAt(0).toUpperCase()}
-              </div>
-            }
+            showBorder
+            isInteractive
           />
           
           {/* Multi-state Status Indicator */}
@@ -990,7 +1022,7 @@ const DesktopHeader = React.memo(({
           }}
         >
           <Card 
-            className="backdrop-blur-md"
+            className="backdrop-blur-md overflow-visible"
             style={{
               background: `linear-gradient(to bottom right, 
                 var(--theme-content1, #FAFAFA) 20%, 
@@ -1000,14 +1032,16 @@ const DesktopHeader = React.memo(({
               borderWidth: `var(--borderWidth, 2px)`,
               borderStyle: 'solid',
               borderRadius: `var(--borderRadius, 8px)`,
-              boxShadow: `0 8px 32px color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`
+              boxShadow: `0 8px 32px color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
+              overflow: 'visible'
             }}
           >
-            <div className="max-w-7xl px-4">
-              <div className="flex items-center justify-between py-4 gap-6 min-h-[72px]">
+            <div className="w-full px-4 lg:px-6 overflow-visible">
+              {/* Three-Section Layout: Logo | Menu | Profile */}
+              <div className="flex items-center min-h-[64px] overflow-visible">
                 
-                {/* Left Section: Logo and Menu Toggle */}
-                <div className="flex items-center gap-6 flex-shrink-0">
+                {/* Section 1: Logo - Fixed width */}
+                <div className="flex items-center gap-3 shrink-0 pr-4">
                   <Button
                     isIconOnly
                     variant="light"
@@ -1037,466 +1071,394 @@ const DesktopHeader = React.memo(({
 
                   {/* Brand Section - Only show when sidebar is closed */}
                   {!internalSidebarOpen && (
-                    <div className="flex items-center gap-8">
-                      <div className="relative">
-                        <div 
-                          className="flex items-center justify-center shadow-xl overflow-hidden"
-                          style={{ 
-                            width: 'calc(72px - 16px)',
-                            height: 'calc(72px - 16px)',
-                            aspectRatio: '1',
-                            backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
-                            borderColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`,
-                            borderWidth: `var(--borderWidth, 2px)`,
-                            borderStyle: 'solid',
-                            borderRadius: `var(--borderRadius, 8px)`
-                          }}
-                        >
-                          <img 
-                            src={logo} 
-                            alt={`${app?.name || 'ERP System'} Logo`} 
-                            className="object-contain"
-                            style={{ 
-                              width: 'calc(100% - 8px)',
-                              height: 'calc(100% - 8px)',
-                              maxWidth: '100%',
-                              maxHeight: '100%'
-                            }}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'block';
-                            }}
-                          />
-                          {/* Fallback Logo */}
-                          <span 
-                            className="font-bold text-xl hidden"
-                            style={{ color: 'var(--theme-primary, #006FEE)' }}
-                          >
-                            {(app?.name || 'ERP').charAt(0)}
-                          </span>
-                        </div>
-                      </div>
+                    <div 
+                      className="flex items-center justify-center overflow-hidden shrink-0"
+                      style={{ 
+                        width: '44px',
+                        height: '44px',
+                        backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
+                        borderColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`,
+                        borderWidth: `var(--borderWidth, 2px)`,
+                        borderStyle: 'solid',
+                        borderRadius: `var(--borderRadius, 8px)`
+                      }}
+                    >
+                      <img 
+                        src={logo} 
+                        alt={`${app?.name || 'ERP System'} Logo`} 
+                        className="object-contain w-9 h-9"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                      <span 
+                        className="font-bold text-xl hidden"
+                        style={{ color: 'var(--theme-primary, #006FEE)' }}
+                      >
+                        {(app?.name || 'ERP').charAt(0)}
+                      </span>
                     </div>
                   )}
                 </div>
 
-                {/* Center Section: Original Horizontal Navigation Menu */}
-                <motion.div
-                  className="flex-1 flex justify-center"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{
-                    opacity: !internalSidebarOpen ? 1 : 0,
-                    height: !internalSidebarOpen ? 'auto' : 0
-                  }}
-                  transition={{ duration: 0.3 }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div className="mx-8">
-                    <div className={`grid gap-2 ${
-                      isTablet ? 'grid-cols-2' : 'grid-cols-4'
-                    }`}>
-                      {currentPages.slice(0, isTablet ? 4 : 8).map((page, index) => {
+                {/* Section 2: Menu - Flexible, grows to fill space */}
+                {!internalSidebarOpen && (
+                  <nav 
+                    ref={navContainerRef} 
+                    className={`flex-1 flex items-center gap-1 py-2 overflow-visible ${isExpanded ? 'flex-wrap content-start' : 'flex-nowrap'}`}
+                  >
+                      {/* When collapsed: show visible items only. When expanded: show ALL items */}
+                      {(isExpanded ? currentPages : visiblePages).map((page, index) => {
                         const isActive = checkActiveRecursive(page);
                         
-                        return (
-                          <div key={`${page.name}-${index}`} className="flex justify-center">
-                            {page.subMenu ? (
-                              <Dropdown
-                                placement="bottom"
-                                closeDelay={800}
-                                shouldBlockScroll={false}
-                                isKeyboardDismissDisabled={false}
-                                classNames={{
-                                  content: `backdrop-blur-md min-w-64 max-h-80 overflow-y-auto p-1`
-                                }}
-                                style={{
-                                  backgroundColor: `var(--theme-content1, #FAFAFA)90`,
-                                  borderColor: `var(--theme-divider, #E4E4E7)`,
-                                  borderWidth: `var(--borderWidth, 2px)`,
-                                  borderStyle: 'solid',
-                                  borderRadius: `var(--borderRadius, 8px)`
-                                }}
-                              >
-                                <DropdownTrigger>
-                                  <Button
-                                    variant="light"
-                                    endContent={
-                                      <ChevronDownIcon 
-                                        className="w-5 h-5" 
-                                        style={{ 
-                                          color: isActive ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` 
-                                        }}
-                                      />
-                                    }
-                                    className="transition-all duration-300 hover:scale-105 px-4"
-                                    style={isActive ? {
-                                      backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
-                                      border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-                                      borderRadius: `var(--borderRadius, 8px)`
-                                    } : {
-                                      border: `var(--borderWidth, 2px) solid transparent`,
-                                      borderRadius: `var(--borderRadius, 8px)`
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (!isActive) {
-                                        e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
-                                      }
-                                      e.target.style.borderRadius = `var(--borderRadius, 8px)`;
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (!isActive) {
-                                        e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
-                                      }
-                                    }}
-                                    size={isTablet ? "sm" : "md"}
-                                  >
-                                    <span 
-                                      className="flex items-center gap-2"
-                                      style={{ 
-                                        color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` 
-                                      }}
-                                    >
-                                      {page.icon}
-                                    </span>
-                                    <span 
-                                      className="font-semibold"
-                                      style={{ 
-                                        color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` 
-                                      }}
-                                    >
-                                      {page.name}
-                                    </span>
-                                  </Button>
-                                </DropdownTrigger>
-                                <DropdownMenu
-                                  aria-label={`${page.name} submenu`}
-                                  variant="faded"
-                                  closeOnSelect={false}
-                                  className="p-1 dropdown-menu-container"
-                                >
-                                  {page.subMenu.map((subPage) => {
-                                    const isSubActive = checkActiveRecursive(subPage);
-                                    
-                                    if (subPage.subMenu && subPage.subMenu.length > 0) {
-                                      return (
-                                        <DropdownItem key={subPage.name} className="p-0 hover:bg-transparent" textValue={subPage.name}>
-                                          <div className="dropdown-trigger-wrapper w-full">
-                                            <Dropdown
-                                              placement="right-start"
-                                              offset={4}
-                                              closeDelay={800}
-                                              shouldBlockScroll={false}
-                                              classNames={{
-                                                content: "bg-white/10 backdrop-blur-md border border-white/20 min-w-48 max-h-72 overflow-y-auto p-1 dropdown-content-fix"
-                                              }}
-                                            >
-                                              <DropdownTrigger>
-                                                <div
-                                                  className="menu-item-base transition-all duration-300"
-                                                  style={isSubActive ? {
-                                                    backgroundColor: `var(--theme-primary, #006FEE)`,
-                                                    border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-                                                    color: `var(--theme-primary-foreground, #FFFFFF)`,
-                                                    borderRadius: `var(--borderRadius, 8px)`
-                                                  } : {
-                                                    backgroundColor: 'transparent',
-                                                    borderRadius: `var(--borderRadius, 8px)`
-                                                  }}
-                                                  onMouseEnter={(e) => {
-                                                    if (!isSubActive) {
-                                                      e.target.style.backgroundColor = `var(--theme-content2, #F4F4F5)`;
-                                                    }
-                                                  }}
-                                                  onMouseLeave={(e) => {
-                                                    if (!isSubActive) {
-                                                      e.target.style.backgroundColor = 'transparent';
-                                                    }
-                                                  }}
-                                                >
-                                                  <div className="flex items-center gap-2 w-full">
-                                                    <span 
-                                                      className="menu-item-icon flex items-center"
-                                                      style={{ 
-                                                        color: isSubActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` 
-                                                      }}
-                                                    >
-                                                      {subPage.icon}
-                                                    </span>
-                                                    <span 
-                                                      className="menu-item-text"
-                                                      style={{ 
-                                                        color: isSubActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` 
-                                                      }}
-                                                    >
-                                                      {subPage.name}
-                                                    </span>
-                                                    <ChevronDownIcon 
-                                                      className="menu-item-chevron -rotate-90"
-                                                      style={{ 
-                                                        color: isSubActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)60` 
-                                                      }}
-                                                    />
-                                                  </div>
-                                                </div>
-                                              </DropdownTrigger>
-                                              <DropdownMenu
-                                                aria-label={`${subPage.name} nested submenu`}
-                                                variant="faded"
-                                                closeOnSelect={true}
-                                                className="p-1 dropdown-menu-container"
-                                              >
-                                                {subPage.subMenu.map((nestedPage) => {
-                                                  const isNestedActive = currentUrl === "/" + nestedPage.route;
-                                                  return (
-                                                    <DropdownItem key={nestedPage.name} className="p-0 hover:bg-transparent" textValue={nestedPage.name}>
-                                                      <div
-                                                        className="menu-item-base transition-all duration-300 cursor-pointer"
-                                                        style={isNestedActive ? {
-                                                          backgroundColor: `var(--theme-primary, #006FEE)`,
-                                                          border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-                                                          color: `var(--theme-primary-foreground, #FFFFFF)`,
-                                                          borderRadius: `var(--borderRadius, 8px)`
-                                                        } : {
-                                                          backgroundColor: 'transparent',
-                                                          borderRadius: `var(--borderRadius, 8px)`
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                          if (!isNestedActive) {
-                                                            e.target.style.backgroundColor = `var(--theme-content2, #F4F4F5)`;
-                                                          }
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                          if (!isNestedActive) {
-                                                            e.target.style.backgroundColor = 'transparent';
-                                                          }
-                                                        }}
-                                                        onClick={() => handleModuleNavigation(nestedPage.route, nestedPage.method)}
-                                                      >
-                                                        <div className="flex items-center gap-2 w-full">
-                                                          <span 
-                                                            className="menu-item-icon flex items-center"
-                                                            style={{ 
-                                                              color: isNestedActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` 
-                                                            }}
-                                                          >
-                                                            {nestedPage.icon}
-                                                          </span>
-                                                          <span 
-                                                            className="menu-item-text"
-                                                            style={{ 
-                                                              color: isNestedActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` 
-                                                            }}
-                                                          >
-                                                            {nestedPage.name}
-                                                          </span>
-                                                        </div>
-                                                      </div>
-                                                    </DropdownItem>
-                                                  );
-                                                })}
-                                              </DropdownMenu>
-                                            </Dropdown>
-                                          </div>
-                                        </DropdownItem>
-                                      );
-                                    } else {
-                                      return (
-                                        <DropdownItem key={subPage.name} className="p-0 hover:bg-transparent" textValue={subPage.name}>
-                                          <div
-                                            className="menu-item-base transition-all duration-300 cursor-pointer"
-                                            style={isSubActive ? {
-                                              backgroundColor: `var(--theme-primary, #006FEE)`,
-                                              border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-                                              color: `var(--theme-primary-foreground, #FFFFFF)`,
-                                              borderRadius: `var(--borderRadius, 8px)`
-                                            } : {
-                                              backgroundColor: 'transparent',
-                                              borderRadius: `var(--borderRadius, 8px)`
-                                            }}
-                                            onMouseEnter={(e) => {
-                                              if (!isSubActive) {
-                                                e.target.style.backgroundColor = `var(--theme-content2, #F4F4F5)`;
-                                              }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                              if (!isSubActive) {
-                                                e.target.style.backgroundColor = 'transparent';
-                                              }
-                                            }}
-                                            onClick={() => handleModuleNavigation(subPage.route, subPage.method)}
-                                          >
-                                            <div className="flex items-center gap-2 w-full">
-                                              <span 
-                                                className="menu-item-icon flex items-center"
-                                                style={{ 
-                                                  color: isSubActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` 
-                                                }}
-                                              >
-                                                {subPage.icon}
-                                              </span>
-                                              <span 
-                                                className="menu-item-text"
-                                                style={{ 
-                                                  color: isSubActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` 
-                                                }}
-                                              >
-                                                {subPage.name}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        </DropdownItem>
-                                      );
-                                    }
-                                  })}
-                                </DropdownMenu>
-                              </Dropdown>
-                            ) : (
+                        return page.subMenu ? (
+                          <Dropdown
+                            key={`${page.name}-${index}`}
+                            placement="bottom-start"
+                            offset={8}
+                            closeDelay={100}
+                            shouldBlockScroll={false}
+                            portalContainer={typeof document !== 'undefined' ? document.body : undefined}
+                            classNames={{
+                              base: "before:bg-transparent",
+                              content: "p-0 border-none shadow-xl min-w-[220px] z-[9999]"
+                            }}
+                          >
+                            <DropdownTrigger>
                               <Button
                                 variant="light"
-                                startContent={
-                                  <span 
-                                    className="flex items-center"
-                                    style={{ 
-                                      color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` 
-                                    }}
-                                  >
-                                    {page.icon}
-                                  </span>
-                                }
-                                className="transition-all duration-300 hover:scale-105 px-4"
+                                size="sm"
+                                className="h-9 px-3 font-medium whitespace-nowrap gap-1 data-[hover=true]:bg-default-100"
+                                endContent={<ChevronDownIcon className="w-3 h-3 opacity-60" />}
                                 style={isActive ? {
-                                  backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
-                                  border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-                                  borderRadius: `var(--borderRadius, 8px)`
+                                  backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)`,
+                                  color: `var(--theme-primary, #006FEE)`,
+                                  borderRadius: `var(--borderRadius, 8px)`,
+                                  fontWeight: 600
                                 } : {
-                                  border: `var(--borderWidth, 2px) solid transparent`,
+                                  color: `var(--theme-foreground, #11181C)`,
                                   borderRadius: `var(--borderRadius, 8px)`
                                 }}
-                                onMouseEnter={(e) => {
-                                  if (!isActive) {
-                                    e.target.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
-                                  }
-                                  e.target.style.borderRadius = `var(--borderRadius, 8px)`;
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (!isActive) {
-                                    e.target.style.border = `var(--borderWidth, 2px) solid transparent`;
-                                  }
-                                }}
-                                size={isTablet ? "sm" : "md"}
-                                onPress={() => page.route && handleModuleNavigation(page.route, page.method)}
                               >
-                                <span 
-                                  className="font-semibold"
-                                  style={{ 
-                                    color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` 
-                                  }}
-                                >
-                                  {page.name}
-                                </span>
+                                {page.name}
                               </Button>
-                            )}
-                          </div>
+                            </DropdownTrigger>
+                            <DropdownMenu
+                              aria-label={`${page.name} submenu`}
+                              variant="flat"
+                              closeOnSelect={true}
+                              itemClasses={{
+                                base: [
+                                  "rounded-lg",
+                                  "text-default-600",
+                                  "transition-all duration-150",
+                                  "data-[hover=true]:text-foreground",
+                                  "data-[hover=true]:bg-default-100",
+                                  "data-[selectable=true]:focus:bg-default-100",
+                                  "data-[pressed=true]:opacity-70",
+                                  "py-2 px-3",
+                                  "gap-3"
+                                ],
+                              }}
+                              className="p-2"
+                              style={{
+                                backgroundColor: `var(--theme-content1, #FFFFFF)`,
+                                borderRadius: `var(--borderRadius, 12px)`,
+                                border: `1px solid var(--theme-divider, #E4E4E7)`,
+                                boxShadow: `0 10px 40px -10px rgba(0,0,0,0.15)`,
+                                fontFamily: `var(--fontFamily, 'Inter')`
+                              }}
+                            >
+                              {page.subMenu.map((subPage) => {
+                                const isSubActive = checkActiveRecursive(subPage);
+                                
+                                if (subPage.subMenu && subPage.subMenu.length > 0) {
+                                  return (
+                                    <DropdownItem 
+                                      key={subPage.name} 
+                                      className="p-0 bg-transparent data-[hover=true]:bg-transparent" 
+                                      textValue={subPage.name}
+                                      isReadOnly
+                                    >
+                                      <Dropdown
+                                        placement="right-start"
+                                        offset={4}
+                                        closeDelay={100}
+                                        shouldBlockScroll={false}
+                                        portalContainer={typeof document !== 'undefined' ? document.body : undefined}
+                                        classNames={{
+                                          base: "before:bg-transparent",
+                                          content: "p-0 border-none shadow-xl min-w-[200px] z-[9999]"
+                                        }}
+                                      >
+                                        <DropdownTrigger>
+                                          <div
+                                            className="flex items-center justify-between w-full px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-default-100"
+                                            style={{
+                                              backgroundColor: isSubActive ? `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)` : 'transparent',
+                                              color: isSubActive ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)`
+                                            }}
+                                          >
+                                            <div className="flex items-center gap-3">
+                                              <span className="w-4 h-4 opacity-70">{subPage.icon}</span>
+                                              <span className="text-sm font-medium">{subPage.name}</span>
+                                            </div>
+                                            <ChevronDownIcon className="w-3 h-3 -rotate-90 opacity-50" />
+                                          </div>
+                                        </DropdownTrigger>
+                                        <DropdownMenu 
+                                          aria-label={`${subPage.name} nested`} 
+                                          variant="flat"
+                                          itemClasses={{
+                                            base: [
+                                              "rounded-lg",
+                                              "text-default-600",
+                                              "transition-all duration-150",
+                                              "data-[hover=true]:text-foreground",
+                                              "data-[hover=true]:bg-default-100",
+                                              "py-2 px-3",
+                                              "gap-3"
+                                            ],
+                                          }}
+                                          className="p-2"
+                                          style={{
+                                            backgroundColor: `var(--theme-content1, #FFFFFF)`,
+                                            borderRadius: `var(--borderRadius, 12px)`,
+                                            border: `1px solid var(--theme-divider, #E4E4E7)`,
+                                            boxShadow: `0 10px 40px -10px rgba(0,0,0,0.15)`,
+                                            fontFamily: `var(--fontFamily, 'Inter')`
+                                          }}
+                                        >
+                                          {subPage.subMenu.map((nestedPage) => {
+                                            const isNestedActive = currentUrl === "/" + nestedPage.route;
+                                            return (
+                                              <DropdownItem
+                                                key={nestedPage.name}
+                                                textValue={nestedPage.name}
+                                                startContent={<span className="w-4 h-4 opacity-70">{nestedPage.icon}</span>}
+                                                className={isNestedActive ? "bg-primary/10 text-primary font-medium" : ""}
+                                                onPress={() => handleModuleNavigation(nestedPage.route, nestedPage.method)}
+                                              >
+                                                {nestedPage.name}
+                                              </DropdownItem>
+                                            );
+                                          })}
+                                        </DropdownMenu>
+                                      </Dropdown>
+                                    </DropdownItem>
+                                  );
+                                }
+                                
+                                return (
+                                  <DropdownItem
+                                    key={subPage.name}
+                                    textValue={subPage.name}
+                                    startContent={<span className="w-4 h-4 opacity-70">{subPage.icon}</span>}
+                                    className={isSubActive ? "bg-primary/10 text-primary font-medium" : ""}
+                                    onPress={() => handleModuleNavigation(subPage.route, subPage.method)}
+                                  >
+                                    {subPage.name}
+                                  </DropdownItem>
+                                );
+                              })}
+                            </DropdownMenu>
+                          </Dropdown>
+                        ) : (
+                          <Button
+                            key={`${page.name}-${index}`}
+                            variant="light"
+                            size="sm"
+                            className="h-9 px-3 font-medium whitespace-nowrap data-[hover=true]:bg-default-100"
+                            style={isActive ? {
+                              backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)`,
+                              color: `var(--theme-primary, #006FEE)`,
+                              borderRadius: `var(--borderRadius, 8px)`,
+                              fontWeight: 600
+                            } : {
+                              color: `var(--theme-foreground, #11181C)`,
+                              borderRadius: `var(--borderRadius, 8px)`
+                            }}
+                            onPress={() => page.route && handleModuleNavigation(page.route, page.method)}
+                          >
+                            {page.name}
+                          </Button>
                         );
                       })}
-                    </div>
-                  </div>
-                </motion.div>
 
-                {/* Right Section: Enhanced Actions & Profile */}
-                <div className="flex items-center gap-4 flex-shrink-0">
+                      {/* Expand/Collapse Button - follows last menu item */}
+                      {hasOverflow && (
+                        <div ref={expandButtonRef} className="shrink-0 flex items-center">
+                          <Button
+                            variant="light"
+                            size="sm"
+                            className="h-9 px-2 gap-1 font-medium"
+                            style={{ 
+                              borderRadius: `var(--borderRadius, 8px)`,
+                              color: `var(--theme-primary, #006FEE)`,
+                            }}
+                            onPress={() => setIsExpanded(!isExpanded)}
+                            aria-label={isExpanded ? "Collapse menu" : `Show ${overflowPages.length} more items`}
+                            endContent={
+                              <motion.div
+                                animate={{ rotate: isExpanded ? 180 : 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex items-center"
+                              >
+                                <ChevronDownIcon className="w-4 h-4" />
+                              </motion.div>
+                            }
+                          >
+                            {!isExpanded && (
+                              <span className="text-xs font-semibold">
+                                +{overflowPages.length}
+                              </span>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                  </nav>
+                )}
+
+                {/* Section 3: Profile & Actions - Always aligned right */}
+                <div className="flex items-center gap-1 shrink-0 ml-auto">
+                  {/* Search Field - Show when sidebar is open and enough space */}
+                  {internalSidebarOpen && !isTablet && (
+                    <div className="hidden lg:flex items-center mr-2">
+                      <Input
+                        placeholder="Search..."
+                        startContent={
+                          <MagnifyingGlassIcon 
+                            className="w-4 h-4" 
+                            style={{ color: 'var(--theme-foreground, #666)', opacity: 0.6 }} 
+                          />
+                        }
+                        endContent={<Kbd className="hidden xl:inline-block" keys={["command"]}>K</Kbd>}
+                        classNames={{
+                          base: "w-48 xl:w-64",
+                          inputWrapper: "h-8 bg-default-100/50 hover:bg-default-100 border-none shadow-none",
+                          input: "text-sm"
+                        }}
+                        style={{
+                          borderRadius: 'var(--borderRadius, 8px)',
+                          fontFamily: 'var(--fontFamily, inherit)'
+                        }}
+                        size="sm"
+                      />
+                    </div>
+                  )}
+
+                  {/* Search Button - Show when sidebar is closed or on smaller screens */}
+                  {(!internalSidebarOpen || isTablet) && (
+                    <Tooltip content="Search (⌘K)" placement="bottom">
+                      <Button
+                        isIconOnly
+                        variant="light"
+                        size="sm"
+                        className="w-8 h-8"
+                        style={{ 
+                          borderRadius: `var(--borderRadius, 8px)`,
+                          color: `var(--theme-foreground, #11181C)`
+                        }}
+                        aria-label="Search"
+                      >
+                        <MagnifyingGlassIcon className="w-4 h-4" />
+                      </Button>
+                    </Tooltip>
+                  )}
+
                   {/* Language Switcher */}
                   <LanguageSwitcher variant="minimal" size="sm" showFlag={true} />
-
-                  {/* Quick Actions */}
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    className="text-foreground hover:bg-white/10 transition-all duration-300"
-                    size="sm"
-                    aria-label="Global search"
-                  >
-                    <MagnifyingGlassIcon className="w-5 h-5" />
-                  </Button>
                   
-                  <Tooltip content="Help & Support" placement="bottom">
-                    <Button
-                      isIconOnly
-                      variant="light"
-                      className="text-foreground hover:bg-white/10 transition-all duration-300"
-                      size="sm"
-                      aria-label="Help and support"
-                    >
-                      <QuestionMarkCircleIcon className="w-5 h-5" />
-                    </Button>
-                  </Tooltip>
-                  
-                  {/* Enhanced Notifications */}
-                  <Dropdown placement="bottom-end"
+                  {/* Notifications */}
+                  <Dropdown 
+                    placement="bottom-end"
+                    offset={8}
+                    shouldBlockScroll={false}
+                    portalContainer={typeof document !== 'undefined' ? document.body : undefined}
                     classNames={{
-                      content: "bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-2xl rounded-2xl overflow-hidden"
+                      base: "before:bg-transparent",
+                      content: "p-0 border-none shadow-xl min-w-[320px] z-[9999]"
                     }}
                   >
                     <DropdownTrigger>
                       <Button
                         isIconOnly
                         variant="light"
-                        className="text-foreground hover:bg-white/10 transition-all duration-300 relative"
                         size="sm"
-                        aria-label="System notifications"
+                        className="w-8 h-8 relative"
+                        style={{ 
+                          borderRadius: `var(--borderRadius, 8px)`,
+                          color: `var(--theme-foreground, #11181C)`
+                        }}
+                        aria-label="Notifications"
                       >
-                        <BellIcon className="w-5 h-5" />
+                        <BellIcon className="w-4 h-4" />
                         <Badge
                           content="3"
                           color="danger"
                           size="sm"
-                          className="absolute -top-1 -right-1 animate-pulse"
+                          className="absolute -top-0.5 -right-0.5 min-w-4 h-4 text-[10px]"
                         />
                       </Button>
                     </DropdownTrigger>
-                    <DropdownMenu className="w-80 p-0" aria-label="Notifications">
-                      <DropdownItem key="header" className="cursor-default hover:bg-transparent" textValue="Notifications Header">
-                        <div className="p-4 border-b border-divider">
-                          <div className="flex items-center justify-between">
-                            <h6 className="text-lg font-semibold">System Notifications</h6>
-                            <Button size="sm" variant="light" className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                              Mark all read
-                            </Button>
+                    <DropdownMenu 
+                      aria-label="Notifications"
+                      className="p-0"
+                      style={{
+                        backgroundColor: `var(--theme-content1, #FFFFFF)`,
+                        borderRadius: `var(--borderRadius, 12px)`,
+                        border: `1px solid var(--theme-divider, #E4E4E7)`,
+                        boxShadow: `0 10px 40px -10px rgba(0,0,0,0.15)`,
+                        fontFamily: `var(--fontFamily, 'Inter')`
+                      }}
+                      itemClasses={{
+                        base: "px-4 py-3 gap-3 data-[hover=true]:bg-default-100"
+                      }}
+                    >
+                      <DropdownSection 
+                        title="Notifications" 
+                        showDivider
+                        classNames={{
+                          heading: "px-4 py-2 text-xs font-semibold text-default-500 uppercase tracking-wider"
+                        }}
+                      >
+                        <DropdownItem key="n1" textValue="Maintenance" className="py-3">
+                          <div className="flex gap-3">
+                            <div className="w-2 h-2 bg-warning rounded-full mt-1.5 shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">Maintenance Tonight</p>
+                              <p className="text-xs text-default-400 mt-0.5">System update at 2 AM</p>
+                              <p className="text-xs text-default-300 mt-1">1 hour ago</p>
+                            </div>
                           </div>
-                          <p className="text-sm text-default-500">You have 3 unread notifications</p>
-                        </div>
-                      </DropdownItem>
-                      <DropdownItem key="notification-1" className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50" textValue="System maintenance">
-                        <div className="flex items-start gap-3">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground">Scheduled Maintenance</p>
-                            <p className="text-xs text-default-500 truncate">System will be offline for 30 minutes tonight</p>
-                            <p className="text-xs text-default-400 mt-1">1 hour ago</p>
+                        </DropdownItem>
+                        <DropdownItem key="n2" textValue="New User" className="py-3">
+                          <div className="flex gap-3">
+                            <div className="w-2 h-2 bg-success rounded-full mt-1.5 shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">New User Added</p>
+                              <p className="text-xs text-default-400 mt-0.5">John Doe joined HR team</p>
+                              <p className="text-xs text-default-300 mt-1">3 hours ago</p>
+                            </div>
                           </div>
-                        </div>
-                      </DropdownItem>
-                      <DropdownItem key="view-all" className="p-4 text-center hover:bg-blue-50 dark:hover:bg-blue-900/20" textValue="View all notifications">
-                        <Button variant="light" className="text-blue-600 font-medium">
-                          View all notifications
-                        </Button>
+                        </DropdownItem>
+                      </DropdownSection>
+                      <DropdownItem key="view" className="text-center py-3 text-primary font-medium" textValue="View All">
+                        View all notifications
                       </DropdownItem>
                     </DropdownMenu>
                   </Dropdown>
                   
-                  <Button
-                    isIconOnly
-                    variant="light"
-                    className="text-foreground hover:bg-white/10 transition-all duration-300"
-                    size="sm"
-                    aria-label="System administration"
-                  >
-                    <CommandLineIcon className="w-5 h-5" />
-                  </Button>
+                  {/* Divider */}
+                  <div 
+                    className="w-px h-8 mx-2" 
+                    style={{ backgroundColor: `var(--theme-divider, #E4E4E7)` }}
+                  />
                   
-                  {/* Enhanced Profile Menu */}
+                  {/* Profile */}
                   <ProfileMenu>
-                    <ProfileButton />
+                    <ProfileButton size="sm" />
                   </ProfileMenu>
                 </div>
               </div>

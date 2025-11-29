@@ -34,7 +34,7 @@ class LoginController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('Auth/Login', [
             'canResetPassword' => true,
@@ -42,6 +42,7 @@ class LoginController extends Controller
             'deviceBlocked' => session('device_blocked', false),
             'deviceMessage' => session('device_message'),
             'blockedDeviceInfo' => session('blocked_device_info'),
+            'canRegister' => IdentifyDomainContext::isPlatform($request),
         ]);
     }
 
@@ -93,8 +94,16 @@ class LoginController extends Controller
             ]);
         }
 
+        // DEBUG: Log which database is being used
+        $currentDb = DB::connection()->getDatabaseName();
+        $tenantId = tenant('id') ?? 'NO_TENANT';
+        \Log::info("LOGIN ATTEMPT - Database: {$currentDb}, Tenant: {$tenantId}, Email: {$email}");
+
         // Find user
         $user = User::where('email', $email)->first();
+        
+        // DEBUG: Log user lookup result
+        \Log::info("USER LOOKUP - Found: " . ($user ? 'YES (ID: ' . $user->id . ')' : 'NO'));
 
         // Validate credentials
         if (! $user || ! Hash::check($password, $user->password)) {

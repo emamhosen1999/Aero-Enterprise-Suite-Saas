@@ -1,5 +1,4 @@
 import {
-    Avatar,
     Button,
     Spinner,
     Select,
@@ -20,6 +19,7 @@ import React, { useEffect, useState } from "react";
 import { X, Camera, Eye, EyeOff, Lock, UserIcon, CalendarIcon } from 'lucide-react';
 import { useForm } from 'laravel-precognition-react';
 import { showToast } from "@/utils/toastUtils";
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 
 const AddEditUserForm = ({user, allUsers, departments, designations, roles, setUsers, open, closeModal, editMode = false }) => {
@@ -148,9 +148,7 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
                 return deptMatch && isHigherLevel && notSelf;
             }) || [];
             
-            console.log('Selected designation:', selectedDesignation.title, 'Level:', selectedDesignation.hierarchy_level);
-            console.log('Filtered supervisors (higher hierarchy):', filtered.length, filtered);
-            
+  
             setFilteredReportTo(filtered);
             
             // Clear report_to if the selected user is no longer valid
@@ -388,10 +386,11 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
                                         onMouseEnter={() => setHover(true)}
                                         onMouseLeave={() => setHover(false)}
                                     >
-                                        <Avatar
+                                        <ProfileAvatar
                                             src={selectedImage}
-                                            alt="Profile"
-                                            className="w-32 h-32 text-large transition-all duration-300"
+                                            name={form.data.name}
+                                            size="xl"
+                                            className="w-32 h-32 text-2xl transition-all duration-300"
                                             style={{
                                                 border: `4px solid var(--theme-divider, #E4E4E7)`,
                                                 filter: hover ? 'brightness(70%)' : 'brightness(100%)',
@@ -682,7 +681,7 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
                                             {(user) => (
                                                 <AutocompleteItem key={user.id} textValue={user.name}>
                                                     <div className="flex items-center gap-2">
-                                                        <Avatar
+                                                        <ProfileAvatar
                                                             src={user.profile_image_url || user.profile_image}
                                                             name={user.name}
                                                             size="sm"

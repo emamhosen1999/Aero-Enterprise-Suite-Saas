@@ -29,7 +29,7 @@ export default function OffboardingIndex() {
       <Head title={props.title || 'Employee Offboarding'} />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Offboarding Processes</h1>
-        <Link href={route('hr.offboarding.create')} className="btn btn-primary">New Offboarding</Link>
+        <Link href={route('hr.offboarding.create')} prefetch className="btn btn-primary">New Offboarding</Link>
       </div>
       <div className="bg-white rounded-sm shadow-sm divide-y">
         <div className="grid grid-cols-6 px-4 py-2 text-xs font-semibold tracking-wide text-gray-600 uppercase">

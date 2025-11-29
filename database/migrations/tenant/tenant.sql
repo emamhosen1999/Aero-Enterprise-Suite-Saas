@@ -170,28 +170,6 @@ CREATE TABLE IF NOT EXISTS `attendances` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table eos365-bak.attendances: ~0 rows (approximately)
-
--- Dumping structure for table eos365-bak.attendance_settings
-CREATE TABLE IF NOT EXISTS `attendance_settings` (
-  `id` bigint unsigned NOT NULL,
-  `office_start_time` time NOT NULL DEFAULT '09:00:00',
-  `office_end_time` time NOT NULL DEFAULT '18:00:00',
-  `break_time_duration` int NOT NULL DEFAULT '60',
-  `late_mark_after` int NOT NULL DEFAULT '15',
-  `early_leave_before` int NOT NULL DEFAULT '15',
-  `overtime_after` int NOT NULL DEFAULT '30',
-  `auto_punch_out` tinyint(1) NOT NULL DEFAULT '0',
-  `auto_punch_out_time` time DEFAULT NULL,
-  `weekend_days` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `attendance_settings_chk_1` CHECK (json_valid(`weekend_days`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table eos365-bak.attendance_settings: ~1 rows (approximately)
-
 -- Dumping structure for table eos365-bak.attendance_types
 CREATE TABLE IF NOT EXISTS `attendance_types` (
   `id` bigint unsigned NOT NULL,
@@ -216,6 +194,29 @@ INSERT INTO `attendance_types` (`id`, `name`, `slug`, `config`, `icon`, `descrip
 	(5, 'K0-48', 'route_waypoint', '{"tolerance":500,"validation_mode":"any","allow_without_location":false,"waypoints":[{"lat":"23.986586","lng":"90.362533"},{"lat":"23.690532","lng":"90.546699"}]}', 'ðŸ—ºï¸', NULL, 100, 1, '[]', '2025-11-26 06:22:50', '2025-11-26 07:04:28'),
 	(7, 'K26 Office', 'geo_polygon_2', '{"validation_mode":"any","allow_without_location":false,"polygon":[{"lat":"23.833677","lng":"90.532022"},{"lat":"23.831401","lng":"90.536399"},{"lat":"23.830144","lng":"90.541935"},{"lat":"23.831204","lng":"90.546527"},{"lat":"23.836602","lng":"90.543652"},{"lat":"23.840370","lng":"90.541484"},{"lat":"23.843314","lng":"90.540969"},{"lat":"23.841980","lng":"90.533137"}]}', 'ðŸ“', NULL, 100, 1, '[]', '2025-11-26 06:32:31', '2025-11-26 07:21:15'),
 	(8, 'K-26 Office', 'wifi_ip', '{"allowed_ips":["45.251.57.220"],"allowed_ranges":[],"validation_mode":"any","allow_without_network":false}', 'ðŸ“¶', NULL, 100, 1, '[]', '2025-11-26 06:45:01', '2025-11-27 20:47:57');
+
+-- Dumping data for table eos365-bak.attendances: ~0 rows (approximately)
+
+-- Dumping structure for table eos365-bak.attendance_settings
+CREATE TABLE IF NOT EXISTS `attendance_settings` (
+  `id` bigint unsigned NOT NULL,
+  `office_start_time` time NOT NULL DEFAULT '09:00:00',
+  `office_end_time` time NOT NULL DEFAULT '18:00:00',
+  `break_time_duration` int NOT NULL DEFAULT '60',
+  `late_mark_after` int NOT NULL DEFAULT '15',
+  `early_leave_before` int NOT NULL DEFAULT '15',
+  `overtime_after` int NOT NULL DEFAULT '30',
+  `auto_punch_out` tinyint(1) NOT NULL DEFAULT '0',
+  `auto_punch_out_time` time DEFAULT NULL,
+  `weekend_days` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `attendance_settings_chk_1` CHECK (json_valid(`weekend_days`))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table eos365-bak.attendance_settings: ~1 rows (approximately)
+
 
 -- Dumping structure for table eos365-bak.audit_findings
 CREATE TABLE IF NOT EXISTS `audit_findings` (

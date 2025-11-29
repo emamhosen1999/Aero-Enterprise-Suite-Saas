@@ -1,5 +1,4 @@
 import {
-    Avatar,
     Button,
     Input,
     Modal,
@@ -18,6 +17,7 @@ import {
 import React, {useEffect, useState} from "react";
 import { X, Camera } from 'lucide-react';
 import { showToast } from "@/utils/toastUtils";
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const ProfileForm = ({user, allUsers, departments, designations,setUser, open, closeModal }) => {
 
@@ -417,9 +417,10 @@ const ProfileForm = ({user, allUsers, departments, designations,setUser, open, c
                                         onMouseEnter={() => setHover(true)}
                                         onMouseLeave={() => setHover(false)}
                                     >
-                                        <Avatar
+                                        <ProfileAvatar
                                             src={selectedImage || user.profile_image}
-                                            alt={changedUserData.name || initialUserData.name}
+                                            name={changedUserData.name || initialUserData.name}
+                                            size="lg"
                                             className="w-24 h-24"
                                         />
                                                 {hover && (

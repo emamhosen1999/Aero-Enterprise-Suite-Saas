@@ -30,7 +30,6 @@ import {
     DropdownItem,
     User,
     Tooltip,
-    Avatar,
     Modal,
     ModalContent,
     ModalHeader,
@@ -68,6 +67,7 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import TrainingForm from '@/Forms/TrainingForm.jsx';
 import DeleteTrainingForm from '@/Forms/DeleteTrainingForm.jsx';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 import dayjs from 'dayjs';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
@@ -439,7 +439,7 @@ const Training = ({
             case 'instructor':
                 return training.instructor ? (
                     <div className="flex items-center gap-2">
-                        <Avatar
+                        <ProfileAvatar
                             src={training.instructor.avatar}
                             name={training.instructor.name}
                             size="sm"

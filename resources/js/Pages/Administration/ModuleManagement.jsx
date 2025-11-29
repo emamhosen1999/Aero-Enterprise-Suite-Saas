@@ -65,7 +65,7 @@ import {
     GlobeAltIcon,
     Squares2X2Icon
 } from "@heroicons/react/24/outline";
-
+import GlassDialog from '@/Components/GlassDialog.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import App from '@/Layouts/App.jsx';
 import axios from 'axios';
@@ -477,7 +477,7 @@ const ModuleManagement = (props) => {
         const requirements = target.permission_requirements || target.permissionRequirements || [];
         // Ensure permission IDs are numbers for consistent comparison
         const currentPermissions = requirements.map(pr => Number(pr.permission_id));
-        console.log('Opening permission modal:', { target, requirements, currentPermissions });
+
         setSelectedPermissions(currentPermissions);
         setPermissionModalOpen(true);
     };
@@ -566,10 +566,10 @@ const ModuleManagement = (props) => {
                 };
             }).filter(p => p.permission); // Filter out any without valid permission names
 
-            console.log('Saving permissions:', { endpoint, permissionsPayload });
+        
             
             const response = await axios.post(endpoint, { permissions: permissionsPayload });
-            console.log('Save response:', response.data);
+      
             
             showToast.success('Permissions updated successfully');
             setPermissionModalOpen(false);

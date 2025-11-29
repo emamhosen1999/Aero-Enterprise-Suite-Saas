@@ -1,20 +1,20 @@
 import React from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableColumn, 
-  TableHeader, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
   TableRow,
   Chip,
   Spinner,
-  Pagination,
-  Avatar
+  Pagination
 } from "@heroui/react";
 import {
   UsersIcon,
   EnvelopeIcon
 } from "@heroicons/react/24/outline";
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const UserRolesTable = ({ 
   users = [], 
@@ -86,15 +86,11 @@ const UserRolesTable = ({
         return (
           <div className="min-w-max">
             <div className="flex items-center gap-3">
-              <Avatar
+              <ProfileAvatar
                 src={user.profile_image_url || user.avatar}
                 name={user.name}
                 size="sm"
-                showFallback
                 className="shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, var(--theme-warning), color-mix(in srgb, var(--theme-warning) 70%, var(--theme-danger)))`
-                }}
               />
               <div className="flex flex-col">
                 <p className="font-semibold text-foreground text-left whitespace-nowrap">

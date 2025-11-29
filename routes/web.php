@@ -31,11 +31,12 @@ use App\Http\Controllers\SystemMonitoringController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-
-// Include authentication routes
-require __DIR__.'/auth.php';
-
 use Inertia\Inertia;
+
+// NOTE: Authentication routes are NOT included here.
+// - For central/platform domains: auth routes are loaded via routes/platform.php
+// - For tenant domains: auth routes are loaded via routes/tenant.php with tenancy middleware
+// This prevents route conflicts and ensures proper database context.
 
 // Note: The landing page route '/' is defined in routes/platform.php
 // This ensures it's loaded with the proper domain context middleware
@@ -830,4 +831,5 @@ require __DIR__.'/project-management.php';
 require __DIR__.'/hr.php';
 require __DIR__.'/dms.php';
 
-require __DIR__.'/auth.php';
+// NOTE: Auth routes are loaded via platform.php (central) and tenant.php (tenants)
+// to ensure proper database context. Do not include auth.php here.

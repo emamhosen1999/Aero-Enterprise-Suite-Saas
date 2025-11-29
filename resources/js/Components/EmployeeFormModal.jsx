@@ -11,7 +11,6 @@ import {
     FormControl,
     InputLabel,
     MenuItem,
-    Avatar,
     Chip,
     Stack,
     TextField,
@@ -34,6 +33,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import GlassDialog from './GlassDialog';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const EmployeeFormModal = ({ 
     open, 
@@ -276,16 +276,12 @@ const EmployeeFormModal = ({
                         justifyContent: 'center', 
                         mb: 3 
                     }}>
-                        <Avatar 
+                        <ProfileAvatar
                             src={employee.profile_image_url || employee.profile_image}
-                            sx={{ 
-                                width: 80, 
-                                height: 80,
-                                bgcolor: theme.palette.primary.main 
-                            }}
-                        >
-                            {employee.name?.charAt(0)?.toUpperCase()}
-                        </Avatar>
+                            name={employee.name}
+                            size="lg"
+                            className="w-20 h-20"
+                        />
                     </Box>
                 )}
 

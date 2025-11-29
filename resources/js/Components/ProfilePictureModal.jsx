@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { 
-    UserIcon,
     PhotoIcon,
     TrashIcon,
     XMarkIcon,
@@ -11,13 +10,15 @@ import {
     Button,
     Progress,
     Chip,
-    Avatar,
     Card,
     CardBody
 } from '@heroui/react';
 import { showToast } from '@/utils/toastUtils';
-import axios from 'axios';
 import GlassDialog from './GlassDialog';
+import ProfileAvatar from './ProfileAvatar';
+
+// Use the global axios instance which has CSRF configuration
+const axios = window.axios;
 
 const ProfilePictureModal = ({ 
     isOpen, 
@@ -63,34 +64,43 @@ const ProfilePictureModal = ({
             return;
         }
 
+        // Create a single object URL to use for both validation and preview
+        const objectUrl = URL.createObjectURL(file);
+
         // Image dimension validation
         const img = new Image();
         img.onload = () => {
             if (img.width < MIN_DIMENSION || img.height < MIN_DIMENSION) {
                 setError(`Image dimensions too small. Minimum size is ${MIN_DIMENSION}x${MIN_DIMENSION} pixels.`);
+                URL.revokeObjectURL(objectUrl);
                 return;
             }
 
             if (img.width > MAX_DIMENSION || img.height > MAX_DIMENSION) {
                 setError(`Image dimensions too large. Maximum size is ${MAX_DIMENSION}x${MAX_DIMENSION} pixels.`);
+                URL.revokeObjectURL(objectUrl);
                 return;
             }
 
-            // File is valid
+            // File is valid - use the same object URL for preview
             setSelectedFile(file);
-            setPreviewUrl(URL.createObjectURL(file));
+            setPreviewUrl(objectUrl);
         };
 
         img.onerror = () => {
             setError('Invalid image file.');
+            URL.revokeObjectURL(objectUrl);
         };
 
-        img.src = URL.createObjectURL(file);
+        img.src = objectUrl;
     };
 
     // Handle upload
     const handleUpload = async () => {
-        if (!selectedFile || !employee) return;
+        if (!selectedFile || !employee) {
+            console.error('[ProfileUpload] Missing file or employee:', { selectedFile, employee });
+            return;
+        }
 
         setUploading(true);
         setUploadProgress(0);
@@ -98,7 +108,20 @@ const ProfilePictureModal = ({
 
         const formData = new FormData();
         formData.append('profile_image', selectedFile);
-        formData.append('user_id', employee.id); // Add user ID
+        formData.append('user_id', employee.id);
+
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        // Debug logging
+        console.log('[ProfileUpload] Starting upload:', {
+            fileName: selectedFile.name,
+            fileSize: selectedFile.size,
+            fileType: selectedFile.type,
+            userId: employee.id,
+            csrfToken: csrfToken ? 'present' : 'missing',
+            route: route('profile.image.upload'),
+        });
 
         try {
             const response = await axios.post(
@@ -107,23 +130,27 @@ const ProfilePictureModal = ({
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data',
+                        'X-CSRF-TOKEN': csrfToken,
                     },
                     onUploadProgress: (progressEvent) => {
                         const percentCompleted = Math.round(
                             (progressEvent.loaded * 100) / progressEvent.total
                         );
                         setUploadProgress(percentCompleted);
+                        console.log('[ProfileUpload] Progress:', percentCompleted + '%');
                     },
                 }
             );
+
+            console.log('[ProfileUpload] Response:', response.data);
 
             if (response.data.success) {
                 showToast.success(response.data.message || 'Profile picture updated successfully!');
                 
                 // Callback to update the parent component with the new profile image URL
                 if (onImageUpdate) {
-                    // Use the explicit profile_image_url from response
                     const newImageUrl = response.data.profile_image_url;
+                    console.log('[ProfileUpload] Calling onImageUpdate with:', { employeeId: employee.id, newImageUrl });
                     onImageUpdate(employee.id, newImageUrl);
                 }
                 
@@ -132,20 +159,54 @@ const ProfilePictureModal = ({
                 throw new Error(response.data.message || 'Upload failed');
             }
         } catch (error) {
-            console.error('Upload error:', error);
+            // Comprehensive error logging
+            console.error('[ProfileUpload] Error details:', {
+                message: error.message,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                responseData: error.response?.data,
+                errors: error.response?.data?.errors,
+                headers: error.response?.headers,
+            });
             
             let errorMessage = 'Failed to upload profile picture';
-            if (error.response?.status === 413) {
+            let errorDetails = '';
+            
+            if (error.response?.status === 419) {
+                errorMessage = 'Session expired (CSRF token mismatch). Please refresh the page.';
+                errorDetails = 'CSRF Token Error';
+            } else if (error.response?.status === 413) {
                 errorMessage = 'File too large. Please choose a smaller image.';
+                errorDetails = 'File Size Error';
             } else if (error.response?.status === 422) {
-                errorMessage = error.response.data.message || 'Validation failed';
+                // Validation errors
+                const errors = error.response.data?.errors;
+                if (errors) {
+                    const errorMessages = Object.values(errors).flat().join(', ');
+                    errorMessage = errorMessages || error.response.data.message || 'Validation failed';
+                } else {
+                    errorMessage = error.response.data.message || 'Validation failed';
+                }
+                errorDetails = 'Validation Error';
+            } else if (error.response?.status === 403) {
+                errorMessage = error.response.data?.message || 'Unauthorized to upload profile image';
+                errorDetails = 'Authorization Error';
+            } else if (error.response?.status === 500) {
+                errorMessage = error.response.data?.message || 'Server error during upload';
+                errorDetails = 'Server Error: ' + (error.response.data?.exception || 'Unknown');
             } else if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
+                errorDetails = `HTTP ${error.response.status}`;
             } else if (error.message) {
                 errorMessage = error.message;
+                errorDetails = 'Network/Client Error';
             }
             
-            setError(errorMessage);
+            // Show detailed error in console
+            console.error(`[ProfileUpload] ${errorDetails}:`, errorMessage);
+            
+            // Set error for UI display
+            setError(`${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`);
             showToast.error(errorMessage);
         } finally {
             setUploading(false);
@@ -160,16 +221,16 @@ const ProfilePictureModal = ({
         setUploading(true);
         setError('');
 
-        const formData = new FormData();
-        formData.append('user_id', employee.id);
+        // Get CSRF token from meta tag as fallback
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
         try {
             const response = await axios.delete(
                 route('profile.image.remove'), 
                 {
-                    data: formData,
+                    data: { user_id: employee.id },
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        'X-CSRF-TOKEN': csrfToken,
                     },
                 }
             );
@@ -251,14 +312,12 @@ const ProfilePictureModal = ({
 
                 {/* Current Profile Picture */}
                 <div className="flex justify-center mb-6">
-                    <Avatar
+                    <ProfileAvatar
                         src={previewUrl || currentProfileImage || undefined}
                         name={employee?.name || 'Employee'}
                         size="lg"
                         className="w-24 h-24"
-                        fallback={
-                            <UserIcon className="w-12 h-12 text-gray-400" />
-                        }
+                        showBorder
                     />
                 </div>
 

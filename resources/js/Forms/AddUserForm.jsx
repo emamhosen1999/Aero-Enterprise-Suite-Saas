@@ -1,5 +1,4 @@
 import {
-    Avatar,
     Box,
     CircularProgress,
     DialogActions,
@@ -18,6 +17,8 @@ import React, {useEffect, useState} from "react";
 import ClearIcon from '@mui/icons-material/Clear';
 import GlassDialog from "@/Components/GlassDialog.jsx";
 import {PhotoCamera} from "@mui/icons-material";
+
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 import LoadingButton from "@mui/lab/LoadingButton";
 import { showToast } from "@/utils/toastUtils";
@@ -273,10 +274,12 @@ const AddUserForm = ({user, allUsers, departments, designations,setUser, open, c
                                 onMouseEnter={() => setHover(true)}
                                 onMouseLeave={() => setHover(false)}
                             >
-                                <Avatar
-                                    alt={changedUserData.name || initialUserData.name}
+                                <ProfileAvatar
+                                    name={changedUserData.name || initialUserData.name}
                                     src={selectedImage || user?.profile_image_url || user?.profile_image}
-                                    sx={{width: 100, height: 100}}
+                                    size="lg"
+                                    className="w-[100px] h-[100px] text-xl"
+                                    showBorder
                                 />
                                 {hover && (
                                     <>
