@@ -3,7 +3,6 @@
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -11,16 +10,10 @@ use Illuminate\Support\Facades\Route;
 | Authentication Routes
 |--------------------------------------------------------------------------
 |
-| Modern authentication routes with enhanced security features including
-| rate limiting, comprehensive logging, and secure password reset flow.
+| Used by admin.platform.com and tenant.platform.com
+| NO registration - only login, logout, password reset
 |
 */
-
-Route::middleware(['guest', 'platform.domain'])->group(function () {
-    // Registration Routes (platform only)
-    Route::get('register', [RegisterController::class, 'create'])->name('register');
-    Route::post('register', [RegisterController::class, 'store']);
-});
 
 Route::middleware('guest')->group(function () {
     // Login Routes

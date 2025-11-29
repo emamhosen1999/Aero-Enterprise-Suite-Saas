@@ -19,6 +19,10 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $this->command?->warn('No tenant context detected. Skipping tenant SQL seeding.');
+        $this->command?->warn('No tenant context detected. Running central admin seeds.');
+
+        $this->call([
+            AdminPanelUserSeeder::class,
+        ]);
     }
 }

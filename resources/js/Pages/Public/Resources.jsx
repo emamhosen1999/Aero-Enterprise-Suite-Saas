@@ -28,11 +28,15 @@ const Resources = () => {
     card: isDarkMode
       ? 'bg-white/5 border border-white/10 backdrop-blur'
       : 'bg-white border border-slate-200 shadow-sm',
-    tint: isDarkMode ? 'bg-slate-900/30' : 'bg-slate-50',
-    badge: isDarkMode ? 'border-white/20 text-white' : 'border-slate-300 text-slate-600',
-    input: isDarkMode
-      ? { wrapper: 'bg-white/5 border border-white/10', input: 'text-white placeholder:text-slate-400' }
-      : { wrapper: 'bg-white border border-slate-200', input: 'text-slate-900 placeholder:text-slate-500' },
+    tint: isDarkMode ? 'bg-white/5' : 'bg-slate-50',
+    badge: isDarkMode ? 'border-white/30 text-white' : 'border-slate-300 text-slate-700',
+    highlight: isDarkMode
+      ? 'bg-gradient-to-r from-blue-600/25 via-purple-600/20 to-cyan-500/20 border border-white/20'
+      : 'bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 border border-slate-200 shadow-lg',
+    buttonPrimary: 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold',
+    buttonBorder: isDarkMode ? 'border-white/40 text-white' : 'border-slate-300 text-slate-700',
+    inputWrapper: isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-slate-200',
+    inputLabel: isDarkMode ? 'text-slate-200' : 'text-slate-600',
   }), [isDarkMode]);
 
   const results = useMemo(() => {
@@ -44,28 +48,48 @@ const Resources = () => {
     });
   }, [filter, query]);
 
+  const fieldClasses = {
+    inputWrapper: palette.inputWrapper,
+    input: 'placeholder:text-slate-400',
+    label: palette.inputLabel,
+  };
+
   return (
     <PublicLayout>
       <div className={palette.baseText}>
-      <section className="max-w-5xl mx-auto px-6 pt-28 pb-12 text-center">
-        <Chip color="success" variant="flat" className="uppercase tracking-[0.35em] text-xs">Resources</Chip>
-        <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-          Case studies, playbooks, and release notes maintained by the product team.
-        </h1>
-        <p className={`${palette.mutedText} mb-8`}>
-          Everything here comes from real deployments and customer reviews, so you are not wading through generic blog filler.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Input
-            aria-label="Search resources"
-            placeholder="Search by topic or industry"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            classNames={palette.input}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div
+            className={`absolute inset-0 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-cyan-500/15'
+                : 'bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-100/60'
+            }`}
           />
-          <Button variant="bordered" className={`w-full sm:w-auto ${palette.badge}`}>
-            Subscribe to newsletter
-          </Button>
+          <div className="absolute -right-20 top-10 w-72 h-72 bg-blue-500/20 blur-[140px]" />
+          <div className="absolute -left-16 bottom-0 w-72 h-72 bg-emerald-400/20 blur-[140px]" />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-6 pt-28 pb-12 text-center">
+          <Chip color="success" variant="flat" className="uppercase tracking-[0.35em] text-xs">Resources</Chip>
+          <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
+            Case studies, playbooks, and release notes maintained by the product team.
+          </h1>
+          <p className={`${palette.mutedText} mb-8`}>
+            Everything here comes from real deployments and customer reviews, so you avoid generic blog filler.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Input
+              aria-label="Search resources"
+              placeholder="Search by topic or industry"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              variant="bordered"
+              classNames={fieldClasses}
+            />
+            <Button className={`w-full sm:w-auto ${palette.buttonPrimary}`}>
+              Subscribe to newsletter
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -133,11 +157,7 @@ const Resources = () => {
       </section>
 
       <section className="px-6 pb-24">
-        <Card className={`max-w-4xl mx-auto text-center ${
-          isDarkMode
-            ? 'bg-gradient-to-r from-blue-500/30 via-purple-500/20 to-cyan-500/20 border border-white/20'
-            : 'bg-gradient-to-r from-blue-100 via-purple-100 to-cyan-100 border border-slate-200 shadow-lg'
-        }`}>
+        <Card className={`max-w-4xl mx-auto text-center ${palette.highlight}`}>
           <CardBody className="space-y-4">
             <Chip color="success" variant="flat">Newsletter</Chip>
             <h3 className="text-3xl font-semibold">Monthly field reports in your inbox.</h3>
@@ -148,13 +168,10 @@ const Resources = () => {
               <Input
                 aria-label="Email"
                 placeholder="you@company.com"
-                classNames={
-                  isDarkMode
-                    ? { inputWrapper: 'bg-white/90', input: 'text-slate-900' }
-                    : { inputWrapper: 'bg-white', input: 'text-slate-900' }
-                }
+                variant="bordered"
+                classNames={fieldClasses}
               />
-              <Button className={isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold'}>
+              <Button className={palette.buttonPrimary}>
                 Subscribe
               </Button>
             </div>

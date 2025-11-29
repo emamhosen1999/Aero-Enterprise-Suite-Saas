@@ -144,7 +144,7 @@ export default function VerifyEmail({ status }) {
                     >
                         <Button
                             as={Link}
-                            href={route('logout')}
+                            href="/logout"
                             method="post"
                             variant="secondary"
                             size="lg"

@@ -364,7 +364,8 @@ export default function Login({
             const deviceHeaders = getDeviceHeaders();
 
             // Submit using Inertia router
-            router.post(route('login'), submissionData, {
+            // Use relative URL '/login' to ensure form posts to current domain (tenant or platform)
+            router.post('/login', submissionData, {
                 preserveState: true,
                 preserveScroll: true,
                 headers: {
@@ -1102,27 +1103,6 @@ export default function Login({
                                     className="my-6"
                                     style={{ borderColor: 'color-mix(in srgb, var(--theme-divider, #E4E4E7) 60%, transparent)' }}
                                 />
-
-                                {/* Sign Up Link */}
-                                <motion.div 
-                                    variants={itemVariants}
-                                    className="text-center"
-                                >
-                                    <p 
-                                        className="text-sm"
-                                        style={{ color: 'var(--theme-foreground, #11181C)70' }}
-                                    >
-                                        Don't have an account?{' '}
-                                        <Link
-                                            href={route('register')}
-                                            prefetch
-                                            className="font-semibold transition-colors duration-200 hover:underline"
-                                            style={{ color: 'var(--theme-primary, #006FEE)' }}
-                                        >
-                                            Sign up here
-                                        </Link>
-                                    </p>
-                                </motion.div>
 
                                 {/* Footer */}
                                 <motion.div 

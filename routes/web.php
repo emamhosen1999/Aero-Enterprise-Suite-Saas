@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BulkLeaveController;
-use App\Http\Controllers\DailyWorkController;
-use App\Http\Controllers\DailyWorkSummaryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
@@ -18,15 +16,14 @@ use App\Http\Controllers\IMSController;
 use App\Http\Controllers\JurisdictionController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LetterController;
-use App\Http\Controllers\LMSController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileImageController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Settings\AttendanceSettingController;
-use App\Http\Controllers\Settings\CompanySettingController;
 use App\Http\Controllers\Settings\LeaveSettingController;
+use App\Http\Controllers\Settings\SystemSettingController;
 use App\Http\Controllers\SystemMonitoringController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
@@ -76,7 +73,7 @@ Route::middleware($middlewareStack)->group(function () {
     // Dashboard routes - require dashboard permission
     Route::middleware(['permission:core.dashboard.view'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/stats', [DashboardController::class, 'stats'])->name('stats');
+
     });
 
     // Security Dashboard route - available to authenticated users
@@ -120,45 +117,6 @@ Route::middleware($middlewareStack)->group(function () {
     Route::get('/get-present-users-for-date', [AttendanceController::class, 'getPresentUsersForDate'])->name('getPresentUsersForDate');
     Route::get('/get-absent-users-for-date', [AttendanceController::class, 'getAbsentUsersForDate'])->name('getAbsentUsersForDate');
     Route::get('/get-client-ip', [AttendanceController::class, 'getClientIp'])->name('getClientIp');
-
-    // Daily works routes
-    Route::middleware(['permission:daily-works.view'])->group(function () {
-        Route::get('/daily-works', [DailyWorkController::class, 'index'])->name('daily-works');
-        Route::get('/daily-works-paginate', [DailyWorkController::class, 'paginate'])->name('dailyWorks.paginate');
-        Route::get('/daily-works-all', [DailyWorkController::class, 'all'])->name('dailyWorks.all');
-        Route::get('/daily-works-summary', [DailyWorkSummaryController::class, 'index'])->name('daily-works-summary');
-        Route::post('/daily-works-summary/filter', [DailyWorkSummaryController::class, 'filterSummary'])->name('daily-works-summary.filter');
-        Route::get('/daily-works/statistics', [DailyWorkSummaryController::class, 'getStatistics'])->name('dailyWorks.statistics');
-
-        // Routes that incharge/assigned users can access (authorization checked in controller)
-        Route::post('/daily-works/status', [DailyWorkController::class, 'updateStatus'])->name('dailyWorks.updateStatus');
-        Route::post('/daily-works/completion-time', [DailyWorkController::class, 'updateCompletionTime'])->name('dailyWorks.updateCompletionTime');
-        Route::post('/daily-works/submission-time', [DailyWorkController::class, 'updateSubmissionTime'])->name('dailyWorks.updateSubmissionTime');
-        Route::post('/daily-works/assigned', [DailyWorkController::class, 'updateAssigned'])->name('dailyWorks.updateAssigned');
-        Route::post('/update-rfi-file', [DailyWorkController::class, 'uploadRFIFile'])->name('dailyWorks.uploadRFI');
-    });
-
-    Route::middleware(['permission:daily-works.create'])->group(function () {
-        Route::post('/add-daily-work', [DailyWorkController::class, 'add'])->name('dailyWorks.add');
-    });
-
-    Route::middleware(['permission:daily-works.update'])->group(function () {
-        Route::post('/update-daily-work', [DailyWorkController::class, 'update'])->name('dailyWorks.update');
-        Route::post('/daily-works-summary/refresh', [DailyWorkSummaryController::class, 'refresh'])->name('daily-works-summary.refresh');
-        Route::post('/daily-works/inspection-details', [DailyWorkController::class, 'updateInspectionDetails'])->name('dailyWorks.updateInspectionDetails');
-        Route::post('/daily-works/incharge', [DailyWorkController::class, 'updateIncharge'])->name('dailyWorks.updateIncharge');
-        Route::post('/daily-works/assign', [DailyWorkController::class, 'assignWork'])->name('dailyWorks.assign');
-    });
-
-    Route::middleware(['permission:daily-works.delete'])->group(function () {
-        Route::delete('/delete-daily-work', [DailyWorkController::class, 'delete'])->name('dailyWorks.delete');
-    });
-
-    Route::middleware(['permission:daily-works.export'])->group(function () {
-        Route::post('/daily-works/export', [DailyWorkController::class, 'export'])->name('dailyWorks.export');
-        Route::post('/daily-works-summary/export', [DailyWorkSummaryController::class, 'exportDailySummary'])->name('daily-works-summary.export');
-        Route::get('/daily-works-summary/statistics', [DailyWorkSummaryController::class, 'getStatistics'])->name('daily-works-summary.statistics');
-    });
 
     // Holiday routes (Legacy - redirects to Time Off Management)
     Route::middleware(['permission:holidays.view'])->group(function () {
@@ -277,11 +235,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['permission:jurisdiction.view'])->get('/jurisdiction', [JurisdictionController::class, 'index'])->name('jurisdiction');
 
-    // Daily works management routes
-    Route::middleware(['permission:daily-works.import'])->post('/import-daily-works/', [DailyWorkController::class, 'import'])->name('dailyWorks.import');
-    Route::middleware(['permission:daily-works.import'])->get('/download-daily-works-template', [DailyWorkController::class, 'downloadTemplate'])->name('dailyWorks.downloadTemplate');
-    Route::middleware(['permission:daily-works.delete'])->delete('/delete-daily-work', [DailyWorkController::class, 'delete'])->name('dailyWorks.delete');
-
     // Holiday management routes
     Route::middleware(['permission:holidays.create'])->post('/holiday-add', [HolidayController::class, 'create'])->name('holiday-add');
     Route::middleware(['permission:holidays.delete'])->delete('/holiday-delete', [HolidayController::class, 'delete'])->name('holiday-delete');
@@ -344,10 +297,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/users/{userId}/devices/{deviceId}', [DeviceController::class, 'adminDeactivateDevice'])->name('admin.users.devices.deactivate');
     });
 
-    // Company settings routes
+    // System settings routes (tenant)
     Route::middleware(['permission:company.settings'])->group(function () {
-        Route::put('/update-company-settings', [CompanySettingController::class, 'update'])->name('update-company-settings');
-        Route::get('/company-settings', [CompanySettingController::class, 'index'])->name('admin.settings.company');
+        Route::get('/settings/system', [SystemSettingController::class, 'index'])->name('settings.system.index');
+        Route::put('/settings/system', [SystemSettingController::class, 'update'])->name('settings.system.update');
+
+        // Legacy aliases for backward compatibility
+        Route::get('/company-settings', [SystemSettingController::class, 'index'])->name('admin.settings.company');
+        Route::put('/update-company-settings', [SystemSettingController::class, 'update'])->name('update-company-settings');
     });    // Legacy role routes (maintained for backward compatibility)
     Route::middleware(['permission:roles.view'])->get('/roles-permissions', [RoleController::class, 'getRolesAndPermissions'])->name('roles-settings');
 
@@ -421,26 +378,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/work-location', [JurisdictionController::class, 'showWorkLocations'])->name('showWorkLocations');
         Route::get('/work-location_json', [JurisdictionController::class, 'allWorkLocations'])->name('allWorkLocations');
     });
-
-    Route::middleware(['permission:jurisdiction.create'])->post('/work-locations/add', [JurisdictionController::class, 'addWorkLocation'])->name('addWorkLocation');
-    Route::middleware(['permission:jurisdiction.delete'])->post('/work-locations/delete', [JurisdictionController::class, 'deleteWorkLocation'])->name('deleteWorkLocation');
-    Route::middleware(['permission:jurisdiction.update'])->post('/work-locations/update', [JurisdictionController::class, 'updateWorkLocation'])->name('updateWorkLocation');
-});
-
-Route::middleware(['auth', 'verified'])->group(function () {
-
-    Route::get('/tasks-all-se', [TaskController::class, 'allTasks'])->name('allTasksSE');
-    Route::post('/tasks-filtered-se', [TaskController::class, 'filterTasks'])->name('filterTasksSE');
-    Route::get('/tasks/se', [TaskController::class, 'showTasks'])->name('showTasksSE');
-    Route::post('/task/add-se', [TaskController::class, 'addTask'])->name('addTaskSE');
-    Route::post('/task/update-inspection-details', [TaskController::class, 'updateInspectionDetails'])->name('updateInspectionDetails');
-    Route::post('/task/update-status', [TaskController::class, 'updateTaskStatus'])->name('updateTaskStatus');
-    Route::post('/task/assign', [TaskController::class, 'assignTask'])->name('assignTask');
-    Route::post('/task/update-completion-date-time-se', [TaskController::class, 'updateCompletionDateTime'])->name('updateCompletionDateTimeSE');
-    Route::get('/tasks/daily-summary-se', [DailyWorkSummaryController::class, 'showDailySummary', 'title' => 'Daily Summary'])->name('showDailySummarySE');
-    Route::post('/tasks/daily-summary-filtered-se', [DailyWorkSummaryController::class, 'filterSummary'])->name('filterSummarySE');
-    Route::get('/get-latest-timestamp', [TaskController::class, 'getLatestTimestamp'])->name('getLatestTimestamp');
-    Route::get('/tasks/daily-summary-json', [DailyWorkSummaryController::class, 'dailySummary'])->name('dailySummaryJSON');
 
 });
 
@@ -631,40 +568,6 @@ Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(funct
         // Settings
         Route::get('/settings', [IMSController::class, 'settings'])->name('ims.settings')->middleware('permission:warehousing.manage');
         Route::put('/settings', [IMSController::class, 'updateSettings'])->name('ims.settings.update')->middleware('permission:warehousing.manage');
-    });
-
-    // LMS Module routes (Learning Management System)
-    Route::middleware(['permission:lms.view'])->prefix('lms')->group(function () {
-        Route::get('/', [LMSController::class, 'index'])->name('lms.index');
-
-        // Course Management
-        Route::get('/courses', [LMSController::class, 'courses'])->name('lms.courses')->middleware('permission:lms.courses.view');
-        Route::post('/courses', [LMSController::class, 'storeCourse'])->name('lms.courses.store')->middleware('permission:lms.courses.create');
-
-        // Student Management
-        Route::get('/students', [LMSController::class, 'students'])->name('lms.students')->middleware('permission:lms.students.view');
-        Route::post('/students', [LMSController::class, 'storeStudent'])->name('lms.students.store')->middleware('permission:lms.students.create');
-        Route::put('/students/{id}', [LMSController::class, 'updateStudent'])->name('lms.students.update')->middleware('permission:lms.students.update');
-        Route::delete('/students/{id}', [LMSController::class, 'destroyStudent'])->name('lms.students.destroy')->middleware('permission:lms.students.delete');
-
-        // Instructor Management
-        Route::get('/instructors', [LMSController::class, 'instructors'])->name('lms.instructors')->middleware('permission:lms.instructors.view');
-        Route::post('/instructors', [LMSController::class, 'storeInstructor'])->name('lms.instructors.store')->middleware('permission:lms.instructors.create');
-        Route::put('/instructors/{id}', [LMSController::class, 'updateInstructor'])->name('lms.instructors.update')->middleware('permission:lms.instructors.update');
-        Route::delete('/instructors/{id}', [LMSController::class, 'destroyInstructor'])->name('lms.instructors.destroy')->middleware('permission:lms.instructors.delete');
-
-        // Assessment Management
-        Route::get('/assessments', [LMSController::class, 'assessments'])->name('lms.assessments')->middleware('permission:lms.assessments.view');
-        Route::post('/assessments', [LMSController::class, 'storeAssessment'])->name('lms.assessments.store')->middleware('permission:lms.assessments.create');
-
-        // Certificate Management
-        Route::get('/certificates', [LMSController::class, 'certificates'])->name('lms.certificates')->middleware('permission:lms.certificates.view');
-        Route::post('/certificates', [LMSController::class, 'storeCertificate'])->name('lms.certificates.store')->middleware('permission:lms.certificates.create');
-        Route::put('/certificates/{id}', [LMSController::class, 'updateCertificate'])->name('lms.certificates.update')->middleware('permission:lms.certificates.update');
-        Route::delete('/certificates/{id}', [LMSController::class, 'destroyCertificate'])->name('lms.certificates.destroy')->middleware('permission:lms.certificates.delete');
-
-        // Reports
-        Route::get('/reports', [LMSController::class, 'reports'])->name('lms.reports')->middleware('permission:lms.reports.view');
     });
 
     // Designation Management

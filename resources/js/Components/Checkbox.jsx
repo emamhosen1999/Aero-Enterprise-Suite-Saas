@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { CheckIcon } from '@heroicons/react/24/solid';
 import { clsx } from 'clsx';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
 
 const Checkbox = forwardRef(({ 
     label, 
@@ -11,25 +12,27 @@ const Checkbox = forwardRef(({
     className = '',
     ...props 
 }, ref) => {
-    // Custom theme for consistent styling
+    const { themeSettings } = useTheme();
+    const isDarkMode = themeSettings?.mode === 'dark';
+
     const glassTheme = {
         palette: {
-            primary: { 
-                main: '#3b82f6', 
-                contrastText: '#ffffff' 
+            primary: {
+                main: '#3b82f6',
+                contrastText: '#ffffff'
             },
-            secondary: { 
-                main: '#64748b' 
+            secondary: {
+                main: '#64748b'
             },
-            error: { 
-                main: '#ef4444' 
+            error: {
+                main: '#ef4444'
             },
-            text: { 
-                primary: '#ffffff', 
-                secondary: '#94a3b8' 
+            text: {
+                primary: isDarkMode ? '#ffffff' : '#0f172a',
+                secondary: isDarkMode ? '#94a3b8' : '#475569'
             }
         },
-        mode: 'dark'
+        mode: isDarkMode ? 'dark' : 'light'
     };
     
     return (

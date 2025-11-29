@@ -23,52 +23,76 @@ const Demo = () => {
       ? 'bg-white/5 border border-white/10 backdrop-blur'
       : 'bg-white border border-slate-200 shadow-sm',
     gradientCard: isDarkMode
-      ? 'bg-gradient-to-r from-emerald-500/30 via-cyan-500/20 to-blue-500/20 border border-white/20'
-      : 'bg-gradient-to-r from-emerald-200 via-cyan-100 to-blue-100 border border-slate-200 shadow-md',
-    tint: isDarkMode ? 'bg-slate-900/40' : 'bg-slate-50',
+      ? 'bg-gradient-to-r from-emerald-500/25 via-cyan-500/15 to-blue-500/20 border border-white/15'
+      : 'bg-gradient-to-r from-emerald-50 via-cyan-50 to-blue-50 border border-slate-200 shadow-md',
+    tint: isDarkMode ? 'bg-white/5' : 'bg-slate-50',
+    badge: isDarkMode ? 'border-white/30 text-white' : 'border-slate-300 text-slate-700',
+    buttonPrimary: isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold',
     buttonBorder: isDarkMode ? 'border-white/40 text-white' : 'border-slate-300 text-slate-700',
-    input: isDarkMode ? 'bg-white/5' : 'bg-slate-100',
+    inputWrapper: isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-slate-200',
+    inputLabel: isDarkMode ? 'text-slate-200' : 'text-slate-600',
   }), [isDarkMode]);
+
+  const fieldClasses = {
+    inputWrapper: palette.inputWrapper,
+    label: palette.inputLabel,
+  };
 
   return (
     <PublicLayout>
       <div className={palette.baseText}>
-      <section className="max-w-6xl mx-auto px-6 pt-28 pb-16 grid lg:grid-cols-2 gap-10">
-        <div>
-          <Chip variant="flat" color="primary" className="uppercase tracking-[0.35em] text-xs">Demo</Chip>
-          <h1 className="text-4xl md:text-5xl font-bold mt-5 mb-6">
-            See your workflows running in Aero before you commit.
-          </h1>
-          <p className={palette.mutedText}>
-            We configure the demo with your modules, sample data, and approval chains so stakeholders can judge the fit in a single session.
-          </p>
-          <div className="grid grid-cols-3 gap-4 mt-10">
-            {demoStats.map((stat) => (
-              <Card key={stat.label} className={`${palette.card} text-center`}>
-                <CardBody>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className={`text-xs mt-2 ${palette.mutedText}`}>{stat.label}</p>
-                </CardBody>
-              </Card>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-4 mt-10">
-            <Link href="/pricing">
-              <Button className="bg-white text-slate-900 font-semibold px-10">Explore pricing</Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="bordered" className={`px-10 ${palette.buttonBorder}`}>Talk to sales</Button>
-            </Link>
-          </div>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div
+            className={`absolute inset-0 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-emerald-500/20 via-blue-600/10 to-cyan-500/15'
+                : 'bg-gradient-to-br from-emerald-50 via-blue-100/50 to-cyan-100/50'
+            }`}
+          />
+          <div className="absolute -right-20 top-10 w-72 h-72 bg-blue-500/20 blur-[140px]" />
+          <div className="absolute -left-16 bottom-0 w-72 h-72 bg-emerald-400/25 blur-[140px]" />
         </div>
+        <div className="relative max-w-6xl mx-auto px-6 pt-28 pb-16 grid lg:grid-cols-2 gap-10">
+          <div>
+            <Chip variant="flat" color="primary" className="uppercase tracking-[0.35em] text-xs">Demo</Chip>
+            <h1 className="text-4xl md:text-5xl font-bold mt-5 mb-6">
+              See your workflows running in Aero before you commit.
+            </h1>
+            <p className={palette.mutedText}>
+              We configure the demo with your modules, sample data, and approval chains so stakeholders can judge the fit in a single session.
+            </p>
+            <div className="grid grid-cols-3 gap-4 mt-10">
+              {demoStats.map((stat) => (
+                <Card key={stat.label} className={`${palette.card} text-center`}>
+                  <CardBody>
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className={`text-xs mt-2 ${palette.mutedText}`}>{stat.label}</p>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-4 mt-10">
+              <Link href="/register">
+                <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
+                  Start free trial
+                </Button>
+              </Link>
+              <Link href="/pricing">
+                <Button variant="bordered" className={`px-10 ${palette.buttonBorder}`}>
+                  Explore pricing
+                </Button>
+              </Link>
+            </div>
+          </div>
         <Card className={palette.card}>
           <CardBody className="space-y-4">
             <Chip color="success" variant="flat" size="sm">Request a demo</Chip>
-            <Input label="Full name" variant="faded" classNames={{ inputWrapper: palette.input, label: palette.mutedText }} />
-            <Input label="Work email" variant="faded" classNames={{ inputWrapper: palette.input, label: palette.mutedText }} />
-            <Input label="Company" variant="faded" classNames={{ inputWrapper: palette.input, label: palette.mutedText }} />
-            <Input label="Number of employees" variant="faded" classNames={{ inputWrapper: palette.input, label: palette.mutedText }} />
-            <Textarea label="What should we cover?" minRows={4} variant="faded" classNames={{ inputWrapper: palette.input, label: palette.mutedText }} />
+            <Input label="Full name" variant="bordered" classNames={fieldClasses} />
+            <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
+            <Input label="Company" variant="bordered" classNames={fieldClasses} />
+            <Input label="Number of employees" variant="bordered" classNames={fieldClasses} />
+            <Textarea label="What should we cover?" minRows={4} variant="bordered" classNames={fieldClasses} />
             <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold">Book session</Button>
           </CardBody>
         </Card>
@@ -123,7 +147,7 @@ const Demo = () => {
               We’ll map your key workflows, pick modules, and share your implementation timeline.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button className={isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold'}>
+              <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold">
                 Book a live tour
               </Button>
               <Link href="/contact">

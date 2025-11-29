@@ -97,6 +97,11 @@ export default function Pricing() {
       ? 'bg-white/10 border border-white/20 text-white'
       : 'bg-white border border-slate-200 text-slate-700',
     divider: isDarkMode ? 'bg-white/10' : 'bg-slate-200',
+    panel: isDarkMode
+      ? 'bg-white/5 border border-white/10'
+      : 'bg-white border border-slate-200 shadow-sm',
+    link: isDarkMode ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900',
+    accentButton: isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold',
   }), [isDarkMode]);
 
   return (
@@ -179,14 +184,14 @@ export default function Pricing() {
           <h2 className="text-3xl font-semibold text-center mb-8">Add-ons & services</h2>
           <div className="grid md:grid-cols-3 gap-5">
             {addons.map((addon) => (
-              <Card key={addon.name} className="bg-white/5 border border-white/10">
+              <Card key={addon.name} className={palette.card}>
                 <CardBody className="space-y-3">
                   <div>
-                    <p className="text-sm text-slate-400">Add-on</p>
+                    <p className={`text-sm ${palette.mutedText}`}>Add-on</p>
                     <h3 className="text-xl font-semibold">{addon.name}</h3>
                   </div>
-                  <p className="text-emerald-400 font-semibold">{addon.price}</p>
-                  <p className="text-sm text-slate-300">{addon.description}</p>
+                  <p className="text-emerald-500 font-semibold">{addon.price}</p>
+                  <p className={`text-sm ${palette.mutedText}`}>{addon.description}</p>
                 </CardBody>
               </Card>
             ))}
@@ -274,15 +279,20 @@ export default function Pricing() {
         <div className="max-w-4xl mx-auto text-center mb-10">
           <Chip color="primary" variant="flat">FAQ</Chip>
           <h2 className="text-3xl font-semibold mt-4 mb-4">Everything you need to know</h2>
-          <p className="text-slate-300">
+          <p className={palette.mutedText}>
             We keep pricing transparent. Reach out if you need tailored modules, data residency commitments, or procurement paperwork.
           </p>
         </div>
         <div className="max-w-4xl mx-auto">
           <Accordion variant="splitted" className="bg-transparent">
             {faqs.map((faq) => (
-              <AccordionItem key={faq.title} title={faq.title} aria-label={faq.title} className="bg-white/5 border border-white/10 text-white">
-                <p className="text-slate-300">{faq.content}</p>
+              <AccordionItem
+                key={faq.title}
+                title={faq.title}
+                aria-label={faq.title}
+                className={isDarkMode ? 'bg-white/5 border border-white/10 text-white' : 'bg-white border border-slate-200 text-slate-900 shadow-sm'}
+              >
+                <p className={palette.mutedText}>{faq.content}</p>
               </AccordionItem>
             ))}
           </Accordion>
@@ -307,7 +317,12 @@ export default function Pricing() {
             </div>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/demo">
-                <Button size="lg" className="bg-white text-slate-900 font-semibold px-10">Book a Demo</Button>
+                <Button
+                  size="lg"
+                  className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-10' : 'bg-slate-900 text-white font-semibold px-10'}
+                >
+                  Book a Demo
+                </Button>
               </Link>
               <Link href="/contact">
                 <Button size="lg" variant="bordered" className="border-current px-10">Talk to Sales</Button>

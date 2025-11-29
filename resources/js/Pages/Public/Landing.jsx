@@ -132,7 +132,7 @@ export default function Landing() {
   ];
 
   return (
-    <PublicLayout extraNavLinks={anchorNavLinks} mainClassName="pt-0">
+    <PublicLayout mainClassName="pt-0">
       <div className={`relative ${palette.baseText}`}>
         <section id="hero" className="relative px-6 pt-32 pb-24 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" aria-hidden>

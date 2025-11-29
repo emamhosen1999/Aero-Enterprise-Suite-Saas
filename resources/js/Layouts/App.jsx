@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Inertia } from '@inertiajs/inertia';
 import { getPages } from '@/Props/pages.jsx';
 import { getSettingsPages } from '@/Props/settings.jsx';
+import { getAdminPages } from '@/Props/admin_pages.jsx';
 import { ScrollShadow, Divider } from "@heroui/react";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -137,7 +138,7 @@ const App = React.memo(({ children }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Get global page props
-  const { auth, app, url, roles } = usePage().props;
+  const { auth, app, url, roles, context: domainContext = 'tenant' } = usePage().props;
 
   // Version manager for update notifications
   const {
@@ -160,16 +161,19 @@ const App = React.memo(({ children }) => {
     };
 
     const permissions = currentAuth?.permissions || [];
-    const roles = currentAuth?.roles || [];
-    const isSettingsPage = url.startsWith('/settings') || url.includes('settings');
-    const pages = isSettingsPage 
-      ? getSettingsPages(permissions, currentAuth) 
-      : getPages(roles, permissions, currentAuth);
+    const derivedRoles = roles?.length ? roles : (currentAuth?.roles || []);
+    const isAdminContext = domainContext === 'admin';
+    const isSettingsPage = !isAdminContext && (url.startsWith('/settings') || url.includes('settings'));
+    const pages = isAdminContext
+      ? getAdminPages(currentAuth)
+      : isSettingsPage
+        ? getSettingsPages(permissions, currentAuth)
+        : getPages(derivedRoles, permissions, currentAuth);
 
     return {
       currentAuth,
       permissions,
-      roles,
+      roles: derivedRoles,
       pages,
       app,
       url

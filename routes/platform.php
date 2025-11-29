@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use App\Http\Controllers\Platform\RegistrationController;
 use App\Http\Controllers\Platform\RegistrationPageController;
 use Illuminate\Support\Facades\Route;
@@ -9,121 +7,54 @@ use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
-| Platform Routes
+| Platform Routes (aero-enterprise-suite-saas.com)
 |--------------------------------------------------------------------------
 |
-| These routes are for the public platform at platform.com
-| This includes the landing page, registration, and subscription flows.
+| Public landing page and tenant registration flow.
+| NO login here - users login on admin.platform.com or tenant.platform.com
 |
 */
 
-Route::middleware(['web'])->group(function () {
-    // Public Landing Page
-    Route::get('/', function () {
-        return Inertia::render('Public/Landing');
-    })->name('platform.landing');
+// Landing page
+Route::get('/', fn () => Inertia::render('Public/Landing'))->name('landing');
 
-    // Features & Info Pages
-    Route::get('/product', function () {
-        return Inertia::render('Public/Product');
-    })->name('platform.product');
+// Redirect /login to /register (no login on platform domain)
+Route::redirect('login', '/register', 302);
 
-    Route::redirect('/features', '/product')->name('platform.features');
-    Route::redirect('/modules', '/product')->name('platform.modules');
+// Multi-step Tenant Registration Flow
+Route::prefix('register')->name('platform.register.')->group(function () {
+    // Step pages
+    Route::get('/', [RegistrationPageController::class, 'accountType'])->name('index');
+    Route::get('/details', [RegistrationPageController::class, 'details'])->name('details');
+    Route::get('/plan', [RegistrationPageController::class, 'plan'])->name('plan');
+    Route::get('/payment', [RegistrationPageController::class, 'payment'])->name('payment');
+    Route::get('/success', [RegistrationPageController::class, 'success'])->name('success');
 
-    Route::get('/pricing', function () {
-        return Inertia::render('Public/Pricing');
-    })->name('platform.pricing');
-
-    Route::get('/about', function () {
-        return Inertia::render('Public/About');
-    })->name('platform.about');
-
-    Route::get('/resources', function () {
-        return Inertia::render('Public/Resources');
-    })->name('platform.resources');
-
-    Route::get('/support', function () {
-        return Inertia::render('Public/Support');
-    })->name('platform.support');
-
-    Route::get('/demo', function () {
-        return Inertia::render('Public/Demo');
-    })->name('platform.demo');
-
-    Route::get('/contact', function () {
-        return Inertia::render('Public/Contact');
-    })->name('platform.contact');
-
-    // Legal Center
-    Route::get('/legal', function () {
-        return Inertia::render('Public/Legal/Index');
-    })->name('platform.legal');
-
-    Route::get('/terms', function () {
-        return Inertia::render('Public/Legal/Terms');
-    })->name('platform.terms');
-
-    Route::get('/privacy', function () {
-        return Inertia::render('Public/Legal/Privacy');
-    })->name('platform.privacy');
-
-    Route::get('/legal/security', function () {
-        return Inertia::render('Public/Legal/Security');
-    })->name('platform.legal.security');
-
-    Route::get('/legal/cookies', function () {
-        return Inertia::render('Public/Legal/Cookies');
-    })->name('platform.legal.cookies');
-
-    // Registration Flow
-    Route::prefix('register')->name('platform.register.')->group(function () {
-        Route::get('/', [RegistrationPageController::class, 'accountType'])->name('index');
-        Route::get('/details', [RegistrationPageController::class, 'details'])->name('details');
-        Route::get('/plan', [RegistrationPageController::class, 'plan'])->name('plan');
-        Route::get('/payment', [RegistrationPageController::class, 'payment'])->name('payment');
-        Route::get('/success', [RegistrationPageController::class, 'success'])->name('success');
-
-        Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');
-        Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');
-        Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
-        Route::post('/trial', [RegistrationController::class, 'activateTrial'])->name('trial.activate');
-    });
-
-    // Tenant Billing Portal (authenticated)
-    Route::middleware(['auth'])->prefix('billing')->name('platform.billing.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Public/Billing/Index');
-        })->name('index');
-
-        Route::get('/invoices', function () {
-            return Inertia::render('Public/Billing/Invoices');
-        })->name('invoices');
-
-        Route::get('/subscription', function () {
-            return Inertia::render('Public/Billing/Subscription');
-        })->name('subscription');
-
-        Route::get('/modules', function () {
-            return Inertia::render('Public/Billing/Modules');
-        })->name('modules');
-    });
-
-    // Webhook endpoints for payment gateways
-    Route::prefix('webhooks')->name('platform.webhooks.')->group(function () {
-        Route::post('/stripe', [App\Http\Controllers\Platform\WebhookController::class, 'stripe'])
-            ->name('stripe')
-            ->withoutMiddleware(['web']);
-
-        Route::post('/paypal', [App\Http\Controllers\Platform\WebhookController::class, 'paypal'])
-            ->name('paypal')
-            ->withoutMiddleware(['web']);
-
-        Route::post('/sslcommerz', [App\Http\Controllers\Platform\WebhookController::class, 'sslcommerz'])
-            ->name('sslcommerz')
-            ->withoutMiddleware(['web']);
-    });
-
-    // Authentication routes for central/platform domain
-    require __DIR__.'/auth.php';
+    // Step submissions
+    Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');
+    Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');
+    Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
+    Route::post('/trial', [RegistrationController::class, 'activateTrial'])->name('trial.activate');
 });
+
+// Public info pages (navigation)
+Route::get('/product', fn () => Inertia::render('Public/Product'))->name('product');
+Route::get('/pricing', fn () => Inertia::render('Public/Pricing'))->name('pricing');
+Route::get('/about', fn () => Inertia::render('Public/About'))->name('about');
+Route::get('/resources', fn () => Inertia::render('Public/Resources'))->name('resources');
+Route::get('/support', fn () => Inertia::render('Public/Support'))->name('support');
+Route::get('/demo', fn () => Inertia::render('Public/Demo'))->name('demo');
+Route::get('/contact', fn () => Inertia::render('Public/Contact'))->name('contact');
+Route::get('/features', fn () => Inertia::render('Public/Features'))->name('features');
+Route::get('/careers', fn () => Inertia::render('Public/Careers'))->name('careers');
+Route::get('/blog', fn () => Inertia::render('Public/Blog'))->name('blog');
+Route::get('/docs', fn () => Inertia::render('Public/Docs'))->name('docs');
+
+// Legal pages
+Route::get('/legal', fn () => Inertia::render('Public/Legal/Index'))->name('legal');
+Route::get('/legal/privacy', fn () => Inertia::render('Public/Legal/Privacy'))->name('legal.privacy');
+Route::get('/legal/terms', fn () => Inertia::render('Public/Legal/Terms'))->name('legal.terms');
+Route::get('/legal/cookies', fn () => Inertia::render('Public/Legal/Cookies'))->name('legal.cookies');
+Route::get('/legal/security', fn () => Inertia::render('Public/Legal/Security'))->name('legal.security');
+Route::get('/privacy', fn () => redirect('/legal/privacy'));
+Route::get('/terms', fn () => redirect('/legal/terms'));

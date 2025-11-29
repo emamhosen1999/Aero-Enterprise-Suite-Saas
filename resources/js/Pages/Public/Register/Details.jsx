@@ -2,7 +2,8 @@ import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Button, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
-import PublicLayout from '@/Layouts/PublicLayout.jsx';
+import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 export default function Details({ steps = [], currentStep, savedData = {}, accountType = 'company', baseDomain = 'platform.test' }) {
@@ -15,6 +16,15 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
     team_size: details.team_size ?? '',
   });
 
+  const { themeSettings } = useTheme();
+  const isDarkMode = themeSettings?.mode === 'dark';
+  const palette = {
+    heading: isDarkMode ? 'text-white' : 'text-slate-900',
+    copy: isDarkMode ? 'text-slate-300' : 'text-slate-600',
+    badge: isDarkMode ? 'text-slate-300' : 'text-slate-500',
+    link: isDarkMode ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900',
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     post(route('platform.register.details.store'));
@@ -23,13 +33,13 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
   const personaLabel = accountType === 'individual' ? 'Your name' : 'Organization name';
 
   return (
-    <PublicLayout mainClassName="pt-28 pb-20">
+    <RegisterLayout>
       <Head title="Workspace details" />
-      <section className="max-w-5xl mx-auto px-6 space-y-8">
+      <section className="max-w-5xl mx-auto px-6 py-12 space-y-8">
         <div className="space-y-4 text-center">
-          <p className="text-sm uppercase tracking-[0.3em] text-white/70">Step 2</p>
-          <h1 className="text-4xl font-semibold text-white">Tell us about {accountType === 'individual' ? 'you' : 'your company'}.</h1>
-          <p className="text-white/70">We will use this to pre-configure branding, subdomain, and trial communications.</p>
+          <p className={`text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 2</p>
+          <h1 className={`text-4xl font-semibold ${palette.heading}`}>Tell us about {accountType === 'individual' ? 'you' : 'your company'}.</h1>
+          <p className={palette.copy}>We will use this to pre-configure branding, subdomain, and trial communications.</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
@@ -89,7 +99,7 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <Link href={route('platform.register.index')} className="text-sm text-white/70 hover:text-white transition-colors">
+              <Link href={route('platform.register.index')} className={`text-sm transition-colors ${palette.link}`}>
                 ← Back to account type
               </Link>
               <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600" type="submit" isLoading={processing}>
@@ -99,6 +109,6 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
           </form>
         </AuthCard>
       </section>
-    </PublicLayout>
+    </RegisterLayout>
   );
 }

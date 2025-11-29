@@ -17,8 +17,9 @@ class Authenticate extends Middleware
             return null;
         }
 
-        // For web requests, redirect to login
-        return route('login');
+        // For web requests, redirect to login on the SAME domain
+        // Use relative path to stay on current domain (tenant or platform)
+        return '/login';
     }
 
     /**
@@ -37,7 +38,8 @@ class Authenticate extends Middleware
         if ($request->header('X-Inertia')) {
             // Return 409 Conflict with redirect location
             // This triggers Inertia to perform a full page visit to login
-            return redirect()->guest(route('login'));
+            // Use relative URL to stay on current domain
+            return redirect()->guest('/login');
         }
 
         // For API requests, return JSON response

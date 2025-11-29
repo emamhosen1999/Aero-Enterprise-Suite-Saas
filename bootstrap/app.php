@@ -6,7 +6,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
+        // NOTE: web routes are loaded by TenancyServiceProvider with domain constraints
+        // Only load API and console routes here
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -40,7 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->header('X-Inertia')) {
                 return response()->json([
                     'message' => 'Authentication required. Please login to continue.',
-                    'redirect' => route('login'),
+                    'redirect' => '/login',
                     'session_expired' => true,
                 ], 401);
             }
@@ -50,12 +51,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => 'Unauthenticated.',
                     'error' => 'authentication_required',
-                    'redirect' => route('login'),
+                    'redirect' => '/login',
                 ], 401);
             }
 
-            // For regular web requests
-            return redirect()->guest(route('login'))
+            // For regular web requests - use relative URL to stay on current domain
+            return redirect()->guest('/login')
                 ->with('status', 'Please login to access this page.')
                 ->with('session_expired', true);
         });
@@ -66,7 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->header('X-Inertia')) {
                 return response()->json([
                     'message' => 'Your session has expired. Please refresh the page and login again.',
-                    'redirect' => route('login'),
+                    'redirect' => '/login',
                     'session_expired' => true,
                 ], 419);
             }
@@ -76,12 +77,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => 'Session expired due to token mismatch.',
                     'error' => 'token_mismatch',
-                    'redirect' => route('login'),
+                    'redirect' => '/login',
                 ], 419);
             }
 
-            // For regular web requests
-            return redirect()->route('login')
+            // For regular web requests - use relative URL to stay on current domain
+            return redirect('/login')
                 ->with('status', 'Your session has expired. Please login again.')
                 ->with('session_expired', true);
         });

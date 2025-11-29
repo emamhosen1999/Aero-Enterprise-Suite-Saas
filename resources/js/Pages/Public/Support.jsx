@@ -31,30 +31,51 @@ const Support = () => {
     gradientCard: isDarkMode
       ? 'bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-cyan-500/20 border border-white/10'
       : 'bg-gradient-to-br from-blue-100 via-purple-100 to-cyan-100 border border-slate-200 shadow-md',
-    tint: isDarkMode ? 'bg-slate-900/40' : 'bg-slate-50',
-    deepTint: isDarkMode ? 'bg-slate-950/60' : 'bg-slate-100',
+    tint: isDarkMode ? 'bg-white/5' : 'bg-slate-50',
+    deepTint: isDarkMode ? 'bg-white/5' : 'bg-slate-100',
     badge: isDarkMode ? 'border-white/30 text-white' : 'border-slate-300 text-slate-700',
+    buttonPrimary: 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold',
     buttonBorder: isDarkMode ? 'border-white/30 text-white' : 'border-slate-300 text-slate-700',
+    inputWrapper: isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-slate-200',
+    inputLabel: isDarkMode ? 'text-slate-200' : 'text-slate-600',
   }), [isDarkMode]);
+
+  const fieldClasses = {
+    inputWrapper: palette.inputWrapper,
+    label: palette.inputLabel,
+  };
 
   return (
     <PublicLayout>
       <div className={palette.baseText}>
-      <section className="max-w-5xl mx-auto px-6 pt-28 pb-16 text-center">
-        <Chip color="primary" variant="flat" className="uppercase tracking-[0.3em] text-xs">Support</Chip>
-        <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-          Support staffed by the engineers who ship the product.
-        </h1>
-        <p className={`${palette.mutedText} max-w-3xl mx-auto`}>
-          Coverage runs 24/7 with direct Slack channels, phone escalations, and public SLAs, so you always know who owns an issue and when it will be resolved.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4 mt-8">
-          <Link href="/contact">
-            <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-8">Talk to Support</Button>
-          </Link>
-          <Link href="/resources">
-            <Button variant="bordered" className={`px-8 ${palette.buttonBorder}`}>Browse Resources</Button>
-          </Link>
+      <section className="relative overflow-hidden text-center">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div
+            className={`absolute inset-0 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-blue-600/25 via-purple-600/15 to-cyan-500/20'
+                : 'bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-100/60'
+            }`}
+          />
+          <div className="absolute -right-20 top-8 w-72 h-72 bg-blue-500/25 blur-[140px]" />
+          <div className="absolute -left-16 bottom-0 w-72 h-72 bg-emerald-400/25 blur-[140px]" />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-6 pt-28 pb-16">
+          <Chip color="primary" variant="flat" className="uppercase tracking-[0.3em] text-xs">Support</Chip>
+          <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
+            Support staffed by the engineers who ship the product.
+          </h1>
+          <p className={`${palette.mutedText} max-w-3xl mx-auto`}>
+            Coverage runs 24/7 with direct Slack channels, phone escalations, and public SLAs, so you always know who owns an issue and when it will be resolved.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <Link href="/contact">
+              <Button className={palette.buttonPrimary}>Talk to support</Button>
+            </Link>
+            <Link href="/resources">
+              <Button variant="bordered" className={`px-8 ${palette.buttonBorder}`}>Browse resources</Button>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -110,30 +131,11 @@ const Support = () => {
           <Card className={palette.card}>
             <CardBody className="space-y-4">
               <Chip color="primary" variant="flat" size="sm">Submit a ticket</Chip>
-              <Input
-                label="Name"
-                variant="faded"
-                classNames={{ inputWrapper: isDarkMode ? 'bg-white/5' : 'bg-slate-100', label: palette.mutedText }}
-              />
-              <Input
-                label="Work email"
-                variant="faded"
-                classNames={{ inputWrapper: isDarkMode ? 'bg-white/5' : 'bg-slate-100', label: palette.mutedText }}
-              />
-              <Input
-                label="Company"
-                variant="faded"
-                classNames={{ inputWrapper: isDarkMode ? 'bg-white/5' : 'bg-slate-100', label: palette.mutedText }}
-              />
-              <Textarea
-                label="How can we help?"
-                minRows={4}
-                variant="faded"
-                classNames={{ inputWrapper: isDarkMode ? 'bg-white/5' : 'bg-slate-100', label: palette.mutedText }}
-              />
-              <Button className={isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold'}>
-                Send ticket
-              </Button>
+              <Input label="Name" variant="bordered" classNames={fieldClasses} />
+              <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
+              <Input label="Company" variant="bordered" classNames={fieldClasses} />
+              <Textarea label="How can we help?" minRows={4} variant="bordered" classNames={fieldClasses} />
+              <Button className={palette.buttonPrimary}>Send ticket</Button>
             </CardBody>
           </Card>
           <Card className={palette.gradientCard}>
@@ -159,9 +161,7 @@ const Support = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/status">
-                <Button className={isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold'}>
-                  View status
-                </Button>
+                <Button className={palette.buttonPrimary}>View status</Button>
               </Link>
               <Link href="/docs/security">
                 <Button variant="bordered" className={palette.buttonBorder}>Security documentation</Button>

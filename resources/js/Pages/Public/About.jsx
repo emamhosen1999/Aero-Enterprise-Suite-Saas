@@ -5,7 +5,6 @@ import {
   Card,
   CardBody,
   Chip,
-  Divider,
   Avatar,
   Button,
 } from '@heroui/react';
@@ -44,49 +43,75 @@ const About = () => {
     cultureCard: isDarkMode
       ? 'bg-gradient-to-r from-amber-500/30 via-orange-500/20 to-pink-500/20 border border-white/20'
       : 'bg-gradient-to-r from-amber-100 via-orange-100 to-pink-100 border border-slate-200 shadow-lg',
+    divider: isDarkMode ? 'border-white/10' : 'border-slate-200',
   }), [isDarkMode]);
 
   return (
     <PublicLayout>
       <div className={palette.baseText}>
-      <section className="relative max-w-6xl mx-auto px-6 pt-28 pb-20 grid lg:grid-cols-2 gap-12 items-center">
-        <div>
-          <Chip color="secondary" variant="flat" className="uppercase tracking-[0.35em] text-xs">About</Chip>
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight mt-5 mb-6">
-            We built Aero after running operations teams that had to juggle too many systems.
-          </h1>
-          <p className={`text-lg ${palette.mutedText}`}>
-            The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and point tools. Aero keeps that work in one place so decisions stay grounded in fresh data.
-          </p>
-          <div className="grid grid-cols-2 gap-4 mt-10">
-            {heroStats.map((stat) => (
-              <Card key={stat.label} className={palette.card}>
-                <CardBody>
-                  <p className="text-3xl font-bold">{stat.value}</p>
-                  <p className={`text-xs mt-1 ${palette.mutedText}`}>{stat.label}</p>
-                </CardBody>
-              </Card>
-            ))}
-          </div>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div
+            className={`absolute inset-0 ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-blue-600/20 via-indigo-500/10 to-cyan-500/20'
+                : 'bg-gradient-to-br from-sky-200/60 via-indigo-100/40 to-cyan-100/40'
+            }`}
+          />
+          <div className="absolute -right-20 top-12 w-72 h-72 bg-blue-500/20 blur-[140px]" />
+          <div className="absolute -left-16 bottom-0 w-72 h-72 bg-emerald-400/20 blur-[140px]" />
         </div>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative"
-        >
-          <Card className={palette.gradientCard}>
-            <CardBody className="space-y-6">
-              <p className={`text-sm uppercase tracking-[0.4em] ${palette.mutedText}`}>Field Notes</p>
-              <h3 className="text-2xl font-semibold">From siloed spreadsheets to a unified execution graph.</h3>
-              <p className={palette.mutedText}>
-                We shadowed HR leaders, project coordinators, compliance managers, and CFOs across Asia, the Middle East, and North America. Every team wanted the same thing: one system that could adapt as fast as their operations. Aero is the answer.
-              </p>
-            </CardBody>
-          </Card>
-          <div className="absolute -top-8 -right-10 w-36 h-36 bg-purple-500/30 blur-3xl" />
-          <div className="absolute -bottom-10 -left-8 w-40 h-40 bg-cyan-500/30 blur-3xl" />
-        </motion.div>
+        <div className="relative max-w-6xl mx-auto px-6 pt-28 pb-20 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <Chip color="secondary" variant="flat" className="uppercase tracking-[0.35em] text-xs">About</Chip>
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mt-5 mb-6">
+              We built Aero after running operations teams that had to juggle too many systems.
+            </h1>
+            <p className={`text-lg ${palette.mutedText}`}>
+              The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and point tools. Aero keeps that work in one place so decisions stay grounded in fresh data.
+            </p>
+            <div className="flex flex-wrap gap-4 mt-8">
+              <Link href="/register">
+                <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-8">
+                  Start free trial
+                </Button>
+              </Link>
+              <Link href="/demo">
+                <Button size="lg" variant="bordered" className="border-current px-8">
+                  See live demo
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-10">
+              {heroStats.map((stat) => (
+                <Card key={stat.label} className={palette.card}>
+                  <CardBody>
+                    <p className="text-3xl font-bold">{stat.value}</p>
+                    <p className={`text-xs mt-1 ${palette.mutedText}`}>{stat.label}</p>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative"
+          >
+            <Card className={palette.gradientCard}>
+              <CardBody className="space-y-6">
+                <p className={`text-sm uppercase tracking-[0.4em] ${palette.mutedText}`}>Field Notes</p>
+                <h3 className="text-2xl font-semibold">From siloed spreadsheets to a unified execution graph.</h3>
+                <p className={palette.mutedText}>
+                  We shadowed HR leaders, project coordinators, compliance managers, and CFOs across Asia, the Middle East, and North America. Every team wanted the same thing: one system that could adapt as fast as their operations. Aero is the answer.
+                </p>
+              </CardBody>
+            </Card>
+            <div className="absolute -top-8 -right-10 w-36 h-36 bg-purple-500/30 blur-3xl" />
+            <div className="absolute -bottom-10 -left-8 w-40 h-40 bg-cyan-500/30 blur-3xl" />
+          </motion.div>
+        </div>
       </section>
 
       <section className="px-6 pb-20">
@@ -114,7 +139,7 @@ const About = () => {
             <Chip color="primary" variant="flat">Timeline</Chip>
             <h2 className="text-4xl font-semibold mt-4">Milestones that shaped Aero.</h2>
           </div>
-          <div className="space-y-6 border-l border-white/10 pl-8 relative">
+          <div className={`space-y-6 border-l ${palette.divider} pl-8 relative`}>
             {timelineMilestones.map((milestone, index) => (
               <div key={milestone.year} className="relative">
                 <div className={`absolute -left-[41px] top-1 w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 border-4 ${
@@ -203,13 +228,13 @@ const About = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/demo">
-                <Button size="lg" className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-10' : 'bg-slate-900 text-white font-semibold px-10'}>
-                  Book a Demo
+                <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
+                  Book a demo
                 </Button>
               </Link>
               <Link href="/contact">
                 <Button size="lg" variant="bordered" className={`px-10 ${palette.badgeBorder}`}>
-                  Talk to Sales
+                  Talk to sales
                 </Button>
               </Link>
             </div>

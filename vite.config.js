@@ -12,6 +12,7 @@ const keyPath = 'C:/laragon/etc/ssl/laragon.key';
 const allowedOrigins = [
   'https://aero-enterprise-suite-saas.com',
   'https://dbedc.aero-enterprise-suite-saas.com',
+  'https://admin.aero-enterprise-suite-saas.com'
 ];
 
 export default defineConfig({

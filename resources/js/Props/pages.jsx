@@ -48,11 +48,7 @@ export const getPages = (roles, permissions, auth = null) => {
 
   // 2. Define the shared items list (so we don't write it twice)
   const workspaceItems = [
-    ...(permissions.includes('daily-works.view') ? [
-      { name: 'Daily Work', icon: <DocumentTextIcon />, route: 'daily-works' },
-      { name: 'Work Summary', icon: <ChartBarSquareIcon />, route: 'daily-works-summary' },
-    ] : []),
-    
+   
     ...(permissions.includes('attendance.own.view') ? [
       { name: 'Attendance', icon: <CalendarDaysIcon />, route: 'attendance-employee' }
     ] : []),
@@ -107,7 +103,7 @@ export const getPages = (roles, permissions, auth = null) => {
             ...(permissions.includes('employees.view') ? [{ name: 'Employee', icon: <UserGroupIcon  />, route: 'employees' }] : []),
             ...(permissions.includes('departments.view') ? [{ name: 'Departments', icon: <BuildingOffice2Icon  />, route: 'departments' }] : []),
             ...(permissions.includes('designations.view') ? [{ name: 'Designations', icon: <BriefcaseIcon  />, route: 'designations.index' }] : []),
-            ...(permissions.includes('jurisdiction.view') ? [{ name: 'Work Locations', icon: <MapPinIcon />, route: 'jurisdiction' }] : []),
+       
           ]
         }] : []),
         

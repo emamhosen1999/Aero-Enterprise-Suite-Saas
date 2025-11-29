@@ -81,8 +81,9 @@ const Header = ({
     ];
 
     // Handle logout
+    // Use relative URL '/logout' to ensure it posts to current domain (tenant or platform)
     const handleLogout = () => {
-        router.post(route('logout'));
+        router.post('/logout');
     };
 
     // Handle profile navigation

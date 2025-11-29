@@ -2,11 +2,15 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\CompanySetting;
+use App\Http\Resources\PlatformSettingResource;
+use App\Http\Resources\SystemSettingResource;
+use App\Models\PlatformSetting;
+use App\Models\SystemSetting;
 use App\Services\Module\ModulePermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
+use Throwable;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -16,6 +20,14 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    protected bool $resolvedSystemSetting = false;
+
+    protected ?SystemSetting $cachedSystemSetting = null;
+
+    protected bool $resolvedPlatformSetting = false;
+
+    protected ?PlatformSetting $cachedPlatformSetting = null;
 
     /**
      * Determine the root template based on domain context.
@@ -75,6 +87,11 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        $platformSetting = $this->platformSetting();
+        $platformSettingsPayload = $platformSetting
+            ? PlatformSettingResource::make($platformSetting)->resolve($request)
+            : null;
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -84,10 +101,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'context' => 'admin',
             'app' => [
-                'name' => config('app.name', 'Aero Enterprise Suite').' - Admin',
+                'name' => ($platformSettingsPayload['site']['name'] ?? config('app.name', 'Aero Enterprise Suite')).' - Admin',
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
             ],
+            'platformSettings' => $platformSettingsPayload,
             'url' => $request->getPathInfo(),
             'csrfToken' => session('csrfToken'),
             'locale' => App::getLocale(),
@@ -102,6 +120,11 @@ class HandleInertiaRequests extends Middleware
      */
     protected function sharePlatformProps(Request $request): array
     {
+        $platformSetting = $this->platformSetting();
+        $platformSettingsPayload = $platformSetting
+            ? PlatformSettingResource::make($platformSetting)->resolve($request)
+            : null;
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -110,10 +133,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'context' => 'platform',
             'app' => [
-                'name' => config('app.name', 'Aero Enterprise Suite'),
+                'name' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'Aero Enterprise Suite'),
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
             ],
+            'platformSettings' => $platformSettingsPayload,
             'platform' => [
                 'modules' => $this->getAvailableModules(),
                 'plans' => $this->getSubscriptionPlans(),
@@ -135,15 +159,14 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $userWithRelations = $user ? \App\Models\User::with(['designation', 'attendanceType'])->find($user->id) : null;
 
-        // Get company settings for the tenant
-        $companySettings = null;
-        try {
-            $companySettings = CompanySetting::first();
-        } catch (\Exception $e) {
-            // Table might not exist yet for new tenants
-        }
-
-        $companyName = $companySettings?->companyName ?? config('app.name', 'Aero Enterprise Suite');
+        $systemSetting = $this->systemSetting();
+        $systemSettingsPayload = $systemSetting
+            ? SystemSettingResource::make($systemSetting)->resolve($request)
+            : null;
+        $organization = $systemSettingsPayload['organization'] ?? [];
+        $companyName = $organization['company_name'] ?? config('app.name', 'Aero Enterprise Suite');
+        $branding = $systemSettingsPayload['branding'] ?? [];
+        $legacyCompanySettings = $this->formatLegacyCompanySettings($organization);
 
         return [
             ...parent::share($request),
@@ -171,12 +194,14 @@ class HandleInertiaRequests extends Middleware
                 'name' => tenant('name'),
                 'subdomain' => tenant('subdomain'),
             ],
-            'companySettings' => $companySettings,
+            'companySettings' => $legacyCompanySettings,
+            'systemSettings' => $systemSettingsPayload,
+            'branding' => $branding,
             'theme' => [
                 'defaultTheme' => 'OCEAN',
-                'defaultBackground' => 'pattern-1',
-                'darkMode' => false,
-                'animations' => true,
+                'defaultBackground' => data_get($branding, 'login_background', 'pattern-1'),
+                'darkMode' => data_get($branding, 'dark_mode', false),
+                'animations' => data_get($branding, 'animations', true),
             ],
             'app' => [
                 'name' => $companyName,
@@ -316,5 +341,66 @@ class HandleInertiaRequests extends Middleware
                str_starts_with($request->path(), 'register') ||
                str_starts_with($request->path(), 'forgot-password') ||
                str_starts_with($request->path(), 'reset-password');
+    }
+
+    protected function formatLegacyCompanySettings(array $organization): array
+    {
+        if (empty($organization)) {
+            return [];
+        }
+
+        $address = trim(implode(' ', array_filter([
+            $organization['address_line1'] ?? null,
+            $organization['address_line2'] ?? null,
+        ])));
+
+        return array_filter([
+            'companyName' => $organization['company_name'] ?? null,
+            'contactPerson' => $organization['contact_person'] ?? null,
+            'address' => $address ?: null,
+            'country' => $organization['country'] ?? null,
+            'city' => $organization['city'] ?? null,
+            'state' => $organization['state'] ?? null,
+            'postalCode' => $organization['postal_code'] ?? null,
+            'email' => $organization['support_email'] ?? null,
+            'phoneNumber' => $organization['support_phone'] ?? null,
+            'mobileNumber' => $organization['support_phone'] ?? null,
+            'fax' => $organization['fax'] ?? null,
+            'websiteUrl' => $organization['website_url'] ?? null,
+        ], static fn ($value) => $value !== null && $value !== '');
+    }
+
+    protected function systemSetting(): ?SystemSetting
+    {
+        if ($this->resolvedSystemSetting) {
+            return $this->cachedSystemSetting;
+        }
+
+        $this->resolvedSystemSetting = true;
+
+        try {
+            $this->cachedSystemSetting = SystemSetting::current();
+        } catch (Throwable $exception) {
+            $this->cachedSystemSetting = null;
+        }
+
+        return $this->cachedSystemSetting;
+    }
+
+    protected function platformSetting(): ?PlatformSetting
+    {
+        if ($this->resolvedPlatformSetting) {
+            return $this->cachedPlatformSetting;
+        }
+
+        $this->resolvedPlatformSetting = true;
+
+        try {
+            $this->cachedPlatformSetting = PlatformSetting::current();
+        } catch (Throwable $exception) {
+            $this->cachedPlatformSetting = null;
+        }
+
+        return $this->cachedPlatformSetting;
     }
 }

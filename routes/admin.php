@@ -2,29 +2,31 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\PlatformSettingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes
+| Admin Routes (admin.platform.com)
 |--------------------------------------------------------------------------
 |
-| These routes are for the central admin panel at admin.platform.com
-| All routes here require authentication as a super admin.
+| Uses central/platform database. Login required for all admin features.
 |
 */
 
-// Public admin routes (login, password reset, etc.)
-Route::middleware(['web', 'guest'])->group(function () {
-    Route::get('/login', [LoginController::class, 'create'])->name('admin.login');
-});
+// Auth routes (login, logout, password reset)
+require __DIR__.'/auth.php';
+
+// Root redirects to dashboard (or login if not auth)
+Route::get('/', function () {
+    return redirect('/dashboard');
+})->middleware('auth');
 
 // Protected admin routes
-Route::middleware(['web', 'auth'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Admin Dashboard
-    Route::get('/', function () {
+    Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');
     })->name('admin.dashboard');
 
@@ -89,6 +91,9 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/email', function () {
             return Inertia::render('Admin/Settings/Email');
         })->name('email');
+
+        Route::get('/platform', [PlatformSettingController::class, 'index'])->name('platform.index');
+        Route::put('/platform', [PlatformSettingController::class, 'update'])->name('platform.update');
     });
 
     // Analytics & Reports

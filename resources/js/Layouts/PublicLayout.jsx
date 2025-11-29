@@ -4,14 +4,14 @@ import { Button } from '@heroui/react';
 import { useTheme } from '../Contexts/ThemeContext.jsx';
 
 const navLinks = [
-  { label: 'Home', href: '/', type: 'route' },
-  { label: 'Product', href: '/product', type: 'route' },
+  { label: 'Overview', href: '/', type: 'route' },
+  { label: 'Features', href: '/features', type: 'route' },
   { label: 'Pricing', href: '/pricing', type: 'route' },
   { label: 'About', href: '/about', type: 'route' },
   { label: 'Resources', href: '/resources', type: 'route' },
   { label: 'Support', href: '/support', type: 'route' },
   { label: 'Demo', href: '/demo', type: 'route' },
-  { label: 'Legal', href: '/legal', type: 'route' },
+  { label: 'Contact', href: '/contact', type: 'route' },
 ];
 
 const footerColumns = [
@@ -43,6 +43,7 @@ const footerColumns = [
 
 export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24' }) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { themeSettings, toggleMode } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
 
@@ -52,12 +53,23 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const combinedLinks = [...navLinks, ...extraNavLinks];
 
   const palette = useMemo(() => ({
     page: isDarkMode
-      ? 'min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white'
-      : 'min-h-screen bg-gradient-to-br from-white via-slate-50 to-blue-50 text-slate-900',
+      ? 'min-h-screen flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white'
+      : 'min-h-screen flex flex-col bg-gradient-to-br from-white via-slate-50 to-blue-50 text-slate-900',
     nav: isDarkMode
       ? isScrolled ? 'bg-slate-950/90 backdrop-blur-xl border-b border-white/5' : 'bg-transparent'
       : isScrolled ? 'bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-sm' : 'bg-white/70 backdrop-blur-xl border-b border-transparent',
@@ -71,6 +83,8 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
     heading: isDarkMode ? 'text-white' : 'text-slate-900',
     copy: isDarkMode ? 'text-slate-400' : 'text-slate-600',
   }), [isDarkMode, isScrolled]);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <div className={palette.page}>
@@ -109,7 +123,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
                 </Link>
               )
             ))}
-            <Link href={route('login')} className={`${palette.loginLink} ${palette.loginLinkHover} transition-colors`}>Login</Link>
+            
             <Link href="/register">
               <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 font-semibold px-5">
                 Start Trial
@@ -124,10 +138,66 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
               {isDarkMode ? '🌙 Dark' : '☀️ Light'}
             </button>
           </div>
+          <div className="md:hidden flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleMode}
+              className={`rounded-full border p-2 text-xs font-semibold transition-colors ${isDarkMode ? 'border-white/20 text-white hover:bg-white/10' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+              aria-label="Toggle color mode"
+            >
+              {isDarkMode ? '🌙' : '☀️'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className={`rounded-full border p-2 transition-colors ${isDarkMode ? 'border-white/20 text-white hover:bg-white/10' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+              aria-label="Toggle navigation menu"
+              aria-expanded={isMobileMenuOpen}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
+          </div>
         </div>
+        {isMobileMenuOpen && (
+          <div className={`md:hidden border-t ${isDarkMode ? 'border-white/5 bg-slate-950/95' : 'border-slate-200 bg-white/95'} backdrop-blur-xl`}> 
+            <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col gap-4 text-sm">
+              {combinedLinks.map((link) => (
+                link.type === 'anchor' ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={closeMobileMenu}
+                    className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    onClick={closeMobileMenu}
+                    className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              ))}
+              <Link href="/login" onClick={closeMobileMenu} className={`${palette.loginLink} ${palette.loginLinkHover} transition-colors`}>
+                Login
+              </Link>
+              <Link href="/register" onClick={closeMobileMenu}>
+                <Button color="primary" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 font-semibold">
+                  Start Trial
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
-      <main className={`relative z-10 ${mainClassName}`}>
+      <main className={`relative z-10 flex-1 ${mainClassName}`}>
         {children}
       </main>
 

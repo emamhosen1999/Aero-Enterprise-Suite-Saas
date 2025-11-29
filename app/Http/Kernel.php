@@ -70,5 +70,6 @@ class Kernel extends HttpKernel
         // Module Permission Registry Middleware
         'module' => \App\Http\Middleware\CheckModuleAccess::class,
         // Device auth is now global middleware - no need for alias
+        'platform.domain' => \App\Http\Middleware\EnsurePlatformDomain::class,
     ];
 }
