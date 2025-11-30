@@ -104,32 +104,42 @@ const getThemeRadius = () => {
   return 'xl';
 };
 
-// Consistent card styling
+// Consistent card styling - matches tenant dashboard
 const getCardStyle = (accentColor = 'var(--theme-primary)') => ({
-  border: `var(--borderWidth, 2px) solid color-mix(in srgb, ${accentColor} 15%, transparent)`,
+  border: `var(--borderWidth, 2px) solid transparent`,
   borderRadius: `var(--borderRadius, 12px)`,
   fontFamily: `var(--fontFamily, "Inter")`,
   background: `linear-gradient(135deg, 
-    color-mix(in srgb, ${accentColor} 6%, var(--theme-content1)) 0%, 
-    color-mix(in srgb, ${accentColor} 3%, var(--theme-content2)) 50%,
-    color-mix(in srgb, var(--theme-secondary) 4%, var(--theme-content1)) 100%)`,
-  boxShadow: `0 4px 20px color-mix(in srgb, ${accentColor} 8%, transparent)`,
+    var(--theme-content1, #FAFAFA) 20%, 
+    var(--theme-content2, #F4F4F5) 10%, 
+    var(--theme-content3, #F1F3F4) 20%)`,
+  boxShadow: `0 4px 12px rgba(0, 0, 0, 0.05)`,
+});
+
+// Card style with accent border (for highlighted cards)
+const getAccentCardStyle = (accentColor = 'var(--theme-primary)') => ({
+  border: `var(--borderWidth, 2px) solid color-mix(in srgb, ${accentColor} 25%, transparent)`,
+  borderRadius: `var(--borderRadius, 12px)`,
+  fontFamily: `var(--fontFamily, "Inter")`,
+  background: `linear-gradient(135deg, 
+    var(--theme-content1, #FAFAFA) 20%, 
+    var(--theme-content2, #F4F4F5) 10%, 
+    var(--theme-content3, #F1F3F4) 20%)`,
+  boxShadow: `0 4px 12px rgba(0, 0, 0, 0.05)`,
 });
 
 const getHeaderStyle = (accentColor = 'var(--theme-primary)') => ({
-  borderColor: `color-mix(in srgb, ${accentColor} 12%, var(--theme-divider))`,
-  background: `linear-gradient(135deg, 
-    color-mix(in srgb, var(--theme-content1) 70%, transparent) 0%, 
-    color-mix(in srgb, var(--theme-content2) 50%, transparent) 100%)`,
+  borderColor: `var(--theme-divider)`,
+  background: `transparent`,
 });
 
 const getItemStyle = (accentColor = 'var(--theme-primary)') => ({
   borderRadius: `var(--borderRadius, 12px)`,
-  border: `var(--borderWidth, 1px) solid color-mix(in srgb, ${accentColor} 12%, var(--theme-divider))`,
+  border: `var(--borderWidth, 1px) solid color-mix(in srgb, ${accentColor} 15%, var(--theme-divider))`,
   background: `linear-gradient(135deg, 
-    color-mix(in srgb, var(--theme-content1) 90%, transparent) 0%, 
-    color-mix(in srgb, ${accentColor} 4%, var(--theme-content2)) 100%)`,
-  boxShadow: `0 2px 8px color-mix(in srgb, ${accentColor} 5%, transparent)`,
+    var(--theme-content1, #FAFAFA) 0%, 
+    var(--theme-content2, #F4F4F5) 100%)`,
+  boxShadow: `0 2px 6px rgba(0, 0, 0, 0.04)`,
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -261,66 +271,66 @@ const DiagonalAccent = ({ color = 'var(--theme-primary)' }) => (
 const PlatformStatusHero = ({ stats, loading, themeRadius }) => (
   <Card className="relative overflow-hidden" style={getCardStyle('var(--theme-primary)')}>
     <DiagonalAccent color="var(--theme-primary)" />
-    <CardHeader className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b p-6" style={getHeaderStyle()}>
-      <div className="flex items-center gap-4">
+    <CardHeader className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 border-b p-4 sm:p-6" style={getHeaderStyle()}>
+      <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
         <div 
-          className="p-3"
+          className="p-2.5 sm:p-3 flex-shrink-0"
           style={{
             borderRadius: `var(--borderRadius, 12px)`,
             background: `linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%)`,
           }}
         >
-          <ServerStackIcon className="h-8 w-8 text-white" />
+          <ServerStackIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
         </div>
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-foreground">Platform Command Center</h1>
-            <Chip color="success" variant="flat" size="sm" startContent={<SignalIcon className="h-3 w-3" />}>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground truncate">Platform Command Center</h1>
+            <Chip color="success" variant="flat" size="sm" startContent={<SignalIcon className="h-3 w-3" />} className="flex-shrink-0">
               All Systems Operational
             </Chip>
           </div>
-          <p className="text-sm text-default-500">
+          <p className="text-xs sm:text-sm text-default-500 truncate">
             Multi-tenant operations suite · Last sync: {new Date().toLocaleTimeString()}
           </p>
         </div>
       </div>
-      <div className="flex gap-2 flex-wrap">
-        <Button as={Link} href={route('admin.analytics.index')} color="primary" radius={themeRadius} startContent={<ChartBarIcon className="h-4 w-4" />}>
+      <div className="flex gap-2 flex-wrap flex-shrink-0">
+        <Button as={Link} href={route('admin.analytics.index')} color="primary" radius={themeRadius} size="sm" className="sm:size-md" startContent={<ChartBarIcon className="h-4 w-4" />}>
           Analytics
         </Button>
-        <Button variant="bordered" radius={themeRadius} startContent={<DocumentArrowDownIcon className="h-4 w-4" />}>
+        <Button variant="bordered" radius={themeRadius} size="sm" className="sm:size-md" startContent={<DocumentArrowDownIcon className="h-4 w-4" />}>
           Export Report
         </Button>
       </div>
     </CardHeader>
-    <CardBody className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6">
+    <CardBody className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6">
       {loading ? (
-        Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)
+        Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-20 sm:h-24 rounded-xl" />)
       ) : (
         <>
-          <div className="p-4 text-center" style={getItemStyle()}>
-            <p className="text-xs text-default-500 uppercase tracking-wide mb-1">Active Tenants</p>
-            <p className="text-3xl font-bold text-foreground">{stats.activeTenants}</p>
-            <p className="text-xs text-success flex items-center justify-center gap-1 mt-1">
-              <ArrowTrendingUpIcon className="h-3 w-3" /> +6 this week
+          <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
+            <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Active Tenants</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.activeTenants}</p>
+            <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
+              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span className="truncate">+6 this week</span>
             </p>
           </div>
-          <div className="p-4 text-center" style={getItemStyle()}>
-            <p className="text-xs text-default-500 uppercase tracking-wide mb-1">Active Users</p>
-            <p className="text-3xl font-bold text-foreground">{stats.activeUsers.toLocaleString()}</p>
-            <p className="text-xs text-default-400 mt-1">{((stats.activeUsers/stats.totalUsers)*100).toFixed(1)}% of total</p>
+          <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
+            <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Active Users</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.activeUsers.toLocaleString()}</p>
+            <p className="text-[10px] sm:text-xs text-default-400 mt-1 truncate">{((stats.activeUsers/stats.totalUsers)*100).toFixed(1)}% of total</p>
           </div>
-          <div className="p-4 text-center" style={getItemStyle('var(--theme-success)')}>
-            <p className="text-xs text-default-500 uppercase tracking-wide mb-1">Monthly Revenue</p>
-            <p className="text-3xl font-bold text-success">${(stats.mrr/1000).toFixed(0)}K</p>
-            <p className="text-xs text-success flex items-center justify-center gap-1 mt-1">
-              <ArrowTrendingUpIcon className="h-3 w-3" /> +{stats.mrrGrowth}%
+          <div className="p-3 sm:p-4 text-center" style={getItemStyle('var(--theme-success)')}>
+            <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Monthly Revenue</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-success">${(stats.mrr/1000).toFixed(0)}K</p>
+            <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
+              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span>+{stats.mrrGrowth}%</span>
             </p>
           </div>
-          <div className="p-4 text-center" style={getItemStyle()}>
-            <p className="text-xs text-default-500 uppercase tracking-wide mb-1">Platform Uptime</p>
-            <p className="text-3xl font-bold text-foreground">{stats.uptime}%</p>
-            <p className="text-xs text-default-400 mt-1">Last 30 days</p>
+          <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
+            <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Platform Uptime</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.uptime}%</p>
+            <p className="text-[10px] sm:text-xs text-default-400 mt-1 truncate">Last 30 days</p>
           </div>
         </>
       )}
@@ -342,9 +352,9 @@ const KeyMetricsGrid = ({ stats, loading }) => {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       {loading ? (
-        metrics.map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
+        metrics.map((_, i) => <Skeleton key={i} className="h-24 sm:h-28 rounded-xl" />)
       ) : (
         metrics.map((metric) => (
           <motion.div
@@ -355,28 +365,29 @@ const KeyMetricsGrid = ({ stats, loading }) => {
             transition={{ duration: 0.2 }}
           >
             <Card className="relative overflow-hidden h-full" style={getCardStyle(metric.color)}>
-              <CardBody className="p-4">
-                <div className="flex items-start justify-between mb-3">
+              <CardBody className="p-3 sm:p-4">
+                <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
                   <div 
-                    className="p-2"
+                    className="p-1.5 sm:p-2 flex-shrink-0"
                     style={{
                       borderRadius: `var(--borderRadius, 8px)`,
                       background: `color-mix(in srgb, ${metric.color} 15%, transparent)`,
                     }}
                   >
-                    <metric.icon className="h-5 w-5" style={{ color: metric.color }} />
+                    <metric.icon className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: metric.color }} />
                   </div>
                   <Chip 
                     size="sm" 
                     variant="flat" 
+                    className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2"
                     color={metric.trend === 'up' ? 'success' : metric.trend === 'down' && metric.label === 'Churn Rate' ? 'success' : 'danger'}
-                    startContent={metric.trend === 'up' ? <ArrowTrendingUpIcon className="h-3 w-3" /> : <ArrowTrendingDownIcon className="h-3 w-3" />}
+                    startContent={metric.trend === 'up' ? <ArrowTrendingUpIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <ArrowTrendingDownIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
                   >
                     {metric.change}
                   </Chip>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{metric.value}{metric.suffix}</p>
-                <p className="text-xs text-default-500 mt-1">{metric.label}</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground truncate">{metric.value}{metric.suffix}</p>
+                <p className="text-[10px] sm:text-xs text-default-500 mt-1 truncate">{metric.label}</p>
               </CardBody>
             </Card>
           </motion.div>
@@ -389,42 +400,42 @@ const KeyMetricsGrid = ({ stats, loading }) => {
 // Module Usage Grid
 const ModuleUsageCard = ({ modules, loading, themeRadius }) => (
   <Card style={getCardStyle()}>
-    <CardHeader className="flex items-center justify-between border-b p-4" style={getHeaderStyle()}>
-      <div>
-        <p className="text-xs uppercase tracking-wide text-default-500">Module Adoption</p>
-        <h3 className="text-lg font-semibold text-foreground">Active Modules by Tenant</h3>
+    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b p-3 sm:p-4" style={getHeaderStyle()}>
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Module Adoption</p>
+        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Active Modules by Tenant</h3>
       </div>
-      <Button as={Link} href={route('admin.modules.index')} size="sm" variant="flat" color="primary" radius={themeRadius}>
+      <Button as={Link} href={route('admin.modules.index')} size="sm" variant="flat" color="primary" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
         Manage Modules
       </Button>
     </CardHeader>
-    <CardBody className="p-4">
+    <CardBody className="p-3 sm:p-4">
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {Array(12).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+          {Array(12).fill(0).map((_, i) => <Skeleton key={i} className="h-16 sm:h-20 rounded-lg" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
           {modules.map((module) => (
             <motion.div
               key={module.id}
               whileHover={{ scale: 1.03 }}
-              className="p-3 cursor-pointer transition-all"
+              className="p-2 sm:p-3 cursor-pointer transition-all"
               style={getItemStyle(module.color)}
             >
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
                 <div 
-                  className="p-2 rounded-lg"
+                  className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
                   style={{ background: `color-mix(in srgb, ${module.color} 15%, transparent)` }}
                 >
-                  <module.icon className="h-4 w-4" style={{ color: module.color }} />
+                  <module.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: module.color }} />
                 </div>
                 {module.status === 'beta' && (
-                  <Chip size="sm" color="warning" variant="flat">Beta</Chip>
+                  <Chip size="sm" color="warning" variant="flat" className="text-[10px] px-1.5">Beta</Chip>
                 )}
               </div>
-              <p className="text-sm font-medium text-foreground truncate">{module.name}</p>
-              <p className="text-xs text-default-500">{module.activeCount} tenants</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground truncate" title={module.name}>{module.name}</p>
+              <p className="text-[10px] sm:text-xs text-default-500">{module.activeCount} tenants</p>
             </motion.div>
           ))}
         </div>
@@ -440,45 +451,45 @@ const SubscriptionDistributionCard = ({ plans, loading, themeRadius }) => {
 
   return (
     <Card style={getCardStyle('var(--theme-success)')}>
-      <CardHeader className="border-b p-4" style={getHeaderStyle('var(--theme-success)')}>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-default-500">Revenue Distribution</p>
-          <h3 className="text-lg font-semibold text-foreground">Subscription Plans</h3>
+      <CardHeader className="border-b p-3 sm:p-4" style={getHeaderStyle('var(--theme-success)')}>
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Revenue Distribution</p>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Subscription Plans</h3>
         </div>
       </CardHeader>
-      <CardBody className="p-4 space-y-4">
+      <CardBody className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {loading ? (
-          Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)
+          Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-14 sm:h-16 rounded-lg" />)
         ) : (
           plans.map((plan) => (
-            <div key={plan.name} className="p-3 transition-all hover:scale-[1.01]" style={getItemStyle(plan.color)}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
+            <div key={plan.name} className="p-2 sm:p-3 transition-all hover:scale-[1.01]" style={getItemStyle(plan.color)}>
+              <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-2 mb-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div 
-                    className="w-3 h-3 rounded-full" 
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" 
                     style={{ background: plan.color }}
                   />
-                  <span className="font-medium text-foreground">{plan.name}</span>
-                  <Chip size="sm" variant="flat">${plan.price}/mo</Chip>
+                  <span className="font-medium text-foreground text-xs sm:text-sm truncate">{plan.name}</span>
+                  <Chip size="sm" variant="flat" className="hidden sm:flex text-[10px] px-1.5">${plan.price}/mo</Chip>
                 </div>
-                <span className="text-sm font-semibold text-foreground">{plan.count} tenants</span>
+                <span className="text-xs sm:text-sm font-semibold text-foreground flex-shrink-0">{plan.count} tenants</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Progress 
                   value={(plan.mrr / totalMrr) * 100} 
                   color="primary"
-                  className="flex-1 h-2"
+                  className="flex-1 h-1.5 sm:h-2"
                   style={{ '--progress-color': plan.color }}
                 />
-                <span className="text-sm text-default-500 w-20 text-right">
-                  ${(plan.mrr/1000).toFixed(0)}K MRR
+                <span className="text-[10px] sm:text-sm text-default-500 w-16 sm:w-20 text-right flex-shrink-0">
+                  ${(plan.mrr/1000).toFixed(0)}K
                 </span>
               </div>
             </div>
           ))
         )}
         <Divider />
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-xs sm:text-sm">
           <span className="text-default-500">Total: {totalCount} tenants</span>
           <span className="font-semibold text-success">${(totalMrr/1000).toFixed(0)}K MRR</span>
         </div>
@@ -490,33 +501,34 @@ const SubscriptionDistributionCard = ({ plans, loading, themeRadius }) => {
 // Geographic Distribution
 const GeographicDistributionCard = ({ regions, loading }) => (
   <Card style={getCardStyle('var(--theme-secondary)')}>
-    <CardHeader className="border-b p-4" style={getHeaderStyle('var(--theme-secondary)')}>
-      <div>
-        <p className="text-xs uppercase tracking-wide text-default-500">Geographic Reach</p>
-        <h3 className="text-lg font-semibold text-foreground">Tenants by Region</h3>
+    <CardHeader className="border-b p-3 sm:p-4" style={getHeaderStyle('var(--theme-secondary)')}>
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Geographic Reach</p>
+        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Tenants by Region</h3>
       </div>
     </CardHeader>
-    <CardBody className="p-4 space-y-3">
+    <CardBody className="p-3 sm:p-4 space-y-2 sm:space-y-3">
       {loading ? (
-        Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)
+        Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-10 sm:h-12 rounded-lg" />)
       ) : (
         regions.map((region) => (
-          <div key={region.region} className="flex items-center gap-4 p-2 transition-all hover:bg-content2/50 rounded-lg">
-            <div className="w-24 flex-shrink-0">
-              <p className="text-sm font-medium text-foreground">{region.region}</p>
+          <div key={region.region} className="flex items-center gap-2 sm:gap-4 p-1.5 sm:p-2 transition-all hover:bg-content2/50 rounded-lg">
+            <div className="w-16 sm:w-24 flex-shrink-0">
+              <p className="text-xs sm:text-sm font-medium text-foreground truncate" title={region.region}>{region.region}</p>
             </div>
             <Progress 
               value={region.percentage} 
               color="secondary"
-              className="flex-1 h-2"
+              className="flex-1 h-1.5 sm:h-2"
             />
-            <div className="flex items-center gap-3 text-sm">
-              <span className="text-default-500 w-12 text-right">{region.count}</span>
+            <div className="flex items-center gap-1.5 sm:gap-3 text-xs sm:text-sm flex-shrink-0">
+              <span className="text-default-500 w-8 sm:w-12 text-right">{region.count}</span>
               <Chip 
                 size="sm" 
                 variant="flat" 
                 color="success"
-                startContent={<ArrowTrendingUpIcon className="h-3 w-3" />}
+                className="text-[10px] sm:text-xs px-1 sm:px-2"
+                startContent={<ArrowTrendingUpIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
               >
                 {region.growth}%
               </Chip>
@@ -542,28 +554,28 @@ const RecentTenantsCard = ({ tenants, loading, themeRadius }) => {
 
   return (
     <Card style={getCardStyle()}>
-      <CardHeader className="flex items-center justify-between border-b p-4" style={getHeaderStyle()}>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-default-500">Recent Activity</p>
-          <h3 className="text-lg font-semibold text-foreground">New Tenants</h3>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b p-3 sm:p-4" style={getHeaderStyle()}>
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Recent Activity</p>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground">New Tenants</h3>
         </div>
-        <Button as={Link} href={route('admin.tenants.index')} size="sm" variant="flat" color="primary" radius={themeRadius}>
+        <Button as={Link} href={route('admin.tenants.index')} size="sm" variant="flat" color="primary" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
           View All
         </Button>
       </CardHeader>
       <CardBody className="p-0">
         {loading ? (
-          <div className="p-4 space-y-3">
-            {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+          <div className="p-3 sm:p-4 space-y-3">
+            {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-14 sm:h-16 rounded-lg" />)}
           </div>
         ) : (
           <div className="divide-y divide-divider">
             {tenants.map((tenant) => (
               <div 
                 key={tenant.id} 
-                className="flex items-center justify-between p-4 hover:bg-content2/30 transition-colors cursor-pointer"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 hover:bg-content2/30 transition-colors cursor-pointer"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <Avatar 
                     name={tenant.name} 
                     size="sm" 
@@ -573,17 +585,17 @@ const RecentTenantsCard = ({ tenants, loading, themeRadius }) => {
                       color: 'white',
                     }}
                   />
-                  <div>
-                    <p className="font-medium text-foreground">{tenant.name}</p>
-                    <p className="text-xs text-default-500">{tenant.domain}.aeos365.com · {tenant.createdAt}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm sm:text-base font-medium text-foreground truncate">{tenant.name}</p>
+                    <p className="text-[10px] sm:text-xs text-default-500 truncate">{tenant.domain}.aeos365.com · {tenant.createdAt}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Chip size="sm" variant="flat" color={getStatusColor(tenant.status)}>
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap flex-shrink-0 ml-8 sm:ml-0">
+                  <Chip size="sm" variant="flat" color={getStatusColor(tenant.status)} className="text-[10px] sm:text-xs">
                     {tenant.status}
                   </Chip>
-                  <Chip size="sm" variant="bordered">{tenant.plan}</Chip>
-                  <span className="text-sm text-default-500">{tenant.users} users</span>
+                  <Chip size="sm" variant="bordered" className="text-[10px] sm:text-xs">{tenant.plan}</Chip>
+                  <span className="text-xs sm:text-sm text-default-500">{tenant.users} users</span>
                 </div>
               </div>
             ))}
@@ -604,9 +616,9 @@ const SystemHealthCard = ({ health, loading, themeRadius }) => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'healthy': return <CheckCircleSolidIcon className="h-4 w-4 text-success" />;
-      case 'warning': return <ExclamationTriangleSolidIcon className="h-4 w-4 text-warning" />;
-      case 'critical': return <XCircleSolidIcon className="h-4 w-4 text-danger" />;
+      case 'healthy': return <CheckCircleSolidIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-success" />;
+      case 'warning': return <ExclamationTriangleSolidIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning" />;
+      case 'critical': return <XCircleSolidIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-danger" />;
       default: return null;
     }
   };
@@ -620,53 +632,53 @@ const SystemHealthCard = ({ health, loading, themeRadius }) => {
 
   return (
     <Card style={getCardStyle('var(--theme-warning)')}>
-      <CardHeader className="flex items-center justify-between border-b p-4" style={getHeaderStyle('var(--theme-warning)')}>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-default-500">Infrastructure</p>
-          <h3 className="text-lg font-semibold text-foreground">System Health</h3>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b p-3 sm:p-4" style={getHeaderStyle('var(--theme-warning)')}>
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Infrastructure</p>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">System Health</h3>
         </div>
-        <Button as={Link} href="/admin/infrastructure" size="sm" variant="flat" color="warning" radius={themeRadius}>
+        <Button as={Link} href="/admin/infrastructure" size="sm" variant="flat" color="warning" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
           View Details
         </Button>
       </CardHeader>
-      <CardBody className="p-4 space-y-4">
+      <CardBody className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {loading ? (
           <>
-            <div className="grid grid-cols-4 gap-4">
-              {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+              {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-16 sm:h-20 rounded-lg" />)}
             </div>
             <Divider />
             <div className="space-y-2">
-              {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)}
+              {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-8 sm:h-10 rounded-lg" />)}
             </div>
           </>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
               {resources.map((resource) => (
-                <div key={resource.label} className="text-center p-3" style={getItemStyle()}>
+                <div key={resource.label} className="text-center p-2 sm:p-3" style={getItemStyle()}>
                   <CircularProgress
                     value={resource.value}
                     color={getHealthColor(resource.value)}
-                    size="lg"
+                    size="md"
                     showValueLabel
                     classNames={{
-                      value: "text-lg font-semibold",
+                      value: "text-sm sm:text-lg font-semibold",
                     }}
                   />
-                  <p className="text-xs text-default-500 mt-2">{resource.label}</p>
+                  <p className="text-[10px] sm:text-xs text-default-500 mt-1 sm:mt-2">{resource.label}</p>
                 </div>
               ))}
             </div>
             <Divider />
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               {health.services.slice(0, 4).map((service) => (
-                <div key={service.name} className="flex items-center justify-between p-2 rounded-lg hover:bg-content2/50 transition-colors">
-                  <div className="flex items-center gap-2">
+                <div key={service.name} className="flex items-center justify-between p-1.5 sm:p-2 rounded-lg hover:bg-content2/50 transition-colors">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     {getStatusIcon(service.status)}
-                    <span className="text-sm text-foreground">{service.name}</span>
+                    <span className="text-xs sm:text-sm text-foreground truncate">{service.name}</span>
                   </div>
-                  <span className="text-xs text-default-500">{service.latency}</span>
+                  <span className="text-[10px] sm:text-xs text-default-500 flex-shrink-0">{service.latency}</span>
                 </div>
               ))}
             </div>
@@ -690,27 +702,27 @@ const AlertsCard = ({ alerts, loading, themeRadius }) => {
 
   return (
     <Card style={getCardStyle('var(--theme-danger)')}>
-      <CardHeader className="flex items-center justify-between border-b p-4" style={getHeaderStyle('var(--theme-danger)')}>
-        <div className="flex items-center gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-default-500">Monitoring</p>
-            <h3 className="text-lg font-semibold text-foreground">Active Alerts</h3>
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b p-3 sm:p-4" style={getHeaderStyle('var(--theme-danger)')}>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Monitoring</p>
+            <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Active Alerts</h3>
           </div>
           <Badge content={alerts.length} color="danger" size="sm">
-            <BellAlertIcon className="h-5 w-5 text-default-400" />
+            <BellAlertIcon className="h-4 w-4 sm:h-5 sm:w-5 text-default-400" />
           </Badge>
         </div>
-        <Button size="sm" variant="flat" color="danger" radius={themeRadius}>
+        <Button size="sm" variant="flat" color="danger" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
           View All
         </Button>
       </CardHeader>
-      <CardBody className="p-4 space-y-3">
+      <CardBody className="p-3 sm:p-4 space-y-2 sm:space-y-3">
         {loading ? (
-          Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
+          Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-16 sm:h-20 rounded-lg" />)
         ) : alerts.length === 0 ? (
-          <div className="text-center py-8">
-            <CheckCircleSolidIcon className="h-12 w-12 text-success mx-auto mb-2" />
-            <p className="text-default-500">No active alerts</p>
+          <div className="text-center py-6 sm:py-8">
+            <CheckCircleSolidIcon className="h-10 w-10 sm:h-12 sm:w-12 text-success mx-auto mb-2" />
+            <p className="text-default-500 text-sm">No active alerts</p>
           </div>
         ) : (
           alerts.map((alert) => {
@@ -718,23 +730,23 @@ const AlertsCard = ({ alerts, loading, themeRadius }) => {
             return (
               <div 
                 key={alert.id} 
-                className="p-3 transition-all hover:scale-[1.01]"
+                className="p-2 sm:p-3 transition-all hover:scale-[1.01]"
                 style={getItemStyle(config.bg)}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 sm:gap-3">
                   <div 
-                    className="p-2 rounded-lg flex-shrink-0"
+                    className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
                     style={{ background: `color-mix(in srgb, ${config.bg} 15%, transparent)` }}
                   >
-                    <config.icon className="h-4 w-4" style={{ color: config.bg }} />
+                    <config.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: config.bg }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-foreground text-sm">{alert.title}</p>
-                      <Chip size="sm" color={config.color} variant="flat">{alert.severity}</Chip>
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                      <p className="font-medium text-foreground text-xs sm:text-sm truncate max-w-[180px] sm:max-w-none">{alert.title}</p>
+                      <Chip size="sm" color={config.color} variant="flat" className="text-[10px] px-1.5 flex-shrink-0">{alert.severity}</Chip>
                     </div>
-                    <p className="text-xs text-default-500">{alert.description}</p>
-                    <p className="text-xs text-default-400 mt-1">{alert.time}</p>
+                    <p className="text-[10px] sm:text-xs text-default-500 line-clamp-2">{alert.description}</p>
+                    <p className="text-[10px] sm:text-xs text-default-400 mt-1">{alert.time}</p>
                   </div>
                 </div>
               </div>
@@ -749,14 +761,14 @@ const AlertsCard = ({ alerts, loading, themeRadius }) => {
 // Quick Actions Card
 const QuickActionsCard = ({ actions, themeRadius }) => (
   <Card style={getCardStyle()}>
-    <CardHeader className="border-b p-4" style={getHeaderStyle()}>
-      <div>
-        <p className="text-xs uppercase tracking-wide text-default-500">Shortcuts</p>
-        <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
+    <CardHeader className="border-b p-3 sm:p-4" style={getHeaderStyle()}>
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Shortcuts</p>
+        <h3 className="text-base sm:text-lg font-semibold text-foreground">Quick Actions</h3>
       </div>
     </CardHeader>
-    <CardBody className="p-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    <CardBody className="p-3 sm:p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         {actions.map((action) => (
           <Button
             key={action.label}
@@ -765,10 +777,10 @@ const QuickActionsCard = ({ actions, themeRadius }) => (
             variant="flat"
             color={action.color}
             radius={themeRadius}
-            className="h-auto py-4 flex-col gap-2"
-            startContent={<action.icon className="h-6 w-6" />}
+            className="h-auto py-3 sm:py-4 flex-col gap-1.5 sm:gap-2 text-xs sm:text-sm"
+            startContent={<action.icon className="h-5 w-5 sm:h-6 sm:w-6" />}
           >
-            {action.label}
+            <span className="truncate max-w-full">{action.label}</span>
           </Button>
         ))}
       </div>
@@ -779,35 +791,35 @@ const QuickActionsCard = ({ actions, themeRadius }) => (
 // Recent Activity Card
 const RecentActivityCard = ({ activities, loading, themeRadius }) => (
   <Card style={getCardStyle()}>
-    <CardHeader className="flex items-center justify-between border-b p-4" style={getHeaderStyle()}>
-      <div>
-        <p className="text-xs uppercase tracking-wide text-default-500">Timeline</p>
-        <h3 className="text-lg font-semibold text-foreground">Recent Activity</h3>
+    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b p-3 sm:p-4" style={getHeaderStyle()}>
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Timeline</p>
+        <h3 className="text-base sm:text-lg font-semibold text-foreground">Recent Activity</h3>
       </div>
-      <Button size="sm" variant="flat" color="primary" radius={themeRadius}>
+      <Button size="sm" variant="flat" color="primary" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
         View All
       </Button>
     </CardHeader>
-    <CardBody className="p-4">
+    <CardBody className="p-3 sm:p-4">
       {loading ? (
-        <div className="space-y-4">
-          {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
+        <div className="space-y-3 sm:space-y-4">
+          {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-10 sm:h-12 rounded-lg" />)}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {activities.map((activity, index) => (
-            <div key={index} className="flex items-start gap-3">
+            <div key={index} className="flex items-start gap-2 sm:gap-3">
               <div 
-                className="p-2 rounded-lg flex-shrink-0"
+                className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
                 style={{ 
                   background: `color-mix(in srgb, var(--theme-${activity.color}) 15%, transparent)` 
                 }}
               >
-                <activity.icon className="h-4 w-4" style={{ color: `var(--theme-${activity.color})` }} />
+                <activity.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" style={{ color: `var(--theme-${activity.color})` }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground">{activity.message}</p>
-                <p className="text-xs text-default-400">{activity.time}</p>
+                <p className="text-xs sm:text-sm text-foreground line-clamp-2">{activity.message}</p>
+                <p className="text-[10px] sm:text-xs text-default-400">{activity.time}</p>
               </div>
             </div>
           ))}
@@ -820,51 +832,51 @@ const RecentActivityCard = ({ activities, loading, themeRadius }) => (
 // Billing Overview Card
 const BillingOverviewCard = ({ billing, loading, themeRadius }) => (
   <Card style={getCardStyle('var(--theme-success)')}>
-    <CardHeader className="flex items-center justify-between border-b p-4" style={getHeaderStyle('var(--theme-success)')}>
-      <div>
-        <p className="text-xs uppercase tracking-wide text-default-500">Financials</p>
-        <h3 className="text-lg font-semibold text-foreground">Billing Overview</h3>
+    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b p-3 sm:p-4" style={getHeaderStyle('var(--theme-success)')}>
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Financials</p>
+        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Billing Overview</h3>
       </div>
-      <Button as={Link} href="/admin/billing" size="sm" variant="flat" color="success" radius={themeRadius}>
+      <Button as={Link} href="/admin/billing" size="sm" variant="flat" color="success" radius={themeRadius} className="flex-shrink-0 w-full sm:w-auto">
         Billing Portal
       </Button>
     </CardHeader>
-    <CardBody className="p-4">
+    <CardBody className="p-3 sm:p-4">
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+          {Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-14 sm:h-16 rounded-lg" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="p-3 text-center" style={getItemStyle('var(--theme-success)')}>
-            <CurrencyDollarIcon className="h-5 w-5 mx-auto mb-1 text-success" />
-            <p className="text-lg font-bold text-success">${(billing.totalRevenue/1000000).toFixed(2)}M</p>
-            <p className="text-xs text-default-500">Total Revenue (YTD)</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+          <div className="p-2 sm:p-3 text-center" style={getItemStyle('var(--theme-success)')}>
+            <CurrencyDollarIcon className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-success" />
+            <p className="text-sm sm:text-lg font-bold text-success">${(billing.totalRevenue/1000000).toFixed(2)}M</p>
+            <p className="text-[10px] sm:text-xs text-default-500 truncate">Total Revenue (YTD)</p>
           </div>
-          <div className="p-3 text-center" style={getItemStyle('var(--theme-warning)')}>
-            <ClockIcon className="h-5 w-5 mx-auto mb-1 text-warning" />
-            <p className="text-lg font-bold text-warning">${(billing.pendingPayments/1000).toFixed(1)}K</p>
-            <p className="text-xs text-default-500">Pending Payments</p>
+          <div className="p-2 sm:p-3 text-center" style={getItemStyle('var(--theme-warning)')}>
+            <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-warning" />
+            <p className="text-sm sm:text-lg font-bold text-warning">${(billing.pendingPayments/1000).toFixed(1)}K</p>
+            <p className="text-[10px] sm:text-xs text-default-500 truncate">Pending Payments</p>
           </div>
-          <div className="p-3 text-center" style={getItemStyle('var(--theme-danger)')}>
-            <ExclamationTriangleIcon className="h-5 w-5 mx-auto mb-1 text-danger" />
-            <p className="text-lg font-bold text-danger">${(billing.failedPayments/1000).toFixed(1)}K</p>
-            <p className="text-xs text-default-500">Failed Payments</p>
+          <div className="p-2 sm:p-3 text-center" style={getItemStyle('var(--theme-danger)')}>
+            <ExclamationTriangleIcon className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-danger" />
+            <p className="text-sm sm:text-lg font-bold text-danger">${(billing.failedPayments/1000).toFixed(1)}K</p>
+            <p className="text-[10px] sm:text-xs text-default-500 truncate">Failed Payments</p>
           </div>
-          <div className="p-3 text-center" style={getItemStyle()}>
-            <DocumentTextIcon className="h-5 w-5 mx-auto mb-1 text-primary" />
-            <p className="text-lg font-bold text-foreground">{billing.invoicesPending}</p>
-            <p className="text-xs text-default-500">Pending Invoices</p>
+          <div className="p-2 sm:p-3 text-center" style={getItemStyle()}>
+            <DocumentTextIcon className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-primary" />
+            <p className="text-sm sm:text-lg font-bold text-foreground">{billing.invoicesPending}</p>
+            <p className="text-[10px] sm:text-xs text-default-500 truncate">Pending Invoices</p>
           </div>
-          <div className="p-3 text-center" style={getItemStyle('var(--theme-danger)')}>
-            <BellAlertIcon className="h-5 w-5 mx-auto mb-1 text-danger" />
-            <p className="text-lg font-bold text-danger">{billing.invoicesOverdue}</p>
-            <p className="text-xs text-default-500">Overdue Invoices</p>
+          <div className="p-2 sm:p-3 text-center" style={getItemStyle('var(--theme-danger)')}>
+            <BellAlertIcon className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-danger" />
+            <p className="text-sm sm:text-lg font-bold text-danger">{billing.invoicesOverdue}</p>
+            <p className="text-[10px] sm:text-xs text-default-500 truncate">Overdue Invoices</p>
           </div>
-          <div className="p-3 text-center" style={getItemStyle()}>
-            <ArrowPathIcon className="h-5 w-5 mx-auto mb-1 text-default-500" />
-            <p className="text-lg font-bold text-foreground">${(billing.refunds/1000).toFixed(1)}K</p>
-            <p className="text-xs text-default-500">Refunds (30d)</p>
+          <div className="p-2 sm:p-3 text-center" style={getItemStyle()}>
+            <ArrowPathIcon className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-default-500" />
+            <p className="text-sm sm:text-lg font-bold text-foreground">${(billing.refunds/1000).toFixed(1)}K</p>
+            <p className="text-[10px] sm:text-xs text-default-500 truncate">Refunds (30d)</p>
           </div>
         </div>
       )}
@@ -932,7 +944,7 @@ const Dashboard = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="w-full h-full p-4 md:p-6 space-y-6"
+        className="w-full h-full p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6"
       >
         {/* Platform Status Hero */}
         <motion.div variants={itemVariants}>
@@ -946,7 +958,7 @@ const Dashboard = () => {
 
         {/* Two Column Layout: Modules + Subscriptions */}
         <motion.div variants={itemVariants}>
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <ModuleUsageCard modules={modules} loading={loading} themeRadius={themeRadius} />
             </div>
@@ -958,11 +970,11 @@ const Dashboard = () => {
 
         {/* Three Column Layout: Recent Tenants + System Health + Alerts */}
         <motion.div variants={itemVariants}>
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <RecentTenantsCard tenants={recentTenants} loading={loading} themeRadius={themeRadius} />
             </div>
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <SystemHealthCard health={systemHealth} loading={loading} themeRadius={themeRadius} />
             </div>
           </div>
@@ -970,7 +982,7 @@ const Dashboard = () => {
 
         {/* Three Column Layout: Geographic + Billing + Quick Actions */}
         <motion.div variants={itemVariants}>
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             <GeographicDistributionCard regions={tenantsByRegion} loading={loading} />
             <BillingOverviewCard billing={billingOverview} loading={loading} themeRadius={themeRadius} />
             <QuickActionsCard actions={quickActions} themeRadius={themeRadius} />
@@ -979,7 +991,7 @@ const Dashboard = () => {
 
         {/* Two Column Layout: Alerts + Activity */}
         <motion.div variants={itemVariants}>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
             <AlertsCard alerts={alerts} loading={loading} themeRadius={themeRadius} />
             <RecentActivityCard activities={recentActivity} loading={loading} themeRadius={themeRadius} />
           </div>
