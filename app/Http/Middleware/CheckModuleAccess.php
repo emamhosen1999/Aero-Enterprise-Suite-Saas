@@ -53,7 +53,7 @@ class CheckModuleAccess
                 ], 401);
             }
 
-            return redirect()->route('login');
+            return redirect('/login');
         }
 
         $user = Auth::user();

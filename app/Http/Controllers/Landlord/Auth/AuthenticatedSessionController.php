@@ -9,6 +9,7 @@ use App\Models\LandlordUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -33,7 +34,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
-        return Inertia::render('Landlord/Auth/Login', [
+        return Inertia::render('Admin/Auth/Login', [
             'canResetPassword' => true,
             'status' => session('status'),
         ]);
@@ -83,11 +84,12 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // Record login event
+        /** @var \App\Models\LandlordUser $user */
         $user = Auth::guard('landlord')->user();
         $user->recordLogin($request->ip());
 
         // Log the successful login
-        \Log::info('Landlord user logged in', [
+        Log::info('Landlord user logged in', [
             'user_id' => $user->id,
             'email' => $user->email,
             'ip' => $request->ip(),
@@ -105,7 +107,7 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::guard('landlord')->user();
 
         if ($user) {
-            \Log::info('Landlord user logged out', [
+            Log::info('Landlord user logged out', [
                 'user_id' => $user->id,
                 'email' => $user->email,
             ]);

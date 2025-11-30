@@ -58,3 +58,11 @@ Route::get('/legal/cookies', fn () => Inertia::render('Public/Legal/Cookies'))->
 Route::get('/legal/security', fn () => Inertia::render('Public/Legal/Security'))->name('legal.security');
 Route::get('/privacy', fn () => redirect('/legal/privacy'));
 Route::get('/terms', fn () => redirect('/legal/terms'));
+
+// Stripe Webhook (must be outside any auth middleware)
+Route::post('/stripe/webhook', [\App\Http\Controllers\Landlord\StripeWebhookController::class, 'handleWebhook'])
+    ->name('stripe.webhook');
+
+// Checkout routes (called from registration flow)
+Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])
+    ->name('platform.checkout');

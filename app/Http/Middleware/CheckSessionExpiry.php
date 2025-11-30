@@ -96,7 +96,7 @@ class CheckSessionExpiry
         if ($request->header('X-Inertia')) {
             return response()->json([
                 'message' => 'Your session has expired. Please login again.',
-                'redirect' => route('login'),
+                'redirect' => '/login',
                 'session_expired' => true,
             ], 419); // 419 Session Expired
         }
@@ -106,12 +106,12 @@ class CheckSessionExpiry
             return response()->json([
                 'message' => 'Session expired.',
                 'error' => 'session_expired',
-                'redirect' => route('login'),
+                'redirect' => '/login',
             ], 419);
         }
 
-        // For regular web requests
-        return redirect()->route('login')
+        // For regular web requests - use relative URL to stay on current domain
+        return redirect('/login')
             ->with('status', 'Your session has expired. Please login again.')
             ->with('session_expired', true);
     }

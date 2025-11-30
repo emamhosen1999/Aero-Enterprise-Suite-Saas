@@ -23,7 +23,7 @@ class CheckPermission
         $authGuard = Auth::guard($guard);
 
         if ($authGuard->guest()) {
-            return redirect()->route('login');
+            return redirect('/login');
         }
 
         $user = $authGuard->user();

@@ -1,14 +1,16 @@
-import React from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
-import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
+import TenantStatusBadge from '@/Components/Admin/TenantStatusBadge.jsx';
+import { Button, Card, CardBody, CardHeader, Chip, Tooltip } from '@heroui/react';
 
 const buildProfile = (tenantId) => ({
   id: tenantId,
   name: 'Waypoint Logistics',
   plan: 'Growth',
-  status: 'Active',
+  status: 'active',
+  maintenance_mode: false,
   seats: 260,
   owner: 'Dana Kingsley',
   region: 'US-EAST',
@@ -27,8 +29,40 @@ const buildProfile = (tenantId) => ({
 });
 
 const TenantsShow = () => {
-  const { tenant, tenantId } = usePage().props;
+  const { tenant, tenantId, platformSettings = {} } = usePage().props;
   const profile = tenant ?? buildProfile(tenantId);
+  const [isImpersonating, setIsImpersonating] = useState(false);
+
+  // Check if impersonation is enabled
+  const adminPreferences = platformSettings.admin_preferences ?? {};
+  const impersonationEnabled = Boolean(adminPreferences.enable_impersonation);
+  const canImpersonate = profile.status === 'active' && impersonationEnabled;
+
+  const handleImpersonate = () => {
+    if (!canImpersonate) return;
+
+    setIsImpersonating(true);
+    router.post(
+      route('admin.tenants.impersonate', profile.id),
+      {},
+      {
+        onError: () => {
+          setIsImpersonating(false);
+        },
+        // Don't reset on success since we'll be redirected
+      }
+    );
+  };
+
+  const getImpersonateTooltip = () => {
+    if (!impersonationEnabled) {
+      return 'Impersonation is disabled in platform settings';
+    }
+    if (profile.status !== 'active') {
+      return 'Cannot impersonate inactive or suspended tenants';
+    }
+    return 'Log in as the tenant admin';
+  };
 
   return (
     <>
@@ -44,14 +78,27 @@ const TenantsShow = () => {
             <Button as={Link} href={route('admin.tenants.edit', profile.id)} variant="bordered">
               Edit tenant
             </Button>
-            <Button color="primary">Impersonate</Button>
+            <Tooltip content={getImpersonateTooltip()} isDisabled={canImpersonate}>
+              <Button
+                color="primary"
+                isDisabled={!canImpersonate}
+                isLoading={isImpersonating}
+                onPress={handleImpersonate}
+              >
+                {isImpersonating ? 'Redirecting...' : 'Impersonate'}
+              </Button>
+            </Tooltip>
           </div>
         </div>
 
         <StatsCards
           stats={[
             { title: 'Plan', value: profile.plan, description: `Renewal ${profile.renewal}` },
-            { title: 'Status', value: profile.status, description: `Region · ${profile.region}` },
+            { 
+              title: 'Status', 
+              value: <TenantStatusBadge status={profile.status} maintenanceMode={profile.maintenance_mode} />, 
+              description: `Region · ${profile.region}` 
+            },
             { title: 'Seats', value: profile.seats, description: 'Licensed users' },
             { title: 'Owner', value: profile.owner, description: `Since ${profile.created_at}` },
           ]}

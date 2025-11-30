@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Auth\ImpersonationController;
 use App\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -22,6 +23,16 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
+    // =========================================================================
+    // IMPERSONATION ROUTES (No auth required - token-based)
+    // =========================================================================
+    Route::get('/impersonate/{token}', [ImpersonationController::class, 'handle'])
+        ->name('impersonate.handle');
+
+    Route::post('/impersonate/end', [ImpersonationController::class, 'endImpersonation'])
+        ->middleware('auth')
+        ->name('impersonate.end');
+
     // Root redirects to dashboard
     Route::get('/', function () {
         return redirect('/dashboard');

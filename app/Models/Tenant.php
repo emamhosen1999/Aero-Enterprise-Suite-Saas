@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Cashier\Billable;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -22,6 +23,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
  * This model extends Stancl\Tenancy's base Tenant and implements:
  * - TenantWithDatabase: Enables automatic database creation/deletion
  * - HasDomains trait: Provides domain management functionality
+ * - Billable trait: Enables Laravel Cashier for Stripe subscriptions
  *
  * @property string $id UUID primary key
  * @property \ArrayObject $data Flexible metadata storage (owner_name, address, etc.)
@@ -29,10 +31,13 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
  * @property bool $maintenance_mode Whether tenant is in maintenance mode
  * @property \Carbon\Carbon|null $trial_ends_at Trial period end date
  * @property string|null $plan_id Foreign key to plans table
+ * @property string|null $stripe_id Stripe Customer ID
+ * @property string|null $pm_type Payment method type (card, etc.)
+ * @property string|null $pm_last_four Last 4 digits of payment method
  */
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains, HasFactory, SoftDeletes;
+    use Billable, HasDatabase, HasDomains, HasFactory, SoftDeletes;
 
     /**
      * Tenant status constants.
@@ -72,6 +77,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'subscription_ends_at',
             'status',
             'maintenance_mode',
+            // Stripe Cashier columns
+            'stripe_id',
+            'pm_type',
+            'pm_last_four',
+            'stripe_trial_ends_at',
         ];
     }
 
@@ -88,6 +98,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'modules' => AsArrayObject::class,
             'trial_ends_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
+            'stripe_trial_ends_at' => 'datetime',
             'maintenance_mode' => 'boolean',
         ];
     }
@@ -268,5 +279,121 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function disableMaintenance(): bool
     {
         return $this->update(['maintenance_mode' => false]);
+    }
+
+    // =========================================================================
+    // STRIPE CASHIER OVERRIDES
+    // =========================================================================
+
+    /**
+     * Get the email address used to create the Stripe customer.
+     *
+     * This returns the tenant owner's email from the data column,
+     * which is the primary contact for billing communications.
+     */
+    public function stripeEmail(): ?string
+    {
+        return $this->data['owner_email'] ?? $this->email;
+    }
+
+    /**
+     * Get the name for the Stripe customer.
+     *
+     * Uses the company name for business tenants, or owner name for individuals.
+     */
+    public function stripeName(): ?string
+    {
+        if ($this->type === 'company') {
+            return $this->name;
+        }
+
+        return $this->data['owner_name'] ?? $this->name;
+    }
+
+    /**
+     * Get the phone number for the Stripe customer.
+     */
+    public function stripePhone(): ?string
+    {
+        return $this->data['owner_phone'] ?? $this->phone;
+    }
+
+    /**
+     * Get the address for the Stripe customer.
+     *
+     * @return array<string, string|null>
+     */
+    public function stripeAddress(): ?array
+    {
+        $billingAddress = $this->billingAddress;
+
+        if (! $billingAddress) {
+            return null;
+        }
+
+        return [
+            'line1' => $billingAddress->address_line1,
+            'line2' => $billingAddress->address_line2,
+            'city' => $billingAddress->city,
+            'state' => $billingAddress->state,
+            'postal_code' => $billingAddress->postal_code,
+            'country' => $billingAddress->country,
+        ];
+    }
+
+    /**
+     * Get metadata to store on the Stripe customer.
+     *
+     * @return array<string, string>
+     */
+    public function stripeMetadata(): array
+    {
+        return [
+            'tenant_id' => $this->id,
+            'subdomain' => $this->subdomain,
+            'type' => $this->type,
+        ];
+    }
+
+    // =========================================================================
+    // BILLING RELATIONSHIPS
+    // =========================================================================
+
+    /**
+     * Get the tenant's billing address.
+     */
+    public function billingAddress(): HasOne
+    {
+        return $this->hasOne(TenantBillingAddress::class, 'tenant_id');
+    }
+
+    // =========================================================================
+    // BILLING HELPER METHODS
+    // =========================================================================
+
+    /**
+     * Check if tenant has an active Stripe subscription.
+     */
+    public function hasActiveStripeSubscription(): bool
+    {
+        return $this->subscribed('default');
+    }
+
+    /**
+     * Get the current Stripe subscription price.
+     */
+    public function currentStripePlan(): ?string
+    {
+        $subscription = $this->subscription('default');
+
+        return $subscription?->stripe_price;
+    }
+
+    /**
+     * Check if tenant is on a specific plan by Stripe price ID.
+     */
+    public function isOnStripePlan(string $priceId): bool
+    {
+        return $this->subscribedToPrice($priceId, 'default');
     }
 }

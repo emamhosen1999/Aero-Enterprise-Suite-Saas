@@ -7,10 +7,19 @@ use App\Models\HRM\Attendance;
 use App\Models\HRM\AttendanceType;
 use App\Models\HRM\Department;
 use App\Models\HRM\Designation;
+use App\Models\HRM\EmergencyContact;
+use App\Models\HRM\EmployeeAddress;
+use App\Models\HRM\EmployeeBankDetail;
+use App\Models\HRM\EmployeeCertification;
+use App\Models\HRM\EmployeeDependent;
+use App\Models\HRM\EmployeeEducation;
+use App\Models\HRM\EmployeePersonalDocument;
+use App\Models\HRM\EmployeeWorkExperience;
 use App\Models\HRM\Leave;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -329,7 +338,115 @@ class User extends Authenticatable implements HasMedia
      */
     public function hasSingleDeviceLoginEnabled(): bool
     {
-        return $this->single_device_login_enabled;
+        return (bool) $this->single_device_login_enabled;
+    }
+
+    // =========================================================================
+    // EMPLOYEE PROFILE RELATIONSHIPS
+    // =========================================================================
+
+    /**
+     * Get the user's bank details (1:1).
+     */
+    public function bankDetail(): HasOne
+    {
+        return $this->hasOne(EmployeeBankDetail::class);
+    }
+
+    /**
+     * Get the user's personal documents (1:Many).
+     */
+    public function personalDocuments(): HasMany
+    {
+        return $this->hasMany(EmployeePersonalDocument::class);
+    }
+
+    /**
+     * Get the user's emergency contacts (1:Many).
+     */
+    public function emergencyContacts(): HasMany
+    {
+        return $this->hasMany(EmergencyContact::class)->ordered();
+    }
+
+    /**
+     * Get the user's primary emergency contact.
+     */
+    public function primaryEmergencyContact(): HasOne
+    {
+        return $this->hasOne(EmergencyContact::class)->where('is_primary', true);
+    }
+
+    /**
+     * Get the user's addresses (1:Many).
+     */
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(EmployeeAddress::class);
+    }
+
+    /**
+     * Get the user's current address.
+     */
+    public function currentAddress(): HasOne
+    {
+        return $this->hasOne(EmployeeAddress::class)->where('address_type', 'current');
+    }
+
+    /**
+     * Get the user's permanent address.
+     */
+    public function permanentAddress(): HasOne
+    {
+        return $this->hasOne(EmployeeAddress::class)->where('address_type', 'permanent');
+    }
+
+    /**
+     * Get the user's education records (1:Many).
+     */
+    public function education(): HasMany
+    {
+        return $this->hasMany(EmployeeEducation::class)->latest('end_date');
+    }
+
+    /**
+     * Get the user's work experience records (1:Many).
+     */
+    public function workExperience(): HasMany
+    {
+        return $this->hasMany(EmployeeWorkExperience::class)->latest('end_date');
+    }
+
+    /**
+     * Get the user's certifications (1:Many).
+     */
+    public function certifications(): HasMany
+    {
+        return $this->hasMany(EmployeeCertification::class);
+    }
+
+    /**
+     * Get the user's valid certifications.
+     */
+    public function validCertifications(): HasMany
+    {
+        return $this->hasMany(EmployeeCertification::class)->valid();
+    }
+
+    /**
+     * Get the user's dependents (1:Many).
+     */
+    public function dependents(): HasMany
+    {
+        return $this->hasMany(EmployeeDependent::class);
+    }
+
+    /**
+     * Get the user's beneficiaries (dependents marked as beneficiary).
+     */
+    public function beneficiaries(): HasMany
+    {
+        return $this->hasMany(EmployeeDependent::class)->beneficiaries();
     }
 
     /**

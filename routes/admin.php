@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\PlatformSettingController;
 use App\Http\Controllers\Landlord\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Landlord\ImpersonationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -27,7 +29,7 @@ use Inertia\Inertia;
 
 Route::middleware('guest:landlord')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-        ->name('admin.login');
+        ->name('login'); // Use 'login' for the framework's redirectGuestsTo
 
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 });
@@ -68,6 +70,10 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/{tenant}/edit', function ($tenant) {
             return Inertia::render('Admin/Tenants/Edit', ['tenantId' => $tenant]);
         })->name('edit');
+
+        // Tenant Impersonation
+        Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'impersonate'])
+            ->name('impersonate');
     });
 
     // Subscription Plans
@@ -97,7 +103,21 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/invoices', function () {
             return Inertia::render('Admin/Billing/Invoices');
         })->name('invoices');
+
+        // Tenant-specific billing management
+        Route::get('/tenants/{tenant}', [\App\Http\Controllers\Landlord\BillingController::class, 'index'])->name('tenant');
+        Route::post('/tenants/{tenant}/subscribe/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'subscribe'])->name('tenant.subscribe');
+        Route::post('/tenants/{tenant}/change-plan', [\App\Http\Controllers\Landlord\BillingController::class, 'changePlan'])->name('tenant.change-plan');
+        Route::post('/tenants/{tenant}/cancel', [\App\Http\Controllers\Landlord\BillingController::class, 'cancel'])->name('tenant.cancel');
+        Route::post('/tenants/{tenant}/resume', [\App\Http\Controllers\Landlord\BillingController::class, 'resume'])->name('tenant.resume');
+        Route::post('/tenants/{tenant}/portal', [\App\Http\Controllers\Landlord\BillingController::class, 'portal'])->name('tenant.portal');
+        Route::get('/tenants/{tenant}/invoices', [\App\Http\Controllers\Landlord\BillingController::class, 'invoices'])->name('tenant.invoices');
+        Route::get('/tenants/{tenant}/invoices/{invoice}', [\App\Http\Controllers\Landlord\BillingController::class, 'downloadInvoice'])->name('tenant.invoice.download');
+        Route::put('/tenants/{tenant}/billing-address', [\App\Http\Controllers\Landlord\BillingController::class, 'updateBillingAddress'])->name('tenant.billing-address');
     });
+
+    // Stripe Checkout (for new subscriptions via registration flow)
+    Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])->name('admin.checkout');
 
     // System Settings
     Route::prefix('settings')->name('admin.settings.')->group(function () {
@@ -115,6 +135,11 @@ Route::middleware(['auth:landlord'])->group(function () {
 
         Route::get('/platform', [PlatformSettingController::class, 'index'])->name('platform.index');
         Route::put('/platform', [PlatformSettingController::class, 'update'])->name('platform.update');
+
+        // System Maintenance
+        Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
+        Route::put('/maintenance', [MaintenanceController::class, 'update'])->name('maintenance.update');
+        Route::post('/maintenance/toggle', [MaintenanceController::class, 'toggle'])->name('maintenance.toggle');
     });
 
     // Analytics & Reports

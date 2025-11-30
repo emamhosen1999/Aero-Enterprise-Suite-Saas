@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App.jsx';
+import TenantStatusBadge from '@/Components/Admin/TenantStatusBadge.jsx';
 import { 
   Button, 
   Card, 
@@ -54,7 +55,8 @@ const fallbackTenants = [
     owner: 'Avery Holt',
     plan: 'Enterprise',
     seats: 820,
-    status: 'Active',
+    status: 'active',
+    maintenance_mode: false,
     renewal: 'Oct 4, 2025',
   },
   {
@@ -64,7 +66,8 @@ const fallbackTenants = [
     owner: 'Dana Kingsley',
     plan: 'Growth',
     seats: 260,
-    status: 'Go-live',
+    status: 'active',
+    maintenance_mode: true,
     renewal: 'Mar 18, 2025',
   },
   {
@@ -74,7 +77,8 @@ const fallbackTenants = [
     owner: 'Priya Patel',
     plan: 'Enterprise',
     seats: 1340,
-    status: 'Expansion',
+    status: 'active',
+    maintenance_mode: false,
     renewal: 'Jan 12, 2026',
   },
   {
@@ -84,17 +88,11 @@ const fallbackTenants = [
     owner: 'Luca Romero',
     plan: 'Growth',
     seats: 410,
-    status: 'At risk',
+    status: 'suspended',
+    maintenance_mode: false,
     renewal: 'Aug 2, 2025',
   },
 ];
-
-const statusColor = {
-  Active: 'success',
-  'Go-live': 'warning',
-  Expansion: 'primary',
-  'At risk': 'danger',
-};
 
 const columns = [
   { uid: 'tenant', name: 'Tenant' },
@@ -275,9 +273,10 @@ const TenantsIndex = () => {
                         <TableCell>{tenant.owner}</TableCell>
                         <TableCell>{tenant.renewal}</TableCell>
                         <TableCell>
-                          <Chip color={statusColor[tenant.status] ?? 'default'} size="sm" variant="flat">
-                            {tenant.status}
-                          </Chip>
+                          <TenantStatusBadge 
+                            status={tenant.status} 
+                            maintenanceMode={tenant.maintenance_mode}
+                          />
                         </TableCell>
                       </TableRow>
                     )}

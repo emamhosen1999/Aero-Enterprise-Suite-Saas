@@ -71,5 +71,9 @@ class Kernel extends HttpKernel
         'module' => \App\Http\Middleware\CheckModuleAccess::class,
         // Device auth is now global middleware - no need for alias
         'platform.domain' => \App\Http\Middleware\EnsurePlatformDomain::class,
+        // Subscription Enforcement for Tenant Apps
+        'subscription' => \App\Http\Middleware\EnforceSubscription::class,
+        // Maintenance Mode Gatekeeper (Global + Tenant level)
+        'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
     ];
 }

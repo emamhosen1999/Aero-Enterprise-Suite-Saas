@@ -22,6 +22,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileImageController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Settings\AttendanceSettingController;
+use App\Http\Controllers\Settings\CustomDomainController;
 use App\Http\Controllers\Settings\LeaveSettingController;
 use App\Http\Controllers\Settings\SystemSettingController;
 use App\Http\Controllers\SystemMonitoringController;
@@ -63,6 +64,17 @@ Route::post('/locale', function (\Illuminate\Http\Request $request) {
     // Return empty response - locale is handled client-side
     return response()->noContent();
 })->name('locale.update');
+
+// Team Invitation Acceptance Routes (public - no auth required)
+// These routes must be signed to prevent unauthorized access
+Route::prefix('invitation')->group(function () {
+    Route::get('/{token}', [\App\Http\Controllers\TeamMemberController::class, 'showAcceptForm'])
+        ->name('team.invitation.accept')
+        ->middleware('signed');
+
+    Route::post('/{token}', [\App\Http\Controllers\TeamMemberController::class, 'accept'])
+        ->name('team.invitation.process');
+});
 
 // Device authentication is now handled globally via DeviceAuthMiddleware
 // No need to apply it here - it runs on all requests automatically
@@ -305,6 +317,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Legacy aliases for backward compatibility
         Route::get('/company-settings', [SystemSettingController::class, 'index'])->name('admin.settings.company');
         Route::put('/update-company-settings', [SystemSettingController::class, 'update'])->name('update-company-settings');
+
+        // Domain management routes
+        Route::get('/settings/domains', [CustomDomainController::class, 'index'])->name('settings.domains.index');
+        Route::post('/settings/domains', [CustomDomainController::class, 'store'])->name('settings.domains.store');
+        Route::post('/settings/domains/{domain}/verify', [CustomDomainController::class, 'verify'])->name('settings.domains.verify');
+        Route::post('/settings/domains/{domain}/set-primary', [CustomDomainController::class, 'setPrimary'])->name('settings.domains.set-primary');
+        Route::delete('/settings/domains/{domain}', [CustomDomainController::class, 'destroy'])->name('settings.domains.destroy');
     });    // Legacy role routes (maintained for backward compatibility)
     Route::middleware(['permission:roles.view'])->get('/roles-permissions', [RoleController::class, 'getRolesAndPermissions'])->name('roles-settings');
 
@@ -363,6 +382,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware(['permission:hr.benefits.update'])->post('/benefits', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
         Route::middleware(['permission:hr.safety.update'])->post('/safety', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
         Route::middleware(['permission:hr.documents.update'])->post('/documents', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
+    });
+
+    // User Invitation Routes (integrated with User Management)
+    Route::prefix('users')->group(function () {
+        Route::post('/invite', [UserController::class, 'sendInvitation'])->name('users.invite');
+        Route::get('/invitations/pending', [UserController::class, 'pendingInvitations'])->name('users.invitations.pending');
+        Route::post('/invitations/{invitation}/resend', [UserController::class, 'resendInvitation'])->name('users.invitations.resend');
+        Route::delete('/invitations/{invitation}', [UserController::class, 'cancelInvitation'])->name('users.invitations.cancel');
     });
 
     // Task management routes
@@ -467,9 +494,25 @@ Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(funct
         Route::post('/leads', [App\Http\Controllers\CRMController::class, 'storeLeads'])->name('crm.leads.store')->middleware('permission:create_leads');
         Route::get('/customers', [App\Http\Controllers\CRMController::class, 'customers'])->name('crm.customers')->middleware('permission:view_customers');
         Route::get('/opportunities', [App\Http\Controllers\CRMController::class, 'opportunities'])->name('crm.opportunities')->middleware('permission:view_opportunities');
-        Route::get('/pipeline', [App\Http\Controllers\CRMController::class, 'pipeline'])->name('crm.pipeline')->middleware('permission:view_sales_pipeline');
         Route::get('/reports', [App\Http\Controllers\CRMController::class, 'reports'])->name('crm.reports')->middleware('permission:view_crm_reports');
         Route::get('/settings', [App\Http\Controllers\CRMController::class, 'settings'])->name('crm.settings')->middleware('permission:manage_crm_settings');
+
+        // Kanban Pipeline routes
+        Route::middleware(['permission:view_sales_pipeline'])->prefix('pipeline')->group(function () {
+            Route::get('/', [App\Http\Controllers\CRM\PipelineController::class, 'index'])->name('crm.pipeline');
+            Route::get('/{pipeline}/data', [App\Http\Controllers\CRM\PipelineController::class, 'getData'])->name('crm.pipeline.data');
+        });
+
+        // Deal routes
+        Route::middleware(['permission:manage_deals'])->prefix('deals')->group(function () {
+            Route::post('/', [App\Http\Controllers\CRM\DealController::class, 'store'])->name('crm.deals.store');
+            Route::post('/{deal}/move', [App\Http\Controllers\CRM\DealController::class, 'move'])->name('crm.deals.move');
+            Route::put('/{deal}', [App\Http\Controllers\CRM\DealController::class, 'update'])->name('crm.deals.update');
+            Route::post('/{deal}/won', [App\Http\Controllers\CRM\DealController::class, 'markAsWon'])->name('crm.deals.won');
+            Route::post('/{deal}/lost', [App\Http\Controllers\CRM\DealController::class, 'markAsLost'])->name('crm.deals.lost');
+            Route::post('/{deal}/reopen', [App\Http\Controllers\CRM\DealController::class, 'reopen'])->name('crm.deals.reopen');
+            Route::delete('/{deal}', [App\Http\Controllers\CRM\DealController::class, 'destroy'])->name('crm.deals.destroy');
+        });
     });
 
     // FMS Module routes

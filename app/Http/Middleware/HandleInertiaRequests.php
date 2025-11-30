@@ -88,6 +88,7 @@ class HandleInertiaRequests extends Middleware
     protected function shareAdminProps(Request $request): array
     {
         // IMPORTANT: Use landlord guard, not default web guard
+        /** @var \App\Models\LandlordUser|null $user */
         $user = \Illuminate\Support\Facades\Auth::guard('landlord')->user();
 
         $platformSetting = $this->platformSetting();
@@ -206,6 +207,10 @@ class HandleInertiaRequests extends Middleware
                 'id' => tenant('id'),
                 'name' => tenant('name'),
                 'subdomain' => tenant('subdomain'),
+            ],
+            'impersonation' => [
+                'active' => $request->session()->has('impersonated_by_platform'),
+                'started_at' => $request->session()->get('impersonation_started_at'),
             ],
             'companySettings' => $legacyCompanySettings,
             'systemSettings' => $systemSettingsPayload,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SendTeamInvitationRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
@@ -11,7 +12,9 @@ use App\Http\Resources\UserResource;
 use App\Models\HRM\AttendanceType;
 use App\Models\HRM\Department;
 use App\Models\HRM\Designation;
+use App\Models\TenantInvitation;
 use App\Models\User;
+use App\Notifications\InviteTeamMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -1013,6 +1016,165 @@ class UserController extends Controller
             return response()->json([
                 'error' => 'Failed to revoke permission',
                 'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Send a team invitation email.
+     */
+    public function sendInvitation(SendTeamInvitationRequest $request): \Illuminate\Http\JsonResponse
+    {
+        $this->authorize('users.invite');
+
+        $validated = $request->validated();
+
+        // Check if user already exists
+        if (User::where('email', $validated['email'])->exists()) {
+            return response()->json([
+                'message' => 'A user with this email already exists in the organization.',
+                'errors' => ['email' => ['A user with this email already exists in the organization.']],
+            ], 422);
+        }
+
+        // Check for pending invitation
+        if (TenantInvitation::hasPendingInvitation($validated['email'])) {
+            return response()->json([
+                'message' => 'An invitation has already been sent to this email address.',
+                'errors' => ['email' => ['An invitation has already been sent to this email address.']],
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create the invitation
+            $invitation = TenantInvitation::create([
+                'email' => $validated['email'],
+                'role' => $validated['role'],
+                'invited_by' => auth()->id(),
+                'metadata' => [
+                    'department_id' => $validated['department_id'] ?? null,
+                    'designation_id' => $validated['designation_id'] ?? null,
+                    'message' => $validated['message'] ?? null,
+                ],
+            ]);
+
+            // Send notification
+            $invitation->notify(new InviteTeamMember($invitation));
+
+            DB::commit();
+
+            Log::info('Team invitation sent', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+                'role' => $invitation->role,
+                'invited_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Invitation sent successfully to {$validated['email']}.",
+                'invitation' => $invitation,
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Failed to send team invitation', [
+                'email' => $validated['email'],
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to send invitation. Please try again.',
+                'errors' => ['email' => ['Failed to send invitation. Please try again.']],
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pending invitations.
+     */
+    public function pendingInvitations(): \Illuminate\Http\JsonResponse
+    {
+        $this->authorize('users.view');
+
+        $invitations = TenantInvitation::with('inviter')
+            ->pending()
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'invitations' => $invitations,
+        ]);
+    }
+
+    /**
+     * Resend an invitation.
+     */
+    public function resendInvitation(TenantInvitation $invitation): \Illuminate\Http\JsonResponse
+    {
+        $this->authorize('users.invite');
+
+        if (! $invitation->isValid()) {
+            // Extend the expiration
+            $invitation->update([
+                'expires_at' => now()->addDays(7),
+            ]);
+        }
+
+        try {
+            $invitation->notify(new InviteTeamMember($invitation));
+
+            Log::info('Invitation resent', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Invitation resent to {$invitation->email}.",
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to resend invitation', [
+                'invitation_id' => $invitation->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to resend invitation.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel an invitation.
+     */
+    public function cancelInvitation(TenantInvitation $invitation): \Illuminate\Http\JsonResponse
+    {
+        $this->authorize('users.invite');
+
+        try {
+            $invitation->cancel();
+
+            Log::info('Invitation cancelled', [
+                'invitation_id' => $invitation->id,
+                'email' => $invitation->email,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invitation cancelled successfully.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to cancel invitation', [
+                'invitation_id' => $invitation->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to cancel invitation.',
             ], 500);
         }
     }

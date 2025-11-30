@@ -150,6 +150,102 @@ class PayrollController extends Controller
         ]);
     }
 
+    /**
+     * View printable payslip
+     */
+    public function viewPayslip($id)
+    {
+        $payroll = Payroll::with([
+            'employee.department',
+            'employee.designation',
+            'employee.bankDetails',
+            'allowances',
+            'deductions',
+            'processedBy',
+        ])->findOrFail($id);
+
+        // Get tenant/company information
+        $company = [
+            'name' => tenant('company_name') ?? config('app.name'),
+            'address' => tenant('company_address') ?? '',
+            'logo' => tenant('company_logo') ?? '/assets/images/logo.png',
+            'phone' => tenant('company_phone') ?? '',
+            'email' => tenant('company_email') ?? '',
+        ];
+
+        // Calculate attendance summary
+        $attendance = [
+            'working_days' => $payroll->working_days,
+            'present_days' => $payroll->present_days,
+            'absent_days' => $payroll->absent_days,
+            'leave_days' => $payroll->leave_days,
+            'overtime_hours' => $payroll->overtime_hours,
+            'late_days' => $payroll->late_days ?? 0,
+        ];
+
+        // Map allowances to earnings
+        $earnings = $payroll->allowances->map(fn ($allowance) => [
+            'id' => $allowance->id,
+            'name' => $allowance->allowance_type,
+            'amount' => $allowance->amount,
+            'is_taxable' => $allowance->is_taxable ?? true,
+        ])->toArray();
+
+        // Add basic salary as first earning
+        array_unshift($earnings, [
+            'id' => 'basic',
+            'name' => 'Basic Salary',
+            'amount' => $payroll->basic_salary,
+            'is_taxable' => true,
+        ]);
+
+        // Add overtime if exists
+        if ($payroll->overtime_amount > 0) {
+            $earnings[] = [
+                'id' => 'overtime',
+                'name' => 'Overtime Pay',
+                'amount' => $payroll->overtime_amount,
+                'is_taxable' => true,
+            ];
+        }
+
+        // Map deductions
+        $deductions = $payroll->deductions->map(fn ($deduction) => [
+            'id' => $deduction->id,
+            'name' => $deduction->deduction_type,
+            'amount' => $deduction->amount,
+        ])->toArray();
+
+        return Inertia::render('HR/Payroll/Payslip', [
+            'title' => 'Payslip',
+            'payroll' => $payroll,
+            'company' => $company,
+            'employee' => [
+                'id' => $payroll->employee->id,
+                'name' => $payroll->employee->name,
+                'employee_id' => $payroll->employee->employee_id,
+                'email' => $payroll->employee->email,
+                'department' => $payroll->employee->department?->name ?? 'N/A',
+                'designation' => $payroll->employee->designation?->name ?? 'N/A',
+                'bank_name' => $payroll->employee->bankDetails?->bank_name ?? 'N/A',
+                'account_number' => $payroll->employee->bankDetails?->account_number ?? 'N/A',
+                'date_of_joining' => $payroll->employee->date_of_joining,
+            ],
+            'payPeriod' => [
+                'start' => $payroll->pay_period_start,
+                'end' => $payroll->pay_period_end,
+            ],
+            'attendance' => $attendance,
+            'earnings' => $earnings,
+            'deductions' => $deductions,
+            'summary' => [
+                'gross_salary' => $payroll->gross_salary,
+                'total_deductions' => $payroll->total_deductions,
+                'net_salary' => $payroll->net_salary,
+            ],
+        ]);
+    }
+
     public function edit($id)
     {
         $payroll = Payroll::with(['employee', 'allowances', 'deductions'])

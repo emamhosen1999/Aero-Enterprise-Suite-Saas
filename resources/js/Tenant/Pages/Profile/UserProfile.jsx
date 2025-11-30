@@ -37,7 +37,16 @@ import {
     HomeIcon,
     BuildingOfficeIcon,
     UsersIcon,
-    CurrencyDollarIcon
+    CurrencyDollarIcon,
+    EyeIcon,
+    EyeSlashIcon,
+    ArrowDownTrayIcon,
+    CloudArrowUpIcon,
+    DocumentIcon,
+    DocumentTextIcon,
+    PhotoIcon,
+    TrashIcon,
+    ArrowPathIcon
 } from "@heroicons/react/24/outline";
 import {Head, usePage} from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
@@ -128,6 +137,13 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
     });
     
     const [showFilters, setShowFilters] = useState(false);
+    
+    // Bank account visibility toggle
+    const [showAccountNumber, setShowAccountNumber] = useState(false);
+    
+    // Document upload state
+    const [uploadingDocument, setUploadingDocument] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
     
     // Profile statistics
     const [profileStats, setProfileStats] = useState({
@@ -487,11 +503,37 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                         value={user.bank_name} 
                         icon={<BuildingOfficeIcon />}
                     />
-                    <InfoRow 
-                        label="Account Number" 
-                        value={user.bank_account_no} 
-                        icon={<IdentificationIcon />}
-                    />
+                    {/* Account Number with Masking and Toggle */}
+                    <div className="flex items-center justify-between py-3 border-b border-white/10">
+                        <div className="flex items-center gap-2 text-sm text-default-600">
+                            <IdentificationIcon className="w-4 h-4" />
+                            <span>Account Number</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-foreground font-mono">
+                                {user.bank_account_no 
+                                    ? (showAccountNumber 
+                                        ? user.bank_account_no 
+                                        : `****${user.bank_account_no.slice(-4)}`)
+                                    : 'N/A'
+                                }
+                            </span>
+                            {user.bank_account_no && (
+                                <Button
+                                    isIconOnly
+                                    size="sm"
+                                    variant="light"
+                                    onPress={() => setShowAccountNumber(!showAccountNumber)}
+                                    className="min-w-6 w-6 h-6"
+                                >
+                                    {showAccountNumber 
+                                        ? <EyeSlashIcon className="w-4 h-4 text-default-500" />
+                                        : <EyeIcon className="w-4 h-4 text-default-500" />
+                                    }
+                                </Button>
+                            )}
+                        </div>
+                    </div>
                     <InfoRow 
                         label="IFSC Code" 
                         value={user.ifsc_code} 
@@ -688,17 +730,318 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
         </div>
     );
 
-    const renderDocumentsTab = () => (
-        <div className="text-center py-12">
-            <div className="p-8 bg-white/5 rounded-lg border border-white/10 max-w-md mx-auto">
-                <DocumentArrowDownIcon className="w-16 h-16 text-default-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Documents Coming Soon</h3>
-                <p className="text-default-500 text-sm">
-                    Document management and storage will be available in a future update.
-                </p>
+    // Helper function to get document icon based on type/mime
+    const getDocumentIcon = (document) => {
+        const mimeType = document.mime_type || '';
+        if (mimeType.includes('pdf')) {
+            return <DocumentTextIcon className="w-8 h-8 text-red-400" />;
+        } else if (mimeType.includes('image')) {
+            return <PhotoIcon className="w-8 h-8 text-blue-400" />;
+        }
+        return <DocumentIcon className="w-8 h-8 text-default-400" />;
+    };
+
+    // Helper to format file size
+    const formatFileSize = (sizeKb) => {
+        if (!sizeKb) return 'Unknown';
+        if (sizeKb < 1024) return `${sizeKb} KB`;
+        return `${(sizeKb / 1024).toFixed(1)} MB`;
+    };
+
+    // Helper to check if document is expiring soon (within 30 days)
+    const isExpiringSoon = (expiryDate) => {
+        if (!expiryDate) return false;
+        const expiry = new Date(expiryDate);
+        const now = new Date();
+        const daysUntilExpiry = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+        return daysUntilExpiry > 0 && daysUntilExpiry <= 30;
+    };
+
+    // Helper to check if document is expired
+    const isExpired = (expiryDate) => {
+        if (!expiryDate) return false;
+        return new Date(expiryDate) < new Date();
+    };
+
+    // Handle drag events for file upload
+    const handleDrag = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    }, []);
+
+    // Handle file drop
+    const handleDrop = useCallback(async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            await handleFileUpload(e.dataTransfer.files[0]);
+        }
+    }, []);
+
+    // Handle file input change
+    const handleFileChange = useCallback(async (e) => {
+        if (e.target.files && e.target.files[0]) {
+            await handleFileUpload(e.target.files[0]);
+        }
+    }, []);
+
+    // Handle file upload
+    const handleFileUpload = async (file) => {
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            showToast.error('Only PDF, JPG, and PNG files are allowed');
+            return;
+        }
+
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            showToast.error('File size must not exceed 2MB');
+            return;
+        }
+
+        setUploadingDocument(true);
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('name', file.name.replace(/\.[^/.]+$/, '')); // Remove extension for name
+        formData.append('document_type', 'other');
+
+        try {
+            const response = await axios.post(
+                route('hr.employees.documents.store', { user: user.id }),
+                formData,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
+            
+            if (response.data.success) {
+                showToast.success('Document uploaded successfully');
+                // Refresh user data to get new documents
+                const updatedUser = { ...user };
+                if (!updatedUser.documents) updatedUser.documents = [];
+                updatedUser.documents = [response.data.document, ...updatedUser.documents];
+                setUser(updatedUser);
+            }
+        } catch (error) {
+            showToast.error(error.response?.data?.message || 'Failed to upload document');
+        } finally {
+            setUploadingDocument(false);
+        }
+    };
+
+    // Handle document download
+    const handleDownload = async (document) => {
+        try {
+            window.open(route('hr.employees.documents.download', { user: user.id, document: document.id }), '_blank');
+        } catch (error) {
+            showToast.error('Failed to download document');
+        }
+    };
+
+    // Handle document delete
+    const handleDeleteDocument = async (document) => {
+        if (!confirm('Are you sure you want to delete this document?')) return;
+        
+        try {
+            const response = await axios.delete(
+                route('hr.employees.documents.destroy', { user: user.id, document: document.id })
+            );
+            
+            if (response.data.success) {
+                showToast.success('Document deleted successfully');
+                // Remove from local state
+                const updatedUser = { ...user };
+                updatedUser.documents = updatedUser.documents.filter(d => d.id !== document.id);
+                setUser(updatedUser);
+            }
+        } catch (error) {
+            showToast.error(error.response?.data?.message || 'Failed to delete document');
+        }
+    };
+
+    const renderDocumentsTab = () => {
+        const documents = user.documents || [];
+        
+        return (
+            <div className="space-y-6">
+                {/* Upload Area */}
+                {canEditProfile && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`
+                            relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300
+                            ${dragActive 
+                                ? 'border-primary-500 bg-primary-500/10' 
+                                : 'border-white/20 hover:border-white/40 bg-white/5'
+                            }
+                        `}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                    >
+                        <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={handleFileChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            disabled={uploadingDocument}
+                        />
+                        
+                        {uploadingDocument ? (
+                            <div className="flex flex-col items-center gap-3">
+                                <Spinner size="lg" color="primary" />
+                                <p className="text-default-500">Uploading document...</p>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="p-4 bg-primary-500/20 rounded-full">
+                                    <CloudArrowUpIcon className="w-8 h-8 text-primary-400" />
+                                </div>
+                                <div>
+                                    <p className="text-foreground font-medium">
+                                        Drag & drop files here or click to browse
+                                    </p>
+                                    <p className="text-default-500 text-sm mt-1">
+                                        Supports PDF, JPG, PNG (max 2MB)
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+
+                {/* Documents Grid */}
+                {documents.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {documents.map((document, index) => (
+                            <motion.div
+                                key={document.id || index}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                            >
+                                <Card className="bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                                    <CardBody className="p-4">
+                                        {/* Document Header */}
+                                        <div className="flex items-start gap-3 mb-3">
+                                            <div className="p-2 bg-white/10 rounded-lg shrink-0">
+                                                {getDocumentIcon(document)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-medium text-foreground truncate" title={document.name}>
+                                                    {document.name}
+                                                </h4>
+                                                <p className="text-xs text-default-500 capitalize">
+                                                    {document.document_type?.replace('_', ' ') || 'Document'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Document Meta */}
+                                        <div className="space-y-2 text-sm">
+                                            {document.document_number && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-default-500">Number:</span>
+                                                    <span className="text-foreground">{document.document_number}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between">
+                                                <span className="text-default-500">Size:</span>
+                                                <span className="text-foreground">{formatFileSize(document.file_size_kb)}</span>
+                                            </div>
+                                            {document.expiry_date && (
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-default-500">Expires:</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`text-foreground ${
+                                                            isExpired(document.expiry_date) 
+                                                                ? 'text-danger-500' 
+                                                                : isExpiringSoon(document.expiry_date) 
+                                                                    ? 'text-warning-500' 
+                                                                    : ''
+                                                        }`}>
+                                                            {new Date(document.expiry_date).toLocaleDateString()}
+                                                        </span>
+                                                        {isExpired(document.expiry_date) && (
+                                                            <Chip size="sm" color="danger" variant="flat">Expired</Chip>
+                                                        )}
+                                                        {isExpiringSoon(document.expiry_date) && !isExpired(document.expiry_date) && (
+                                                            <Chip size="sm" color="warning" variant="flat">Expiring</Chip>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Status Chip */}
+                                        <div className="mt-3">
+                                            <Chip 
+                                                size="sm" 
+                                                variant="flat"
+                                                color={
+                                                    document.status === 'verified' ? 'success' :
+                                                    document.status === 'rejected' ? 'danger' :
+                                                    document.status === 'expired' ? 'warning' : 'default'
+                                                }
+                                            >
+                                                {document.status?.charAt(0).toUpperCase() + document.status?.slice(1) || 'Pending'}
+                                            </Chip>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex gap-2 mt-4 pt-3 border-t border-white/10">
+                                            <Button
+                                                size="sm"
+                                                variant="flat"
+                                                color="primary"
+                                                className="flex-1"
+                                                startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                                                onPress={() => handleDownload(document)}
+                                            >
+                                                Download
+                                            </Button>
+                                            {canEditProfile && (
+                                                <Button
+                                                    isIconOnly
+                                                    size="sm"
+                                                    variant="flat"
+                                                    color="danger"
+                                                    onPress={() => handleDeleteDocument(document)}
+                                                >
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </CardBody>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-12">
+                        <div className="p-8 bg-white/5 rounded-lg border border-white/10 max-w-md mx-auto">
+                            <DocumentIcon className="w-16 h-16 text-default-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold mb-2">No Documents</h3>
+                            <p className="text-default-500 text-sm">
+                                {canEditProfile 
+                                    ? 'Upload your first document using the drag & drop area above.'
+                                    : 'No documents have been uploaded yet.'
+                                }
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <>

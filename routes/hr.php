@@ -316,6 +316,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         Route::post('/payroll/bulk/process', [PayrollController::class, 'bulkProcess'])->name('payroll.bulk.process');
 
         // Payslips
+        Route::get('/payroll/{id}/payslip', [PayrollController::class, 'viewPayslip'])->name('payroll.payslip.view');
         Route::post('/payroll/{id}/payslip/generate', [PayrollController::class, 'generatePayslip'])->name('payroll.payslip.generate');
         Route::post('/payroll/payslips/bulk-generate', [PayrollController::class, 'bulkGeneratePayslips'])->name('payroll.payslips.bulk.generate');
         Route::get('/payroll/{id}/payslip/download', [PayrollController::class, 'downloadPayslip'])->name('payroll.payslip.download');
@@ -339,6 +340,41 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         Route::put('/employees/{id}', [\App\Http\Controllers\EmployeeController::class, 'update'])->name('employees.update');
         Route::delete('/employees/{id}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])->name('employees.destroy');
         Route::post('/employees/{id}/restore', [\App\Http\Controllers\EmployeeController::class, 'restore'])->name('employees.restore');
+    });
+
+    // Employee Profile Management (Bank Details, Emergency Contacts)
+    Route::middleware(['permission:hr.employees.view'])->prefix('employees/{user}')->name('employees.')->group(function () {
+        // Profile Overview
+        Route::get('/profile', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'update'])->name('profile.update');
+
+        // Bank Details
+        Route::get('/bank-details', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
+        Route::post('/bank-details/verify', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'verifyBankDetails'])
+            ->middleware('permission:hr.employees.verify')
+            ->name('bank-details.verify');
+
+        // Emergency Contacts
+        Route::get('/emergency-contacts', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'getEmergencyContacts'])->name('emergency-contacts.index');
+        Route::post('/emergency-contacts', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'addEmergencyContact'])->name('emergency-contacts.store');
+        Route::delete('/emergency-contacts/{contact}', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'deleteEmergencyContact'])->name('emergency-contacts.destroy');
+
+        // Document Management
+        Route::get('/documents', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'index'])->name('documents.index');
+        Route::post('/documents', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'store'])->name('documents.store');
+        Route::get('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'show'])->name('documents.show');
+        Route::get('/documents/{document}/download', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'download'])->name('documents.download');
+        Route::put('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'update'])->name('documents.update');
+        Route::delete('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
+        Route::post('/documents/{document}/verify', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'verify'])
+            ->middleware('permission:hr.documents.verify')
+            ->name('documents.verify');
+    });
+
+    // Document Expiry Dashboard (HR Admin)
+    Route::middleware(['permission:hr.documents.view'])->group(function () {
+        Route::get('/documents/expiring', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
     });
 
     // Managers for dropdowns

@@ -51,6 +51,10 @@ class Plan extends Model
         'duration_in_months',
         'max_users',
         'max_storage_gb',
+        // Stripe integration
+        'stripe_monthly_price_id',
+        'stripe_yearly_price_id',
+        'stripe_product_id',
     ];
 
     /**

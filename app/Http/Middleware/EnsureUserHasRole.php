@@ -38,7 +38,7 @@ class EnsureUserHasRole
                 ], 401);
             }
 
-            return redirect()->route('login');
+            return redirect('/login');
         }
 
         $user = $authGuard->user();

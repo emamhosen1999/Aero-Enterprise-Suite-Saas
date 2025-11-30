@@ -1056,7 +1056,7 @@ export default function Login({
 
                                     {canResetPassword && (
                                         <Link
-                                            href={route('password.request')}
+                                            href="/forgot-password"
                                             prefetch
                                             className="text-sm font-medium transition-colors duration-200 hover:underline"
                                             style={{ color: 'var(--theme-primary, #006FEE)' }}

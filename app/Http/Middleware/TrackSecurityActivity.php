@@ -20,8 +20,9 @@ class TrackSecurityActivity
     {
         $response = $next($request);
 
-        // Only track for authenticated users
-        if (Auth::check()) {
+        // Only track for authenticated tenant users (not landlord/admin users)
+        // The user_sessions_tracking table only exists in tenant databases
+        if (Auth::guard('web')->check() && !Auth::guard('landlord')->check()) {
             $this->updateSessionActivity($request);
         }
 

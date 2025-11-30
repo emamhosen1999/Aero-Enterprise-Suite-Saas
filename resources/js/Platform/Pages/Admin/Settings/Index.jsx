@@ -14,6 +14,7 @@ import {
   CreditCardIcon,
   EnvelopeIcon,
   ShieldCheckIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 
 const shortcuts = [
@@ -34,6 +35,12 @@ const shortcuts = [
     description: 'Transports, templates, and routing defaults.',
     icon: EnvelopeIcon,
     href: route('admin.settings.email'),
+  },
+  {
+    title: 'System maintenance',
+    description: 'Control maintenance mode, bypass rules, and downtime messaging.',
+    icon: WrenchScrewdriverIcon,
+    href: route('admin.settings.maintenance.index'),
   },
 ];
 

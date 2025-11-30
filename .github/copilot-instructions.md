@@ -10,14 +10,20 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 - php - 8.2.12
 - inertiajs/inertia-laravel (INERTIA) - v2
+- laravel/cashier (CASHIER) - v15
+- laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v11
+- laravel/mcp (MCP) - v0
 - laravel/prompts (PROMPTS) - v0
+- laravel/sanctum (SANCTUM) - v4
 - tightenco/ziggy (ZIGGY) - v2
+- laravel/breeze (BREEZE) - v2
 - laravel/pint (PINT) - v1
+- laravel/sail (SAIL) - v1
+- phpunit/phpunit (PHPUNIT) - v11
 - @inertiajs/react (INERTIA) - v2
 - react (REACT) - v18
-- tailwindcss (TAILWINDCSS) - v3
-
+- tailwindcss (TAILWINDCSS) - v4
 
 ## Conventions
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, naming.
@@ -110,12 +116,21 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Typically, keys in an Enum should be TitleCase. For example: `FavoritePerson`, `BestLake`, `Monthly`.
 
 
+=== tests rules ===
+
+## Test Enforcement
+
+- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
+- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test` with a specific filename or filter.
+
+
 === inertia-laravel/core rules ===
 
 ## Inertia Core
 
 - Inertia.js components should be placed in the `resources/js/Pages` directory unless specified differently in the JS bundler (vite.config.js).
 - Use `Inertia::render()` for server-side routing instead of traditional Blade views.
+- Use `search-docs` for accurate guidance on all things Inertia.
 
 <code-snippet lang="php" name="Inertia::render Example">
 // routes/web.php example
@@ -143,13 +158,18 @@ Route::get('/users', function () {
 ### Deferred Props & Empty States
 - When using deferred props on the frontend, you should add a nice empty state with pulsing / animated skeleton.
 
+### Inertia Form General Guidance
+- The recommended way to build forms when using Inertia is with the `<Form>` component - a useful example is below. Use `search-docs` with a query of `form component` for guidance.
+- Forms can also be built using the `useForm` helper for more programmatic control, or to follow existing conventions. Use `search-docs` with a query of `useForm helper` for guidance.
+- `resetOnError`, `resetOnSuccess`, and `setDefaultsOnSuccess` are available on the `<Form>` component. Use `search-docs` with a query of 'form component resetting' for guidance.
+
 
 === laravel/core rules ===
 
 ## Do Things the Laravel Way
 
 - Use `php artisan make:` commands to create new files (i.e. migrations, controllers, models, etc.). You can list available Artisan commands using the `list-artisan-commands` tool.
-- If you're creating a generic PHP class, use `artisan make:class`.
+- If you're creating a generic PHP class, use `php artisan make:class`.
 - Pass `--no-interaction` to all Artisan commands to ensure they work without user input. You should also pass the correct `--options` to ensure correct behavior.
 
 ### Database
@@ -184,7 +204,7 @@ Route::get('/users', function () {
 ### Testing
 - When creating models for tests, use the factories for the models. Check if the factory has custom states that can be used before manually setting up the model.
 - Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
-- When creating tests, make use of `php artisan make:test [options] <name>` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
+- When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
 
 ### Vite Error
 - If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
@@ -216,8 +236,8 @@ Route::get('/users', function () {
 ### New Artisan Commands
 - List Artisan commands using Boost's MCP tool, if available. New commands available in Laravel 11:
     - `php artisan make:enum`
-    - `php artisan make:class`
-    - `php artisan make:interface`
+    - `php artisan make:class `
+    - `php artisan make:interface `
 
 
 === pint/core rules ===
@@ -228,59 +248,73 @@ Route::get('/users', function () {
 - Do not run `vendor/bin/pint --test`, simply run `vendor/bin/pint` to fix any formatting issues.
 
 
+=== phpunit/core rules ===
+
+## PHPUnit Core
+
+- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `php artisan make:test --phpunit {name}` to create a new test.
+- If you see a test using "Pest", convert it to PHPUnit.
+- Every time a test has been updated, run that singular test.
+- When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
+- Tests should test all of the happy paths, failure paths, and weird paths.
+- You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files, these are core to the application.
+
+### Running Tests
+- Run the minimal number of tests, using an appropriate filter, before finalizing.
+- To run all tests: `php artisan test`.
+- To run all tests in a file: `php artisan test tests/Feature/ExampleTest.php`.
+- To filter on a particular test name: `php artisan test --filter=testName` (recommended after making a change to a related file).
+
+
 === inertia-react/core rules ===
 
 ## Inertia + React
 
 - Use `router.visit()` or `<Link>` for navigation instead of traditional links.
 
-<code-snippet lang="react" name="Inertia Client Navigation">
-    import { Link } from '@inertiajs/react'
+<code-snippet name="Inertia Client Navigation" lang="react">
 
-    <Link href="/">Home</Link>
+import { Link } from '@inertiajs/react'
+<Link href="/">Home</Link>
+
 </code-snippet>
 
-- For form handling, use `router.post` and related methods. Do not use regular forms.
 
-<code-snippet lang="react" name="Inertia React Form Example">
-import { useState } from 'react'
-import { router } from '@inertiajs/react'
+=== inertia-react/v2/forms rules ===
 
-export default function Edit() {
-    const [values, setValues] = useState({
-        first_name: "",
-        last_name: "",
-        email: "",
-    })
+## Inertia + React Forms
 
-    function handleChange(e) {
-        const key = e.target.id;
-        const value = e.target.value
+<code-snippet name="`<Form>` Component Example" lang="react">
 
-        setValues(values => ({
-            ...values,
-            [key]: value,
-        }))
-    }
+import { Form } from '@inertiajs/react'
 
-    function handleSubmit(e) {
-        e.preventDefault()
+export default () => (
+    <Form action="/users" method="post">
+        {({
+            errors,
+            hasErrors,
+            processing,
+            wasSuccessful,
+            recentlySuccessful,
+            clearErrors,
+            resetAndClearErrors,
+            defaults
+        }) => (
+        <>
+        <input type="text" name="name" />
 
-        router.post('/users', values)
-    }
+        {errors.name && <div>{errors.name}</div>}
 
-    return (
-    <form onSubmit={handleSubmit}>
-        <label htmlFor="first_name">First name:</label>
-        <input id="first_name" value={values.first_name} onChange={handleChange} />
-        <label htmlFor="last_name">Last name:</label>
-        <input id="last_name" value={values.last_name} onChange={handleChange} />
-        <label htmlFor="email">Email:</label>
-        <input id="email" value={values.email} onChange={handleChange} />
-        <button type="submit">Submit</button>
-    </form>
-    )
-}
+        <button type="submit" disabled={processing}>
+            {processing ? 'Creating...' : 'Create User'}
+        </button>
+
+        {wasSuccessful && <div>User created successfully!</div>}
+        </>
+    )}
+    </Form>
+)
+
 </code-snippet>
 
 
@@ -309,17 +343,44 @@ export default function Edit() {
 - If existing pages and components support dark mode, new pages and components must support dark mode in a similar way, typically using `dark:`.
 
 
-=== tailwindcss/v3 rules ===
+=== tailwindcss/v4 rules ===
 
-## Tailwind 3
+## Tailwind 4
 
-- Always use Tailwind CSS v3 - verify you're using only classes supported by this version.
+- Always use Tailwind CSS v4 - do not use the deprecated utilities.
+- `corePlugins` is not supported in Tailwind v4.
+- In Tailwind v4, configuration is CSS-first using the `@theme` directive — no separate `tailwind.config.js` file is needed.
+<code-snippet name="Extending Theme in CSS" lang="css">
+@theme {
+  --color-brand: oklch(0.72 0.11 178);
+}
+</code-snippet>
+
+- In Tailwind v4, you import Tailwind using a regular CSS `@import` statement, not using the `@tailwind` directives used in v3:
+
+<code-snippet name="Tailwind v4 Import Tailwind Diff" lang="diff">
+   - @tailwind base;
+   - @tailwind components;
+   - @tailwind utilities;
+   + @import "tailwindcss";
+</code-snippet>
 
 
-=== tests rules ===
+### Replaced Utilities
+- Tailwind v4 removed deprecated utilities. Do not use the deprecated option - use the replacement.
+- Opacity values are still numeric.
 
-## Test Enforcement
-
-- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test` with a specific filename or filter.
+| Deprecated |	Replacement |
+|------------+--------------|
+| bg-opacity-* | bg-black/* |
+| text-opacity-* | text-black/* |
+| border-opacity-* | border-black/* |
+| divide-opacity-* | divide-black/* |
+| ring-opacity-* | ring-black/* |
+| placeholder-opacity-* | placeholder-black/* |
+| flex-shrink-* | shrink-* |
+| flex-grow-* | grow-* |
+| overflow-ellipsis | text-ellipsis |
+| decoration-slice | box-decoration-slice |
+| decoration-clone | box-decoration-clone |
 </laravel-boost-guidelines>

@@ -89,6 +89,23 @@ class Kernel extends ConsoleKernel
             })
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/leave-accrual.log'));
+
+        // Aggregate tenant statistics - runs daily at 11:55 PM
+        $schedule->command('stats:aggregate')
+            ->dailyAt('23:55')
+            ->timezone(config('app.timezone', 'UTC'))
+            ->before(function () {
+                Log::info('Starting tenant stats aggregation');
+            })
+            ->onSuccess(function () {
+                Log::info('Tenant stats aggregation completed successfully');
+            })
+            ->onFailure(function () {
+                Log::error('Tenant stats aggregation failed');
+            })
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/tenant-stats.log'));
     }
 
     /**

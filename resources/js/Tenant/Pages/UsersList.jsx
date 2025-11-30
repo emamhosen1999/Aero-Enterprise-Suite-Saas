@@ -59,6 +59,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import UsersTable from '@/Tables/UsersTable.jsx';
 import AddEditUserForm from "@/Forms/AddEditUserForm.jsx";
+import InviteUserForm from "@/Forms/InviteUserForm.jsx";
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
@@ -860,6 +861,21 @@ const UsersList = ({ title, roles, departments, designations }) => {
         />
       )}
 
+      {/* Invite User Modal */}
+      {openModalType === 'invite' && (
+        <InviteUserForm
+          departments={departments}
+          designations={designations}
+          roles={roles}
+          open={openModalType === 'invite'}
+          closeModal={closeModal}
+          onInviteSent={() => {
+            // Optionally refresh users list or show success message
+            fetchUsers();
+          }}
+        />
+      )}
+
       <div 
         className="flex flex-col w-full h-full p-4"
         role="main"
@@ -977,6 +993,22 @@ const UsersList = ({ title, roles, departments, designations }) => {
                               className="min-w-0"
                             >
                               {isMobile ? "Add" : "Add User"}
+                            </Button>
+                            <Button
+                              size={isMobile ? "sm" : "md"}
+                              variant="bordered"
+                              startContent={<EnvelopeIcon className="w-4 h-4" />}
+                              onPress={() => openModal('invite')}
+                              radius={themeRadius}
+                              style={{
+                                background: `color-mix(in srgb, var(--theme-secondary) 10%, transparent)`,
+                                border: `1px solid color-mix(in srgb, var(--theme-secondary) 30%, transparent)`,
+                                color: 'var(--theme-secondary)',
+                                fontFamily: `var(--fontFamily, "Inter")`,
+                              }}
+                              className="min-w-0"
+                            >
+                              {isMobile ? "Invite" : "Invite User"}
                             </Button>
                             <Button
                               size={isMobile ? "sm" : "md"}

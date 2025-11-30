@@ -13,13 +13,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Configure where guests should be redirected (uses relative URL to work on any domain)
+        $middleware->redirectGuestsTo('/login');
+
         $middleware->web(append: [
             \App\Http\Middleware\IdentifyDomainContext::class, // Identify domain context first
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\TrackSecurityActivity::class,
             \App\Http\Middleware\CheckSessionExpiry::class, // Add session expiry check
-        ]);        // Register custom middleware aliases
+        ]);
+
+        // Register custom middleware aliases
         $middleware->alias([
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'custom_permission' => \App\Http\Middleware\CheckPermission::class,
@@ -37,13 +42,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         // Handle authentication exceptions
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-            // For Inertia requests (SPA/AJAX)
+            // For Inertia requests (SPA/AJAX) - use Inertia location redirect
             if ($request->header('X-Inertia')) {
-                return response()->json([
-                    'message' => 'Authentication required. Please login to continue.',
-                    'redirect' => '/login',
-                    'session_expired' => true,
-                ], 401);
+                return \Inertia\Inertia::location('/login');
             }
 
             // For API requests
@@ -63,13 +64,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Handle session expired exceptions
         $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) {
-            // For Inertia requests (SPA/AJAX)
+            // For Inertia requests (SPA/AJAX) - use Inertia location redirect
             if ($request->header('X-Inertia')) {
-                return response()->json([
-                    'message' => 'Your session has expired. Please refresh the page and login again.',
-                    'redirect' => '/login',
-                    'session_expired' => true,
-                ], 419);
+                return \Inertia\Inertia::location('/login');
             }
 
             // For API requests

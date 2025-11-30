@@ -16,6 +16,7 @@
         "jenssegers/agent": "^2.6",
         "kreait/laravel-firebase": "*",
         "laravel-notification-channels/webpush": "^9.0",
+        "laravel/boost": "^1.8",
         "laravel/cashier": "^15.7",
         "laravel/fortify": "^1.21",
         "laravel/framework": "^11.27.2",
@@ -33,7 +34,6 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "laravel/boost": "^1.8",
         "laravel/breeze": "^2.1",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",

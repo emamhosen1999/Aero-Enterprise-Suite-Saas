@@ -15,6 +15,7 @@ import Breadcrumb from "@/Components/Breadcrumb.jsx";
 import BottomNav from "@/Layouts/BottomNav.jsx";
 import ThemeSettingDrawer from "@/Components/ThemeSettingDrawer.jsx";
 import UpdateNotification from '@/Components/UpdateNotification.jsx';
+import ImpersonationBanner from '@/Components/Admin/ImpersonationBanner.jsx';
 import { FadeIn, SlideIn } from '@/Components/Animations/SmoothAnimations';
 import { useVersionManager } from '@/Hooks/useVersionManager.js';
 import AuthGuard from '@/Components/AuthGuard.jsx';
@@ -484,6 +485,7 @@ const App = React.memo(({ children }) => {
             >
               {/* Header: COMPLETELY STATIC - Never re-renders */}
               <header className="sticky top-0 z-[30] border-b border-divider">
+                <ImpersonationBanner />
                 <StaticHeaderWrapper />
                 <Divider />
                 {breadcrumbContent}

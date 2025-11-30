@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -23,6 +24,21 @@ class PlatformSetting extends Model implements HasMedia
 
     public const MEDIA_SOCIAL = 'platform_social_image';
 
+    /**
+     * Cache key for maintenance mode status.
+     */
+    public const CACHE_KEY_MAINTENANCE = 'platform:maintenance_mode';
+
+    /**
+     * Cache TTL for maintenance mode status (in seconds).
+     */
+    public const CACHE_TTL_MAINTENANCE = 60;
+
+    /**
+     * HTTP header name for bypass secret.
+     */
+    public const BYPASS_HEADER = 'X-Maintenance-Bypass';
+
     protected $fillable = [
         'slug',
         'site_name',
@@ -38,6 +54,14 @@ class PlatformSetting extends Model implements HasMedia
         'legal',
         'integrations',
         'admin_preferences',
+        // Maintenance mode fields
+        'maintenance_mode',
+        'maintenance_message',
+        'maintenance_bypass_ips',
+        'maintenance_bypass_secret',
+        'maintenance_allowed_paths',
+        'scheduled_maintenance_at',
+        'maintenance_ends_at',
     ];
 
     protected $casts = [
@@ -47,6 +71,12 @@ class PlatformSetting extends Model implements HasMedia
         'legal' => 'array',
         'integrations' => 'array',
         'admin_preferences' => 'array',
+        // Maintenance mode casts
+        'maintenance_mode' => 'boolean',
+        'maintenance_bypass_ips' => 'array',
+        'maintenance_allowed_paths' => 'array',
+        'scheduled_maintenance_at' => 'datetime',
+        'maintenance_ends_at' => 'datetime',
     ];
 
     protected $attributes = [
@@ -56,7 +86,21 @@ class PlatformSetting extends Model implements HasMedia
         'legal' => '[]',
         'integrations' => '[]',
         'admin_preferences' => '[]',
+        'maintenance_mode' => false,
+        'maintenance_bypass_ips' => '[]',
+        'maintenance_allowed_paths' => '[]',
     ];
+
+    /**
+     * Boot the model and register event listeners.
+     */
+    protected static function booted(): void
+    {
+        // Clear maintenance cache when settings are updated
+        static::saved(function (self $setting) {
+            Cache::forget(self::CACHE_KEY_MAINTENANCE);
+        });
+    }
 
     public static function current(): self
     {
@@ -64,6 +108,135 @@ class PlatformSetting extends Model implements HasMedia
             ['slug' => self::DEFAULT_SLUG],
             ['site_name' => config('app.name', 'Aero Enterprise Suite')]
         );
+    }
+
+    /**
+     * Get cached maintenance mode status for high-performance middleware checks.
+     *
+     * Returns an array with all maintenance-related settings to avoid
+     * multiple database queries per request.
+     */
+    public static function getMaintenanceStatus(): array
+    {
+        return Cache::remember(
+            self::CACHE_KEY_MAINTENANCE,
+            self::CACHE_TTL_MAINTENANCE,
+            function () {
+                $setting = static::current();
+
+                return [
+                    'enabled' => $setting->maintenance_mode,
+                    'message' => $setting->maintenance_message ?? 'The platform is currently undergoing scheduled maintenance. We\'ll be back shortly.',
+                    'bypass_ips' => $setting->maintenance_bypass_ips ?? [],
+                    'bypass_secret' => $setting->maintenance_bypass_secret,
+                    'allowed_paths' => $setting->maintenance_allowed_paths ?? [],
+                    'scheduled_at' => $setting->scheduled_maintenance_at?->toIso8601String(),
+                    'ends_at' => $setting->maintenance_ends_at?->toIso8601String(),
+                ];
+            }
+        );
+    }
+
+    /**
+     * Check if global maintenance mode is currently active.
+     */
+    public static function isMaintenanceModeEnabled(): bool
+    {
+        return self::getMaintenanceStatus()['enabled'];
+    }
+
+    /**
+     * Enable global maintenance mode.
+     */
+    public function enableMaintenanceMode(?string $message = null, ?\DateTimeInterface $endsAt = null): bool
+    {
+        $updated = $this->update([
+            'maintenance_mode' => true,
+            'maintenance_message' => $message,
+            'maintenance_ends_at' => $endsAt,
+        ]);
+
+        Cache::forget(self::CACHE_KEY_MAINTENANCE);
+
+        return $updated;
+    }
+
+    /**
+     * Disable global maintenance mode.
+     */
+    public function disableMaintenanceMode(): bool
+    {
+        $updated = $this->update([
+            'maintenance_mode' => false,
+            'maintenance_ends_at' => null,
+        ]);
+
+        Cache::forget(self::CACHE_KEY_MAINTENANCE);
+
+        return $updated;
+    }
+
+    /**
+     * Check if an IP address is in the bypass list.
+     */
+    public static function isIpBypassed(string $ip): bool
+    {
+        $status = self::getMaintenanceStatus();
+        $bypassIps = $status['bypass_ips'];
+
+        if (empty($bypassIps)) {
+            return false;
+        }
+
+        return in_array($ip, $bypassIps, true);
+    }
+
+    /**
+     * Check if a secret matches the bypass secret.
+     */
+    public static function isSecretValid(?string $secret): bool
+    {
+        if (empty($secret)) {
+            return false;
+        }
+
+        $status = self::getMaintenanceStatus();
+
+        return ! empty($status['bypass_secret']) && hash_equals($status['bypass_secret'], $secret);
+    }
+
+    /**
+     * Check if a path is in the allowed paths during maintenance.
+     */
+    public static function isPathAllowed(string $path): bool
+    {
+        $status = self::getMaintenanceStatus();
+        $allowedPaths = $status['allowed_paths'];
+
+        if (empty($allowedPaths)) {
+            return false;
+        }
+
+        $path = '/'.ltrim($path, '/');
+
+        foreach ($allowedPaths as $allowed) {
+            $pattern = '/'.ltrim($allowed, '/');
+
+            // Exact match
+            if ($path === $pattern) {
+                return true;
+            }
+
+            // Wildcard match (e.g., /api/health/*)
+            if (str_ends_with($pattern, '*')) {
+                $prefix = rtrim($pattern, '*');
+                if (str_starts_with($path, $prefix)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function registerMediaCollections(): void
