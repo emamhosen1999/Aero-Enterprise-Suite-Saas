@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@nextui-org/react';
+import { Button, Card } from '@nextui-org/react';
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
-import GlassCard from '../GlassCard.jsx';
 
 
 const MetricsWidget = ({ 
@@ -54,10 +53,8 @@ const MetricsWidget = ({
   };
 
   return (
-    <GlassCard
-      variant="elevated"
-      hover={interactive}
-      className={`cursor-pointer transition-all duration-300 ${interactive ? 'hover:scale-[1.02]' : ''}`}
+    <Card
+      className={`shadow-lg cursor-pointer transition-all duration-300 ${interactive ? 'hover:scale-[1.02]' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
@@ -136,7 +133,7 @@ const MetricsWidget = ({
           />
         )}
       </div>
-    </GlassCard>
+    </Card>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Card as HeroCard,
+    Card,
     CardBody,
     CardHeader,
     Button as HeroButton,
@@ -20,7 +21,6 @@ import {
 import { motion } from 'framer-motion';
 import { Head, usePage } from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
-import GlassCard from '@/Components/GlassCard';
 import { 
     PlusIcon, 
     PencilSquareIcon, 
@@ -123,7 +123,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                         <Box>
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Onboarding Process Configuration" 
                                             subheader="Configure the employee onboarding workflow"
@@ -134,10 +134,10 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Offboarding Process Configuration" 
                                             subheader="Configure the employee offboarding workflow"
@@ -148,7 +148,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                             </Grid>
                         </Box>
@@ -161,7 +161,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                         <Box>
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Skills Management" 
                                             subheader="Configure technical and soft skills categories"
@@ -172,10 +172,10 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Competency Frameworks" 
                                             subheader="Configure competency models by role"
@@ -186,7 +186,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                             </Grid>
                         </Box>
@@ -199,7 +199,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                         <Box>
                             <Grid container spacing={3}>
                                 <Grid item xs={12}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Benefits Configuration" 
                                             subheader="Configure employee benefits packages and eligibility rules"
@@ -210,7 +210,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                             </Grid>
                         </Box>
@@ -223,7 +223,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                         <Box>
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Safety Training Configuration" 
                                             subheader="Configure safety training requirements and certifications"
@@ -234,10 +234,10 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Incident Reporting" 
                                             subheader="Configure incident categories and reporting workflows"
@@ -248,7 +248,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                             </Grid>
                         </Box>
@@ -261,7 +261,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                         <Box>
                             <Grid container spacing={3}>
                                 <Grid item xs={12}>
-                                    <GlassCard>
+                                    <Card className="shadow-lg">
                                         <CardHeader 
                                             title="Document Management" 
                                             subheader="Configure document categories, templates, and retention policies"
@@ -272,7 +272,7 @@ const HRMSettings = ({ title, activeTab = 0 }) => {
                                             </Typography>
                                             {/* Form components would go here */}
                                         </CardContent>
-                                    </GlassCard>
+                                    </Card>
                                 </Grid>
                             </Grid>
                         </Box>

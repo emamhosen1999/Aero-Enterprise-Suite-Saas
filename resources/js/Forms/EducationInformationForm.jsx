@@ -10,7 +10,6 @@ import {
     ModalFooter
 } from '@heroui/react';
 import { Plus, X, GraduationCap } from 'lucide-react';
-import GlassCard from '@/Components/GlassCard'; // Make sure this component is correctly imported
 import { showToast } from '@/utils/toastUtils';
 
 const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
@@ -311,7 +310,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                     <div className="space-y-4">
                         {educationList.map((education, index) => (
                             <div key={index}>
-                                <GlassCard>
+                                <Card className="shadow-lg">
                                     <div className="p-4 relative">
                                         <div className="flex items-center justify-between mb-4">
                                             <h4 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -447,7 +446,7 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
                                             </div>
                                         </div>
                                     </div>
-                                </GlassCard>
+                                </Card>
                             </div>
                         ))}
                         <div className="mt-4">

@@ -7,10 +7,10 @@ import {
     ModalContent,
     ModalHeader,
     ModalBody,
-    ModalFooter
+    ModalFooter,
+    Card
 } from '@heroui/react';
 import { Plus, X, Briefcase } from 'lucide-react';
-import GlassCard from '@/Components/GlassCard'; // Ensure this component is correctly imported
 import { showToast } from '@/utils/toastUtils';
 
 const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
@@ -302,7 +302,7 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                     <div className="space-y-4">
                         {experienceList.map((experience, index) => (
                             <div key={index}>
-                                <GlassCard>
+                                <Card className="shadow-lg">
                                     <div className="p-4 relative">
                                         <div className="flex items-center justify-between mb-4">
                                             <h4 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -438,7 +438,7 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
                                             </div>
                                         </div>
                                     </div>
-                                </GlassCard>
+                                </Card>
                             </div>
                         ))}
                         <Button 

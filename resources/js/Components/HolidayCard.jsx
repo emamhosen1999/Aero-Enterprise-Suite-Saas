@@ -1,7 +1,7 @@
 import React from 'react';
-import { CardHeader, CardBody, Divider } from '@heroui/react';
+import { Card, CardHeader, CardBody, Divider } from '@heroui/react';
 import { motion } from 'framer-motion';
-import GlassCard from "@/Components/GlassCard.jsx";
+
 import { usePage } from "@inertiajs/react";
 
 const HolidayCard = () => {
@@ -12,7 +12,7 @@ const HolidayCard = () => {
                 {/* Upcoming Holiday Card */}
                 <div className="flex flex-col">
                     <div className="flex-1 flex flex-col">
-                        <GlassCard className="flex-1 flex flex-col">
+                        <Card className="flex-1 flex flex-col">
                             <CardHeader>
                                 <h3 className="text-lg font-semibold">Upcoming Holiday</h3>
                             </CardHeader>
@@ -50,7 +50,7 @@ const HolidayCard = () => {
                                 )}
 
                             </CardBody>
-                        </GlassCard>
+                        </Card>
                     </div>
                 </div>
             </div>

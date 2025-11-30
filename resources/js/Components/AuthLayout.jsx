@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-    ShieldCheckIcon
-} from '@heroicons/react/24/outline';
-import GlassCard from '@/Components/GlassCard';
 import { useTheme } from '@/Contexts/ThemeContext';
+import { Card } from '@heroui/react';
 
 import logo from '../../../public/assets/images/logo.png';
 
@@ -103,7 +100,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         className="w-full max-w-[420px]"
                     >
-                        <GlassCard 
+                        <Card 
                             className="p-3 sm:p-4 md:p-6 relative overflow-visible w-full rounded-2xl sm:rounded-3xl"
                             style={{
                                 borderRadius: `var(--borderRadius, 24px)`,
@@ -223,7 +220,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
                                 animate={{ scale: [1, 1.3, 1] }}
                                 transition={{ duration: 4, repeat: Infinity, delay: 1.5 }}
                             />
-                        </GlassCard>
+                        </Card>
                     </motion.div>
                 </div>
             </div>

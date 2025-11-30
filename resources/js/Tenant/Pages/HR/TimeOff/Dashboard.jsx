@@ -34,7 +34,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 import App from "@/Layouts/App.jsx";
-import GlassCard from "@/Components/GlassCard.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 
@@ -140,7 +139,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
 
       <div className="flex justify-center p-2">
         <div>
-          <GlassCard>
+          <Card className="shadow-lg">
             <PageHeader
               title="Time Off Management"
               subtitle="Manage leave requests, holidays, and time-off policies"
@@ -428,7 +427,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                 </div>
               </div>
             </PageHeader>
-          </GlassCard>
+          </Card>
         </div>
       </div>
     </>

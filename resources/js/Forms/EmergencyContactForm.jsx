@@ -6,10 +6,10 @@ import {
     ModalContent,
     ModalHeader,
     ModalBody,
-    ModalFooter
+    ModalFooter,
+    Card
 } from "@heroui/react";
 import React, {useEffect, useState} from "react";
-import GlassCard from "@/Components/GlassCard.jsx";
 import { X, Phone } from 'lucide-react';
 import { showToast } from "@/utils/toastUtils";
 
@@ -214,7 +214,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                     <div className="space-y-6">
                         {/* Primary Contact Section */}
                         <div>
-                            <GlassCard>
+                            <Card className="shadow-lg">
                                 <div className="p-4">
                                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                                         Primary Contact
@@ -282,12 +282,12 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                         </div>
                                     </div>
                                 </div>
-                            </GlassCard>
+                            </Card>
                         </div>
 
                         {/* Secondary Contact Section */}
                         <div>
-                            <GlassCard>
+                            <Card className="shadow-lg">
                                 <div className="p-4">
                                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                                         Secondary Contact
@@ -352,7 +352,7 @@ const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
                                         </div>
                                     </div>
                                 </div>
-                            </GlassCard>
+                            </Card>
                         </div>
                     </div>
                 </ModalBody>

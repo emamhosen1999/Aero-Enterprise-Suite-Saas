@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
-import GlassCard from '@/Components/GlassCard.jsx';
+import { Card } from '@heroui/react';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
@@ -57,7 +57,7 @@ const Footer = () => {
             className="py-12 md:py-16 mt-auto border-t border-divider"
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <GlassCard className="overflow-hidden">
+                <Card className="shadow-lg overflow-hidden">
                     <div className="p-12 md:p-16">
                         {/* Main Footer Content */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
@@ -236,7 +236,7 @@ const Footer = () => {
                             </div>
                         </div>
                     </div>
-                </GlassCard>
+                </Card>
             </div>
         </footer>
     );

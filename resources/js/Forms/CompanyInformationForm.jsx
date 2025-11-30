@@ -11,7 +11,6 @@ import {
     CardFooter,
 } from '@heroui/react';
 import { motion } from 'framer-motion';
-import GlassCard from '@/Components/GlassCard'; // Assuming GlassCard is a custom component
 import { showToast } from "@/utils/toastUtils";
 
 import {getCountries} from '@/Props/countries.jsx'
@@ -148,7 +147,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
 
     return (
         <Grow in>
-            <GlassCard>
+            <Card className="shadow-lg">
                 <CardHeader title="Company Information" />
                 <form onSubmit={handleSubmit}>
                     <CardContent>
@@ -356,7 +355,7 @@ const CompanyInformationForm = ({settings, setSettings}) => {
                         </LoadingButton>
                     </CardActions>
                 </form>
-            </GlassCard>
+            </Card>
         </Grow>
 
     );

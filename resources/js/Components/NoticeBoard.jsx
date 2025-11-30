@@ -4,7 +4,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import dayjs from 'dayjs';
 import {Alert, AlertTitle} from "@mui/lab";
-import GlassCard from "@/Components/GlassCard.jsx";
 import Grow from "@mui/material/Grow";
 
 const NoticeBoard = () => {
@@ -55,7 +54,7 @@ const NoticeBoard = () => {
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 2}}>
             <Grow in>
-                <GlassCard>
+                <Card className="shadow-lg">
                     <CardContent>
                         <Box className="mb-4" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                             <Typography variant="h5" align="center">
@@ -119,7 +118,7 @@ const NoticeBoard = () => {
                             </Box>
                         </Dialog>
                     </CardContent>
-                </GlassCard>
+                </Card>
             </Grow>
         </Box>
     );

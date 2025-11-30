@@ -43,7 +43,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 import App from "@/Layouts/App.jsx";
-import GlassCard from "@/Components/GlassCard.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import axios from 'axios';
@@ -334,7 +333,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <GlassCard>
+          <Card className="shadow-lg">
             <PageHeader
               title="Company Holidays"
               subtitle="Manage company-wide holidays and special occasions"
@@ -464,7 +463,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                 </div>
               </div>
             </PageHeader>
-          </GlassCard>
+          </Card>
         </motion.div>
       </div>
 

@@ -7,7 +7,7 @@ import {
     XCircleIcon,
     InformationCircleIcon 
 } from '@heroicons/react/24/outline';
-import GlassCard from '@/Components/GlassCard.jsx';
+import { Card, CardHeader, CardBody, Chip, Progress } from '@heroui/react';
 
 const BulkValidationPreview = ({ 
     validationResults = [], 
@@ -62,7 +62,7 @@ const BulkValidationPreview = ({
     return (
         <div className="space-y-4">
             {/* Summary Card */}
-            <GlassCard>
+            <Card>
                 <CardHeader className="pb-2">
                     <div className="flex items-center justify-between w-full">
                         <h4 className="text-lg font-semibold">Validation Results</h4>
@@ -128,11 +128,11 @@ const BulkValidationPreview = ({
                         </div>
                     )}
                 </CardBody>
-            </GlassCard>
+            </Card>
 
             {/* Detailed Results */}
             {validationResults.length > 0 && (
-                <GlassCard>
+                <Card>
                     <CardHeader>
                         <h4 className="text-lg font-semibold">Date-by-Date Results</h4>
                     </CardHeader>
@@ -186,7 +186,7 @@ const BulkValidationPreview = ({
                             ))}
                         </div>
                     </CardBody>
-                </GlassCard>
+                </Card>
             )}
         </div>
     );

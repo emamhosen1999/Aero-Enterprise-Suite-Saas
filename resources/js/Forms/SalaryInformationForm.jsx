@@ -10,7 +10,6 @@ import {
     Input,
     Button
 } from '@heroui/react';
-import GlassCard from '@/Components/GlassCard';
 import { showToast } from "@/utils/toastUtils"; // Using consistent toast utility
 
 
@@ -168,7 +167,7 @@ const SalaryInformationForm = ({user, setUser}) => {
     return (
         <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'stretch' }}>
             <Grid item xs={12} md={12} sx={{ display: 'flex', flexDirection: 'column' }}>
-                <GlassCard>
+                <Card className="shadow-lg">
                     <CardHeader
                         title="Salary & Statutory Information"
                     />
@@ -545,7 +544,7 @@ const SalaryInformationForm = ({user, setUser}) => {
                         </CardActions>
 
                     </form>
-                </GlassCard>
+                </Card>
             </Grid>
         </Grid>
 

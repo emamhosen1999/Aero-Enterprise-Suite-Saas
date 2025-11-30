@@ -34,7 +34,6 @@ import {
     ExclamationTriangleIcon,
     CheckCircleIcon
 } from "@heroicons/react/24/outline";
-import GlassCard from '@/Components/GlassCard.jsx';
 import axios from 'axios';
 
 // Register ChartJS components
@@ -269,11 +268,11 @@ const ComplianceAnalytics = ({ timeRange = 'last_30_days' }) => {
 
     if (loading) {
         return (
-            <GlassCard>
+            <Card className="shadow-lg">
                 <CardBody className="p-6 text-center">
                     <Typography>Loading analytics...</Typography>
                 </CardBody>
-            </GlassCard>
+            </Card>
         );
     }
 
@@ -345,7 +344,7 @@ const ComplianceAnalytics = ({ timeRange = 'last_30_days' }) => {
             {/* Summary Metrics */}
             <Grid container spacing={3} className="mb-6">
                 <Grid item xs={12} sm={6} md={3}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-4 text-center">
                             <div className="flex items-center justify-center mb-2">
                                 <CheckCircleIcon className="w-8 h-8 text-green-500" />
@@ -363,11 +362,11 @@ const ComplianceAnalytics = ({ timeRange = 'last_30_days' }) => {
                                 size="sm"
                             />
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
                 
                 <Grid item xs={12} sm={6} md={3}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-4 text-center">
                             <div className="flex items-center justify-center mb-2">
                                 <ExclamationTriangleIcon className="w-8 h-8 text-red-500" />
@@ -385,11 +384,11 @@ const ComplianceAnalytics = ({ timeRange = 'last_30_days' }) => {
                                 size="sm"
                             />
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
                 
                 <Grid item xs={12} sm={6} md={3}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-4 text-center">
                             <div className="flex items-center justify-center mb-2">
                                 <ArrowTrendingUpIcon className="w-8 h-8 text-blue-500" />
@@ -407,11 +406,11 @@ const ComplianceAnalytics = ({ timeRange = 'last_30_days' }) => {
                                 size="sm"
                             />
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
                 
                 <Grid item xs={12} sm={6} md={3}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-4 text-center">
                             <div className="flex items-center justify-center mb-2">
                                 <ChartBarIcon className="w-8 h-8 text-purple-500" />
@@ -428,7 +427,7 @@ const ComplianceAnalytics = ({ timeRange = 'last_30_days' }) => {
                                 </Chip>
                             </div>
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
             </Grid>
 
@@ -436,40 +435,40 @@ const ComplianceAnalytics = ({ timeRange = 'last_30_days' }) => {
             <Grid container spacing={3}>
                 {/* Policy Compliance Chart */}
                 <Grid item xs={12} lg={6}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-6">
                             <Bar {...policyComplianceChart} />
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
 
                 {/* Risk Distribution Chart */}
                 <Grid item xs={12} lg={6}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-6">
                             <div style={{ height: '400px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                 <Doughnut {...riskDistributionChart} />
                             </div>
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
 
                 {/* Training Completion Chart */}
                 <Grid item xs={12} lg={6}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-6">
                             <Bar {...trainingCompletionChart} />
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
 
                 {/* Compliance Trends Chart */}
                 <Grid item xs={12} lg={6}>
-                    <GlassCard>
+                    <Card className="shadow-lg">
                         <CardBody className="p-6">
                             <Line {...complianceTrendsChart} />
                         </CardBody>
-                    </GlassCard>
+                    </Card>
                 </Grid>
             </Grid>
         </Box>
