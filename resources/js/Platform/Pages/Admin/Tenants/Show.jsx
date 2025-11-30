@@ -1,8 +1,8 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App.jsx';
-import AdminPage, { SectionCard, StatCard } from '@/Platform/Pages/Admin/components/AdminPage.jsx';
-import { Button, Chip } from '@heroui/react';
+import StatsCards from '@/Components/StatsCards.jsx';
+import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
 
 const buildProfile = (tenantId) => ({
   id: tenantId,
@@ -33,35 +33,38 @@ const TenantsShow = () => {
   return (
     <>
       <Head title={profile.name} />
-      <AdminPage
-        title={profile.name}
-        description="Live snapshot spanning contract terms, adoption trends, and provisioning log."
-        actions={
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6">
+        <div className="flex flex-col gap-4 rounded-3xl border border-default-100/70 bg-white/85 p-6 shadow-xl backdrop-blur">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs uppercase tracking-[0.3em] text-default-400">Tenant</p>
+            <h1 className="text-2xl font-semibold text-foreground">{profile.name}</h1>
+            <p className="text-sm text-default-500">Live snapshot spanning contract terms, adoption trends, and provisioning log.</p>
+          </div>
           <div className="flex flex-wrap gap-3">
-            <Button as={Link} href={route('admin.tenants.edit', profile.id)} variant="flat">
+            <Button as={Link} href={route('admin.tenants.edit', profile.id)} variant="bordered">
               Edit tenant
             </Button>
             <Button color="primary">Impersonate</Button>
           </div>
-        }
-      >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Plan" value={profile.plan} meta={`Renewal ${profile.renewal}`} />
-          <StatCard label="Status" value={profile.status} meta={`Region · ${profile.region}`} />
-          <StatCard label="Seats" value={profile.seats} meta="Licensed users" />
-          <StatCard label="Owner" value={profile.owner} meta={`Since ${profile.created_at}`} />
         </div>
 
-        <SectionCard
-          title="Enabled modules"
-          description="Each module reports adoption and health from telemetry."
-        >
-          <div className="grid gap-4 md:grid-cols-2">
+        <StatsCards
+          stats={[
+            { title: 'Plan', value: profile.plan, description: `Renewal ${profile.renewal}` },
+            { title: 'Status', value: profile.status, description: `Region · ${profile.region}` },
+            { title: 'Seats', value: profile.seats, description: 'Licensed users' },
+            { title: 'Owner', value: profile.owner, description: `Since ${profile.created_at}` },
+          ]}
+        />
+
+        <Card shadow="none" className="border border-default-100/70 bg-white/95 shadow-2xl" style={{ borderRadius: 'var(--borderRadius, 24px)' }}>
+          <CardHeader className="flex flex-col gap-1 border-b border-default-100/60 px-6 py-5">
+            <h2 className="text-lg font-semibold text-foreground">Enabled modules</h2>
+            <p className="text-sm text-default-500">Each module reports adoption and health from telemetry.</p>
+          </CardHeader>
+          <CardBody className="grid gap-4 p-6 md:grid-cols-2">
             {profile.modules.map((module) => (
-              <div
-                key={module.name}
-                className="rounded-2xl border border-default-100 bg-white/70 p-4 shadow-sm"
-              >
+              <div key={module.name} className="rounded-2xl border border-default-100 bg-white/80 p-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-default-900 dark:text-white">{module.name}</p>
                   <Chip color="success" variant="flat">
@@ -71,14 +74,15 @@ const TenantsShow = () => {
                 <p className="mt-2 text-sm text-default-500">Adoption {module.adoption}</p>
               </div>
             ))}
-          </div>
-        </SectionCard>
+          </CardBody>
+        </Card>
 
-        <SectionCard
-          title="Provisioning timeline"
-          description="Output from the automation pipeline."
-        >
-          <div className="space-y-4">
+        <Card shadow="none" className="border border-default-100/70 bg-white/95 shadow-2xl" style={{ borderRadius: 'var(--borderRadius, 24px)' }}>
+          <CardHeader className="flex flex-col gap-1 border-b border-default-100/60 px-6 py-5">
+            <h2 className="text-lg font-semibold text-foreground">Provisioning timeline</h2>
+            <p className="text-sm text-default-500">Output from the automation pipeline.</p>
+          </CardHeader>
+          <CardBody className="space-y-4 p-6">
             {profile.automation.map((step) => (
               <div key={step.step} className="flex items-center justify-between rounded-2xl bg-default-50 px-4 py-3">
                 <div>
@@ -90,9 +94,9 @@ const TenantsShow = () => {
                 </Chip>
               </div>
             ))}
-          </div>
-        </SectionCard>
-      </AdminPage>
+          </CardBody>
+        </Card>
+      </div>
     </>
   );
 };

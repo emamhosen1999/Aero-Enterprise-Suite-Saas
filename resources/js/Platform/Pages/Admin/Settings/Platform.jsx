@@ -4,15 +4,48 @@ import App from '@/Layouts/App.jsx';
 import {
   Button,
   Card,
-  CardBody,
   CardHeader,
+  CardBody,
   Input,
   Switch,
   Textarea,
 } from '@heroui/react';
-import { showToast } from '@/utils/toastUtils';
+import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { showToast } from '@/utils/toastUtils.jsx';
+
+const mainCardStyle = {
+  border: `var(--borderWidth, 2px) solid transparent`,
+  borderRadius: `var(--borderRadius, 12px)`,
+  fontFamily: `var(--fontFamily, "Inter")`,
+  background: `linear-gradient(135deg, 
+    var(--theme-content1, #FAFAFA) 20%, 
+    var(--theme-content2, #F4F4F5) 10%, 
+    var(--theme-content3, #F1F3F4) 20%)`,
+};
+
+const headerStyle = {
+  borderColor: `var(--theme-divider, #E4E4E7)`,
+  background: `linear-gradient(135deg, 
+    color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+    color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+};
+
+const sectionCardStyle = {
+  background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
+  border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
+  borderRadius: `var(--borderRadius, 12px)`,
+};
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+const FileInput = ({ label, description, error, onChange }) => (
+  <label className="block border border-dashed border-default-200 rounded-lg p-4">
+    <span className="text-sm font-medium text-default-600">{label}</span>
+    <input type="file" className="mt-2 block w-full text-sm" onChange={onChange} />
+    {description && <p className="text-xs text-default-400 mt-1">{description}</p>}
+    {error && <p className="text-xs text-danger mt-1">{error}</p>}
+  </label>
+);
 
 const PlatformSettings = () => {
   const { title = 'Platform Settings', platformSettings = {} } = usePage().props;
@@ -126,375 +159,392 @@ const PlatformSettings = () => {
   return (
     <>
       <Head title={title} />
-      <div className="py-8 px-4 sm:px-6 lg:px-10 max-w-6xl mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Card shadow="sm">
-            <CardHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Platform identity</h2>
-              <p className="text-sm text-default-500">
-                Core details shown on admin login, marketing pages, and transactional mail.
-              </p>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className={fieldClass}>
+      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6">
+        <Card className="transition-all duration-200" style={mainCardStyle}>
+          <CardHeader className="border-b p-0" style={headerStyle}>
+            <div className="p-6 w-full">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="p-3 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                      borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                      borderWidth: `var(--borderWidth, 2px)`,
+                      borderRadius: `var(--borderRadius, 12px)`,
+                    }}
+                  >
+                    <Cog6ToothIcon className="w-8 h-8" style={{ color: 'var(--theme-primary)' }} />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-bold text-foreground">Platform Settings</h4>
+                    <p className="text-sm text-default-500">
+                      Configure core platform identity, branding, integrations, and admin experience.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button type="button" variant="light" onPress={handleReset}>
+                    Reset
+                  </Button>
+                  <Button color="primary" type="submit" form="platform-settings-form" isLoading={processing}>
+                    Save changes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardBody className="p-6">
+            <form id="platform-settings-form" onSubmit={handleSubmit} className="space-y-6">
+              {/* Platform Identity */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">Platform Identity</h5>
+                  <p className="text-xs text-default-500">
+                    Core details shown on admin login, marketing pages, and transactional mail.
+                  </p>
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Site name"
+                    value={data.site_name}
+                    onChange={(event) => setData('site_name', event.target.value)}
+                    isRequired
+                    isInvalid={Boolean(errors.site_name)}
+                    errorMessage={errors.site_name}
+                  />
+                  <Input
+                    label="Legal name"
+                    value={data.legal_name}
+                    onChange={(event) => setData('legal_name', event.target.value)}
+                    isInvalid={Boolean(errors.legal_name)}
+                    errorMessage={errors.legal_name}
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Tagline"
+                    value={data.tagline}
+                    onChange={(event) => setData('tagline', event.target.value)}
+                    isInvalid={Boolean(errors.tagline)}
+                    errorMessage={errors.tagline}
+                  />
+                  <Input
+                    label="Support email"
+                    type="email"
+                    value={data.support_email}
+                    onChange={(event) => setData('support_email', event.target.value)}
+                    isRequired
+                    isInvalid={Boolean(errors.support_email)}
+                    errorMessage={errors.support_email}
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Support phone"
+                    value={data.support_phone}
+                    onChange={(event) => setData('support_phone', event.target.value)}
+                    isInvalid={Boolean(errors.support_phone)}
+                    errorMessage={errors.support_phone}
+                  />
+                  <Input
+                    label="Marketing site URL"
+                    type="url"
+                    value={data.marketing_url}
+                    onChange={(event) => setData('marketing_url', event.target.value)}
+                    isInvalid={Boolean(errors.marketing_url)}
+                    errorMessage={errors.marketing_url}
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Status page URL"
+                    type="url"
+                    value={data.status_page_url}
+                    onChange={(event) => setData('status_page_url', event.target.value)}
+                    isInvalid={Boolean(errors.status_page_url)}
+                    errorMessage={errors.status_page_url}
+                  />
+                </div>
+              </div>
+
+              {/* Branding & Assets */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">Branding & Assets</h5>
+                  <p className="text-xs text-default-500">Colors and uploadable assets reused across admin surfaces.</p>
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Primary color"
+                    type="color"
+                    value={data.branding.primary_color}
+                    onChange={(event) => updateNested('branding', 'primary_color', event.target.value)}
+                    isInvalid={Boolean(errors['branding.primary_color'])}
+                    errorMessage={errors['branding.primary_color']}
+                  />
+                  <Input
+                    label="Accent color"
+                    type="color"
+                    value={data.branding.accent_color}
+                    onChange={(event) => updateNested('branding', 'accent_color', event.target.value)}
+                    isInvalid={Boolean(errors['branding.accent_color'])}
+                    errorMessage={errors['branding.accent_color']}
+                  />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <FileInput
+                    label="Logo"
+                    description="SVG, PNG, or WebP up to 4MB"
+                    error={errors.logo}
+                    onChange={(event) => handleFileChange('logo', event)}
+                  />
+                  <FileInput
+                    label="Favicon"
+                    description="ICO, SVG, or PNG up to 2MB"
+                    error={errors.favicon}
+                    onChange={(event) => handleFileChange('favicon', event)}
+                  />
+                  <FileInput
+                    label="Social preview"
+                    description="PNG or JPG up to 4MB"
+                    error={errors.social}
+                    onChange={(event) => handleFileChange('social', event)}
+                  />
+                </div>
+              </div>
+
+              {/* Marketing Content & Metadata */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">Marketing Content & Metadata</h5>
+                  <p className="text-xs text-default-500">Landing hero copy plus SEO metadata for public pages.</p>
+                </div>
+                <div className={fieldClass}>
+                  <Textarea
+                    label="Hero title"
+                    minRows={2}
+                    value={data.metadata.hero_title}
+                    onChange={(event) => updateNested('metadata', 'hero_title', event.target.value)}
+                    isInvalid={Boolean(errors['metadata.hero_title'])}
+                    errorMessage={errors['metadata.hero_title']}
+                  />
+                  <Textarea
+                    label="Hero subtitle"
+                    minRows={2}
+                    value={data.metadata.hero_subtitle}
+                    onChange={(event) => updateNested('metadata', 'hero_subtitle', event.target.value)}
+                    isInvalid={Boolean(errors['metadata.hero_subtitle'])}
+                    errorMessage={errors['metadata.hero_subtitle']}
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Meta title"
+                    value={data.metadata.meta_title}
+                    onChange={(event) => updateNested('metadata', 'meta_title', event.target.value)}
+                    isInvalid={Boolean(errors['metadata.meta_title'])}
+                    errorMessage={errors['metadata.meta_title']}
+                  />
+                  <Textarea
+                    label="Meta description"
+                    minRows={2}
+                    value={data.metadata.meta_description}
+                    onChange={(event) => updateNested('metadata', 'meta_description', event.target.value)}
+                    isInvalid={Boolean(errors['metadata.meta_description'])}
+                    errorMessage={errors['metadata.meta_description']}
+                  />
+                </div>
                 <Input
-                  label="Site name"
-                  value={data.site_name}
-                  onChange={(event) => setData('site_name', event.target.value)}
-                  isRequired
-                  isInvalid={Boolean(errors.site_name)}
-                  errorMessage={errors.site_name}
-                />
-                <Input
-                  label="Legal name"
-                  value={data.legal_name}
-                  onChange={(event) => setData('legal_name', event.target.value)}
-                  isInvalid={Boolean(errors.legal_name)}
-                  errorMessage={errors.legal_name}
+                  label="Meta keywords"
+                  description="Comma separated (e.g. hrms, workforce platform)"
+                  value={keywordsInput}
+                  onChange={(event) => handleKeywordsChange(event.target.value)}
+                  isInvalid={Boolean(errors['metadata.meta_keywords'])}
+                  errorMessage={errors['metadata.meta_keywords']}
                 />
               </div>
-              <div className={fieldClass}>
+
+              {/* Email Infrastructure */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">Email Infrastructure</h5>
+                  <p className="text-xs text-default-500">Outbound email credentials for platform notifications.</p>
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Driver"
+                    value={data.email_settings.driver}
+                    onChange={(event) => updateNested('email_settings', 'driver', event.target.value)}
+                    isInvalid={Boolean(errors['email_settings.driver'])}
+                    errorMessage={errors['email_settings.driver']}
+                  />
+                  <Input
+                    label="Host"
+                    value={data.email_settings.host}
+                    onChange={(event) => updateNested('email_settings', 'host', event.target.value)}
+                    isInvalid={Boolean(errors['email_settings.host'])}
+                    errorMessage={errors['email_settings.host']}
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Port"
+                    type="number"
+                    value={data.email_settings.port}
+                    onChange={(event) => updateNested('email_settings', 'port', event.target.value)}
+                    isInvalid={Boolean(errors['email_settings.port'])}
+                    errorMessage={errors['email_settings.port']}
+                  />
+                  <Input
+                    label="Encryption"
+                    value={data.email_settings.encryption}
+                    onChange={(event) => updateNested('email_settings', 'encryption', event.target.value)}
+                    isInvalid={Boolean(errors['email_settings.encryption'])}
+                    errorMessage={errors['email_settings.encryption']}
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Username"
+                    value={data.email_settings.username}
+                    onChange={(event) => updateNested('email_settings', 'username', event.target.value)}
+                    isInvalid={Boolean(errors['email_settings.username'])}
+                    errorMessage={errors['email_settings.username']}
+                  />
+                  <Input
+                    label="Password"
+                    type="password"
+                    value={data.email_settings.password}
+                    onChange={(event) => updateNested('email_settings', 'password', event.target.value)}
+                    description={
+                      email.password_set ? 'Credentials already stored. Leave blank to keep current password.' : undefined
+                    }
+                    isInvalid={Boolean(errors['email_settings.password'])}
+                    errorMessage={errors['email_settings.password']}
+                  />
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="From address"
+                    type="email"
+                    value={data.email_settings.from_address}
+                    onChange={(event) => updateNested('email_settings', 'from_address', event.target.value)}
+                    isInvalid={Boolean(errors['email_settings.from_address'])}
+                    errorMessage={errors['email_settings.from_address']}
+                  />
+                  <Input
+                    label="From name"
+                    value={data.email_settings.from_name}
+                    onChange={(event) => updateNested('email_settings', 'from_name', event.target.value)}
+                    isInvalid={Boolean(errors['email_settings.from_name'])}
+                    errorMessage={errors['email_settings.from_name']}
+                  />
+                </div>
                 <Input
-                  label="Tagline"
-                  value={data.tagline}
-                  onChange={(event) => setData('tagline', event.target.value)}
-                  isInvalid={Boolean(errors.tagline)}
-                  errorMessage={errors.tagline}
-                />
-                <Input
-                  label="Support email"
+                  label="Reply-to"
                   type="email"
-                  value={data.support_email}
-                  onChange={(event) => setData('support_email', event.target.value)}
-                  isRequired
-                  isInvalid={Boolean(errors.support_email)}
-                  errorMessage={errors.support_email}
+                  value={data.email_settings.reply_to}
+                  onChange={(event) => updateNested('email_settings', 'reply_to', event.target.value)}
+                  isInvalid={Boolean(errors['email_settings.reply_to'])}
+                  errorMessage={errors['email_settings.reply_to']}
                 />
               </div>
-              <div className={fieldClass}>
+
+              {/* Legal & Trust Center */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">Legal & Trust Center</h5>
+                  <p className="text-xs text-default-500">Surface canonical policy links for tenants.</p>
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Terms of service URL"
+                    type="url"
+                    value={data.legal.terms_url}
+                    onChange={(event) => updateNested('legal', 'terms_url', event.target.value)}
+                    isInvalid={Boolean(errors['legal.terms_url'])}
+                    errorMessage={errors['legal.terms_url']}
+                  />
+                  <Input
+                    label="Privacy policy URL"
+                    type="url"
+                    value={data.legal.privacy_url}
+                    onChange={(event) => updateNested('legal', 'privacy_url', event.target.value)}
+                    isInvalid={Boolean(errors['legal.privacy_url'])}
+                    errorMessage={errors['legal.privacy_url']}
+                  />
+                </div>
                 <Input
-                  label="Support phone"
-                  value={data.support_phone}
-                  onChange={(event) => setData('support_phone', event.target.value)}
-                  isInvalid={Boolean(errors.support_phone)}
-                  errorMessage={errors.support_phone}
-                />
-                <Input
-                  label="Marketing site URL"
+                  label="Cookie policy URL"
                   type="url"
-                  value={data.marketing_url}
-                  onChange={(event) => setData('marketing_url', event.target.value)}
-                  isInvalid={Boolean(errors.marketing_url)}
-                  errorMessage={errors.marketing_url}
+                  value={data.legal.cookies_url}
+                  onChange={(event) => updateNested('legal', 'cookies_url', event.target.value)}
+                  isInvalid={Boolean(errors['legal.cookies_url'])}
+                  errorMessage={errors['legal.cookies_url']}
                 />
               </div>
-              <div className={fieldClass}>
-                <Input
-                  label="Status page URL"
-                  type="url"
-                  value={data.status_page_url}
-                  onChange={(event) => setData('status_page_url', event.target.value)}
-                  isInvalid={Boolean(errors.status_page_url)}
-                  errorMessage={errors.status_page_url}
-                />
-              </div>
-            </CardBody>
-          </Card>
 
-          <Card shadow="sm">
-            <CardHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Branding & assets</h2>
-              <p className="text-sm text-default-500">Colors and uploadable assets reused across admin surfaces.</p>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className={fieldClass}>
+              {/* Integrations */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">Integrations</h5>
+                  <p className="text-xs text-default-500">API keys and IDs for shared platform tooling.</p>
+                </div>
+                <div className={fieldClass}>
+                  <Input
+                    label="Intercom App ID"
+                    value={data.integrations.intercom_app_id}
+                    onChange={(event) => updateNested('integrations', 'intercom_app_id', event.target.value)}
+                    isInvalid={Boolean(errors['integrations.intercom_app_id'])}
+                    errorMessage={errors['integrations.intercom_app_id']}
+                  />
+                  <Input
+                    label="Segment write key"
+                    value={data.integrations.segment_key}
+                    onChange={(event) => updateNested('integrations', 'segment_key', event.target.value)}
+                    isInvalid={Boolean(errors['integrations.segment_key'])}
+                    errorMessage={errors['integrations.segment_key']}
+                  />
+                </div>
                 <Input
-                  label="Primary color"
-                  type="color"
-                  value={data.branding.primary_color}
-                  onChange={(event) => updateNested('branding', 'primary_color', event.target.value)}
-                  isInvalid={Boolean(errors['branding.primary_color'])}
-                  errorMessage={errors['branding.primary_color']}
-                />
-                <Input
-                  label="Accent color"
-                  type="color"
-                  value={data.branding.accent_color}
-                  onChange={(event) => updateNested('branding', 'accent_color', event.target.value)}
-                  isInvalid={Boolean(errors['branding.accent_color'])}
-                  errorMessage={errors['branding.accent_color']}
+                  label="Statuspage ID"
+                  value={data.integrations.statuspage_id}
+                  onChange={(event) => updateNested('integrations', 'statuspage_id', event.target.value)}
+                  isInvalid={Boolean(errors['integrations.statuspage_id'])}
+                  errorMessage={errors['integrations.statuspage_id']}
                 />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <FileInput
-                  label="Logo"
-                  description="SVG, PNG, or WebP up to 4MB"
-                  error={errors.logo}
-                  onChange={(event) => handleFileChange('logo', event)}
-                />
-                <FileInput
-                  label="Favicon"
-                  description="ICO, SVG, or PNG up to 2MB"
-                  error={errors.favicon}
-                  onChange={(event) => handleFileChange('favicon', event)}
-                />
-                <FileInput
-                  label="Social preview"
-                  description="PNG or JPG up to 4MB"
-                  error={errors.social}
-                  onChange={(event) => handleFileChange('social', event)}
-                />
-              </div>
-            </CardBody>
-          </Card>
 
-          <Card shadow="sm">
-            <CardHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Marketing content & metadata</h2>
-              <p className="text-sm text-default-500">Landing hero copy plus SEO metadata for public pages.</p>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className={fieldClass}>
-                <Textarea
-                  label="Hero title"
-                  minRows={2}
-                  value={data.metadata.hero_title}
-                  onChange={(event) => updateNested('metadata', 'hero_title', event.target.value)}
-                  isInvalid={Boolean(errors['metadata.hero_title'])}
-                  errorMessage={errors['metadata.hero_title']}
-                />
-                <Textarea
-                  label="Hero subtitle"
-                  minRows={2}
-                  value={data.metadata.hero_subtitle}
-                  onChange={(event) => updateNested('metadata', 'hero_subtitle', event.target.value)}
-                  isInvalid={Boolean(errors['metadata.hero_subtitle'])}
-                  errorMessage={errors['metadata.hero_subtitle']}
-                />
+              {/* Admin Experience */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">Admin Experience</h5>
+                  <p className="text-xs text-default-500">Optional controls that affect the admin workspace.</p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Switch
+                    isSelected={Boolean(data.admin_preferences.show_beta_features)}
+                    onValueChange={(value) => updateNested('admin_preferences', 'show_beta_features', value)}
+                  >
+                    Show beta banners and pre-release modules
+                  </Switch>
+                  <Switch
+                    isSelected={Boolean(data.admin_preferences.enable_impersonation)}
+                    onValueChange={(value) => updateNested('admin_preferences', 'enable_impersonation', value)}
+                  >
+                    Allow platform admins to impersonate tenants
+                  </Switch>
+                </div>
               </div>
-              <div className={fieldClass}>
-                <Input
-                  label="Meta title"
-                  value={data.metadata.meta_title}
-                  onChange={(event) => updateNested('metadata', 'meta_title', event.target.value)}
-                  isInvalid={Boolean(errors['metadata.meta_title'])}
-                  errorMessage={errors['metadata.meta_title']}
-                />
-                <Textarea
-                  label="Meta description"
-                  minRows={2}
-                  value={data.metadata.meta_description}
-                  onChange={(event) => updateNested('metadata', 'meta_description', event.target.value)}
-                  isInvalid={Boolean(errors['metadata.meta_description'])}
-                  errorMessage={errors['metadata.meta_description']}
-                />
-              </div>
-              <Input
-                label="Meta keywords"
-                description="Comma separated (e.g. hrms, workforce platform)"
-                value={keywordsInput}
-                onChange={(event) => handleKeywordsChange(event.target.value)}
-                isInvalid={Boolean(errors['metadata.meta_keywords'])}
-                errorMessage={errors['metadata.meta_keywords']}
-              />
-            </CardBody>
-          </Card>
-
-          <Card shadow="sm">
-            <CardHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Email infrastructure</h2>
-              <p className="text-sm text-default-500">Outbound email credentials for platform notifications.</p>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className={fieldClass}>
-                <Input
-                  label="Driver"
-                  value={data.email_settings.driver}
-                  onChange={(event) => updateNested('email_settings', 'driver', event.target.value)}
-                  isInvalid={Boolean(errors['email_settings.driver'])}
-                  errorMessage={errors['email_settings.driver']}
-                />
-                <Input
-                  label="Host"
-                  value={data.email_settings.host}
-                  onChange={(event) => updateNested('email_settings', 'host', event.target.value)}
-                  isInvalid={Boolean(errors['email_settings.host'])}
-                  errorMessage={errors['email_settings.host']}
-                />
-              </div>
-              <div className={fieldClass}>
-                <Input
-                  label="Port"
-                  type="number"
-                  value={data.email_settings.port}
-                  onChange={(event) => updateNested('email_settings', 'port', event.target.value)}
-                  isInvalid={Boolean(errors['email_settings.port'])}
-                  errorMessage={errors['email_settings.port']}
-                />
-                <Input
-                  label="Encryption"
-                  value={data.email_settings.encryption}
-                  onChange={(event) => updateNested('email_settings', 'encryption', event.target.value)}
-                  isInvalid={Boolean(errors['email_settings.encryption'])}
-                  errorMessage={errors['email_settings.encryption']}
-                />
-              </div>
-              <div className={fieldClass}>
-                <Input
-                  label="Username"
-                  value={data.email_settings.username}
-                  onChange={(event) => updateNested('email_settings', 'username', event.target.value)}
-                  isInvalid={Boolean(errors['email_settings.username'])}
-                  errorMessage={errors['email_settings.username']}
-                />
-                <Input
-                  label="Password"
-                  type="password"
-                  value={data.email_settings.password}
-                  onChange={(event) => updateNested('email_settings', 'password', event.target.value)}
-                  description={email.password_set ? 'Credentials already stored. Leave blank to keep current password.' : undefined}
-                  isInvalid={Boolean(errors['email_settings.password'])}
-                  errorMessage={errors['email_settings.password']}
-                />
-              </div>
-              <div className={fieldClass}>
-                <Input
-                  label="From address"
-                  type="email"
-                  value={data.email_settings.from_address}
-                  onChange={(event) => updateNested('email_settings', 'from_address', event.target.value)}
-                  isInvalid={Boolean(errors['email_settings.from_address'])}
-                  errorMessage={errors['email_settings.from_address']}
-                />
-                <Input
-                  label="From name"
-                  value={data.email_settings.from_name}
-                  onChange={(event) => updateNested('email_settings', 'from_name', event.target.value)}
-                  isInvalid={Boolean(errors['email_settings.from_name'])}
-                  errorMessage={errors['email_settings.from_name']}
-                />
-              </div>
-              <Input
-                label="Reply-to"
-                type="email"
-                value={data.email_settings.reply_to}
-                onChange={(event) => updateNested('email_settings', 'reply_to', event.target.value)}
-                isInvalid={Boolean(errors['email_settings.reply_to'])}
-                errorMessage={errors['email_settings.reply_to']}
-              />
-            </CardBody>
-          </Card>
-
-          <Card shadow="sm">
-            <CardHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Legal & trust center</h2>
-              <p className="text-sm text-default-500">Surface canonical policy links for tenants.</p>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className={fieldClass}>
-                <Input
-                  label="Terms of service URL"
-                  type="url"
-                  value={data.legal.terms_url}
-                  onChange={(event) => updateNested('legal', 'terms_url', event.target.value)}
-                  isInvalid={Boolean(errors['legal.terms_url'])}
-                  errorMessage={errors['legal.terms_url']}
-                />
-                <Input
-                  label="Privacy policy URL"
-                  type="url"
-                  value={data.legal.privacy_url}
-                  onChange={(event) => updateNested('legal', 'privacy_url', event.target.value)}
-                  isInvalid={Boolean(errors['legal.privacy_url'])}
-                  errorMessage={errors['legal.privacy_url']}
-                />
-              </div>
-              <Input
-                label="Cookie policy URL"
-                type="url"
-                value={data.legal.cookies_url}
-                onChange={(event) => updateNested('legal', 'cookies_url', event.target.value)}
-                isInvalid={Boolean(errors['legal.cookies_url'])}
-                errorMessage={errors['legal.cookies_url']}
-              />
-            </CardBody>
-          </Card>
-
-          <Card shadow="sm">
-            <CardHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Integrations</h2>
-              <p className="text-sm text-default-500">API keys and IDs for shared platform tooling.</p>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className={fieldClass}>
-                <Input
-                  label="Intercom App ID"
-                  value={data.integrations.intercom_app_id}
-                  onChange={(event) => updateNested('integrations', 'intercom_app_id', event.target.value)}
-                  isInvalid={Boolean(errors['integrations.intercom_app_id'])}
-                  errorMessage={errors['integrations.intercom_app_id']}
-                />
-                <Input
-                  label="Segment write key"
-                  value={data.integrations.segment_key}
-                  onChange={(event) => updateNested('integrations', 'segment_key', event.target.value)}
-                  isInvalid={Boolean(errors['integrations.segment_key'])}
-                  errorMessage={errors['integrations.segment_key']}
-                />
-              </div>
-              <Input
-                label="Statuspage ID"
-                value={data.integrations.statuspage_id}
-                onChange={(event) => updateNested('integrations', 'statuspage_id', event.target.value)}
-                isInvalid={Boolean(errors['integrations.statuspage_id'])}
-                errorMessage={errors['integrations.statuspage_id']}
-              />
-            </CardBody>
-          </Card>
-
-          <Card shadow="sm">
-            <CardHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Admin experience</h2>
-              <p className="text-sm text-default-500">Optional controls that affect the admin workspace.</p>
-            </CardHeader>
-            <CardBody className="grid md:grid-cols-2 gap-4">
-              <Switch
-                isSelected={Boolean(data.admin_preferences.show_beta_features)}
-                onValueChange={(value) => updateNested('admin_preferences', 'show_beta_features', value)}
-              >
-                Show beta banners and pre-release modules
-              </Switch>
-              <Switch
-                isSelected={Boolean(data.admin_preferences.enable_impersonation)}
-                onValueChange={(value) => updateNested('admin_preferences', 'enable_impersonation', value)}
-              >
-                Allow platform admins to impersonate tenants
-              </Switch>
-            </CardBody>
-          </Card>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-end">
-            <Button type="button" variant="light" onPress={handleReset}>
-              Reset
-            </Button>
-            <Button color="primary" type="submit" isLoading={processing}>
-              Save changes
-            </Button>
-          </div>
-        </form>
+            </form>
+          </CardBody>
+        </Card>
       </div>
     </>
   );
 };
-
-const FileInput = ({ label, description, error, onChange }) => (
-  <label className="block border border-dashed border-default-200 rounded-lg p-4">
-    <span className="text-sm font-medium text-default-600">{label}</span>
-    <input type="file" className="mt-2 block w-full text-sm" onChange={onChange} />
-    {description && <p className="text-xs text-default-400 mt-1">{description}</p>}
-    {error && <p className="text-xs text-danger mt-1">{error}</p>}
-  </label>
-);
 
 PlatformSettings.layout = (page) => <App>{page}</App>;
 

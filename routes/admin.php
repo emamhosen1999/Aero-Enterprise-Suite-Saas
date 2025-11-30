@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\PlatformSettingController;
+use App\Http\Controllers\Landlord\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -11,20 +12,40 @@ use Inertia\Inertia;
 | Admin Routes (admin.platform.com)
 |--------------------------------------------------------------------------
 |
-| Uses central/platform database. Login required for all admin features.
+| Uses central/platform database with LANDLORD GUARD.
+| These routes are for super admins managing the multi-tenant platform.
+|
+| IMPORTANT: All routes use 'auth:landlord' middleware, NOT 'auth'.
+| This ensures authentication is checked against the landlord_users table
+| in the central database, not the tenant users table.
 |
 */
 
-// Auth routes (login, logout, password reset)
-require __DIR__.'/auth.php';
+// =========================================================================
+// LANDLORD AUTHENTICATION ROUTES
+// =========================================================================
 
-// Root redirects to dashboard (or login if not auth)
+Route::middleware('guest:landlord')->group(function () {
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])
+        ->name('admin.login');
+
+    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+});
+
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth:landlord')
+    ->name('admin.logout');
+
+// Root redirects to dashboard (or login if not authenticated)
 Route::get('/', function () {
     return redirect('/dashboard');
-})->middleware('auth');
+})->middleware('auth:landlord');
 
-// Protected admin routes
-Route::middleware(['auth'])->group(function () {
+// =========================================================================
+// PROTECTED ADMIN ROUTES (Require Landlord Authentication)
+// =========================================================================
+
+Route::middleware(['auth:landlord'])->group(function () {
     // Admin Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');

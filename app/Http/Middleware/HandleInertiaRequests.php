@@ -81,11 +81,14 @@ class HandleInertiaRequests extends Middleware
     /**
      * Share props for admin panel (admin.platform.com).
      *
+     * Uses the LANDLORD guard to get the authenticated super admin user.
+     *
      * @return array<string, mixed>
      */
     protected function shareAdminProps(Request $request): array
     {
-        $user = $request->user();
+        // IMPORTANT: Use landlord guard, not default web guard
+        $user = \Illuminate\Support\Facades\Auth::guard('landlord')->user();
 
         $platformSetting = $this->platformSetting();
         $platformSettingsPayload = $platformSetting
@@ -95,12 +98,19 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $user ? $user->toArray() : null,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'avatar_url' => $user->avatar_url,
+                    'initials' => $user->initials,
+                ] : null,
                 'isAuthenticated' => (bool) $user,
                 'sessionValid' => $user && $request->session()->isStarted(),
-                'isSuperAdmin' => $user?->hasRole('super-admin') ?? false,
-                'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
-                'permissions' => $user ? $user->getAllPermissions()->pluck('name')->toArray() : [],
+                'isSuperAdmin' => $user?->isSuperAdmin() ?? false,
+                'isAdmin' => $user?->isAdmin() ?? false,
+                'role' => $user?->role,
             ],
             'context' => 'admin',
             'app' => [
@@ -110,7 +120,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'platformSettings' => $platformSettingsPayload,
             'url' => $request->getPathInfo(),
-            'csrfToken' => session('csrfToken'),
+            'csrfToken' => csrf_token(),
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
         ];

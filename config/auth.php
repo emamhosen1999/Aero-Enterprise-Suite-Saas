@@ -40,6 +40,22 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Landlord Guard (Super Admin)
+        |----------------------------------------------------------------------
+        |
+        | This guard is used for authenticating landlord/super admin users
+        | who manage the multi-tenant platform from admin.platform.com.
+        | These users exist in the central database, NOT tenant databases.
+        |
+        */
+        'landlord' => [
+            'driver' => 'session',
+            'provider' => 'landlord_users',
+        ],
+
         'sanctum' => [
             'driver' => 'sanctum',
             'provider' => 'users',
@@ -67,6 +83,20 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Landlord Users Provider
+        |----------------------------------------------------------------------
+        |
+        | Provider for super admin users stored in the central database.
+        | Uses the LandlordUser model which forces the 'central' connection.
+        |
+        */
+        'landlord_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\LandlordUser::class,
         ],
 
         // 'users' => [
@@ -98,6 +128,22 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Landlord Password Reset
+        |----------------------------------------------------------------------
+        |
+        | Password reset configuration for landlord/super admin users.
+        | Uses a separate table in the central database.
+        |
+        */
+        'landlord_users' => [
+            'provider' => 'landlord_users',
+            'table' => 'landlord_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

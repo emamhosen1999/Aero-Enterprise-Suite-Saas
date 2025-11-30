@@ -2,16 +2,60 @@
 
 namespace App\Models;
 
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
+/**
+ * EOS365 Tenant Model
+ *
+ * Represents a tenant (customer organization) in the multi-tenant SaaS platform.
+ * Uses UUID primary key to prevent enumeration attacks.
+ *
+ * This model extends Stancl\Tenancy's base Tenant and implements:
+ * - TenantWithDatabase: Enables automatic database creation/deletion
+ * - HasDomains trait: Provides domain management functionality
+ *
+ * @property string $id UUID primary key
+ * @property \ArrayObject $data Flexible metadata storage (owner_name, address, etc.)
+ * @property string $status Tenant status: pending, active, suspended, archived
+ * @property bool $maintenance_mode Whether tenant is in maintenance mode
+ * @property \Carbon\Carbon|null $trial_ends_at Trial period end date
+ * @property string|null $plan_id Foreign key to plans table
+ */
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains, HasFactory;
+    use HasDatabase, HasDomains, HasFactory, SoftDeletes;
 
+    /**
+     * Tenant status constants.
+     */
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_SUSPENDED = 'suspended';
+
+    public const STATUS_ARCHIVED = 'archived';
+
+    /**
+     * Custom columns that are stored directly on the tenants table
+     * (not in the JSON 'data' column).
+     *
+     * IMPORTANT: Any attribute listed here will be stored in its own
+     * database column instead of being serialized into the 'data' JSON column.
+     * This is crucial for:
+     * - Indexing and query performance
+     * - Foreign key relationships (plan_id)
+     * - Filtering in database queries
+     */
     public static function getCustomColumns(): array
     {
         return [
@@ -21,16 +65,208 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'subdomain',
             'email',
             'phone',
-            'subscription_plan',
+            'plan_id',           // FK to plans table
+            'subscription_plan', // billing cycle: monthly/yearly
             'modules',
             'trial_ends_at',
             'subscription_ends_at',
+            'status',
+            'maintenance_mode',
         ];
     }
 
-    protected $casts = [
-        'modules' => 'array',
-        'trial_ends_at' => 'date',
-        'subscription_ends_at' => 'date',
-    ];
+    /**
+     * The attributes that should be cast.
+     *
+     * Using AsArrayObject for 'data' allows partial updates without
+     * overwriting the entire JSON structure.
+     */
+    protected function casts(): array
+    {
+        return [
+            'data' => AsArrayObject::class,
+            'modules' => AsArrayObject::class,
+            'trial_ends_at' => 'datetime',
+            'subscription_ends_at' => 'datetime',
+            'maintenance_mode' => 'boolean',
+        ];
+    }
+
+    // =========================================================================
+    // RELATIONSHIPS
+    // =========================================================================
+
+    /**
+     * Get all domains associated with this tenant.
+     */
+    public function domains(): HasMany
+    {
+        return $this->hasMany(Domain::class);
+    }
+
+    /**
+     * Get the primary domain for this tenant.
+     */
+    public function primaryDomain(): ?Domain
+    {
+        return $this->domains()->where('is_primary', true)->first();
+    }
+
+    /**
+     * Get the subscription plan for this tenant.
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * Get all subscriptions for this tenant.
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the current (most recent active) subscription.
+     *
+     * Uses latestOfMany() to efficiently fetch only one record
+     * that matches the active status criteria.
+     */
+    public function currentSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)
+            ->ofMany(
+                ['created_at' => 'max'],
+                fn ($query) => $query->where('status', 'active')
+            );
+    }
+
+    /**
+     * Alias for currentSubscription() for backward compatibility.
+     */
+    public function activeSubscription(): HasOne
+    {
+        return $this->currentSubscription();
+    }
+
+    // =========================================================================
+    // SCOPES
+    // =========================================================================
+
+    /**
+     * Scope to filter only active tenants.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope to filter tenants currently in trial.
+     */
+    public function scopeOnTrial($query)
+    {
+        return $query->where('status', 'pending')
+            ->whereNotNull('trial_ends_at')
+            ->where('trial_ends_at', '>', now());
+    }
+
+    /**
+     * Scope to filter suspended tenants.
+     */
+    public function scopeSuspended($query)
+    {
+        return $query->where('status', 'suspended');
+    }
+
+    // =========================================================================
+    // HELPER METHODS
+    // =========================================================================
+
+    /**
+     * Check if the tenant is currently active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Check if the tenant is on trial.
+     */
+    public function isOnTrial(): bool
+    {
+        return $this->trial_ends_at?->isFuture() ?? false;
+    }
+
+    /**
+     * Check if the tenant's trial has expired.
+     */
+    public function hasTrialExpired(): bool
+    {
+        return $this->trial_ends_at?->isPast() ?? false;
+    }
+
+    /**
+     * Check if the tenant is in maintenance mode.
+     */
+    public function isInMaintenance(): bool
+    {
+        return $this->maintenance_mode === true;
+    }
+
+    /**
+     * Get the owner information from the data column.
+     *
+     * Owner info is stored in data JSON to avoid schema changes
+     * when adding new owner fields.
+     *
+     * @return array{name?: string, email?: string, phone?: string}
+     */
+    public function getOwnerAttribute(): array
+    {
+        return [
+            'name' => $this->data['owner_name'] ?? null,
+            'email' => $this->data['owner_email'] ?? null,
+            'phone' => $this->data['owner_phone'] ?? null,
+        ];
+    }
+
+    /**
+     * Activate the tenant (change status from pending to active).
+     */
+    public function activate(): bool
+    {
+        return $this->update(['status' => self::STATUS_ACTIVE]);
+    }
+
+    /**
+     * Suspend the tenant.
+     */
+    public function suspend(?string $reason = null): bool
+    {
+        $this->data['suspension_reason'] = $reason;
+        $this->data['suspended_at'] = now()->toIso8601String();
+        $this->status = self::STATUS_SUSPENDED;
+
+        return $this->save();
+    }
+
+    /**
+     * Enable maintenance mode for this tenant.
+     */
+    public function enableMaintenance(): bool
+    {
+        return $this->update(['maintenance_mode' => true]);
+    }
+
+    /**
+     * Disable maintenance mode for this tenant.
+     */
+    public function disableMaintenance(): bool
+    {
+        return $this->update(['maintenance_mode' => false]);
+    }
 }
