@@ -1,370 +1,366 @@
 # Multi-Tenancy Deployment Guide
 
 This guide explains how to deploy the application with support for:
-- `platform.com` - Public landing page and tenant registration
-- `admin.platform.com` - Admin panel for platform management
-- `{tenant}.platform.com` - Individual tenant applications
+- `aeos365.com` - Public landing page and tenant registration
+- `admin.aeos365.com` - Admin panel for platform management
+- `{tenant}.aeos365.com` - Individual tenant applications
 
 ## Domain Architecture
 
 ```
-platform.com                → Landing page, registration, public info
-admin.platform.com          → Super admin panel (central DB)
-{tenant}.platform.com       → Tenant application (tenant DB)
-  ├── acme.platform.com
-  ├── startup.platform.com
-  └── enterprise.platform.com
+aeos365.com                → Landing page, registration, public info
+admin.aeos365.com          → Super admin panel (central DB)
+{tenant}.aeos365.com       → Tenant application (tenant DB)
+  ├── acme.aeos365.com
+  ├── startup.aeos365.com
+  └── enterprise.aeos365.com
 ```
 
-## 1. DNS Configuration
+## 1. Namecheap Shared Hosting Setup
 
-Configure your DNS provider with the following records:
+### Step 1: Create Subdomains in cPanel
 
-| Type | Name | Value | TTL |
-|------|------|-------|-----|
-| A | @ | YOUR_SERVER_IP | 3600 |
-| A | admin | YOUR_SERVER_IP | 3600 |
-| A | * | YOUR_SERVER_IP | 3600 |
+1. Login to your **cPanel** (usually at `https://aeos365.com/cpanel` or via Namecheap dashboard)
+2. Go to **Domains** → **Subdomains**
+3. Create these subdomains:
 
-The wildcard (`*`) record enables dynamic tenant subdomains.
+| Subdomain | Document Root |
+|-----------|---------------|
+| `admin` | `public_html` (same as main domain) |
 
-## 2. SSL Certificate
+> **Note**: For tenant subdomains, you'll need to create each one manually OR use a wildcard subdomain (see below).
 
-You need a wildcard SSL certificate to cover all subdomains.
+### Step 2: Wildcard Subdomain (for dynamic tenants)
 
-### Option A: Let's Encrypt with Certbot (Recommended)
+If your Namecheap plan supports wildcard subdomains:
 
+1. In cPanel → **Subdomains**
+2. Create subdomain: `*`
+3. Document Root: `public_html` (same as main domain)
+
+> ⚠️ **Note**: Some shared hosting plans don't support wildcard subdomains. Contact Namecheap support to confirm.
+
+### Step 3: SSL Certificate
+
+Namecheap shared hosting typically includes free SSL via AutoSSL or Let's Encrypt:
+
+1. Go to **cPanel** → **SSL/TLS Status**
+2. Enable SSL for:
+   - `aeos365.com`
+   - `admin.aeos365.com`
+   - Each tenant subdomain (or wildcard if supported)
+
+For wildcard SSL:
+1. Go to **cPanel** → **SSL/TLS**
+2. You may need to purchase a wildcard SSL certificate from Namecheap
+
+## 2. File Upload
+
+Upload your Laravel project to `public_html`:
+
+### Option A: Via File Manager
+1. Zip your project (excluding `node_modules` and `vendor`)
+2. Upload to `public_html`
+3. Extract
+
+### Option B: Via SSH (if available)
 ```bash
-# Install certbot with DNS plugin
-sudo apt install certbot python3-certbot-nginx python3-certbot-dns-cloudflare
-
-# For wildcard certificate (requires DNS challenge)
-sudo certbot certonly --manual --preferred-challenges dns \
-  -d platform.com \
-  -d "*.platform.com"
+cd ~/public_html
+git clone your-repo .
+composer install --no-dev --optimize-autoloader
 ```
 
-### Option B: Cloudflare (Easier)
+### Option C: Via FTP
+Use FileZilla or similar FTP client with your cPanel FTP credentials.
 
-If using Cloudflare, enable their free Universal SSL which includes wildcard support.
+## 3. Directory Structure for Shared Hosting
 
-## 3. Web Server Configuration
+For Laravel on shared hosting, you need to move files properly:
 
-### Nginx Configuration
+```
+/home/username/
+├── public_html/           ← Laravel's public folder contents go here
+│   ├── index.php         ← Modified to point to app folder
+│   ├── .htaccess
+│   ├── build/
+│   └── storage → ../aeos365_app/storage/app/public (symlink)
+│
+└── aeos365_app/           ← Laravel app (outside public_html)
+    ├── app/
+    ├── bootstrap/
+    ├── config/
+    ├── database/
+    ├── resources/
+    ├── routes/
+    ├── storage/
+    ├── vendor/
+    ├── .env
+    └── artisan
+```
 
-Create `/etc/nginx/sites-available/platform.com`:
+### Modified `public_html/index.php`:
 
-```nginx
-# Main server block for all domains
-server {
-    listen 80;
-    listen [::]:80;
-    server_name platform.com admin.platform.com *.platform.com;
-    
-    # Redirect HTTP to HTTPS
-    return 301 https://$host$request_uri;
+```php
+<?php
+
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../aeos365_app/storage/framework/maintenance.php')) {
+    require $maintenance;
 }
 
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name platform.com admin.platform.com *.platform.com;
+// Register the Composer autoloader...
+require __DIR__.'/../aeos365_app/vendor/autoload.php';
 
-    root /var/www/platform.com/public;
-    index index.php;
-
-    # SSL Configuration
-    ssl_certificate /etc/letsencrypt/live/platform.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/platform.com/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
-
-    # Security Headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    # Logging
-    access_log /var/log/nginx/platform.com.access.log;
-    error_log /var/log/nginx/platform.com.error.log;
-
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_proxied any;
-    gzip_comp_level 6;
-    gzip_types text/plain text/css text/xml application/json application/javascript application/xml;
-
-    # Laravel application
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    # PHP-FPM
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-        fastcgi_hide_header X-Powered-By;
-    }
-
-    # Static assets caching
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        access_log off;
-    }
-
-    # Deny access to sensitive files
-    location ~ /\.(?!well-known).* {
-        deny all;
-    }
-}
-```
-
-Enable the site:
-
-```bash
-sudo ln -s /etc/nginx/sites-available/platform.com /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-### Apache Configuration
-
-Create `/etc/apache2/sites-available/platform.com.conf`:
-
-```apache
-<VirtualHost *:80>
-    ServerName platform.com
-    ServerAlias admin.platform.com *.platform.com
-    Redirect permanent / https://platform.com/
-</VirtualHost>
-
-<VirtualHost *:443>
-    ServerName platform.com
-    ServerAlias admin.platform.com *.platform.com
-    
-    DocumentRoot /var/www/platform.com/public
-
-    SSLEngine on
-    SSLCertificateFile /etc/letsencrypt/live/platform.com/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/platform.com/privkey.pem
-
-    <Directory /var/www/platform.com/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-
-    ErrorLog ${APACHE_LOG_DIR}/platform.com.error.log
-    CustomLog ${APACHE_LOG_DIR}/platform.com.access.log combined
-</VirtualHost>
-```
-
-Enable the site:
-
-```bash
-sudo a2ensite platform.com.conf
-sudo a2enmod ssl rewrite
-sudo systemctl reload apache2
+// Bootstrap Laravel and handle the request...
+(require_once __DIR__.'/../aeos365_app/bootstrap/app.php')
+    ->handleRequest(Request::capture());
 ```
 
 ## 4. Environment Configuration
 
-Update your `.env` file on the production server:
+Create/update `.env` in your Laravel app folder:
 
 ```dotenv
-APP_NAME="Your Platform Name"
+APP_NAME=AEOS365
 APP_ENV=production
-APP_KEY=base64:your-app-key-here
+APP_KEY=base64:your-generated-key
 APP_DEBUG=false
-APP_URL=https://platform.com
+APP_URL=https://aeos365.com
 
 # Multi-Tenancy Domains
-APP_DOMAIN=platform.com
-CENTRAL_DOMAIN=platform.com
-ADMIN_DOMAIN=admin.platform.com
+APP_DOMAIN=aeos365.com
+CENTRAL_DOMAIN=aeos365.com
+ADMIN_DOMAIN=admin.aeos365.com
 
 # Session - CRITICAL for subdomain sharing
-# The leading dot allows cookies across all subdomains
 SESSION_DRIVER=database
-SESSION_DOMAIN=.platform.com
+SESSION_DOMAIN=.aeos365.com
 SESSION_SECURE_COOKIE=true
 SESSION_SAME_SITE=lax
 
 # Database (Central/Platform database)
 DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
+DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=platform_central
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_secure_password
+DB_DATABASE=your_cpanel_username_aeos365
+DB_USERNAME=your_cpanel_username_dbuser
+DB_PASSWORD=your_database_password
 ```
 
 ### Important Session Settings
 
 | Setting | Value | Purpose |
 |---------|-------|---------|
-| `SESSION_DOMAIN` | `.platform.com` | Leading dot enables subdomain cookie sharing |
+| `SESSION_DOMAIN` | `.aeos365.com` | Leading dot enables subdomain cookie sharing |
 | `SESSION_SECURE_COOKIE` | `true` | Required for HTTPS |
 | `SESSION_SAME_SITE` | `lax` | Allows subdomain redirects |
 
 ## 5. Database Setup
 
-### Central Database
+### Create Databases in cPanel
 
-The central database stores:
-- Platform users (admins)
-- Tenants metadata
-- Domains configuration
-- Subscription plans
-- Global settings
+1. Go to **cPanel** → **MySQL Databases**
+2. Create central database: `aeos365_central`
+3. Create database user with strong password
+4. Add user to database with ALL PRIVILEGES
 
+For tenant databases, you'll create them as needed:
+- `aeos365_tenant_acme`
+- `aeos365_tenant_startup`
+- etc.
+
+> **Shared Hosting Limitation**: You may have a limit on number of databases. Check your plan.
+
+### Run Migrations
+
+Via SSH (if available):
 ```bash
-# Create central database
-mysql -u root -p -e "CREATE DATABASE platform_central CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
-# Run migrations
-php artisan migrate --seed
+cd ~/aeos365_app
+php artisan migrate --force --seed
 ```
 
-### Tenant Databases
+Or via cPanel Terminal (if available).
 
-Tenant databases are created automatically when registering new tenants. Each tenant gets their own database named `tenant{tenant_id}`.
+## 6. `.htaccess` Configuration
 
-## 6. Creating Tenants
+Ensure `public_html/.htaccess` has:
+
+```apache
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+```
+
+## 7. Storage Symlink
+
+Create the storage symlink via SSH or cPanel Terminal:
+
+```bash
+cd ~/public_html
+ln -s ../aeos365_app/storage/app/public storage
+```
+
+Or via PHP (one-time script):
+```php
+<?php
+// create-symlink.php in public_html - DELETE AFTER RUNNING!
+symlink('../aeos365_app/storage/app/public', 'storage');
+echo 'Symlink created!';
+```
+
+## 8. Cron Jobs (Queue & Scheduler)
+
+In cPanel → **Cron Jobs**, add:
+
+```
+* * * * * cd ~/aeos365_app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+For queue worker (simple approach for shared hosting):
+```
+*/5 * * * * cd ~/aeos365_app && php artisan queue:work --stop-when-empty >> /dev/null 2>&1
+```
+
+## 9. Creating Tenants
 
 ### Via Admin Panel
 
-1. Go to `admin.platform.com`
+1. Go to `admin.aeos365.com`
 2. Login with admin credentials
 3. Navigate to Tenants → Create
 4. Fill in tenant details and subdomain
 
-### Via Artisan Command
+### Via Tinker (SSH)
 
 ```bash
-# Create a new tenant
-php artisan tenant:create acme "Acme Corporation" admin@acme.com
-
-# Or via tinker
+cd ~/aeos365_app
 php artisan tinker
-
->>> $tenant = \App\Models\Tenant::create([
-...     'id' => 'acme',
-...     'name' => 'Acme Corporation',
-...     'email' => 'admin@acme.com',
-...     'subdomain' => 'acme',
-...     'subscription_plan' => 'trial',
-... ]);
->>> $tenant->domains()->create(['domain' => 'acme.platform.com']);
 ```
 
-## 7. Route Structure
+```php
+$tenant = \App\Models\Tenant::create([
+    'id' => 'acme',
+    'name' => 'Acme Corporation',
+    'email' => 'admin@acme.com',
+    'subdomain' => 'acme',
+    'subscription_plan' => 'trial',
+]);
+$tenant->domains()->create(['domain' => 'acme.aeos365.com']);
+```
 
-The application routes are organized as follows:
+> **Remember**: On shared hosting, you must manually create each tenant subdomain in cPanel first (unless wildcard is supported).
+
+## 10. Route Structure
 
 | Domain | Routes File | Database | Purpose |
 |--------|-------------|----------|---------|
-| `platform.com` | `routes/platform.php` | Central | Landing, registration |
-| `admin.platform.com` | `routes/admin.php` | Central | Admin panel |
-| `*.platform.com` | `routes/tenant.php` + `web.php` | Tenant | Application |
+| `aeos365.com` | `routes/platform.php` | Central | Landing, registration |
+| `admin.aeos365.com` | `routes/admin.php` | Central | Admin panel |
+| `*.aeos365.com` | `routes/tenant.php` + `web.php` | Tenant | Application |
 
-## 8. Deployment Checklist
+## 11. Deployment Checklist
 
-### Before Deployment
+### Before Upload
 
+- [ ] Run `composer install --no-dev --optimize-autoloader` locally
+- [ ] Run `npm run build`
 - [ ] Update `.env` with production values
 - [ ] Set `APP_DEBUG=false`
-- [ ] Configure database credentials
-- [ ] Set `SESSION_DOMAIN=.platform.com`
-- [ ] Configure mail settings
 
-### Server Setup
+### After Upload
 
-- [ ] DNS records configured (A, wildcard)
-- [ ] SSL certificate installed (wildcard)
-- [ ] Web server configured
-- [ ] PHP 8.2+ installed
-- [ ] Required PHP extensions installed
+- [ ] Create database in cPanel
+- [ ] Upload/configure `.env`
+- [ ] Create storage symlink
+- [ ] Run migrations
+- [ ] Set up cron jobs
+- [ ] Test all domains
 
-### Post-Deployment
+### Cache Commands (via SSH or cPanel Terminal)
 
 ```bash
-# Install dependencies
-composer install --no-dev --optimize-autoloader
-
-# Run migrations
-php artisan migrate --force
-
-# Cache configuration
+cd ~/aeos365_app
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-
-# Build frontend assets
-npm ci
-npm run build
-
-# Set permissions
-chown -R www-data:www-data storage bootstrap/cache
-chmod -R 775 storage bootstrap/cache
-
-# Restart queue workers
-php artisan queue:restart
 ```
 
-## 9. Troubleshooting
+## 12. Troubleshooting
 
 ### Session Not Persisting Across Subdomains
 
-1. Verify `SESSION_DOMAIN` starts with a dot: `.platform.com`
+1. Verify `SESSION_DOMAIN` starts with a dot: `.aeos365.com`
 2. Clear browser cookies for all subdomains
 3. Run `php artisan config:clear`
 
-### Tenant Not Found
+### 500 Error
 
-1. Check if tenant exists in `tenants` table
-2. Verify domain exists in `domains` table
-3. Check `central_domains` in `config/tenancy.php`
+1. Check `storage/logs/laravel.log`
+2. Ensure `storage/` and `bootstrap/cache/` are writable (chmod 775)
+3. Verify `.env` exists and has correct values
 
-### 404 on Tenant Subdomain
+### Tenant Subdomain Not Working
 
-1. Verify wildcard DNS is configured
-2. Check Nginx/Apache accepts wildcard
-3. Ensure tenant database exists and is migrated
+1. Verify subdomain is created in cPanel
+2. Check tenant exists in `tenants` table
+3. Verify domain exists in `domains` table
 
 ### Admin Panel 404
 
-1. Verify `ADMIN_DOMAIN` is set correctly
-2. Check `routes/admin.php` exists
+1. Verify `admin` subdomain created in cPanel
+2. Verify `ADMIN_DOMAIN=admin.aeos365.com` in `.env`
 3. Clear route cache: `php artisan route:clear`
 
-## 10. Useful Commands
+## 13. Namecheap-Specific Notes
 
-```bash
-# List all tenants
-php artisan tenant:list
+### Shared Hosting Limitations
 
-# Run tenant migrations
-php artisan tenants:migrate
+- **Database limit**: Check your plan for max databases allowed
+- **Wildcard subdomain**: May not be supported on all plans
+- **SSH access**: Available on higher-tier plans only
+- **PHP version**: Ensure PHP 8.2+ is selected in cPanel
 
-# Seed tenant databases
-php artisan tenants:seed
+### If No SSH Access
 
-# Run artisan on specific tenant
-php artisan tenant:artisan acme "migrate --seed"
+1. Use cPanel's **Terminal** (if available)
+2. Or create a `deploy.php` script to run artisan commands via browser (delete after use!)
 
-# Clear tenant caches
-php artisan tenants:artisan "cache:clear"
+```php
+<?php
+// deploy.php - DELETE AFTER RUNNING!
+chdir(__DIR__ . '/../aeos365_app');
+echo '<pre>';
+echo shell_exec('php artisan migrate --force 2>&1');
+echo shell_exec('php artisan config:cache 2>&1');
+echo shell_exec('php artisan route:cache 2>&1');
+echo '</pre>';
 ```
 
-## 11. Security Recommendations
+### Contact Namecheap Support For
 
-1. **Use HTTPS everywhere** - Set `SESSION_SECURE_COOKIE=true`
-2. **Separate databases** - Each tenant should have isolated database
-3. **Rate limiting** - Configure API rate limits per tenant
-4. **Input validation** - Validate tenant subdomains strictly
-5. **Backup strategy** - Backup both central and tenant databases
+- Enabling wildcard subdomains
+- Increasing database limit
+- SSH access if not available
+- Wildcard SSL certificate
