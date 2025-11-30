@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import React, {useEffect, useState} from "react";
 import ClearIcon from '@mui/icons-material/Clear';
-import GlassDialog from "@/Components/GlassDialog.jsx";
+import { Modal, ModalContent } from "@heroui/react";
 import {PhotoCamera} from "@mui/icons-material";
 
 import ProfileAvatar from '@/Components/ProfileAvatar';
@@ -249,10 +249,18 @@ const AddUserForm = ({user, allUsers, departments, designations,setUser, open, c
 
     }, [initialUserData, changedUserData]);
     return (
-        <GlassDialog
-            open={open}
+        <Modal
+            isOpen={open}
             onClose={closeModal}
+            size="2xl"
+            scrollBehavior="inside"
+            classNames={{
+                base: "border border-divider bg-content1 shadow-lg",
+                header: "border-b border-divider",
+                footer: "border-t border-divider",
+            }}
         >
+            <ModalContent>
             <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
                 <Typography>Profile Information</Typography>
                 <IconButton
@@ -591,7 +599,8 @@ const AddUserForm = ({user, allUsers, departments, designations,setUser, open, c
                     </LoadingButton>
                 </DialogActions>
             </form>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
 
 
     )

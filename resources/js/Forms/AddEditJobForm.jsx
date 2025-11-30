@@ -25,7 +25,7 @@ import AddIcon from '@mui/icons-material/Add';
 import LoadingButton from "@mui/lab/LoadingButton";
 
 import { showToast } from "@/utils/toastUtils";
-import GlassDialog from "@/Components/GlassDialog.jsx";
+import { Modal, ModalContent } from "@heroui/react";
 import { usePage, router } from "@inertiajs/react";
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -412,20 +412,18 @@ const AddEditJobForm = ({
     ];
     
     return (
-        <GlassDialog 
-            open={open} 
-            closeModal={onClose} 
-            fullWidth 
-            maxWidth="xl"
-            PaperProps={{
-                sx: {
-                    minHeight: '80vh',
-                    maxHeight: '90vh',
-                    display: 'flex',
-                    flexDirection: 'column'
-                }
+        <Modal 
+            isOpen={open} 
+            onClose={onClose}
+            size="5xl"
+            scrollBehavior="inside"
+            classNames={{
+                base: "border border-divider bg-content1 shadow-lg min-h-[80vh] max-h-[90vh]",
+                header: "border-b border-divider",
+                footer: "border-t border-divider",
             }}
         >
+            <ModalContent>
             <DialogTitle sx={{ display: 'flex', alignItems: 'center', pb: 2 }}>
                 <Typography variant="h6" component="span" sx={{ flexGrow: 1 }}>
                     {isEditing ? 'Edit Job Posting' : 'Create New Job Posting'}
@@ -1107,7 +1105,8 @@ const AddEditJobForm = ({
                     </LoadingButton>
                 </DialogActions>
             </form>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
     );
 };
 

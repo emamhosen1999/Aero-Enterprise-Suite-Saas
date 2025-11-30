@@ -14,7 +14,6 @@ import {
 } from '@heroui/react';
 import { X, AlertCircle, CheckCircle } from 'lucide-react';
 import { showToast } from '@/utils/toastUtils';
-import GlassDialog from '@/Components/GlassDialog.jsx';
 
 const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalType }) => {
     const [dailyWorkData, setDailyWorkData] = useState({
@@ -200,7 +199,16 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
     };
 
     return (
-        <GlassDialog open={open} onClose={closeModal}>
+        <Modal 
+            isOpen={open} 
+            onClose={closeModal}
+            size="2xl"
+            classNames={{
+                base: "border border-divider bg-content1 shadow-lg",
+                header: "border-b border-divider",
+                footer: "border-t border-divider",
+            }}
+        >
             <ModalContent>
                 <form onSubmit={handleSubmit} noValidate>
                     <ModalHeader className="flex justify-between items-center">
@@ -385,7 +393,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                     </ModalFooter>
                 </form>
             </ModalContent>
-        </GlassDialog>
+        </Modal>
     );
 };
 

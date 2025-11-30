@@ -11,10 +11,11 @@ import {
     Progress,
     Chip,
     Card,
-    CardBody
+    CardBody,
+    Modal,
+    ModalContent
 } from '@heroui/react';
 import { showToast } from '@/utils/toastUtils';
-import GlassDialog from './GlassDialog';
 import ProfileAvatar from './ProfileAvatar';
 
 // Use the global axios instance which has CSRF configuration
@@ -280,13 +281,18 @@ const ProfilePictureModal = ({
     if (!employee) return null;
 
     return (
-        <GlassDialog
-            open={isOpen}
-            closeModal={handleClose}
-            maxWidth="md"
-            fullWidth
+        <Modal
+            isOpen={isOpen}
+            onClose={handleClose}
+            size="lg"
+            classNames={{
+                base: "border border-divider bg-content1 shadow-lg",
+                header: "border-b border-divider",
+                footer: "border-t border-divider",
+            }}
         >
-            <div className="p-6">
+            <ModalContent>
+                <div className="p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
@@ -445,7 +451,8 @@ const ProfilePictureModal = ({
                     </Button>
                 </div>
             </div>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
     );
 };
 

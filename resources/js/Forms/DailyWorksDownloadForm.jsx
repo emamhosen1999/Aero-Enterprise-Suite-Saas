@@ -18,7 +18,6 @@ import {
 import { X, Download } from 'lucide-react';
 
 import { showToast } from "@/utils/toastUtils";
-import GlassDialog from "@/Components/GlassDialog.jsx";
 
 import * as XLSX from 'xlsx';
 import axios from "axios";
@@ -198,76 +197,62 @@ const DailyWorksDownloadForm = ({ open, closeModal, search, filterData, users })
 
 
     return (
-        <GlassDialog open={open} onClose={closeModal}>
-            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
-                <Typography>Export Daily Works</Typography>
-                <IconButton
-                    variant="outlined"
-                    color="primary"
-                    onClick={closeModal}
-                    sx={{ position: 'absolute', top: 8, right: 16 }}
-                >
-                    <ClearIcon />
-                </IconButton>
-            </DialogTitle>
-            <DialogContent>
-
-                    <Table
-                        size="small"
-                        sx={{
-                            '& .MuiTableCell-root': {
-                                padding: '4px 8px', // Adjust padding for more compact cells
-                            },
-                            '& .MuiCheckbox-root': {
-                                padding: '0px', // Remove default padding around checkbox
-                            }
-                        }}
+        <Modal 
+            isOpen={open} 
+            onClose={closeModal}
+            size="lg"
+            classNames={{
+                base: "border border-divider bg-content1 shadow-lg",
+                header: "border-b border-divider",
+                footer: "border-t border-divider",
+            }}
+        >
+            <ModalContent>
+                <ModalHeader className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold">Export Daily Works</h2>
+                    <Button
+                        isIconOnly
+                        variant="light"
+                        onPress={closeModal}
+                        className="absolute top-2 right-2"
                     >
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Column Label</TableCell>
-                                <TableCell align="center">Include in Export</TableCell>
-                            </TableRow>
-                        </TableHead>
+                        <X size={20} />
+                    </Button>
+                </ModalHeader>
+                <ModalBody>
+                    <Table aria-label="Export columns selection">
+                        <TableHeader>
+                            <TableColumn>Column Label</TableColumn>
+                            <TableColumn align="center">Include in Export</TableColumn>
+                        </TableHeader>
                         <TableBody>
                             {selectedColumns.map((column, index) => (
                                 <TableRow key={column.key}>
                                     <TableCell>{column.label}</TableCell>
-                                    <TableCell align="center">
+                                    <TableCell className="text-center">
                                         <Checkbox
-                                            checked={column.checked}
-                                            onChange={() => handleCheckboxChange(index)}
+                                            isSelected={column.checked}
+                                            onValueChange={() => handleCheckboxChange(index)}
                                         />
                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
-
-            </DialogContent>
-            <DialogActions
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '16px',
-                }}
-            >
-                <LoadingButton
-                    sx={{
-                        borderRadius: '50px',
-                        padding: '6px 16px',
-                    }}
-                    variant="outlined"
-                    color="primary"
-                    type="submit"
-                    onClick={() => exportToExcel(selectedColumns)}
-                    startIcon={<Download />}
-                >
-                    Download
-                </LoadingButton>
-            </DialogActions>
-        </GlassDialog>
+                </ModalBody>
+                <ModalFooter className="flex justify-center">
+                    <Button
+                        variant="bordered"
+                        color="primary"
+                        onPress={() => exportToExcel(selectedColumns)}
+                        startContent={<Download size={16} />}
+                        className="rounded-full px-4 py-2"
+                    >
+                        Download
+                    </Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
     );
 };
 

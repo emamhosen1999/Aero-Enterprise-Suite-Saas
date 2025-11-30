@@ -18,7 +18,6 @@ import {
 import { X, Download } from 'lucide-react';
 
 import { showToast } from "@/utils/toastUtils";
-import GlassDialog from "@/Components/GlassDialog.jsx";
 
 import * as XLSX from 'xlsx';
 
@@ -183,8 +182,16 @@ const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }
 
 
     return (
-        <GlassDialog open={open} onClose={closeModal}>
-            <ModalContent>
+        <Modal 
+            isOpen={open} 
+            onClose={closeModal}
+            size="lg"
+            classNames={{
+                base: "border border-divider bg-content1 shadow-lg",
+                header: "border-b border-divider",
+                footer: "border-t border-divider",
+            }}
+        >
                 <ModalHeader className="flex justify-between items-center">
                     <h2 className="text-lg font-semibold">Export Daily Works</h2>
                     <Button
@@ -229,7 +236,7 @@ const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }
                     </Button>
                 </ModalFooter>
             </ModalContent>
-        </GlassDialog>
+        </Modal>
     );
 };
 

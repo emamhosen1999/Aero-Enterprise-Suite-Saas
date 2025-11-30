@@ -15,7 +15,6 @@ import {
     TrashIcon
 } from '@heroicons/react/24/outline';
 
-import GlassDialog from './GlassDialog';
 import ProfileAvatar from './ProfileAvatar';
 
 const DeleteEmployeeModal = ({ 

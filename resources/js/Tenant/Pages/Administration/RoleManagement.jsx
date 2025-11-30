@@ -49,7 +49,6 @@ import {
   CheckCircleIcon,
   XCircleIcon
 } from "@heroicons/react/24/outline";
-import GlassDialog from '@/Components/GlassDialog.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import RolesTable from '@/Tables/RolesTable.jsx';
 import PermissionsTable from '@/Tables/PermissionsTable.jsx';
@@ -1092,38 +1091,25 @@ const RoleManagement = (props) => {
     const renderModals = () => (
         <>
             {/* Enhanced Role Modal */}
-            <GlassDialog 
+            <Modal 
                 isOpen={roleDialogOpen} 
                 onClose={!isLoading ? closeRoleModal : undefined}
-                maxWidth="md"
-                title={
-                    <div className="flex items-center gap-2">
+                size="lg"
+                classNames={{
+                    base: "border border-divider bg-content1 shadow-lg",
+                    header: "border-b border-divider",
+                    footer: "border-t border-divider",
+                }}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex items-center gap-2">
                         <UserGroupIcon className="w-6 h-6" />
                         {editingRole ? 'Edit Role' : 'Create New Role'}
                         {loadingStates.roles === LOADING_STATES.LOADING && (
                             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                         )}
-                    </div>
-                }
-                actions={
-                    <div className="flex gap-3">
-                        <Button 
-                            variant="light" 
-                            onPress={closeRoleModal} 
-                            isDisabled={isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            color="primary"
-                            onPress={handleRoleSubmit}
-                            isLoading={isLoading}
-                        >
-                            {editingRole ? 'Update Role' : 'Create Role'}
-                        </Button>
-                    </div>
-                }
-            >
+                    </ModalHeader>
+                    <ModalBody>
                 {loadingStates.roles === LOADING_STATES.ERROR && (
                     <div className="mb-4 p-3 bg-danger/10 border border-danger/20 rounded-lg">
                         <p className="text-danger text-sm">
@@ -1196,38 +1182,43 @@ const RoleManagement = (props) => {
                         />
                     </div>
                 </div>
-            </GlassDialog>
-
-            {/* Permission Creation/Edit Modal */}
-            <GlassDialog 
-                isOpen={permissionDialogOpen} 
-                onClose={!isLoading ? closePermissionModal : undefined}
-                maxWidth="md"
-                title={
-                    <div className="flex items-center gap-2">
-                        <KeyIcon className="w-6 h-6" />
-                        {editingPermission ? 'Edit Permission' : 'Create New Permission'}
-                    </div>
-                }
-                actions={
-                    <div className="flex gap-3">
+                    </ModalBody>
+                    <ModalFooter className="flex gap-3">
                         <Button 
                             variant="light" 
-                            onPress={closePermissionModal} 
+                            onPress={closeRoleModal} 
                             isDisabled={isLoading}
                         >
                             Cancel
                         </Button>
                         <Button
-                            color="success"
-                            onPress={handlePermissionSubmit}
+                            color="primary"
+                            onPress={handleRoleSubmit}
                             isLoading={isLoading}
                         >
-                            {editingPermission ? 'Update Permission' : 'Create Permission'}
+                            {editingRole ? 'Update Role' : 'Create Role'}
                         </Button>
-                    </div>
-                }
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Permission Creation/Edit Modal */}
+            <Modal 
+                isOpen={permissionDialogOpen} 
+                onClose={!isLoading ? closePermissionModal : undefined}
+                size="lg"
+                classNames={{
+                    base: "border border-divider bg-content1 shadow-lg",
+                    header: "border-b border-divider",
+                    footer: "border-t border-divider",
+                }}
             >
+                <ModalContent>
+                    <ModalHeader className="flex items-center gap-2">
+                        <KeyIcon className="w-6 h-6" />
+                        {editingPermission ? 'Edit Permission' : 'Create New Permission'}
+                    </ModalHeader>
+                    <ModalBody>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-1">
                     <div className="col-span-1">
                         <Input
@@ -1339,21 +1330,48 @@ const RoleManagement = (props) => {
                         />
                     </div>
                 </div>
-            </GlassDialog>
+                    </ModalBody>
+                    <ModalFooter className="flex gap-3">
+                        <Button 
+                            variant="light" 
+                            onPress={closePermissionModal} 
+                            isDisabled={isLoading}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            color="success"
+                            onPress={handlePermissionSubmit}
+                            isLoading={isLoading}
+                        >
+                            {editingPermission ? 'Update Permission' : 'Create Permission'}
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
 
             {/* Delete Confirmation Modal */}
-            <GlassDialog 
+            <Modal 
                 isOpen={confirmDeleteOpen} 
                 onClose={() => setConfirmDeleteOpen(false)}
-                maxWidth="sm"
-                title={
-                    <div className="flex items-center gap-2">
+                size="md"
+                classNames={{
+                    base: "border border-divider bg-content1 shadow-lg",
+                    header: "border-b border-divider",
+                    footer: "border-t border-divider",
+                }}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex items-center gap-2">
                         <ExclamationTriangleIcon className="w-6 h-6 text-danger" />
                         Confirm Delete
-                    </div>
-                }
-                actions={
-                    <div className="flex gap-3">
+                    </ModalHeader>
+                    <ModalBody>
+                        <p className="text-foreground/90">
+                            Are you sure you want to delete {roleToDelete ? `the role "${roleToDelete.name}"` : permissionToDelete ? `the permission "${permissionToDelete.name}"` : 'this item'}? This action cannot be undone.
+                        </p>
+                    </ModalBody>
+                    <ModalFooter className="flex gap-3">
                         <Button 
                             variant="light" 
                             onPress={() => setConfirmDeleteOpen(false)}
@@ -1367,13 +1385,9 @@ const RoleManagement = (props) => {
                         >
                             Delete {roleToDelete ? 'Role' : 'Permission'}
                         </Button>
-                    </div>
-                }
-            >
-                <p className="text-foreground/90">
-                    Are you sure you want to delete {roleToDelete ? `the role "${roleToDelete.name}"` : permissionToDelete ? `the permission "${permissionToDelete.name}"` : 'this item'}? This action cannot be undone.
-                </p>
-            </GlassDialog>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </>
     );
 

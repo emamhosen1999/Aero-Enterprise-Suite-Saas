@@ -31,8 +31,8 @@ import {
     ExclamationTriangleIcon,
     CheckCircleIcon
 } from '@heroicons/react/24/outline';
+import { Modal, ModalContent } from '@heroui/react';
 
-import GlassDialog from './GlassDialog';
 import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const EmployeeFormModal = ({ 
@@ -233,12 +233,18 @@ const EmployeeFormModal = ({
     };
 
     return (
-        <GlassDialog
-            open={open}
+        <Modal
+            isOpen={open}
             onClose={onClose}
-            maxWidth="md"
-            fullWidth
+            size="2xl"
+            scrollBehavior="inside"
+            classNames={{
+                base: "border border-divider bg-content1 shadow-lg",
+                header: "border-b border-divider",
+                footer: "border-t border-divider",
+            }}
         >
+            <ModalContent>
             <DialogTitle sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -605,7 +611,8 @@ const EmployeeFormModal = ({
                     </Button>
                 )}
             </DialogActions>
-        </GlassDialog>
+            </ModalContent>
+        </Modal>
     );
 };
 
