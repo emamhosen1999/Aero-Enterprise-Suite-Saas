@@ -34,7 +34,7 @@ export default function RegisterLayout({ children, mainClassName = 'py-16' }) {
 
       <header className={`relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between text-sm">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href={route('landing')} className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-semibold text-lg text-white">
               A
             </div>
@@ -44,10 +44,10 @@ export default function RegisterLayout({ children, mainClassName = 'py-16' }) {
             </div>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/support" className={`transition-colors hover:underline ${palette.muted}`}>
+            <Link href={route('support')} className={`transition-colors hover:underline ${palette.muted}`}>
               Need help?
             </Link>
-            <Link href="/" className="font-semibold text-blue-500">
+            <Link href={route('landing')} className="font-semibold text-blue-500">
               Back to site
             </Link>
           </div>

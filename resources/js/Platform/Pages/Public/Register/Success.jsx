@@ -41,17 +41,13 @@ export default function Success({ steps = [], currentStep, result = {}, baseDoma
               )}
               <div className="flex flex-wrap justify-center gap-4 pt-4">
                 {workspaceUrl && (
-                  <a href={`${workspaceUrl}/login`} className="inline-flex" target="_blank" rel="noopener noreferrer">
-                    <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600">
-                      Go to workspace
-                    </Button>
-                  </a>
-                )}
-                <Link href="/">
-                  <Button variant="bordered">
-                    Back to home
+                  <Button as="a" href={`${workspaceUrl}/login`} target="_blank" rel="noopener noreferrer" color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600">
+                    Go to workspace
                   </Button>
-                </Link>
+                )}
+                <Button as={Link} href={route('landing')} variant="bordered">
+                  Back to home
+                </Button>
               </div>
             </CardBody>
           </Card>

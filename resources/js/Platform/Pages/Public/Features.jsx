@@ -92,16 +92,12 @@ export default function Features() {
                 HR, projects, compliance, and supplier teams plug into Aero's shared data model, so automations, analytics, and approvals work the same everywhere.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/demo">
-                  <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
-                    Walk through the platform
-                  </Button>
-                </Link>
-                <Link href="/register">
-                  <Button size="lg" variant="bordered" className="border-current px-10">
-                    Start a trial
-                  </Button>
-                </Link>
+                <Button as={Link} href={route('demo')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
+                  Walk through the platform
+                </Button>
+                <Button as={Link} href={route('platform.register.index')} size="lg" variant="bordered" className="border-current px-10">
+                  Start a trial
+                </Button>
               </div>
             </div>
             <Card className={palette.card}>
@@ -210,14 +206,12 @@ export default function Features() {
                 Grab a guided tour to see the automations you care about or launch a no-card-required trial right away.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link href="/demo">
-                  <Button className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-10' : 'bg-slate-900 text-white font-semibold px-10'}>
-                    Book a live demo
-                  </Button>
-                </Link>
-                <Link href="/register">
-                  <Button variant="bordered" className="border-current px-10">Start free trial</Button>
-                </Link>
+                <Button as={Link} href={route('demo')} className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-10' : 'bg-slate-900 text-white font-semibold px-10'}>
+                  Book a live demo
+                </Button>
+                <Button as={Link} href={route('platform.register.index')} variant="bordered" className="border-current px-10">
+                  Start free trial
+                </Button>
               </div>
             </CardBody>
           </Card>

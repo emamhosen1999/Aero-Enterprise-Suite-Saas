@@ -69,12 +69,12 @@ const Support = () => {
             Coverage runs 24/7 with direct Slack channels, phone escalations, and public SLAs, so you always know who owns an issue and when it will be resolved.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-8">
-            <Link href="/contact">
-              <Button className={palette.buttonPrimary}>Talk to support</Button>
-            </Link>
-            <Link href="/resources">
-              <Button variant="bordered" className={`px-8 ${palette.buttonBorder}`}>Browse resources</Button>
-            </Link>
+            <Button as={Link} href={route('contact')} className={palette.buttonPrimary}>
+              Talk to support
+            </Button>
+            <Button as={Link} href={route('resources')} variant="bordered" className={`px-8 ${palette.buttonBorder}`}>
+              Browse resources
+            </Button>
           </div>
         </div>
       </section>
@@ -160,12 +160,12 @@ const Support = () => {
               Check realtime uptime, scheduled maintenance, and compliance documents in the Trust Center.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/status">
-                <Button className={palette.buttonPrimary}>View status</Button>
-              </Link>
-              <Link href="/docs/security">
-                <Button variant="bordered" className={palette.buttonBorder}>Security documentation</Button>
-              </Link>
+              <Button as="a" href="/status" className={palette.buttonPrimary}>
+                View status
+              </Button>
+              <Button as={Link} href={route('docs')} variant="bordered" className={palette.buttonBorder}>
+                Security documentation
+              </Button>
             </div>
           </CardBody>
         </Card>

@@ -76,16 +76,12 @@ export default function Contact() {
               We answer sales, procurement, partnership, and support requests around the clock. Pick the path that fits what you need today.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/demo">
-                <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
-                  Book a product tour
-                </Button>
-              </Link>
-              <Link href="/support">
-                <Button variant="bordered" className="border-current px-10">
-                  Visit support center
-                </Button>
-              </Link>
+              <Button as={Link} href={route('demo')} className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
+                Book a product tour
+              </Button>
+              <Button as={Link} href={route('support')} variant="bordered" className="border-current px-10">
+                Visit support center
+              </Button>
             </div>
           </div>
         </section>
@@ -146,16 +142,12 @@ export default function Contact() {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <Link href="/resources">
-                    <Button variant="bordered" className="border-current">
-                      Documentation
-                    </Button>
-                  </Link>
-                  <Link href="/legal">
-                    <Button variant="light" className="text-current">
-                      Trust center
-                    </Button>
-                  </Link>
+                  <Button as={Link} href={route('resources')} variant="bordered" className="border-current">
+                    Documentation
+                  </Button>
+                  <Button as={Link} href={route('legal')} variant="light" className="text-current">
+                    Trust center
+                  </Button>
                 </div>
               </CardBody>
             </Card>
@@ -181,9 +173,9 @@ export default function Contact() {
                 <p className={palette.mutedText}>
                   Visit the Support page for live chat, Slack Connect invites, and status updates before filing a ticket.
                 </p>
-                <Link href="/support">
-                  <Button className={`${palette.buttonPrimary} w-full`}>Open support center</Button>
-                </Link>
+                <Button as={Link} href={route('support')} className={`${palette.buttonPrimary} w-full`}>
+                  Open support center
+                </Button>
               </CardBody>
             </Card>
           </div>

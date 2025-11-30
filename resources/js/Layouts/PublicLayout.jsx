@@ -4,39 +4,39 @@ import { Button } from '@heroui/react';
 import { useTheme } from '../Contexts/ThemeContext.jsx';
 
 const navLinks = [
-  { label: 'Overview', href: '/', type: 'route' },
-  { label: 'Features', href: '/features', type: 'route' },
-  { label: 'Pricing', href: '/pricing', type: 'route' },
-  { label: 'About', href: '/about', type: 'route' },
-  { label: 'Resources', href: '/resources', type: 'route' },
-  { label: 'Support', href: '/support', type: 'route' },
-  { label: 'Demo', href: '/demo', type: 'route' },
-  { label: 'Contact', href: '/contact', type: 'route' },
+  { label: 'Overview', routeName: 'landing', type: 'route' },
+  { label: 'Features', routeName: 'features', type: 'route' },
+  { label: 'Pricing', routeName: 'pricing', type: 'route' },
+  { label: 'About', routeName: 'about', type: 'route' },
+  { label: 'Resources', routeName: 'resources', type: 'route' },
+  { label: 'Support', routeName: 'support', type: 'route' },
+  { label: 'Demo', routeName: 'demo', type: 'route' },
+  { label: 'Contact', routeName: 'contact', type: 'route' },
 ];
 
 const footerColumns = [
   {
     heading: 'Company',
     links: [
-      { label: 'About', href: '/about' },
-      { label: 'Careers', href: '/careers' },
-      { label: 'Blog', href: '/blog' },
+      { label: 'About', routeName: 'about' },
+      { label: 'Careers', routeName: 'careers' },
+      { label: 'Blog', routeName: 'blog' },
     ],
   },
   {
     heading: 'Resources',
     links: [
-      { label: 'Documentation', href: '/docs' },
-      { label: 'Support', href: '/support' },
-      { label: 'Security', href: '/legal/security' },
+      { label: 'Documentation', routeName: 'docs' },
+      { label: 'Support', routeName: 'support' },
+      { label: 'Security', routeName: 'legal.security' },
     ],
   },
   {
     heading: 'Legal',
     links: [
-      { label: 'Privacy Policy', href: '/legal/privacy' },
-      { label: 'Terms of Service', href: '/legal/terms' },
-      { label: 'Cookie Policy', href: '/legal/cookies' },
+      { label: 'Privacy Policy', routeName: 'legal.privacy' },
+      { label: 'Terms of Service', routeName: 'legal.terms' },
+      { label: 'Cookie Policy', routeName: 'legal.cookies' },
     ],
   },
 ];
@@ -105,7 +105,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
 
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${palette.nav}`}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href={route('landing')} className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">
               A
             </div>
@@ -118,17 +118,15 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
                   {link.label}
                 </a>
               ) : (
-                <Link key={link.label} href={link.href} className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}>
+                <Link key={link.label} href={route(link.routeName)} className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}>
                   {link.label}
                 </Link>
               )
             ))}
             
-            <Link href="/register">
-              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 font-semibold px-5">
-                Start Trial
-              </Button>
-            </Link>
+            <Button as={Link} href={route('platform.register.index')} color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 font-semibold px-5">
+              Start Trial
+            </Button>
             <button
               type="button"
               onClick={toggleMode}
@@ -176,7 +174,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
                 ) : (
                   <Link
                     key={link.label}
-                    href={link.href}
+                    href={route(link.routeName)}
                     onClick={closeMobileMenu}
                     className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}
                   >
@@ -187,11 +185,9 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
               <Link href="/login" onClick={closeMobileMenu} className={`${palette.loginLink} ${palette.loginLinkHover} transition-colors`}>
                 Login
               </Link>
-              <Link href="/register" onClick={closeMobileMenu}>
-                <Button color="primary" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 font-semibold">
-                  Start Trial
-                </Button>
-              </Link>
+              <Button as={Link} href={route('platform.register.index')} onClick={closeMobileMenu} color="primary" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 font-semibold">
+                Start Trial
+              </Button>
             </div>
           </div>
         )}
@@ -204,7 +200,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
       <footer className={`relative z-10 text-sm ${palette.footer}`}>
         <div className="max-w-6xl mx-auto px-6 py-12 grid gap-8 md:grid-cols-4">
           <div>
-            <Link href="/" className="flex items-center gap-3 mb-4">
+            <Link href={route('landing')} className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">
                 A
               </div>
@@ -220,7 +216,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
               <ul className="space-y-2">
                 {column.links.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className={`${palette.navLink} ${palette.navLinkHover} hover:underline`}>
+                    <Link href={route(link.routeName)} className={`${palette.navLink} ${palette.navLinkHover} hover:underline`}>
                       {link.label}
                     </Link>
                   </li>

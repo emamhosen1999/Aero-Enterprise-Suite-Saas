@@ -71,16 +71,12 @@ const About = () => {
               The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and point tools. Aero keeps that work in one place so decisions stay grounded in fresh data.
             </p>
             <div className="flex flex-wrap gap-4 mt-8">
-              <Link href="/register">
-                <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-8">
-                  Start free trial
-                </Button>
-              </Link>
-              <Link href="/demo">
-                <Button size="lg" variant="bordered" className="border-current px-8">
-                  See live demo
-                </Button>
-              </Link>
+              <Button as={Link} href={route('platform.register.index')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-8">
+                Start free trial
+              </Button>
+              <Button as={Link} href={route('demo')} size="lg" variant="bordered" className="border-current px-8">
+                See live demo
+              </Button>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-10">
               {heroStats.map((stat) => (
@@ -165,7 +161,7 @@ const About = () => {
               <Chip color="secondary" variant="flat" className="mb-3">Leadership</Chip>
               <h2 className="text-4xl font-semibold">People shaping the platform.</h2>
             </div>
-            <Link href="/careers" className={`${palette.mutedText} hover:text-current`}>Meet the wider team →</Link>
+            <Link href={route('careers')} className={`${palette.mutedText} hover:text-current`}>Meet the wider team →</Link>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {leadershipTeam.map((leader) => (
@@ -227,16 +223,12 @@ const About = () => {
               Enterprise software should respect frontline teams, executives, and partners alike. That’s why Aero combines automation with empathy, data transparency, and design systems that make complex operations feel intuitive.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/demo">
-                <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
-                  Book a demo
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button size="lg" variant="bordered" className={`px-10 ${palette.badgeBorder}`}>
-                  Talk to sales
-                </Button>
-              </Link>
+              <Button as={Link} href={route('demo')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
+                Book a demo
+              </Button>
+              <Button as={Link} href={route('contact')} size="lg" variant="bordered" className={`px-10 ${palette.badgeBorder}`}>
+                Talk to sales
+              </Button>
             </div>
           </CardBody>
         </Card>

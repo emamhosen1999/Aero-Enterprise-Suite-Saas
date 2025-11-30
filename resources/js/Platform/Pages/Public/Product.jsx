@@ -115,16 +115,12 @@ export default function Product() {
               Each Aero module shares the same data model, so adding HR, project tracking, compliance, or supply chain happens without migrations, fragile integrations, or custom code.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link href="/register">
-                <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-8">
-                  Start Free Trial
-                </Button>
-              </Link>
-              <Link href="/demo">
-                <Button size="lg" variant="bordered" className="border-current px-8">
-                  See Live Demo
-                </Button>
-              </Link>
+              <Button as={Link} href={route('platform.register.index')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-8">
+                Start Free Trial
+              </Button>
+              <Button as={Link} href={route('demo')} size="lg" variant="bordered" className="border-current px-8">
+                See Live Demo
+              </Button>
             </div>
             <div className="mt-10 grid grid-cols-2 gap-5 text-left">
               {productHighlights.map((item) => (
@@ -284,12 +280,12 @@ export default function Product() {
               Co-build your rollout with our Solution Architects. We import data, wire integrations, and configure automations so your teams focus on impact.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/demo">
-                <Button size="lg" className="bg-white text-slate-900 font-semibold px-10">Book a Guided Demo</Button>
-              </Link>
-              <Link href="/pricing">
-                <Button size="lg" variant="bordered" className="border-current px-10">Explore Pricing</Button>
-              </Link>
+              <Button as={Link} href={route('demo')} size="lg" className="bg-white text-slate-900 font-semibold px-10">
+                Book a Guided Demo
+              </Button>
+              <Button as={Link} href={route('pricing')} size="lg" variant="bordered" className="border-current px-10">
+                Explore Pricing
+              </Button>
             </div>
           </CardBody>
         </Card>

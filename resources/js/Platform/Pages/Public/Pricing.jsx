@@ -168,11 +168,9 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <Link href={tier.custom ? '/contact' : '/register'}>
-                  <Button fullWidth className="mt-2" variant={tier.highlighted ? 'solid' : 'bordered'} color="secondary">
-                    {tier.custom ? 'Talk to Sales' : 'Start Trial'}
-                  </Button>
-                </Link>
+                <Button as={Link} href={tier.custom ? route('contact') : route('platform.register.index')} fullWidth className="mt-2" variant={tier.highlighted ? 'solid' : 'bordered'} color="secondary">
+                  {tier.custom ? 'Talk to Sales' : 'Start Trial'}
+                </Button>
               </CardBody>
             </Card>
           ))}
@@ -316,17 +314,17 @@ export default function Pricing() {
               ))}
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/demo">
-                <Button
-                  size="lg"
-                  className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-10' : 'bg-slate-900 text-white font-semibold px-10'}
-                >
-                  Book a Demo
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button size="lg" variant="bordered" className="border-current px-10">Talk to Sales</Button>
-              </Link>
+              <Button
+                as={Link}
+                href={route('demo')}
+                size="lg"
+                className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-10' : 'bg-slate-900 text-white font-semibold px-10'}
+              >
+                Book a Demo
+              </Button>
+              <Button as={Link} href={route('contact')} size="lg" variant="bordered" className="border-current px-10">
+                Talk to Sales
+              </Button>
             </div>
           </CardBody>
         </Card>

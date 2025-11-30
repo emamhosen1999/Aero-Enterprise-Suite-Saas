@@ -55,18 +55,19 @@ const UserDevices = ({ user, devices }) => {
       <Head title={`Device History - ${user.name}`} />
       
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
+/* Header */
         <div className="flex items-center justify-between mb-6">
           <div>
-            <Link href={route('users')} prefetch>
-              <Button
-                variant="light"
-                startContent={<ArrowLeftIcon className="w-4 h-4" />}
-                className="mb-2"
-              >
-                Back to Users
-              </Button>
-            </Link>
+            <Button
+              as={Link}
+              href={route('users')}
+              prefetch
+              variant="light"
+              startContent={<ArrowLeftIcon className="w-4 h-4" />}
+              className="mb-2"
+            >
+              Back to Users
+            </Button>
             <h1 className="text-2xl font-bold">Device History</h1>
             <p className="text-default-500 mt-1">
               {user.name} ({user.email})

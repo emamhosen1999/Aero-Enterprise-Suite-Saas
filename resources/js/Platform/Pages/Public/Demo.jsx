@@ -73,16 +73,12 @@ const Demo = () => {
               ))}
             </div>
             <div className="flex flex-wrap gap-4 mt-10">
-              <Link href="/register">
-                <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
-                  Start free trial
-                </Button>
-              </Link>
-              <Link href="/pricing">
-                <Button variant="bordered" className={`px-10 ${palette.buttonBorder}`}>
-                  Explore pricing
-                </Button>
-              </Link>
+              <Button as={Link} href={route('platform.register.index')} className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
+                Start free trial
+              </Button>
+              <Button as={Link} href={route('pricing')} variant="bordered" className={`px-10 ${palette.buttonBorder}`}>
+                Explore pricing
+              </Button>
             </div>
           </div>
         <Card className={palette.card}>
@@ -151,9 +147,9 @@ const Demo = () => {
               <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold">
                 Book a live tour
               </Button>
-              <Link href="/contact">
-                <Button variant="bordered" className={palette.buttonBorder}>Message our team</Button>
-              </Link>
+              <Button as={Link} href={route('contact')} variant="bordered" className={palette.buttonBorder}>
+                Message our team
+              </Button>
             </div>
           </CardBody>
         </Card>

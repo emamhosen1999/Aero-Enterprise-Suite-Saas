@@ -158,21 +158,15 @@ export default function Landing() {
                 Aero combines HR, project tracking, compliance, and supplier workflows on one Laravel + Inertia stack so every team works from the same data without stitching spreadsheets together.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/register">
-                  <Button size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10 py-7 rounded-2xl">
-                    Start Free Trial
-                  </Button>
-                </Link>
-                <Link href="/demo">
-                  <Button size="lg" variant="bordered" className="px-9 py-7 rounded-2xl border-current">
-                    Watch the demo
-                  </Button>
-                </Link>
-                <a href="#modules">
-                  <Button size="lg" variant="light" className="px-9 py-7">
-                    Explore modules
-                  </Button>
-                </a>
+                <Button as={Link} href={route('platform.register.index')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10 py-7 rounded-2xl">
+                  Start Free Trial
+                </Button>
+                <Button as={Link} href={route('demo')} size="lg" variant="bordered" className="px-9 py-7 rounded-2xl border-current">
+                  Watch the demo
+                </Button>
+                <Button as="a" href="#modules" size="lg" variant="light" className="px-9 py-7">
+                  Explore modules
+                </Button>
               </div>
               <div className={`mt-6 text-sm ${palette.mutedText}`}>
                 No payment is required for the trial. A rollout architect works with your admins on day one.
@@ -405,11 +399,9 @@ export default function Landing() {
                 </Chip>
                 <h2 className="text-4xl font-bold">Trusted by builders, hospitals, and public agencies.</h2>
               </div>
-              <Link href="/resources">
-                <Button variant="bordered" className="border-current">
-                  Browse case studies
-                </Button>
-              </Link>
+              <Button as={Link} href={route('resources')} variant="bordered" className="border-current">
+                Browse case studies
+              </Button>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               {testimonialSlides.map((testimonial) => (
@@ -477,11 +469,9 @@ export default function Landing() {
                       <span className={`ml-2 ${palette.mutedText}`}>{plan.period}</span>
                     </div>
                     <p className={`${palette.mutedText} flex-1`}>{plan.description}</p>
-                    <Link href="/register">
-                      <Button className={`py-6 font-semibold ${plan.highlight ? 'bg-white text-slate-900' : 'bg-white/10 text-current'}`}>
-                        Start now
-                      </Button>
-                    </Link>
+                    <Button as={Link} href={route('platform.register.index')} className={`py-6 font-semibold ${plan.highlight ? 'bg-white text-slate-900' : 'bg-white/10 text-current'}`}>
+                      Start now
+                    </Button>
                   </CardBody>
                 </Card>
               ))}
@@ -500,16 +490,12 @@ export default function Landing() {
                 Book a white-glove demo or spin up a tenant sandbox in 60 seconds. We import data, wire integrations, and configure automations so your teams focus on impact.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/register">
-                  <Button size="lg" className="bg-white text-slate-900 font-semibold px-10 py-6">
-                    Start free trial
-                  </Button>
-                </Link>
-                <Link href="/contact">
-                  <Button size="lg" variant="bordered" className="border-current px-10 py-6">
-                    Talk to sales
-                  </Button>
-                </Link>
+                <Button as={Link} href={route('platform.register.index')} size="lg" className="bg-white text-slate-900 font-semibold px-10 py-6">
+                  Start free trial
+                </Button>
+                <Button as={Link} href={route('contact')} size="lg" variant="bordered" className="border-current px-10 py-6">
+                  Talk to sales
+                </Button>
               </div>
               <div className="grid gap-4 sm:grid-cols-3 text-left">
                 {demoStats.map((stat) => (
