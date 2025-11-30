@@ -6,6 +6,7 @@ import {createInertiaApp} from '@inertiajs/react';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
 import ErrorBoundary from './Components/ErrorBoundary/ErrorBoundary';
+import LoadingIndicator from './Components/LoadingIndicator';
 import { ThemeProvider } from './Contexts/ThemeContext';
 import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';
@@ -115,19 +116,11 @@ const resolveInertiaPage = (name) => {
     throw new Error(`Unable to locate Inertia page: ${name}`);
 };
 
+
 createInertiaApp({
-    progress: {
-        color: '#29d',
-        delay: 50, // Faster progress indicator
-        includeCSS: true,
-        showSpinner: false,
-    },
-    defaults: {
-        prefetch: {
-            cacheFor: '1m', // Cache prefetched pages for 1 minute
-            hoverDelay: 50, // Faster prefetch trigger (default 75ms)
-        },
-    },
+    // Disable default progress bar - using custom LoadingIndicator instead
+    progress: false,
+    
     title: (title) => {
         const page = window.Laravel?.inertiaProps || {};
         const appName = page.app?.name || 'aeos365';
@@ -144,6 +137,7 @@ createInertiaApp({
             <ErrorBoundary>
                 <ThemeProvider>
                     <HeroUIProvider>
+                        <LoadingIndicator />
                         <App {...props} />
                     </HeroUIProvider>
                 </ThemeProvider>

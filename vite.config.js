@@ -6,8 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 import fs from 'fs';
 
 const host = 'aero-enterprise-suite-saas.com'; 
-const certPath = 'C:/laragon/etc/ssl/laragon.crt'; 
-const keyPath = 'C:/laragon/etc/ssl/laragon.key';
+const certPath = 'D:/laragon/etc/ssl/laragon.crt'; 
+const keyPath = 'D:/laragon/etc/ssl/laragon.key';
 
 const allowedOrigins = [
   'https://aero-enterprise-suite-saas.com',
