@@ -69,13 +69,21 @@ class RegistrationController extends Controller
         }
 
         $payload = $this->registrationSession->get();
-        $payload['trial'] = $request->validated();
+        $trialData = $request->validated();
+        $payload['trial'] = $trialData;
 
-        // Create tenant with pending status and admin_data
+        // Build admin data to pass directly to job (never stored in database)
+        $adminData = [
+            'name' => $trialData['admin_name'] ?? $payload['details']['owner_name'] ?? $payload['details']['name'] ?? 'Administrator',
+            'email' => $trialData['admin_email'] ?? $payload['details']['owner_email'] ?? $payload['details']['email'],
+            'password' => $trialData['password'], // Plain text - job will hash it
+        ];
+
+        // Create tenant with pending status (no admin_data stored)
         $tenant = $this->tenantProvisioner->createFromRegistration($payload);
 
-        // Dispatch async provisioning job
-        ProvisionTenant::dispatch($tenant);
+        // Dispatch async provisioning job with admin credentials
+        ProvisionTenant::dispatch($tenant, $adminData);
 
         // Store provisioning info for the waiting room
         $this->registrationSession->rememberSuccess([

@@ -49,6 +49,7 @@ class RegistrationFlowTest extends TestCase
         $response = $this->post(route('platform.register.trial.activate'), [
             'accept_terms' => true,
             'notify_updates' => false,
+            'password' => 'SecurePassword123!',
         ]);
 
         // Should redirect to provisioning page now (async flow)
@@ -70,14 +71,14 @@ class RegistrationFlowTest extends TestCase
             'domain' => 'acme.platform.test',
         ]);
 
-        // Verify admin_data was stored (hashed password)
-        $this->assertNotNull($tenant->admin_data);
-        $this->assertEquals('ops@acme.test', $tenant->admin_data['email']);
+        // Verify admin_data is NOT stored in database (security best practice)
+        // Credentials are passed directly to the job, never persisted
+        $this->assertNull($tenant->admin_data);
 
         // Verify trial ends at is set
         $this->assertNotNull($tenant->trial_ends_at);
 
-        // Verify provisioning job was dispatched
+        // Verify provisioning job was dispatched with admin data
         Queue::assertPushed(ProvisionTenant::class, function ($job) use ($tenant) {
             return $job->tenant->id === $tenant->id;
         });

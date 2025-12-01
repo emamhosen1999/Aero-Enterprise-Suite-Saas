@@ -217,15 +217,15 @@ class TenancyServiceProvider extends ServiceProvider
 
     protected function tenantCreatedJobs(): array
     {
-        if ($this->app->runningUnitTests()) {
-            return [];
-        }
-
-        return [
-            Jobs\CreateDatabase::class,
-            Jobs\MigrateDatabase::class,
-            Jobs\SeedDatabase::class,
-        ];
+        // DISABLED: Our ProvisionTenant job handles database creation and migration
+        // manually using dispatchSync(). This prevents duplicate database operations
+        // and allows for proper async provisioning with status tracking.
+        //
+        // Previously returned:
+        // - Jobs\CreateDatabase::class
+        // - Jobs\MigrateDatabase::class
+        // - Jobs\SeedDatabase::class
+        return [];
     }
 
     protected function tenantDeletedJobs(): array

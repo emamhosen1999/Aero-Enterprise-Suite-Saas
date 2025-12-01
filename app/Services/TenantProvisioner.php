@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Models\Plan;
 use App\Models\Tenant;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -50,10 +49,8 @@ class TenantProvisioner
         // Resolve plan_id from slug if provided
         $planId = $this->resolvePlanId($plan['plan_slug'] ?? null);
 
-        // Prepare admin data (hash password for security)
-        $adminData = $this->prepareAdminData($details, $trial);
-
         // Create tenant - status is 'pending' until provisioning completes
+        // NOTE: admin_data is NOT stored here - credentials are passed directly to the job
         $tenant = Tenant::create([
             'id' => (string) Str::uuid(),
             'name' => (string) Arr::get($details, 'name'),
@@ -68,7 +65,7 @@ class TenantProvisioner
             'subscription_ends_at' => null,
             'status' => Tenant::STATUS_PENDING,
             'provisioning_step' => null,
-            'admin_data' => $adminData,
+            'admin_data' => null, // Never store credentials in database
             'maintenance_mode' => false,
             // Flexible data stored in JSON column
             'data' => [
@@ -90,33 +87,6 @@ class TenantProvisioner
         ]);
 
         return $tenant;
-    }
-
-    /**
-     * Prepare admin user data with hashed password.
-     *
-     * @param  array  $details  Registration details
-     * @param  array  $trial  Trial step data (may contain password)
-     * @return array Admin data to store in admin_data column
-     */
-    private function prepareAdminData(array $details, array $trial): array
-    {
-        $email = Arr::get($trial, 'admin_email')
-            ?? Arr::get($details, 'owner_email')
-            ?? Arr::get($details, 'email');
-
-        $name = Arr::get($trial, 'admin_name')
-            ?? Arr::get($details, 'owner_name')
-            ?? Arr::get($details, 'name');
-
-        $password = Arr::get($trial, 'password');
-
-        return [
-            'name' => $name,
-            'email' => $email,
-            // Hash password before storing for security
-            'password' => $password ? Hash::make($password) : null,
-        ];
     }
 
     /**

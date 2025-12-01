@@ -21,9 +21,14 @@ class ProvisionTenantJobTest extends TestCase
      */
     public function test_job_accepts_tenant_instance(): void
     {
-        $tenant = Tenant::factory()->pending()->withAdminData()->make();
+        $tenant = Tenant::factory()->pending()->make();
+        $adminData = [
+            'name' => 'Test Admin',
+            'email' => 'admin@test.com',
+            'password' => 'password123',
+        ];
 
-        $job = new ProvisionTenant($tenant);
+        $job = new ProvisionTenant($tenant, $adminData);
 
         $this->assertInstanceOf(ProvisionTenant::class, $job);
         $this->assertSame($tenant, $job->tenant);
@@ -49,9 +54,14 @@ class ProvisionTenantJobTest extends TestCase
     {
         Queue::fake();
 
-        $tenant = Tenant::factory()->pending()->withAdminData()->make();
+        $tenant = Tenant::factory()->pending()->make();
+        $adminData = [
+            'name' => 'Test Admin',
+            'email' => 'admin@test.com',
+            'password' => 'password123',
+        ];
 
-        ProvisionTenant::dispatch($tenant);
+        ProvisionTenant::dispatch($tenant, $adminData);
 
         Queue::assertPushed(ProvisionTenant::class, function ($job) use ($tenant) {
             return $job->tenant->id === $tenant->id;
@@ -63,11 +73,16 @@ class ProvisionTenantJobTest extends TestCase
      */
     public function test_job_can_be_serialized(): void
     {
-        $tenant = Tenant::factory()->pending()->withAdminData()->make([
+        $tenant = Tenant::factory()->pending()->make([
             'id' => 'test-tenant-123',
         ]);
+        $adminData = [
+            'name' => 'Test Admin',
+            'email' => 'admin@test.com',
+            'password' => 'password123',
+        ];
 
-        $job = new ProvisionTenant($tenant);
+        $job = new ProvisionTenant($tenant, $adminData);
 
         // Job should be serializable (required for queue)
         $serialized = serialize($job);

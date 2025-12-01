@@ -55,11 +55,21 @@ class ProvisionTenant implements ShouldQueue
     public Tenant $tenant;
 
     /**
-     * Create a new job instance.
+     * Admin user data (name, email, password).
+     * Passed directly to job - never stored in database.
      */
-    public function __construct(Tenant $tenant)
+    private array $adminData;
+
+    /**
+     * Create a new job instance.
+     *
+     * @param  Tenant  $tenant  The tenant to provision
+     * @param  array  $adminData  Admin credentials (name, email, password in plain text)
+     */
+    public function __construct(Tenant $tenant, array $adminData = [])
     {
         $this->tenant = $tenant;
+        $this->adminData = $adminData;
     }
 
     /**
@@ -136,11 +146,9 @@ class ProvisionTenant implements ShouldQueue
 
         $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_ADMIN);
 
-        // Retrieve admin data stored during registration
-        $adminData = $this->tenant->admin_data;
-
-        if (empty($adminData)) {
-            Log::warning('No admin data found for tenant, skipping admin creation', [
+        // Use admin data passed to job constructor (never stored in database)
+        if (empty($this->adminData) || empty($this->adminData['email'])) {
+            Log::warning('No admin data provided for tenant, skipping admin creation', [
                 'tenant_id' => $this->tenant->id,
             ]);
 
@@ -152,14 +160,11 @@ class ProvisionTenant implements ShouldQueue
 
         try {
             // Create the admin user in the tenant database
+            // Password is received in plain text and hashed here
             $user = User::create([
-                'name' => $adminData['name'] ?? 'Administrator',
-                'email' => $adminData['email'],
-                'password' => isset($adminData['password'])
-                    ? (str_starts_with($adminData['password'], '$2y$') || str_starts_with($adminData['password'], '$2a$')
-                        ? $adminData['password']  // Already hashed
-                        : Hash::make($adminData['password']))  // Plain text, hash it
-                    : Hash::make('password'),  // Fallback
+                'name' => $this->adminData['name'] ?? 'Administrator',
+                'email' => $this->adminData['email'],
+                'password' => Hash::make($this->adminData['password'] ?? 'password'),
                 'active' => true,
             ]);
 
