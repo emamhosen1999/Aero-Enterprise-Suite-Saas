@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChunkedUploadController;
 use App\Http\Controllers\DMSController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,16 @@ Route::middleware(['auth', 'verified'])->prefix('dms')->name('dms.')->group(func
     Route::middleware(['permission:dms.create'])->group(function () {
         Route::get('/documents/create', [DMSController::class, 'create'])->name('documents.create');
         Route::post('/documents', [DMSController::class, 'store'])->name('documents.store');
+
+        // Chunked upload routes for large files
+        Route::prefix('upload')->name('upload.')->group(function () {
+            Route::post('/init', [ChunkedUploadController::class, 'initialize'])->name('init');
+            Route::post('/chunk', [ChunkedUploadController::class, 'uploadChunk'])->name('chunk');
+            Route::post('/assemble', [ChunkedUploadController::class, 'assemble'])->name('assemble');
+            Route::get('/{uploadId}/status', [ChunkedUploadController::class, 'status'])->name('status');
+            Route::get('/{uploadId}/resume', [ChunkedUploadController::class, 'resume'])->name('resume');
+            Route::delete('/{uploadId}', [ChunkedUploadController::class, 'cancel'])->name('cancel');
+        });
     });
 
     // Document editing

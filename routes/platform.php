@@ -67,6 +67,21 @@ Route::get('/terms', fn () => redirect('/legal/terms'));
 Route::post('/stripe/webhook', [\App\Http\Controllers\Landlord\StripeWebhookController::class, 'handleWebhook'])
     ->name('stripe.webhook');
 
+// SSLCOMMERZ Payment Gateway Routes (IPN callbacks - must be outside CSRF protection)
+Route::prefix('sslcommerz')->name('sslcommerz.')->group(function () {
+    // IPN (Instant Payment Notification) - server-to-server callback
+    Route::post('/ipn', [\App\Http\Controllers\Webhooks\SslCommerzWebhookController::class, 'ipn'])
+        ->name('ipn');
+
+    // Customer redirect callbacks
+    Route::post('/success', [\App\Http\Controllers\Webhooks\SslCommerzWebhookController::class, 'success'])
+        ->name('success');
+    Route::post('/fail', [\App\Http\Controllers\Webhooks\SslCommerzWebhookController::class, 'fail'])
+        ->name('fail');
+    Route::post('/cancel', [\App\Http\Controllers\Webhooks\SslCommerzWebhookController::class, 'cancel'])
+        ->name('cancel');
+});
+
 // Checkout routes (called from registration flow)
 Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])
     ->name('platform.checkout');

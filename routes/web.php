@@ -324,6 +324,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/settings/domains/{domain}/verify', [CustomDomainController::class, 'verify'])->name('settings.domains.verify');
         Route::post('/settings/domains/{domain}/set-primary', [CustomDomainController::class, 'setPrimary'])->name('settings.domains.set-primary');
         Route::delete('/settings/domains/{domain}', [CustomDomainController::class, 'destroy'])->name('settings.domains.destroy');
+
+        // Usage & Billing routes
+        Route::prefix('settings/usage')->name('settings.usage.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\UsageController::class, 'index'])->name('index');
+            Route::get('/summary', [\App\Http\Controllers\UsageController::class, 'summary'])->name('summary');
+            Route::get('/trend/{metric}', [\App\Http\Controllers\UsageController::class, 'trend'])->name('trend');
+            Route::get('/limits', [\App\Http\Controllers\UsageController::class, 'limits'])->name('limits');
+            Route::get('/check/{metric}', [\App\Http\Controllers\UsageController::class, 'checkLimit'])->name('check');
+        });
     });    // Legacy role routes (maintained for backward compatibility)
     Route::middleware(['permission:roles.view'])->get('/roles-permissions', [RoleController::class, 'getRolesAndPermissions'])->name('roles-settings');
 
