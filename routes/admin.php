@@ -157,6 +157,14 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->name('usage');
     });
 
+    // Audit Logs
+    Route::prefix('audit-logs')->name('admin.audit-logs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('index');
+        Route::get('/export', [\App\Http\Controllers\AuditLogController::class, 'export'])->name('export');
+        Route::get('/statistics', [\App\Http\Controllers\AuditLogController::class, 'statistics'])->name('statistics');
+        Route::get('/{activity}', [\App\Http\Controllers\AuditLogController::class, 'show'])->name('show');
+    });
+
     // Support & Tickets
     Route::prefix('support')->name('admin.support.')->group(function () {
         Route::get('/', function () {

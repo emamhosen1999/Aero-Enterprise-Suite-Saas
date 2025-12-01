@@ -1101,6 +1101,14 @@ export default function Login({
                                     </Button>
                                 </motion.div>
 
+                                {/* Social Login Buttons */}
+                                {oauthProviders && oauthProviders.length > 0 && (
+                                    <SocialLoginButtons 
+                                        providers={oauthProviders} 
+                                        isLoading={uiState.isSubmitting} 
+                                    />
+                                )}
+
                                 <Divider 
                                     className="my-6"
                                     style={{ borderColor: 'color-mix(in srgb, var(--theme-divider, #E4E4E7) 60%, transparent)' }}

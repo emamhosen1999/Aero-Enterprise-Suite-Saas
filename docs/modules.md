@@ -239,7 +239,9 @@ Summarized conversation history
 | MFA (TOTP, backup codes) | ✅ | Fortify 2FA |
 | MFA (Email OTP) | ⚠️ | Only for password reset |
 | Password strength validator | ✅ | 12 chars, mixed case, symbols |
-| OAuth/Social login | ❌ | Socialite not installed |
+| OAuth/Social login | ✅ | Socialite with Google, Microsoft, GitHub support |
+| OAuth login UI | ✅ | `SocialLoginButtons` React component |
+| OAuth database fields | ✅ | Migration for provider, token storage |
 | Device session manager | ✅ | `DeviceSessionService`, `UserDevice` model |
 | Account lockout rules | ✅ | 5 attempts, 30 min lockout |
 | SSO hooks (SAML) | ❌ | Not implemented |
@@ -334,9 +336,10 @@ Summarized conversation history
 | CSV/PDF exports | ✅ | `AuditExportService` with CSV/JSON export |
 | Sentry/Bugsnag integration | ⚠️ | `@sentry/react` in frontend only |
 | Log retention policy | ✅ | `config/activitylog.php` with retention settings |
-| Audit timeline UI | ⚠️ | API available, React component needed |
-| Diff viewer for old/new | ⚠️ | Data stored, UI component needed |
-| Audit log controller | ✅ | `AuditLogController` with statistics, timeline |
+| Audit timeline UI | ✅ | `AuditTimeline` React component with grouping, filtering |
+| Audit log page | ✅ | Full admin page with export, stats, filters |
+| Diff viewer for old/new | ✅ | Expandable changes section in timeline |
+| Audit log controller | ✅ | `AuditLogController` with statistics, timeline, export |
 | Logging channels | ✅ | `auth`, `sms`, `audit` channels in config |
 
 ---
