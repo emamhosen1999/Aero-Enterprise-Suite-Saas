@@ -37,10 +37,11 @@ class AdminPanelPermissionSeeder extends Seeder
 
     /**
      * Return the default guard that should own the admin permissions.
+     * Uses 'landlord' guard for platform admin permissions.
      */
     protected function guardName(): string
     {
-        return config('auth.defaults.guard', 'web');
+        return 'landlord';
     }
 
     /**

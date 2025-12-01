@@ -44,9 +44,9 @@ return new class extends Migration
             $table->timestamps();
 
             // Indexes for querying
-            $table->index(['tenant_id', 'metric_name', 'billing_period_start']);
-            $table->index(['tenant_id', 'billing_period_start', 'billing_period_end']);
-            $table->index(['subscription_id', 'metric_name']);
+            $table->index(['tenant_id', 'metric_name', 'billing_period_start'], 'usage_tenant_metric_period');
+            $table->index(['tenant_id', 'billing_period_start', 'billing_period_end'], 'usage_tenant_period');
+            $table->index(['subscription_id', 'metric_name'], 'usage_sub_metric');
             $table->index('reported_to_stripe');
         });
 

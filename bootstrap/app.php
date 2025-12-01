@@ -16,10 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Configure where guests should be redirected (uses relative URL to work on any domain)
         $middleware->redirectGuestsTo('/login');
 
-        // Exclude payment gateway webhooks from CSRF verification
+        // Exclude payment gateway webhooks and SAML callbacks from CSRF verification
         $middleware->validateCsrfTokens(except: [
             'sslcommerz/*',  // SSLCOMMERZ payment gateway callbacks
             'stripe/*',      // Stripe webhooks (already handled by Cashier but explicit for clarity)
+            'saml/*/acs',    // SAML Assertion Consumer Service (POST from IdP)
         ]);
 
         $middleware->web(append: [

@@ -136,6 +136,8 @@ class User extends Authenticatable implements HasMedia
         'oauth_refresh_token',
         'oauth_token_expires_at',
         'avatar_url',
+        // Notification preferences
+        'notification_preferences',
     ];
 
     /**
@@ -164,6 +166,7 @@ class User extends Authenticatable implements HasMedia
         'attendance_type_id' => 'integer',
         'attendance_config' => 'array',
         'preferences' => 'array',
+        'notification_preferences' => 'array',
         'active' => 'boolean',
         'single_device_login_enabled' => 'boolean',
         'device_reset_at' => 'datetime',

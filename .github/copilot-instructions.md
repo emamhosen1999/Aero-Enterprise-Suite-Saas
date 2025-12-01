@@ -8,7 +8,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 ## Foundational Context
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.2.12
+- php - 8.3.26
 - inertiajs/inertia-laravel (INERTIA) - v2
 - laravel/cashier (CASHIER) - v15
 - laravel/fortify (FORTIFY) - v1
@@ -16,6 +16,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/mcp (MCP) - v0
 - laravel/prompts (PROMPTS) - v0
 - laravel/sanctum (SANCTUM) - v4
+- laravel/socialite (SOCIALITE) - v5
 - tightenco/ziggy (ZIGGY) - v2
 - laravel/breeze (BREEZE) - v2
 - laravel/pint (PINT) - v1

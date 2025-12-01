@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Models\LandlordUser;
+use Database\Seeders\AdminPanelRoleSeeder;
 use Database\Seeders\AdminPanelUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -22,9 +23,11 @@ class AdminPanelUserSeederTest extends TestCase
             'platform.admin.password' => 'SeedPass123!',
         ]);
 
+        // Seed the roles first, then the user
+        $this->seed(AdminPanelRoleSeeder::class);
         $this->seed(AdminPanelUserSeeder::class);
 
-        $user = User::whereEmail('seed-admin@example.com')->first();
+        $user = LandlordUser::whereEmail('seed-admin@example.com')->first();
 
         $this->assertNotNull($user, 'Expected seeded admin user to exist.');
         $this->assertTrue(Hash::check('SeedPass123!', $user->password));

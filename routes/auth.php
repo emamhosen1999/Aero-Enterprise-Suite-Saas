@@ -3,7 +3,9 @@
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\SamlController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Settings\InvoiceBrandingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +34,13 @@ Route::middleware('guest')->group(function () {
         ->name('auth.social.redirect');
     Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])
         ->name('auth.social.callback');
+
+    // SAML SSO Routes
+    Route::get('saml/providers', [SamlController::class, 'providers'])->name('saml.providers');
+    Route::get('saml/{idp?}/login', [SamlController::class, 'login'])->name('saml.login');
+    Route::post('saml/{idp?}/acs', [SamlController::class, 'acs'])->name('saml.acs');
+    Route::get('saml/{idp?}/sls', [SamlController::class, 'sls'])->name('saml.sls');
+    Route::get('saml/{idp?}/metadata', [SamlController::class, 'metadata'])->name('saml.metadata');
 });
 
 Route::middleware('auth')->group(function () {
@@ -46,4 +55,24 @@ Route::middleware('auth')->group(function () {
 
     // Logout Route
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+    // SAML SSO Admin Routes
+    Route::get('saml/{idp?}/logout', [SamlController::class, 'logout'])->name('saml.logout');
 });
+
+// SAML SSO Settings (requires auth + admin permission)
+Route::middleware(['auth', 'verified'])
+    ->prefix('settings')
+    ->group(function () {
+        Route::get('saml', [SamlController::class, 'settings'])->name('settings.saml');
+        Route::post('saml', [SamlController::class, 'saveSettings'])->name('settings.saml.save');
+        Route::post('saml/test', [SamlController::class, 'testConnection'])->name('settings.saml.test');
+
+        // Invoice Branding Settings
+        Route::get('invoice-branding', [InvoiceBrandingController::class, 'index'])
+            ->name('settings.invoice-branding');
+        Route::post('invoice-branding', [InvoiceBrandingController::class, 'save'])
+            ->name('settings.invoice-branding.save');
+        Route::get('invoice-branding/preview', [InvoiceBrandingController::class, 'preview'])
+            ->name('settings.invoice-branding.preview');
+    });

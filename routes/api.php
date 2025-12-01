@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\HealthCheckController;
+use App\Http\Controllers\Api\NotificationApiController;
 use App\Http\Controllers\Api\VersionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Platform\RegistrationPageController;
@@ -8,6 +10,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+
+// ============================================================================
+// Health Check Routes (no auth - for load balancers and monitoring)
+// ============================================================================
+Route::get('/health', [HealthCheckController::class, 'index'])->name('api.health');
+Route::get('/health/detailed', [HealthCheckController::class, 'detailed'])->name('api.health.detailed');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -20,6 +28,22 @@ Route::post('/version/check', [VersionController::class, 'check'])->name('api.ve
 // Tenant provisioning status (public - used during registration)
 Route::get('/tenants/{tenant}/status', [RegistrationPageController::class, 'provisioningStatus'])
     ->name('api.tenants.status');
+
+// ============================================================================
+// Notification API Routes (requires authentication)
+// ============================================================================
+Route::middleware(['web', 'auth'])->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationApiController::class, 'index'])->name('api.notifications.index');
+    Route::get('/unread-count', [NotificationApiController::class, 'unreadCount'])->name('api.notifications.unread-count');
+    Route::post('/{id}/read', [NotificationApiController::class, 'markAsRead'])->name('api.notifications.mark-read');
+    Route::post('/read-all', [NotificationApiController::class, 'markAllAsRead'])->name('api.notifications.mark-all-read');
+    Route::delete('/{id}', [NotificationApiController::class, 'destroy'])->name('api.notifications.destroy');
+    Route::delete('/clear-read', [NotificationApiController::class, 'clearRead'])->name('api.notifications.clear-read');
+
+    // Notification preferences
+    Route::get('/preferences', [NotificationApiController::class, 'getPreferences'])->name('api.notifications.preferences');
+    Route::put('/preferences', [NotificationApiController::class, 'updatePreferences'])->name('api.notifications.preferences.update');
+});
 
 // Error logging endpoint
 Route::post('/log-error', function (Request $request) {

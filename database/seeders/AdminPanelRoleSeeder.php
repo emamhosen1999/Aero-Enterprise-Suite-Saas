@@ -13,7 +13,8 @@ class AdminPanelRoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $guard = config('auth.defaults.guard', 'web');
+        // Use 'landlord' guard for platform admin roles (LandlordUser model)
+        $guard = 'landlord';
 
         $roles = [
             [
@@ -59,7 +60,8 @@ class AdminPanelRoleSeeder extends Seeder
      */
     protected function assignPermissions(): void
     {
-        $guard = config('auth.defaults.guard', 'web');
+        // Use 'landlord' guard for platform admin roles
+        $guard = 'landlord';
 
         $superRole = Role::where('name', 'Platform Super Admin')->where('guard_name', $guard)->first();
         $supportRole = Role::where('name', 'Platform Support Agent')->where('guard_name', $guard)->first();

@@ -631,6 +631,20 @@ export const settingsNavigationConfig = [
         permission: 'settings.billing.view',
         priority: 6,
     },
+    {
+        label: 'Invoice Branding',
+        icon: 'DocumentTextIcon',
+        route: 'settings.invoice-branding',
+        permission: 'settings.billing.view',
+        priority: 7,
+    },
+    {
+        label: 'SAML SSO',
+        icon: 'ShieldCheckIcon',
+        route: 'settings.saml',
+        permission: 'settings.security.view',
+        priority: 8,
+    },
 ];
 
 export default navigationConfig;

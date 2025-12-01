@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\LandlordUser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -18,7 +18,7 @@ class AdminPanelUserSeeder extends Seeder
         $adminName = config('platform.admin.name', 'Platform Super Admin');
         $adminPassword = config('platform.admin.password', 'ChangeMe123!');
 
-        $user = User::firstOrCreate(
+        $user = LandlordUser::firstOrCreate(
             ['email' => $adminEmail],
             [
                 'name' => $adminName,

@@ -39,6 +39,15 @@ Route::middleware(['auth', 'verified'])->prefix('dms')->name('dms.')->group(func
     Route::middleware(['permission:dms.update'])->group(function () {
         Route::put('/documents/{document}', [DMSController::class, 'update'])->name('documents.update');
         Route::post('/documents/{document}/share', [DMSController::class, 'share'])->name('documents.share');
+
+        // Version management routes
+        Route::prefix('documents/{document}/versions')->name('documents.versions.')->group(function () {
+            Route::get('/', [DMSController::class, 'versions'])->name('index');
+            Route::post('/', [DMSController::class, 'uploadVersion'])->name('store');
+            Route::get('/{version}/download', [DMSController::class, 'downloadVersion'])->name('download');
+            Route::post('/{version}/rollback', [DMSController::class, 'rollbackVersion'])->name('rollback');
+            Route::get('/compare', [DMSController::class, 'compareVersions'])->name('compare');
+        });
     });
 
     // Document deletion

@@ -19,12 +19,12 @@ class SslCommerzService
 
     public function __construct()
     {
-        $this->storeId = config('sslcommerz.store_id');
-        $this->storePassword = config('sslcommerz.store_password');
+        $this->storeId = config('sslcommerz.store_id') ?? '';
+        $this->storePassword = config('sslcommerz.store_password') ?? '';
         $this->sandbox = config('sslcommerz.sandbox', true);
         $this->apiUrl = $this->sandbox
-            ? config('sslcommerz.api_url_sandbox')
-            : config('sslcommerz.api_url_live');
+            ? (config('sslcommerz.api_url_sandbox') ?? 'https://sandbox.sslcommerz.com')
+            : (config('sslcommerz.api_url_live') ?? 'https://securepay.sslcommerz.com');
     }
 
     /**
