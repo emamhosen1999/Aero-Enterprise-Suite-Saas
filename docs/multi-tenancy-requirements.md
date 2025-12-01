@@ -27,3 +27,5 @@
 - Payment gateways: Stripe, PayPal, SSLCommerz.
 - Invoicing, refunds, and trial periods supported.
 - Standard 14-day trial period for all new tenants.
+
+

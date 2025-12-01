@@ -20,7 +20,11 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Disable Fortify's default route registration.
+        // We handle auth routes manually through TenancyServiceProvider with
+        // proper domain constraints. This prevents Fortify routes from
+        // conflicting with the admin (landlord) authentication routes.
+        Fortify::ignoreRoutes();
     }
 
     /**

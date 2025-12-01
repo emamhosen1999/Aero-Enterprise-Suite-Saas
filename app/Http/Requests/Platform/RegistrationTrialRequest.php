@@ -28,7 +28,8 @@ class RegistrationTrialRequest extends FormRequest
             // Admin user credentials
             'admin_name' => ['nullable', 'string', 'max:255'],
             'admin_email' => ['nullable', 'email:filter', 'max:255'],
-            'password' => ['nullable', Password::defaults()],
+            'password' => ['required', 'confirmed', Password::defaults()],
+            'password_confirmation' => ['required'],
         ];
     }
 
@@ -39,6 +40,9 @@ class RegistrationTrialRequest extends FormRequest
     {
         return [
             'accept_terms.accepted' => 'You must accept the terms of service to continue.',
+            'password.required' => 'Please create a password for your admin account.',
+            'password.confirmed' => 'The password confirmation does not match.',
+            'password_confirmation.required' => 'Please confirm your password.',
         ];
     }
 }

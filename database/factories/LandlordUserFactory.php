@@ -31,11 +31,18 @@ class LandlordUserFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->name();
+
         return [
-            'name' => fake()->name(),
+            'user_name' => Str::slug($name),
+            'name' => $name,
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
+            'phone' => fake()->optional()->phoneNumber(),
             'password' => static::$password ??= Hash::make('password'),
+            'active' => true,
+            'profile_image' => null,
+            'timezone' => 'UTC',
+            'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ];
     }
@@ -47,6 +54,16 @@ class LandlordUserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is inactive.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'active' => false,
         ]);
     }
 
@@ -68,12 +85,32 @@ class LandlordUserFactory extends Factory
     }
 
     /**
-     * Indicate that the user is a super admin.
+     * Indicate that the user is a Platform Super Admin.
      */
     public function superAdmin(): static
     {
         return $this->afterCreating(function (LandlordUser $user) {
-            $user->assignRole('super-admin');
+            $user->assignRole('Platform Super Admin');
+        });
+    }
+
+    /**
+     * Indicate that the user is a Platform Admin.
+     */
+    public function admin(): static
+    {
+        return $this->afterCreating(function (LandlordUser $user) {
+            $user->assignRole('Platform Admin');
+        });
+    }
+
+    /**
+     * Indicate that the user is Platform Support.
+     */
+    public function support(): static
+    {
+        return $this->afterCreating(function (LandlordUser $user) {
+            $user->assignRole('Platform Support');
         });
     }
 }

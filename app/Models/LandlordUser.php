@@ -2,39 +2,46 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
- * LandlordUser Model (Super Admin)
+ * LandlordUser Model (Platform Admin)
  *
  * Represents platform administrators who manage the multi-tenant SaaS
  * from the admin.platform.com domain. These users exist ONLY in the
  * central database and have access to tenant management, billing,
  * and platform-wide settings.
  *
+ * This model uses the same structure as the User model to share
+ * roles and permissions between platform admins and tenant users.
+ *
  * SECURITY CONSIDERATIONS:
- * - Uses UUID primary key to prevent enumeration attacks
  * - Stored in central database (not affected by tenant context)
  * - Separate from tenant User model to enforce isolation
+ * - Uses Spatie HasRoles for permission management
  * - Should have MFA enabled in production
  *
- * @property string $id UUID primary key
+ * @property int $id Primary key
+ * @property string $user_name Username
  * @property string $name Full name
  * @property string $email Unique email address
  * @property string $password Hashed password
- * @property string $role Admin role (super_admin, admin, support)
- * @property bool $is_active Whether the account is active
+ * @property bool $active Whether the account is active
+ * @property string|null $phone Phone number
+ * @property string|null $profile_image Profile image path
+ * @property string $timezone User timezone
  * @property \Carbon\Carbon|null $email_verified_at
  * @property \Carbon\Carbon|null $last_login_at
  * @property string|null $last_login_ip
  */
 class LandlordUser extends Authenticatable
 {
-    use HasFactory, HasUuids, Notifiable, SoftDeletes;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * CRITICAL: Force this model to ALWAYS use the central database connection.
@@ -54,13 +61,12 @@ class LandlordUser extends Authenticatable
     protected $table = 'landlord_users';
 
     /**
-     * Role constants.
+     * The guard name for Spatie permissions.
+     * This allows sharing roles/permissions with the 'web' guard.
+     *
+     * @var string
      */
-    public const ROLE_SUPER_ADMIN = 'super_admin';
-
-    public const ROLE_ADMIN = 'admin';
-
-    public const ROLE_SUPPORT = 'support';
+    protected $guard_name = 'landlord';
 
     /**
      * The attributes that are mass assignable.
@@ -68,14 +74,15 @@ class LandlordUser extends Authenticatable
      * @var array<string>
      */
     protected $fillable = [
+        'user_name',
         'name',
         'email',
         'password',
-        'role',
-        'is_active',
-        'avatar',
         'phone',
+        'active',
+        'profile_image',
         'timezone',
+        'email_verified_at',
         'last_login_at',
         'last_login_ip',
     ];
@@ -100,11 +107,20 @@ class LandlordUser extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_active' => 'boolean',
+            'active' => 'boolean',
             'last_login_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'profile_image_url',
+    ];
 
     // =========================================================================
     // SCOPES
@@ -115,23 +131,15 @@ class LandlordUser extends Authenticatable
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('active', true);
     }
 
     /**
-     * Scope to filter by role.
+     * Scope to filter inactive users only.
      */
-    public function scopeRole($query, string $role)
+    public function scopeInactive($query)
     {
-        return $query->where('role', $role);
-    }
-
-    /**
-     * Scope to filter super admins.
-     */
-    public function scopeSuperAdmins($query)
-    {
-        return $query->where('role', self::ROLE_SUPER_ADMIN);
+        return $query->where('active', false);
     }
 
     // =========================================================================
@@ -139,11 +147,11 @@ class LandlordUser extends Authenticatable
     // =========================================================================
 
     /**
-     * Check if the user is a super admin.
+     * Check if the user is a super admin (has Platform Super Admin role).
      */
     public function isSuperAdmin(): bool
     {
-        return $this->role === self::ROLE_SUPER_ADMIN;
+        return $this->hasRole('Platform Super Admin');
     }
 
     /**
@@ -151,7 +159,7 @@ class LandlordUser extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return in_array($this->role, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN], true);
+        return $this->hasAnyRole(['Platform Super Admin', 'Platform Admin']);
     }
 
     /**
@@ -159,7 +167,7 @@ class LandlordUser extends Authenticatable
      */
     public function isSupport(): bool
     {
-        return $this->role === self::ROLE_SUPPORT;
+        return $this->hasRole('Platform Support');
     }
 
     /**
@@ -167,7 +175,7 @@ class LandlordUser extends Authenticatable
      */
     public function isActive(): bool
     {
-        return $this->is_active === true;
+        return $this->active === true;
     }
 
     /**
@@ -179,38 +187,6 @@ class LandlordUser extends Authenticatable
             'last_login_at' => now(),
             'last_login_ip' => $ip,
         ]);
-    }
-
-    /**
-     * Check if the user has a specific permission.
-     * For now, super_admin has all permissions.
-     */
-    public function hasPermission(string $permission): bool
-    {
-        // Super admin has all permissions
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
-        // TODO: Implement granular permissions if needed
-        // For now, admins have most permissions, support has limited
-        $adminPermissions = [
-            'tenants.view', 'tenants.create', 'tenants.edit',
-            'plans.view', 'plans.create', 'plans.edit',
-            'billing.view', 'settings.view', 'settings.edit',
-        ];
-
-        $supportPermissions = [
-            'tenants.view', 'plans.view', 'billing.view',
-        ];
-
-        $userPermissions = match ($this->role) {
-            self::ROLE_ADMIN => $adminPermissions,
-            self::ROLE_SUPPORT => $supportPermissions,
-            default => [],
-        };
-
-        return in_array($permission, $userPermissions, true);
     }
 
     /**
@@ -229,12 +205,12 @@ class LandlordUser extends Authenticatable
     }
 
     /**
-     * Get the avatar URL or generate a default.
+     * Get the profile image URL or generate a default.
      */
-    public function getAvatarUrlAttribute(): string
+    public function getProfileImageUrlAttribute(): string
     {
-        if ($this->avatar) {
-            return asset('storage/'.$this->avatar);
+        if ($this->profile_image) {
+            return asset('storage/'.$this->profile_image);
         }
 
         // Generate a Gravatar URL as fallback

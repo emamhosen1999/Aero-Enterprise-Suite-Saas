@@ -20,6 +20,13 @@ import ProfileAvatar from '@/Components/ProfileAvatar';
 const ProfileMenu = ({ children }) => {
   const { auth } = usePage().props;
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Guard: Don't render menu if no authenticated user
+  if (!auth?.user) {
+    return children;
+  }
+
+  const user = auth.user;
   
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -58,7 +65,7 @@ const ProfileMenu = ({ children }) => {
       <DropdownItem
         key="user-info"
         className="p-3 hover:bg-transparent cursor-default"
-        textValue={`${auth.user.name}'s quick profile`}
+        textValue={`${user.name}'s quick profile`}
         style={{
           fontFamily: `var(--fontFamily, 'Inter')`,
           borderRadius: `var(--borderRadius, 8px)`,
@@ -71,8 +78,8 @@ const ProfileMenu = ({ children }) => {
           <div className="relative">
             <ProfileAvatar
               size="md"
-              src={auth.user.profile_image_url || auth.user.profile_image}
-              name={auth.user.name}
+              src={user.profile_image_url || user.profile_image}
+              name={user.name}
               className="ring-2 ring-pink-400/40 shadow-md"
               style={{
                 borderRadius: `var(--borderRadius, 50%)`,
@@ -99,23 +106,23 @@ const ProfileMenu = ({ children }) => {
           <div className="flex flex-col min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-sm truncate text-foreground">
-                {auth.user.name}
+                {user.name}
               </span>
             </div>
 
             <span className="text-xs text-default-500 truncate">
-              {auth.user.email}
+              {user.email}
             </span>
 
-            {auth.user.phone && (
+            {user.phone && (
               <span className="text-xs text-default-500">
-                📱 {auth.user.phone}
+                📱 {user.phone}
               </span>
             )}
 
-            {auth.user.designation?.title && (
+            {user.designation?.title && (
               <span className="text-xs text-default-500">
-                💼 {auth.user.designation.title}
+                💼 {user.designation.title}
               </span>
             )}
 
@@ -211,7 +218,7 @@ const ProfileMenu = ({ children }) => {
             />
           </div>
         }
-        onPress={() => handleNavigation(route('profile', { user: auth.user.id }))}
+        onPress={() => handleNavigation(route('profile', { user: user.id }))}
         className="px-3 py-2 transition-colors duration-200"
         textValue="View Profile"
         style={{

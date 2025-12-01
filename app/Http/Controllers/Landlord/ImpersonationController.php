@@ -120,12 +120,17 @@ class ImpersonationController extends Controller
     protected function canImpersonate($landlordUser): bool
     {
         // Super admins can always impersonate
-        if ($landlordUser->role === 'super_admin') {
+        if ($landlordUser->isSuperAdmin()) {
             return true;
         }
 
         // Support role can impersonate (based on seeder permission)
-        if ($landlordUser->role === 'support') {
+        if ($landlordUser->isSupport()) {
+            return true;
+        }
+
+        // Check for specific permission
+        if ($landlordUser->hasPermissionTo('platform.tenants.impersonate')) {
             return true;
         }
 

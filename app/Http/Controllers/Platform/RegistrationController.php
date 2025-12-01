@@ -57,10 +57,12 @@ class RegistrationController extends Controller
      * Activate trial and dispatch async provisioning.
      *
      * This method:
-     * 1. Creates the Tenant and Domain records immediately
-     * 2. Stores hashed admin credentials in admin_data column
-     * 3. Dispatches the ProvisionTenant job to the queue
-     * 4. Redirects to the provisioning status page
+     * 1. Creates the Tenant and Domain records immediately (in a transaction)
+     * 2. Dispatches the ProvisionTenant job to the queue
+     * 3. Redirects to the provisioning status page
+     *
+     * IMPORTANT: Tenant creation and job dispatch are wrapped in a transaction.
+     * If the job fails to dispatch, the tenant record is rolled back.
      */
     public function activateTrial(RegistrationTrialRequest $request): RedirectResponse
     {
@@ -79,11 +81,19 @@ class RegistrationController extends Controller
             'password' => $trialData['password'], // Plain text - job will hash it
         ];
 
-        // Create tenant with pending status (no admin_data stored)
-        $tenant = $this->tenantProvisioner->createFromRegistration($payload);
+        // Wrap tenant creation and job dispatch in a transaction
+        // If job dispatch fails, tenant record is rolled back
+        $tenant = \Illuminate\Support\Facades\DB::transaction(function () use ($payload, $adminData) {
+            // Create tenant with pending status (no admin_data stored)
+            $tenant = $this->tenantProvisioner->createFromRegistration($payload);
 
-        // Dispatch async provisioning job with admin credentials
-        ProvisionTenant::dispatch($tenant, $adminData);
+            // Dispatch async provisioning job with admin credentials
+            // Using dispatchSync would defeat the purpose, so we dispatch normally
+            // but the transaction ensures the tenant is only committed if dispatch succeeds
+            ProvisionTenant::dispatch($tenant, $adminData);
+
+            return $tenant;
+        });
 
         // Store provisioning info for the waiting room
         $this->registrationSession->rememberSuccess([

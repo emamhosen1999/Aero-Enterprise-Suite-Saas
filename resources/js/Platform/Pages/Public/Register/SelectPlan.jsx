@@ -13,25 +13,26 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, mo
 
   const { data, setData, post, processing, errors } = useForm({
     billing_cycle: plan.billing_cycle ?? 'monthly',
-    modules: plan.modules ?? normalizedDefaults,
+    modules: Array.isArray(plan.modules) ? plan.modules : normalizedDefaults,
     notes: plan.notes ?? '',
   });
 
   const toggleModule = (code) => {
-    setData('modules', (current) => (
-      current.includes(code)
-        ? current.filter((item) => item !== code)
-        : [...current, code]
-    ));
+    const currentModules = Array.isArray(data.modules) ? data.modules : [];
+    const newModules = currentModules.includes(code)
+      ? currentModules.filter((item) => item !== code)
+      : [...currentModules, code];
+    setData('modules', newModules);
   };
 
   const isAnnual = data.billing_cycle === 'yearly';
   const pricePerModule = isAnnual ? modulePricing.yearly ?? 200 : modulePricing.monthly ?? 20;
-  const estimated = (data.modules.length || 1) * pricePerModule;
+  const modulesList = Array.isArray(data.modules) ? data.modules : [];
+  const estimated = (modulesList.length || 1) * pricePerModule;
 
   const selectedModules = useMemo(
-    () => moduleList.filter((module) => data.modules.includes(module.code)),
-    [moduleList, data.modules]
+    () => moduleList.filter((module) => modulesList.includes(module.code)),
+    [moduleList, modulesList]
   );
 
   const handleSubmit = (event) => {
@@ -79,7 +80,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, mo
 
               <div className="grid gap-4 md:grid-cols-2">
                 {moduleList.map((module) => {
-                  const selected = data.modules.includes(module.code);
+                  const selected = modulesList.includes(module.code);
                   return (
                     <Card
                       key={module.code}

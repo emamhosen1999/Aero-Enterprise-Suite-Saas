@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Models\User;
+use App\Models\LandlordUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia;
@@ -12,17 +12,18 @@ class HandleInertiaRequestsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_inertia_share_includes_session_and_permissions(): void
     {
-        $user = User::create([
+        $user = LandlordUser::create([
             'user_name' => 'admin-tester',
             'name' => 'Admin Tester',
             'email' => 'admin-tester@example.com',
             'password' => Hash::make('password'),
+            'active' => true,
         ]);
         $adminDomain = env('ADMIN_DOMAIN', 'admin.aero-enterprise-suite-saas.com');
-        $response = $this->actingAs($user)
+        $response = $this->actingAs($user, 'landlord')
             ->withServerVariables(['HTTP_HOST' => $adminDomain])
             ->get("http://{$adminDomain}/dashboard");
 
@@ -32,8 +33,7 @@ class HandleInertiaRequestsTest extends TestCase
             $page->where('auth.isAuthenticated', true)
                 ->where('auth.sessionValid', true)
                 ->where('auth.user.id', $user->id)
-                ->where('auth.roles', [])
-                ->where('auth.permissions', []);
+                ->has('auth.role'); // Admin shares 'role' (singular), not 'roles'
         });
     }
 }

@@ -50,6 +50,7 @@ class RegistrationFlowTest extends TestCase
             'accept_terms' => true,
             'notify_updates' => false,
             'password' => 'SecurePassword123!',
+            'password_confirmation' => 'SecurePassword123!',
         ]);
 
         // Should redirect to provisioning page now (async flow)

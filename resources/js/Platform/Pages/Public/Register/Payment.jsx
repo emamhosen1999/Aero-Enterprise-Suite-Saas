@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Button, Card, CardBody, Chip } from '@heroui/react';
+import { Button, Card, CardBody, Chip, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import Checkbox from '@/Components/Checkbox.jsx';
@@ -16,6 +16,8 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
   const selectedModules = (plan.modules ?? []).map((code) => catalogMap[code]?.name ?? code.toUpperCase());
 
   const { data, setData, post, processing, errors } = useForm({
+    password: '',
+    password_confirmation: '',
     accept_terms: false,
     notify_updates: true,
   });
@@ -87,12 +89,43 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
             </div>
 
             <Card className={`${palette.surface} text-sm`}>
+              <CardBody className="space-y-4">
+                <div>
+                  <p className={`font-semibold ${palette.heading}`}>Set your admin password</p>
+                  <p className={`text-sm ${palette.copy}`}>This will be your super-admin login for {details.subdomain}.{baseDomain}</p>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Input
+                    type="password"
+                    label="Password"
+                    placeholder="Create a secure password"
+                    value={data.password}
+                    onChange={(event) => setData('password', event.target.value)}
+                    isInvalid={Boolean(errors.password)}
+                    errorMessage={errors.password}
+                    isRequired
+                  />
+                  <Input
+                    type="password"
+                    label="Confirm password"
+                    placeholder="Repeat your password"
+                    value={data.password_confirmation}
+                    onChange={(event) => setData('password_confirmation', event.target.value)}
+                    isInvalid={Boolean(errors.password_confirmation)}
+                    errorMessage={errors.password_confirmation}
+                    isRequired
+                  />
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card className={`${palette.surface} text-sm`}>
               <CardBody className="space-y-3">
                 <p className={`font-semibold ${palette.heading}`}>What happens next?</p>
                 <ol className={`list-decimal list-inside space-y-2 ${palette.copy}`}>
                   <li>We provision your isolated database + files.</li>
                   <li>Workspace URL ({details.subdomain}.{baseDomain}) goes live with default themes.</li>
-                  <li>Within 5 minutes you receive super-admin credentials + onboarding playlist.</li>
+                  <li>Within 5 minutes you will be redirected to your new workspace.</li>
                   <li>At any time during the trial you can add payment details to continue seamlessly.</li>
                 </ol>
               </CardBody>
