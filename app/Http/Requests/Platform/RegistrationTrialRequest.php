@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Platform;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class RegistrationTrialRequest extends FormRequest
 {
@@ -24,6 +25,20 @@ class RegistrationTrialRequest extends FormRequest
         return [
             'accept_terms' => ['accepted'],
             'notify_updates' => ['nullable', 'boolean'],
+            // Admin user credentials
+            'admin_name' => ['nullable', 'string', 'max:255'],
+            'admin_email' => ['nullable', 'email:filter', 'max:255'],
+            'password' => ['nullable', Password::defaults()],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'accept_terms.accepted' => 'You must accept the terms of service to continue.',
         ];
     }
 }

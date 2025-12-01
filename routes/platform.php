@@ -30,6 +30,10 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     Route::get('/payment', [RegistrationPageController::class, 'payment'])->name('payment');
     Route::get('/success', [RegistrationPageController::class, 'success'])->name('success');
 
+    // Provisioning waiting room
+    Route::get('/provisioning/{tenant}', [RegistrationPageController::class, 'provisioning'])->name('provisioning');
+    Route::get('/provisioning/{tenant}/status', [RegistrationPageController::class, 'provisioningStatus'])->name('provisioning.status');
+
     // Step submissions
     Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');
     Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');

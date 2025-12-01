@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Plan;
 use App\Models\Tenant;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -14,19 +15,25 @@ use Illuminate\Support\Str;
  *
  * Handles the creation and provisioning of new tenants.
  *
- * The provisioning flow:
+ * The provisioning flow (async):
  * 1. Validate and prepare tenant data
- * 2. Create Tenant record in central database
- * 3. Create Domain record for the tenant
- * 4. stancl/tenancy automatically:
- *    - Fires TenantCreated event
- *    - JobPipeline executes: CreateDatabase -> MigrateDatabase -> SeedDatabase
- * 5. Tenant is ready for use
+ * 2. Create Tenant record in central database with status 'pending'
+ * 3. Store admin credentials in admin_data column (hashed password)
+ * 4. Create Domain record for the tenant
+ * 5. Dispatch ProvisionTenant job which:
+ *    - Creates the tenant database
+ *    - Runs migrations
+ *    - Seeds the admin user
+ *    - Activates the tenant
  */
 class TenantProvisioner
 {
     /**
      * Create a new tenant from registration payload.
+     *
+     * This creates the Tenant and Domain records but does NOT trigger
+     * database provisioning. Call dispatchProvisioning() after this
+     * to start the async provisioning process.
      *
      * @param  array  $payload  Registration data from multi-step wizard
      */
@@ -35,6 +42,7 @@ class TenantProvisioner
         $account = $payload['account'] ?? [];
         $details = $payload['details'] ?? [];
         $plan = $payload['plan'] ?? [];
+        $trial = $payload['trial'] ?? [];
 
         $trialEndsAt = now()->addDays((int) config('platform.trial_days', 14));
         $modules = $this->cleanModules($plan['modules'] ?? []);
@@ -42,8 +50,10 @@ class TenantProvisioner
         // Resolve plan_id from slug if provided
         $planId = $this->resolvePlanId($plan['plan_slug'] ?? null);
 
-        // Create tenant - this triggers the TenantCreated event
-        // which automatically creates the database and runs migrations
+        // Prepare admin data (hash password for security)
+        $adminData = $this->prepareAdminData($details, $trial);
+
+        // Create tenant - status is 'pending' until provisioning completes
         $tenant = Tenant::create([
             'id' => (string) Str::uuid(),
             'name' => (string) Arr::get($details, 'name'),
@@ -56,7 +66,9 @@ class TenantProvisioner
             'modules' => $modules,
             'trial_ends_at' => $trialEndsAt,
             'subscription_ends_at' => null,
-            'status' => Tenant::STATUS_PENDING, // Will be activated after verification/payment
+            'status' => Tenant::STATUS_PENDING,
+            'provisioning_step' => null,
+            'admin_data' => $adminData,
             'maintenance_mode' => false,
             // Flexible data stored in JSON column
             'data' => [
@@ -78,6 +90,33 @@ class TenantProvisioner
         ]);
 
         return $tenant;
+    }
+
+    /**
+     * Prepare admin user data with hashed password.
+     *
+     * @param  array  $details  Registration details
+     * @param  array  $trial  Trial step data (may contain password)
+     * @return array Admin data to store in admin_data column
+     */
+    private function prepareAdminData(array $details, array $trial): array
+    {
+        $email = Arr::get($trial, 'admin_email')
+            ?? Arr::get($details, 'owner_email')
+            ?? Arr::get($details, 'email');
+
+        $name = Arr::get($trial, 'admin_name')
+            ?? Arr::get($details, 'owner_name')
+            ?? Arr::get($details, 'name');
+
+        $password = Arr::get($trial, 'password');
+
+        return [
+            'name' => $name,
+            'email' => $email,
+            // Hash password before storing for security
+            'password' => $password ? Hash::make($password) : null,
+        ];
     }
 
     /**

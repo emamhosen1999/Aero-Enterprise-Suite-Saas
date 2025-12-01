@@ -99,4 +99,39 @@ class TenantFactory extends Factory
             'trial_ends_at' => now()->subDays(1),
         ]);
     }
+
+    /**
+     * Indicate that the tenant is provisioning.
+     */
+    public function provisioning(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => Tenant::STATUS_PROVISIONING,
+            'provisioning_step' => Tenant::STEP_CREATING_DB,
+        ]);
+    }
+
+    /**
+     * Indicate that the tenant provisioning has failed.
+     */
+    public function failed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => Tenant::STATUS_FAILED,
+        ]);
+    }
+
+    /**
+     * Include admin data for provisioning.
+     */
+    public function withAdminData(array $data = []): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'admin_data' => array_merge([
+                'name' => fake()->name(),
+                'email' => fake()->unique()->safeEmail(),
+                'password' => bcrypt('password'),
+            ], $data),
+        ]);
+    }
 }

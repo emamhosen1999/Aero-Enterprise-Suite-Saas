@@ -44,11 +44,26 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public const STATUS_PENDING = 'pending';
 
+    public const STATUS_PROVISIONING = 'provisioning';
+
     public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_FAILED = 'failed';
 
     public const STATUS_SUSPENDED = 'suspended';
 
     public const STATUS_ARCHIVED = 'archived';
+
+    /**
+     * Provisioning step constants.
+     */
+    public const STEP_CREATING_DB = 'creating_db';
+
+    public const STEP_MIGRATING = 'migrating';
+
+    public const STEP_SEEDING = 'seeding';
+
+    public const STEP_CREATING_ADMIN = 'creating_admin';
 
     /**
      * Custom columns that are stored directly on the tenants table
@@ -76,6 +91,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'trial_ends_at',
             'subscription_ends_at',
             'status',
+            'provisioning_step', // Async provisioning: creating_db, migrating, seeding, creating_admin
+            'admin_data',        // Temporary admin credentials during provisioning
             'maintenance_mode',
             // Stripe Cashier columns
             'stripe_id',
@@ -96,6 +113,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return [
             'data' => AsArrayObject::class,
             'modules' => AsArrayObject::class,
+            'admin_data' => AsArrayObject::class,
             'trial_ends_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
             'stripe_trial_ends_at' => 'datetime',
@@ -192,6 +210,22 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return $query->where('status', 'suspended');
     }
 
+    /**
+     * Scope to filter tenants currently provisioning.
+     */
+    public function scopeProvisioning($query)
+    {
+        return $query->where('status', self::STATUS_PROVISIONING);
+    }
+
+    /**
+     * Scope to filter failed tenants.
+     */
+    public function scopeFailed($query)
+    {
+        return $query->where('status', self::STATUS_FAILED);
+    }
+
     // =========================================================================
     // HELPER METHODS
     // =========================================================================
@@ -201,7 +235,23 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    /**
+     * Check if the tenant is currently provisioning.
+     */
+    public function isProvisioning(): bool
+    {
+        return $this->status === self::STATUS_PROVISIONING;
+    }
+
+    /**
+     * Check if the tenant provisioning has failed.
+     */
+    public function hasFailed(): bool
+    {
+        return $this->status === self::STATUS_FAILED;
     }
 
     /**
@@ -246,11 +296,64 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
-     * Activate the tenant (change status from pending to active).
+     * Activate the tenant (change status from pending/provisioning to active).
+     * Clears admin_data after successful activation.
      */
     public function activate(): bool
     {
-        return $this->update(['status' => self::STATUS_ACTIVE]);
+        return $this->update([
+            'status' => self::STATUS_ACTIVE,
+            'provisioning_step' => null,
+            'admin_data' => null,
+        ]);
+    }
+
+    /**
+     * Start the provisioning process.
+     *
+     * @param  string  $step  Initial provisioning step
+     */
+    public function startProvisioning(string $step = self::STEP_CREATING_DB): bool
+    {
+        return $this->update([
+            'status' => self::STATUS_PROVISIONING,
+            'provisioning_step' => $step,
+        ]);
+    }
+
+    /**
+     * Update the current provisioning step.
+     */
+    public function updateProvisioningStep(string $step): bool
+    {
+        return $this->update(['provisioning_step' => $step]);
+    }
+
+    /**
+     * Mark provisioning as failed.
+     *
+     * @param  string|null  $reason  Failure reason to store in data column
+     */
+    public function markProvisioningFailed(?string $reason = null): bool
+    {
+        if ($reason) {
+            $data = $this->data ?? new \ArrayObject;
+            $data['provisioning_error'] = $reason;
+            $data['provisioning_failed_at'] = now()->toIso8601String();
+            $this->data = $data;
+        }
+        $this->status = self::STATUS_FAILED;
+
+        return $this->save();
+    }
+
+    /**
+     * Clear admin data after admin user has been created.
+     * Important for security - credentials should not persist.
+     */
+    public function clearAdminData(): bool
+    {
+        return $this->update(['admin_data' => null]);
     }
 
     /**
@@ -258,8 +361,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function suspend(?string $reason = null): bool
     {
-        $this->data['suspension_reason'] = $reason;
-        $this->data['suspended_at'] = now()->toIso8601String();
+        $data = $this->data ?? new \ArrayObject;
+        $data['suspension_reason'] = $reason;
+        $data['suspended_at'] = now()->toIso8601String();
+        $this->data = $data;
         $this->status = self::STATUS_SUSPENDED;
 
         return $this->save();

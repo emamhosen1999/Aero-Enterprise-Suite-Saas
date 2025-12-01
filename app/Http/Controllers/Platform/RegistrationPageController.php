@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant;
 use App\Services\TenantRegistrationSession;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -67,6 +69,54 @@ class RegistrationPageController extends Controller
             'baseDomain' => config('platform.central_domain'),
             'modulesCatalog' => config('platform.registration.modules', []),
             'modulePricing' => config('platform.registration.module_pricing', []),
+        ]);
+    }
+
+    /**
+     * Provisioning status "waiting room" page.
+     *
+     * Shows the user real-time status of their workspace provisioning.
+     */
+    public function provisioning(Tenant $tenant): Response
+    {
+        return Inertia::render('Public/Register/Provisioning', [
+            'tenant' => [
+                'id' => $tenant->id,
+                'name' => $tenant->name,
+                'subdomain' => $tenant->subdomain,
+                'status' => $tenant->status,
+                'provisioning_step' => $tenant->provisioning_step,
+            ],
+            'baseDomain' => config('platform.central_domain'),
+            'steps' => $this->steps,
+            'currentStep' => 'provisioning',
+        ]);
+    }
+
+    /**
+     * API endpoint to check provisioning status.
+     *
+     * Called by the frontend to poll for status updates.
+     */
+    public function provisioningStatus(Tenant $tenant): JsonResponse
+    {
+        $baseDomain = config('platform.central_domain');
+        $domain = sprintf('%s.%s', $tenant->subdomain, $baseDomain);
+
+        return response()->json([
+            'id' => $tenant->id,
+            'status' => $tenant->status,
+            'step' => $tenant->provisioning_step,
+            'provisioning_step' => $tenant->provisioning_step, // Alias for backward compatibility
+            'domain' => $domain,
+            'is_ready' => $tenant->status === Tenant::STATUS_ACTIVE,
+            'has_failed' => $tenant->status === Tenant::STATUS_FAILED,
+            'error' => $tenant->status === Tenant::STATUS_FAILED
+                ? ($tenant->data['provisioning_error'] ?? 'Provisioning failed')
+                : null,
+            'login_url' => $tenant->status === Tenant::STATUS_ACTIVE
+                ? sprintf('https://%s/login', $domain)
+                : null,
         ]);
     }
 

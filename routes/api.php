@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\VersionController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Platform\RegistrationPageController;
 use App\Http\Controllers\SystemMonitoringController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,10 @@ Route::get('/user', function (Request $request) {
 // Version check endpoints (no auth required for PWA functionality)
 Route::get('/version', [VersionController::class, 'current'])->name('api.version.current');
 Route::post('/version/check', [VersionController::class, 'check'])->name('api.version.check');
+
+// Tenant provisioning status (public - used during registration)
+Route::get('/tenants/{tenant}/status', [RegistrationPageController::class, 'provisioningStatus'])
+    ->name('api.tenants.status');
 
 // Error logging endpoint
 Route::post('/log-error', function (Request $request) {
