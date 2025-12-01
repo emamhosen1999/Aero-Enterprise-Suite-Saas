@@ -43,7 +43,38 @@ class LoginController extends Controller
             'deviceMessage' => session('device_message'),
             'blockedDeviceInfo' => session('blocked_device_info'),
             'canRegister' => IdentifyDomainContext::isPlatform($request),
+            'oauthProviders' => $this->getAvailableOAuthProviders(),
         ]);
+    }
+
+    /**
+     * Get list of available OAuth providers.
+     *
+     * @return array
+     */
+    protected function getAvailableOAuthProviders(): array
+    {
+        $providers = [];
+        $supportedProviders = ['google', 'microsoft', 'github'];
+
+        foreach ($supportedProviders as $provider) {
+            $config = config("services.{$provider}");
+
+            if (! empty($config['client_id']) && ! empty($config['client_secret'])) {
+                $providers[] = [
+                    'name' => $provider,
+                    'label' => match ($provider) {
+                        'google' => 'Google',
+                        'microsoft' => 'Microsoft',
+                        'github' => 'GitHub',
+                        default => ucfirst($provider),
+                    },
+                    'url' => route('auth.social.redirect', ['provider' => $provider]),
+                ];
+            }
+        }
+
+        return $providers;
     }
 
     /**

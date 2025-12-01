@@ -129,6 +129,13 @@ class User extends Authenticatable implements HasMedia
         'device_reset_at',
         'device_reset_reason',
         'locale',
+        // OAuth fields
+        'oauth_provider',
+        'oauth_provider_id',
+        'oauth_token',
+        'oauth_refresh_token',
+        'oauth_token_expires_at',
+        'avatar_url',
     ];
 
     /**
@@ -139,6 +146,8 @@ class User extends Authenticatable implements HasMedia
     protected $hidden = [
         'password',
         'remember_token',
+        'oauth_token',
+        'oauth_refresh_token',
     ];
 
     /**
@@ -158,6 +167,7 @@ class User extends Authenticatable implements HasMedia
         'active' => 'boolean',
         'single_device_login_enabled' => 'boolean',
         'device_reset_at' => 'datetime',
+        'oauth_token_expires_at' => 'datetime',
     ];
 
     /**

@@ -33,6 +33,7 @@ import {
 import { showToast } from '@/utils/toastUtils';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { getDeviceId, getDeviceHeaders } from '@/utils/deviceAuth';
+import SocialLoginButtons from '@/Components/Auth/SocialLoginButtons';
 
 /**
  * Enterprise Login Component for ERP System
@@ -183,7 +184,8 @@ export default function Login({
     canResetPassword, 
     deviceBlocked, 
     deviceMessage, 
-    blockedDeviceInfo 
+    blockedDeviceInfo,
+    oauthProviders = []
 }) {
     // ===== THEME ACCESS =====
     const { themeSettings } = useTheme();

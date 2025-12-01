@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +26,12 @@ Route::middleware('guest')->group(function () {
     Route::post('forgot-password', [PasswordResetController::class, 'store'])->name('password.email');
     Route::get('reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
     Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.update');
+
+    // OAuth / Social Login Routes
+    Route::get('auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
+        ->name('auth.social.redirect');
+    Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])
+        ->name('auth.social.callback');
 });
 
 Route::middleware('auth')->group(function () {

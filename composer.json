@@ -21,6 +21,7 @@
         "laravel/fortify": "^1.21",
         "laravel/framework": "^11.27.2",
         "laravel/sanctum": "^4.1",
+        "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^3.1",
         "simplesoftwareio/simple-qrcode": "*",
