@@ -15,7 +15,7 @@ class MaintenanceController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // Middleware handled by route group (auth:landlord)
     }
 
     /**

@@ -1,0 +1,1 @@
+import{l as a,X as r,Y as s,m as i}from"./generateCategoricalChart-uTUI-E3I.js";import{A as x}from"./Area-1G1opGo0.js";var o=a({chartName:"AreaChart",GraphicalChild:x,axisComponents:[{axisType:"xAxis",AxisComp:r},{axisType:"yAxis",AxisComp:s}],formatAxisMap:i});export{o as A};

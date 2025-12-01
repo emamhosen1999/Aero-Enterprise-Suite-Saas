@@ -107,7 +107,7 @@ export default function Pricing() {
   return (
     <PublicLayout mainClassName="pt-0">
       <div className={`relative ${palette.baseText}`}>
-      <section className="relative max-w-6xl mx-auto px-6 pt-28 pb-16 text-center overflow-hidden">
+      <section className="relative max-w-6xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16 text-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
           <div
             className={`absolute inset-0 ${
@@ -120,47 +120,47 @@ export default function Pricing() {
           <div className="absolute -right-32 bottom-8 w-72 h-72 bg-blue-500/20 blur-[160px]" />
         </div>
         <div className="relative">
-          <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-xs">Pricing</Chip>
-          <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
+          <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-[10px] md:text-xs">Pricing</Chip>
+          <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
             Pricing built around the modules you actually use.
           </h1>
-          <p className={`max-w-3xl mx-auto mb-10 text-lg ${palette.mutedText}`}>
+          <p className={`max-w-3xl mx-auto mb-6 md:mb-10 text-sm md:text-lg ${palette.mutedText}`}>
             Pick monthly or annual billing, add modules when teams are ready, and pause what you are not using without renegotiating a contract.
           </p>
-          <div className="flex items-center justify-center gap-3">
-            <span className={`text-sm ${annual ? 'font-semibold' : palette.mutedText}`}>Annual (2 months free)</span>
+          <div className="flex items-center justify-center gap-2 md:gap-3">
+            <span className={`text-xs md:text-sm ${annual ? 'font-semibold' : palette.mutedText}`}>Annual (2 months free)</span>
             <Switch isSelected={!annual} onValueChange={() => setAnnual(!annual)} color="secondary" aria-label="Toggle billing cadence" />
-            <span className={`text-sm ${!annual ? 'font-semibold' : palette.mutedText}`}>Monthly</span>
+            <span className={`text-xs md:text-sm ${!annual ? 'font-semibold' : palette.mutedText}`}>Monthly</span>
           </div>
         </div>
       </section>
 
-      <section className="px-6 pb-16">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+      <section className="px-4 md:px-6 pb-8 md:pb-16">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-4 md:gap-6">
           {tierData.map((tier) => (
             <Card
               key={tier.name}
               className={tier.highlighted ? palette.highlightCard : palette.card}
             >
               <CardHeader className="flex flex-col items-start gap-1">
-                <p className={`text-sm ${palette.mutedText}`}>{tier.highlighted ? 'Most popular' : 'Plan'}</p>
-                <h3 className="text-2xl font-semibold">{tier.name}</h3>
+                <p className={`text-xs md:text-sm ${palette.mutedText}`}>{tier.highlighted ? 'Most popular' : 'Plan'}</p>
+                <h3 className="text-xl md:text-2xl font-semibold">{tier.name}</h3>
               </CardHeader>
               <Divider className={palette.divider} />
-              <CardBody className="space-y-4">
+              <CardBody className="space-y-3 md:space-y-4">
                 <div>
                   {tier.custom ? (
-                    <p className="text-4xl font-bold">Let’s Talk</p>
+                    <p className="text-3xl md:text-4xl font-bold">Let's Talk</p>
                   ) : (
                     <>
-                      <span className="text-5xl font-bold">${tier.price}</span>
-                      <span className={`text-base ml-2 ${palette.mutedText}`}>/user/mo</span>
-                      <p className={`text-xs ${palette.mutedText}`}>Billed ${(tier.price * multiplier).toFixed(0)}/user/year</p>
+                      <span className="text-4xl md:text-5xl font-bold">${tier.price}</span>
+                      <span className={`text-sm md:text-base ml-2 ${palette.mutedText}`}>/user/mo</span>
+                      <p className={`text-[10px] md:text-xs ${palette.mutedText}`}>Billed ${(tier.price * multiplier).toFixed(0)}/user/year</p>
                     </>
                   )}
                 </div>
-                <p className={palette.mutedText}>{tier.description}</p>
-                <ul className="space-y-2 text-sm text-left">
+                <p className={`text-sm md:text-base ${palette.mutedText}`}>{tier.description}</p>
+                <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm text-left">
                   {tier.includes.map((item) => (
                     <li key={item} className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -177,19 +177,19 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="px-6 pb-16">
+      <section className="px-4 md:px-6 pb-8 md:pb-16">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-8">Add-ons & services</h2>
-          <div className="grid md:grid-cols-3 gap-5">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center mb-5 md:mb-8">Add-ons & services</h2>
+          <div className="grid md:grid-cols-3 gap-3 md:gap-5">
             {addons.map((addon) => (
               <Card key={addon.name} className={palette.card}>
-                <CardBody className="space-y-3">
+                <CardBody className="space-y-2 md:space-y-3">
                   <div>
-                    <p className={`text-sm ${palette.mutedText}`}>Add-on</p>
-                    <h3 className="text-xl font-semibold">{addon.name}</h3>
+                    <p className={`text-xs md:text-sm ${palette.mutedText}`}>Add-on</p>
+                    <h3 className="text-base md:text-xl font-semibold">{addon.name}</h3>
                   </div>
-                  <p className="text-emerald-500 font-semibold">{addon.price}</p>
-                  <p className={`text-sm ${palette.mutedText}`}>{addon.description}</p>
+                  <p className="text-sm md:text-base text-emerald-500 font-semibold">{addon.price}</p>
+                  <p className={`text-xs md:text-sm ${palette.mutedText}`}>{addon.description}</p>
                 </CardBody>
               </Card>
             ))}
@@ -197,9 +197,9 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className={`px-6 pb-16 ${palette.tint}`}>
+      <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-10">Feature comparison</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold text-center mb-6 md:mb-10">Feature comparison</h2>
           <div className="overflow-x-auto">
             <Table aria-label="Plan comparison" className="min-w-[800px]">
               <TableHeader>
@@ -223,19 +223,19 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="px-6 pb-16">
+      <section className="px-4 md:px-6 pb-8 md:pb-16">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <Chip color="secondary" variant="flat" className="mb-3">Support fabric</Chip>
-            <h2 className="text-3xl font-semibold">Channels backed by clear response times.</h2>
-            <p className={`mt-2 ${palette.mutedText}`}>Every plan ships with a dedicated escalation path. Enterprise adds private pods and Slack Connect.</p>
+          <div className="text-center mb-6 md:mb-12">
+            <Chip color="secondary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">Support fabric</Chip>
+            <h2 className="text-xl md:text-3xl font-semibold">Channels backed by clear response times.</h2>
+            <p className={`mt-2 text-sm md:text-base ${palette.mutedText}`}>Every plan ships with a dedicated escalation path. Enterprise adds private pods and Slack Connect.</p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-3 md:gap-6 md:grid-cols-2">
             {supportChannels.map((channel) => (
               <Card key={channel.label} className={`${palette.card} h-full`}>
-                <CardBody className="space-y-2">
-                  <h3 className="text-xl font-semibold">{channel.label}</h3>
-                  <p className={palette.mutedText}>{channel.description}</p>
+                <CardBody className="space-y-1.5 md:space-y-2">
+                  <h3 className="text-base md:text-xl font-semibold">{channel.label}</h3>
+                  <p className={`text-sm md:text-base ${palette.mutedText}`}>{channel.description}</p>
                   <Chip color="success" variant="flat" size="sm" className="w-fit">{channel.response}</Chip>
                 </CardBody>
               </Card>
@@ -244,11 +244,11 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className={`px-6 pb-16 ${palette.tint}`}>
+      <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <Chip color="primary" variant="flat" className="mb-3">SLA Matrix</Chip>
-            <h2 className="text-3xl font-semibold">Response commitments per plan.</h2>
+          <div className="text-center mb-6 md:mb-10">
+            <Chip color="primary" variant="flat" className="mb-2 md:mb-3 text-[10px] md:text-xs">SLA Matrix</Chip>
+            <h2 className="text-xl md:text-3xl font-semibold">Response commitments per plan.</h2>
           </div>
           <div className="overflow-x-auto">
             <Table aria-label="SLA matrix" className="min-w-[700px]">
@@ -273,11 +273,11 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="px-6 pb-16">
-        <div className="max-w-4xl mx-auto text-center mb-10">
-          <Chip color="primary" variant="flat">FAQ</Chip>
-          <h2 className="text-3xl font-semibold mt-4 mb-4">Everything you need to know</h2>
-          <p className={palette.mutedText}>
+      <section className="px-4 md:px-6 pb-8 md:pb-16">
+        <div className="max-w-4xl mx-auto text-center mb-6 md:mb-10">
+          <Chip color="primary" variant="flat" className="text-[10px] md:text-xs">FAQ</Chip>
+          <h2 className="text-xl md:text-3xl font-semibold mt-3 md:mt-4 mb-3 md:mb-4">Everything you need to know</h2>
+          <p className={`text-sm md:text-base ${palette.mutedText}`}>
             We keep pricing transparent. Reach out if you need tailored modules, data residency commitments, or procurement paperwork.
           </p>
         </div>
@@ -297,32 +297,32 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="px-6 pb-20">
+      <section className="px-4 md:px-6 pb-10 md:pb-20">
         <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
-          <CardBody className="space-y-6">
-            <Chip variant="flat" color="success">Next Steps</Chip>
-            <h3 className="text-4xl font-semibold">Bundle modules, launch faster.</h3>
-            <p className={palette.mutedText}>
+          <CardBody className="space-y-4 md:space-y-6">
+            <Chip variant="flat" color="success" className="text-[10px] md:text-xs">Next Steps</Chip>
+            <h3 className="text-2xl md:text-4xl font-semibold">Bundle modules, launch faster.</h3>
+            <p className={`text-sm md:text-base ${palette.mutedText}`}>
               Our pricing team will tailor a package across HR, Projects, Compliance, SCM, and CRM with the right SLAs and integrations.
             </p>
-            <div className="grid gap-4 md:grid-cols-3 text-left">
+            <div className="grid gap-2 md:gap-4 md:grid-cols-3 text-left">
               {demoSteps.map((step) => (
-                <div key={step.step} className={`rounded-2xl px-4 py-3 text-sm ${palette.badge}`}>
-                  <p className="text-xs uppercase tracking-widest opacity-80">{step.step}</p>
+                <div key={step.step} className={`rounded-2xl px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm ${palette.badge}`}>
+                  <p className="text-[10px] md:text-xs uppercase tracking-widest opacity-80">{step.step}</p>
                   <p className="font-semibold mt-1">{step.description}</p>
                 </div>
               ))}
             </div>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <Button
                 as={Link}
                 href={route('demo')}
-                size="lg"
-                className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-10' : 'bg-slate-900 text-white font-semibold px-10'}
+                size="sm"
+                className={isDarkMode ? 'bg-white text-slate-900 font-semibold px-6 md:px-10' : 'bg-slate-900 text-white font-semibold px-6 md:px-10'}
               >
                 Book a Demo
               </Button>
-              <Button as={Link} href={route('contact')} size="lg" variant="bordered" className="border-current px-10">
+              <Button as={Link} href={route('contact')} size="sm" variant="bordered" className="border-current px-6 md:px-10">
                 Talk to Sales
               </Button>
             </div>

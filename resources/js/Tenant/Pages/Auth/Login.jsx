@@ -34,6 +34,7 @@ import { showToast } from '@/utils/toastUtils';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { getDeviceId, getDeviceHeaders } from '@/utils/deviceAuth';
 import SocialLoginButtons from '@/Components/Auth/SocialLoginButtons';
+import { useBranding } from '@/Hooks/useBranding';
 
 /**
  * Enterprise Login Component for ERP System
@@ -189,6 +190,7 @@ export default function Login({
 }) {
     // ===== THEME ACCESS =====
     const { themeSettings } = useTheme();
+    const { logo, siteName } = useBranding();
     
     // Helper function to convert theme borderRadius to HeroUI radius values
     const getThemeRadius = () => {
@@ -662,16 +664,17 @@ export default function Login({
                                     whileHover={{ scale: 1.05 }}
                                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                 >
-                                    
-                                    <img 
-                                        src="/assets/images/logo.png" 
-                                        alt="Logo" 
-                                        className={`${isMobile ? 'w-40 h-40' : 'w-52 h-52'} object-contain`}
-                                        onError={(e) => {
-                                            e.target.style.display = 'none';
-                                            e.target.nextSibling.style.display = 'flex';
-                                        }}
-                                    />
+                                    {logo ? (
+                                        <img 
+                                            src={logo} 
+                                            alt={siteName} 
+                                            className={`${isMobile ? 'h-16' : 'h-20'} w-auto object-contain`}
+                                        />
+                                    ) : (
+                                        <div className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center font-bold text-2xl text-white`}>
+                                            {siteName.charAt(0)}
+                                        </div>
+                                    )}
                                         
                                 
                                 </motion.div>

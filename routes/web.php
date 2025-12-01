@@ -97,6 +97,21 @@ Route::middleware($middlewareStack)->group(function () {
         Route::post('/step', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'updateStep'])->name('step');
     });
 
+    // =========================================================================
+    // SUBSCRIPTION MANAGEMENT (TENANT-FACING)
+    // =========================================================================
+    // Self-service subscription, billing, and usage management for tenants
+    Route::prefix('subscription')->name('tenant.subscription.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'index'])->name('index');
+        Route::get('/plans', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'plans'])->name('plans');
+        Route::post('/change-plan', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'changePlan'])->name('change-plan');
+        Route::post('/cancel', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'cancel'])->name('cancel');
+        Route::post('/resume', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'resume'])->name('resume');
+        Route::get('/usage', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'usage'])->name('usage');
+        Route::get('/invoices', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'invoices'])->name('invoices');
+        Route::get('/invoices/{invoice}/download', [\App\Http\Controllers\Tenant\SubscriptionController::class, 'downloadInvoice'])->name('invoices.download');
+    });
+
     // Dashboard routes - require dashboard permission
     Route::middleware(['permission:core.dashboard.view'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

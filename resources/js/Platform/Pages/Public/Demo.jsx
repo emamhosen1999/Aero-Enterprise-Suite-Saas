@@ -53,37 +53,37 @@ const Demo = () => {
           <div className="absolute -right-20 top-10 w-72 h-72 bg-blue-500/20 blur-[140px]" />
           <div className="absolute -left-16 bottom-0 w-72 h-72 bg-emerald-400/25 blur-[140px]" />
         </div>
-        <div className="relative max-w-6xl mx-auto px-6 pt-28 pb-16 grid lg:grid-cols-2 gap-10">
+        <div className="relative max-w-6xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16 grid lg:grid-cols-2 gap-6 md:gap-10">
           <div>
-            <Chip variant="flat" color="primary" className="uppercase tracking-[0.35em] text-xs">Demo</Chip>
-            <h1 className="text-4xl md:text-5xl font-bold mt-5 mb-6">
+            <Chip variant="flat" color="primary" className="uppercase tracking-[0.35em] text-[10px] md:text-xs">Demo</Chip>
+            <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-5 mb-4 md:mb-6">
               See your workflows running in Aero before you commit.
             </h1>
-            <p className={palette.mutedText}>
+            <p className={`text-sm md:text-base ${palette.mutedText}`}>
               We configure the demo with your modules, sample data, and approval chains so stakeholders can judge the fit in a single session.
             </p>
-            <div className="grid grid-cols-3 gap-4 mt-10">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mt-6 md:mt-10">
               {demoStats.map((stat) => (
                 <Card key={stat.label} className={`${palette.card} text-center`}>
                   <CardBody>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className={`text-xs mt-2 ${palette.mutedText}`}>{stat.label}</p>
+                    <p className="text-lg md:text-2xl font-bold">{stat.value}</p>
+                    <p className={`text-[10px] md:text-xs mt-1 md:mt-2 ${palette.mutedText}`}>{stat.label}</p>
                   </CardBody>
                 </Card>
               ))}
             </div>
-            <div className="flex flex-wrap gap-4 mt-10">
-              <Button as={Link} href={route('platform.register.index')} className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-10">
+            <div className="flex flex-wrap gap-2 md:gap-4 mt-6 md:mt-10">
+              <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10">
                 Start free trial
               </Button>
-              <Button as={Link} href={route('pricing')} variant="bordered" className={`px-10 ${palette.buttonBorder}`}>
+              <Button as={Link} href={route('pricing')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.buttonBorder}`}>
                 Explore pricing
               </Button>
             </div>
           </div>
         <Card className={palette.card}>
-          <CardBody className="space-y-4">
-            <Chip color="success" variant="flat" size="sm">Request a demo</Chip>
+          <CardBody className="space-y-3 md:space-y-4">
+            <Chip color="success" variant="flat" size="sm" className="text-[10px] md:text-xs">Request a demo</Chip>
             <Input label="Full name" variant="bordered" classNames={fieldClasses} />
             <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
             <Input label="Company" variant="bordered" classNames={fieldClasses} />
@@ -95,19 +95,19 @@ const Demo = () => {
         </div>
       </section>
 
-      <section className="px-6 pb-16">
+      <section className="px-4 md:px-6 pb-8 md:pb-16">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <Chip color="secondary" variant="flat">What to expect</Chip>
-            <h2 className="text-4xl font-semibold mt-4">Your demo in three beats.</h2>
+          <div className="text-center mb-6 md:mb-12">
+            <Chip color="secondary" variant="flat" className="text-[10px] md:text-xs">What to expect</Chip>
+            <h2 className="text-2xl md:text-4xl font-semibold mt-3 md:mt-4">Your demo in three beats.</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-4 md:gap-6">
             {demoSteps.map((item, index) => (
               <Card key={item.step} className={palette.card}>
-                <CardBody className="space-y-4">
-                  <Chip color="primary" variant="flat" size="sm">0{index + 1}</Chip>
-                  <h3 className="text-2xl font-semibold">{item.step}</h3>
-                  <p className={palette.mutedText}>{item.description}</p>
+                <CardBody className="space-y-2 md:space-y-4">
+                  <Chip color="primary" variant="flat" size="sm" className="text-[10px] md:text-xs">0{index + 1}</Chip>
+                  <h3 className="text-lg md:text-2xl font-semibold">{item.step}</h3>
+                  <p className={`text-sm md:text-base ${palette.mutedText}`}>{item.description}</p>
                 </CardBody>
               </Card>
             ))}
@@ -115,19 +115,19 @@ const Demo = () => {
         </div>
       </section>
 
-      <section className={`px-6 pb-16 ${palette.tint}`}>
-        <div className="max-w-5xl mx-auto text-center mb-10">
-          <Chip color="success" variant="flat">Proof</Chip>
-          <h2 className="text-3xl font-semibold mt-3">Teams that already switched.</h2>
+      <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
+        <div className="max-w-5xl mx-auto text-center mb-6 md:mb-10">
+          <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Proof</Chip>
+          <h2 className="text-xl md:text-3xl font-semibold mt-3">Teams that already switched.</h2>
         </div>
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-4 md:gap-6">
           {testimonialSlides.map((testimonial) => (
             <Card key={testimonial.author} className={`${palette.card} h-full`}>
               <CardBody>
-                <p className={`text-lg ${palette.mutedText}`}>“{testimonial.quote}”</p>
-                <div className="mt-4">
-                  <p className="font-semibold">{testimonial.author}</p>
-                  <p className={`text-sm ${palette.mutedText}`}>{testimonial.role}</p>
+                <p className={`text-sm md:text-lg ${palette.mutedText}`}>"{testimonial.quote}"</p>
+                <div className="mt-3 md:mt-4">
+                  <p className="text-sm md:text-base font-semibold">{testimonial.author}</p>
+                  <p className={`text-xs md:text-sm ${palette.mutedText}`}>{testimonial.role}</p>
                 </div>
               </CardBody>
             </Card>
@@ -135,19 +135,19 @@ const Demo = () => {
         </div>
       </section>
 
-      <section className="px-6 pb-24">
+      <section className="px-4 md:px-6 pb-12 md:pb-24">
         <Card className={`max-w-5xl mx-auto text-center ${palette.gradientCard}`}>
-          <CardBody className="space-y-5">
-            <Chip color="warning" variant="flat">Next step</Chip>
-            <h3 className="text-4xl font-semibold">Get a tailored rollout plan in under 48 hours.</h3>
-            <p className={palette.mutedText}>
-              We’ll map your key workflows, pick modules, and share your implementation timeline.
+          <CardBody className="space-y-3 md:space-y-5">
+            <Chip color="warning" variant="flat" className="text-[10px] md:text-xs">Next step</Chip>
+            <h3 className="text-2xl md:text-4xl font-semibold">Get a tailored rollout plan in under 48 hours.</h3>
+            <p className={`text-sm md:text-base ${palette.mutedText}`}>
+              We'll map your key workflows, pick modules, and share your implementation timeline.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold">
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
+              <Button size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-8">
                 Book a live tour
               </Button>
-              <Button as={Link} href={route('contact')} variant="bordered" className={palette.buttonBorder}>
+              <Button as={Link} href={route('contact')} size="sm" variant="bordered" className={`px-6 md:px-8 ${palette.buttonBorder}`}>
                 Message our team
               </Button>
             </div>

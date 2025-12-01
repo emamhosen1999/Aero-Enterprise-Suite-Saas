@@ -23,6 +23,8 @@ import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { TranslationProvider } from '@/Contexts/TranslationContext';
 import { GlobalAutoTranslator } from '@/Contexts/GlobalAutoTranslator';
 import { AppStateProvider } from '@/Contexts/AppStateContext';
+import FaviconHead from '@/Components/FaviconHead';
+import { useBranding } from '@/Hooks/useBranding';
 
 import '@/utils/serviceWorkerManager.js';
 import axios from 'axios';
@@ -140,6 +142,9 @@ const App = React.memo(({ children }) => {
 
   // Get global page props
   const { auth, app, url, roles, context: domainContext = 'tenant' } = usePage().props;
+  
+  // Get domain-aware branding
+  const { favicon, siteName } = useBranding();
 
   // Version manager for update notifications
   const {
@@ -339,7 +344,12 @@ const App = React.memo(({ children }) => {
 
   // ===== RENDER =====
   return (
-    <TranslationProvider>
+    <>
+      <FaviconHead 
+        favicon={favicon} 
+        title={siteName}
+      />
+      <TranslationProvider>
       <GlobalAutoTranslator>
         <AppStateProvider>
           <LayoutContext.Provider value={staticContextValue}>
@@ -525,6 +535,7 @@ const App = React.memo(({ children }) => {
         </AppStateProvider>
       </GlobalAutoTranslator>
     </TranslationProvider>
+    </>
   );
 });
 

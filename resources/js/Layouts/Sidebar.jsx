@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, usePage } from "@inertiajs/react";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useBranding } from '@/Hooks/useBranding';
 import {
   Button,
   Accordion,
@@ -25,7 +26,6 @@ import {
 } from "@heroicons/react/24/outline"; 
   
 import { motion, AnimatePresence } from 'framer-motion';
-import logo from '../../../public/assets/images/logo.png';
 
 // Helper function to highlight search matches
 const highlightSearchMatch = (text, searchTerm) => {
@@ -96,7 +96,9 @@ const useSidebarState = () => {
 const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   const isMobile = useMediaQuery('(max-width: 640px)');
   const isTablet = useMediaQuery('(max-width: 768px)');
-  const { auth, app } = usePage().props;
+  const { auth } = usePage().props;
+  const { squareLogo, siteName } = useBranding();
+  const firstLetter = siteName.charAt(0).toUpperCase();
   
   const {
     openSubMenus,
@@ -665,24 +667,26 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                     borderRadius: `var(--borderRadius, 8px)`
                   }}
                 >
-                  <img 
-                    src={logo} 
-                    alt={`${app?.name || 'Company'} Logo`} 
-                    className="w-8 h-8 object-contain"
-                    onError={(e) => {
-                      // Fallback to text logo if image fails to load
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'block';
-                    }}
-                  />
+                  {squareLogo ? (
+                    <img 
+                      src={squareLogo} 
+                      alt={`${siteName} Logo`} 
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => {
+                        // Fallback to text logo if image fails to load
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
                   <div 
                     className="font-black text-sm absolute inset-0 flex items-center justify-center"
                     style={{ 
-                      display: 'none',
+                      display: squareLogo ? 'none' : 'flex',
                       color: 'var(--theme-foreground, #11181C)'
                     }}
                   >
-                    A
+                    {firstLetter}
                   </div>
                 </div>
                 {/* Status Indicator */}

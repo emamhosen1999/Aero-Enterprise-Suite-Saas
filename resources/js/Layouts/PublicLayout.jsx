@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage, Head } from '@inertiajs/react';
 import { Button } from '@heroui/react';
 import { useTheme } from '../Contexts/ThemeContext.jsx';
+import FaviconHead from '@/Components/FaviconHead';
+import { useBranding } from '@/Hooks/useBranding';
 
 const navLinks = [
   { label: 'Overview', routeName: 'landing', type: 'route' },
@@ -41,11 +43,12 @@ const footerColumns = [
   },
 ];
 
-export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24' }) {
+export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24', title }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { themeSettings, toggleMode } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { logo, favicon, siteName } = useBranding();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 30);
@@ -87,7 +90,12 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <div className={palette.page}>
+    <>
+      <FaviconHead 
+        favicon={favicon} 
+        title={title || siteName}
+      />
+      <div className={palette.page}>
       <div className="fixed inset-0 pointer-events-none" aria-hidden>
         <div
           className="absolute inset-0 opacity-40"
@@ -104,70 +112,91 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
       </div>
 
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${palette.nav}`}>
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href={route('landing')} className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">
-              A
-            </div>
-            <span className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Aero Enterprise Suite</span>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between h-14 md:h-16">
+          {/* Mobile: Hamburger on left */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className={`md:hidden p-2 -ml-2 transition-colors ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'} rounded-md`}
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+
+          {/* Logo - centered on mobile, left on desktop */}
+          <Link href={route('landing')} className="flex items-center gap-2 md:gap-3 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
+            {logo ? (
+              <img src={logo} alt={siteName} className="h-8 md:h-10 w-auto" />
+            ) : (
+              <>
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-base md:text-lg">
+                  {siteName.charAt(0)}
+                </div>
+                <span className={`text-sm md:text-base font-semibold hidden sm:inline ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{siteName}</span>
+              </>
+            )}
           </Link>
-          <div className="hidden md:flex items-center gap-6 text-sm">
-            {combinedLinks.map((link) => (
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
+            {combinedLinks.slice(0, 6).map((link) => (
               link.type === 'anchor' ? (
-                <a key={link.label} href={link.href} className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}>
+                <a key={link.label} href={link.href} className={`${palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}>
                   {link.label}
                 </a>
               ) : (
-                <Link key={link.label} href={route(link.routeName)} className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}>
+                <Link key={link.label} href={route(link.routeName)} className={`${palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}>
                   {link.label}
                 </Link>
               )
             ))}
-            
-            <Button as={Link} href={route('platform.register.index')} color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 font-semibold px-5">
+          </div>
+
+          {/* Right side actions */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Mobile: Only user icon */}
+            <button
+              type="button"
+              onClick={toggleMode}
+              className={` md:flex items-center justify-center w-9 h-9 rounded-md transition-colors ${isDarkMode ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
+              aria-label="Toggle color mode"
+            >
+              {isDarkMode ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                </svg>
+              )}
+            </button>
+
+          
+           
+            <Button 
+              as={Link} 
+              href={route('platform.register.index')} 
+              size="sm"
+              className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-4 h-9 text-sm"
+            >
               Start Trial
             </Button>
-            <button
-              type="button"
-              onClick={toggleMode}
-              className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${isDarkMode ? 'border-white/20 text-white hover:bg-white/10' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
-              aria-label="Toggle color mode"
-            >
-              {isDarkMode ? '🌙 Dark' : '☀️ Light'}
-            </button>
-          </div>
-          <div className="md:hidden flex items-center gap-3">
-            <button
-              type="button"
-              onClick={toggleMode}
-              className={`rounded-full border p-2 text-xs font-semibold transition-colors ${isDarkMode ? 'border-white/20 text-white hover:bg-white/10' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
-              aria-label="Toggle color mode"
-            >
-              {isDarkMode ? '🌙' : '☀️'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className={`rounded-full border p-2 transition-colors ${isDarkMode ? 'border-white/20 text-white hover:bg-white/10' : 'border-slate-300 text-slate-700 hover:bg-slate-100'}`}
-              aria-label="Toggle navigation menu"
-              aria-expanded={isMobileMenuOpen}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
-              </svg>
-            </button>
           </div>
         </div>
         {isMobileMenuOpen && (
           <div className={`md:hidden border-t ${isDarkMode ? 'border-white/5 bg-slate-950/95' : 'border-slate-200 bg-white/95'} backdrop-blur-xl`}> 
-            <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col gap-4 text-sm">
+            <div className="px-4 py-4 flex flex-col gap-1">
               {combinedLinks.map((link) => (
                 link.type === 'anchor' ? (
                   <a
                     key={link.label}
                     href={link.href}
                     onClick={closeMobileMenu}
-                    className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}
+                    className={`${palette.navLink} ${palette.navLinkHover} px-4 py-3 text-sm font-medium transition-colors rounded-md hover:bg-slate-100/50`}
                   >
                     {link.label}
                   </a>
@@ -176,18 +205,15 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
                     key={link.label}
                     href={route(link.routeName)}
                     onClick={closeMobileMenu}
-                    className={`${palette.navLink} ${palette.navLinkHover} transition-colors`}
+                    className={`${palette.navLink} ${palette.navLinkHover} px-4 py-3 text-sm font-medium transition-colors rounded-md hover:bg-slate-100/50`}
                   >
                     {link.label}
                   </Link>
                 )
               ))}
-              <Link href="/login" onClick={closeMobileMenu} className={`${palette.loginLink} ${palette.loginLinkHover} transition-colors`}>
-                Login
-              </Link>
-              <Button as={Link} href={route('platform.register.index')} onClick={closeMobileMenu} color="primary" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 font-semibold">
-                Start Trial
-              </Button>
+              <div className={`border-t ${isDarkMode ? 'border-white/5' : 'border-slate-200'} my-2`}></div>
+              
+             
             </div>
           </div>
         )}
@@ -230,5 +256,6 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
         </div>
       </footer>
     </div>
+    </>
   );
 }

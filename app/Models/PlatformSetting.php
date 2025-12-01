@@ -20,6 +20,8 @@ class PlatformSetting extends Model implements HasMedia
 
     public const MEDIA_LOGO = 'platform_logo';
 
+    public const MEDIA_SQUARE_LOGO = 'platform_square_logo';
+
     public const MEDIA_FAVICON = 'platform_favicon';
 
     public const MEDIA_SOCIAL = 'platform_social_image';
@@ -242,6 +244,7 @@ class PlatformSetting extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection(self::MEDIA_LOGO)->singleFile();
+        $this->addMediaCollection(self::MEDIA_SQUARE_LOGO)->singleFile();
         $this->addMediaCollection(self::MEDIA_FAVICON)->singleFile();
         $this->addMediaCollection(self::MEDIA_SOCIAL)->singleFile();
     }
@@ -252,6 +255,7 @@ class PlatformSetting extends Model implements HasMedia
 
         return array_merge([
             'logo' => $this->getFirstMediaUrl(self::MEDIA_LOGO) ?: data_get($branding, 'logo'),
+            'square_logo' => $this->getFirstMediaUrl(self::MEDIA_SQUARE_LOGO) ?: data_get($branding, 'square_logo'),
             'favicon' => $this->getFirstMediaUrl(self::MEDIA_FAVICON) ?: data_get($branding, 'favicon'),
             'social' => $this->getFirstMediaUrl(self::MEDIA_SOCIAL) ?: data_get($branding, 'social'),
             'primary_color' => data_get($branding, 'primary_color', '#0f172a'),

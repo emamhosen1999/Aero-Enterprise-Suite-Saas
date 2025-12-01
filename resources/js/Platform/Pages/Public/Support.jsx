@@ -60,15 +60,15 @@ const Support = () => {
           <div className="absolute -right-20 top-8 w-72 h-72 bg-blue-500/25 blur-[140px]" />
           <div className="absolute -left-16 bottom-0 w-72 h-72 bg-emerald-400/25 blur-[140px]" />
         </div>
-        <div className="relative max-w-5xl mx-auto px-6 pt-28 pb-16">
-          <Chip color="primary" variant="flat" className="uppercase tracking-[0.3em] text-xs">Support</Chip>
-          <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
+        <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16">
+          <Chip color="primary" variant="flat" className="uppercase tracking-[0.3em] text-[10px] md:text-xs">Support</Chip>
+          <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
             Support staffed by the engineers who ship the product.
           </h1>
-          <p className={`${palette.mutedText} max-w-3xl mx-auto`}>
+          <p className={`${palette.mutedText} max-w-3xl mx-auto text-sm md:text-base`}>
             Coverage runs 24/7 with direct Slack channels, phone escalations, and public SLAs, so you always know who owns an issue and when it will be resolved.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
+          <div className="flex flex-wrap justify-center gap-2 md:gap-4 mt-5 md:mt-8">
             <Button as={Link} href={route('contact')} className={palette.buttonPrimary}>
               Talk to support
             </Button>
@@ -79,16 +79,16 @@ const Support = () => {
         </div>
       </section>
 
-      <section className="px-6 pb-16">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-6">
+      <section className="px-4 md:px-6 pb-8 md:pb-16">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-4 md:gap-6">
           {supportChannels.map((channel) => (
             <Card key={channel.label} className={palette.card}>
-              <CardBody className="space-y-3">
+              <CardBody className="space-y-2 md:space-y-3">
                 <div>
-                  <p className={`text-sm ${palette.mutedText}`}>Channel</p>
-                  <h3 className="text-xl font-semibold">{channel.label}</h3>
+                  <p className={`text-xs md:text-sm ${palette.mutedText}`}>Channel</p>
+                  <h3 className="text-base md:text-xl font-semibold">{channel.label}</h3>
                 </div>
-                <p className={`${palette.mutedText} text-sm`}>{channel.description}</p>
+                <p className={`${palette.mutedText} text-xs md:text-sm`}>{channel.description}</p>
                 <Chip color="success" size="sm" variant="flat">{channel.response}</Chip>
               </CardBody>
             </Card>
@@ -96,12 +96,12 @@ const Support = () => {
         </div>
       </section>
 
-      <section className={`px-6 pb-16 ${palette.tint}`}>
+      <section className={`px-4 md:px-6 pb-8 md:pb-16 ${palette.tint}`}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <Chip color="secondary" variant="flat">Service Levels</Chip>
-            <h2 className="text-3xl font-semibold mt-3">SLAs tailored to your plan.</h2>
-            <p className={`${palette.mutedText} mt-2`}>Response times for Launch, Scale, and Enterprise plans.</p>
+          <div className="text-center mb-6 md:mb-10">
+            <Chip color="secondary" variant="flat" className="text-[10px] md:text-xs">Service Levels</Chip>
+            <h2 className="text-xl md:text-3xl font-semibold mt-3">SLAs tailored to your plan.</h2>
+            <p className={`${palette.mutedText} mt-2 text-sm md:text-base`}>Response times for Launch, Scale, and Enterprise plans.</p>
           </div>
           <div className="overflow-x-auto">
             <Table aria-label="SLA comparison" className="min-w-[700px]">
@@ -126,11 +126,11 @@ const Support = () => {
         </div>
       </section>
 
-      <section className="px-6 pb-16">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+      <section className="px-4 md:px-6 pb-8 md:pb-16">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-5 md:gap-8">
           <Card className={palette.card}>
-            <CardBody className="space-y-4">
-              <Chip color="primary" variant="flat" size="sm">Submit a ticket</Chip>
+            <CardBody className="space-y-3 md:space-y-4">
+              <Chip color="primary" variant="flat" size="sm" className="text-[10px] md:text-xs">Submit a ticket</Chip>
               <Input label="Name" variant="bordered" classNames={fieldClasses} />
               <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
               <Input label="Company" variant="bordered" classNames={fieldClasses} />
@@ -139,10 +139,10 @@ const Support = () => {
             </CardBody>
           </Card>
           <Card className={palette.gradientCard}>
-            <CardBody className="space-y-5">
-              <Chip color="success" variant="flat">Customer Academy</Chip>
-              <h3 className="text-3xl font-semibold">Train every department.</h3>
-              <p className={palette.mutedText}>
+            <CardBody className="space-y-3 md:space-y-5">
+              <Chip color="success" variant="flat" className="text-[10px] md:text-xs">Customer Academy</Chip>
+              <h3 className="text-xl md:text-3xl font-semibold">Train every department.</h3>
+              <p className={`text-sm md:text-base ${palette.mutedText}`}>
                 On-demand courses for HR, PMO, Compliance, and IT admins. Live office hours twice a week plus certification paths.
               </p>
               <Button variant="bordered" className={palette.buttonBorder}>Explore courses</Button>
@@ -151,15 +151,15 @@ const Support = () => {
         </div>
       </section>
 
-      <section className={`px-6 pb-20 ${palette.deepTint}`}>
+      <section className={`px-4 md:px-6 pb-10 md:pb-20 ${palette.deepTint}`}>
         <Card className={`max-w-5xl mx-auto text-center ${palette.card}`}>
-          <CardBody className="space-y-4">
-            <Chip color="warning" variant="flat">Trust Center</Chip>
-            <h3 className="text-3xl font-semibold">Status page, security posture, and incident history.</h3>
-            <p className={palette.mutedText}>
+          <CardBody className="space-y-3 md:space-y-4">
+            <Chip color="warning" variant="flat" className="text-[10px] md:text-xs">Trust Center</Chip>
+            <h3 className="text-xl md:text-3xl font-semibold">Status page, security posture, and incident history.</h3>
+            <p className={`text-sm md:text-base ${palette.mutedText}`}>
               Check realtime uptime, scheduled maintenance, and compliance documents in the Trust Center.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <Button as="a" href="/status" className={palette.buttonPrimary}>
                 View status
               </Button>

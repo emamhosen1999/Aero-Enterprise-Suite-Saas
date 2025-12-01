@@ -8,6 +8,7 @@ use App\Http\Resources\PlatformSettingResource;
 use App\Models\PlatformSetting;
 use App\Services\Settings\PlatformSettingService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,11 +17,16 @@ class PlatformSettingController extends Controller
 {
     public function __construct(private readonly PlatformSettingService $service)
     {
-        $this->middleware('auth');
+        // Middleware handled by route group (auth:landlord)
     }
 
     public function index(Request $request): Response|PlatformSettingResource
     {
+        // Check permission for landlord guard
+        if (! $request->user('landlord')->can('platform.settings.view')) {
+            abort(403, 'This action is unauthorized.');
+        }
+
         $setting = PlatformSetting::current();
 
         if ($request->wantsJson()) {
@@ -33,8 +39,20 @@ class PlatformSettingController extends Controller
         ]);
     }
 
-    public function update(UpdatePlatformSettingRequest $request): JsonResponse
+    public function update(UpdatePlatformSettingRequest $request): RedirectResponse
     {
+        $user = $request->user('landlord');
+
+        // Check permission for landlord guard
+        if (! $user || ! $user->can('platform.settings.update')) {
+            \Log::warning('Platform Settings Update - Authorization Failed', [
+                'user_id' => $user?->id,
+                'required_permission' => 'platform.settings.update',
+                'has_permission' => $user?->can('platform.settings.update'),
+            ]);
+            abort(403, 'This action is unauthorized.');
+        }
+
         $setting = PlatformSetting::current();
 
         $updated = $this->service->update(
@@ -42,13 +60,12 @@ class PlatformSettingController extends Controller
             $request->validated(),
             [
                 'logo' => $request->file('logo'),
+                'square_logo' => $request->file('square_logo'),
                 'favicon' => $request->file('favicon'),
                 'social' => $request->file('social'),
             ]
         );
 
-        return (new PlatformSettingResource($updated))
-            ->response()
-            ->setStatusCode(200);
+        return redirect()->back()->with('success', 'Platform settings updated successfully.');
     }
 }

@@ -59,11 +59,11 @@ const iconMap = {
 };
 
 const sectionTitle = (label, eyebrow) => (
-  <div className="max-w-4xl mx-auto text-center mb-14">
-    <Chip variant="faded" color="secondary" className="mb-3 uppercase tracking-[0.25em] text-[11px]">
+  <div className="max-w-4xl mx-auto text-center mb-8 md:mb-14">
+    <Chip variant="faded" color="secondary" className="mb-2 md:mb-3 uppercase tracking-[0.25em] text-[10px] md:text-[11px]">
       {eyebrow}
     </Chip>
-    <h2 className="text-4xl font-semibold text-white leading-tight">{label}</h2>
+    <h2 className="text-2xl md:text-4xl font-semibold text-white leading-tight">{label}</h2>
   </div>
 );
 
@@ -105,30 +105,30 @@ export default function Product() {
           <div className="absolute -right-32 top-8 w-72 h-72 bg-blue-500/20 blur-[140px]" />
           <div className="absolute -left-24 bottom-0 w-72 h-72 bg-emerald-400/20 blur-[120px]" />
         </div>
-        <section className="relative max-w-6xl mx-auto px-6 pt-28 pb-20 grid lg:grid-cols-2 gap-14 items-center">
+        <section className="relative max-w-6xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-10 md:pb-20 grid lg:grid-cols-2 gap-8 md:gap-14 items-center">
           <div>
-            <Chip color="success" variant="flat" className="mb-5">Modular Enterprise OS</Chip>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
+            <Chip color="success" variant="flat" className="mb-3 md:mb-5 text-[10px] md:text-xs">Modular Enterprise OS</Chip>
+            <h1 className="text-2xl md:text-5xl font-bold leading-tight mb-4 md:mb-6">
               Keep HR, projects, compliance, and finance in sync.
             </h1>
-            <p className={`text-lg mb-8 ${palette.mutedText}`}>
+            <p className={`text-sm md:text-lg mb-5 md:mb-8 ${palette.mutedText}`}>
               Each Aero module shares the same data, so adding HR, project tracking, compliance, or supply chain happens without migrations, complex setup, or custom work.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Button as={Link} href={route('platform.register.index')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-8">
+            <div className="flex flex-wrap gap-2 md:gap-4">
+              <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-5 md:px-8">
                 Start Free Trial
               </Button>
-              <Button as={Link} href={route('demo')} size="lg" variant="bordered" className="border-current px-8">
+              <Button as={Link} href={route('demo')} size="sm" variant="bordered" className="border-current px-5 md:px-8">
                 See Live Demo
               </Button>
             </div>
-            <div className="mt-10 grid grid-cols-2 gap-5 text-left">
+            <div className="mt-6 md:mt-10 grid grid-cols-2 gap-3 md:gap-5 text-left">
               {productHighlights.map((item) => (
                 <Card key={item.title} className={palette.card}>
                   <CardBody>
-                    <p className={`text-sm mb-2 ${isDarkMode ? 'text-emerald-300' : 'text-emerald-600'}`}>{item.stat}</p>
-                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                    <p className={`text-sm ${palette.mutedText}`}>{item.description}</p>
+                    <p className={`text-xs md:text-sm mb-1 md:mb-2 ${isDarkMode ? 'text-emerald-300' : 'text-emerald-600'}`}>{item.stat}</p>
+                    <h3 className="text-base md:text-xl font-semibold mb-1 md:mb-2">{item.title}</h3>
+                    <p className={`text-xs md:text-sm ${palette.mutedText}`}>{item.description}</p>
                   </CardBody>
                 </Card>
               ))}
@@ -142,25 +142,25 @@ export default function Product() {
           >
             <Card className={palette.panel}>
               <CardHeader className="flex flex-col items-start gap-1">
-                <p className={`text-sm ${palette.mutedText}`}>Live Operations View</p>
-                <h3 className="text-2xl font-semibold">Unified Dashboard</h3>
+                <p className={`text-xs md:text-sm ${palette.mutedText}`}>Live Operations View</p>
+                <h3 className="text-lg md:text-2xl font-semibold">Unified Dashboard</h3>
               </CardHeader>
               <Divider className={palette.divider} />
-              <CardBody className="grid grid-cols-2 gap-4">
+              <CardBody className="grid grid-cols-2 gap-3 md:gap-4">
                 {platformModules.map((module) => (
                   <div
                     key={module.name}
-                    className={`rounded-2xl p-4 ${
+                    className={`rounded-2xl p-3 md:p-4 ${
                       isDarkMode
                         ? 'border border-white/5 bg-white/5'
                         : 'border border-slate-200 bg-slate-50'
                     }`}
                   >
-                    <div className={`w-12 h-12 rounded-xl mb-3 bg-gradient-to-br ${module.color} flex items-center justify-center text-white`}>
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl mb-2 md:mb-3 bg-gradient-to-br ${module.color} flex items-center justify-center text-white`}>
                       {iconMap[module.icon]}
                     </div>
-                    <p className="font-semibold">{module.name}</p>
-                    <p className={`text-xs mt-1 ${palette.mutedText}`}>{module.description}</p>
+                    <p className="text-sm md:text-base font-semibold">{module.name}</p>
+                    <p className={`text-[10px] md:text-xs mt-1 ${palette.mutedText}`}>{module.description}</p>
                   </div>
                 ))}
               </CardBody>
@@ -171,34 +171,34 @@ export default function Product() {
         </section>
       </div>
 
-      <section className="py-20 px-6">
+      <section className="py-10 md:py-20 px-4 md:px-6">
         {sectionTitle('Pick modules like building blocks, not monoliths.', 'Composable Suite')}
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-4 md:gap-6">
           {platformModules.map((module) => (
             <Card key={module.name} className={`${palette.card} h-full`}>
               <CardBody>
-                <div className={`w-12 h-12 rounded-xl mb-5 bg-gradient-to-br ${module.color} flex items-center justify-center text-white`}>
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl mb-3 md:mb-5 bg-gradient-to-br ${module.color} flex items-center justify-center text-white`}>
                   {iconMap[module.icon]}
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{module.name}</h3>
-                <p className={`text-sm ${palette.mutedText}`}>{module.description}</p>
+                <h3 className="text-base md:text-xl font-semibold mb-1 md:mb-2">{module.name}</h3>
+                <p className={`text-xs md:text-sm ${palette.mutedText}`}>{module.description}</p>
               </CardBody>
             </Card>
           ))}
         </div>
       </section>
 
-      <section className={`py-20 px-6 ${palette.tint}`}>
+      <section className={`py-10 md:py-20 px-4 md:px-6 ${palette.tint}`}>
         {sectionTitle('From discovery to scale with one guided runway.', 'Rollout Framework')}
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-3 md:space-y-6">
           {rolloutPhases.map((phase, idx) => (
             <Card key={phase.title} className={palette.card}>
               <CardBody>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
                   <div>
-                    <p className={`text-sm ${palette.mutedText}`}>Phase {idx + 1}</p>
-                    <h3 className="text-2xl font-semibold mb-2">{phase.title}</h3>
-                    <p className={palette.mutedText}>{phase.description}</p>
+                    <p className={`text-xs md:text-sm ${palette.mutedText}`}>Phase {idx + 1}</p>
+                    <h3 className="text-lg md:text-2xl font-semibold mb-1 md:mb-2">{phase.title}</h3>
+                    <p className={`text-sm md:text-base ${palette.mutedText}`}>{phase.description}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {phase.artifacts.map((artifact) => (
@@ -212,7 +212,7 @@ export default function Product() {
         </div>
       </section>
 
-      <section className="py-20 px-6">
+      <section className="py-10 md:py-20 px-4 md:px-6">
         {sectionTitle('How the Aero signal loop keeps everyone in sync.', 'Sense → Sync Loop')}
         <div className="max-w-6xl mx-auto">
           <Tabs variant="underlined" color="secondary" classNames={{ tabList: 'bg-transparent justify-center' }}>
@@ -220,8 +220,8 @@ export default function Product() {
               <Tab key={item.step} title={item.step} className="text-left">
                 <Card className={`${palette.card} max-w-4xl mx-auto`}>
                   <CardBody>
-                    <h3 className="text-2xl font-semibold mb-3">{item.step}</h3>
-                    <p className={palette.mutedText}>{item.caption}</p>
+                    <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-3">{item.step}</h3>
+                    <p className={`text-sm md:text-base ${palette.mutedText}`}>{item.caption}</p>
                   </CardBody>
                 </Card>
               </Tab>
@@ -230,17 +230,17 @@ export default function Product() {
         </div>
       </section>
 
-      <section className={`py-20 px-6 ${palette.tint}`}>
+      <section className={`py-10 md:py-20 px-4 md:px-6 ${palette.tint}`}>
         {sectionTitle('Industry starter packs ship with relevant automations.', 'Vertical DNA')}
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-4 md:gap-6">
           {industryStarters.map((starter) => (
             <Card key={starter.industry} className={`${palette.card} h-full`}>
-              <CardBody className="space-y-4">
+              <CardBody className="space-y-3 md:space-y-4">
                 <div>
-                  <p className={`text-sm ${palette.mutedText}`}>Starter Pack</p>
-                  <h3 className="text-2xl font-semibold">{starter.industry}</h3>
+                  <p className={`text-xs md:text-sm ${palette.mutedText}`}>Starter Pack</p>
+                  <h3 className="text-lg md:text-2xl font-semibold">{starter.industry}</h3>
                 </div>
-                <p className={palette.mutedText}>{starter.description}</p>
+                <p className={`text-sm md:text-base ${palette.mutedText}`}>{starter.description}</p>
                 <div className="flex flex-wrap gap-2">
                   {starter.badges.map((badge) => (
                     <Chip key={badge} color="primary" variant="flat" size="sm">{badge}</Chip>
@@ -252,16 +252,16 @@ export default function Product() {
         </div>
       </section>
 
-      <section className="py-20 px-6">
+      <section className="py-10 md:py-20 px-4 md:px-6">
         {sectionTitle('Proof in execution.', 'Customer Signals')}
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-4 md:gap-6">
           {testimonialSlides.map((slide) => (
             <Card key={slide.author} className={`${palette.card} h-full`}>
-              <CardBody className="flex flex-col gap-4">
-                <p className={`text-lg ${palette.mutedText}`}>“{slide.quote}”</p>
+              <CardBody className="flex flex-col gap-3 md:gap-4">
+                <p className={`text-sm md:text-lg ${palette.mutedText}`}>"{slide.quote}"</p>
                 <div>
-                  <p className="font-semibold">{slide.author}</p>
-                  <p className={`text-sm ${palette.mutedText}`}>{slide.role}</p>
+                  <p className="text-sm md:text-base font-semibold">{slide.author}</p>
+                  <p className={`text-xs md:text-sm ${palette.mutedText}`}>{slide.role}</p>
                 </div>
               </CardBody>
             </Card>
@@ -269,21 +269,21 @@ export default function Product() {
         </div>
       </section>
 
-      <section className="py-24 px-6">
+      <section className="py-12 md:py-24 px-4 md:px-6">
         <Card className={`max-w-5xl mx-auto text-center ${palette.highlight}`}>
-          <CardBody className="space-y-6">
-            <Chip variant="flat" color="success">Next Step</Chip>
-            <h3 className="text-4xl font-semibold">
+          <CardBody className="space-y-4 md:space-y-6">
+            <Chip variant="flat" color="success" className="text-[10px] md:text-xs">Next Step</Chip>
+            <h3 className="text-2xl md:text-4xl font-semibold">
               Plug Aero into your workflows in weeks, not quarters.
             </h3>
-            <p className={`${palette.mutedText} max-w-3xl mx-auto`}>
+            <p className={`${palette.mutedText} max-w-3xl mx-auto text-sm md:text-base`}>
               Co-build your rollout with our Solution Architects. We import data, wire integrations, and configure automations so your teams focus on impact.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button as={Link} href={route('demo')} size="lg" className="bg-white text-slate-900 font-semibold px-10">
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4">
+              <Button as={Link} href={route('demo')} size="sm" className="bg-white text-slate-900 font-semibold px-6 md:px-10">
                 Book a Guided Demo
               </Button>
-              <Button as={Link} href={route('pricing')} size="lg" variant="bordered" className="border-current px-10">
+              <Button as={Link} href={route('pricing')} size="sm" variant="bordered" className="border-current px-6 md:px-10">
                 Explore Pricing
               </Button>
             </div>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage, Head } from '@inertiajs/react';
 import {
   Button,
   Card,
@@ -115,6 +115,17 @@ const pricingPlans = [
 export default function Landing() {
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  
+  // Get platform settings from Inertia props
+  const { platformSettings } = usePage().props;
+  const { metadata = {}, branding = {}, site = {} } = platformSettings || {};
+  
+  // Use platform settings with fallbacks
+  const heroTitle = metadata.hero_title || "All your enterprise modules. One unified platform. No juggling, no silos.";
+  const heroSubtitle = metadata.hero_subtitle || "HRM, CRM, ERP, DMS, POS, and more. Purpose-built for midsized organizations that want speed, clarity, and control.";
+  const siteName = site.name || "Aero";
+  const primaryColor = branding.primary_color || '#3b82f6';
+  const accentColor = branding.accent_color || '#8b5cf6';
 
   const palette = useMemo(() => ({
     baseText: isDarkMode ? 'text-white' : 'text-slate-900',
@@ -142,6 +153,13 @@ export default function Landing() {
 
   return (
     <PublicLayout mainClassName="pt-0">
+      <Head>
+        <title>{metadata.meta_title || `${siteName} - All your enterprise modules. One unified platform.`}</title>
+        <meta name="description" content={metadata.meta_description || "HRM, CRM, ERP, DMS, POS, and more. Purpose-built for organizations that want speed, clarity, and control."} />
+        {metadata.meta_keywords && <meta name="keywords" content={metadata.meta_keywords} />}
+        {branding.favicon && <link rel="icon" type="image/x-icon" href={branding.favicon} />}
+      </Head>
+      
       <div className={`relative ${palette.baseText}`}>
         <section id="hero" className="relative px-4 md:px-6 pt-20 md:pt-32 pb-12 md:pb-24 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" aria-hidden>
@@ -161,13 +179,21 @@ export default function Landing() {
                 Enterprise ready
               </Chip>
               <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold leading-tight mb-3 md:mb-6">
-                All your enterprise modules. One unified platform for your entire business.
+                {heroTitle}
               </h1>
               <p className={`text-sm md:text-lg ${palette.mutedText} mb-4 md:mb-8`}>
-                HRM, CRM, ERP, Project Management, Collaboration, E-commerce, and Analytics — all working together seamlessly. Activate what you need today, expand effortlessly tomorrow.
+                {heroSubtitle}
               </p>
               <div className="flex flex-wrap gap-2 md:gap-4">
-                <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-4 md:px-10 py-2 md:py-7 rounded-lg md:rounded-2xl text-xs md:text-base">
+                <Button 
+                  as={Link} 
+                  href={route('platform.register.index')} 
+                  size="sm" 
+                  className="text-white font-semibold px-4 md:px-10 py-2 md:py-7 rounded-lg md:rounded-2xl text-xs md:text-base"
+                  style={{
+                    background: `linear-gradient(to right, ${primaryColor}, ${accentColor})`
+                  }}
+                >
                   Start Free Trial
                 </Button>
                 <Button as={Link} href={route('demo')} size="sm" variant="bordered" className="px-3 md:px-9 py-2 md:py-7 rounded-lg md:rounded-2xl border-current text-xs md:text-base">

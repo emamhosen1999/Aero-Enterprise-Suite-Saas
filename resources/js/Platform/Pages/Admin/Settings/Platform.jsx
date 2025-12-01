@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage, router } from '@inertiajs/react';
 import App from '@/Layouts/App.jsx';
+import axios from 'axios';
 import {
   Button,
   Card,
@@ -38,14 +39,55 @@ const sectionCardStyle = {
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
 
-const FileInput = ({ label, description, error, onChange }) => (
-  <label className="block border border-dashed border-default-200 rounded-lg p-4">
-    <span className="text-sm font-medium text-default-600">{label}</span>
-    <input type="file" className="mt-2 block w-full text-sm" onChange={onChange} />
-    {description && <p className="text-xs text-default-400 mt-1">{description}</p>}
-    {error && <p className="text-xs text-danger mt-1">{error}</p>}
-  </label>
-);
+const FileInput = ({ label, description, error, onChange, currentUrl, accept }) => {
+  const [preview, setPreview] = useState(currentUrl);
+
+  const handleChange = (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+    onChange(event);
+  };
+
+  return (
+    <div className="block border border-dashed border-default-200 rounded-lg p-4 hover:border-default-300 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <span className="text-sm font-medium text-default-700">{label}</span>
+          {description && <p className="text-xs text-default-400 mt-1">{description}</p>}
+        </div>
+        {preview && (
+          <div className="shrink-0">
+            <img src={preview} alt={label} className="w-16 h-16 object-contain rounded border border-default-200" />
+          </div>
+        )}
+      </div>
+      <label className="mt-3 block">
+        <input 
+          type="file" 
+          className="block w-full text-sm text-default-600
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-lg file:border-0
+            file:text-sm file:font-medium
+            file:bg-primary-50 file:text-primary-700
+            hover:file:bg-primary-100
+            cursor-pointer"
+          onChange={handleChange}
+          accept={accept}
+        />
+      </label>
+      {error && <p className="text-xs text-danger mt-2">{error}</p>}
+      {currentUrl && !preview && (
+        <p className="text-xs text-success mt-2">✓ Current file uploaded</p>
+      )}
+    </div>
+  );
+};
 
 const PlatformSettings = () => {
   const { title = 'Platform Settings', platformSettings = {} } = usePage().props;
@@ -107,6 +149,7 @@ const PlatformSettings = () => {
       enable_impersonation: Boolean(adminPreferences.enable_impersonation ?? false),
     },
     logo: null,
+    square_logo: null,
     favicon: null,
     social: null,
   });
@@ -134,21 +177,104 @@ const PlatformSettings = () => {
     updateNested('metadata', 'meta_keywords', keywords);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    
+    setData('processing', true);
+    
+    const formData = new FormData();
+    
+    // Add all flat fields
+    formData.append('site_name', data.site_name);
+    formData.append('legal_name', data.legal_name || '');
+    formData.append('tagline', data.tagline || '');
+    formData.append('support_email', data.support_email);
+    formData.append('support_phone', data.support_phone || '');
+    formData.append('marketing_url', data.marketing_url || '');
+    formData.append('status_page_url', data.status_page_url || '');
+    
+    // Add branding fields
+    formData.append('branding[primary_color]', data.branding.primary_color);
+    formData.append('branding[accent_color]', data.branding.accent_color);
+    
+    // Add metadata fields
+    formData.append('metadata[hero_title]', data.metadata.hero_title || '');
+    formData.append('metadata[hero_subtitle]', data.metadata.hero_subtitle || '');
+    formData.append('metadata[meta_title]', data.metadata.meta_title || '');
+    formData.append('metadata[meta_description]', data.metadata.meta_description || '');
+    
+    // Add meta keywords array
+    data.metadata.meta_keywords.forEach((keyword, index) => {
+      formData.append(`metadata[meta_keywords][${index}]`, keyword);
+    });
+    
+    // Add email settings
+    Object.keys(data.email_settings).forEach(key => {
+      if (data.email_settings[key]) {
+        formData.append(`email_settings[${key}]`, data.email_settings[key]);
+      }
+    });
+    
+    // Add legal URLs
+    Object.keys(data.legal).forEach(key => {
+      if (data.legal[key]) {
+        formData.append(`legal[${key}]`, data.legal[key]);
+      }
+    });
+    
+    // Add integrations
+    Object.keys(data.integrations).forEach(key => {
+      if (data.integrations[key]) {
+        formData.append(`integrations[${key}]`, data.integrations[key]);
+      }
+    });
+    
+    // Add admin preferences
+    formData.append('admin_preferences[show_beta_features]', data.admin_preferences.show_beta_features ? '1' : '0');
+    formData.append('admin_preferences[enable_impersonation]', data.admin_preferences.enable_impersonation ? '1' : '0');
+    
+    // Add file uploads
+    if (data.logo) formData.append('logo', data.logo);
+    if (data.square_logo) formData.append('square_logo', data.square_logo);
+    if (data.favicon) formData.append('favicon', data.favicon);
+    if (data.social) formData.append('social', data.social);
 
-    form.post(route('admin.settings.platform.update'), {
-      method: 'put',
-      forceFormData: true,
-      onSuccess: () => {
-        showToast.success('Platform settings updated successfully.');
+    try {
+      const response = await axios.post(
+        route('admin.settings.platform.store'),
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      );
+      
+      if (response.data) {
+        showToast.success('Platform settings updated successfully');
         const nextKeywordString = (data.metadata?.meta_keywords ?? []).join(', ');
         setKeywordDefaults(nextKeywordString);
         setKeywordsInput(nextKeywordString);
-        setDefaults({ ...data, logo: null, favicon: null, social: null });
-        reset('logo', 'favicon', 'social');
-      },
-    });
+        
+        // Reset file inputs
+        setData({
+          ...data,
+          logo: null,
+          square_logo: null,
+          favicon: null,
+          social: null,
+        });
+        
+        // Reload the page to get fresh data
+        router.reload({ only: ['platformSettings'] });
+      }
+    } catch (error) {
+      console.error('Platform Settings - Error', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.errors?.[Object.keys(error.response?.data?.errors || {})[0]]?.[0] ||
+                          'Failed to update platform settings';
+      showToast.error(errorMessage);
+    } finally {
+      setData('processing', false);
+    }
   };
 
   const handleReset = () => {
@@ -272,46 +398,91 @@ const PlatformSettings = () => {
               {/* Branding & Assets */}
               <div className="p-4 space-y-4" style={sectionCardStyle}>
                 <div>
-                  <h5 className="text-base font-semibold text-foreground">Branding & Assets</h5>
-                  <p className="text-xs text-default-500">Colors and uploadable assets reused across admin surfaces.</p>
+                  <h5 className="text-base font-semibold text-foreground">Branding & Visual Assets</h5>
+                  <p className="text-xs text-default-500">Upload logos, icons, and define brand colors used across the platform and public pages.</p>
                 </div>
-                <div className={fieldClass}>
-                  <Input
-                    label="Primary color"
-                    type="color"
-                    value={data.branding.primary_color}
-                    onChange={(event) => updateNested('branding', 'primary_color', event.target.value)}
-                    isInvalid={Boolean(errors['branding.primary_color'])}
-                    errorMessage={errors['branding.primary_color']}
-                  />
-                  <Input
-                    label="Accent color"
-                    type="color"
-                    value={data.branding.accent_color}
-                    onChange={(event) => updateNested('branding', 'accent_color', event.target.value)}
-                    isInvalid={Boolean(errors['branding.accent_color'])}
-                    errorMessage={errors['branding.accent_color']}
-                  />
+                
+                {/* Brand Colors */}
+                <div className="space-y-3">
+                  <h6 className="text-sm font-medium text-default-700">Brand Colors</h6>
+                  <div className={fieldClass}>
+                    <Input
+                      label="Primary color"
+                      type="color"
+                      value={data.branding.primary_color}
+                      onChange={(event) => updateNested('branding', 'primary_color', event.target.value)}
+                      description="Main brand color used for buttons, links, and accents"
+                      isInvalid={Boolean(errors['branding.primary_color'])}
+                      errorMessage={errors['branding.primary_color']}
+                    />
+                    <Input
+                      label="Accent color"
+                      type="color"
+                      value={data.branding.accent_color}
+                      onChange={(event) => updateNested('branding', 'accent_color', event.target.value)}
+                      description="Secondary color for highlights and emphasis"
+                      isInvalid={Boolean(errors['branding.accent_color'])}
+                      errorMessage={errors['branding.accent_color']}
+                    />
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <FileInput
-                    label="Logo"
-                    description="SVG, PNG, or WebP up to 4MB"
-                    error={errors.logo}
-                    onChange={(event) => handleFileChange('logo', event)}
-                  />
-                  <FileInput
-                    label="Favicon"
-                    description="ICO, SVG, or PNG up to 2MB"
-                    error={errors.favicon}
-                    onChange={(event) => handleFileChange('favicon', event)}
-                  />
-                  <FileInput
-                    label="Social preview"
-                    description="PNG or JPG up to 4MB"
-                    error={errors.social}
-                    onChange={(event) => handleFileChange('social', event)}
-                  />
+
+                {/* Logo Assets */}
+                <div className="space-y-3">
+                  <h6 className="text-sm font-medium text-default-700">Logo & Icon Assets</h6>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FileInput
+                      label="Horizontal Logo"
+                      description="Wide logo for headers and navigation. SVG, PNG, or WebP (max 4MB). Recommended: 200x50px"
+                      error={errors.logo}
+                      onChange={(event) => handleFileChange('logo', event)}
+                      currentUrl={branding.logo}
+                      accept="image/svg+xml,image/png,image/webp"
+                    />
+                    <FileInput
+                      label="Square Logo"
+                      description="Compact logo for mobile menus and small spaces. SVG, PNG, or WebP (max 4MB). Recommended: 100x100px"
+                      error={errors.square_logo}
+                      onChange={(event) => handleFileChange('square_logo', event)}
+                      currentUrl={branding.square_logo}
+                      accept="image/svg+xml,image/png,image/webp"
+                    />
+                  </div>
+                </div>
+
+                {/* Additional Assets */}
+                <div className="space-y-3">
+                  <h6 className="text-sm font-medium text-default-700">Browser & Social Assets</h6>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FileInput
+                      label="Favicon"
+                      description="Browser tab icon. ICO, SVG, or PNG (max 2MB). Recommended: 32x32px or 64x64px"
+                      error={errors.favicon}
+                      onChange={(event) => handleFileChange('favicon', event)}
+                      currentUrl={branding.favicon}
+                      accept="image/x-icon,image/svg+xml,image/png,image/webp"
+                    />
+                    <FileInput
+                      label="Social Media Preview"
+                      description="Image for social sharing (Open Graph). PNG or JPG (max 4MB). Recommended: 1200x630px"
+                      error={errors.social}
+                      onChange={(event) => handleFileChange('social', event)}
+                      currentUrl={branding.social}
+                      accept="image/png,image/jpeg,image/webp"
+                    />
+                  </div>
+                </div>
+
+                {/* Usage Guidelines */}
+                <div className="p-3 bg-default-50 rounded-lg border border-default-200">
+                  <h6 className="text-xs font-semibold text-default-700 mb-2">Asset Usage Guidelines</h6>
+                  <ul className="text-xs text-default-600 space-y-1">
+                    <li>• <strong>Horizontal Logo:</strong> Displayed in desktop headers, admin panel, and marketing pages</li>
+                    <li>• <strong>Square Logo:</strong> Used in mobile navigation, app icons, and compact layouts</li>
+                    <li>• <strong>Favicon:</strong> Appears in browser tabs and bookmarks</li>
+                    <li>• <strong>Social Preview:</strong> Shown when sharing platform links on social media</li>
+                    <li>• <strong>Format Tip:</strong> SVG files provide the best quality at any size</li>
+                  </ul>
                 </div>
               </div>
 

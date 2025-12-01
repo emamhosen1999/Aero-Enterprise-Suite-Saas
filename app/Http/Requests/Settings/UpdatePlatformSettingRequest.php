@@ -12,17 +12,37 @@ class UpdatePlatformSettingRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $user = $this->user();
+        \Log::info('Platform Settings Update - FormRequest authorize() called', [
+            'has_site_name' => $this->has('site_name'),
+            'site_name_value' => $this->input('site_name'),
+            'has_support_email' => $this->has('support_email'),
+            'support_email_value' => $this->input('support_email'),
+            'all_keys' => array_keys($this->all()),
+            'method' => $this->method(),
+        ]);
+
+        // Use landlord guard for platform admin
+        $user = $this->user('landlord');
 
         if (! $user) {
+            \Log::warning('Platform Settings Update - No landlord user found in request');
+
             return false;
         }
 
-        if (method_exists($user, 'hasRole') && $user->hasRole('super-admin')) {
-            return true;
-        }
+        // Check for Platform Super Admin role or platform.settings.update permission
+        $hasRole = method_exists($user, 'hasRole') && $user->hasRole('Platform Super Admin');
+        $hasPermission = $user->can('platform.settings.update');
 
-        return $user->can('platform.settings');
+        \Log::info('Platform Settings Update - Authorization Check in FormRequest', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'has_super_admin_role' => $hasRole,
+            'has_update_permission' => $hasPermission,
+            'will_authorize' => $hasRole || $hasPermission,
+        ]);
+
+        return $hasRole || $hasPermission;
     }
 
     /**
@@ -79,6 +99,7 @@ class UpdatePlatformSettingRequest extends FormRequest
             'admin_preferences.enable_impersonation' => ['nullable', 'boolean'],
 
             'logo' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/webp', 'max:4096'],
+            'square_logo' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/webp', 'max:4096'],
             'favicon' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/x-icon,image/webp', 'max:2048'],
             'social' => ['nullable', 'file', 'mimetypes:image/jpeg,image/png,image/svg+xml,image/webp', 'max:4096'],
         ];

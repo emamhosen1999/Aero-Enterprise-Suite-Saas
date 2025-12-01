@@ -27,6 +27,7 @@ import ProfileMenu from '@/Components/ProfileMenu';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import ProfileAvatar from '@/Components/ProfileAvatar';
 import { useScrollTrigger } from '@/Hooks/useScrollTrigger.js';
+import { useBranding } from '@/Hooks/useBranding';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bars3Icon,
@@ -42,9 +43,6 @@ import {
   HomeIcon,
   ShieldCheckIcon
 } from "@heroicons/react/24/outline";
-
-
-import logo from '../../../public/assets/images/logo.png';
 
 /**
  * Custom hook for responsive device type detection
@@ -435,7 +433,11 @@ const MobileHeader = React.memo(({
             
             {/* Logo & Brand - Show/hide based on sidebar state */}
             <AnimatePresence mode="wait">
-              {!internalSidebarOpen && (
+              {!internalSidebarOpen && (() => {
+                const { logo, siteName } = useBranding();
+                const firstLetter = siteName.charAt(0).toUpperCase();
+                
+                return (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -456,34 +458,40 @@ const MobileHeader = React.memo(({
                           borderRadius: 'var(--borderRadius, 12px)'
                         }}
                       >
-                        <img 
-                          src={logo} 
-                          alt={`${app?.name || 'ERP System'} Logo`} 
-                          className="object-contain"
-                          style={{ 
-                            width: 'calc(100% - 6px)',
-                            height: 'calc(100% - 6px)',
-                            maxWidth: '100%',
-                            maxHeight: '100%'
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'block';
-                          }}
-                        />
+                        {logo ? (
+                          <img 
+                            src={logo} 
+                            alt={`${siteName} Logo`} 
+                            className="object-contain"
+                            style={{ 
+                              width: 'calc(100% - 6px)',
+                              height: 'calc(100% - 6px)',
+                              maxWidth: '100%',
+                              maxHeight: '100%'
+                            }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : null}
                         {/* Fallback text logo */}
                         <span 
-                          className="font-bold text-primary text-lg hidden"
-                          style={{ color: 'var(--theme-primary, #006FEE)' }}
+                          className="font-bold text-primary text-lg"
+                          style={{ 
+                            color: 'var(--theme-primary, #006FEE)',
+                            display: logo ? 'none' : 'block'
+                          }}
                         >
-                          E
+                          {firstLetter}
                         </span>
                       </div>
                     </div>
                   
                   </NavbarBrand>
                 </motion.div>
-              )}
+                );
+              })()}
             </AnimatePresence>
           </NavbarContent>
 
@@ -1070,7 +1078,11 @@ const DesktopHeader = React.memo(({
                   </Button>
 
                   {/* Brand Section - Only show when sidebar is closed */}
-                  {!internalSidebarOpen && (
+                  {!internalSidebarOpen && (() => {
+                    const { logo, siteName } = useBranding();
+                    const firstLetter = siteName.charAt(0).toUpperCase();
+                    
+                    return (
                     <div 
                       className="flex items-center justify-center overflow-hidden shrink-0"
                       style={{ 
@@ -1083,23 +1095,29 @@ const DesktopHeader = React.memo(({
                         borderRadius: `var(--borderRadius, 8px)`
                       }}
                     >
-                      <img 
-                        src={logo} 
-                        alt={`${app?.name || 'ERP System'} Logo`} 
-                        className="object-contain w-9 h-9"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'block';
-                        }}
-                      />
+                      {logo ? (
+                        <img 
+                          src={logo} 
+                          alt={`${siteName} Logo`} 
+                          className="object-contain w-9 h-9"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
+                        />
+                      ) : null}
                       <span 
-                        className="font-bold text-xl hidden"
-                        style={{ color: 'var(--theme-primary, #006FEE)' }}
+                        className="font-bold text-xl"
+                        style={{ 
+                          color: 'var(--theme-primary, #006FEE)',
+                          display: logo ? 'none' : 'block'
+                        }}
                       >
-                        {(app?.name || 'ERP').charAt(0)}
+                        {firstLetter}
                       </span>
                     </div>
-                  )}
+                    );
+                  })()}
                 </div>
 
                 {/* Section 2: Menu - Flexible, grows to fill space */}

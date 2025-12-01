@@ -378,16 +378,16 @@ export const missionValues = [
 
 export const timelineMilestones = [
   { year: '2019', headline: 'Blueprint drafted', detail: 'Prototype launched with three construction firms that needed HR plus project oversight in one place.' },
-  { year: '2021', headline: 'Multi-tenant core', detail: 'stancl/tenancy rollout let us serve customers across eight countries.' },
+  { year: '2021', headline: 'Multi-organization support', detail: 'Enhanced platform to serve customers across eight countries seamlessly.' },
   { year: '2023', headline: 'AI signal loop', detail: 'Introduced Aero Pulse to flag schedule, compliance, and cost risks early.' },
-  { year: '2024', headline: 'HeroUI refresh', detail: 'Rebuilt the experience layer with HeroUI and React 18 for faster, cleaner pages.' },
+  { year: '2024', headline: 'Interface redesign', detail: 'Rebuilt the user experience with modern design for faster, cleaner pages.' },
   { year: '2025', headline: 'Global mission control', detail: 'Twenty-two enterprise rollouts later, we added GovCloud-ready deployments.' },
 ];
 
 export const leadershipTeam = [
   { name: 'Maya Iqbal', title: 'Chief Executive Officer', focus: 'Scaled distributed ops programs across APAC before building Aero.', avatar: 'MI' },
   { name: 'Ethan Cho', title: 'Chief Product Officer', focus: 'Led data platform teams at Atlassian and HashiCorp.', avatar: 'EC' },
-  { name: 'Sara Velasquez', title: 'VP Engineering', focus: 'Former AWS reliability lead focused on multi-region tenancy.', avatar: 'SV' },
+  { name: 'Sara Velasquez', title: 'VP Engineering', focus: 'Former cloud infrastructure lead focused on multi-region reliability.', avatar: 'SV' },
   { name: 'Rafi Tan', title: 'Head of Customer Impact', focus: 'Runs adoption squads and exec workshops for every rollout.', avatar: 'RT' },
 ];
 
@@ -456,7 +456,7 @@ export const docQuickLinks = [
   {
     label: 'API reference',
     href: '/docs/api',
-    description: 'Endpoints, webhook events, and SDK samples kept current each release.',
+    description: 'Endpoints, webhook events, and code examples kept current each release.',
   },
   {
     label: 'Security center',
@@ -547,7 +547,7 @@ export const privacySections = [
   },
   {
     heading: '3. Security',
-    body: 'Encryption in transit and at rest, tenant isolation, and continuous posture monitoring protect your data.',
+    body: 'Encryption in transit and at rest, data isolation, and continuous security monitoring protect your information.',
   },
   {
     heading: '4. Rights & controls',
@@ -558,7 +558,7 @@ export const privacySections = [
 export const termsSections = [
   {
     heading: '1. Agreement scope',
-    body: 'These Terms govern access to Aero modules, APIs, and services. Supplemental SOWs cover implementation.',
+    body: 'These Terms govern access to Aero modules and services. Supplemental agreements cover implementation.',
   },
   {
     heading: '2. Customer obligations',
@@ -575,10 +575,10 @@ export const termsSections = [
 ];
 
 export const securityHighlights = [
-  'Zero-trust architecture with device posture enforcement.',
+  'Advanced security architecture with device verification.',
   'Automated backups every 15 minutes with cross-region replication.',
-  'Federated SSO (SAML, OIDC) and SCIM provisioning.',
-  'Granular audit logs with export APIs.',
+  'Enterprise single sign-on and automated user provisioning.',
+  'Comprehensive audit logs with data export.',
 ];
 
 export const cookieCategories = [

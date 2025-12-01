@@ -22,7 +22,9 @@ class DatabaseSeeder extends Seeder
         $this->command?->warn('No tenant context detected. Running central admin seeds.');
 
         $this->call([
-            LandlordUserSeeder::class,  // Platform/Admin super admin user (landlord_users table)
+            AdminPanelPermissionSeeder::class,  // Platform admin permissions (landlord guard)
+            AdminPanelRoleSeeder::class,        // Platform admin roles (landlord guard)
+            LandlordUserSeeder::class,          // Platform/Admin super admin user (landlord_users table)
         ]);
     }
 }
