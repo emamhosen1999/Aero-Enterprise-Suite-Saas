@@ -46,13 +46,13 @@ const tierData = [
 
 const addons = [
   { name: 'AI Incident Copilot', price: '$4 / user', description: 'Generative guidance for audits, incidents, and RCA.' },
-  { name: 'Edge Attendance Terminals', price: '$39 / device', description: 'Biometric devices with secure provisioning.' },
+  { name: 'Edge Attendance Terminals', price: '$39 / device', description: 'Biometric devices with secure setup and management.' },
   { name: 'Dedicated Compliance Pods', price: 'Custom', description: 'ISO, HIPAA, SOC2 readiness operations.' },
 ];
 
 const featureComparison = [
   { feature: 'Modules included', launch: '2', scale: 'Unlimited', enterprise: 'Unlimited + custom' },
-  { feature: 'Automation builder', launch: 'Playbooks', scale: 'Visual builder', enterprise: 'Advanced + SDK' },
+  { feature: 'Automation builder', launch: 'Playbooks', scale: 'Visual builder', enterprise: 'Advanced + Custom' },
   { feature: 'AI assistants', launch: 'Insights digest', scale: 'Risk + forecast', enterprise: 'Predictive + custom models' },
   { feature: 'Support response', launch: '< 12 hrs', scale: '< 4 hrs', enterprise: 'Dedicated pod' },
   { feature: 'Hosting', launch: 'Shared cloud', scale: 'Dedicated region', enterprise: 'Private cloud / Gov / On-prem' },

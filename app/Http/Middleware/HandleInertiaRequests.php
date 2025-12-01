@@ -182,6 +182,9 @@ class HandleInertiaRequests extends Middleware
         $branding = $systemSettingsPayload['branding'] ?? [];
         $legacyCompanySettings = $this->formatLegacyCompanySettings($organization);
 
+        // Get tenant plan limits for feature gating
+        $tenantPlanLimits = $this->getTenantPlanLimits();
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -207,7 +210,12 @@ class HandleInertiaRequests extends Middleware
                 'id' => tenant('id'),
                 'name' => tenant('name'),
                 'subdomain' => tenant('subdomain'),
+                'status' => tenant('status'),
+                'modules' => tenant('modules') ?? [],
+                'onTrial' => tenant()?->isOnTrial() ?? false,
+                'trialEndsAt' => tenant('trial_ends_at'),
             ],
+            'planLimits' => $tenantPlanLimits,
             'impersonation' => [
                 'active' => $request->session()->has('impersonated_by_platform'),
                 'started_at' => $request->session()->get('impersonation_started_at'),
@@ -233,6 +241,59 @@ class HandleInertiaRequests extends Middleware
             'fallbackLocale' => config('app.fallback_locale', 'en'),
             'supportedLocales' => SetLocale::getSupportedLocales(),
             'translations' => fn () => $this->getTranslations(),
+        ];
+    }
+
+    /**
+     * Get tenant plan limits for feature gating.
+     *
+     * Returns an array of feature limits based on the tenant's subscription plan.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getTenantPlanLimits(): array
+    {
+        if (! tenant()) {
+            return [];
+        }
+
+        $tenant = tenant();
+        $plan = $tenant->plan;
+
+        // Default limits if no plan
+        $defaultLimits = [
+            'max_users' => 5,
+            'max_storage_gb' => 1,
+            'max_projects' => 3,
+            'max_documents' => 100,
+            'features' => [
+                'api_access' => false,
+                'custom_branding' => false,
+                'priority_support' => false,
+                'audit_logs' => true,
+                'two_factor_auth' => true,
+                'sso' => false,
+                'webhooks' => false,
+                'custom_domains' => false,
+            ],
+        ];
+
+        if (! $plan) {
+            return $defaultLimits;
+        }
+
+        // Get plan-specific limits from plan features
+        $planFeatures = $plan->features ?? [];
+
+        return [
+            'max_users' => $planFeatures['max_users'] ?? $defaultLimits['max_users'],
+            'max_storage_gb' => $planFeatures['max_storage_gb'] ?? $defaultLimits['max_storage_gb'],
+            'max_projects' => $planFeatures['max_projects'] ?? $defaultLimits['max_projects'],
+            'max_documents' => $planFeatures['max_documents'] ?? $defaultLimits['max_documents'],
+            'features' => array_merge($defaultLimits['features'], $planFeatures['features'] ?? []),
+            'plan_name' => $plan->name,
+            'plan_id' => $plan->id,
+            'billing_cycle' => $tenant->subscription_plan,
         ];
     }
 

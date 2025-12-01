@@ -82,6 +82,21 @@ $middlewareStack = ['auth', 'verified'];
 
 Route::middleware($middlewareStack)->group(function () {
 
+    // =========================================================================
+    // TENANT ONBOARDING WIZARD
+    // =========================================================================
+    // Multi-step setup wizard for new tenants (first-time login)
+    Route::prefix('onboarding')->name('onboarding.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'index'])->name('index');
+        Route::post('/company', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'saveCompany'])->name('company');
+        Route::post('/branding', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'saveBranding'])->name('branding');
+        Route::post('/team', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'saveTeam'])->name('team');
+        Route::post('/modules', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'saveModules'])->name('modules');
+        Route::post('/complete', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'complete'])->name('complete');
+        Route::post('/skip', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'skip'])->name('skip');
+        Route::post('/step', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'updateStep'])->name('step');
+    });
+
     // Dashboard routes - require dashboard permission
     Route::middleware(['permission:core.dashboard.view'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

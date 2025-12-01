@@ -68,7 +68,7 @@ const About = () => {
               We built Aero after running operations teams that had to juggle too many systems.
             </h1>
             <p className={`text-lg ${palette.mutedText}`}>
-              The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and point tools. Aero keeps that work in one place so decisions stay grounded in fresh data.
+              The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and multiple tools. Aero keeps that work in one place so decisions stay grounded in fresh data.
             </p>
             <div className="flex flex-wrap gap-4 mt-8">
               <Button as={Link} href={route('platform.register.index')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-8">
@@ -98,7 +98,7 @@ const About = () => {
             <Card className={palette.gradientCard}>
               <CardBody className="space-y-6">
                 <p className={`text-sm uppercase tracking-[0.4em] ${palette.mutedText}`}>Field Notes</p>
-                <h3 className="text-2xl font-semibold">From siloed spreadsheets to a unified execution graph.</h3>
+                <h3 className="text-2xl font-semibold">From siloed spreadsheets to a unified operations view.</h3>
                 <p className={palette.mutedText}>
                   We shadowed HR leaders, project coordinators, compliance managers, and CFOs across Asia, the Middle East, and North America. Every team wanted the same thing: one system that could adapt as fast as their operations. Aero is the answer.
                 </p>

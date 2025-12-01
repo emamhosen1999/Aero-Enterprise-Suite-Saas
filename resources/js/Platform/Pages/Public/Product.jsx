@@ -112,7 +112,7 @@ export default function Product() {
               Keep HR, projects, compliance, and finance in sync.
             </h1>
             <p className={`text-lg mb-8 ${palette.mutedText}`}>
-              Each Aero module shares the same data model, so adding HR, project tracking, compliance, or supply chain happens without migrations, fragile integrations, or custom code.
+              Each Aero module shares the same data, so adding HR, project tracking, compliance, or supply chain happens without migrations, complex setup, or custom work.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button as={Link} href={route('platform.register.index')} size="lg" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-8">
@@ -142,8 +142,8 @@ export default function Product() {
           >
             <Card className={palette.panel}>
               <CardHeader className="flex flex-col items-start gap-1">
-                <p className={`text-sm ${palette.mutedText}`}>Live Operational Graph</p>
-                <h3 className="text-2xl font-semibold">Unified Execution Board</h3>
+                <p className={`text-sm ${palette.mutedText}`}>Live Operations View</p>
+                <h3 className="text-2xl font-semibold">Unified Dashboard</h3>
               </CardHeader>
               <Divider className={palette.divider} />
               <CardBody className="grid grid-cols-2 gap-4">

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth\ImpersonationController;
 use App\Http\Middleware\IdentifyDomainContext;
+use App\Http\Middleware\OptimizeTenantCache;
+use App\Http\Middleware\SetTenant;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -16,12 +18,21 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 | Routes for tenant subdomains ({tenant}.platform.com).
 | Tenancy middleware switches to tenant's database.
 |
+| Middleware chain:
+| 1. IdentifyDomainContext - Determines if request is for tenant
+| 2. InitializeTenancyByDomain - Stancl's tenancy initialization
+| 3. PreventAccessFromCentralDomains - Blocks central domain access
+| 4. SetTenant - Custom tenant validation & config overrides
+| 5. OptimizeTenantCache - Tenant-scoped cache optimization
+|
 */
 
 Route::middleware([
     IdentifyDomainContext::class,
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
+    SetTenant::class,
+    OptimizeTenantCache::class,
 ])->group(function () {
     // =========================================================================
     // IMPERSONATION ROUTES (No auth required - token-based)

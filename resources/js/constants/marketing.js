@@ -7,42 +7,263 @@ export const heroStats = [
 
 export const platformModules = [
   {
-    name: 'HR Management',
-    description: 'Onboarding, attendance, payroll, and reviews handled in one place.',
+    name: 'HRM',
+    shortName: 'Human Resource Management',
+    description: 'Complete workforce management from hiring to retirement with attendance, payroll, and performance reviews.',
     color: 'from-blue-500 to-cyan-500',
     icon: 'people',
   },
   {
+    name: 'CRM',
+    shortName: 'Customer Relationship Management',
+    description: 'Lead capture, deal pipelines, marketing campaigns, support desk, and live chat integration.',
+    color: 'from-indigo-500 to-violet-500',
+    icon: 'users',
+  },
+  {
+    name: 'ERP',
+    shortName: 'Enterprise Resource Planning',
+    description: 'Inventory, purchasing, sales, warehouse, accounting, expenses, fixed assets, and procurement.',
+    color: 'from-emerald-500 to-teal-500',
+    icon: 'inbox-stack',
+  },
+  {
     name: 'Project Management',
-    description: 'Plan milestones, allocate people, and track progress without spreadsheets.',
+    shortName: 'Project & Task Management',
+    description: 'Projects, tasks, Kanban boards, time tracking, sprints, and workload reports.',
     color: 'from-purple-500 to-pink-500',
     icon: 'project',
   },
   {
-    name: 'Compliance & Quality',
-    description: 'Daily compliance chores, audits, and inspections stay on schedule.',
-    color: 'from-emerald-500 to-teal-500',
-    icon: 'shield-check',
-  },
-  {
-    name: 'Inventory & SCM',
-    description: 'Procurement, inventory, and supplier health visible at every site.',
+    name: 'Collaboration',
+    shortName: 'Collaboration & Communication',
+    description: 'Messaging, video meetings, document management, and multi-level approval workflows.',
     color: 'from-orange-500 to-amber-500',
-    icon: 'inbox-stack',
+    icon: 'chat',
   },
   {
-    name: 'Analytics & Reports',
-    description: 'Dashboards and KPI boards fed by live operational data.',
+    name: 'E-commerce',
+    shortName: 'E-commerce Platform',
+    description: 'Product catalog, cart & checkout, order management, and payment gateway integrations.',
+    color: 'from-pink-500 to-rose-500',
+    icon: 'shopping-cart',
+  },
+  {
+    name: 'Analytics',
+    shortName: 'Analytics & Intelligence',
+    description: 'Dashboards, KPI tiles, tabular reports, and predictive analytics with AI insights.',
     color: 'from-rose-500 to-red-500',
     icon: 'chart-bar',
   },
-  {
-    name: 'CRM & Helpdesk',
-    description: 'Lightweight CRM plus ticket routing for field and HQ teams.',
+];
+
+// Detailed module features for Features page
+export const moduleFeatures = {
+  hrm: {
+    name: 'HRM',
+    fullName: 'Human Resource Management',
+    color: 'from-blue-500 to-cyan-500',
+    icon: 'people',
+    submodules: [
+      {
+        name: 'Employee Information System',
+        features: ['Employee profile', 'Department & designation', 'Joining/exit workflow', 'Document vault'],
+      },
+      {
+        name: 'Attendance',
+        features: ['Time-in/time-out', 'IP/device restrictions', 'Geolocation attendance', 'Manual adjustment requests'],
+      },
+      {
+        name: 'Leave Management',
+        features: ['Leave types', 'Leave request workflow', 'Balance calculation', 'Calendar integration'],
+      },
+      {
+        name: 'Payroll',
+        features: ['Salary structure', 'Allowances & deductions', 'Payslip generator', 'Payment disbursement logs'],
+      },
+      {
+        name: 'Recruitment',
+        features: ['Job posts', 'Applicant tracking', 'Interview scheduling', 'Evaluation scoring'],
+      },
+      {
+        name: 'Performance Management',
+        features: ['KPI groups', 'Appraisal cycles', '360° feedback', 'Performance reports'],
+      },
+      {
+        name: 'Training & Development',
+        features: ['Training calendar', 'Skill matrix', 'Certification tracking'],
+      },
+    ],
+  },
+  crm: {
+    name: 'CRM',
+    fullName: 'Customer Relationship Management',
     color: 'from-indigo-500 to-violet-500',
     icon: 'users',
+    submodules: [
+      {
+        name: 'Leads',
+        features: ['Lead capture', 'Lead scoring', 'Lead assignment', 'Lead pipeline'],
+      },
+      {
+        name: 'Contacts & Accounts',
+        features: ['Customer/company profiles', 'Contact linking', 'Interaction logs'],
+      },
+      {
+        name: 'Deals/Pipelines',
+        features: ['Stages', 'Deal forecasting', 'Deal probability', 'Revenue estimation'],
+      },
+      {
+        name: 'Marketing',
+        features: ['Email/SMS campaigns', 'Audience segmentation', 'Template builder', 'Campaign analytics'],
+      },
+      {
+        name: 'Support Desk',
+        features: ['Ticket submission', 'Priority/SLA rules', 'Canned responses', 'Ticket workflows', 'Feedback/rating'],
+      },
+      {
+        name: 'Live Chat/Widget',
+        features: ['Chat inbox', 'Visitor tracking', 'Chatbot integration'],
+      },
+    ],
   },
-];
+  erp: {
+    name: 'ERP',
+    fullName: 'Enterprise Resource Planning',
+    color: 'from-emerald-500 to-teal-500',
+    icon: 'inbox-stack',
+    submodules: [
+      {
+        name: 'Inventory',
+        features: ['Items & categories', 'Units of measure', 'Stock movements', 'Opening balance', 'Multi-warehouse support'],
+      },
+      {
+        name: 'Purchase Management',
+        features: ['Purchase requests', 'Purchase order creation', 'Supplier comparison', 'Goods received note'],
+      },
+      {
+        name: 'Sales Management',
+        features: ['Sales orders', 'Quotations', 'Delivery notes', 'Customer credit limit'],
+      },
+      {
+        name: 'Warehouse',
+        features: ['Bins & shelves', 'Put-away rules', 'Stock transfer', 'Cycle counting'],
+      },
+      {
+        name: 'Accounting & Finance',
+        features: ['Chart of accounts', 'Journal entries', 'Invoices', 'Payments', 'Bank reconciliation', 'VAT/Tax rules'],
+      },
+      {
+        name: 'Expense Management',
+        features: ['Expense categories', 'Expense claim workflow', 'Reimbursements'],
+      },
+      {
+        name: 'Fixed Assets',
+        features: ['Asset registration', 'Depreciation schedules', 'Disposal tracking'],
+      },
+      {
+        name: 'Procurement',
+        features: ['Supplier directory', 'Tender management', 'Approval workflow'],
+      },
+    ],
+  },
+  project: {
+    name: 'Project Management',
+    fullName: 'Project & Task Management',
+    color: 'from-purple-500 to-pink-500',
+    icon: 'project',
+    submodules: [
+      {
+        name: 'Projects',
+        features: ['Project creation', 'Milestones', 'Member assignment'],
+      },
+      {
+        name: 'Tasks',
+        features: ['Task creation', 'Subtasks', 'Checklists', 'Attachments'],
+      },
+      {
+        name: 'Boards',
+        features: ['Kanban board', 'Sprint planning', 'Backlogs'],
+      },
+      {
+        name: 'Time Tracking',
+        features: ['Timers', 'Timesheets', 'Billing rates'],
+      },
+      {
+        name: 'Reports',
+        features: ['Velocity', 'Workload', 'Burn-down charts'],
+      },
+    ],
+  },
+  collaboration: {
+    name: 'Collaboration',
+    fullName: 'Collaboration & Communication',
+    color: 'from-orange-500 to-amber-500',
+    icon: 'chat',
+    submodules: [
+      {
+        name: 'Messaging',
+        features: ['Direct messages', 'Group channels', 'Attachments'],
+      },
+      {
+        name: 'Meetings',
+        features: ['Video call integration', 'Calendar sync', 'Meeting notes'],
+      },
+      {
+        name: 'Document Management',
+        features: ['File repository', 'Versioning', 'Share permissions'],
+      },
+      {
+        name: 'Approvals',
+        features: ['Multi-level approvals', 'Dynamic workflow builder', 'Approval history'],
+      },
+    ],
+  },
+  ecommerce: {
+    name: 'E-commerce',
+    fullName: 'E-commerce Platform',
+    color: 'from-pink-500 to-rose-500',
+    icon: 'shopping-cart',
+    submodules: [
+      {
+        name: 'Catalog',
+        features: ['Products', 'Variants', 'Attributes'],
+      },
+      {
+        name: 'Cart & Checkout',
+        features: ['Cart logic', 'Shipping rules', 'Coupons'],
+      },
+      {
+        name: 'Orders',
+        features: ['Order lifecycle', 'Cancellations/returns', 'Fulfillment'],
+      },
+      {
+        name: 'Payment Integrations',
+        features: ['Gateways', 'Wallets', 'Refund logs'],
+      },
+    ],
+  },
+  analytics: {
+    name: 'Analytics',
+    fullName: 'Analytics & Intelligence',
+    color: 'from-rose-500 to-red-500',
+    icon: 'chart-bar',
+    submodules: [
+      {
+        name: 'Dashboards',
+        features: ['Widgets', 'KPI tiles', 'Visualization engine'],
+      },
+      {
+        name: 'Reports',
+        features: ['Tabular reports', 'Exporter (PDF, Excel)', 'Scheduler'],
+      },
+      {
+        name: 'Predictive Analytics',
+        features: ['Demand forecasting', 'Customer churn model', 'Anomaly detection'],
+      },
+    ],
+  },
+};
 
 export const rolloutPhases = [
   {
