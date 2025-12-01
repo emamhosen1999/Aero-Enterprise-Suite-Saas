@@ -45,6 +45,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        Log::info('Admin login attempt started', ['email' => $request->input('email')]);
+
         $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',
@@ -60,6 +62,12 @@ class AuthenticatedSessionController extends Controller
         // Check if user exists and is active BEFORE attempting login
         $user = LandlordUser::where('email', $credentials['email'])->first();
 
+        Log::info('Admin login - user lookup', [
+            'email' => $credentials['email'],
+            'user_found' => (bool) $user,
+            'user_id' => $user?->id,
+        ]);
+
         if ($user && ! $user->isActive()) {
             RateLimiter::hit($this->throttleKey($request));
 
@@ -70,6 +78,7 @@ class AuthenticatedSessionController extends Controller
 
         // Attempt authentication using the landlord guard
         if (! Auth::guard('landlord')->attempt($credentials, $remember)) {
+            Log::warning('Admin login - auth failed', ['email' => $credentials['email']]);
             RateLimiter::hit($this->throttleKey($request));
 
             throw ValidationException::withMessages([
@@ -77,11 +86,21 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
+        Log::info('Admin login - auth succeeded', [
+            'email' => $credentials['email'],
+            'guard_check' => Auth::guard('landlord')->check(),
+            'user_id' => Auth::guard('landlord')->id(),
+        ]);
+
         // Clear rate limiter on successful login
         RateLimiter::clear($this->throttleKey($request));
 
         // Regenerate session to prevent fixation attacks
         $request->session()->regenerate();
+
+        Log::info('Admin login - session regenerated', [
+            'session_id' => $request->session()->getId(),
+        ]);
 
         // Record login event
         /** @var \App\Models\LandlordUser $user */
@@ -94,6 +113,7 @@ class AuthenticatedSessionController extends Controller
             'email' => $user->email,
             'ip' => $request->ip(),
             'user_agent' => $request->userAgent(),
+            'redirect_to' => route('admin.dashboard'),
         ]);
 
         return redirect()->intended(route('admin.dashboard'));

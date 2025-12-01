@@ -22,14 +22,17 @@ class CheckSessionExpiry
             return $next($request);
         }
 
+        // Determine which guard to check based on domain context
+        $guard = $this->getGuardForContext($request);
+
         // Check if user is authenticated but session is invalid
-        if (Auth::check()) {
+        if (Auth::guard($guard)->check()) {
             $sessionLifetime = config('session.lifetime') * 60; // Convert minutes to seconds
             $lastActivity = Session::get('last_activity', time());
 
             // Check if session has expired
             if (time() - $lastActivity > $sessionLifetime) {
-                return $this->handleExpiredSession($request);
+                return $this->handleExpiredSession($request, $guard);
             }
 
             // Update last activity timestamp
@@ -37,6 +40,20 @@ class CheckSessionExpiry
         }
 
         return $next($request);
+    }
+
+    /**
+     * Get the appropriate guard based on domain context.
+     */
+    private function getGuardForContext(Request $request): string
+    {
+        $context = $request->attributes->get('domain_context', 'platform');
+
+        return match ($context) {
+            'admin' => 'landlord',
+            'tenant' => 'web',
+            default => 'web',
+        };
     }
 
     /**
@@ -83,10 +100,10 @@ class CheckSessionExpiry
     /**
      * Handle expired session.
      */
-    private function handleExpiredSession(Request $request)
+    private function handleExpiredSession(Request $request, string $guard)
     {
-        // Log the user out
-        Auth::logout();
+        // Log the user out using the correct guard
+        Auth::guard($guard)->logout();
 
         // Clear the session
         $request->session()->invalidate();

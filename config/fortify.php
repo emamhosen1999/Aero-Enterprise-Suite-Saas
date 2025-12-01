@@ -88,6 +88,8 @@ return [
 
     'prefix' => '',
 
+    // Exclude admin domain - admin has its own landlord auth routes
+    // Fortify routes should only apply to tenant domains
     'domain' => null,
 
     /*
