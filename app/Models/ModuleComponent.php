@@ -18,6 +18,8 @@ class ModuleComponent extends Model
 {
     use HasFactory;
 
+    protected $connection = 'mysql'; // Landlord database - module structure is centralized
+
     protected $table = 'module_components';
 
     protected $fillable = [
@@ -29,7 +31,6 @@ class ModuleComponent extends Model
         'type',
         'route',
         'is_active',
-        'settings',
     ];
 
     protected $casts = [

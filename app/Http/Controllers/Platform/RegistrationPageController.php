@@ -17,6 +17,7 @@ class RegistrationPageController extends Controller
     private array $steps = [
         ['key' => 'account', 'label' => 'Account Type', 'route' => 'platform.register.index'],
         ['key' => 'details', 'label' => 'Company Details', 'route' => 'platform.register.details'],
+        ['key' => 'admin', 'label' => 'Admin Details', 'route' => 'platform.register.admin'],
         ['key' => 'plan', 'label' => 'Modules & Plan', 'route' => 'platform.register.plan'],
         ['key' => 'payment', 'label' => 'Review', 'route' => 'platform.register.payment'],
         ['key' => 'provisioning', 'label' => 'Setting Up', 'route' => 'platform.register.provisioning'],
@@ -45,9 +46,24 @@ class RegistrationPageController extends Controller
         ]);
     }
 
-    public function plan(): Response|RedirectResponse
+    public function admin(): Response|RedirectResponse
     {
         if (! $this->registrationSession->ensureSteps(['account', 'details'])) {
+            return to_route('platform.register.index');
+        }
+
+        $details = $this->registrationSession->get()['details'] ?? [];
+
+        return $this->render('Public/Register/AdminDetails', 'admin', [
+            'companyName' => $details['name'] ?? '',
+            'subdomain' => $details['subdomain'] ?? '',
+            'baseDomain' => config('platform.central_domain'),
+        ]);
+    }
+
+    public function plan(): Response|RedirectResponse
+    {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin'])) {
             return to_route('platform.register.index');
         }
 
@@ -107,8 +123,17 @@ class RegistrationPageController extends Controller
 
     public function payment(): Response|RedirectResponse
     {
-        if (! $this->registrationSession->ensureSteps(['account', 'details', 'plan'])) {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'plan'])) {
             return to_route('platform.register.index');
+        }
+
+        // Get plan data and validate that user has selected something
+        $planData = $this->registrationSession->get()['plan'] ?? [];
+        $hasSelection = ! empty($planData['plan_id']) || ! empty($planData['modules']);
+
+        if (! $hasSelection) {
+            return to_route('platform.register.plan')
+                ->with('error', 'Please select a plan or modules before continuing.');
         }
 
         // Fetch plans to display selected plan details

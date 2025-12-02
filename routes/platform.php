@@ -26,6 +26,7 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     // Step pages
     Route::get('/', [RegistrationPageController::class, 'accountType'])->name('index');
     Route::get('/details', [RegistrationPageController::class, 'details'])->name('details');
+    Route::get('/admin-setup', [RegistrationPageController::class, 'admin'])->name('admin');
     Route::get('/plan', [RegistrationPageController::class, 'plan'])->name('plan');
     Route::get('/payment', [RegistrationPageController::class, 'payment'])->name('payment');
     Route::get('/success', [RegistrationPageController::class, 'success'])->name('success');
@@ -37,6 +38,7 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     // Step submissions
     Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');
     Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');
+    Route::post('/admin-setup', [RegistrationController::class, 'storeAdmin'])->name('admin.store');
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
     Route::post('/trial', [RegistrationController::class, 'activateTrial'])->name('trial.activate');
 });

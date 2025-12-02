@@ -66,23 +66,6 @@ return new class extends Migration
             $table->index(['module_id', 'is_active']);
             $table->index(['sub_module_id', 'is_active']);
         });
-
-        Schema::create('module_permissions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('module_id')->constrained()->onDelete('cascade');
-            $table->foreignId('sub_module_id')->nullable()->constrained()->onDelete('cascade');
-            $table->foreignId('component_id')->nullable()->constrained('module_components')->onDelete('cascade');
-            $table->unsignedBigInteger('permission_id')->comment('Links to Spatie permissions table');
-            $table->string('requirement_type')->default('required')->comment('required, optional, any_of');
-            $table->string('requirement_group')->default('default')->comment('Group for OR logic');
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-
-            $table->foreign('permission_id')->references('id')->on('permissions')->onDelete('cascade');
-            $table->index(['module_id', 'permission_id']);
-            $table->index(['sub_module_id', 'permission_id']);
-            $table->index(['component_id', 'permission_id']);
-        });
     }
 
     /**
@@ -90,7 +73,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('module_permissions');
         Schema::dropIfExists('module_components');
         Schema::dropIfExists('sub_modules');
         Schema::dropIfExists('modules');

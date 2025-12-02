@@ -228,7 +228,8 @@ const ModuleManagement = (props) => {
         statistics: initialStats = {},
         categories = {},
         componentTypes = {},
-        title = 'Module Permission Registry'
+        title = 'Module Permission Registry',
+        readonly = false // Modules are read-only from landlord
     } = props;
 
     // State management
@@ -680,35 +681,39 @@ const ModuleManagement = (props) => {
                                 </DropdownTrigger>
                                 <DropdownMenu>
                                     <DropdownItem
-                                        key="edit"
-                                        startContent={<PencilSquareIcon className="w-4 h-4" />}
-                                        onClick={() => openModuleModal(module)}
-                                    >
-                                        Edit Module
-                                    </DropdownItem>
-                                    <DropdownItem
                                         key="permissions"
                                         startContent={<KeyIcon className="w-4 h-4" />}
                                         onClick={() => openPermissionModal({ ...module, type: 'module' })}
                                     >
                                         Manage Permissions
                                     </DropdownItem>
-                                    <DropdownItem
-                                        key="add-submodule"
-                                        startContent={<PlusIcon className="w-4 h-4" />}
-                                        onClick={() => openSubModuleModal(module.id)}
-                                    >
-                                        Add Sub-Module
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        key="delete"
-                                        startContent={<TrashIcon className="w-4 h-4" />}
-                                        color="danger"
-                                        className="text-danger"
-                                        onClick={() => confirmDelete(module, 'module')}
-                                    >
-                                        Delete Module
-                                    </DropdownItem>
+                                    {!readonly && (
+                                        <>
+                                            <DropdownItem
+                                                key="edit"
+                                                startContent={<PencilSquareIcon className="w-4 h-4" />}
+                                                onClick={() => openModuleModal(module)}
+                                            >
+                                                Edit Module
+                                            </DropdownItem>
+                                            <DropdownItem
+                                                key="add-submodule"
+                                                startContent={<PlusIcon className="w-4 h-4" />}
+                                                onClick={() => openSubModuleModal(module.id)}
+                                            >
+                                                Add Sub-Module
+                                            </DropdownItem>
+                                            <DropdownItem
+                                                key="delete"
+                                                startContent={<TrashIcon className="w-4 h-4" />}
+                                                color="danger"
+                                                className="text-danger"
+                                                onClick={() => confirmDelete(module, 'module')}
+                                            >
+                                                Delete Module
+                                            </DropdownItem>
+                                        </>
+                                    )}
                                 </DropdownMenu>
                             </Dropdown>
                         </div>
@@ -793,35 +798,39 @@ const ModuleManagement = (props) => {
                             </DropdownTrigger>
                             <DropdownMenu>
                                 <DropdownItem
-                                    key="edit"
-                                    startContent={<PencilSquareIcon className="w-4 h-4" />}
-                                    onClick={() => openSubModuleModal(moduleId, subModule)}
-                                >
-                                    Edit Sub-Module
-                                </DropdownItem>
-                                <DropdownItem
                                     key="permissions"
                                     startContent={<KeyIcon className="w-4 h-4" />}
                                     onClick={() => openPermissionModal({ ...subModule, type: 'sub_module' })}
                                 >
                                     Manage Permissions
                                 </DropdownItem>
-                                <DropdownItem
-                                    key="add-component"
-                                    startContent={<PlusIcon className="w-4 h-4" />}
-                                    onClick={() => openComponentModal(subModule.id)}
-                                >
-                                    Add Component
-                                </DropdownItem>
-                                <DropdownItem
-                                    key="delete"
-                                    startContent={<TrashIcon className="w-4 h-4" />}
-                                    color="danger"
-                                    className="text-danger"
-                                    onClick={() => confirmDelete(subModule, 'sub_module')}
-                                >
-                                    Delete Sub-Module
-                                </DropdownItem>
+                                {!readonly && (
+                                    <>
+                                        <DropdownItem
+                                            key="edit"
+                                            startContent={<PencilSquareIcon className="w-4 h-4" />}
+                                            onClick={() => openSubModuleModal(moduleId, subModule)}
+                                        >
+                                            Edit Sub-Module
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            key="add-component"
+                                            startContent={<PlusIcon className="w-4 h-4" />}
+                                            onClick={() => openComponentModal(subModule.id)}
+                                        >
+                                            Add Component
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            key="delete"
+                                            startContent={<TrashIcon className="w-4 h-4" />}
+                                            color="danger"
+                                            className="text-danger"
+                                            onClick={() => confirmDelete(subModule, 'sub_module')}
+                                        >
+                                            Delete Sub-Module
+                                        </DropdownItem>
+                                    </>
+                                )}
                             </DropdownMenu>
                         </Dropdown>
                     </div>
@@ -889,28 +898,32 @@ const ModuleManagement = (props) => {
                         </DropdownTrigger>
                         <DropdownMenu>
                             <DropdownItem
-                                key="edit"
-                                startContent={<PencilSquareIcon className="w-4 h-4" />}
-                                onClick={() => openComponentModal(subModuleId, component)}
-                            >
-                                Edit Component
-                            </DropdownItem>
-                            <DropdownItem
                                 key="permissions"
                                 startContent={<KeyIcon className="w-4 h-4" />}
                                 onClick={() => openPermissionModal({ ...component, type: 'component' })}
                             >
                                 Manage Permissions
                             </DropdownItem>
-                            <DropdownItem
-                                key="delete"
-                                startContent={<TrashIcon className="w-4 h-4" />}
-                                color="danger"
-                                className="text-danger"
-                                onClick={() => confirmDelete(component, 'component')}
-                            >
-                                Delete Component
-                            </DropdownItem>
+                            {!readonly && (
+                                <>
+                                    <DropdownItem
+                                        key="edit"
+                                        startContent={<PencilSquareIcon className="w-4 h-4" />}
+                                        onClick={() => openComponentModal(subModuleId, component)}
+                                    >
+                                        Edit Component
+                                    </DropdownItem>
+                                    <DropdownItem
+                                        key="delete"
+                                        startContent={<TrashIcon className="w-4 h-4" />}
+                                        color="danger"
+                                        className="text-danger"
+                                        onClick={() => confirmDelete(component, 'component')}
+                                    >
+                                        Delete Component
+                                    </DropdownItem>
+                                </>
+                            )}
                         </DropdownMenu>
                     </Dropdown>
                 </div>
@@ -1055,17 +1068,19 @@ const ModuleManagement = (props) => {
                                                     >
                                                         Refresh
                                                     </Button>
-                                                    <Button
-                                                        className="text-white font-medium"
-                                                        style={{
-                                                            background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
-                                                            borderRadius: getThemeRadius(),
-                                                        }}
-                                                        startContent={<PlusIcon className="w-4 h-4" />}
-                                                        onPress={() => openModuleModal()}
-                                                    >
-                                                        {isMobile ? "Add" : "Add Module"}
-                                                    </Button>
+                                                    {!readonly && (
+                                                        <Button
+                                                            className="text-white font-medium"
+                                                            style={{
+                                                                background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
+                                                                borderRadius: getThemeRadius(),
+                                                            }}
+                                                            startContent={<PlusIcon className="w-4 h-4" />}
+                                                            onPress={() => openModuleModal()}
+                                                        >
+                                                            {isMobile ? "Add" : "Add Module"}
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

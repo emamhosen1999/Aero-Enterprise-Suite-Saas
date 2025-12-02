@@ -117,10 +117,25 @@ class ProvisionTenant implements ShouldQueue
             $this->seedAdminUser();
             $this->logStep('✅ Step 4 Complete: Admin user created', $context);
 
-            // Step 5: Activate the tenant
-            $this->logStep('🎉 Step 5: Activating tenant', $context);
+            // Step 5: Seed roles and permissions
+            $this->logStep('🔐 Step 5: Seeding roles and permissions', $context);
+            $this->seedRolesAndPermissions();
+            $this->logStep('✅ Step 5 Complete: Roles and permissions seeded', $context);
+
+            // Step 6: Seed module permissions
+            $this->logStep('📦 Step 6: Seeding module permissions', $context);
+            $this->seedModulePermissions();
+            $this->logStep('✅ Step 6 Complete: Module permissions seeded', $context);
+
+            // Step 7: Assign Super Administrator role to admin user
+            $this->logStep('👑 Step 7: Assigning Super Administrator role', $context);
+            $this->assignSuperAdminRole();
+            $this->logStep('✅ Step 7 Complete: Super Administrator role assigned', $context);
+
+            // Step 8: Activate the tenant
+            $this->logStep('🎉 Step 8: Activating tenant', $context);
             $this->activateTenant();
-            $this->logStep('✅ Step 5 Complete: Tenant activated', $context);
+            $this->logStep('✅ Step 8 Complete: Tenant activated', $context);
 
             $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY', $context);
         } catch (Throwable $e) {
@@ -177,6 +192,25 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
+     * Generate a username from email address.
+     */
+    protected function generateUsername(string $email): string
+    {
+        // Extract local part before @
+        $username = explode('@', $email)[0];
+        
+        // Replace non-alphanumeric characters with underscore
+        $username = preg_replace('/[^a-zA-Z0-9]/', '_', $username);
+        
+        // Ensure it starts with a letter
+        if (!preg_match('/^[a-zA-Z]/', $username)) {
+            $username = 'user_' . $username;
+        }
+        
+        return strtolower($username);
+    }
+
+    /**
      * Create the admin user in the tenant database.
      */
     protected function seedAdminUser(): void
@@ -205,6 +239,7 @@ class ProvisionTenant implements ShouldQueue
             // Password is received in plain text and hashed here
             $user = User::create([
                 'name' => $this->adminData['name'] ?? 'Administrator',
+                'user_name' => $this->adminData['user_name'] ?? $this->generateUsername($this->adminData['email']),
                 'email' => $this->adminData['email'],
                 'password' => Hash::make($this->adminData['password'] ?? 'password'),
                 'active' => true,
@@ -231,6 +266,99 @@ class ProvisionTenant implements ShouldQueue
             }
         } finally {
             // Always end tenancy context
+            tenancy()->end();
+        }
+    }
+
+    /**
+     * Seed roles and permissions for the tenant.
+     */
+    protected function seedRolesAndPermissions(): void
+    {
+        $this->logStep('   → Running ComprehensiveRolePermissionSeeder', []);
+        $this->tenant->updateProvisioningStep('seeding_permissions');
+
+        try {
+            tenancy()->initialize($this->tenant);
+            
+            $seeder = new \Database\Seeders\Tenant\ComprehensiveRolePermissionSeeder();
+            $seeder->run();
+            
+            $this->logStep('   → Roles and permissions seeded successfully', []);
+        } catch (Throwable $e) {
+            $this->logStep("   → Failed to seed roles and permissions: {$e->getMessage()}", [
+                'error' => $e->getMessage(),
+            ], 'error');
+            throw $e;
+        } finally {
+            tenancy()->end();
+        }
+    }
+
+    /**
+     * Seed module permissions for the tenant.
+     */
+    protected function seedModulePermissions(): void
+    {
+        $this->logStep('   → Running ModulePermissionSeeder', []);
+        $this->tenant->updateProvisioningStep('seeding_modules');
+
+        try {
+            tenancy()->initialize($this->tenant);
+            
+            $seeder = new \Database\Seeders\Tenant\ModulePermissionSeeder();
+            $seeder->run();
+            
+            $this->logStep('   → Module permissions seeded successfully', []);
+        } catch (Throwable $e) {
+            $this->logStep("   → Failed to seed module permissions: {$e->getMessage()}", [
+                'error' => $e->getMessage(),
+            ], 'error');
+            throw $e;
+        } finally {
+            tenancy()->end();
+        }
+    }
+
+    /**
+     * Assign Super Administrator role to the admin user.
+     */
+    protected function assignSuperAdminRole(): void
+    {
+        $this->logStep('   → Assigning Super Administrator role to admin user', []);
+        $this->tenant->updateProvisioningStep('assigning_admin_role');
+
+        try {
+            tenancy()->initialize($this->tenant);
+            
+            // Find the first user (admin)
+            $user = \App\Models\User::first();
+            
+            if (!$user) {
+                throw new \Exception('Admin user not found');
+            }
+
+            // Find Super Administrator role
+            $role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
+            
+            if (!$role) {
+                throw new \Exception('Super Administrator role not found');
+            }
+
+            // Clear any existing roles and assign Super Administrator
+            $user->syncRoles([]);
+            $user->assignRole($role);
+            
+            $this->logStep("   → Super Administrator role assigned to user: {$user->email}", [
+                'user_id' => $user->id,
+                'role_id' => $role->id,
+            ]);
+        } catch (Throwable $e) {
+            $this->logStep("   → Failed to assign Super Administrator role: {$e->getMessage()}", [
+                'error' => $e->getMessage(),
+            ], 'error');
+            throw $e;
+        } finally {
             tenancy()->end();
         }
     }

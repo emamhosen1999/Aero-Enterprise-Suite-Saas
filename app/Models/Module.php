@@ -20,6 +20,14 @@ class Module extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * The connection name for the model.
+     * Modules are stored in the landlord database, not tenant databases.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'code',
         'name',

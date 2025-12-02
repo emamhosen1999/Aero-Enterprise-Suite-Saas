@@ -1,23 +1,27 @@
-import React, { useMemo } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import React, { useMemo, useEffect } from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import Checkbox from '@/Components/Checkbox.jsx';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
+import { showToast } from '@/utils/toastUtils.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 export default function Payment({ steps = [], currentStep, savedData = {}, trialDays = 14, baseDomain = 'platform.test', plans = [], modules = [], modulePricing = {} }) {
   const account = savedData.account ?? {};
   const details = savedData.details ?? {};
+  const admin = savedData.admin ?? {};
   const plan = savedData.plan ?? {};
 
   // Find selected plan
   const selectedPlan = plans.find(p => p.id === plan.plan_id);
   
-  // Get selected modules (either from plan or individual selection)
-  const selectedModuleIds = plan.modules ?? [];
+  // Get selected module IDs (could be array of IDs or array of objects)
+  const selectedModuleIds = Array.isArray(plan.modules) ? plan.modules : [];
+  
+  // Filter modules to get selected ones
   const selectedModules = modules.filter(m => selectedModuleIds.includes(m.id));
   
   // Calculate pricing
@@ -26,34 +30,57 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
   
   let estimate = 0;
   let selectedItems = [];
+  let selectionType = '';
   
   if (selectedPlan) {
     // User selected a plan
-    estimate = isAnnual ? selectedPlan.yearly_price : selectedPlan.monthly_price;
-    selectedItems = selectedPlan.modules?.map(m => m.name) || [];
+    const planPrice = isAnnual ? (selectedPlan.yearly_price || 0) : (selectedPlan.monthly_price || 0);
+    estimate = parseFloat(planPrice) || 0;
+    selectedItems = Array.isArray(selectedPlan.modules) ? selectedPlan.modules.map(m => m.name || m) : [];
+    selectionType = 'plan';
+    
+    console.log('Plan pricing:', { selectedPlan, isAnnual, planPrice, estimate });
   } else if (selectedModules.length > 0) {
     // User selected individual modules
     estimate = selectedModules.length * pricePerModule;
     selectedItems = selectedModules.map(m => m.name);
+    selectionType = 'custom';
   }
 
   const { data, setData, post, processing, errors } = useForm({
-    password: '',
-    password_confirmation: '',
     accept_terms: false,
     notify_updates: true,
   });
 
   const { siteName } = useBranding();
+  const { flash } = usePage().props;
 
-  const pricePerModule = plan.billing_cycle === 'yearly' ? modulePricing.yearly ?? 200 : modulePricing.monthly ?? 20;
-  const estimate = (plan.modules?.length || 1) * pricePerModule;
+  // Show flash messages as toasts
+  useEffect(() => {
+    if (flash?.error) {
+      showToast.error(flash.error);
+    }
+    if (flash?.success) {
+      showToast.success(flash.success);
+    }
+  }, [flash]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
     post(route('platform.register.trial.activate'), {
       onError: (errors) => {
         console.error('Activation failed:', errors);
+        
+        // Show specific error messages as toast
+        if (errors.subdomain) {
+          showToast.error(errors.subdomain);
+        } else if (errors.email) {
+          showToast.error(errors.email);
+        } else if (errors.error) {
+          showToast.error(errors.error);
+        } else {
+          showToast.error('Please check the form and try again.');
+        }
       },
     });
   };
@@ -73,7 +100,7 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
       <Head title={`Review & launch - ${siteName || 'aeos365'}`} />
       <section className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-2 sm:space-y-3 text-center">
-          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 4</p>
+          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 5</p>
           <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Review and start your trial.</h1>
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>Payments go live later. Today we just launch your {trialDays}-day sandbox and wire up the modules you picked.</p>
         </div>
@@ -104,14 +131,14 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
                   </div>
                   <p className={`text-2xl sm:text-3xl font-semibold ${palette.heading}`}>${estimate.toLocaleString()}</p>
                   <p className={palette.copy}>Projected per {isAnnual ? 'year' : 'month'} once billing is enabled.</p>
-                  {selectedPlan && (
+                  {selectionType === 'plan' && selectedPlan && (
                     <p className={`text-xs ${palette.badge}`}>
-                      <strong>{selectedPlan.name} Plan</strong> • {selectedItems.length} module{selectedItems.length !== 1 ? 's' : ''}
+                      <strong>{selectedPlan.name} Plan</strong> • {selectedItems.length} module{selectedItems.length !== 1 ? 's' : ''} included
                     </p>
                   )}
-                  {!selectedPlan && selectedItems.length > 0 && (
+                  {selectionType === 'custom' && selectedItems.length > 0 && (
                     <p className={`text-xs ${palette.badge}`}>
-                      <strong>Custom Plan</strong> • {selectedItems.length} module{selectedItems.length !== 1 ? 's' : ''}
+                      <strong>Custom Selection</strong> • {selectedItems.length} module{selectedItems.length !== 1 ? 's' : ''} at ${pricePerModule}/{isAnnual ? 'year' : 'month'} each
                     </p>
                   )}
                   <ul className={`space-y-1 ${palette.copy}`}>
@@ -132,38 +159,10 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
             <Card className={`${palette.surface} text-xs sm:text-sm`}>
               <CardBody className="space-y-3 sm:space-y-4">
                 <div>
-                  <p className={`font-semibold ${palette.heading}`}>Set your admin password</p>
-                  <p className={`text-xs sm:text-sm ${palette.copy} break-all`}>This will be your super-admin login for {details.subdomain}.{baseDomain}</p>
-                </div>
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
-                  <Input
-                    type="password"
-                    label="Password"
-                    placeholder="Create a secure password"
-                    value={data.password}
-                    onChange={(event) => setData('password', event.target.value)}
-                    isInvalid={Boolean(errors.password)}
-                    errorMessage={errors.password}
-                    isRequired
-                    classNames={{
-                      label: 'text-xs sm:text-sm',
-                      input: 'text-sm sm:text-base'
-                    }}
-                  />
-                  <Input
-                    type="password"
-                    label="Confirm password"
-                    placeholder="Repeat your password"
-                    value={data.password_confirmation}
-                    onChange={(event) => setData('password_confirmation', event.target.value)}
-                    isInvalid={Boolean(errors.password_confirmation)}
-                    errorMessage={errors.password_confirmation}
-                    isRequired
-                    classNames={{
-                      label: 'text-xs sm:text-sm',
-                      input: 'text-sm sm:text-base'
-                    }}
-                  />
+                  <p className={`font-semibold ${palette.heading}`}>Administrator Login</p>
+                  <p className={`text-xs sm:text-sm ${palette.copy} break-all`}>
+                    <strong>{admin.name}</strong> ({admin.username}) will be able to login at {details.subdomain}.{baseDomain}
+                  </p>
                 </div>
               </CardBody>
             </Card>
@@ -179,20 +178,6 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
                 </ol>
               </CardBody>
             </Card>
-
-            {(errors.subdomain || errors.email || errors.error) && (
-              <Card className="bg-red-500/10 border border-red-500/20">
-                <CardBody className="space-y-2">
-                  <p className="font-semibold text-red-600 dark:text-red-400">⚠️ Unable to create workspace</p>
-                  {errors.subdomain && <p className="text-sm text-red-600 dark:text-red-400">{errors.subdomain}</p>}
-                  {errors.email && <p className="text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
-                  {errors.error && <p className="text-sm text-red-600 dark:text-red-400">{errors.error}</p>}
-                  <p className="text-xs text-red-600/80 dark:text-red-400/80">
-                    Please go back to the Details step and use a different subdomain or email address.
-                  </p>
-                </CardBody>
-              </Card>
-            )}
 
             <div className="space-y-3 sm:space-y-4">
               <Checkbox

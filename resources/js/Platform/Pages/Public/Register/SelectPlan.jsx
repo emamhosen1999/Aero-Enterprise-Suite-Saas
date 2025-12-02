@@ -6,6 +6,7 @@ import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
+import { showToast } from '@/utils/toastUtils.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 export default function SelectPlan({ steps = [], currentStep, savedData = {}, plans = [], modules = [], modulePricing = {} }) {
@@ -56,8 +57,24 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
     [moduleList, modulesList]
   );
 
+  // Check if any selection is made - ensure it's reactive to data changes
+  const hasSelection = useMemo(() => {
+    const hasPlan = Boolean(data.plan_id);
+    const hasModules = Array.isArray(data.modules) && data.modules.length > 0;
+    const result = hasPlan || hasModules;
+    console.log('hasSelection check:', { hasPlan, hasModules, result, plan_id: data.plan_id, modules: data.modules });
+    return result;
+  }, [data.plan_id, data.modules]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
+    
+    // Validate that at least one selection is made
+    if (!hasSelection) {
+      showToast.warning('Please select a plan or at least one module to continue.');
+      return;
+    }
+    
     post(route('platform.register.plan.store'));
   };
 
@@ -80,7 +97,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
       <Head title={`Choose modules - ${siteName || 'aeos365'}`} />
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-2 sm:space-y-3 text-center">
-          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 3</p>
+          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 4</p>
           <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Choose Your Plan & Modules</h1>
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>Select a pre-configured plan or customize with individual modules. Core platform features are always included.</p>
         </div>
@@ -307,7 +324,13 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                 <Link href={route('platform.register.details')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
                   ← Back to details
                 </Link>
-                <Button type="submit" color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" isLoading={processing}>
+                <Button 
+                  type="submit" 
+                  color="primary" 
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" 
+                  isLoading={processing}
+                  isDisabled={processing || !hasSelection}
+                >
                   Review & launch trial
                 </Button>
               </div>

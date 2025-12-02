@@ -19,6 +19,8 @@ class SubModule extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $connection = 'mysql'; // Landlord database - module structure is centralized
+
     protected $fillable = [
         'module_id',
         'code',
@@ -28,12 +30,10 @@ class SubModule extends Model
         'route',
         'priority',
         'is_active',
-        'settings',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'settings' => 'array',
         'priority' => 'integer',
     ];
 

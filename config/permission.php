@@ -116,9 +116,13 @@ return [
      * For EOS365 Multi-Tenant SaaS, we use 'tenant_id' as the team foreign key.
      * This ensures roles and permissions are scoped per tenant, preventing
      * cross-tenant permission leakage.
+     * 
+     * NOTE: Set to false for tenant databases since each tenant database is already
+     * isolated. Teams feature is only needed in the landlord database if using
+     * central permission management.
      */
 
-    'teams' => true,
+    'teams' => false,
 
     /*
      * Passport Client Credentials Grant

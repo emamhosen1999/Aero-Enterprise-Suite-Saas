@@ -31,6 +31,14 @@ class Plan extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     /**
+     * The connection name for the model.
+     * Plans are stored in the landlord database, not tenant databases.
+     *
+     * @var string
+     */
+    protected $connection = 'mysql';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<string>

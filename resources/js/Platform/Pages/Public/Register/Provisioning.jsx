@@ -5,6 +5,7 @@ import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
+import { showToast } from '@/utils/toastUtils.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 /**
@@ -128,11 +129,22 @@ export default function Provisioning({
       }
 
       if (data.has_failed) {
-        setError(data.error || 'Provisioning failed. Please contact support.');
+        const errorMessage = data.error || 'Provisioning failed. Please contact support.';
+        setError(errorMessage);
+        showToast.error(errorMessage, {
+          autoClose: false,
+          closeButton: true,
+        });
       }
     } catch (err) {
       console.error('Status fetch error:', err);
       // Don't set error state for fetch errors - keep polling
+      // Only show toast for repeated failures
+      if (status === 'failed') {
+        showToast.error('Unable to check provisioning status. Please refresh the page.', {
+          autoClose: 5000,
+        });
+      }
     }
   }, [tenant.id, status, isRedirecting]);
 

@@ -37,16 +37,47 @@ class RegistrationController extends Controller
 
         $this->registrationSession->putStep('details', $request->validated());
 
-        return to_route('platform.register.plan');
+        return to_route('platform.register.admin');
     }
 
-    public function storePlan(RegistrationPlanRequest $request): RedirectResponse
+    public function storeAdmin(\Illuminate\Http\Request $request): RedirectResponse
     {
         if (! $this->registrationSession->ensureSteps(['account', 'details'])) {
             return to_route('platform.register.index');
         }
 
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9_]+$/'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $this->registrationSession->putStep('admin', $validated);
+
+        return to_route('platform.register.plan');
+    }
+
+    public function storePlan(RegistrationPlanRequest $request): RedirectResponse
+    {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin'])) {
+            return to_route('platform.register.index');
+        }
+
         $payload = $request->validated();
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin'])) {
+            return to_route('platform.register.index');
+        }
+
+        $payload = $request->validated();
+
+        // Validate that at least one selection is made (plan OR modules)
+        if (empty($payload['plan_id']) && empty($payload['modules'])) {
+            return back()->withErrors([
+                'selection' => 'Please select a plan or at least one module to continue.',
+            ])->withInput();
+        }
+
         $this->registrationSession->putStep('plan', $payload);
 
         // Payment is deferred; go straight to review page for now.
@@ -66,7 +97,7 @@ class RegistrationController extends Controller
      */
     public function activateTrial(RegistrationTrialRequest $request): RedirectResponse
     {
-        if (! $this->registrationSession->ensureSteps(['account', 'details', 'plan'])) {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'plan'])) {
             return to_route('platform.register.index');
         }
 
@@ -93,9 +124,10 @@ class RegistrationController extends Controller
 
         // Build admin data to pass directly to job (never stored in database)
         $adminData = [
-            'name' => $trialData['admin_name'] ?? $payload['details']['owner_name'] ?? $payload['details']['name'] ?? 'Administrator',
-            'email' => $trialData['admin_email'] ?? $payload['details']['owner_email'] ?? $payload['details']['email'],
-            'password' => $trialData['password'], // Plain text - job will hash it
+            'name' => $payload['admin']['name'],
+            'user_name' => $payload['admin']['username'],
+            'email' => $payload['admin']['email'],
+            'password' => $payload['admin']['password'], // Plain text - job will hash it
         ];
 
         try {
