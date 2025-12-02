@@ -955,7 +955,7 @@ return new class extends Migration
                 $table->timestamp('evaluated_at')->nullable();
                 $table->timestamps();
 
-                $table->unique(['assignment_id', 'enrollment_id']);
+                $table->unique(['assignment_id', 'enrollment_id'], 'train_assign_sub_uniq');
             });
         }
 

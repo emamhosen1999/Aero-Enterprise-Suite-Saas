@@ -8,13 +8,34 @@ import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
-export default function Payment({ steps = [], currentStep, savedData = {}, trialDays = 14, baseDomain = 'platform.test', modulesCatalog = [], modulePricing = {} }) {
+export default function Payment({ steps = [], currentStep, savedData = {}, trialDays = 14, baseDomain = 'platform.test', plans = [], modules = [], modulePricing = {} }) {
   const account = savedData.account ?? {};
   const details = savedData.details ?? {};
   const plan = savedData.plan ?? {};
 
-  const catalogMap = useMemo(() => Object.fromEntries(modulesCatalog.map((module) => [module.code, module])), [modulesCatalog]);
-  const selectedModules = (plan.modules ?? []).map((code) => catalogMap[code]?.name ?? code.toUpperCase());
+  // Find selected plan
+  const selectedPlan = plans.find(p => p.id === plan.plan_id);
+  
+  // Get selected modules (either from plan or individual selection)
+  const selectedModuleIds = plan.modules ?? [];
+  const selectedModules = modules.filter(m => selectedModuleIds.includes(m.id));
+  
+  // Calculate pricing
+  const isAnnual = plan.billing_cycle === 'yearly';
+  const pricePerModule = isAnnual ? modulePricing.yearly ?? 200 : modulePricing.monthly ?? 20;
+  
+  let estimate = 0;
+  let selectedItems = [];
+  
+  if (selectedPlan) {
+    // User selected a plan
+    estimate = isAnnual ? selectedPlan.yearly_price : selectedPlan.monthly_price;
+    selectedItems = selectedPlan.modules?.map(m => m.name) || [];
+  } else if (selectedModules.length > 0) {
+    // User selected individual modules
+    estimate = selectedModules.length * pricePerModule;
+    selectedItems = selectedModules.map(m => m.name);
+  }
 
   const { data, setData, post, processing, errors } = useForm({
     password: '',
@@ -30,7 +51,11 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    post(route('platform.register.trial.activate'));
+    post(route('platform.register.trial.activate'), {
+      onError: (errors) => {
+        console.error('Activation failed:', errors);
+      },
+    });
   };
 
   const { themeSettings } = useTheme();
@@ -78,14 +103,27 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
                     <Chip size="sm" color="success" variant="flat" className="text-[10px] sm:text-xs">{trialDays}-day trial</Chip>
                   </div>
                   <p className={`text-2xl sm:text-3xl font-semibold ${palette.heading}`}>${estimate.toLocaleString()}</p>
-                  <p className={palette.copy}>Projected per {plan.billing_cycle === 'yearly' ? 'year' : 'month'} once billing is enabled.</p>
+                  <p className={palette.copy}>Projected per {isAnnual ? 'year' : 'month'} once billing is enabled.</p>
+                  {selectedPlan && (
+                    <p className={`text-xs ${palette.badge}`}>
+                      <strong>{selectedPlan.name} Plan</strong> • {selectedItems.length} module{selectedItems.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                  {!selectedPlan && selectedItems.length > 0 && (
+                    <p className={`text-xs ${palette.badge}`}>
+                      <strong>Custom Plan</strong> • {selectedItems.length} module{selectedItems.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
                   <ul className={`space-y-1 ${palette.copy}`}>
-                    {selectedModules.map((module) => (
-                      <li key={module} className="flex items-center gap-2">
+                    {selectedItems.map((module, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
                         <span className="inline-block h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-emerald-400 shrink-0" />
                         <span className="break-words">{module}</span>
                       </li>
                     ))}
+                    {selectedItems.length === 0 && (
+                      <li className={`text-xs ${palette.badge}`}>No modules selected</li>
+                    )}
                   </ul>
                 </CardBody>
               </Card>
@@ -141,6 +179,20 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
                 </ol>
               </CardBody>
             </Card>
+
+            {(errors.subdomain || errors.email || errors.error) && (
+              <Card className="bg-red-500/10 border border-red-500/20">
+                <CardBody className="space-y-2">
+                  <p className="font-semibold text-red-600 dark:text-red-400">⚠️ Unable to create workspace</p>
+                  {errors.subdomain && <p className="text-sm text-red-600 dark:text-red-400">{errors.subdomain}</p>}
+                  {errors.email && <p className="text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
+                  {errors.error && <p className="text-sm text-red-600 dark:text-red-400">{errors.error}</p>}
+                  <p className="text-xs text-red-600/80 dark:text-red-400/80">
+                    Please go back to the Details step and use a different subdomain or email address.
+                  </p>
+                </CardBody>
+              </Card>
+            )}
 
             <div className="space-y-3 sm:space-y-4">
               <Checkbox

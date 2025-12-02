@@ -46,12 +46,4 @@ return new class extends Migration
         Schema::dropIfExists('employee_shift_schedule');
         Schema::dropIfExists('shift_schedules');
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('shift_schedules');
-    }
 };

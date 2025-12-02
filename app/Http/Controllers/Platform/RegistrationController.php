@@ -74,6 +74,23 @@ class RegistrationController extends Controller
         $trialData = $request->validated();
         $payload['trial'] = $trialData;
 
+        // Re-validate subdomain and email uniqueness before attempting tenant creation
+        // This prevents duplicate errors if user goes back and re-submits
+        $subdomain = $payload['details']['subdomain'] ?? null;
+        $email = $payload['details']['email'] ?? null;
+
+        if ($subdomain && \App\Models\Tenant::where('subdomain', $subdomain)->exists()) {
+            return back()->withErrors([
+                'subdomain' => 'This subdomain is already taken. Please choose a different one.',
+            ])->withInput();
+        }
+
+        if ($email && \App\Models\Tenant::where('email', $email)->exists()) {
+            return back()->withErrors([
+                'email' => 'This email is already registered. Please use a different email.',
+            ])->withInput();
+        }
+
         // Build admin data to pass directly to job (never stored in database)
         $adminData = [
             'name' => $trialData['admin_name'] ?? $payload['details']['owner_name'] ?? $payload['details']['name'] ?? 'Administrator',
@@ -81,19 +98,41 @@ class RegistrationController extends Controller
             'password' => $trialData['password'], // Plain text - job will hash it
         ];
 
-        // Wrap tenant creation and job dispatch in a transaction
-        // If job dispatch fails, tenant record is rolled back
-        $tenant = \Illuminate\Support\Facades\DB::transaction(function () use ($payload, $adminData) {
-            // Create tenant with pending status (no admin_data stored)
-            $tenant = $this->tenantProvisioner->createFromRegistration($payload);
+        try {
+            // Wrap tenant creation and job dispatch in a transaction
+            // If job dispatch fails, tenant record is rolled back
+            $tenant = \Illuminate\Support\Facades\DB::transaction(function () use ($payload, $adminData) {
+                // Create tenant with pending status (no admin_data stored)
+                $tenant = $this->tenantProvisioner->createFromRegistration($payload);
 
-            // Dispatch async provisioning job with admin credentials
-            // Using dispatchSync would defeat the purpose, so we dispatch normally
-            // but the transaction ensures the tenant is only committed if dispatch succeeds
-            ProvisionTenant::dispatch($tenant, $adminData);
+                // Dispatch async provisioning job with admin credentials
+                // Using dispatchSync would defeat the purpose, so we dispatch normally
+                // but the transaction ensures the tenant is only committed if dispatch succeeds
+                ProvisionTenant::dispatch($tenant, $adminData);
 
-            return $tenant;
-        });
+                return $tenant;
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle duplicate entry or other database errors gracefully
+            \Illuminate\Support\Facades\Log::error('Tenant creation failed', [
+                'error' => $e->getMessage(),
+                'subdomain' => $subdomain,
+                'email' => $email,
+            ]);
+
+            return back()->withErrors([
+                'error' => 'Failed to create workspace. The subdomain or email may already be in use. Please try again.',
+            ])->withInput();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Unexpected error during tenant creation', [
+                'error' => $e->getMessage(),
+                'subdomain' => $subdomain,
+            ]);
+
+            return back()->withErrors([
+                'error' => 'An unexpected error occurred. Please try again or contact support.',
+            ])->withInput();
+        }
 
         // Store provisioning info for the waiting room
         $this->registrationSession->rememberSuccess([

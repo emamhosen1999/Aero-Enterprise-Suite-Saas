@@ -19,7 +19,7 @@ class RegistrationPageController extends Controller
         ['key' => 'details', 'label' => 'Company Details', 'route' => 'platform.register.details'],
         ['key' => 'plan', 'label' => 'Modules & Plan', 'route' => 'platform.register.plan'],
         ['key' => 'payment', 'label' => 'Review', 'route' => 'platform.register.payment'],
-        ['key' => 'success', 'label' => 'Workspace Ready', 'route' => 'platform.register.success'],
+        ['key' => 'provisioning', 'label' => 'Setting Up', 'route' => 'platform.register.provisioning'],
     ];
 
     public function __construct(private TenantRegistrationSession $registrationSession) {}
@@ -111,11 +111,40 @@ class RegistrationPageController extends Controller
             return to_route('platform.register.index');
         }
 
+        // Fetch plans to display selected plan details
+        $plans = \App\Models\Plan::with(['modules' => function ($query) {
+            $query->select('modules.id', 'modules.code', 'modules.name')
+                ->where('is_active', true);
+        }])
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($plan) {
+                return [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'monthly_price' => $plan->monthly_price,
+                    'yearly_price' => $plan->yearly_price,
+                    'modules' => $plan->modules->map(fn ($m) => [
+                        'id' => $m->id,
+                        'code' => $m->code,
+                        'name' => $m->name,
+                    ]),
+                ];
+            });
+
+        // Fetch modules for display
+        $modules = \App\Models\Module::where('is_active', true)
+            ->where('is_core', false)
+            ->select('id', 'code', 'name')
+            ->get();
+
         return $this->render('Public/Register/Payment', 'payment', [
             'trialDays' => (int) config('platform.trial_days', 14),
             'baseDomain' => config('platform.central_domain'),
-            'modulesCatalog' => config('platform.registration.modules', []),
-            'modulePricing' => config('platform.registration.module_pricing', []),
+            'plans' => $plans,
+            'modules' => $modules,
+            'modulePricing' => config('platform.registration.module_pricing', ['monthly' => 20, 'yearly' => 200]),
         ]);
     }
 
