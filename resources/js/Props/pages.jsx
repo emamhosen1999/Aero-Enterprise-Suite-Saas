@@ -46,52 +46,71 @@ export const getPages = (roles, permissions, auth = null) => {
   const isOnlyEmployee = roles?.length === 1 && roles[0] === 'Employee';
   console.log(roles, isOnlyEmployee? 'Only Employee': "Not only Employee");
 
-  // 2. Define the shared items list (so we don't write it twice)
-  const workspaceItems = [
-   
-    ...(permissions.includes('attendance.own.view') ? [
-      { name: 'Attendance', icon: <CalendarDaysIcon />, route: 'attendance-employee' }
-    ] : []),
-    ...(permissions.includes('leave.own.view') ? [
-      { name: 'Leaves', icon: <ArrowRightOnRectangleIcon />, route: 'leaves-employee' }
-    ] : []),
-    ...(permissions.includes('communications.own.view') ? [
-      { name: 'Communications', icon: <EnvelopeIcon />, route: 'emails' },
-    ] : []),
+  // 2. Define employee self-service items for direct menu placement
+  const employeeSelfServiceItems = [
+    ...(permissions.includes('attendance.own.view') ? [{
+      name: 'My Attendance',
+      icon: <CalendarDaysIcon className="" />,
+      route: 'attendance-employee',
+      priority: 10,
+      module: 'self-service'
+    }] : []),
+    ...(permissions.includes('leave.own.view') ? [{
+      name: 'My Leaves',
+      icon: <ArrowRightOnRectangleIcon className="" />,
+      route: 'leaves-employee',
+      priority: 11,
+      module: 'self-service'
+    }] : []),
+    ...(permissions.includes('communications.own.view') ? [{
+      name: 'Communications',
+      icon: <EnvelopeIcon className="" />,
+      route: 'emails',
+      priority: 12,
+      module: 'self-service'
+    }] : []),
   ];
 
   return [
-    // 1. Dashboard (ISO 9000 - Information Management)
-    ...(permissions.includes('core.dashboard.view') ? [{
-      name: 'Dashboard',
+    // 1. Dashboards Section
+    ...((permissions.includes('core.dashboard.view') || 
+        permissions.includes('hr.dashboard.view') || 
+        permissions.includes('employee.dashboard.view') ||
+        isOnlyEmployee) ? [{
+      name: 'Dashboards',
       icon: <HomeIcon className="" />, 
-      route: 'dashboard',
       priority: 1,
-      module: 'core'
+      module: 'dashboards',
+      subMenu: [
+        ...(permissions.includes('core.dashboard.view') ? [
+          { name: 'Main Dashboard', icon: <HomeIcon />, route: 'dashboard' }
+        ] : []),
+        ...(permissions.includes('hr.dashboard.view') ? [
+          { name: 'HR Dashboard', icon: <UserGroupIcon />, route: 'hr.dashboard' }
+        ] : []),
+        ...(isOnlyEmployee || permissions.includes('employee.dashboard.view') ? [
+          { name: 'Employee Dashboard', icon: <UserIcon />, route: 'employee.dashboard' }
+        ] : []),
+      ]
     }] : []),
-    // 2. Workspace (Self-Service)
-    ...(workspaceItems.length > 0 ? (
-        isOnlyEmployee 
-          ? workspaceItems 
-          : [{
-              name: 'Workspace',
-              icon: <UserGroupIcon className="" />,
-              priority: 2,
-              module: 'self-service',
-              subMenu: workspaceItems
-            }]
-      ) : []),
-    // 3. HR (Human Resources) - Reorganized with submodule groups
+    
+    // 2. Employee Self-Service (Direct menu items for employees)
+    ...(isOnlyEmployee ? employeeSelfServiceItems : []),
+    
+    // 3. HRM (Human Resources Management) - Complete with all submodules
     ...((permissions.includes('employees.view') || 
         permissions.includes('hr.onboarding.view') || 
         permissions.includes('hr.skills.view') || 
         permissions.includes('hr.benefits.view') || 
         permissions.includes('hr.safety.view') || 
         permissions.includes('hr.analytics.view') || 
+        permissions.includes('hr.payroll.view') ||
+        permissions.includes('attendance.view') ||
+        permissions.includes('leaves.view') ||
         permissions.includes('hr.documents.view')) ? [{
-      name: 'HR',
+      name: 'HRM',
       icon: <UserGroupIcon className="" />,
-      priority: 3,
+      priority: 20,
       module: 'hrm',
       subMenu: [
         // Core Employee Management
@@ -221,7 +240,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('event.view') ? [{
       name: 'Events',
       icon: <CalendarIcon className="" />,
-      priority: 4,
+      priority: 30,
       module: 'events',
       subMenu: [
         { name: 'All Events', icon: <CalendarIcon  />, route: 'events.index' },
@@ -237,7 +256,7 @@ export const getPages = (roles, permissions, auth = null) => {
         permissions.includes('project-management.budget.view')) ? [{
       name: 'Projects',
       icon: <BriefcaseIcon className="" />,
-      priority: 5,
+      priority: 35,
       module: 'project-management',
       subMenu: [
         // Dashboard
@@ -297,7 +316,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('dms.view') ? [{
       name: 'Documents',
       icon: <FolderIcon className="" />,
-      priority: 6,
+      priority: 40,
       module: 'dms',
       subMenu: [
         { name: 'Overview', icon: <HomeIcon  />, route: 'dms.index' },
@@ -316,7 +335,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('crm.view') ? [{
       name: 'CRM',
       icon: <UserIcon className="" />,
-      priority: 7,
+      priority: 45,
       module: 'crm',
       subMenu: [
         ...(permissions.includes('crm.customers.view') ? [{ name: 'Customers', icon: <UserGroupIcon  />, route: 'crm.customers.index' }] : []),
@@ -329,7 +348,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('fms.view') ? [{
       name: 'Finance',
       icon: <BanknotesIcon className="" />,
-      priority: 8,
+      priority: 50,
       module: 'fms',
       subMenu: [
         ...(permissions.includes('fms.transactions.view') ? [{ name: 'Transactions', icon: <CreditCardIcon  />, route: 'fms.transactions.index' }] : []),
@@ -343,7 +362,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('pos.view') ? [{
       name: 'POS',
       icon: <ShoppingCartIcon className="" />,
-      priority: 9,
+      priority: 55,
       module: 'pos',
       subMenu: [
         ...(permissions.includes('pos.sales.view') ? [{ name: 'Sales', icon: <ShoppingCartIcon  />, route: 'pos.sales.index' }] : []),
@@ -356,7 +375,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('inventory.view') ? [{
       name: 'Inventory',
       icon: <ArchiveBoxIcon className="" />,
-      priority: 10,
+      priority: 60,
       module: 'ims',
       subMenu: [
         ...(permissions.includes('inventory.view') ? [{ name: 'Overview', icon: <HomeIcon  />, route: 'ims.index' }] : []),
@@ -372,7 +391,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('lms.view') ? [{
       name: 'Learning',
       icon: <AcademicCapIcon className="" />,
-      priority: 11,
+      priority: 65,
       module: 'lms',
       subMenu: [
         ...(permissions.includes('lms.view') ? [{ name: 'Overview', icon: <HomeIcon  />, route: 'lms.dashboard' }] : []),
@@ -385,7 +404,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('scm.view') ? [{
       name: 'SCM',
       icon: <TruckIcon className="" />,
-      priority: 12,
+      priority: 70,
       module: 'scm',
       subMenu: [
         ...(permissions.includes('scm.suppliers.view') ? [{ name: 'Suppliers', icon: <UserGroupIcon  />, route: 'scm.suppliers.index' }] : []),
@@ -398,7 +417,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('sales.view') ? [{
       name: 'Sales',
       icon: <ShoppingBagIcon className="" />,
-      priority: 13,
+      priority: 75,
       module: 'sales',
       subMenu: [
         ...(permissions.includes('sales.orders.view') ? [{ name: 'Orders', icon: <ClipboardDocumentCheckIcon  />, route: 'sales.orders.index' }] : []),
@@ -411,7 +430,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('helpdesk.view') ? [{
       name: 'Helpdesk',
       icon: <TicketIcon className="" />,
-      priority: 14,
+      priority: 80,
       module: 'helpdesk',
       subMenu: [
         ...(permissions.includes('helpdesk.tickets.view') ? [{ name: 'Tickets', icon: <TicketIcon  />, route: 'helpdesk.tickets.index' }] : []),
@@ -423,7 +442,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('assets.view') ? [{
       name: 'Assets',
       icon: <ComputerDesktopIcon className="" />,
-      priority: 15,
+      priority: 85,
       module: 'assets',
       subMenu: [
         ...(permissions.includes('assets.items.view') ? [{ name: 'Items', icon: <ComputerDesktopIcon  />, route: 'assets.items.index' }] : []),
@@ -435,7 +454,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('compliance.view') ? [{
       name: 'Compliance',
       icon: <ShieldCheckIcon className="" />,
-      priority: 16,
+      priority: 90,
       module: 'compliance',
       subMenu: [
         ...(permissions.includes('compliance.dashboard.view') ? [{ name: 'Overview', icon: <ChartBarSquareIcon  />, route: 'compliance.dashboard' }] : []),
@@ -451,7 +470,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('procurement.view') ? [{
       name: 'Procurement',
       icon: <ShoppingBagIcon className="" />,
-      priority: 17,
+      priority: 95,
       module: 'procurement',
       subMenu: [
         ...(permissions.includes('procurement.purchase-orders.view') ? [{ name: 'POs', icon: <ShoppingCartIcon  />, route: 'procurement.purchase-orders.index' }] : []),
@@ -464,7 +483,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('quality.view') ? [{
       name: 'Quality',
       icon: <BeakerIcon className="" />,
-      priority: 18,
+      priority: 100,
       module: 'quality',
       subMenu: [
         ...(permissions.includes('quality.inspections.view') ? [{ name: 'Inspections', icon: <ClipboardDocumentCheckIcon  />, route: 'quality.inspections.index' }] : []),
@@ -477,7 +496,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('analytics.view') ? [{
       name: 'Analytics',
       icon: <ChartBarSquareIcon className="" />,
-      priority: 19,
+      priority: 105,
       module: 'analytics',
       subMenu: [
         ...(permissions.includes('analytics.reports.view') ? [{ name: 'Reports', icon: <DocumentTextIcon  />, route: 'analytics.reports.index' }] : []),
@@ -489,7 +508,7 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(permissions.includes('users.view') || permissions.includes('settings.view') || permissions.includes('roles.view') || permissions.includes('modules.view') ? [{
       name: 'Admin',
       icon: <Cog6ToothIcon className="" />,
-      priority: 20,
+      priority: 110,
       module: 'admin',
       subMenu: [
         ...(permissions.includes('users.view') ? [{ name: 'Users', icon: <UsersIcon  />, route: 'users' }] : []),

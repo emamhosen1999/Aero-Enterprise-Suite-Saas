@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Leave\LeaveApproved;
+use App\Events\Leave\LeaveCancelled;
+use App\Events\Leave\LeaveRejected;
+use App\Events\Leave\LeaveRequested;
 use App\Http\Resources\LeaveResource;
 use App\Http\Resources\LeaveResourceCollection;
 use App\Models\HRM\Department;
@@ -9,6 +13,7 @@ use App\Models\HRM\Leave;
 use App\Models\HRM\LeaveSetting;
 use App\Models\User;
 use App\Services\Leave\LeaveApprovalService;
+use App\Services\Leave\LeaveBalanceService;
 use App\Services\Leave\LeaveCrudService;
 use App\Services\Leave\LeaveOverlapService;
 use App\Services\Leave\LeaveQueryService;
@@ -36,13 +41,16 @@ class LeaveController extends Controller
 
     protected LeaveApprovalService $approvalService;
 
+    protected LeaveBalanceService $balanceService;
+
     public function __construct(
         LeaveValidationService $validationService,
         LeaveOverlapService $overlapService,
         LeaveCrudService $crudService,
         LeaveQueryService $queryService,
         LeaveSummaryService $summaryService,
-        LeaveApprovalService $approvalService
+        LeaveApprovalService $approvalService,
+        LeaveBalanceService $balanceService
     ) {
         $this->validationService = $validationService;
         $this->overlapService = $overlapService;
@@ -50,6 +58,7 @@ class LeaveController extends Controller
         $this->queryService = $queryService;
         $this->summaryService = $summaryService;
         $this->approvalService = $approvalService;
+        $this->balanceService = $balanceService;
     }
 
     public function index1(): \Inertia\Response
@@ -139,6 +148,27 @@ class LeaveController extends Controller
             $fromDate = Carbon::parse($request->input('fromDate'));
             $toDate = Carbon::parse($request->input('toDate'));
             $userId = $request->input('user_id');
+            $daysCount = $request->input('daysCount');
+            $leaveTypeString = $request->input('leaveType');
+
+            // Get leave type ID
+            $leaveTypeId = LeaveSetting::where('type', $leaveTypeString)->value('id');
+            if (! $leaveTypeId) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Invalid leave type selected',
+                ], 422);
+            }
+
+            // Check for sufficient leave balance
+            $user = User::findOrFail($userId);
+            if (! $this->balanceService->hasSufficientBalance($user, $leaveTypeId, $daysCount, $fromDate->year)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Insufficient leave balance. Please check your available leave days.',
+                    'message' => 'Insufficient leave balance',
+                ], 422);
+            }
 
             // Check for overlapping leaves
             $overlapError = $this->overlapService->getOverlapErrorMessage($userId, $fromDate, $toDate);
@@ -152,6 +182,9 @@ class LeaveController extends Controller
 
             // Create new leave
             $newLeave = $this->crudService->createLeave($request->all());
+
+            // Fire event to update balance
+            event(new LeaveRequested($newLeave));
 
             // Get updated leave records using the same service as paginate method
             $leaveData = $this->queryService->getLeaveRecords($request);
@@ -225,11 +258,26 @@ class LeaveController extends Controller
 
     public function updateStatus(Request $request)
     {
+        $leaveId = $request->input('id');
+        $status = $request->input('status');
+
         $result = $this->crudService->updateLeaveStatus(
-            $request->input('id'),
-            $request->input('status'),
+            $leaveId,
+            $status,
             Auth::id()
         );
+
+        // Fire appropriate event for balance tracking
+        if ($result['success']) {
+            $leave = Leave::find($leaveId);
+            if ($leave) {
+                if ($status === 'Approved') {
+                    event(new LeaveApproved($leave));
+                } elseif ($status === 'Rejected') {
+                    event(new LeaveRejected($leave));
+                }
+            }
+        }
 
         return response()->json(['message' => $result['message']]);
     }
@@ -238,7 +286,17 @@ class LeaveController extends Controller
     {
         try {
             $this->validationService->validateDeleteRequest($request);
-            $this->crudService->deleteLeave($request->query('id'));
+            $leaveId = $request->query('id');
+
+            // Get leave before deletion to fire event
+            $leave = Leave::find($leaveId);
+
+            $this->crudService->deleteLeave($leaveId);
+
+            // Fire cancellation event for balance tracking
+            if ($leave) {
+                event(new LeaveCancelled($leave));
+            }
 
             $leaveData = $this->queryService->getLeaveRecords($request);
 
@@ -630,5 +688,46 @@ class LeaveController extends Controller
                     'reason' => null,
                 ];
             });
+    }
+
+    /**
+     * Get leave balances for a user
+     */
+    public function getBalances(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $userId = $request->input('user_id', Auth::id());
+            $year = $request->input('year', now()->year);
+
+            $user = User::findOrFail($userId);
+            $balances = $this->balanceService->getAllBalances($user, $year);
+
+            return response()->json([
+                'success' => true,
+                'balances' => $balances->map(function ($balance) {
+                    return [
+                        'id' => $balance->id,
+                        'leave_type' => $balance->leaveSetting->name,
+                        'leave_type_code' => $balance->leaveSetting->code,
+                        'leave_setting_id' => $balance->leave_setting_id,
+                        'year' => $balance->year,
+                        'allocated' => (float) $balance->allocated,
+                        'used' => (float) $balance->used,
+                        'pending' => (float) $balance->pending,
+                        'available' => (float) $balance->available,
+                        'carried_forward' => (float) $balance->carried_forward,
+                        'encashed' => (float) $balance->encashed,
+                    ];
+                }),
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to fetch leave balances',
+                'details' => config('app.debug') ? $e->getMessage() : 'Internal server error',
+            ], 500);
+        }
     }
 }

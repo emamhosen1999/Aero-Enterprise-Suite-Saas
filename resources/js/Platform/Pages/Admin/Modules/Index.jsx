@@ -77,7 +77,7 @@ const ModulesIndex = () => {
 
   return (
     <>
-      <Head title="Modules" />
+      <Head title="Modules - Admin" />
       <div className="flex flex-col w-full h-full p-4">
         <div className="space-y-4">
           {/* Single Parent Card - matching tenant Employee page structure */}

@@ -7,7 +7,6 @@ use App\Http\Requests\Settings\UpdatePlatformSettingRequest;
 use App\Http\Resources\PlatformSettingResource;
 use App\Models\PlatformSetting;
 use App\Services\Settings\PlatformSettingService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -60,6 +59,8 @@ class PlatformSettingController extends Controller
             $request->validated(),
             [
                 'logo' => $request->file('logo'),
+                'logo_light' => $request->file('logo_light'),
+                'logo_dark' => $request->file('logo_dark'),
                 'square_logo' => $request->file('square_logo'),
                 'favicon' => $request->file('favicon'),
                 'social' => $request->file('social'),

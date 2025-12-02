@@ -49,8 +49,6 @@ class LoginController extends Controller
 
     /**
      * Get list of available OAuth providers.
-     *
-     * @return array
      */
     protected function getAvailableOAuthProviders(): array
     {
@@ -132,9 +130,9 @@ class LoginController extends Controller
 
         // Find user
         $user = User::where('email', $email)->first();
-        
+
         // DEBUG: Log user lookup result
-        \Log::info("USER LOOKUP - Found: " . ($user ? 'YES (ID: ' . $user->id . ')' : 'NO'));
+        \Log::info('USER LOOKUP - Found: '.($user ? 'YES (ID: '.$user->id.')' : 'NO'));
 
         // Validate credentials
         if (! $user || ! Hash::check($password, $user->password)) {

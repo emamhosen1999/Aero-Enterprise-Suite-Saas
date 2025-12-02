@@ -43,7 +43,7 @@ class SocialAuthController extends Controller
             session(['url.intended' => $request->input('intended')]);
         }
 
-        Log::info("OAuth redirect initiated", [
+        Log::info('OAuth redirect initiated', [
             'provider' => $provider,
             'ip' => $request->ip(),
         ]);
@@ -66,7 +66,7 @@ class SocialAuthController extends Controller
         try {
             $socialUser = Socialite::driver($provider)->user();
 
-            Log::info("OAuth callback received", [
+            Log::info('OAuth callback received', [
                 'provider' => $provider,
                 'email' => $socialUser->getEmail(),
                 'id' => $socialUser->getId(),
@@ -108,7 +108,7 @@ class SocialAuthController extends Controller
                 ['provider' => $provider]
             );
 
-            Log::info("OAuth login successful", [
+            Log::info('OAuth login successful', [
                 'user_id' => $user->id,
                 'provider' => $provider,
             ]);
@@ -116,7 +116,7 @@ class SocialAuthController extends Controller
             return redirect()->intended($this->getRedirectPath());
 
         } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-            Log::warning("OAuth invalid state", [
+            Log::warning('OAuth invalid state', [
                 'provider' => $provider,
                 'error' => $e->getMessage(),
             ]);
@@ -125,7 +125,7 @@ class SocialAuthController extends Controller
                 ->with('error', 'Authentication session expired. Please try again.');
 
         } catch (\Exception $e) {
-            Log::error("OAuth callback error", [
+            Log::error('OAuth callback error', [
                 'provider' => $provider,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -163,7 +163,7 @@ class SocialAuthController extends Controller
                 'oauth_provider_id' => $providerId,
             ]);
 
-            Log::info("Linked OAuth provider to existing account", [
+            Log::info('Linked OAuth provider to existing account', [
                 'user_id' => $user->id,
                 'provider' => $provider,
             ]);

@@ -109,4 +109,82 @@ class RegistrationController extends Controller
         // Redirect to provisioning status page
         return to_route('platform.register.provisioning', ['tenant' => $tenant->id]);
     }
+
+    /**
+     * Retry failed tenant provisioning.
+     *
+     * This method:
+     * 1. Validates the tenant is in failed state
+     * 2. Cleans up any orphaned database from previous attempt
+     * 3. Resets tenant status to pending
+     * 4. Dispatches a new ProvisionTenant job
+     * 5. Redirects back to provisioning status page
+     */
+    public function retryProvisioning(\App\Models\Tenant $tenant): RedirectResponse
+    {
+        // Only allow retry for failed tenants
+        if ($tenant->status !== \App\Models\Tenant::STATUS_FAILED) {
+            return back()->with('error', 'Only failed provisioning can be retried.');
+        }
+
+        try {
+            // Clean up orphaned database if it exists
+            $this->cleanupOrphanedDatabase($tenant);
+
+            // Reset tenant to pending state
+            $tenant->update([
+                'status' => \App\Models\Tenant::STATUS_PENDING,
+                'provisioning_step' => null,
+                'data' => null, // Clear error messages
+            ]);
+
+            // Dispatch new provisioning job
+            // Note: We don't have admin credentials here, so provisioning will skip admin creation
+            // This is acceptable for retry - admin can be created manually later if needed
+            ProvisionTenant::dispatch($tenant, []);
+
+            return to_route('platform.register.provisioning', ['tenant' => $tenant->id])
+                ->with('success', 'Provisioning restarted. Please wait...');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to retry tenant provisioning', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Failed to retry provisioning: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Clean up orphaned database from failed provisioning attempt.
+     */
+    private function cleanupOrphanedDatabase(\App\Models\Tenant $tenant): void
+    {
+        try {
+            $databaseName = $tenant->tenancy_db_name;
+
+            if (empty($databaseName)) {
+                return;
+            }
+
+            // Check if database exists
+            $exists = \DB::select('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?', [$databaseName]);
+
+            if (! empty($exists)) {
+                // Drop the orphaned database
+                \DB::statement("DROP DATABASE `{$databaseName}`");
+
+                \Illuminate\Support\Facades\Log::info('Cleaned up orphaned database before retry', [
+                    'tenant_id' => $tenant->id,
+                    'database' => $databaseName,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Log but don't fail - provisioning job will handle it
+            \Illuminate\Support\Facades\Log::warning('Could not cleanup orphaned database', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 }

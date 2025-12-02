@@ -78,6 +78,9 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         Route::put('/recruitment/{id}', [RecruitmentController::class, 'update'])->name('recruitment.update');
         Route::delete('/recruitment/{id}', [RecruitmentController::class, 'destroy'])->name('recruitment.destroy');
 
+        // Kanban Board View
+        Route::get('/recruitment/{id}/kanban', [RecruitmentController::class, 'kanban'])->name('recruitment.kanban');
+
         // AJAX API routes for modal operations
         Route::put('/recruitment/{id}/ajax', [RecruitmentController::class, 'updateAjax'])->name('recruitment.update.ajax');
         Route::post('/recruitment/ajax', [RecruitmentController::class, 'storeAjax'])->name('recruitment.store.ajax');
@@ -105,6 +108,9 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         Route::put('/recruitment/{id}/applications/{applicationId}', [RecruitmentController::class, 'updateApplication'])->name('recruitment.applications.update');
         Route::delete('/recruitment/{id}/applications/{applicationId}', [RecruitmentController::class, 'destroyApplication'])->name('recruitment.applications.destroy');
 
+        // Application Stage Update (for Kanban drag & drop)
+        Route::put('/recruitment/{id}/applications/{applicationId}/stage', [RecruitmentController::class, 'updateStage'])->name('recruitment.applications.update-stage');
+
         // Bulk Operations
         Route::patch('/recruitment/applications/bulk-update', [RecruitmentController::class, 'bulkUpdateApplications'])->name('recruitment.applications.bulk-update');
 
@@ -124,6 +130,14 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         Route::get('/onboarding/{id}/edit', [OnboardingController::class, 'edit'])->name('onboarding.edit');
         Route::put('/onboarding/{id}', [OnboardingController::class, 'update'])->name('onboarding.update');
         Route::delete('/onboarding/{id}', [OnboardingController::class, 'destroy'])->name('onboarding.destroy');
+
+        // Onboarding Wizard
+        Route::get('/onboarding/wizard/{employee}', [OnboardingController::class, 'wizard'])->name('onboarding.wizard');
+        Route::post('/onboarding/wizard/{employee}/personal', [OnboardingController::class, 'savePersonal'])->name('onboarding.save-personal');
+        Route::post('/onboarding/wizard/{employee}/job', [OnboardingController::class, 'saveJob'])->name('onboarding.save-job');
+        Route::post('/onboarding/wizard/{employee}/documents', [OnboardingController::class, 'saveDocuments'])->name('onboarding.save-documents');
+        Route::post('/onboarding/wizard/{employee}/bank', [OnboardingController::class, 'saveBank'])->name('onboarding.save-bank');
+        Route::post('/onboarding/wizard/{employee}/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 
         // Offboarding
         Route::get('/offboarding', [OnboardingController::class, 'offboardingIndex'])->name('offboarding.index');
@@ -375,6 +389,19 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     // Document Expiry Dashboard (HR Admin)
     Route::middleware(['permission:hr.documents.view'])->group(function () {
         Route::get('/documents/expiring', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
+    });
+
+    // Salary Structure Management
+    Route::middleware(['permission:hr.payroll.view'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\HR\SalaryStructureController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\HR\SalaryStructureController::class, 'store'])->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\HR\SalaryStructureController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\HR\SalaryStructureController::class, 'destroy'])->name('destroy');
+
+        // Employee Salary Management
+        Route::get('/employee/{employeeId}', [\App\Http\Controllers\HR\SalaryStructureController::class, 'employeeSalary'])->name('employee.salary');
+        Route::post('/assign', [\App\Http\Controllers\HR\SalaryStructureController::class, 'assignToEmployee'])->name('assign');
+        Route::post('/calculate-preview', [\App\Http\Controllers\HR\SalaryStructureController::class, 'calculatePreview'])->name('calculate-preview');
     });
 
     // Managers for dropdowns

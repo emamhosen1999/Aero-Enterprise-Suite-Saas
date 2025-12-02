@@ -4,11 +4,13 @@ namespace App\Http\Middleware;
 
 use App\Http\Resources\PlatformSettingResource;
 use App\Http\Resources\SystemSettingResource;
+use App\Models\Module;
 use App\Models\PlatformSetting;
 use App\Models\SystemSetting;
 use App\Services\Module\ModulePermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
 use Throwable;
@@ -97,6 +99,16 @@ class HandleInertiaRequests extends Middleware
             ? PlatformSettingResource::make($platformSetting)->resolve($request)
             : null;
 
+        // Share branding with blade template
+        $branding = $platformSettingsPayload['branding'] ?? [];
+        View::share([
+            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
+            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
+            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
+            'faviconUrl' => $branding['favicon'] ?? asset('assets/images/favicon.ico'),
+            'siteName' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
+        ]);
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -116,7 +128,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'context' => 'admin',
             'app' => [
-                'name' => ($platformSettingsPayload['site']['name'] ?? config('app.name', 'Aero Enterprise Suite')).' - Admin',
+                'name' => ($platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365')).' - Admin',
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
             ],
@@ -140,6 +152,16 @@ class HandleInertiaRequests extends Middleware
             ? PlatformSettingResource::make($platformSetting)->resolve($request)
             : null;
 
+        // Share branding with blade template
+        $branding = $platformSettingsPayload['branding'] ?? [];
+        View::share([
+            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
+            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
+            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
+            'faviconUrl' => $branding['favicon'] ?? asset('assets/images/favicon.ico'),
+            'siteName' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
+        ]);
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -148,7 +170,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'context' => 'platform',
             'app' => [
-                'name' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'Aero Enterprise Suite'),
+                'name' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
             ],
@@ -179,9 +201,18 @@ class HandleInertiaRequests extends Middleware
             ? SystemSettingResource::make($systemSetting)->resolve($request)
             : null;
         $organization = $systemSettingsPayload['organization'] ?? [];
-        $companyName = $organization['company_name'] ?? config('app.name', 'Aero Enterprise Suite');
+        $companyName = $organization['company_name'] ?? config('app.name', 'aeos365');
         $branding = $systemSettingsPayload['branding'] ?? [];
         $legacyCompanySettings = $this->formatLegacyCompanySettings($organization);
+
+        // Share branding with blade template (tenant uses logo_light for main logo)
+        View::share([
+            'logoUrl' => $branding['logo_light'] ?? asset('assets/images/logo.png'),
+            'logoLightUrl' => $branding['logo_light'] ?? asset('assets/images/logo.png'),
+            'logoDarkUrl' => $branding['logo_dark'] ?? asset('assets/images/logo.png'),
+            'faviconUrl' => $branding['favicon'] ?? asset('assets/images/favicon.ico'),
+            'siteName' => $organization['company_name'] ?? config('app.name', 'aeos365'),
+        ]);
 
         // Get tenant plan limits for feature gating
         $tenantPlanLimits = $this->getTenantPlanLimits();
@@ -213,9 +244,12 @@ class HandleInertiaRequests extends Middleware
                 'subdomain' => tenant('subdomain'),
                 'status' => tenant('status'),
                 'modules' => tenant('modules') ?? [],
+                'activeModules' => fn () => $this->getTenantActiveModules(),
                 'onTrial' => tenant()?->isOnTrial() ?? false,
                 'trialEndsAt' => tenant('trial_ends_at'),
             ],
+            'modules' => fn () => $this->getAllModules(),
+            'moduleHierarchy' => fn () => $this->getModuleHierarchy(),
             'planLimits' => $tenantPlanLimits,
             'impersonation' => [
                 'active' => $request->session()->has('impersonated_by_platform'),
@@ -482,5 +516,128 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $this->cachedPlatformSetting;
+    }
+
+    /**
+     * Get tenant's active modules based on subscription.
+     *
+     * @return array<int, array{id: int, code: string, name: string, icon: string, limits: mixed}>
+     */
+    protected function getTenantActiveModules(): array
+    {
+        $tenant = tenant();
+
+        if (! $tenant) {
+            return [];
+        }
+
+        // Cache tenant's active modules for 5 minutes
+        $cacheKey = "tenant_active_modules:{$tenant->id}";
+
+        return Cache::remember($cacheKey, 300, function () use ($tenant) {
+            $subscription = $tenant->currentSubscription;
+
+            if (! $subscription || ! $subscription->plan) {
+                // Return only core modules if no subscription
+                return Module::where('is_core', true)
+                    ->where('is_active', true)
+                    ->get(['id', 'code', 'name', 'icon'])
+                    ->map(fn ($module) => [
+                        'id' => $module->id,
+                        'code' => $module->code,
+                        'name' => $module->name,
+                        'icon' => $module->icon,
+                        'limits' => null,
+                    ])
+                    ->toArray();
+            }
+
+            // Get modules from subscription plan
+            return $subscription->plan
+                ->modules()
+                ->where('is_active', true)
+                ->get(['modules.id', 'modules.code', 'modules.name', 'modules.icon', 'plan_module.limits'])
+                ->map(fn ($module) => [
+                    'id' => $module->id,
+                    'code' => $module->code,
+                    'name' => $module->name,
+                    'icon' => $module->icon,
+                    'limits' => $module->pivot->limits ?? null,
+                ])
+                ->toArray();
+        });
+    }
+
+    /**
+     * Get all available modules in the system.
+     *
+     * @return array<int, array{id: int, code: string, name: string, description: string, icon: string, category: string, is_core: bool}>
+     */
+    protected function getAllModules(): array
+    {
+        return Cache::remember('all_modules', 3600, function () {
+            return Module::where('is_active', true)
+                ->orderBy('priority')
+                ->get(['id', 'code', 'name', 'description', 'icon', 'category', 'is_core'])
+                ->toArray();
+        });
+    }
+
+    /**
+     * Get complete module hierarchy for frontend (modules → submodules → components → actions).
+     */
+    protected function getModuleHierarchy(): array
+    {
+        return Cache::remember('frontend_module_hierarchy', 600, function () {
+            $modules = Module::active()
+                ->ordered()
+                ->with([
+                    'subModules' => fn ($q) => $q->where('is_active', true)->orderBy('priority'),
+                    'subModules.components' => fn ($q) => $q->where('is_active', true),
+                    'subModules.components.actions',
+                ])
+                ->get();
+
+            return $modules->map(function ($module) {
+                return [
+                    'id' => $module->id,
+                    'code' => $module->code,
+                    'name' => $module->name,
+                    'description' => $module->description,
+                    'icon' => $module->icon,
+                    'category' => $module->category,
+                    'is_core' => $module->is_core,
+                    'route_prefix' => $module->route_prefix,
+                    'submodules' => $module->subModules->map(function ($subModule) {
+                        return [
+                            'id' => $subModule->id,
+                            'code' => $subModule->code,
+                            'name' => $subModule->name,
+                            'description' => $subModule->description,
+                            'icon' => $subModule->icon,
+                            'route' => $subModule->route,
+                            'components' => $subModule->components->map(function ($component) {
+                                return [
+                                    'id' => $component->id,
+                                    'code' => $component->code,
+                                    'name' => $component->name,
+                                    'description' => $component->description,
+                                    'type' => $component->type,
+                                    'route' => $component->route,
+                                    'actions' => $component->actions->map(function ($action) {
+                                        return [
+                                            'id' => $action->id,
+                                            'code' => $action->code,
+                                            'name' => $action->name,
+                                            'description' => $action->description,
+                                        ];
+                                    })->values()->toArray(),
+                                ];
+                            })->values()->toArray(),
+                        ];
+                    })->values()->toArray(),
+                ];
+            })->toArray();
+        });
     }
 }

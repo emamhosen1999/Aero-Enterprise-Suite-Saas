@@ -2,7 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\Module\ModulePermissionService;
+use App\Models\Tenant;
+use App\Services\Module\ModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,22 +13,26 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Check Module Access Middleware
  *
- * Validates user access based on the Module Permission Registry.
- * Supports checking module, sub-module, and component level access.
+ * Enforces hybrid RBAC: validates BOTH subscription entitlement AND user permissions.
+ *
+ * Access is granted only if:
+ * 1. Tenant has an active subscription
+ * 2. Subscription's plan includes the requested module
+ * 3. User has at least one of the module's required permissions (via tenant-scoped roles)
  *
  * Usage:
- *   - module:hrm                           - Check module access
- *   - module:hrm,employees                 - Check sub-module access
- *   - module:hrm,employees,list            - Check component access
- *   - module:hrm,,dashboard                - Check module-level component (no sub-module)
+ *   - module:hrm                                    - Check module access
+ *   - module:hrm,employees                          - Check sub-module access
+ *   - module:hrm,employees,employee-list            - Check component access
+ *   - module:hrm,employees,employee-list,view       - Check action access
  */
 class CheckModuleAccess
 {
-    protected ModulePermissionService $modulePermissionService;
+    protected ModuleAccessService $moduleAccessService;
 
-    public function __construct(ModulePermissionService $modulePermissionService)
+    public function __construct(ModuleAccessService $moduleAccessService)
     {
-        $this->modulePermissionService = $modulePermissionService;
+        $this->moduleAccessService = $moduleAccessService;
     }
 
     /**
@@ -36,14 +41,16 @@ class CheckModuleAccess
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      * @param  string  $moduleCode  The module code (e.g., 'hrm')
      * @param  string|null  $subModuleCode  The sub-module code (optional, e.g., 'employees')
-     * @param  string|null  $componentCode  The component code (optional, e.g., 'list')
+     * @param  string|null  $componentCode  The component code (optional, e.g., 'employee-list')
+     * @param  string|null  $actionCode  The action code (optional, e.g., 'view')
      */
     public function handle(
         Request $request,
         Closure $next,
         string $moduleCode,
         ?string $subModuleCode = null,
-        ?string $componentCode = null
+        ?string $componentCode = null,
+        ?string $actionCode = null
     ): Response {
         if (! Auth::check()) {
             if ($request->expectsJson()) {
@@ -57,82 +64,207 @@ class CheckModuleAccess
         }
 
         $user = Auth::user();
-        $canAccess = false;
-        $accessType = 'module';
-        $accessPath = $moduleCode;
+
+        // Check tenant context
+        if (! $user->tenant_id) {
+            return $this->denyAccess(
+                $request,
+                'no_tenant',
+                'User is not associated with a tenant.',
+                401
+            );
+        }
+
+        // Empty string check - treat empty strings as null
+        $subModuleCode = ($subModuleCode === '' || $subModuleCode === null) ? null : $subModuleCode;
+        $componentCode = ($componentCode === '' || $componentCode === null) ? null : $componentCode;
+        $actionCode = ($actionCode === '' || $actionCode === null) ? null : $actionCode;
 
         // Determine the level of access to check
-        if ($componentCode && $componentCode !== '') {
-            // Check component access
-            $accessType = 'component';
-            $accessPath = $subModuleCode
-                ? "{$moduleCode}/{$subModuleCode}/{$componentCode}"
-                : "{$moduleCode}/{$componentCode}";
+        $accessCheck = null;
 
-            $canAccess = $this->modulePermissionService->userCanAccessComponent(
-                $moduleCode,
-                $subModuleCode ?: null,
-                $componentCode,
-                $user
-            );
-        } elseif ($subModuleCode && $subModuleCode !== '') {
-            // Check sub-module access
-            $accessType = 'sub-module';
-            $accessPath = "{$moduleCode}/{$subModuleCode}";
-
-            $canAccess = $this->modulePermissionService->userCanAccessSubModule(
+        if ($actionCode !== null) {
+            // Check action access (most granular level)
+            $accessCheck = $this->moduleAccessService->canPerformAction(
+                $user,
                 $moduleCode,
                 $subModuleCode,
-                $user
+                $componentCode,
+                $actionCode
+            );
+        } elseif ($componentCode !== null) {
+            // Check component access
+            $accessCheck = $this->moduleAccessService->canAccessComponent(
+                $user,
+                $moduleCode,
+                $subModuleCode,
+                $componentCode
+            );
+        } elseif ($subModuleCode !== null) {
+            // Check sub-module access
+            $accessCheck = $this->moduleAccessService->canAccessSubModule(
+                $user,
+                $moduleCode,
+                $subModuleCode
             );
         } else {
             // Check module access
-            $canAccess = $this->modulePermissionService->userCanAccessModule(
-                $moduleCode,
-                $user
+            $accessCheck = $this->moduleAccessService->canAccessModule(
+                $user,
+                $moduleCode
             );
         }
 
-        if (! $canAccess) {
-            // Log unauthorized access attempt
-            Log::warning('Module access denied', [
-                'user_id' => $user->id,
-                'user_email' => $user->email,
-                'access_type' => $accessType,
-                'access_path' => $accessPath,
-                'route' => $request->route()?->getName(),
-                'url' => $request->url(),
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'timestamp' => now(),
-            ]);
+        // Handle access denial
+        if (! $accessCheck['allowed']) {
+            $statusCode = match ($accessCheck['reason']) {
+                'plan_restriction' => 402,
+                'not_found' => 404,
+                'insufficient_permissions' => 403,
+                default => 403,
+            };
 
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "You do not have permission to access this {$accessType}.",
-                    'access_type' => $accessType,
-                    'access_path' => $accessPath,
-                ], 403);
-            }
-
-            // For Inertia requests, return a proper error response
-            if ($request->header('X-Inertia')) {
-                return response()->json([
-                    'component' => 'Errors/Forbidden',
-                    'props' => [
-                        'message' => "You do not have permission to access this {$accessType}.",
-                        'accessType' => $accessType,
-                        'accessPath' => $accessPath,
-                    ],
-                    'url' => $request->url(),
-                    'version' => '',
-                ], 403, ['X-Inertia' => 'true']);
-            }
-
-            return back()->with('error', "You don't have permission to access this {$accessType}. Access path: {$accessPath}");
+            return $this->denyAccess(
+                $request,
+                $accessCheck['reason'],
+                $accessCheck['message'],
+                $statusCode,
+                [
+                    'module' => $moduleCode,
+                    'submodule' => $subModuleCode,
+                    'component' => $componentCode,
+                    'action' => $actionCode,
+                ]
+            );
         }
 
         return $next($request);
+    }
+
+    /**
+     * Check if tenant's subscription includes the requested module.
+     *
+     * @return array{allowed: bool, reason: string, message: string, meta?: array}
+     */
+    protected function checkSubscriptionEntitlement(string $tenantId, string $moduleCode): array
+    {
+        // Cache the tenant's active modules for performance
+        $cacheKey = "tenant_active_modules:{$tenantId}";
+
+        $activeModules = Cache::remember($cacheKey, 300, function () use ($tenantId) {
+            $tenant = Tenant::find($tenantId);
+
+            if (! $tenant) {
+                return [];
+            }
+
+            // Get current active subscription
+            $subscription = $tenant->currentSubscription;
+
+            if (! $subscription) {
+                return [];
+            }
+
+            // Check subscription validity
+            if ($subscription->status !== 'active') {
+                return [];
+            }
+
+            if ($subscription->ends_at && $subscription->ends_at < now()) {
+                return [];
+            }
+
+            // Get modules from plan
+            return $subscription->plan
+                ->modules()
+                ->pluck('code')
+                ->toArray();
+        });
+
+        // Check if module is in active modules
+        if (! in_array($moduleCode, $activeModules)) {
+            // Get tenant's current plan for better error message
+            $tenant = Tenant::with('currentSubscription.plan')->find($tenantId);
+            $subscription = $tenant?->currentSubscription;
+
+            if (! $subscription) {
+                return [
+                    'allowed' => false,
+                    'reason' => 'no_subscription',
+                    'message' => 'No active subscription found. Please subscribe to a plan to access this module.',
+                    'meta' => [
+                        'module_code' => $moduleCode,
+                    ],
+                ];
+            }
+
+            return [
+                'allowed' => false,
+                'reason' => 'upgrade_required',
+                'message' => 'This module is not included in your current plan. Please upgrade to access it.',
+                'meta' => [
+                    'module_code' => $moduleCode,
+                    'current_plan' => $subscription->plan->name ?? 'Unknown',
+                    'plan_id' => $subscription->plan_id,
+                ],
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'reason' => 'success',
+            'message' => 'Subscription check passed.',
+        ];
+    }
+
+    /**
+     * Deny access with consistent response format.
+     */
+    protected function denyAccess(
+        Request $request,
+        string $reason,
+        string $message,
+        int $statusCode = 403,
+        array $meta = []
+    ): Response {
+        // Log denial with context
+        Log::warning('Module access denied', array_merge([
+            'reason' => $reason,
+            'route' => $request->route()?->getName(),
+            'url' => $request->url(),
+            'user_id' => Auth::id(),
+            'tenant_id' => Auth::user()?->tenant_id,
+            'ip' => $request->ip(),
+            'timestamp' => now(),
+        ], $meta));
+
+        // JSON API response
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'reason' => $reason,
+                'message' => $message,
+                'meta' => $meta,
+            ], $statusCode);
+        }
+
+        // Inertia response
+        if ($request->header('X-Inertia')) {
+            return response()->json([
+                'component' => 'Tenant/Pages/Errors/Forbidden',
+                'props' => [
+                    'reason' => $reason,
+                    'message' => $message,
+                    'statusCode' => $statusCode,
+                    'accessType' => $reason === 'plan_restriction' ? 'subscription' : 'permission',
+                    'meta' => $meta,
+                ],
+                'url' => $request->url(),
+                'version' => '',
+            ], $statusCode, ['X-Inertia' => 'true']);
+        }
+
+        // Regular redirect with error
+        return back()->with('error', $message);
     }
 }

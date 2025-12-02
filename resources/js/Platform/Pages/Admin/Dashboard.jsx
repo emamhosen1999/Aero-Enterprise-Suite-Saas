@@ -938,7 +938,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <Head title="Platform Admin Dashboard" />
+      <Head title="Dashboard - Admin" />
       <motion.div
         key={refreshKey}
         variants={containerVariants}

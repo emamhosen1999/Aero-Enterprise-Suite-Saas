@@ -32,8 +32,22 @@ class LandlordUserSeeder extends Seeder
         );
 
         // Assign the Platform Super Admin role
-        if (! $user->hasRole('Platform Super Admin')) {
-            $user->assignRole('Platform Super Admin');
+        // For landlord users, we manually insert into model_has_roles with tenant_id = NULL
+        $role = Role::where('name', 'Platform Super Admin')
+            ->where('guard_name', 'landlord')
+            ->first();
+
+        if ($role && ! $user->hasRole('Platform Super Admin', 'landlord')) {
+            // Manually insert into pivot table to avoid tenant_id issues
+            \DB::table('model_has_roles')->insertOrIgnore([
+                'role_id' => $role->id,
+                'model_type' => get_class($user),
+                'model_id' => $user->id,
+                'tenant_id' => null, // Landlord users don't have tenant_id
+            ]);
+
+            // Clear cached roles
+            $user->forgetCachedPermissions();
         }
 
         $this->command->info('✅ Landlord super admin user created/verified.');

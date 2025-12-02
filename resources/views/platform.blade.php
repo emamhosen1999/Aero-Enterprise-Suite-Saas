@@ -12,30 +12,34 @@
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
 
     <!-- SEO -->
-    <meta name="description" content="Aero Enterprise Suite - Complete SaaS Platform for Business Management. HR, Project Management, Finance, CRM, and more.">
+    <meta name="description" content="aeos365 - Complete SaaS Platform for Business Management. HR, Project Management, Finance, CRM, and more.">
     <meta name="keywords" content="SaaS, Enterprise, HR Management, Project Management, CRM, Business Software">
-    <meta name="author" content="Aero Enterprise Suite">
+    <meta name="author" content="aeos365">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0ea5e9">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Aero Enterprise Suite - Enterprise SaaS Platform">
+    <meta property="og:title" content="aeos365 - Enterprise SaaS Platform">
     <meta property="og:description" content="Complete SaaS solution for business management">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:site_name" content="Aero Enterprise Suite">
+    <meta property="og:site_name" content="aeos365">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Aero Enterprise Suite">
+    <meta name="twitter:title" content="aeos365">
     <meta name="twitter:description" content="Complete SaaS solution for business management">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl ?? asset('assets/images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl ?? asset('assets/images/favicon-32x32.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <title inertia>{{ config('app.name', 'Aero Enterprise Suite') }}</title>
+    <title inertia>{{ $siteName ?? 'aeos365' }}</title>
 
     <style>
         * {
@@ -99,24 +103,15 @@
             width: 80px;
             height: 80px;
             margin: 0 auto 1.5rem;
-            background: white;
-            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            animation: logoPulse 2s ease-in-out infinite;
+            animation: logoFloat 2.5s ease-in-out infinite;
         }
 
-        .loading-logo img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-        }
-
-        @keyframes logoPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .loading-spinner {
@@ -146,29 +141,6 @@
             font-weight: 400;
         }
 
-        .loading-dots {
-            display: inline-flex;
-            gap: 4px;
-            margin-left: 4px;
-        }
-
-        .loading-dots span {
-            width: 6px;
-            height: 6px;
-            background: white;
-            border-radius: 50%;
-            animation: dotBounce 1.4s ease-in-out infinite;
-        }
-
-        .loading-dots span:nth-child(1) { animation-delay: 0s; }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes dotBounce {
-            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-            40% { opacity: 1; transform: scale(1); }
-        }
-
         #app {
             opacity: 0;
             transition: opacity 0.4s ease;
@@ -185,19 +157,15 @@
     <div id="app-loading" aria-label="Loading">
         <div class="loading-content">
             <div class="loading-logo">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="Aero Enterprise Suite" 
-                     onerror="this.style.display='none';">
+                <img src="{{ $logoUrl ?? asset('assets/images/logo.png') }}" alt="{{ $siteName ?? 'aeos365' }}" style="width: 80px; height: 80px; object-fit: contain;" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display: none; width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 16px; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white;">
+                    {{ substr($siteName ?? 'aeos365', 0, 1) }}
+                </div>
             </div>
             <div class="loading-spinner"></div>
-            <div class="loading-text">Aero Enterprise Suite</div>
-            <div class="loading-subtitle">
-                Loading
-                <span class="loading-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </span>
-            </div>
+            <div class="loading-text">{{ $siteName ?? 'aeos365' }}</div>
+            <div class="loading-subtitle">Preparing your experience...</div>
         </div>
     </div>
 

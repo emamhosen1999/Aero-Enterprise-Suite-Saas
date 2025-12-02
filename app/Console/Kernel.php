@@ -43,11 +43,26 @@ class Kernel extends ConsoleKernel
             })
             ->onFailure(function () {
                 Log::error('Failed to send attendance reminders');
-                // Optionally send an alert to admins here
             })
             ->withoutOverlapping()
             ->runInBackground()
             ->appendOutputTo(storage_path('logs/attendance-reminders.log'));
+
+        // Auto-mark absences daily at 11:00 PM for previous day
+        $schedule->command('attendance:auto-mark-absences')
+            ->dailyAt('23:00')
+            ->timezone(config('app.timezone', 'UTC'))
+            ->before(function () {
+                Log::info('Starting auto-mark absences job');
+            })
+            ->onSuccess(function () {
+                Log::info('Auto-mark absences completed successfully');
+            })
+            ->onFailure(function () {
+                Log::error('Auto-mark absences failed');
+            })
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/auto-mark-absences.log'));
 
         // Clean up old notification logs (keep 30 days)
         $schedule->command('model:prune', [
@@ -57,25 +72,25 @@ class Kernel extends ConsoleKernel
         ])->daily();
 
         // Leave management scheduled tasks
-        // Reset annual leaves and process carry forwards - runs on January 1st at midnight
-        $schedule->command('leave:reset-annual')
+        // Process leave carry forward - runs on January 1st at midnight
+        $schedule->command('leave:process-carry-forward')
             ->yearly()
             ->timezone(config('app.timezone', 'UTC'))
             ->at('00:00')
             ->before(function () {
-                Log::info('Starting annual leave reset process');
+                Log::info('Starting leave carry forward process');
             })
             ->onSuccess(function () {
-                Log::info('Annual leave reset completed successfully');
+                Log::info('Leave carry forward completed successfully');
             })
             ->onFailure(function () {
-                Log::error('Annual leave reset failed');
+                Log::error('Leave carry forward failed');
             })
             ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/leave-reset.log'));
+            ->appendOutputTo(storage_path('logs/leave-carry-forward.log'));
 
-        // Accrue monthly earned leaves - runs on 1st of each month at midnight
-        $schedule->command('leave:accrue-monthly')
+        // Process monthly leave accrual - runs on 1st of each month at midnight
+        $schedule->command('leave:process-monthly-accrual')
             ->monthlyOn(1, '00:00')
             ->timezone(config('app.timezone', 'UTC'))
             ->before(function () {

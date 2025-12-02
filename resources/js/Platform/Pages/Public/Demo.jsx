@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, Head } from '@inertiajs/react';
+import { useBranding } from '@/Hooks/useBranding';
 import {
   Card,
   CardBody,
@@ -15,6 +16,7 @@ import { useTheme } from '@/Contexts/ThemeContext.jsx';
 const Demo = () => {
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { siteName } = useBranding();
 
   const palette = useMemo(() => ({
     baseText: isDarkMode ? 'text-white' : 'text-slate-900',
@@ -40,6 +42,7 @@ const Demo = () => {
 
   return (
     <PublicLayout mainClassName="pt-0">
+      <Head title="Demo" />
       <div className={palette.baseText}>
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden>

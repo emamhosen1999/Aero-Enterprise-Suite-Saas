@@ -534,6 +534,8 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-2">
                           <Button
+                            as={Link}
+                            href={route('users')}
                             className="text-white font-medium"
                             style={{
                               background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
@@ -541,7 +543,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                             }}
                             startContent={<UserPlusIcon className="w-4 h-4" />}
                           >
-                            {isMobile ? "Add" : "Add Employee"}
+                            {isMobile ? "Go to Users" : "Add from User List"}
                           </Button>
                         </div>
                       </div>

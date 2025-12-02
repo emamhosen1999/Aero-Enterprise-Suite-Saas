@@ -2,46 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, usePage, Head } from '@inertiajs/react';
 import { Button } from '@heroui/react';
 import { useTheme } from '../Contexts/ThemeContext.jsx';
-import FaviconHead from '@/Components/FaviconHead';
 import { useBranding } from '@/Hooks/useBranding';
-
-const navLinks = [
-  { label: 'Overview', routeName: 'landing', type: 'route' },
-  { label: 'Features', routeName: 'features', type: 'route' },
-  { label: 'Pricing', routeName: 'pricing', type: 'route' },
-  { label: 'About', routeName: 'about', type: 'route' },
-  { label: 'Resources', routeName: 'resources', type: 'route' },
-  { label: 'Support', routeName: 'support', type: 'route' },
-  { label: 'Demo', routeName: 'demo', type: 'route' },
-  { label: 'Contact', routeName: 'contact', type: 'route' },
-];
-
-const footerColumns = [
-  {
-    heading: 'Company',
-    links: [
-      { label: 'About', routeName: 'about' },
-      { label: 'Careers', routeName: 'careers' },
-      { label: 'Blog', routeName: 'blog' },
-    ],
-  },
-  {
-    heading: 'Resources',
-    links: [
-      { label: 'Documentation', routeName: 'docs' },
-      { label: 'Support', routeName: 'support' },
-      { label: 'Security', routeName: 'legal.security' },
-    ],
-  },
-  {
-    heading: 'Legal',
-    links: [
-      { label: 'Privacy Policy', routeName: 'legal.privacy' },
-      { label: 'Terms of Service', routeName: 'legal.terms' },
-      { label: 'Cookie Policy', routeName: 'legal.cookies' },
-    ],
-  },
-];
+import Footer from '@/Platform/Pages/Public/Footer';
+import { publicNavLinks } from '@/Config/publicNavigation';
 
 export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24', title }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -67,7 +30,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const combinedLinks = [...navLinks, ...extraNavLinks];
+  const combinedLinks = [...publicNavLinks, ...extraNavLinks];
 
   const palette = useMemo(() => ({
     page: isDarkMode
@@ -91,10 +54,6 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
 
   return (
     <>
-      <FaviconHead 
-        favicon={favicon} 
-        title={title || siteName}
-      />
       <div className={palette.page}>
       <div className="fixed inset-0 pointer-events-none" aria-hidden>
         <div
@@ -141,18 +100,27 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
-            {combinedLinks.slice(0, 6).map((link) => (
-              link.type === 'anchor' ? (
-                <a key={link.label} href={link.href} className={`${palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}>
+          <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+            {publicNavLinks.map((link) => {
+              const isActive = route().current(link.routeName);
+              return link.type === 'anchor' ? (
+                <a 
+                  key={link.label} 
+                  href={link.href} 
+                  className={`${isActive ? (isDarkMode ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100') : palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}
+                >
                   {link.label}
                 </a>
               ) : (
-                <Link key={link.label} href={route(link.routeName)} className={`${palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}>
+                <Link 
+                  key={link.label} 
+                  href={route(link.routeName)} 
+                  className={`${isActive ? (isDarkMode ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-100') : palette.navLink} ${palette.navLinkHover} px-3 py-2 text-sm font-medium transition-colors rounded-md`}
+                >
                   {link.label}
                 </Link>
-              )
-            ))}
+              );
+            })}
           </div>
 
           {/* Right side actions */}
@@ -223,38 +191,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
         {children}
       </main>
 
-      <footer className={`relative z-10 text-sm ${palette.footer}`}>
-        <div className="max-w-6xl mx-auto px-6 py-12 grid gap-8 md:grid-cols-4">
-          <div>
-            <Link href={route('landing')} className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg">
-                A
-              </div>
-              <span className={`font-semibold ${palette.heading}`}>Aero Enterprise Suite</span>
-            </Link>
-            <p className={palette.copy}>
-              Modern SaaS OS for HR, Projects, Compliance, and Finance teams.
-            </p>
-          </div>
-          {footerColumns.map((column) => (
-            <div key={column.heading}>
-              <h4 className={`${palette.heading} font-semibold mb-3`}>{column.heading}</h4>
-              <ul className="space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    <Link href={route(link.routeName)} className={`${palette.navLink} ${palette.navLinkHover} hover:underline`}>
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className={`max-w-6xl mx-auto px-6 pb-10 text-xs ${palette.copy}`}>
-          © {new Date().getFullYear()} Aero Enterprise Suite. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
     </>
   );

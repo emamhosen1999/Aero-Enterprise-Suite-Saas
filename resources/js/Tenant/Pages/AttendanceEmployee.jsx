@@ -7,11 +7,14 @@ import {
   CardBody, 
   CardHeader,
   Input,
+  Tabs,
+  Tab,
 } from "@heroui/react";
 import { useTheme } from '@/Contexts/ThemeContext';
 import App from "@/Layouts/App.jsx";
 import StatsCards from '@/Components/StatsCards.jsx';
 import AttendanceEmployeeTable from "@/Tables/AttendanceEmployeeTable.jsx";
+import AttendanceCalendar from "@/Components/Attendance/AttendanceCalendar.jsx";
 import { 
   ClockIcon, 
   CalendarDaysIcon,
@@ -20,7 +23,8 @@ import {
   XCircleIcon,
   ExclamationTriangleIcon,
   PresentationChartLineIcon,
-  UserIcon
+  UserIcon,
+  TableCellsIcon
 } from '@heroicons/react/24/outline';
 
 const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, absentDays, lateArrivals }) => {
@@ -55,6 +59,7 @@ const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, a
     
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [updateTimeSheet, setUpdateTimeSheet] = useState(false);
+    const [activeTab, setActiveTab] = useState("table");
     
     const [filterData, setFilterData] = useState({
         currentMonth: new Date().toISOString().slice(0, 7), // YYYY-MM format
@@ -274,30 +279,70 @@ const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, a
                                         }}
                                     >
                                         <CardHeader className="border-b pb-2" style={{ borderColor: `var(--theme-divider, #E4E4E7)` }}>
-                                            <div className="flex items-center gap-3">
-                                                <div 
-                                                    className="p-2 rounded-lg flex items-center justify-center"
-                                                    style={{
-                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                                        borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                            <div className="flex items-center justify-between w-full">
+                                                <div className="flex items-center gap-3">
+                                                    <div 
+                                                        className="p-2 rounded-lg flex items-center justify-center"
+                                                        style={{
+                                                            background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                            borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                        }}
+                                                    >
+                                                        <ClockIcon className="w-6 h-6" style={{ color: 'var(--theme-primary)' }} />
+                                                    </div>
+                                                    <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground" style={{ fontFamily: `var(--fontFamily, "Inter")` }}>
+                                                        My Attendance Records
+                                                    </h1>
+                                                </div>
+                                                <Tabs
+                                                    selectedKey={activeTab}
+                                                    onSelectionChange={setActiveTab}
+                                                    variant="underlined"
+                                                    size="sm"
+                                                    classNames={{
+                                                        tabList: "gap-4",
+                                                        cursor: "w-full bg-primary-500",
+                                                        tab: "max-w-fit px-3 h-10",
+                                                        tabContent: "group-data-[selected=true]:text-primary text-default-600 font-medium"
                                                     }}
                                                 >
-                                                    <ClockIcon className="w-6 h-6" style={{ color: 'var(--theme-primary)' }} />
-                                                </div>
-                                                <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground" style={{ fontFamily: `var(--fontFamily, "Inter")` }}>
-                                                    My Attendance Records
-                                                </h1>
+                                                    <Tab 
+                                                        key="calendar" 
+                                                        title={
+                                                            <div className="flex items-center gap-2">
+                                                                <CalendarDaysIcon className="w-4 h-4" />
+                                                                <span className="hidden sm:inline">Calendar</span>
+                                                            </div>
+                                                        }
+                                                    />
+                                                    <Tab 
+                                                        key="table" 
+                                                        title={
+                                                            <div className="flex items-center gap-2">
+                                                                <TableCellsIcon className="w-4 h-4" />
+                                                                <span className="hidden sm:inline">Table</span>
+                                                            </div>
+                                                        }
+                                                    />
+                                                </Tabs>
                                             </div>
                                         </CardHeader>
                                         <CardBody>
                                             <div className="max-h-[84vh] overflow-y-auto">
-                                                <AttendanceEmployeeTable 
-                                                    selectedDate={selectedDate} 
-                                                    handleDateChange={handleDateChange}
-                                                    updateTimeSheet={updateTimeSheet}
-                                                    externalFilterData={filterData}
-                                                    // REMOVED KEY PROP to allow internal useEffects to work
-                                                />
+                                                {activeTab === "calendar" ? (
+                                                    <AttendanceCalendar 
+                                                        userId={auth.user.id}
+                                                        currentMonth={filterData.currentMonth}
+                                                        showStats={true}
+                                                    />
+                                                ) : (
+                                                    <AttendanceEmployeeTable 
+                                                        selectedDate={selectedDate} 
+                                                        handleDateChange={handleDateChange}
+                                                        updateTimeSheet={updateTimeSheet}
+                                                        externalFilterData={filterData}
+                                                    />
+                                                )}
                                             </div>
                                         </CardBody>
                                     </Card>

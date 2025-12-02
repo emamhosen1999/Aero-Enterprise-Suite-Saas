@@ -75,6 +75,14 @@ class ModuleComponent extends Model
     }
 
     /**
+     * Get all actions for this component.
+     */
+    public function actions(): HasMany
+    {
+        return $this->hasMany(ModuleComponentAction::class, 'module_component_id');
+    }
+
+    /**
      * Get all permissions required for this component
      */
     public function getRequiredPermissions(): Collection

@@ -4,6 +4,7 @@ import { Button, Card, CardBody, Chip, Spinner, Progress } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useBranding } from '@/Hooks/useBranding.js';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 /**
@@ -152,30 +153,30 @@ export default function Provisioning({
     return (
       <RegisterLayout>
         <Head title="Workspace Ready" />
-        <section className="max-w-3xl mx-auto px-6 py-12 space-y-8 text-center">
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8 text-center">
           <ProgressSteps steps={steps} currentStep={currentStep} />
 
           <AuthCard>
             <Card className="bg-transparent border-none shadow-none">
-              <CardBody className="space-y-6 py-8">
+              <CardBody className="space-y-4 sm:space-y-6 py-6 sm:py-8">
                 <div className="flex justify-center">
                   <StatusIcon status="active" />
                 </div>
-                <div className="space-y-2">
-                  <Chip color="success" variant="flat" size="lg">
+                <div className="space-y-2 px-2">
+                  <Chip color="success" variant="flat" size="lg" className="text-xs sm:text-sm">
                     Workspace Ready
                   </Chip>
-                  <h1 className={`text-3xl font-semibold ${palette.heading}`}>
+                  <h1 className={`text-xl sm:text-3xl font-semibold ${palette.heading}`}>
                     {isRedirecting ? 'Redirecting to your workspace...' : 'Success!'}
                   </h1>
-                  <p className={palette.copy}>
+                  <p className={`${palette.copy} text-sm sm:text-base`}>
                     Your workspace <strong>{tenant.name}</strong> is now live and ready to use.
                   </p>
                 </div>
 
-                <div className={`p-4 rounded-lg ${palette.surface}`}>
-                  <p className={`text-sm ${palette.badge}`}>Your workspace URL</p>
-                  <p className={`font-mono text-lg ${palette.heading}`}>
+                <div className={`p-3 sm:p-4 rounded-lg ${palette.surface}`}>
+                  <p className={`text-xs sm:text-sm ${palette.badge}`}>Your workspace URL</p>
+                  <p className={`font-mono text-sm sm:text-lg ${palette.heading} break-all`}>
                     https://{tenant.subdomain}.{baseDomain}
                   </p>
                 </div>
@@ -183,21 +184,21 @@ export default function Provisioning({
                 {isRedirecting && (
                   <div className="flex items-center justify-center gap-2">
                     <Spinner size="sm" />
-                    <span className={palette.copy}>Redirecting...</span>
+                    <span className={`${palette.copy} text-sm sm:text-base`}>Redirecting...</span>
                   </div>
                 )}
 
                 {loginUrl && !isRedirecting && (
-                  <div className="flex flex-wrap justify-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                     <Button
                       as="a"
                       href={loginUrl}
                       color="primary"
-                      className="bg-gradient-to-r from-blue-500 to-purple-600"
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto"
                     >
                       Go to workspace
                     </Button>
-                    <Button as={Link} href={route('landing')} variant="bordered">
+                    <Button as={Link} href={route('landing')} variant="bordered" className="w-full sm:w-auto">
                       Back to home
                     </Button>
                   </div>
@@ -215,23 +216,23 @@ export default function Provisioning({
     return (
       <RegisterLayout>
         <Head title="Provisioning Failed" />
-        <section className="max-w-3xl mx-auto px-6 py-12 space-y-8 text-center">
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8 text-center">
           <ProgressSteps steps={steps} currentStep={currentStep} />
 
           <AuthCard>
             <Card className="bg-transparent border-none shadow-none">
-              <CardBody className="space-y-6 py-8">
+              <CardBody className="space-y-4 sm:space-y-6 py-6 sm:py-8">
                 <div className="flex justify-center">
                   <StatusIcon status="failed" />
                 </div>
-                <div className="space-y-2">
-                  <Chip color="danger" variant="flat" size="lg">
+                <div className="space-y-2 px-2">
+                  <Chip color="danger" variant="flat" size="lg" className="text-xs sm:text-sm">
                     Provisioning Failed
                   </Chip>
-                  <h1 className={`text-3xl font-semibold ${palette.heading}`}>
+                  <h1 className={`text-xl sm:text-3xl font-semibold ${palette.heading}`}>
                     Something went wrong
                   </h1>
-                  <p className={palette.copy}>
+                  <p className={`${palette.copy} text-sm sm:text-base`}>
                     We encountered an issue while setting up your workspace.
                   </p>
                 </div>
@@ -239,24 +240,33 @@ export default function Provisioning({
                 {error && (
                   <Card className="bg-red-500/10 border border-red-500/20">
                     <CardBody>
-                      <p className="text-red-400 text-sm">{error}</p>
+                      <p className="text-red-400 text-xs sm:text-sm break-words">{error}</p>
                     </CardBody>
                   </Card>
                 )}
 
-                <div className="flex flex-wrap justify-center gap-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                   <Button
                     as="a"
                     href="mailto:support@eos365.com"
                     color="primary"
-                    className="bg-gradient-to-r from-blue-500 to-purple-600"
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto"
                   >
                     Contact Support
                   </Button>
-                  <Button as={Link} href={route('platform.register.index')} variant="bordered">
+                  <Button
+                    as={Link}
+                    href={route('platform.register')}
+                    variant="bordered"
+                    color="secondary"
+                    className="w-full sm:w-auto"
+                  >
                     Try Again
                   </Button>
                 </div>
+                <p className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-default-500 px-2">
+                  All resources have been cleaned up. You can register again with the same details.
+                </p>
               </CardBody>
             </Card>
           </AuthCard>
@@ -269,13 +279,13 @@ export default function Provisioning({
   return (
     <RegisterLayout>
       <Head title="Setting up your workspace" />
-      <section className="max-w-3xl mx-auto px-6 py-12 space-y-8 text-center">
-        <div className="space-y-3">
-          <p className={`text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Almost there</p>
-          <h1 className={`text-4xl font-semibold ${palette.heading}`}>
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8 text-center">
+        <div className="space-y-2 sm:space-y-3 px-2">
+          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Almost there</p>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading}`}>
             Setting up your workspace
           </h1>
-          <p className={palette.copy}>
+          <p className={`${palette.copy} text-sm sm:text-base break-words`}>
             We're preparing everything for <strong>{tenant.name}</strong>. This usually takes less
             than a minute.
           </p>
@@ -285,29 +295,30 @@ export default function Provisioning({
 
         <AuthCard>
           <Card className="bg-transparent border-none shadow-none">
-            <CardBody className="space-y-8 py-8">
+            <CardBody className="space-y-6 sm:space-y-8 py-6 sm:py-8">
               {/* Spinner */}
               <div className="flex justify-center">
                 <StatusIcon status="provisioning" />
               </div>
 
               {/* Current step info */}
-              <div className="space-y-2">
+              <div className="space-y-2 px-2">
                 <Chip
                   color="primary"
                   variant="flat"
                   size="lg"
+                  className="text-xs sm:text-sm"
                   startContent={
                     <span className="inline-block h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
                   }
                 >
                   {currentStepInfo.label}
                 </Chip>
-                <p className={palette.copy}>{currentStepInfo.description}</p>
+                <p className={`${palette.copy} text-sm sm:text-base`}>{currentStepInfo.description}</p>
               </div>
 
               {/* Progress bar */}
-              <div className="max-w-md mx-auto w-full">
+              <div className="max-w-md mx-auto w-full px-2">
                 <Progress
                   aria-label="Provisioning progress"
                   value={currentStepInfo.progress}
@@ -322,7 +333,7 @@ export default function Provisioning({
               </div>
 
               {/* Step breakdown */}
-              <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 text-sm ${palette.copy}`}>
+              <div className={`grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm ${palette.copy}`}>
                 {Object.entries(PROVISIONING_STEPS).map(([key, step]) => {
                   const isComplete = step.progress < currentStepInfo.progress;
                   const isCurrent = key === provisioningStep;
@@ -330,7 +341,7 @@ export default function Provisioning({
                   return (
                     <div
                       key={key}
-                      className={`p-3 rounded-lg transition-colors ${
+                      className={`p-2 sm:p-3 rounded-lg transition-colors ${
                         isCurrent
                           ? 'bg-blue-500/10 border border-blue-500/30'
                           : isComplete
@@ -338,10 +349,10 @@ export default function Provisioning({
                             : `${palette.surface}`
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-1 sm:gap-2 mb-1">
                         {isComplete && (
                           <svg
-                            className="h-4 w-4 text-emerald-500"
+                            className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 shrink-0"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -355,10 +366,10 @@ export default function Provisioning({
                           </svg>
                         )}
                         {isCurrent && (
-                          <span className="inline-block h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                          <span className="inline-block h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
                         )}
                         <span
-                          className={`font-medium ${isCurrent ? 'text-blue-400' : isComplete ? 'text-emerald-400' : ''}`}
+                          className={`font-medium break-words ${isCurrent ? 'text-blue-400' : isComplete ? 'text-emerald-400' : ''}`}
                         >
                           {step.label}
                         </span>
@@ -369,9 +380,9 @@ export default function Provisioning({
               </div>
 
               {/* Workspace info */}
-              <div className={`p-4 rounded-lg ${palette.surface}`}>
-                <p className={`text-sm ${palette.badge}`}>Your workspace URL (coming soon)</p>
-                <p className={`font-mono text-lg ${palette.heading}`}>
+              <div className={`p-3 sm:p-4 rounded-lg ${palette.surface}`}>
+                <p className={`text-xs sm:text-sm ${palette.badge}`}>Your workspace URL (coming soon)</p>
+                <p className={`font-mono text-sm sm:text-lg ${palette.heading} break-all`}>
                   https://{tenant.subdomain}.{baseDomain}
                 </p>
               </div>
@@ -380,7 +391,7 @@ export default function Provisioning({
         </AuthCard>
 
         {/* Help text */}
-        <p className={`text-sm ${palette.copy}`}>
+        <p className={`text-xs sm:text-sm ${palette.copy} px-2`}>
           Please don't close this page. You'll be redirected automatically when ready.
         </p>
       </section>

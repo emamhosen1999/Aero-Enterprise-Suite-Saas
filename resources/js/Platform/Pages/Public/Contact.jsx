@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, Head } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip, Input, Select, SelectItem, Textarea } from '@heroui/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { supportChannels } from '@/constants/marketing';
+import { useBranding } from '@/Hooks/useBranding';
 
 const contactReasons = [
   { value: 'sales', label: 'Sales / Procurement' },
@@ -33,6 +34,7 @@ const infoCards = [
 export default function Contact() {
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { siteName } = useBranding();
 
   const palette = useMemo(() => ({
     baseText: isDarkMode ? 'text-white' : 'text-slate-900',
@@ -56,6 +58,7 @@ export default function Contact() {
 
   return (
     <PublicLayout mainClassName="pt-0">
+      <Head title="Contact" />
       <div className={`relative ${palette.baseText}`}>
         <section className="relative px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none" aria-hidden>

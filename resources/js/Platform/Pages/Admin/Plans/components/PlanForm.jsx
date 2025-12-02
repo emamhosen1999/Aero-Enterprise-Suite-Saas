@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { useForm } from '@inertiajs/react';
-import { Button, Checkbox, CheckboxGroup, Input, Switch, Textarea, Chip } from '@heroui/react';
-import { moduleCatalog, addOnCatalog } from '@/Platform/Pages/Admin/data/mockData.js';
+import React, { useState, useEffect } from 'react';
+import { useForm, router } from '@inertiajs/react';
+import { Button, Checkbox, CheckboxGroup, Input, Switch, Textarea, Chip, Spinner } from '@heroui/react';
 import { showToast } from '@/utils/toastUtils';
+import axios from 'axios';
 
-const moduleOptions = moduleCatalog.map((module) => module.name);
-const addOnOptions = addOnCatalog.map((addon) => addon.name);
+const addOnOptions = ['Advanced Analytics', 'API Access', 'Custom Branding', 'Priority Support'];
 const launchChannels = ['Marketplace', 'Sales playbook', 'Beta cohort', 'Landing page'];
 
 const PlanForm = ({ plan = null, mode = 'create' }) => {
+  const [moduleHierarchy, setModuleHierarchy] = useState([]);
+  const [loadingModules, setLoadingModules] = useState(true);
+
   const form = useForm({
     name: plan?.name ?? '',
     headline: plan?.headline ?? '',
@@ -19,7 +21,7 @@ const PlanForm = ({ plan = null, mode = 'create' }) => {
     storage: plan?.storage ?? '1 TB',
     trialDays: plan?.trialDays ?? 14,
     provisioningSla: plan?.provisioningSla ?? '24 hours',
-    modules: plan?.modules ?? [moduleOptions[0]],
+    modules: plan?.modules?.map(m => m.id) ?? [],
     addOns: plan?.addOns ?? [],
     targetProfile: plan?.target ?? 'Operations + HR partnership',
     rolloutChannels: plan?.rolloutChannels ?? ['Sales playbook'],
@@ -30,6 +32,23 @@ const PlanForm = ({ plan = null, mode = 'create' }) => {
 
   const { data, setData, reset } = form;
   const [featureDraft, setFeatureDraft] = useState('');
+
+  // Fetch module catalog on mount
+  useEffect(() => {
+    axios.get('/modules/catalog')
+      .then(response => {
+        if (response.data.success) {
+          setModuleHierarchy(response.data.modules);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load modules:', error);
+        showToast.error('Failed to load module catalog');
+      })
+      .finally(() => {
+        setLoadingModules(false);
+      });
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -121,17 +140,38 @@ const PlanForm = ({ plan = null, mode = 'create' }) => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <CheckboxGroup
-          label="Included modules"
-          value={data.modules}
-          onChange={(value) => setData('modules', value)}
-        >
-          {moduleOptions.map((module) => (
-            <Checkbox key={module} value={module}>
-              {module}
-            </Checkbox>
-          ))}
-        </CheckboxGroup>
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-default-600 dark:text-default-300">
+            Included modules
+          </label>
+          {loadingModules ? (
+            <div className="flex items-center justify-center py-8">
+              <Spinner size="sm" />
+              <span className="ml-2 text-sm text-default-500">Loading modules...</span>
+            </div>
+          ) : (
+            <CheckboxGroup
+              value={data.modules}
+              onChange={(value) => setData('modules', value)}
+            >
+              {moduleHierarchy.map((module) => (
+                <Checkbox key={module.id} value={module.id}>
+                  <div>
+                    <span className="font-medium">{module.name}</span>
+                    {module.is_core && (
+                      <Chip size="sm" color="success" variant="flat" className="ml-2">
+                        Core
+                      </Chip>
+                    )}
+                    {module.description && (
+                      <p className="text-xs text-default-500">{module.description}</p>
+                    )}
+                  </div>
+                </Checkbox>
+              ))}
+            </CheckboxGroup>
+          )}
+        </div>
         <CheckboxGroup
           label="Bundled add-ons"
           value={data.addOns}

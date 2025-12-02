@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App.jsx';
-import { planCatalog, addOnCatalog, planMetrics } from '@/Platform/Pages/Admin/data/mockData.js';
+import { addOnCatalog, planMetrics } from '@/Platform/Pages/Admin/data/mockData.js';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils';
 import {
   ArrowTrendingUpIcon,
   SparklesIcon,
@@ -52,8 +54,44 @@ const addOnColumns = [
 ];
 
 const PlansIndex = () => {
-  const { plans = [] } = usePage().props;
-  const catalog = plans.length ? plans : planCatalog;
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get('/api/plans')
+      .then(response => {
+        if (response.data.success) {
+          // Transform database plans to display format
+          const transformedPlans = response.data.plans.map(plan => {
+            const limits = plan.limits || {};
+            return {
+              id: plan.id,
+              name: plan.name,
+              headline: plan.description || 'Complete enterprise solution',
+              price: plan.monthly_price || 0,
+              cadence: 'month',
+              seatsIncluded: limits.seats_included || 100,
+              storage: limits.storage || '1 TB',
+              apiCalls: limits.api || '1M',
+              activeTenants: 0, // TODO: Should come from subscriptions count
+              avgSeatUtilization: 0.75, // TODO: Calculate from actual data
+              badge: limits.badge || (plan.is_featured ? 'Featured' : null),
+              features: plan.features || plan.modules?.map(m => m.name) || [],
+            };
+          });
+          setPlans(transformedPlans);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load plans:', error);
+        showToast.error('Failed to load plans');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const catalog = plans;
 
   const stats = [
     { label: 'Catalog plans', value: catalog.length, change: '+1 planned', icon: Squares2X2Icon, trend: 'up' },
@@ -62,9 +100,23 @@ const PlansIndex = () => {
     { label: 'Trial conversion', value: `${(planMetrics.trialConversion * 100).toFixed(0)}%`, change: 'Median per cohort', icon: SparklesIcon, trend: 'up' },
   ];
 
+  if (loading) {
+    return (
+      <>
+        <Head title="Plans - Admin" />
+        <div className="flex h-screen items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+            <p className="mt-2 text-default-500">Loading plans...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <Head title="Plans" />
+      <Head title="Plans - Admin" />
       <div className="flex flex-col w-full h-full p-4">
         <div className="space-y-4">
           {/* Single Parent Card - matching tenant Employee page structure */}

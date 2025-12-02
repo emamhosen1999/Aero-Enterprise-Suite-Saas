@@ -3,24 +3,53 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
+use App\Models\HRM\Department;
+use App\Services\HRMetricsAggregatorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class HrAnalyticsController extends Controller
 {
-    public function index()
+    public function __construct(
+        public HRMetricsAggregatorService $metricsService
+    ) {}
+
+    public function index(Request $request)
     {
+        $filters = [
+            'start_date' => $request->input('start_date', now()->subMonths(6)->startOfMonth()),
+            'end_date' => $request->input('end_date', now()->endOfMonth()),
+            'department_id' => $request->input('department_id'),
+        ];
+
+        $metrics = $this->metricsService->getAllMetrics($filters);
+
+        $departments = Department::select('id', 'name')->orderBy('name')->get();
+
         return Inertia::render('HR/Analytics/Index', [
             'title' => 'HR Analytics Dashboard',
-            'analytics' => [],
+            'metrics' => $metrics,
+            'departments' => $departments,
+            'filters' => $filters,
         ]);
     }
 
-    public function attendanceAnalytics()
+    public function attendanceAnalytics(Request $request)
     {
+        $filters = [
+            'start_date' => $request->input('start_date', now()->subMonths(1)->startOfMonth()),
+            'end_date' => $request->input('end_date', now()->endOfMonth()),
+            'department_id' => $request->input('department_id'),
+        ];
+
+        $metrics = $this->metricsService->getAttendanceMetrics($filters);
+        $departments = Department::select('id', 'name')->orderBy('name')->get();
+
         return Inertia::render('HR/Analytics/Attendance', [
             'title' => 'Attendance Analytics',
-            'data' => [],
+            'data' => $metrics,
+            'departments' => $departments,
+            'filters' => $filters,
         ]);
     }
 
@@ -32,19 +61,35 @@ class HrAnalyticsController extends Controller
         ]);
     }
 
-    public function recruitmentAnalytics()
+    public function recruitmentAnalytics(Request $request)
     {
+        $filters = [
+            'start_date' => $request->input('start_date', now()->subMonths(6)->startOfMonth()),
+            'end_date' => $request->input('end_date', now()->endOfMonth()),
+        ];
+
+        $metrics = $this->metricsService->getRecruitmentMetrics($filters);
+
         return Inertia::render('HR/Analytics/Recruitment', [
             'title' => 'Recruitment Analytics',
-            'data' => [],
+            'data' => $metrics,
+            'filters' => $filters,
         ]);
     }
 
-    public function turnoverAnalytics()
+    public function turnoverAnalytics(Request $request)
     {
+        $filters = [
+            'start_date' => $request->input('start_date', now()->subMonths(6)->startOfMonth()),
+            'end_date' => $request->input('end_date', now()->endOfMonth()),
+        ];
+
+        $metrics = $this->metricsService->getTurnoverMetrics($filters);
+
         return Inertia::render('HR/Analytics/Turnover', [
             'title' => 'Turnover Analytics',
-            'data' => [],
+            'data' => $metrics,
+            'filters' => $filters,
         ]);
     }
 

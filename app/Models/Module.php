@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
@@ -89,6 +90,17 @@ class Module extends Model
     public function permissionRequirements(): HasMany
     {
         return $this->hasMany(ModulePermission::class);
+    }
+
+    /**
+     * Get all plans that include this module.
+     */
+    public function plans(): BelongsToMany
+    {
+        return $this->belongsToMany(Plan::class, 'plan_module')
+            ->withPivot('limits', 'is_enabled')
+            ->withTimestamps()
+            ->wherePivot('is_enabled', true);
     }
 
     /**
@@ -223,11 +235,41 @@ class Module extends Model
     }
 
     /**
+     * Get complete module hierarchy with all relationships
+     * Returns: modules → submodules → components → actions → permissions
+     */
+    public static function getCompleteHierarchy(): Collection
+    {
+        return Cache::remember('modules_complete_hierarchy', 600, function () {
+            return static::active()
+                ->ordered()
+                ->with([
+                    'subModules' => fn ($q) => $q->where('is_active', true)->orderBy('priority'),
+                    'subModules.components' => fn ($q) => $q->where('is_active', true),
+                    'subModules.components.actions',
+                    'subModules.components.permissionRequirements.permission',
+                    'permissionRequirements.permission',
+                ])
+                ->get();
+        });
+    }
+
+    /**
+     * Get module hierarchy from config file
+     */
+    public static function getHierarchyFromConfig(): array
+    {
+        return config('modules.hierarchy', []);
+    }
+
+    /**
      * Clear the module structure cache
      */
     public static function clearCache(): void
     {
         Cache::forget('modules_with_structure');
+        Cache::forget('modules_complete_hierarchy');
         Cache::forget('user_accessible_modules');
+        Cache::forget('all_modules');
     }
 }

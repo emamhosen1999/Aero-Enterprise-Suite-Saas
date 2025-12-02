@@ -4,6 +4,7 @@ import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useBranding } from '@/Hooks/useBranding';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 const accountOptions = [
@@ -28,6 +29,7 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
 
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { siteName } = useBranding();
 
   const description = useMemo(
     () => trialDays > 0
@@ -54,19 +56,19 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
 
   return (
     <RegisterLayout>
-      <Head title="Create your workspace" />
-      <section className="max-w-5xl mx-auto px-6 py-12 space-y-8">
-        <div className="space-y-5 text-center">
-          <Chip color="secondary" variant="flat" className={`uppercase tracking-[0.3em] ${palette.badge}`}>Step 1</Chip>
-          <h1 className={`text-4xl md:text-5xl font-semibold ${palette.heading}`}>Who is this workspace for?</h1>
-          <p className={`${palette.copy} max-w-3xl mx-auto`}>{description}</p>
+      <Head title={`Create your workspace - ${siteName || 'aeos365'}`} />
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
+        <div className="space-y-3 sm:space-y-5 text-center">
+          <Chip color="secondary" variant="flat" className={`uppercase tracking-[0.3em] text-[10px] sm:text-xs ${palette.badge}`}>Step 1</Chip>
+          <h1 className={`text-2xl sm:text-4xl md:text-5xl font-semibold ${palette.heading} px-2`}>Who is this workspace for?</h1>
+          <p className={`${palette.copy} max-w-3xl mx-auto text-sm sm:text-base px-2`}>{description}</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
 
         <AuthCard>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               {accountOptions.map((option) => {
                 const isSelected = data.type === option.type;
                 return (
@@ -76,18 +78,18 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
                     onPress={() => setData('type', option.type)}
                     className={isSelected ? palette.cardActive : palette.cardIdle}
                   >
-                    <CardHeader className="justify-between">
+                    <CardHeader className="justify-between pb-2">
                       <div>
-                        <p className={`text-sm ${palette.sublabel}`}>{option.type === 'company' ? 'Full suite' : 'Light mode'}</p>
-                        <h2 className={`text-2xl font-semibold ${palette.heading}`}>{option.headline}</h2>
+                        <p className={`text-xs sm:text-sm ${palette.sublabel}`}>{option.type === 'company' ? 'Full suite' : 'Light mode'}</p>
+                        <h2 className={`text-lg sm:text-2xl font-semibold ${palette.heading}`}>{option.headline}</h2>
                       </div>
                       {isSelected && (
-                        <Chip color="success" variant="flat" size="sm">Selected</Chip>
+                        <Chip color="success" variant="flat" size="sm" className="text-xs">Selected</Chip>
                       )}
                     </CardHeader>
-                    <CardBody className="space-y-3">
-                      <p className={palette.copy}>{option.copy}</p>
-                      <ul className={`text-sm space-y-1 list-disc list-inside ${palette.copy}`}>
+                    <CardBody className="space-y-2 sm:space-y-3 pt-2">
+                      <p className={`text-sm sm:text-base ${palette.copy}`}>{option.copy}</p>
+                      <ul className={`text-xs sm:text-sm space-y-1 list-disc list-inside ${palette.copy}`}>
                         {option.bullets.map((bullet) => (
                           <li key={bullet}>{bullet}</li>
                         ))}
@@ -100,11 +102,11 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
 
             {errors.type && <p className="text-sm text-red-400">{errors.type}</p>}
 
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <p className={`text-sm ${palette.sublabel}`}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <p className={`text-xs sm:text-sm ${palette.sublabel}`}>
                 Need to onboard multiple subsidiaries? You can add them later from the admin console.
               </p>
-              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600" type="submit" isLoading={processing}>
+              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={processing}>
                 Continue to details
               </Button>
             </div>

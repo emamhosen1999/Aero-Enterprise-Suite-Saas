@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, Head } from '@inertiajs/react';
+import { useBranding } from '@/Hooks/useBranding';
 import {
   Chip,
   Card,
@@ -21,6 +22,7 @@ const Resources = () => {
   const [filter, setFilter] = useState('All');
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { siteName } = useBranding();
 
   const palette = useMemo(() => ({
     baseText: isDarkMode ? 'text-white' : 'text-slate-900',
@@ -56,6 +58,7 @@ const Resources = () => {
 
   return (
     <PublicLayout mainClassName="pt-0">
+      <Head title="Resources" />
       <div className={palette.baseText}>
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden>

@@ -19,6 +19,33 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        \App\Events\Leave\LeaveRequested::class => [
+            \App\Listeners\Leave\UpdateBalanceOnLeaveRequest::class,
+        ],
+        \App\Events\Leave\LeaveApproved::class => [
+            \App\Listeners\Leave\UpdateBalanceOnLeaveApproval::class,
+        ],
+        \App\Events\Leave\LeaveRejected::class => [
+            \App\Listeners\Leave\UpdateBalanceOnLeaveRejection::class,
+        ],
+        \App\Events\Leave\LeaveCancelled::class => [
+            \App\Listeners\Leave\UpdateBalanceOnLeaveCancellation::class,
+        ],
+        \App\Events\EmployeeCreated::class => [
+            \App\Listeners\SendWelcomeEmail::class,
+        ],
+        \App\Events\LeaveRequested::class => [
+            \App\Listeners\NotifyManagerOfLeaveRequest::class,
+        ],
+        \App\Events\PayrollGenerated::class => [
+            \App\Listeners\SendPayslipNotification::class,
+        ],
+        \App\Events\AttendanceLogged::class => [
+            \App\Listeners\LogAttendanceActivity::class,
+        ],
+        \App\Events\CandidateApplied::class => [
+            \App\Listeners\NotifyRecruiterOfApplication::class,
+        ],
     ];
 
     /**

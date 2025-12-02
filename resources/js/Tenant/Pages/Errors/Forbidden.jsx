@@ -5,10 +5,17 @@ import {
     ArrowLeftIcon,
     HomeIcon,
     LockClosedIcon,
+    CreditCardIcon,
 } from '@heroicons/react/24/outline';
 import App from "@/Layouts/App.jsx";
 
-export default function Forbidden({ message, accessType, accessPath }) {
+export default function Forbidden({ 
+    message, 
+    reason, 
+    statusCode = 403, 
+    accessType, 
+    meta = {} 
+}) {
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -29,9 +36,20 @@ export default function Forbidden({ message, accessType, accessPath }) {
         },
     };
 
+    // Determine error type and display info
+    const isPlanRestriction = reason === 'plan_restriction' || accessType === 'subscription';
+    const Icon = isPlanRestriction ? CreditCardIcon : ShieldExclamationIcon;
+    const title = isPlanRestriction ? 'Upgrade Required' : 'Access Denied';
+    const displayCode = isPlanRestriction ? '402' : String(statusCode || '403');
+
+    // Build access path from meta
+    const accessPath = [meta.module, meta.submodule, meta.component, meta.action]
+        .filter(Boolean)
+        .join(' > ');
+
     return (
         <App>
-            <Head title="Access Denied" />
+            <Head title={title} />
             
             <motion.div
                 className="min-h-[70vh] flex items-center justify-center p-6"
@@ -45,20 +63,30 @@ export default function Forbidden({ message, accessType, accessPath }) {
                 >
                     {/* Icon */}
                     <motion.div
-                        className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center mb-8"
+                        className={`mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-8 ${
+                            isPlanRestriction 
+                                ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20'
+                                : 'bg-gradient-to-br from-red-500/20 to-orange-500/20'
+                        }`}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
                     >
-                        <ShieldExclamationIcon className="w-12 h-12 text-red-400" />
+                        <Icon className={`w-12 h-12 ${
+                            isPlanRestriction ? 'text-blue-400' : 'text-red-400'
+                        }`} />
                     </motion.div>
 
                     {/* Error Code */}
                     <motion.h1
-                        className="text-8xl font-bold bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent mb-4"
+                        className={`text-8xl font-bold bg-clip-text text-transparent mb-4 ${
+                            isPlanRestriction
+                                ? 'bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400'
+                                : 'bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400'
+                        }`}
                         variants={itemVariants}
                     >
-                        403
+                        {displayCode}
                     </motion.h1>
 
                     {/* Title */}
@@ -66,7 +94,7 @@ export default function Forbidden({ message, accessType, accessPath }) {
                         className="text-2xl font-semibold text-white mb-4"
                         variants={itemVariants}
                     >
-                        Access Denied
+                        {title}
                     </motion.h2>
 
                     {/* Message */}
@@ -78,17 +106,14 @@ export default function Forbidden({ message, accessType, accessPath }) {
                     </motion.p>
 
                     {/* Access Details */}
-                    {(accessType || accessPath) && (
+                    {accessPath && (
                         <motion.div
                             className="bg-gray-800/50 rounded-lg p-4 mb-8 border border-gray-700"
                             variants={itemVariants}
                         >
                             <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
                                 <LockClosedIcon className="w-4 h-4" />
-                                <span>
-                                    {accessType && <span className="capitalize">{accessType}</span>}
-                                    {accessPath && <span className="text-gray-500 ml-1">({accessPath})</span>}
-                                </span>
+                                <span className="font-mono text-xs">{accessPath}</span>
                             </div>
                         </motion.div>
                     )}
@@ -98,7 +123,9 @@ export default function Forbidden({ message, accessType, accessPath }) {
                         className="text-sm text-gray-500 mb-8"
                         variants={itemVariants}
                     >
-                        If you believe you should have access to this resource, please contact your administrator.
+                        {isPlanRestriction
+                            ? "Upgrade your subscription plan to access this feature."
+                            : "If you believe you should have access to this resource, please contact your administrator."}
                     </motion.p>
 
                     {/* Action Buttons */}
@@ -114,13 +141,23 @@ export default function Forbidden({ message, accessType, accessPath }) {
                             Go Back
                         </button>
                         
-                        <Link
-                            href={route('dashboard')}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all"
-                        >
-                            <HomeIcon className="w-5 h-5" />
-                            Go to Dashboard
-                        </Link>
+                        {isPlanRestriction ? (
+                            <Link
+                                href={route('tenant.settings.subscription')}
+                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all"
+                            >
+                                <CreditCardIcon className="w-5 h-5" />
+                                View Plans
+                            </Link>
+                        ) : (
+                            <Link
+                                href={route('dashboard')}
+                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all"
+                            >
+                                <HomeIcon className="w-5 h-5" />
+                                Go to Dashboard
+                            </Link>
+                        )}
                     </motion.div>
                 </motion.div>
             </motion.div>

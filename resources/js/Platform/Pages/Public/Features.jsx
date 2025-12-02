@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, Head } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip, Divider, Accordion, AccordionItem } from '@heroui/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useBranding } from '@/Hooks/useBranding';
 import {
   productHighlights,
   platformModules,
@@ -69,6 +70,7 @@ export default function Features() {
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
   const [activeModule, setActiveModule] = useState('hrm');
+  const { siteName } = useBranding();
 
   const palette = useMemo(() => ({
     baseText: isDarkMode ? 'text-white' : 'text-slate-900',
@@ -95,6 +97,7 @@ export default function Features() {
 
   return (
     <PublicLayout mainClassName="pt-0">
+      <Head title={`Features`} />
       <div className={`relative ${palette.baseText}`}>
         {/* Hero Section - Compact on mobile */}
         <section className="relative px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16 overflow-hidden">

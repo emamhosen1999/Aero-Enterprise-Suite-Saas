@@ -17,7 +17,7 @@ class ModulePermission extends Model
 {
     use HasFactory;
 
-    protected $table = 'module_permission_requirements';
+    protected $table = 'module_permissions';
 
     protected $fillable = [
         'module_id',

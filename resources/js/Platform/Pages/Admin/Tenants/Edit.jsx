@@ -34,7 +34,7 @@ const TenantsEdit = () => {
 
   return (
     <>
-      <Head title={`Edit ${currentTenant.name}`} />
+      <Head title={`Edit ${currentTenant.name} - Admin`} />
       <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 md:px-6">
         <div className="flex flex-col gap-4 rounded-3xl border border-default-100/70 bg-white/85 p-6 shadow-xl backdrop-blur">
           <div className="flex flex-col gap-2">

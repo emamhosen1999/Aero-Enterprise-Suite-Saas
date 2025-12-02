@@ -15,17 +15,34 @@ class Attendance extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
+        'attendance_type_id',
         'date',
         'punchin',
         'punchout',
         'punchin_location',
         'punchout_location',
+        'punchin_ip',
+        'punchout_ip',
+        'work_hours',
+        'overtime_hours',
+        'is_late',
+        'is_early_leave',
+        'status',
+        'is_manual',
+        'adjustment_reason',
+        'adjusted_by',
+        'notes',
     ];
 
     protected $casts = [
         'date' => 'date',
         'punchin' => 'datetime',
         'punchout' => 'datetime',
+        'work_hours' => 'decimal:2',
+        'overtime_hours' => 'decimal:2',
+        'is_late' => 'boolean',
+        'is_early_leave' => 'boolean',
+        'is_manual' => 'boolean',
     ];
 
     protected $appends = [

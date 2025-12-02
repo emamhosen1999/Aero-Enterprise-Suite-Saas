@@ -696,27 +696,733 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
         </div>
     );
 
-    const renderSalaryTab = () => (
-        <div className="text-center py-12">
-            <div className="p-8 bg-white/5 rounded-lg border border-white/10 max-w-md mx-auto">
-                <CurrencyDollarIcon className="w-16 h-16 text-default-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Salary Information</h3>
-                <p className="text-default-500 text-sm mb-4">
-                    Access detailed salary and compensation information.
-                </p>
-                {canEditProfile && (
-                    <Button
-                        color="primary"
-                        variant="bordered"
-                        onPress={() => openModal('salary')}
-                        startContent={<CurrencyDollarIcon className="w-4 h-4" />}
+    const renderSalaryTab = () => {
+        const [salaryStructure, setSalaryStructure] = useState(null);
+        const [loadingSalary, setLoadingSalary] = useState(true);
+
+        useEffect(() => {
+            const fetchSalaryStructure = async () => {
+                try {
+                    const response = await axios.get(route('hr.salary-structure.employee.salary', user.id));
+                    setSalaryStructure(response.data);
+                } catch (error) {
+                    console.error('Failed to fetch salary structure:', error);
+                } finally {
+                    setLoadingSalary(false);
+                }
+            };
+
+            fetchSalaryStructure();
+        }, [user.id]);
+
+        if (loadingSalary) {
+            return (
+                <div className="flex justify-center items-center py-12">
+                    <Spinner size="lg" />
+                </div>
+            );
+        }
+
+        // If no salary structure assigned
+        if (!salaryStructure || salaryStructure.salaryStructures?.length === 0) {
+            return (
+                <div className="text-center py-12">
+                    <div className="p-8 bg-white/5 rounded-lg border border-white/10 max-w-md mx-auto">
+                        <CurrencyDollarIcon className="w-16 h-16 text-default-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No Salary Structure Assigned</h3>
+                        <p className="text-default-500 text-sm mb-4">
+                            Contact HR to assign your salary structure and compensation details.
+                        </p>
+                        {canEditProfile && auth.permissions?.includes('hr.payroll.view') && (
+                            <Button
+                                color="primary"
+                                variant="bordered"
+                                onPress={() => window.location.href = route('hr.salary-structure.employee.salary', user.id)}
+                                startContent={<CurrencyDollarIcon className="w-4 h-4" />}
+                            >
+                                Manage Salary Structure
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const earnings = salaryStructure.salaryStructures?.filter(s => s.salary_component?.type === 'earning') || [];
+        const deductions = salaryStructure.salaryStructures?.filter(s => s.salary_component?.type === 'deduction') || [];
+        const summary = salaryStructure.summary || { total_earnings: 0, total_deductions: 0, net_salary: 0 };
+
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+            }).format(amount || 0);
+        };
+
+        return (
+            <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="bg-success/5 border border-success/20">
+                        <CardBody>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-success-600 dark:text-success-400">Total Earnings</p>
+                                    <p className="text-2xl font-bold text-success-700 dark:text-success-300">
+                                        {formatCurrency(summary.total_earnings)}
+                                    </p>
+                                </div>
+                                <BanknotesIcon className="w-10 h-10 text-success-500" />
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    <Card className="bg-danger/5 border border-danger/20">
+                        <CardBody>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-danger-600 dark:text-danger-400">Total Deductions</p>
+                                    <p className="text-2xl font-bold text-danger-700 dark:text-danger-300">
+                                        {formatCurrency(summary.total_deductions)}
+                                    </p>
+                                </div>
+                                <CurrencyDollarIcon className="w-10 h-10 text-danger-500" />
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    <Card className="bg-primary/5 border border-primary/20">
+                        <CardBody>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-primary-600 dark:text-primary-400">Net Salary</p>
+                                    <p className="text-2xl font-bold text-primary-700 dark:text-primary-300">
+                                        {formatCurrency(summary.net_salary)}
+                                    </p>
+                                </div>
+                                <ChartBarIcon className="w-10 h-10 text-primary-500" />
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+
+                {/* Salary Breakdown */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Earnings */}
+                    <ProfileSection
+                        title="Earnings"
+                        icon={<BanknotesIcon />}
+                        isEmpty={earnings.length === 0}
                     >
-                        View Salary Details
-                    </Button>
+                        <div className="space-y-3">
+                            {earnings.map((structure) => (
+                                <div key={structure.id} className="flex justify-between items-center py-2 border-b border-default-100">
+                                    <div>
+                                        <p className="font-medium text-default-900">{structure.salary_component.name}</p>
+                                        <p className="text-xs text-default-400">
+                                            {structure.salary_component.calculation_type === 'percentage' 
+                                                ? `${structure.percentage_value || structure.salary_component.percentage_value}% of ${structure.salary_component.percentage_of}`
+                                                : 'Fixed amount'
+                                            }
+                                        </p>
+                                    </div>
+                                    <p className="font-semibold text-success-600 text-lg">
+                                        {formatCurrency(structure.amount || structure.salary_component.default_amount)}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </ProfileSection>
+
+                    {/* Deductions */}
+                    <ProfileSection
+                        title="Deductions"
+                        icon={<CurrencyDollarIcon />}
+                        isEmpty={deductions.length === 0}
+                    >
+                        <div className="space-y-3">
+                            {deductions.map((structure) => (
+                                <div key={structure.id} className="flex justify-between items-center py-2 border-b border-default-100">
+                                    <div>
+                                        <p className="font-medium text-default-900">{structure.salary_component.name}</p>
+                                        <p className="text-xs text-default-400">
+                                            {structure.salary_component.calculation_type === 'percentage' 
+                                                ? `${structure.percentage_value || structure.salary_component.percentage_value}% of ${structure.salary_component.percentage_of}`
+                                                : 'Fixed amount'
+                                            }
+                                        </p>
+                                    </div>
+                                    <p className="font-semibold text-danger-600 text-lg">
+                                        {formatCurrency(structure.amount || structure.salary_component.default_amount)}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </ProfileSection>
+                </div>
+
+                {/* Action Button for HR */}
+                {auth.permissions?.includes('hr.payroll.view') && (
+                    <div className="flex justify-center pt-4">
+                        <Button
+                            color="primary"
+                            variant="bordered"
+                            onPress={() => window.location.href = route('hr.salary-structure.employee.salary', user.id)}
+                            startContent={<CurrencyDollarIcon className="w-4 h-4" />}
+                        >
+                            Manage Salary Structure
+                        </Button>
+                    </div>
                 )}
             </div>
+        );
+    };
+
+    // Personal Information Tab - Comprehensive personal details
+    const renderPersonalTab = () => (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Basic Personal Information */}
+                <ProfileSection
+                    title="Personal Details"
+                    icon={<IdentificationIcon />}
+                    onEdit={() => openModal('profile')}
+                    canEdit={canEditProfile}
+                >
+                    <div className="space-y-1">
+                        <InfoRow 
+                            label="Full Name" 
+                            value={user.name} 
+                            icon={<UserIcon />}
+                        />
+                        <InfoRow 
+                            label="Email" 
+                            value={user.email} 
+                            icon={<PhoneIcon />}
+                        />
+                        <InfoRow 
+                            label="Phone" 
+                            value={user.phone} 
+                            type="phone"
+                            icon={<PhoneIcon />}
+                        />
+                        <InfoRow 
+                            label="Date of Birth" 
+                            value={user.birthday} 
+                            type="date"
+                            icon={<CalendarIcon />}
+                        />
+                        <InfoRow 
+                            label="Gender" 
+                            value={user.gender} 
+                            type="chip"
+                            icon={<UserIcon />}
+                        />
+                        <InfoRow 
+                            label="Address" 
+                            value={user.address} 
+                            icon={<HomeIcon />}
+                            showDivider={false}
+                        />
+                    </div>
+                </ProfileSection>
+
+                {/* Identity Documents */}
+                <ProfileSection
+                    title="Identity Documents"
+                    icon={<IdentificationIcon />}
+                    onEdit={() => openModal('personal')}
+                    canEdit={canEditProfile}
+                    isEmpty={isSectionEmpty('personal')}
+                    isCompleted={isSectionCompleted('personal')}
+                >
+                    <div className="space-y-1">
+                        <InfoRow 
+                            label="Passport No." 
+                            value={user.passport_no} 
+                            icon={<IdentificationIcon />}
+                        />
+                        <InfoRow 
+                            label="Passport Expiry" 
+                            value={user.passport_exp_date} 
+                            type="date"
+                            icon={<CalendarIcon />}
+                        />
+                        <InfoRow 
+                            label="NID No." 
+                            value={user.nid} 
+                            icon={<IdentificationIcon />}
+                        />
+                        <InfoRow 
+                            label="Nationality" 
+                            value={user.nationality} 
+                            icon={<GlobeAltIcon />}
+                        />
+                        <InfoRow 
+                            label="Religion" 
+                            value={user.religion} 
+                            icon={<UserIcon />}
+                        />
+                        <InfoRow 
+                            label="Marital Status" 
+                            value={user.marital_status} 
+                            type="chip"
+                            icon={<HeartIcon />}
+                            showDivider={false}
+                        />
+                    </div>
+                </ProfileSection>
+
+                {/* Family Information */}
+                <ProfileSection
+                    title="Family Information"
+                    icon={<UsersIcon />}
+                    onEdit={() => openModal('personal')}
+                    canEdit={canEditProfile}
+                >
+                    <div className="space-y-1">
+                        <InfoRow 
+                            label="Spouse Employment" 
+                            value={user.employment_of_spouse} 
+                            icon={<BriefcaseIcon />}
+                        />
+                        <InfoRow 
+                            label="Number of Children" 
+                            value={user.number_of_children} 
+                            icon={<UsersIcon />}
+                        />
+                        <InfoRow 
+                            label="Family Member Name" 
+                            value={user.family_member_name} 
+                            icon={<UserIcon />}
+                        />
+                        <InfoRow 
+                            label="Relationship" 
+                            value={user.family_member_relationship} 
+                            icon={<HeartIcon />}
+                        />
+                        <InfoRow 
+                            label="Family Member DOB" 
+                            value={user.family_member_dob} 
+                            type="date"
+                            icon={<CalendarIcon />}
+                        />
+                        <InfoRow 
+                            label="Family Member Phone" 
+                            value={user.family_member_phone} 
+                            type="phone"
+                            icon={<PhoneIcon />}
+                            showDivider={false}
+                        />
+                    </div>
+                </ProfileSection>
+
+                {/* Banking Information */}
+                <ProfileSection
+                    title="Banking Information"
+                    icon={<BanknotesIcon />}
+                    onEdit={() => openModal('bank')}
+                    canEdit={canEditProfile}
+                    isEmpty={isSectionEmpty('bank')}
+                    isCompleted={isSectionCompleted('bank')}
+                >
+                    <div className="space-y-1">
+                        <InfoRow 
+                            label="Bank Name" 
+                            value={user.bank_name} 
+                            icon={<BuildingOfficeIcon />}
+                        />
+                        {/* Account Number with Masking */}
+                        <div className="flex items-center justify-between py-3 border-b border-white/10">
+                            <div className="flex items-center gap-2 text-sm text-default-600">
+                                <IdentificationIcon className="w-4 h-4" />
+                                <span>Account Number</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-foreground font-mono">
+                                    {user.bank_account_no 
+                                        ? (showAccountNumber 
+                                            ? user.bank_account_no 
+                                            : `****${user.bank_account_no.slice(-4)}`)
+                                        : 'N/A'
+                                    }
+                                </span>
+                                {user.bank_account_no && (
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="light"
+                                        onPress={() => setShowAccountNumber(!showAccountNumber)}
+                                        className="min-w-6 w-6 h-6"
+                                    >
+                                        {showAccountNumber 
+                                            ? <EyeSlashIcon className="w-4 h-4 text-default-500" />
+                                            : <EyeIcon className="w-4 h-4 text-default-500" />
+                                        }
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                        <InfoRow 
+                            label="IFSC Code" 
+                            value={user.ifsc_code} 
+                            icon={<IdentificationIcon />}
+                        />
+                        <InfoRow 
+                            label="PAN Number" 
+                            value={user.pan_no} 
+                            icon={<IdentificationIcon />}
+                            showDivider={false}
+                        />
+                    </div>
+                </ProfileSection>
+            </div>
+
+            {/* Emergency Contacts - Full Width */}
+            <ProfileSection
+                title="Emergency Contacts"
+                icon={<PhoneIcon />}
+                onEdit={() => openModal('emergency')}
+                canEdit={canEditProfile}
+                isEmpty={isSectionEmpty('emergency')}
+                isCompleted={isSectionCompleted('emergency')}
+            >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {user.emergency_contact_primary_name && (
+                        <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                            <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                <Chip size="sm" color="primary" variant="flat">Primary</Chip>
+                            </h5>
+                            <div className="space-y-2">
+                                <InfoRow 
+                                    label="Name" 
+                                    value={user.emergency_contact_primary_name} 
+                                    icon={<UserIcon />}
+                                />
+                                <InfoRow 
+                                    label="Relationship" 
+                                    value={user.emergency_contact_primary_relationship} 
+                                    icon={<HeartIcon />}
+                                />
+                                <InfoRow 
+                                    label="Phone" 
+                                    value={user.emergency_contact_primary_phone} 
+                                    type="phone"
+                                    icon={<PhoneIcon />}
+                                    showDivider={false}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {user.emergency_contact_secondary_name && (
+                        <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                            <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                <Chip size="sm" color="secondary" variant="flat">Secondary</Chip>
+                            </h5>
+                            <div className="space-y-2">
+                                <InfoRow 
+                                    label="Name" 
+                                    value={user.emergency_contact_secondary_name} 
+                                    icon={<UserIcon />}
+                                />
+                                <InfoRow 
+                                    label="Relationship" 
+                                    value={user.emergency_contact_secondary_relationship} 
+                                    icon={<HeartIcon />}
+                                />
+                                <InfoRow 
+                                    label="Phone" 
+                                    value={user.emergency_contact_secondary_phone} 
+                                    type="phone"
+                                    icon={<PhoneIcon />}
+                                    showDivider={false}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </ProfileSection>
         </div>
     );
+
+    // Job Details Tab - Employment and work information
+    const renderJobTab = () => {
+        const department = departments?.find(d => d.id === user.department_id);
+        const designation = designations?.find(d => d.id === user.designation_id);
+        const reportTo = allUsers?.find(u => u.id === user.report_to);
+
+        return (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Employment Information */}
+                    <ProfileSection
+                        title="Employment Details"
+                        icon={<BriefcaseIcon />}
+                        onEdit={() => openModal('profile')}
+                        canEdit={canEditProfile}
+                    >
+                        <div className="space-y-1">
+                            <InfoRow 
+                                label="Employee ID" 
+                                value={user.employee_id} 
+                                icon={<IdentificationIcon />}
+                            />
+                            <InfoRow 
+                                label="Date of Joining" 
+                                value={user.date_of_joining} 
+                                type="date"
+                                icon={<CalendarIcon />}
+                            />
+                            <InfoRow 
+                                label="Employment Status" 
+                                value={user.active ? 'Active' : 'Inactive'} 
+                                type="chip"
+                                icon={<CheckCircleIcon />}
+                            />
+                            <InfoRow 
+                                label="Department" 
+                                value={department?.name || user.department} 
+                                icon={<BuildingOfficeIcon />}
+                            />
+                            <InfoRow 
+                                label="Designation" 
+                                value={designation?.name || user.designation} 
+                                icon={<BriefcaseIcon />}
+                            />
+                            <InfoRow 
+                                label="Reports To" 
+                                value={reportTo?.name} 
+                                icon={<UserIcon />}
+                                showDivider={false}
+                            />
+                        </div>
+                    </ProfileSection>
+
+                    {/* Work Statistics */}
+                    <Card className="bg-white/5 backdrop-blur-md border-white/10">
+                        <CardBody className="p-6">
+                            <h4 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                                <ChartBarIcon className="w-5 h-5 text-primary-400" />
+                                Work Statistics
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                                    <CalendarIcon className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                                    <p className="text-2xl font-bold text-foreground">
+                                        {user.date_of_joining 
+                                            ? Math.floor((new Date() - new Date(user.date_of_joining)) / (1000 * 60 * 60 * 24 * 365.25))
+                                            : 0}
+                                    </p>
+                                    <p className="text-xs text-default-500">Years of Service</p>
+                                </div>
+                                <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                                    <ClockIcon className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                                    <p className="text-2xl font-bold text-foreground">
+                                        {profileStats.total_leaves || 0}
+                                    </p>
+                                    <p className="text-xs text-default-500">Total Leaves</p>
+                                </div>
+                                <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                                    <ChartBarIcon className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                                    <p className="text-2xl font-bold text-foreground">
+                                        {profileStats.attendance_rate || 0}%
+                                    </p>
+                                    <p className="text-xs text-default-500">Attendance Rate</p>
+                                </div>
+                                <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                                    <CheckCircleIcon className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+                                    <p className="text-2xl font-bold text-foreground">
+                                        {profileStats.completed_tasks || 0}
+                                    </p>
+                                    <p className="text-xs text-default-500">Tasks Completed</p>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+
+                {/* Education History */}
+                <ProfileSection
+                    title="Education History"
+                    icon={<AcademicCapIcon />}
+                    onEdit={() => openModal('education')}
+                    canEdit={canEditProfile}
+                    isEmpty={isSectionEmpty('education')}
+                    isCompleted={isSectionCompleted('education')}
+                >
+                    {user.educations && user.educations.length > 0 ? (
+                        <div className="space-y-4">
+                            {user.educations.map((education, index) => (
+                                <motion.div
+                                    key={education.id || index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <h5 className="font-semibold text-foreground">{education.institution}</h5>
+                                        <Chip size="sm" variant="flat" color="primary">
+                                            {education.degree || 'N/A'}
+                                        </Chip>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-default-500">Field of Study:</span>
+                                            <p className="font-medium">{education.field_of_study || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-default-500">Start Year:</span>
+                                            <p className="font-medium">
+                                                {education.starting_date ? new Date(education.starting_date).getFullYear() : 'N/A'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-default-500">End Year:</span>
+                                            <p className="font-medium">
+                                                {education.complete_date ? new Date(education.complete_date).getFullYear() : 'Present'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <AcademicCapIcon className="w-12 h-12 text-default-400 mx-auto mb-2" />
+                            <p className="text-sm text-default-500">No education records found</p>
+                        </div>
+                    )}
+                </ProfileSection>
+
+                {/* Work Experience */}
+                <ProfileSection
+                    title="Work Experience"
+                    icon={<BriefcaseIcon />}
+                    onEdit={() => openModal('experience')}
+                    canEdit={canEditProfile}
+                    isEmpty={isSectionEmpty('experience')}
+                    isCompleted={isSectionCompleted('experience')}
+                >
+                    {user.experiences && user.experiences.length > 0 ? (
+                        <div className="space-y-4">
+                            {user.experiences.map((experience, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors"
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <h5 className="font-semibold text-foreground mb-1">
+                                                {experience.job_position}
+                                            </h5>
+                                            <p className="text-primary-400 font-medium">{experience.company_name}</p>
+                                        </div>
+                                        <Chip size="sm" variant="flat" color="success">
+                                            {experience.period_to ? 'Past' : 'Current'}
+                                        </Chip>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-3">
+                                        <div>
+                                            <span className="text-default-500">Duration:</span>
+                                            <p className="font-medium">
+                                                {experience.period_from
+                                                    ? new Date(experience.period_from).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+                                                    : 'N/A'}{' '}
+                                                - {experience.period_to
+                                                    ? new Date(experience.period_to).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+                                                    : 'Present'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-default-500">Location:</span>
+                                            <p className="font-medium">{experience.location || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    {experience.description && (
+                                        <div className="mt-3 pt-3 border-t border-white/10">
+                                            <p className="text-sm text-default-600">{experience.description}</p>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <BriefcaseIcon className="w-12 h-12 text-default-400 mx-auto mb-2" />
+                            <p className="text-sm text-default-500">No work experience records found</p>
+                        </div>
+                    )}
+                </ProfileSection>
+            </div>
+        );
+    };
+
+    // Activity Log Tab - User activity tracking
+    const renderActivityTab = () => {
+        return (
+            <div className="space-y-6">
+                {/* Activity Timeline */}
+                <Card className="bg-white/5 backdrop-blur-md border-white/10">
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between w-full">
+                            <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+                                <ClockIcon className="w-5 h-5 text-primary-400" />
+                                Recent Activity
+                            </h4>
+                            <Button
+                                size="sm"
+                                variant="flat"
+                                startContent={<ArrowPathIcon className="w-4 h-4" />}
+                                isDisabled
+                            >
+                                Refresh
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardBody>
+                        <div className="text-center py-12">
+                            <ClockIcon className="w-16 h-16 text-default-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold mb-2">Activity Tracking Coming Soon</h3>
+                            <p className="text-default-500 text-sm max-w-md mx-auto">
+                                Activity logging and tracking features will be available in a future update. 
+                                This will include login history, document uploads, profile changes, and more.
+                            </p>
+                        </div>
+                    </CardBody>
+                </Card>
+
+                {/* Profile Changes Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="bg-white/5 backdrop-blur-md border-white/10">
+                        <CardBody className="p-4 text-center">
+                            <CalendarIcon className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                            <p className="text-2xl font-bold text-foreground">0</p>
+                            <p className="text-xs text-default-500">Profile Updates</p>
+                        </CardBody>
+                    </Card>
+                    <Card className="bg-white/5 backdrop-blur-md border-white/10">
+                        <CardBody className="p-4 text-center">
+                            <DocumentIcon className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                            <p className="text-2xl font-bold text-foreground">{user.documents?.length || 0}</p>
+                            <p className="text-xs text-default-500">Documents Uploaded</p>
+                        </CardBody>
+                    </Card>
+                    <Card className="bg-white/5 backdrop-blur-md border-white/10">
+                        <CardBody className="p-4 text-center">
+                            <ClockIcon className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                            <p className="text-2xl font-bold text-foreground">0</p>
+                            <p className="text-xs text-default-500">Login Sessions</p>
+                        </CardBody>
+                    </Card>
+                </div>
+            </div>
+        );
+    };
 
     const renderAssetsTab = () => (
         <div className="text-center py-12">
@@ -1355,17 +2061,66 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                                 onSelectionChange={setSelectedTab}
                                 variant="underlined"
                                 classNames={{
-                                    tabList: "gap-6 w-full relative rounded-none p-4 border-b border-white/10",
+                                    tabList: "gap-3 w-full relative rounded-none p-4 border-b border-white/10 overflow-x-auto",
                                     cursor: "w-full bg-primary-500",
-                                    tab: "max-w-fit px-4 h-12",
+                                    tab: "max-w-fit px-3 h-12",
                                     tabContent: "group-data-[selected=true]:text-primary-foreground text-default-600 font-medium"
                                 }}
                             >
-                                <Tab key="overview" title="Overview" />
-                                <Tab key="projects" title="Projects" />
-                                <Tab key="salary" title="Salary & Benefits" />
-                                <Tab key="assets" title="Assets" />
-                                <Tab key="documents" title="Documents" />
+                                <Tab 
+                                    key="overview" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <UserIcon className="w-4 h-4" />
+                                            <span>Overview</span>
+                                        </div>
+                                    } 
+                                />
+                                <Tab 
+                                    key="personal" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <IdentificationIcon className="w-4 h-4" />
+                                            <span>Personal</span>
+                                        </div>
+                                    } 
+                                />
+                                <Tab 
+                                    key="job" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <BriefcaseIcon className="w-4 h-4" />
+                                            <span>Job Details</span>
+                                        </div>
+                                    } 
+                                />
+                                <Tab 
+                                    key="salary" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <CurrencyDollarIcon className="w-4 h-4" />
+                                            <span>Salary</span>
+                                        </div>
+                                    } 
+                                />
+                                <Tab 
+                                    key="documents" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <DocumentIcon className="w-4 h-4" />
+                                            <span>Documents</span>
+                                        </div>
+                                    } 
+                                />
+                                <Tab 
+                                    key="activity" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <ClockIcon className="w-4 h-4" />
+                                            <span>Activity</span>
+                                        </div>
+                                    } 
+                                />
                             </Tabs>
 
                             <div className="p-6">
@@ -1382,15 +2137,27 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                                         </motion.div>
                                     )}
 
-                                    {selectedTab === "projects" && (
+                                    {selectedTab === "personal" && (
                                         <motion.div
-                                            key="projects"
+                                            key="personal"
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -20 }}
                                             transition={{ duration: 0.3 }}
                                         >
-                                            {renderProjectsTab()}
+                                            {renderPersonalTab()}
+                                        </motion.div>
+                                    )}
+
+                                    {selectedTab === "job" && (
+                                        <motion.div
+                                            key="job"
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -20 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            {renderJobTab()}
                                         </motion.div>
                                     )}
 
@@ -1406,18 +2173,6 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                                         </motion.div>
                                     )}
 
-                                    {selectedTab === "assets" && (
-                                        <motion.div
-                                            key="assets"
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -20 }}
-                                            transition={{ duration: 0.3 }}
-                                        >
-                                            {renderAssetsTab()}
-                                        </motion.div>
-                                    )}
-
                                     {selectedTab === "documents" && (
                                         <motion.div
                                             key="documents"
@@ -1427,6 +2182,18 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                                             transition={{ duration: 0.3 }}
                                         >
                                             {renderDocumentsTab()}
+                                        </motion.div>
+                                    )}
+
+                                    {selectedTab === "activity" && (
+                                        <motion.div
+                                            key="activity"
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -20 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            {renderActivityTab()}
                                         </motion.div>
                                     )}
                                 </AnimatePresence>

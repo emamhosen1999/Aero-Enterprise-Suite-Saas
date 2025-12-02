@@ -23,7 +23,7 @@ const Terms = () => {
       <Chip color="secondary" variant="flat" className="uppercase tracking-[0.35em] text-xs">Terms</Chip>
       <h1 className="text-4xl font-bold mt-5 mb-4">Terms of Service</h1>
       <p className={palette.mutedText}>
-        These terms govern your access to Aero Enterprise Suite. They incorporate any statements of work or order forms you execute with us.
+        These terms govern your access to aeos365. They incorporate any statements of work or order forms you execute with us.
       </p>
     </section>
     <section className="px-6 pb-24">

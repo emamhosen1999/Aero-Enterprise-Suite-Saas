@@ -160,7 +160,7 @@ const MaintenanceControl = () => {
   
   return (
     <>
-      <Head title={title} />
+      <Head title={`${title} - Admin`} />
       
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6">
         {/* Main Card */}

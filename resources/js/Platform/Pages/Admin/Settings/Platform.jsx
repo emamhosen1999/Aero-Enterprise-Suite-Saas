@@ -284,7 +284,7 @@ const PlatformSettings = () => {
 
   return (
     <>
-      <Head title={title} />
+      <Head title={`${title} - Admin`} />
       <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6">
         <Card className="transition-all duration-200" style={mainCardStyle}>
           <CardHeader className="border-b p-0" style={headerStyle}>
@@ -430,23 +430,53 @@ const PlatformSettings = () => {
                 {/* Logo Assets */}
                 <div className="space-y-3">
                   <h6 className="text-sm font-medium text-default-700">Logo & Icon Assets</h6>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FileInput
-                      label="Horizontal Logo"
-                      description="Wide logo for headers and navigation. SVG, PNG, or WebP (max 4MB). Recommended: 200x50px"
-                      error={errors.logo}
-                      onChange={(event) => handleFileChange('logo', event)}
-                      currentUrl={branding.logo}
-                      accept="image/svg+xml,image/png,image/webp"
-                    />
-                    <FileInput
-                      label="Square Logo"
-                      description="Compact logo for mobile menus and small spaces. SVG, PNG, or WebP (max 4MB). Recommended: 100x100px"
-                      error={errors.square_logo}
-                      onChange={(event) => handleFileChange('square_logo', event)}
-                      currentUrl={branding.square_logo}
-                      accept="image/svg+xml,image/png,image/webp"
-                    />
+                  
+                  {/* Theme-aware Logos */}
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs text-default-500 mb-3">Theme-Aware Logos (Automatically switches based on light/dark mode)</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FileInput
+                          label="Logo (Light Mode)"
+                          description="Logo for light backgrounds. SVG, PNG, or WebP (max 4MB). Recommended: 200x50px"
+                          error={errors.logo_light}
+                          onChange={(event) => handleFileChange('logo_light', event)}
+                          currentUrl={branding.logo_light}
+                          accept="image/svg+xml,image/png,image/webp"
+                        />
+                        <FileInput
+                          label="Logo (Dark Mode)"
+                          description="Logo for dark backgrounds. SVG, PNG, or WebP (max 4MB). Recommended: 200x50px"
+                          error={errors.logo_dark}
+                          onChange={(event) => handleFileChange('logo_dark', event)}
+                          currentUrl={branding.logo_dark}
+                          accept="image/svg+xml,image/png,image/webp"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Legacy Logo (Fallback) */}
+                    <div>
+                      <p className="text-xs text-default-500 mb-3">Legacy Logo (Used as fallback if theme-specific logos are not uploaded)</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FileInput
+                          label="Horizontal Logo (Legacy)"
+                          description="Wide logo for headers and navigation. SVG, PNG, or WebP (max 4MB). Recommended: 200x50px"
+                          error={errors.logo}
+                          onChange={(event) => handleFileChange('logo', event)}
+                          currentUrl={branding.logo}
+                          accept="image/svg+xml,image/png,image/webp"
+                        />
+                        <FileInput
+                          label="Square Logo"
+                          description="Compact logo for mobile menus and small spaces. SVG, PNG, or WebP (max 4MB). Recommended: 100x100px"
+                          error={errors.square_logo}
+                          onChange={(event) => handleFileChange('square_logo', event)}
+                          currentUrl={branding.square_logo}
+                          accept="image/svg+xml,image/png,image/webp"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -477,11 +507,12 @@ const PlatformSettings = () => {
                 <div className="p-3 bg-default-50 rounded-lg border border-default-200">
                   <h6 className="text-xs font-semibold text-default-700 mb-2">Asset Usage Guidelines</h6>
                   <ul className="text-xs text-default-600 space-y-1">
-                    <li>• <strong>Horizontal Logo:</strong> Displayed in desktop headers, admin panel, and marketing pages</li>
+                    <li>• <strong>Light/Dark Mode Logos:</strong> Automatically switch based on user's theme preference. Upload both for optimal branding across all themes.</li>
+                    <li>• <strong>Legacy Logo:</strong> Used as fallback when theme-specific logos are not available. Also used in contexts without theme support.</li>
                     <li>• <strong>Square Logo:</strong> Used in mobile navigation, app icons, and compact layouts</li>
                     <li>• <strong>Favicon:</strong> Appears in browser tabs and bookmarks</li>
                     <li>• <strong>Social Preview:</strong> Shown when sharing platform links on social media</li>
-                    <li>• <strong>Format Tip:</strong> SVG files provide the best quality at any size</li>
+                    <li>• <strong>Format Tip:</strong> SVG files provide the best quality at any size and can adapt to both themes</li>
                   </ul>
                 </div>
               </div>

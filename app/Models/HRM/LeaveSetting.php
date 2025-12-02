@@ -10,31 +10,56 @@ class LeaveSetting extends Model
     use HasFactory;
 
     protected $fillable = [
+        'name',
+        'code',
+        'annual_quota',
+        'accrual_type',
+        'carry_forward_allowed',
+        'max_carry_forward_days',
+        'encashment_allowed',
+        'requires_approval',
+        'min_days_notice',
+        'max_consecutive_days',
+        'allow_half_day',
+        'is_paid',
+        'is_active',
+        'color',
+        'description',
+        // Legacy fields for backward compatibility
         'type',
         'days',
         'eligibility',
         'carry_forward',
         'earned_leave',
-        'requires_approval',
         'auto_approve',
         'special_conditions',
     ];
 
     protected $casts = [
-        'id' => 'integer',
-        'type' => 'string',
+        'annual_quota' => 'integer',
+        'carry_forward_allowed' => 'boolean',
+        'max_carry_forward_days' => 'integer',
+        'encashment_allowed' => 'boolean',
+        'requires_approval' => 'boolean',
+        'min_days_notice' => 'integer',
+        'max_consecutive_days' => 'integer',
+        'allow_half_day' => 'boolean',
+        'is_paid' => 'boolean',
+        'is_active' => 'boolean',
+        // Legacy casts
         'days' => 'integer',
-        'eligibility' => 'string',
         'carry_forward' => 'boolean',
         'earned_leave' => 'boolean',
-        'requires_approval' => 'boolean',
         'auto_approve' => 'boolean',
-        'special_conditions' => 'string',
-
     ];
 
     public function leaves()
     {
         return $this->hasMany(Leave::class, 'leave_type');
+    }
+
+    public function balances()
+    {
+        return $this->hasMany(LeaveBalance::class);
     }
 }

@@ -80,33 +80,70 @@ class ProvisionTenant implements ShouldQueue
      * 2. Run migrations on the tenant database
      * 3. Create the admin user in the tenant database
      * 4. Activate the tenant and clear sensitive data
+     *
+     * If any step fails, the entire provisioning is rolled back.
      */
     public function handle(): void
     {
-        Log::info('Starting tenant provisioning', [
+        $context = [
             'tenant_id' => $this->tenant->id,
             'tenant_name' => $this->tenant->name,
-        ]);
+            'subdomain' => $this->tenant->domains->first()?->domain ?? 'unknown',
+        ];
 
-        // Step 1: Mark as provisioning
-        $this->tenant->startProvisioning(Tenant::STEP_CREATING_DB);
+        $this->logStep('🚀 STARTING TENANT PROVISIONING', $context);
 
-        // Step 2: Create the database
-        $this->createDatabase();
+        $databaseCreated = false;
 
-        // Step 3: Run migrations
-        $this->migrateDatabase();
+        try {
+            // Step 1: Mark as provisioning
+            $this->logStep('📋 Step 1: Marking tenant as provisioning', $context);
+            $this->tenant->startProvisioning(Tenant::STEP_CREATING_DB);
+            $this->logStep('✅ Step 1 Complete: Tenant marked as provisioning', $context);
 
-        // Step 4: Seed the admin user
-        $this->seedAdminUser();
+            // Step 2: Create the database
+            $this->logStep('🗄️  Step 2: Creating tenant database', $context);
+            $this->createDatabase();
+            $databaseCreated = true;
+            $this->logStep('✅ Step 2 Complete: Database created - '.$this->tenant->tenancy_db_name, $context);
 
-        // Step 5: Activate the tenant
-        $this->activateTenant();
+            // Step 3: Run migrations
+            $this->logStep('🔄 Step 3: Running database migrations', $context);
+            $this->migrateDatabase();
+            $this->logStep('✅ Step 3 Complete: Migrations applied successfully', $context);
 
-        Log::info('Tenant provisioning completed successfully', [
-            'tenant_id' => $this->tenant->id,
-            'tenant_name' => $this->tenant->name,
-        ]);
+            // Step 4: Seed the admin user
+            $this->logStep('👤 Step 4: Creating admin user', $context);
+            $this->seedAdminUser();
+            $this->logStep('✅ Step 4 Complete: Admin user created', $context);
+
+            // Step 5: Activate the tenant
+            $this->logStep('🎉 Step 5: Activating tenant', $context);
+            $this->activateTenant();
+            $this->logStep('✅ Step 5 Complete: Tenant activated', $context);
+
+            $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY', $context);
+        } catch (Throwable $e) {
+            $errorContext = array_merge($context, [
+                'failed_step' => $this->tenant->provisioning_step,
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+            ]);
+
+            $this->logStep('❌ PROVISIONING FAILED', $errorContext, 'error');
+            $this->logStep('⚠️  Error: '.$e->getMessage(), $errorContext, 'error');
+
+            // Rollback: Drop the database if it was created
+            if ($databaseCreated) {
+                $this->logStep('🔙 Initiating database rollback', $errorContext, 'warning');
+                $this->rollbackDatabase();
+                $this->logStep('✅ Database rollback completed', $errorContext, 'warning');
+            }
+
+            // Re-throw to trigger the failed() method
+            throw $e;
+        }
     }
 
     /**
@@ -114,13 +151,15 @@ class ProvisionTenant implements ShouldQueue
      */
     protected function createDatabase(): void
     {
-        Log::debug('Creating tenant database', ['tenant_id' => $this->tenant->id]);
+        $dbName = $this->tenant->tenancy_db_name;
+
+        $this->logStep("   → Creating database: {$dbName}", ['database' => $dbName]);
 
         $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_DB);
 
         CreateDatabase::dispatchSync($this->tenant);
 
-        Log::debug('Tenant database created', ['tenant_id' => $this->tenant->id]);
+        $this->logStep("   → Database '{$dbName}' created successfully", ['database' => $dbName]);
     }
 
     /**
@@ -128,13 +167,13 @@ class ProvisionTenant implements ShouldQueue
      */
     protected function migrateDatabase(): void
     {
-        Log::debug('Migrating tenant database', ['tenant_id' => $this->tenant->id]);
+        $this->logStep('   → Running tenant migrations', []);
 
         $this->tenant->updateProvisioningStep(Tenant::STEP_MIGRATING);
 
         MigrateDatabase::dispatchSync($this->tenant);
 
-        Log::debug('Tenant database migrated', ['tenant_id' => $this->tenant->id]);
+        $this->logStep('   → All migrations completed', []);
     }
 
     /**
@@ -142,7 +181,10 @@ class ProvisionTenant implements ShouldQueue
      */
     protected function seedAdminUser(): void
     {
-        Log::debug('Seeding admin user', ['tenant_id' => $this->tenant->id]);
+        $this->logStep("   → Seeding admin user: {$this->adminData['email']}", [
+            'admin_email' => $this->adminData['email'],
+            'admin_name' => $this->adminData['name'],
+        ]);
 
         $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_ADMIN);
 
@@ -168,29 +210,25 @@ class ProvisionTenant implements ShouldQueue
                 'active' => true,
             ]);
 
+            $this->logStep("   → Admin user created with ID: {$user->id}", [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+            ]);
+
             // Assign admin role using Spatie Permission (if available)
             if (method_exists($user, 'assignRole')) {
                 try {
+                    $this->logStep("   → Assigning 'admin' role", ['user_id' => $user->id]);
                     $user->assignRole('admin');
-                    Log::debug('Admin role assigned to user', [
-                        'tenant_id' => $this->tenant->id,
-                        'user_id' => $user->id,
-                    ]);
+                    $this->logStep('   → Admin role assigned successfully', ['user_id' => $user->id]);
                 } catch (Throwable $e) {
                     // Role may not exist yet, log but don't fail
-                    Log::warning('Could not assign admin role', [
-                        'tenant_id' => $this->tenant->id,
+                    $this->logStep("   → Could not assign admin role: {$e->getMessage()}", [
                         'user_id' => $user->id,
                         'error' => $e->getMessage(),
-                    ]);
+                    ], 'warning');
                 }
             }
-
-            Log::info('Admin user created', [
-                'tenant_id' => $this->tenant->id,
-                'user_id' => $user->id,
-                'email' => $user->email,
-            ]);
         } finally {
             // Always end tenancy context
             tenancy()->end();
@@ -202,28 +240,115 @@ class ProvisionTenant implements ShouldQueue
      */
     protected function activateTenant(): void
     {
-        Log::debug('Activating tenant', ['tenant_id' => $this->tenant->id]);
+        $this->logStep('   → Activating tenant and clearing provisioning data', []);
 
         // Activate clears admin_data and provisioning_step automatically
         $this->tenant->activate();
 
-        Log::debug('Tenant activated', ['tenant_id' => $this->tenant->id]);
+        $this->logStep("   → Tenant status: {$this->tenant->status}", [
+            'status' => $this->tenant->status,
+            'activated_at' => now()->toDateTimeString(),
+        ]);
+    }
+
+    /**
+     * Rollback: Drop the tenant database if provisioning fails.
+     *
+     * This ensures we don't leave orphaned databases in an incomplete state.
+     */
+    protected function rollbackDatabase(): void
+    {
+        try {
+            $databaseName = $this->tenant->tenancy_db_name;
+
+            if (empty($databaseName)) {
+                $this->logStep('   → No database name found for rollback', [], 'warning');
+
+                return;
+            }
+
+            $this->logStep("   → Dropping database: {$databaseName}", ['database' => $databaseName], 'warning');
+
+            // Drop the database
+            \DB::statement("DROP DATABASE IF EXISTS `{$databaseName}`");
+
+            $this->logStep("   → Database '{$databaseName}' dropped successfully", ['database' => $databaseName], 'warning');
+        } catch (Throwable $e) {
+            // Log rollback failure but don't throw - we're already in error state
+            $this->logStep("   → Failed to drop database: {$e->getMessage()}", [
+                'error' => $e->getMessage(),
+            ], 'error');
+        }
     }
 
     /**
      * Handle a job failure.
+     *
+     * Performs complete rollback:
+     * 1. Deletes tenant database (if created)
+     * 2. Deletes domain records
+     * 3. Deletes tenant record from platform database
+     *
+     * This ensures users can re-register with the same subdomain/email.
      */
     public function failed(?Throwable $exception): void
     {
-        Log::error('Tenant provisioning failed', [
-            'tenant_id' => $this->tenant->id,
-            'tenant_name' => $this->tenant->name,
+        $this->logStep('❌ TENANT PROVISIONING FAILED - PERFORMING COMPLETE ROLLBACK', [
             'step' => $this->tenant->provisioning_step,
             'error' => $exception?->getMessage(),
             'trace' => $exception?->getTraceAsString(),
-        ]);
+        ], 'error');
 
-        // Mark tenant as failed with the error reason
-        $this->tenant->markProvisioningFailed($exception?->getMessage());
+        try {
+            // Step 1: Drop tenant database if it exists
+            $this->logStep('🔙 Step 1/3: Rolling back database', [], 'warning');
+            $this->rollbackDatabase();
+
+            // Step 2: Delete domain records (allows re-registration with same subdomain)
+            $this->logStep('🔙 Step 2/3: Deleting domain records', [], 'warning');
+            $this->tenant->domains()->delete();
+
+            // Step 3: Delete tenant record (allows re-registration with same email/name)
+            $this->logStep('🔙 Step 3/3: Deleting tenant record', [], 'warning');
+            $this->tenant->forceDelete(); // Use forceDelete to bypass soft deletes if enabled
+
+            $this->logStep('✅ COMPLETE ROLLBACK SUCCESSFUL - User can re-register', [], 'warning');
+        } catch (Throwable $e) {
+            $this->logStep('❌ ROLLBACK FAILED: '.$e->getMessage(), [
+                'error' => $e->getMessage(),
+            ], 'error');
+
+            // As a last resort, mark as failed so admin can manually clean up
+            try {
+                $this->tenant->markProvisioningFailed($exception?->getMessage());
+            } catch (Throwable $markError) {
+                $this->logStep('❌ CRITICAL: Could not even mark tenant as failed', [
+                    'error' => $markError->getMessage(),
+                ], 'critical');
+            }
+        }
+    }
+
+    /**
+     * Log a provisioning step to both console and Laravel log.
+     */
+    protected function logStep(string $message, array $context = [], string $level = 'info'): void
+    {
+        // Add tenant context to all logs
+        $fullContext = array_merge([
+            'tenant_id' => $this->tenant->id,
+            'tenant_name' => $this->tenant->name,
+        ], $context);
+
+        // Log to Laravel log
+        Log::log($level, $message, $fullContext);
+
+        // Log to console (visible in terminal output)
+        echo '['.now()->format('Y-m-d H:i:s')."] {$message}".PHP_EOL;
+
+        // Flush output immediately
+        if (function_exists('flush')) {
+            flush();
+        }
     }
 }

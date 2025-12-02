@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -106,6 +107,17 @@ class Plan extends Model
             'id',           // Local key on plans table
             'tenant_id'     // Local key on subscriptions table
         );
+    }
+
+    /**
+     * Get all modules included in this plan.
+     */
+    public function modules(): BelongsToMany
+    {
+        return $this->belongsToMany(Module::class, 'plan_module')
+            ->withPivot('limits', 'is_enabled')
+            ->withTimestamps()
+            ->wherePivot('is_enabled', true);
     }
 
     // =========================================================================

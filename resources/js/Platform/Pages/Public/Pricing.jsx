@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, Head } from '@inertiajs/react';
+import { useBranding } from '@/Hooks/useBranding';
 import {
   Button,
   Card,
@@ -82,6 +83,7 @@ export default function Pricing() {
   const multiplier = annual ? 10 : 12; // 2 months free yearly
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { siteName } = useBranding();
 
   const palette = useMemo(() => ({
     baseText: isDarkMode ? 'text-white' : 'text-slate-900',
@@ -106,6 +108,7 @@ export default function Pricing() {
 
   return (
     <PublicLayout mainClassName="pt-0">
+      <Head title="Pricing" />
       <div className={`relative ${palette.baseText}`}>
       <section className="relative max-w-6xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-8 md:pb-16 text-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden>

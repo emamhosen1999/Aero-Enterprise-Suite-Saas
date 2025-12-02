@@ -239,6 +239,249 @@ class OnboardingController extends Controller
     }
 
     /**
+     * Display the wizard onboarding interface for an employee.
+     */
+    public function wizard($employeeId)
+    {
+        $employee = User::findOrFail($employeeId);
+
+        $this->authorize('create', Onboarding::class);
+
+        $departments = \App\Models\Department::select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $designations = \App\Models\Designation::select('id', 'title')
+            ->orderBy('title')
+            ->get();
+
+        $attendanceTypes = \App\Models\AttendanceType::select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $managers = User::select('id', 'name')
+            ->where('id', '!=', $employeeId)
+            ->where('active', true)
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('HR/Onboarding/Wizard', [
+            'title' => 'Employee Onboarding Wizard',
+            'employee' => $employee,
+            'departments' => $departments,
+            'designations' => $designations,
+            'attendanceTypes' => $attendanceTypes,
+            'managers' => $managers,
+        ]);
+    }
+
+    /**
+     * Save personal information step.
+     */
+    public function savePersonal(Request $request, $employeeId)
+    {
+        $employee = User::findOrFail($employeeId);
+
+        $this->authorize('create', Onboarding::class);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$employee->id,
+            'phone' => 'required|string|max:20',
+            'birthday' => 'required|date',
+            'gender' => 'required|in:male,female,other',
+            'address' => 'nullable|string',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'zip_code' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:100',
+            'emergency_contact_name' => 'required|string|max:255',
+            'emergency_contact_phone' => 'required|string|max:20',
+            'emergency_contact_relationship' => 'required|string|max:100',
+        ]);
+
+        $employee->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'birthday' => $validated['birthday'],
+            'gender' => $validated['gender'],
+            'address' => $validated['address'],
+            'city' => $validated['city'],
+            'state' => $validated['state'],
+            'zip_code' => $validated['zip_code'],
+            'country' => $validated['country'],
+            'emergency_contact_primary_name' => $validated['emergency_contact_name'],
+            'emergency_contact_primary_phone' => $validated['emergency_contact_phone'],
+            'emergency_contact_primary_relationship' => $validated['emergency_contact_relationship'],
+        ]);
+
+        return response()->json(['message' => 'Personal information saved successfully']);
+    }
+
+    /**
+     * Save job details step.
+     */
+    public function saveJob(Request $request, $employeeId)
+    {
+        $employee = User::findOrFail($employeeId);
+
+        $this->authorize('create', Onboarding::class);
+
+        $validated = $request->validate([
+            'employee_id' => 'required|string|unique:users,employee_id,'.$employee->id,
+            'department_id' => 'required|exists:departments,id',
+            'designation_id' => 'required|exists:designations,id',
+            'attendance_type_id' => 'nullable|exists:attendance_types,id',
+            'hire_date' => 'required|date',
+            'reports_to' => 'nullable|exists:users,id',
+            'work_location' => 'nullable|string|max:255',
+            'employment_type' => 'required|in:full-time,part-time,contract,intern',
+            'probation_period' => 'nullable|integer|min:0|max:12',
+        ]);
+
+        $employee->update([
+            'employee_id' => $validated['employee_id'],
+            'department_id' => $validated['department_id'],
+            'designation_id' => $validated['designation_id'],
+            'attendance_type_id' => $validated['attendance_type_id'],
+            'hire_date' => $validated['hire_date'],
+            'reporting_manager_id' => $validated['reports_to'],
+            'work_location' => $validated['work_location'],
+            'employment_type' => $validated['employment_type'],
+            'probation_period' => $validated['probation_period'],
+        ]);
+
+        return response()->json(['message' => 'Job details saved successfully']);
+    }
+
+    /**
+     * Save documents step.
+     */
+    public function saveDocuments(Request $request, $employeeId)
+    {
+        $employee = User::findOrFail($employeeId);
+
+        $this->authorize('create', Onboarding::class);
+
+        $validated = $request->validate([
+            'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'id_proof' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'address_proof' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'education_certificates.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'experience_letters.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'passport_no' => 'nullable|string|max:50',
+            'passport_exp_date' => 'nullable|date',
+            'nid' => 'nullable|string|max:50',
+        ]);
+
+        // Handle file uploads
+        if ($request->hasFile('resume')) {
+            $resumePath = $request->file('resume')->store('onboarding/documents/'.$employee->id, 'public');
+            $employee->update(['resume_path' => $resumePath]);
+        }
+
+        if ($request->hasFile('id_proof')) {
+            $idProofPath = $request->file('id_proof')->store('onboarding/documents/'.$employee->id, 'public');
+            $employee->update(['id_proof_path' => $idProofPath]);
+        }
+
+        if ($request->hasFile('address_proof')) {
+            $addressProofPath = $request->file('address_proof')->store('onboarding/documents/'.$employee->id, 'public');
+            $employee->update(['address_proof_path' => $addressProofPath]);
+        }
+
+        $employee->update([
+            'passport_no' => $validated['passport_no'],
+            'passport_exp_date' => $validated['passport_exp_date'],
+            'nid' => $validated['nid'],
+        ]);
+
+        return response()->json(['message' => 'Documents saved successfully']);
+    }
+
+    /**
+     * Save bank details step.
+     */
+    public function saveBank(Request $request, $employeeId)
+    {
+        $employee = User::findOrFail($employeeId);
+
+        $this->authorize('create', Onboarding::class);
+
+        $validated = $request->validate([
+            'bank_name' => 'required|string|max:255',
+            'bank_account_no' => 'required|string|max:50',
+            'bank_account_name' => 'required|string|max:255',
+            'bank_branch' => 'nullable|string|max:255',
+            'bank_routing_no' => 'nullable|string|max:50',
+            'bank_swift_code' => 'nullable|string|max:50',
+            'tax_id' => 'nullable|string|max:50',
+            'pan_no' => 'nullable|string|max:50',
+        ]);
+
+        $employee->update($validated);
+
+        return response()->json(['message' => 'Bank details saved successfully']);
+    }
+
+    /**
+     * Complete the onboarding process.
+     */
+    public function complete($employeeId)
+    {
+        $employee = User::findOrFail($employeeId);
+
+        $this->authorize('create', Onboarding::class);
+
+        DB::beginTransaction();
+
+        try {
+            // Create onboarding record
+            $onboarding = Onboarding::create([
+                'employee_id' => $employee->id,
+                'start_date' => now(),
+                'expected_completion_date' => now()->addDays(30),
+                'status' => Onboarding::STATUS_IN_PROGRESS,
+                'notes' => 'Created via onboarding wizard',
+            ]);
+
+            // Create default onboarding tasks
+            $defaultTasks = [
+                ['task' => 'Complete HR documentation', 'due_date' => now()->addDays(3)],
+                ['task' => 'IT equipment setup', 'due_date' => now()->addDays(1)],
+                ['task' => 'Office tour and introductions', 'due_date' => now()->addDays(2)],
+                ['task' => 'Review company policies', 'due_date' => now()->addDays(5)],
+                ['task' => 'Set up email and accounts', 'due_date' => now()->addDays(1)],
+            ];
+
+            foreach ($defaultTasks as $task) {
+                OnboardingTask::create([
+                    'onboarding_id' => $onboarding->id,
+                    'task' => $task['task'],
+                    'due_date' => $task['due_date'],
+                    'status' => OnboardingTask::STATUS_PENDING,
+                ]);
+            }
+
+            // Mark employee as active
+            $employee->update(['active' => true]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Onboarding completed successfully',
+                'redirect' => route('hr.onboarding.show', $onboarding->id),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to complete onboarding', ['error' => $e->getMessage(), 'employee_id' => $employeeId]);
+
+            return response()->json(['message' => 'Failed to complete onboarding'], 500);
+        }
+    }
+
+    /**
      * Display a listing of offboarding processes.
      */
     public function offboardingIndex()

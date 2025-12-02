@@ -4,10 +4,11 @@ namespace App\Models\HRM;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TaxSlab extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'tax_slabs';
 
@@ -16,6 +17,7 @@ class TaxSlab extends Model
         'min_income',
         'max_income',
         'tax_rate',
+        'regime',
         'is_active',
         'country',
         'state',
@@ -31,11 +33,12 @@ class TaxSlab extends Model
     ];
 
     /**
-     * Get tax slabs for a specific financial year
+     * Get tax slabs for a specific financial year and regime
      */
-    public static function getActiveSlabs($financialYear = null)
+    public static function getActiveSlabs($financialYear = null, $regime = 'new')
     {
-        $query = self::where('is_active', true);
+        $query = self::where('is_active', true)
+            ->where('regime', $regime);
 
         if ($financialYear) {
             $query->where('financial_year', $financialYear);
@@ -45,11 +48,12 @@ class TaxSlab extends Model
     }
 
     /**
-     * Calculate tax for a given income
+     * Calculate tax for a given income using specific regime
      */
-    public static function calculateTax($income, $financialYear = null)
+    public static function calculateTax($income, $financialYear = null, $regime = 'new')
     {
-        $slabs = self::getActiveSlabs($financialYear);
+        $slabs = self::getActiveSlabs($financialYear, $regime);
+
         $totalTax = 0;
         $remainingIncome = $income;
 
@@ -58,63 +62,66 @@ class TaxSlab extends Model
                 break;
             }
 
-            $slabIncome = $slab->max_income - $slab->min_income;
-            $taxableInThisSlab = min($remainingIncome, $slabIncome);
-            $tax = $taxableInThisSlab * ($slab->tax_rate / 100);
-
+            $slabRange = $slab->max_income - $slab->min_income;
+            $taxableInSlab = min($remainingIncome, $slabRange);
+            $tax = $taxableInSlab * ($slab->tax_rate / 100);
             $totalTax += $tax;
-            $remainingIncome -= $taxableInThisSlab;
+            $remainingIncome -= $taxableInSlab;
         }
 
-        return $totalTax;
+        return round($totalTax, 2);
     }
 
     /**
-     * Get default tax slabs (Indian tax structure)
+     * Get slab for a specific income level
      */
-    public static function getDefaultSlabs()
+    public static function getSlabForIncome($income, $regime = 'new', $financialYear = null)
     {
-        return [
-            [
-                'name' => '0-2.5 Lakh',
-                'min_income' => 0,
-                'max_income' => 250000,
-                'tax_rate' => 0,
-                'is_active' => true,
-                'country' => 'India',
-                'financial_year' => '2024-25',
-                'description' => 'No tax for income up to 2.5 lakh',
-            ],
-            [
-                'name' => '2.5-5 Lakh',
-                'min_income' => 250001,
-                'max_income' => 500000,
-                'tax_rate' => 5,
-                'is_active' => true,
-                'country' => 'India',
-                'financial_year' => '2024-25',
-                'description' => '5% tax for income 2.5-5 lakh',
-            ],
-            [
-                'name' => '5-10 Lakh',
-                'min_income' => 500001,
-                'max_income' => 1000000,
-                'tax_rate' => 20,
-                'is_active' => true,
-                'country' => 'India',
-                'financial_year' => '2024-25',
-                'description' => '20% tax for income 5-10 lakh',
-            ],
-            [
-                'name' => 'Above 10 Lakh',
-                'min_income' => 1000001,
-                'max_income' => 99999999,
-                'tax_rate' => 30,
-                'is_active' => true,
-                'country' => 'India',
-                'financial_year' => '2024-25',
-                'description' => '30% tax for income above 10 lakh',
-            ],
-        ];
+        $query = self::where('is_active', true)
+            ->where('regime', $regime)
+            ->where('min_income', '<=', $income)
+            ->where('max_income', '>', $income);
+
+        if ($financialYear) {
+            $query->where('financial_year', $financialYear);
+        }
+
+        return $query->first();
+    }
+
+    /**
+     * Get all available financial years
+     */
+    public static function getAvailableFinancialYears()
+    {
+        return self::where('is_active', true)
+            ->distinct()
+            ->pluck('financial_year')
+            ->sort()
+            ->values();
+    }
+
+    /**
+     * Scope to filter by regime
+     */
+    public function scopeRegime($query, $regime)
+    {
+        return $query->where('regime', $regime);
+    }
+
+    /**
+     * Scope to filter by financial year
+     */
+    public function scopeFinancialYear($query, $year)
+    {
+        return $query->where('financial_year', $year);
+    }
+
+    /**
+     * Scope to filter active slabs
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }

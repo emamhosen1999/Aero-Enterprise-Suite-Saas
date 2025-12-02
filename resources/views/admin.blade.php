@@ -12,16 +12,20 @@
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
 
     <!-- SEO -->
-    <meta name="description" content="Aero Enterprise Suite - Admin Dashboard">
+    <meta name="description" content="aeos365 - Admin Dashboard">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#1e3a5f">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl ?? asset('assets/images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl ?? asset('assets/images/favicon-32x32.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <title inertia>{{ config('app.name') }} - Admin</title>
+    <title inertia>{{ $siteName ?? config('app.name', 'aeos365') }}</title>
 
     <style>
         * {
@@ -69,12 +73,28 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
 
         .loading-content {
             text-align: center;
             color: white;
+            padding: 2rem;
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: logoFloat 2.5s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .loading-spinner {
@@ -84,7 +104,7 @@
             border-top-color: #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            margin: 0 auto 1.5rem;
         }
 
         @keyframes spin {
@@ -115,10 +135,17 @@
 
 <body>
     <!-- Loading Screen -->
-    <div id="app-loading">
+    <div id="app-loading" aria-label="Loading">
         <div class="loading-content">
+            <div class="loading-logo">
+                <img src="{{ $logoUrl ?? asset('assets/images/logo.png') }}" alt="{{ $siteName ?? 'aeos365' }}" style="width: 80px; height: 80px; object-fit: contain;" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display: none; width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 16px; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white;">
+                    {{ substr($siteName ?? 'aeos365', 0, 1) }}
+                </div>
+            </div>
             <div class="loading-spinner"></div>
-            <div class="loading-text">Admin Panel</div>
+            <div class="loading-text">{{ $siteName ?? 'aeos365' }} - Admin</div>
             <div class="loading-subtitle">Loading dashboard...</div>
         </div>
     </div>

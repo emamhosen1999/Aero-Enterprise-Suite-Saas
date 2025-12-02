@@ -1232,4 +1232,85 @@ class RecruitmentController extends Controller
             'message' => 'Job posting closed successfully',
         ]);
     }
+
+    /**
+     * Display Kanban board view for recruitment pipeline
+     */
+    public function kanban($id)
+    {
+        $job = Job::with([
+            'department',
+            'hiringManager',
+            'hiringStages' => function ($query) {
+                $query->orderBy('sequence');
+            },
+        ])->findOrFail($id);
+
+        // Get applications grouped by stage
+        $applications = $job->applications()->with(['applicant', 'currentStage'])->get();
+        $hiringStages = $job->hiringStages;
+
+        // Group applications by stage
+        $applicationsByStage = [];
+        foreach ($hiringStages as $stage) {
+            $stageApplications = $applications->where('current_stage_id', $stage->id);
+
+            $applicationsByStage[$stage->id] = [
+                'stage' => $stage,
+                'applications' => $stageApplications->values(),
+                'count' => $stageApplications->count(),
+            ];
+        }
+
+        return Inertia::render('HR/Recruitment/Kanban', [
+            'job' => $job,
+            'hiringStages' => $hiringStages,
+            'applicationsByStage' => $applicationsByStage,
+            'departments' => Department::select('id', 'name')->get(),
+            'jobTypes' => [
+                ['id' => 'full_time', 'name' => 'Full Time'],
+                ['id' => 'part_time', 'name' => 'Part Time'],
+                ['id' => 'contract', 'name' => 'Contract'],
+                ['id' => 'temporary', 'name' => 'Temporary'],
+                ['id' => 'internship', 'name' => 'Internship'],
+                ['id' => 'remote', 'name' => 'Remote'],
+            ],
+        ]);
+    }
+
+    /**
+     * Update application stage via AJAX (for Kanban drag & drop)
+     */
+    public function updateStage(Request $request, $id, $applicationId)
+    {
+        $application = JobApplication::where('job_id', $id)->findOrFail($applicationId);
+
+        $validated = $request->validate([
+            'stage_id' => 'required|exists:job_hiring_stages,id',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $previousStageId = $application->current_stage_id;
+
+        // Create stage history entry
+        $application->stageHistory()->create([
+            'stage_id' => $validated['stage_id'],
+            'previous_stage_id' => $previousStageId,
+            'changed_by' => Auth::id(),
+            'changed_at' => now(),
+            'notes' => $validated['notes'] ?? 'Stage updated via Kanban',
+        ]);
+
+        // Update application
+        $application->update([
+            'current_stage_id' => $validated['stage_id'],
+            'last_status_change' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Candidate moved successfully',
+            'application' => $application->load('currentStage'),
+        ]);
+    }
 }

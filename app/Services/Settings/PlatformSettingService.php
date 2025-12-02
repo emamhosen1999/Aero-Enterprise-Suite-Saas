@@ -65,6 +65,8 @@ class PlatformSettingService
     {
         $map = [
             'logo' => PlatformSetting::MEDIA_LOGO,
+            'logo_light' => PlatformSetting::MEDIA_LOGO_LIGHT,
+            'logo_dark' => PlatformSetting::MEDIA_LOGO_DARK,
             'square_logo' => PlatformSetting::MEDIA_SQUARE_LOGO,
             'favicon' => PlatformSetting::MEDIA_FAVICON,
             'social' => PlatformSetting::MEDIA_SOCIAL,

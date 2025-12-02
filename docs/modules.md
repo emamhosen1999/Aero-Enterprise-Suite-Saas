@@ -187,55 +187,230 @@
 
 ---
 
-## **2. HRM (Human Resource Management)**
+# **2. HRM (Laravel + Inertia.js Edition)**
 
-### **2.1 Employee Information System**
+---
 
-* Employee profile
-* Department & designation
-* Joining/exit workflow
-* Document vault
+# **2.1 Employee Information System (EIS)**
 
-### **2.2 Attendance**
+### **Backend Components**
 
-* Time-in/time-out
-* IP/device restrictions
-* Geolocation attendance
-* Manual adjustment requests
+* `Employee` model with tenant-scoped UUIDs
+* Department, Designation, Grade, Job Type models
+* Employee document vault (polymorphic attachment model)
+* Employee status lifecycle (probation → confirmed → resigned)
+* Relationship management: reporting manager, supervisor chain
+* Custom fields per tenant (JSON schema per tenant)
+* Server-side search + filters + paginated queries
+* Repository/service layer for clean domain operations
 
-### **2.3 Leave Management**
+### **Features (Frontend + Inertia)**
 
-* Leave types
-* Leave request workflow
-* Balance calculation
-* Calendar integration
+* Multi-step employee onboarding wizard
+* Employee profile view (tabs: Personal, Job, Salary, Documents, Activity)
+* Document uploader with previews
+* Department / designation hierarchy UI
+* Employee directory with filters + sorting
+* Export (Excel/PDF)
 
-### **2.4 Payroll**
+---
 
-* Salary structure
-* Allowances & deductions
-* Payslip generator
-* Payment disbursement logs
+# **2.2 Attendance Management**
 
-### **2.5 Recruitment**
+### **Backend Components**
 
-* Job posts
-* Applicant tracking
-* Interview scheduling
-* Evaluation scoring
+* Attendance entry model (daily)
+* Attendance logs (multiple punches)
+* Device/IP/geofence validation
+* Auto-overtime rule engine
+* Shift schedule model
+* Bulk attendance importer
+* Attendance adjustment requests
 
-### **2.6 Performance Management**
+### **Frontend + Inertia Features**
 
-* KPI groups
-* Appraisal cycles
-* 360° feedback
-* Performance reports
+* Time-in/time-out UI (geolocation + Web API)
+* Admin attendance dashboard
+* Monthly attendance calendar
+* Adjustment request form
+* Shift assignment UI
+* Work hour calculation summaries
 
-### **2.7 Training & Development**
+### **Automation**
+
+* Cron job: auto-mark absences
+* Rule engine to compute overtime, late, early leave
+* Batch attendance processor (Queue)
+
+---
+
+# **2.3 Leave Management**
+
+### **Backend Components**
+
+* Leave Type model (Annual, Sick, Casual, Custom)
+* Leave Balance model per employee
+* Leave Request model with approval workflow
+* Entitlement generator (yearly, monthly, or custom accrual)
+* Holiday calendar per tenant
+* Email/SMS notifications for approval/rejection
+
+### **Frontend Features**
+
+* Leave application form
+* Leave history view
+* Calendar view of upcoming leaves
+* Approval dashboard (for managers)
+* Leave balance widget
+* Holiday list UI
+
+### **Automation**
+
+* Leave accrual scheduler
+* Automatic block on insufficient balance
+* Conflict checker (team leave overlaps)
+
+---
+
+# **2.4 Payroll Management**
+
+### **Backend Components**
+
+* Salary Structure model (basic, allowances, deductions)
+* Monthly payroll sheet generator
+* Payslip model + PDF generation
+* Tax rule engine (tenant-configurable)
+* Bank payment export format generator (CSV)
+* Overtime integration from attendance
+* Loan/advance tracking
+
+### **Frontend Features**
+
+* Salary structure editor
+* Payroll run wizard
+* Payslip viewer
+* Payroll dashboard (gross salary, total deductions, overtime cost)
+* Reports: salary register, tax summary, overtime earnings
+
+### **Automation**
+
+* Payroll locking
+* Error detection (missing attendance, missing salary structure)
+* Notifications: payslip release
+
+---
+
+# **2.5 Recruitment**
+
+### **Backend Components**
+
+* Job Opening model
+* Applicant model + resume attachments
+* Stage/pipeline model (Screening → Interview → Offer)
+* Evaluation scoring system
+* Interview scheduling using Calendar
+* Email follow-ups (auto mail templates)
+
+### **Frontend Features**
+
+* Job post manager
+* Applicant list with filters
+* Resume viewer
+* Stage drag-drop pipeline board
+* Evaluation form
+* Offer letter creator
+
+### **Public Side**
+
+* Public career page
+* Application form (upload CV)
+
+---
+
+# **2.6 Performance Management**
+
+### **Backend Components**
+
+* KPI model (Weight, Score Range)
+* Appraisal Cycle model (Quarterly, Yearly)
+* 360° review system (self, peer, manager)
+* Performance scoring calculator
+* Recommendation engine for promotions
+
+### **Frontend Features**
+
+* KPI form builder
+* Appraisal dashboard
+* Review forms for employees/managers
+* Score aggregation UI
+* Performance history timeline
+
+---
+
+# **2.7 Training & Development**
+
+### **Backend Components**
+
+* Training program model
+* Session schedules
+* Trainer information
+* Attendance tracking for trainees
+* Certification issuance system
+
+### **Frontend Features**
 
 * Training calendar
-* Skill matrix
-* Certification tracking
+* Enrollment form
+* Training progress tracker
+* Certificate viewer
+
+---
+
+# **2.8 HR Analytics**
+
+### **Backend Components**
+
+* HR metrics aggregator (Queue)
+* Data warehouse (optional: denormalized tables)
+* Predefined metrics: turnover, absenteeism, utilization, payroll cost
+
+### **Frontend Features**
+
+* Dynamic HR dashboard (Inertia + Charts)
+* Drill-down analytics
+* Exportable reports
+
+---
+
+# **Cross-Cutting HRM Services**
+
+### **Events & Queues**
+
+* EmployeeCreated
+* LeaveRequested
+* PayrollGenerated
+* AttendanceLogged
+* CandidateApplied
+
+### **Policies**
+
+* Per-module permission control
+* Manager-level overrides
+* Tenant-level HR admin rules
+
+### **Caching**
+
+* Department/Designation cache
+* Holiday cache
+* Leave balance cache
+* Permissions cache
+
+### **Inertia Shared Props**
+
+* Auth user
+* Roles & permissions
+* Current tenant
+* Navigation for HRM module
 
 ---
 

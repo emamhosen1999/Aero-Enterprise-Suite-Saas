@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import App from '@/Layouts/App.jsx';
-import { analyticsTimeSeries, moduleCatalog, planCatalog } from '@/Platform/Pages/Admin/data/mockData.js';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils';
 import {
   ChartBarSquareIcon,
   ArrowTrendingUpIcon,
@@ -19,8 +20,9 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Spinner,
 } from '@heroui/react';
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Area, AreaChart, PieChart, Pie, Cell, Legend } from 'recharts';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Area, AreaChart } from 'recharts';
 
 const colors = ['#3b82f6', '#a855f7', '#f97316', '#10b981', '#6366f1'];
 
@@ -56,22 +58,77 @@ const moduleColumns = [
 ];
 
 const AnalyticsIndex = () => {
-  const stats = [
-    { label: 'MRR growth', value: '+12.1% YoY', change: 'Last 12 months', icon: ArrowTrendingUpIcon },
-    { label: 'Active tenants', value: planCatalog.reduce((sum, plan) => sum + plan.activeTenants, 0), change: 'Across all plans', icon: UserGroupIcon },
-    { label: 'Module adoption', value: `${Math.round(moduleCatalog.reduce((sum, module) => sum + module.adoption, 0) / moduleCatalog.length)}%`, change: 'Weighted average', icon: ChartBarSquareIcon },
-    { label: 'Churn rate', value: `${analyticsTimeSeries.churn[analyticsTimeSeries.churn.length - 1].value}%`, change: 'Rolling 30d', icon: ShieldCheckIcon },
-  ];
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const growthData = analyticsTimeSeries.mrr.map((entry, index) => ({
-    month: entry.month,
-    mrr: entry.value / 1000,
-    tenants: analyticsTimeSeries.newTenants[index]?.value ?? 0,
-  }));
+  useEffect(() => {
+    axios.get('/analytics/modules')
+      .then(response => {
+        if (response.data.success) {
+          setAnalytics(response.data.analytics);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load analytics:', error);
+        showToast.error('Failed to load analytics data');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <Head title="Analytics - Admin" />
+        <div className="flex h-screen items-center justify-center">
+          <Spinner size="lg" />
+        </div>
+      </>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <>
+        <Head title="Analytics - Admin" />
+        <div className="flex h-screen items-center justify-center">
+          <p className="text-default-500">No analytics data available</p>
+        </div>
+      </>
+    );
+  }
+
+  const stats = [
+    { 
+      label: 'Total Modules', 
+      value: analytics.overview.total_modules, 
+      change: 'Active modules', 
+      icon: ChartBarSquareIcon 
+    },
+    { 
+      label: 'Active Tenants', 
+      value: analytics.overview.total_tenants, 
+      change: 'Across all plans', 
+      icon: UserGroupIcon 
+    },
+    { 
+      label: 'Avg Modules/Tenant', 
+      value: analytics.overview.avg_modules_per_tenant, 
+      change: 'Per subscription', 
+      icon: ArrowTrendingUpIcon 
+    },
+    { 
+      label: 'Active Subscriptions', 
+      value: analytics.overview.active_subscriptions, 
+      change: 'Current status', 
+      icon: ShieldCheckIcon 
+    },
+  ];
 
   return (
     <>
-      <Head title="Analytics" />
+      <Head title="Analytics - Admin" />
       <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-6">
         <Card className="transition-all duration-200" style={mainCardStyle}>
           <CardHeader className="border-b p-0" style={headerStyle}>
@@ -120,97 +177,73 @@ const AnalyticsIndex = () => {
               ))}
             </div>
 
-            {/* Growth Telemetry Chart */}
+            {/* Growth Telemetry Chart - Placeholder for future trends data */}
             <div className="p-4" style={statCardStyle}>
               <div className="mb-4">
-                <h5 className="text-base font-semibold text-foreground">Growth Telemetry</h5>
+                <h5 className="text-base font-semibold text-foreground">Trending Modules</h5>
                 <p className="text-xs text-default-500">
-                  Track how recurring revenue moves alongside net new tenants.
+                  Modules with the most new adoptions in the last 30 days.
                 </p>
               </div>
-              <div className="h-80 w-full">
-                <ResponsiveContainer>
-                  <LineChart data={growthData} margin={{ top: 10, right: 40, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="mrrGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--theme-primary)" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="var(--theme-primary)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="month" stroke="var(--theme-default-400)" />
-                    <YAxis
-                      yAxisId="left"
-                      stroke="var(--theme-default-400)"
-                      tickFormatter={(value) => `$${value}k`}
-                    />
-                    <YAxis yAxisId="right" orientation="right" stroke="var(--theme-default-400)" />
-                    <Tooltip
-                      contentStyle={{
-                        background: 'var(--theme-content1)',
-                        borderRadius: '12px',
-                        border: '1px solid var(--theme-divider)',
-                      }}
-                    />
-                    <Area type="monotone" dataKey="mrr" stroke="var(--theme-primary)" fill="url(#mrrGradient)" yAxisId="left" />
-                    <Line type="monotone" dataKey="tenants" stroke="#a855f7" yAxisId="right" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="space-y-3">
+                {analytics.trending_modules.length > 0 ? (
+                  analytics.trending_modules.map((module) => (
+                    <div key={module.id} className="flex items-center justify-between p-3 rounded-lg bg-content2/50">
+                      <div>
+                        <p className="font-medium text-foreground">{module.name}</p>
+                        <p className="text-xs text-default-500">{module.code}</p>
+                      </div>
+                      <Chip size="sm" color="primary" variant="flat">
+                        +{module.new_adoptions} tenants
+                      </Chip>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-default-500 py-4">No trending modules in the last 30 days</p>
+                )}
               </div>
             </div>
 
-            {/* Churn Compression Chart */}
+            {/* Plan Distribution */}
             <div className="p-4" style={statCardStyle}>
               <div className="mb-4">
-                <h5 className="text-base font-semibold text-foreground">Churn Compression</h5>
+                <h5 className="text-base font-semibold text-foreground">Plan Distribution</h5>
                 <p className="text-xs text-default-500">
-                  See churn trendlines before and after lifecycle initiatives.
+                  Module counts and subscription stats per plan.
                 </p>
               </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer>
-                  <LineChart data={analyticsTimeSeries.churn} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                    <XAxis dataKey="month" stroke="var(--theme-default-400)" />
-                    <YAxis stroke="var(--theme-default-400)" unit="%" />
-                    <Tooltip
-                      formatter={(value) => [`${value}%`, 'Churn']}
-                      contentStyle={{
-                        background: 'var(--theme-content1)',
-                        borderRadius: '12px',
-                        border: '1px solid var(--theme-divider)',
-                      }}
-                    />
-                    <Line type="monotone" dataKey="value" stroke="#f97316" strokeWidth={3} dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Regional Distribution */}
-            <div className="p-4" style={statCardStyle}>
-              <div className="mb-4">
-                <h5 className="text-base font-semibold text-foreground">Regional Distribution</h5>
-                <p className="text-xs text-default-500">
-                  Share of live tenants across regions. Drill in for geo expansions.
-                </p>
-              </div>
-              <div className="h-72 w-full">
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie data={analyticsTimeSeries.geoSplit} outerRadius={110} dataKey="value" label>
-                      {analyticsTimeSeries.geoSplit.map((entry, index) => (
-                        <Cell key={entry.name} fill={colors[index % colors.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="space-y-3">
+                {analytics.plan_distribution.map((plan) => (
+                  <div key={plan.id} className="p-3 rounded-lg bg-content2/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-foreground">{plan.name}</p>
+                        <p className="text-xs text-default-500">
+                          {plan.billing_cycle} · ${plan.price ?? 0}
+                        </p>
+                      </div>
+                      <Chip size="sm" color="success" variant="flat">
+                        {plan.active_subscriptions} subscriptions
+                      </Chip>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-default-500">
+                      <span>{plan.module_count} modules</span>
+                      {plan.modules.length > 0 && (
+                        <>
+                          <span>·</span>
+                          <span>{plan.modules.join(', ')}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Top Module Adoption Table */}
             <div>
               <div className="mb-4">
-                <h5 className="text-base font-semibold text-foreground">Top Module Adoption</h5>
+                <h5 className="text-base font-semibold text-foreground">Module Adoption</h5>
                 <p className="text-xs text-default-500">
                   Identify where tenants spend time to prioritise investments.
                 </p>
@@ -223,25 +256,44 @@ const AnalyticsIndex = () => {
                   td: 'py-3',
                 }}
               >
-                <TableHeader columns={moduleColumns}>
-                  {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+                <TableHeader>
+                  <TableColumn>MODULE</TableColumn>
+                  <TableColumn>CODE</TableColumn>
+                  <TableColumn>ACTIVE TENANTS</TableColumn>
+                  <TableColumn>ADOPTION RATE</TableColumn>
+                  <TableColumn>PLANS</TableColumn>
                 </TableHeader>
-                <TableBody items={moduleCatalog}>
+                <TableBody items={analytics.module_adoption}>
                   {(module) => (
                     <TableRow key={module.id}>
-                      <TableCell className="font-semibold">{module.name}</TableCell>
-                      <TableCell>{module.category}</TableCell>
-                      <TableCell>{module.activeTenants}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{module.name}</span>
+                          {module.is_core && (
+                            <Chip size="sm" color="success" variant="flat">
+                              Core
+                            </Chip>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-default-500">{module.code}</TableCell>
+                      <TableCell>{module.active_tenants}</TableCell>
                       <TableCell>
                         <Chip
                           size="sm"
                           variant="flat"
-                          color={module.adoption > 75 ? 'success' : module.adoption > 50 ? 'warning' : 'default'}
+                          color={
+                            module.adoption_rate > 75 
+                              ? 'success' 
+                              : module.adoption_rate > 50 
+                                ? 'warning' 
+                                : 'default'
+                          }
                         >
-                          {module.adoption}%
+                          {module.adoption_rate}%
                         </Chip>
                       </TableCell>
-                      <TableCell className="text-default-500">{module.lastRelease}</TableCell>
+                      <TableCell>{module.total_plans}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>

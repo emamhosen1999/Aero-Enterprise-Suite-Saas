@@ -69,7 +69,7 @@ const statCardStyle = {
 
 const SettingsIndex = () => (
   <>
-    <Head title="Settings" />
+    <Head title="Settings - Admin" />
     <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-6">
       <Card className="transition-all duration-200" style={mainCardStyle}>
         <CardHeader className="border-b p-0" style={headerStyle}>

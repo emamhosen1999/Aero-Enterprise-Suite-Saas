@@ -85,13 +85,26 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/create', function () {
             return Inertia::render('Admin/Plans/Create');
         })->name('create');
+
+        // Plan-Module Management API
+        Route::get('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getPlanModules'])->name('modules.index');
+        Route::post('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'attachModules'])->name('modules.attach');
+        Route::delete('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'detachModules'])->name('modules.detach');
+        Route::put('/{plan}/modules/sync', [\App\Http\Controllers\Admin\PlanModuleController::class, 'syncModules'])->name('modules.sync');
+        Route::put('/{plan}/modules/{module}', [\App\Http\Controllers\Admin\PlanModuleController::class, 'updateModuleConfig'])->name('modules.update');
     });
+
+    // Plans API
+    Route::get('/api/plans', [\App\Http\Controllers\Admin\PlanController::class, 'index'])->name('api.plans.index');
 
     // Modules Management
     Route::prefix('modules')->name('admin.modules.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Modules/Index');
         })->name('index');
+
+        // Module Catalog API (for plan configuration)
+        Route::get('/catalog', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getModules'])->name('catalog');
     });
 
     // Billing & Invoices
@@ -156,6 +169,11 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/usage', function () {
             return Inertia::render('Admin/Analytics/Usage');
         })->name('usage');
+
+        // Module Analytics API
+        Route::get('/modules', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'index'])->name('modules.index');
+        Route::get('/modules/{module}', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'show'])->name('modules.show');
+        Route::get('/modules-trends', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'trends'])->name('modules.trends');
     });
 
     // Audit Logs

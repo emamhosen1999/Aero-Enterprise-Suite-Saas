@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             AdminPanelPermissionSeeder::class,  // Platform admin permissions (landlord guard)
             AdminPanelRoleSeeder::class,        // Platform admin roles (landlord guard)
             LandlordUserSeeder::class,          // Platform/Admin super admin user (landlord_users table)
+            ModuleSeeder::class,                // Module hierarchy (modules, sub_modules, components, actions)
+            PlanSeeder::class,                  // Subscription plans with module assignments
         ]);
     }
 }

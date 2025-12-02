@@ -93,7 +93,7 @@ return [
          * foreign key is other than `team_id`.
          */
 
-        'team_foreign_key' => 'team_id',
+        'team_foreign_key' => 'tenant_id',
     ],
 
     /*
@@ -111,16 +111,14 @@ return [
     'register_octane_reset_listener' => false,
 
     /*
-     * Teams Feature.
+     * Teams Feature (Tenant-Scoped Roles & Permissions).
      * When set to true the package implements teams using the 'team_foreign_key'.
-     * If you want the migrations to register the 'team_foreign_key', you must
-     * set this to true before doing the migration.
-     * If you already did the migration then you must make a new migration to also
-     * add 'team_foreign_key' to 'roles', 'model_has_roles', and 'model_has_permissions'
-     * (view the latest version of this package's migration file)
+     * For EOS365 Multi-Tenant SaaS, we use 'tenant_id' as the team foreign key.
+     * This ensures roles and permissions are scoped per tenant, preventing
+     * cross-tenant permission leakage.
      */
 
-    'teams' => false,
+    'teams' => true,
 
     /*
      * Passport Client Credentials Grant

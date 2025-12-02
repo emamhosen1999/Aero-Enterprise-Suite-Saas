@@ -43,7 +43,8 @@ import {
   LockClosedIcon,
   LockOpenIcon,
   ArrowPathIcon,
-  ClockIcon
+  ClockIcon,
+  BriefcaseIcon
 } from "@heroicons/react/24/outline";
 
 // Theme utility function (consistent with UsersList)
@@ -640,6 +641,16 @@ const UsersTable = ({
                   startContent={<UserIcon className="w-4 h-4" />}
                 >
                   View Profile
+                </DropdownItem>
+                <DropdownItem 
+                  textValue="Start Onboarding"
+                  href={route('hr.onboarding.wizard', { employee: user.id })}
+                  as={Link}
+                  prefetch
+                  className="text-primary"
+                  startContent={<BriefcaseIcon className="w-4 h-4" />}
+                >
+                  Start Onboarding
                 </DropdownItem>
                 <DropdownItem 
                   textValue="Edit User"

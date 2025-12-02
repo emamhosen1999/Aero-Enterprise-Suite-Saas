@@ -23,7 +23,6 @@ import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { TranslationProvider } from '@/Contexts/TranslationContext';
 import { GlobalAutoTranslator } from '@/Contexts/GlobalAutoTranslator';
 import { AppStateProvider } from '@/Contexts/AppStateContext';
-import FaviconHead from '@/Components/FaviconHead';
 import { useBranding } from '@/Hooks/useBranding';
 
 import '@/utils/serviceWorkerManager.js';
@@ -345,10 +344,6 @@ const App = React.memo(({ children }) => {
   // ===== RENDER =====
   return (
     <>
-      <FaviconHead 
-        favicon={favicon} 
-        title={siteName}
-      />
       <TranslationProvider>
       <GlobalAutoTranslator>
         <AppStateProvider>

@@ -42,7 +42,12 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ $siteName ?? config('app.name') }}">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl ?? asset('assets/images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl ?? asset('assets/images/favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $logoUrl ?? asset('assets/images/apple-touch-icon.png') }}">
 
     <!-- DNS Prefetch for Performance -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
@@ -54,8 +59,7 @@
     <!-- Font Loading with Display Swap -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fredoka:wght@300..700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Title -->
-    <title inertia>{{ config('app.name') }}</title>
+
 
     <!-- Critical CSS Inline (Optimized) -->
     <style>
@@ -461,26 +465,19 @@
         Skip to main content
     </a>
 
-    <!-- Enhanced Loading Screen with Optimized UX -->
+    <!-- Loading Screen -->
     <div id="app-loading" aria-label="Loading application">
         <div class="loading-content">
-            <!-- Optimized Logo -->
             <div class="loading-logo">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" style="width: 80px; height: 80px; object-fit: contain; border-radius: 12px;" 
+                <img src="{{ $logoUrl ?? asset('assets/images/logo.png') }}" alt="{{ $siteName ?? 'aeos365' }}" style="width: 80px; height: 80px; object-fit: contain;" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                
+                <div style="display: none; width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 16px; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white;">
+                    {{ substr($siteName ?? 'aeos365', 0, 1) }}
+                </div>
             </div>
-            
-            <!-- Optimized Loading Spinner -->
-            <div class="loading-spinner" role="status" aria-label="Loading">
-            </div>
-            
-            <!-- Text Content -->
-            <div class="loading-text">Hello</div>
+            <div class="loading-spinner"></div>
+            <div class="loading-text">{{ $siteName ?? 'aeos365' }}</div>
             <div class="loading-subtitle">Preparing your workspace...</div>
-            
-            <!-- Progress Bar -->
-            <div class="loading-progress"></div>
         </div>
     </div>
     <!-- Inertia & Vite Scripts -->

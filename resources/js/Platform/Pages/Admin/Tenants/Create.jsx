@@ -6,7 +6,7 @@ import TenantForm from '@/Platform/Pages/Admin/Tenants/components/TenantForm.jsx
 
 const TenantsCreate = () => (
   <>
-    <Head title="Create Tenant" />
+    <Head title="Create Tenant - Admin" />
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 md:px-6">
       <div className="rounded-3xl border border-default-100/70 bg-white/80 p-6 shadow-xl backdrop-blur">
         <h1 className="text-2xl font-semibold text-foreground">Provision new tenant</h1>

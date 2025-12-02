@@ -154,7 +154,7 @@ export default function Landing() {
   return (
     <PublicLayout mainClassName="pt-0">
       <Head>
-        <title>{metadata.meta_title || `${siteName} - All your enterprise modules. One unified platform.`}</title>
+        <title>{metadata.meta_title || 'Home'}</title>
         <meta name="description" content={metadata.meta_description || "HRM, CRM, ERP, DMS, POS, and more. Purpose-built for organizations that want speed, clarity, and control."} />
         {metadata.meta_keywords && <meta name="keywords" content={metadata.meta_keywords} />}
         {branding.favicon && <link rel="icon" type="image/x-icon" href={branding.favicon} />}

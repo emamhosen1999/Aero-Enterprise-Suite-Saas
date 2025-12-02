@@ -17,7 +17,7 @@ import {
     RocketLaunchIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import App from '@/Layouts/App';
 import { showToast } from '@/utils/toastUtils';
 
 /**
@@ -76,7 +76,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
     };
 
     return (
-        <AuthenticatedLayout>
+        <App>
             <Head title="Compare Plans" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -329,6 +329,6 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
                     </CardBody>
                 </Card>
             </div>
-        </AuthenticatedLayout>
+        </App>
     );
 }

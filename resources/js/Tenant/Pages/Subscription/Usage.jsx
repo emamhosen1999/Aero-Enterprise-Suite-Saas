@@ -32,7 +32,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import App from '@/Layouts/App';
 
 // Register ChartJS components
 ChartJS.register(
@@ -191,7 +191,7 @@ export default function SubscriptionUsage({
     const storageGB = (usage?.storage_bytes || 0) / (1024 * 1024 * 1024);
 
     return (
-        <AuthenticatedLayout>
+        <App>
             <Head title="Usage Details" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -397,6 +397,6 @@ export default function SubscriptionUsage({
                     </CardBody>
                 </Card>
             </div>
-        </AuthenticatedLayout>
+        </App>
     );
 }

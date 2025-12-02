@@ -1,10 +1,13 @@
 import React, { useMemo } from 'react';
 import { Link } from '@inertiajs/react';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useBranding } from '@/Hooks/useBranding.js';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
-export default function RegisterLayout({ children, mainClassName = 'py-16' }) {
+export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-16' }) {
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { logo, squareLogo, siteName } = useBranding();
 
   const palette = useMemo(() => ({
     shell: isDarkMode
@@ -32,25 +35,59 @@ export default function RegisterLayout({ children, mainClassName = 'py-16' }) {
         />
       </div>
 
-      <header className={`relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between text-sm">
+      {/* Desktop Header */}
+      <header className={`hidden md:block relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href={route('landing')} className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center font-semibold text-lg text-white">
-              A
-            </div>
+            {squareLogo ? (
+              <img src={squareLogo} alt={siteName || 'Logo'} className="h-12 w-12 object-contain rounded-lg" />
+            ) : (
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center font-semibold text-xl text-white">
+                {siteName?.charAt(0).toUpperCase() || 'A'}
+              </div>
+            )}
+            <div className="h-12 w-px bg-slate-300 dark:bg-slate-600" />
             <div>
-              <p className="font-semibold">Aero Enterprise Suite</p>
-              <p className={`text-xs ${palette.muted}`}>Tenant registration</p>
+              <p className="font-semibold text-lg">{siteName || 'Enterprise Suite'}</p>
+              <p className={`text-xs ${palette.muted}`}>Create your workspace</p>
             </div>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href={route('support')} className={`transition-colors hover:underline ${palette.muted}`}>
+            <Link href={route('support')} className={`text-sm transition-colors hover:underline ${palette.muted}`}>
               Need help?
             </Link>
-            <Link href={route('landing')} className="font-semibold text-blue-500">
+            <Link href={route('landing')} className="text-sm font-semibold text-blue-500 hover:text-blue-600">
               Back to site
             </Link>
           </div>
+        </div>
+      </header>
+
+      {/* Mobile Header */}
+      <header className={`md:hidden relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
+        <div className="px-4 py-3 flex items-center justify-between">
+          <Link href={route('landing')} className="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <ArrowLeftIcon className="w-5 h-5" />
+          </Link>
+          
+          {logo ? (
+            <img src={logo} alt={siteName || 'Logo'} className="h-8 w-auto object-contain" />
+          ) : (
+            <div className="flex items-center gap-2">
+              {squareLogo ? (
+                <img src={squareLogo} alt={siteName || 'Logo'} className="h-8 w-8 object-contain rounded" />
+              ) : (
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center font-semibold text-sm text-white">
+                  {siteName?.charAt(0).toUpperCase() || 'A'}
+                </div>
+              )}
+              <span className="font-semibold text-sm">{siteName || 'Enterprise Suite'}</span>
+            </div>
+          )}
+          
+          <Link href={route('support')} className={`text-xs font-medium ${palette.muted} hover:text-blue-500 transition-colors`}>
+            Need help?
+          </Link>
         </div>
       </header>
 
@@ -59,9 +96,9 @@ export default function RegisterLayout({ children, mainClassName = 'py-16' }) {
       </main>
 
       <footer className={`relative z-10 border-t ${palette.border} ${palette.headerBg}`}>
-        <div className="max-w-5xl mx-auto px-6 py-6 text-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className={palette.muted}>Secure multi-tenant onboarding powered by Laravel + Inertia.</p>
-          <p className={palette.muted}>© {new Date().getFullYear()} Aero Enterprise Suite</p>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 text-xs sm:text-sm flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className={`${palette.muted} text-center sm:text-left`}>Secure enterprise workspace setup</p>
+          <p className={`${palette.muted} text-center sm:text-right`}>© {new Date().getFullYear()} {siteName || 'Enterprise Suite'}</p>
         </div>
       </footer>
     </div>

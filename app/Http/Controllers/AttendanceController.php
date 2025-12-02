@@ -1080,7 +1080,7 @@ class AttendanceController extends Controller
             // 1. SETUP & SCOPE DETECTION
             $currentMonth = $request->get('currentMonth', date('m'));
             $currentYear = $request->get('currentYear', date('Y'));
-            
+
             $isGlobalScope = false;
             $userId = null;
 
@@ -1102,56 +1102,61 @@ class AttendanceController extends Controller
 
             $startOfMonth = Carbon::create($currentYear, $currentMonth, 1)->startOfDay();
             $endOfMonth = $startOfMonth->copy()->endOfMonth()->endOfDay();
-            
+
             // Stop calculating "Absents" for future dates
             $analysisEndDate = $endOfMonth->isFuture() ? Carbon::now()->endOfDay() : $endOfMonth;
 
             // 3. BASE CALENDAR METRICS
             $totalDaysInMonth = $startOfMonth->daysInMonth;
-            $holidaysCount = $this->getTotalHolidayDays($currentYear, $currentMonth); 
+            $holidaysCount = $this->getTotalHolidayDays($currentYear, $currentMonth);
             $weekendCount = $this->getWeekendDaysCount($currentYear, $currentMonth, $weekendDays);
-            
+
             // "Calendar Working Days" (e.g., 24 days)
             $calendarWorkingDays = max(0, $totalDaysInMonth - $holidaysCount - $weekendCount);
 
             // 4. EMPLOYEE COUNT
             // If Global: 17 employees. If Single: 1 employee.
-            $totalEmployees = $isGlobalScope 
-                ? User::role('Employee')->where('active', 1)->count() 
+            $totalEmployees = $isGlobalScope
+                ? User::role('Employee')->where('active', 1)->count()
                 : 1;
 
             // 5. FETCH DATA (Scoped)
             // A. Attendance
             $attendanceQuery = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])
                 ->whereNotNull('punchin');
-            
-            if (!$isGlobalScope) $attendanceQuery->where('user_id', $userId);
-            
+
+            if (! $isGlobalScope) {
+                $attendanceQuery->where('user_id', $userId);
+            }
+
             $attendanceRecords = $attendanceQuery->get();
 
             // B. Leaves (Approved Only)
             $leaveQuery = DB::table('leaves')
                 ->where('status', 'approved')
-                ->where(function($q) use ($startOfMonth, $endOfMonth) {
+                ->where(function ($q) use ($startOfMonth, $endOfMonth) {
                     $q->whereBetween('from_date', [$startOfMonth, $endOfMonth])
-                    ->orWhereBetween('to_date', [$startOfMonth, $endOfMonth]);
+                        ->orWhereBetween('to_date', [$startOfMonth, $endOfMonth]);
                 });
 
-            if (!$isGlobalScope) $leaveQuery->where('user_id', $userId);
+            if (! $isGlobalScope) {
+                $leaveQuery->where('user_id', $userId);
+            }
 
             // Calculate "Man-Days" lost to leave
             // If 2 employees take leave on the same day, this adds 2 to the count.
-            $totalLeaveManDays = $leaveQuery->get()->sum(function($leave) use ($startOfMonth, $endOfMonth) {
+            $totalLeaveManDays = $leaveQuery->get()->sum(function ($leave) use ($startOfMonth, $endOfMonth) {
                 $start = Carbon::parse($leave->from_date);
                 $end = Carbon::parse($leave->to_date);
                 // Clamp leave to this month only
                 $effectiveStart = $start->max($startOfMonth);
                 $effectiveEnd = $end->min($endOfMonth);
+
                 return max(0, $effectiveStart->diffInDays($effectiveEnd) + 1);
             });
 
             // 6. AGGREGATE ATTENDANCE METRICS
-            $totalPresentManDays = 0; 
+            $totalPresentManDays = 0;
             $totalLateArrivals = 0;
             $totalWorkMinutes = 0;
             $totalOvertimeMinutes = 0;
@@ -1162,8 +1167,8 @@ class AttendanceController extends Controller
 
             foreach ($recordsByUser as $uId => $userRecords) {
                 // Count unique days present for this user
-                $daysPresent = $userRecords->groupBy(fn($r) => Carbon::parse($r->date)->format('Y-m-d'))->count();
-                
+                $daysPresent = $userRecords->groupBy(fn ($r) => Carbon::parse($r->date)->format('Y-m-d'))->count();
+
                 $totalPresentManDays += $daysPresent;
 
                 // Check Perfect Attendance (Present Days >= Calendar Working Days)
@@ -1181,7 +1186,7 @@ class AttendanceController extends Controller
                         $dateStr = $punchIn->format('Y-m-d');
                         // Ensure we only count late once per day per user (requires stricter grouping if multiple rows exist)
                         // For dashboard speed, simple check:
-                        $threshold = Carbon::parse("$dateStr " . $officeStart->format('H:i:s'))->addMinutes($lateGraceMins);
+                        $threshold = Carbon::parse("$dateStr ".$officeStart->format('H:i:s'))->addMinutes($lateGraceMins);
                         if ($punchIn->gt($threshold)) {
                             $totalLateArrivals++;
                         }
@@ -1195,7 +1200,7 @@ class AttendanceController extends Controller
                         $totalWorkMinutes += $minutes;
 
                         // Daily Overtime (> 8 hours)
-                        if ($minutes > 480) { 
+                        if ($minutes > 480) {
                             $totalOvertimeMinutes += ($minutes - 480);
                         }
                     }
@@ -1203,12 +1208,12 @@ class AttendanceController extends Controller
             }
 
             // 7. DERIVED CALCULATIONS (The "Man-Day" Math)
-            
+
             // Calculate "Potential Man-Days Passed" to determine Absents
             $daysPassed = $startOfMonth->diffInDays($analysisEndDate) + 1;
             // Estimate working days passed (simplified)
             $workingDaysPassed = max(0, $daysPassed - ($daysPassed * 2 / 7)); // Rough estimate of weekends passed
-            
+
             $totalPotentialManDays = $calendarWorkingDays * $totalEmployees; // For the whole month
             $potentialManDaysPassed = $workingDaysPassed * $totalEmployees; // So far
 
@@ -1216,14 +1221,14 @@ class AttendanceController extends Controller
             $totalAbsentManDays = max(0, $potentialManDaysPassed - $totalPresentManDays - $totalLeaveManDays);
 
             // Percentages
-            $attendancePercentage = $totalPotentialManDays > 0 
-                ? round(($totalPresentManDays / $totalPotentialManDays) * 100, 1) 
+            $attendancePercentage = $totalPotentialManDays > 0
+                ? round(($totalPresentManDays / $totalPotentialManDays) * 100, 1)
                 : 0;
 
             // Averages
             // If Global: Avg Hours per Employee (Total Hours / Present Man Days)
-            $averageWorkHours = $totalPresentManDays > 0 
-                ? round(($totalWorkMinutes / 60) / $totalPresentManDays, 1) 
+            $averageWorkHours = $totalPresentManDays > 0
+                ? round(($totalWorkMinutes / 60) / $totalPresentManDays, 1)
                 : 0;
 
             return response()->json([
@@ -1240,21 +1245,22 @@ class AttendanceController extends Controller
                     'attendance' => [
                         'present' => $totalPresentManDays, // Card 3: 306
                         'absent' => $totalAbsentManDays,   // Card 4: 102
-                        'leaves' => (int)$totalLeaveManDays, // Card 7: 74
+                        'leaves' => (int) $totalLeaveManDays, // Card 7: 74
                         'lateArrivals' => $totalLateArrivals, // Card 5: 179
                         'percentage' => $attendancePercentage, // Card 6: 75%
-                        'perfectCount' => $usersWithPerfectAttendance // Card 8: 0
+                        'perfectCount' => $usersWithPerfectAttendance, // Card 8: 0
                     ],
                     'hours' => [
                         'totalWork' => round($totalWorkMinutes / 60, 1),
                         'averageDaily' => $averageWorkHours,
                         'overtime' => round($totalOvertimeMinutes / 60, 1),
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Stats Error: ' . $e->getMessage());
+            Log::error('Stats Error: '.$e->getMessage());
+
             return response()->json(['success' => false, 'error' => 'Calculation failed'], 500);
         }
     }
@@ -1330,6 +1336,139 @@ class AttendanceController extends Controller
         }
 
         return $weekendCount;
+    }
+
+    /**
+     * Get attendance calendar data for a specific month
+     * Returns daily attendance status for calendar view
+     */
+    public function getCalendarData(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $userId = $request->get('user_id') ?? Auth::id();
+            $year = $request->get('year', date('Y'));
+            $month = $request->get('month', date('m'));
+
+            // Get attendance settings for weekend determination
+            $settings = AttendanceSetting::first();
+            $weekendDays = $settings->weekend_days ?? ['saturday', 'sunday'];
+
+            // Create date range for the month
+            $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+            $endOfMonth = $startOfMonth->copy()->endOfMonth()->endOfDay();
+
+            // Get all attendances for the month
+            $attendances = Attendance::where('user_id', $userId)
+                ->whereBetween('date', [$startOfMonth, $endOfMonth])
+                ->get()
+                ->keyBy(function ($item) {
+                    return Carbon::parse($item->date)->format('Y-m-d');
+                });
+
+            // Get approved leaves for the month
+            $leaves = DB::table('leaves')
+                ->where('user_id', $userId)
+                ->where('status', 'approved')
+                ->where(function ($q) use ($startOfMonth, $endOfMonth) {
+                    $q->whereBetween('from_date', [$startOfMonth, $endOfMonth])
+                        ->orWhereBetween('to_date', [$startOfMonth, $endOfMonth])
+                        ->orWhere(function ($q2) use ($startOfMonth, $endOfMonth) {
+                            $q2->where('from_date', '<=', $startOfMonth)
+                                ->where('to_date', '>=', $endOfMonth);
+                        });
+                })->get();
+
+            // Get holidays for the month
+            $holidays = Holiday::where(function ($query) use ($year, $month) {
+                $query->whereYear('from_date', $year)->whereMonth('from_date', $month)
+                    ->orWhereYear('to_date', $year)->whereMonth('to_date', $month);
+            })->get();
+
+            // Build calendar data
+            $calendarData = [];
+            $current = $startOfMonth->copy();
+
+            while ($current <= $endOfMonth) {
+                $dateString = $current->format('Y-m-d');
+                $dayName = strtolower($current->format('l'));
+
+                // Check if it's a weekend
+                $isWeekend = in_array($dayName, $weekendDays);
+
+                // Check if it's a holiday
+                $isHoliday = $holidays->contains(function ($holiday) use ($current) {
+                    $from = Carbon::parse($holiday->from_date);
+                    $to = Carbon::parse($holiday->to_date);
+
+                    return $current->between($from, $to);
+                });
+
+                // Check if on leave
+                $isOnLeave = $leaves->contains(function ($leave) use ($current) {
+                    $from = Carbon::parse($leave->from_date);
+                    $to = Carbon::parse($leave->to_date);
+
+                    return $current->between($from, $to);
+                });
+
+                // Get attendance record if exists
+                $attendance = $attendances->get($dateString);
+
+                // Determine status
+                $status = 'Unknown';
+                $checkIn = null;
+                $checkOut = null;
+                $workHours = null;
+
+                if ($isHoliday) {
+                    $status = 'Holiday';
+                } elseif ($isWeekend) {
+                    $status = 'Weekend';
+                } elseif ($isOnLeave) {
+                    $status = 'Leave';
+                } elseif ($attendance) {
+                    $status = $attendance->status ?? 'Present';
+                    $checkIn = $attendance->punchin ? Carbon::parse($attendance->punchin)->format('h:i A') : null;
+                    $checkOut = $attendance->punchout ? Carbon::parse($attendance->punchout)->format('h:i A') : null;
+
+                    // Calculate work hours
+                    if ($attendance->punchin && $attendance->punchout) {
+                        $in = Carbon::parse($attendance->punchin);
+                        $out = Carbon::parse($attendance->punchout);
+                        $workHours = round($in->diffInMinutes($out) / 60, 2);
+                    }
+                } elseif ($current->isPast()) {
+                    // Only mark as absent if the date has passed
+                    $status = 'Absent';
+                }
+
+                $calendarData[$dateString] = [
+                    'date' => $dateString,
+                    'status' => $status,
+                    'check_in' => $checkIn,
+                    'check_out' => $checkOut,
+                    'work_hours' => $workHours,
+                    'is_weekend' => $isWeekend,
+                    'is_holiday' => $isHoliday,
+                    'is_leave' => $isOnLeave,
+                ];
+
+                $current->addDay();
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $calendarData,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Calendar Data Error: '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to fetch calendar data',
+            ], 500);
+        }
     }
 
     /**

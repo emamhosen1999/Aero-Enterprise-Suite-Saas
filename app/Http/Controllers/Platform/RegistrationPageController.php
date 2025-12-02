@@ -51,10 +51,57 @@ class RegistrationPageController extends Controller
             return to_route('platform.register.index');
         }
 
+        // Fetch plans with their modules
+        $plans = \App\Models\Plan::with(['modules' => function ($query) {
+            $query->select('modules.id', 'modules.code', 'modules.name', 'modules.is_core')
+                ->where('is_active', true);
+        }])
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function ($plan) {
+                $limits = $plan->limits ? json_decode($plan->limits, true) : [];
+
+                return [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'slug' => $plan->slug,
+                    'description' => $plan->description,
+                    'monthly_price' => $plan->monthly_price,
+                    'yearly_price' => $plan->yearly_price,
+                    'is_featured' => $plan->is_featured,
+                    'features' => $plan->features ? json_decode($plan->features, true) : [],
+                    'limits' => $limits,
+                    'badge' => $limits['badge'] ?? null,
+                    'modules' => $plan->modules->map(fn ($m) => [
+                        'id' => $m->id,
+                        'code' => $m->code,
+                        'name' => $m->name,
+                        'is_core' => $m->is_core,
+                    ]),
+                ];
+            });
+
+        // Fetch all modules (excluding core) for individual selection
+        $modules = \App\Models\Module::where('is_active', true)
+            ->where('is_core', false) // Core is always included
+            ->select('id', 'code', 'name', 'description', 'category')
+            ->orderBy('priority')
+            ->get()
+            ->map(function ($module) {
+                return [
+                    'id' => $module->id,
+                    'code' => $module->code,
+                    'name' => $module->name,
+                    'description' => $module->description,
+                    'category' => $module->category ?? 'General',
+                ];
+            });
+
         return $this->render('Public/Register/SelectPlan', 'plan', [
-            'modules' => config('platform.registration.modules', []),
-            'modulePricing' => config('platform.registration.module_pricing', []),
-            'defaultModules' => config('platform.registration.default_modules', []),
+            'plans' => $plans,
+            'modules' => $modules,
+            'modulePricing' => config('platform.registration.module_pricing', ['monthly' => 20, 'yearly' => 200]),
         ]);
     }
 

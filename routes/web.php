@@ -39,6 +39,16 @@ use Inertia\Inertia;
 // Note: The landing page route '/' is defined in routes/platform.php
 // This ensures it's loaded with the proper domain context middleware
 
+// =========================================================================
+// PUBLIC CAREER PAGES
+// =========================================================================
+Route::prefix('careers')->name('careers.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Public\CareersController::class, 'index'])->name('index');
+    Route::get('/{id}', [\App\Http\Controllers\Public\CareersController::class, 'show'])->name('show');
+    Route::get('/{id}/apply', [\App\Http\Controllers\Public\CareersController::class, 'apply'])->name('apply');
+    Route::post('/{id}/apply', [\App\Http\Controllers\Public\CareersController::class, 'submit'])->name('submit');
+});
+
 Route::get('/session-check', function () {
     return response()->json(['authenticated' => auth()->check()]);
 });
@@ -123,6 +133,11 @@ Route::middleware($middlewareStack)->group(function () {
         return inertia('Security/Dashboard');
     })->name('security.dashboard');
 
+    // Module Hierarchy Demo - accessible to authenticated users
+    Route::get('/administration/module-hierarchy', function () {
+        return inertia('Tenant/Pages/Administration/ModuleHierarchyDemo');
+    })->name('administration.module-hierarchy');
+
     // Updates route - require updates permission
     Route::middleware(['permission:core.updates.view'])->get('/updates', [DashboardController::class, 'updates'])->name('updates');
 
@@ -134,6 +149,7 @@ Route::middleware($middlewareStack)->group(function () {
         Route::delete('/leave-delete', [LeaveController::class, 'delete'])->name('leave-delete');
         Route::get('/leaves-paginate', [LeaveController::class, 'paginate'])->name('leaves.paginate');
         Route::get('/leaves-stats', [LeaveController::class, 'stats'])->name('leaves.stats');
+        Route::get('/leaves/balances', [LeaveController::class, 'getBalances'])->name('leaves.balances');
     });
 
     // Attendance self-service routes
@@ -141,6 +157,7 @@ Route::middleware($middlewareStack)->group(function () {
         Route::get('/attendance-employee', [AttendanceController::class, 'index2'])->name('attendance-employee');
         Route::get('/attendance/attendance-today', [AttendanceController::class, 'getCurrentUserPunch'])->name('attendance.current-user-punch');
         Route::get('/get-current-user-attendance-for-date', [AttendanceController::class, 'getCurrentUserAttendanceForDate'])->name('getCurrentUserAttendanceForDate');
+        Route::get('/attendance/calendar-data', [AttendanceController::class, 'getCalendarData'])->name('attendance.calendar-data');
     });
 
     // Punch routes - require punch permission

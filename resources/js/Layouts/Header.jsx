@@ -435,7 +435,7 @@ const MobileHeader = React.memo(({
             <AnimatePresence mode="wait">
               {!internalSidebarOpen && (() => {
                 const { logo, siteName } = useBranding();
-                const firstLetter = siteName.charAt(0).toUpperCase();
+                const firstLetter = siteName ? siteName.charAt(0).toUpperCase() : 'A';
                 
                 return (
                 <motion.div
@@ -931,7 +931,7 @@ const DesktopHeader = React.memo(({
           </span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-default-400 leading-tight truncate">
-              {auth.user.designation?.title || auth.user.role?.name || 'Team Member'}
+              {auth?.user?.designation?.title || auth?.user?.role?.name || 'Team Member'}
             </span>
             {auth.user.department && (
               <Chip size="sm" variant="flat" color="primary" className="text-xs h-4">
@@ -1080,7 +1080,7 @@ const DesktopHeader = React.memo(({
                   {/* Brand Section - Only show when sidebar is closed */}
                   {!internalSidebarOpen && (() => {
                     const { logo, siteName } = useBranding();
-                    const firstLetter = siteName.charAt(0).toUpperCase();
+                    const firstLetter = siteName ? siteName.charAt(0).toUpperCase() : 'A';
                     
                     return (
                     <div 
@@ -1520,6 +1520,11 @@ const Header = React.memo(({
   const { auth, app } = usePage().props;
   const { isMobile, isTablet, isDesktop } = useDeviceType();
   const trigger = useScrollTrigger();
+
+  // Guard: Don't render if no authenticated user
+  if (!auth?.user || !auth.user.name) {
+    return null;
+  }
 
   // ===== INTERNAL HANDLERS (Stable References) =====
   const handleInternalToggle = useCallback(() => {

@@ -71,7 +71,7 @@ class SystemSetting extends Model implements HasMedia
     {
         return static::firstOrCreate(
             ['slug' => self::DEFAULT_SLUG],
-            ['company_name' => config('app.name', 'Aero Enterprise Suite')]
+            ['company_name' => config('app.name', 'aeos365')]
         );
     }
 

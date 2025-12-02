@@ -20,6 +20,10 @@ class PlatformSetting extends Model implements HasMedia
 
     public const MEDIA_LOGO = 'platform_logo';
 
+    public const MEDIA_LOGO_LIGHT = 'platform_logo_light';
+
+    public const MEDIA_LOGO_DARK = 'platform_logo_dark';
+
     public const MEDIA_SQUARE_LOGO = 'platform_square_logo';
 
     public const MEDIA_FAVICON = 'platform_favicon';
@@ -108,7 +112,7 @@ class PlatformSetting extends Model implements HasMedia
     {
         return static::firstOrCreate(
             ['slug' => self::DEFAULT_SLUG],
-            ['site_name' => config('app.name', 'Aero Enterprise Suite')]
+            ['site_name' => config('app.name', 'aeos365')]
         );
     }
 
@@ -255,6 +259,8 @@ class PlatformSetting extends Model implements HasMedia
 
         return array_merge([
             'logo' => $this->getFirstMediaUrl(self::MEDIA_LOGO) ?: data_get($branding, 'logo'),
+            'logo_light' => $this->getFirstMediaUrl(self::MEDIA_LOGO_LIGHT) ?: data_get($branding, 'logo_light'),
+            'logo_dark' => $this->getFirstMediaUrl(self::MEDIA_LOGO_DARK) ?: data_get($branding, 'logo_dark'),
             'square_logo' => $this->getFirstMediaUrl(self::MEDIA_SQUARE_LOGO) ?: data_get($branding, 'square_logo'),
             'favicon' => $this->getFirstMediaUrl(self::MEDIA_FAVICON) ?: data_get($branding, 'favicon'),
             'social' => $this->getFirstMediaUrl(self::MEDIA_SOCIAL) ?: data_get($branding, 'social'),

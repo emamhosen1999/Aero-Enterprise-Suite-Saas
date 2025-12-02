@@ -28,7 +28,7 @@ import {
     ClockIcon,
     ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import App from '@/Layouts/App';
 import { showToast } from '@/utils/toastUtils';
 
 /**
@@ -76,7 +76,7 @@ export default function SubscriptionInvoices({ invoices, pagination }) {
     ) || [];
 
     return (
-        <AuthenticatedLayout>
+        <App>
             <Head title="Invoices" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -273,6 +273,6 @@ export default function SubscriptionInvoices({ invoices, pagination }) {
                     </CardBody>
                 </Card>
             </div>
-        </AuthenticatedLayout>
+        </App>
     );
 }

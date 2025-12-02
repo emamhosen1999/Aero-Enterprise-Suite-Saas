@@ -196,7 +196,7 @@ HTML;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="60">
-    <title>{$title} - Aero Enterprise Suite</title>
+    <title>{$title} - aeos365</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
     <style>
@@ -384,7 +384,7 @@ HTML;
         </a>
         
         <div class="footer">
-            Aero Enterprise Suite &copy; 2024. We apologize for any inconvenience.
+            aeos365 &copy; 2024. We apologize for any inconvenience.
         </div>
     </div>
     

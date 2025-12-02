@@ -5,12 +5,18 @@ namespace App\Services;
 use App\Models\HRM\Payroll;
 use App\Models\HRM\PayrollAllowance;
 use App\Models\HRM\PayrollDeduction;
-use App\Models\HRM\TaxSlab;
 use App\Models\User;
 use Carbon\Carbon;
 
 class PayrollCalculationService
 {
+    protected $taxEngine;
+
+    public function __construct(TaxRuleEngine $taxEngine)
+    {
+        $this->taxEngine = $taxEngine;
+    }
+
     /**
      * Calculate comprehensive payroll for an employee
      */
@@ -73,49 +79,34 @@ class PayrollCalculationService
     }
 
     /**
-     * Calculate income tax based on tax slabs
+     * Calculate income tax based on tax slabs using TaxRuleEngine
      */
     public function calculateIncomeTax($annualIncome, $employee)
     {
-        $taxSlabs = TaxSlab::where('is_active', true)
-            ->orderBy('min_income')
-            ->get();
+        // Get employee's tax regime preference (default to 'new')
+        $regime = $employee->tax_regime ?? 'new';
 
-        $totalTax = 0;
-        $remainingIncome = $annualIncome;
+        // Use TaxRuleEngine for comprehensive calculation
+        $taxCalculation = $this->taxEngine->calculateTax(
+            $annualIncome,
+            [], // Exemptions (can be added from employee profile)
+            [], // Deductions (can be added from employee declarations)
+            ['regime' => $regime]
+        );
 
-        foreach ($taxSlabs as $slab) {
-            if ($remainingIncome <= 0) {
-                break;
-            }
-
-            $taxableInThisSlab = min($remainingIncome, $slab->max_income - $slab->min_income);
-            $tax = $taxableInThisSlab * ($slab->tax_rate / 100);
-            $totalTax += $tax;
-            $remainingIncome -= $taxableInThisSlab;
-        }
-
-        // Monthly tax
-        return $totalTax / 12;
+        // Return monthly tax deduction
+        return $taxCalculation['monthly_tax_deduction'];
     }
 
     /**
-     * Calculate professional tax
+     * Calculate professional tax using TaxRuleEngine
      */
     public function calculateProfessionalTax($grossSalary)
     {
-        // Professional tax rates (can be made configurable)
-        if ($grossSalary <= 15000) {
-            return 0;
-        }
-        if ($grossSalary <= 20000) {
-            return 150;
-        }
-        if ($grossSalary <= 25000) {
-            return 200;
-        }
+        // Get employee's state from profile (default to null)
+        $state = tenant('professional_tax_state');
 
-        return 300;
+        return $this->taxEngine->calculateProfessionalTax($grossSalary, $state);
     }
 
     /**

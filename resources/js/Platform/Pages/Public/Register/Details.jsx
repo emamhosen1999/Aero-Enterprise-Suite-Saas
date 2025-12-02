@@ -4,6 +4,7 @@ import { Button, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useBranding } from '@/Hooks/useBranding.js';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 export default function Details({ steps = [], currentStep, savedData = {}, accountType = 'company', baseDomain = 'platform.test' }) {
@@ -18,6 +19,7 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
 
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
+  const { siteName } = useBranding();
   const palette = {
     heading: isDarkMode ? 'text-white' : 'text-slate-900',
     copy: isDarkMode ? 'text-slate-300' : 'text-slate-600',
@@ -34,18 +36,18 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
 
   return (
     <RegisterLayout>
-      <Head title="Workspace details" />
-      <section className="max-w-5xl mx-auto px-6 py-12 space-y-8">
-        <div className="space-y-4 text-center">
-          <p className={`text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 2</p>
-          <h1 className={`text-4xl font-semibold ${palette.heading}`}>Tell us about {accountType === 'individual' ? 'you' : 'your company'}.</h1>
-          <p className={palette.copy}>We will use this to pre-configure branding, subdomain, and trial communications.</p>
+      <Head title={`Workspace details - ${siteName || 'aeos365'}`} />
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
+        <div className="space-y-3 sm:space-y-4 text-center">
+          <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 2</p>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Tell us about {accountType === 'individual' ? 'you' : 'your company'}.</h1>
+          <p className={`${palette.copy} text-sm sm:text-base px-2`}>We will use this to pre-configure branding, subdomain, and trial communications.</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
 
         <AuthCard>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <Input
               label={personaLabel}
               placeholder="Acme Manufacturing"
@@ -54,8 +56,12 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
               isInvalid={Boolean(errors.name)}
               errorMessage={errors.name}
               isRequired
+              classNames={{
+                label: 'text-sm sm:text-base',
+                input: 'text-sm sm:text-base'
+              }}
             />
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               <Input
                 type="email"
                 label="Work email"
@@ -65,6 +71,10 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 isInvalid={Boolean(errors.email)}
                 errorMessage={errors.email}
                 isRequired
+                classNames={{
+                  label: 'text-sm sm:text-base',
+                  input: 'text-sm sm:text-base'
+                }}
               />
               <Input
                 label="Phone (optional)"
@@ -73,9 +83,13 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 onChange={(event) => setData('phone', event.target.value)}
                 isInvalid={Boolean(errors.phone)}
                 errorMessage={errors.phone}
+                classNames={{
+                  label: 'text-sm sm:text-base',
+                  input: 'text-sm sm:text-base'
+                }}
               />
             </div>
-            <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-[2fr,1fr]">
               <Input
                 label="Preferred subdomain"
                 placeholder="acme"
@@ -85,6 +99,11 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 errorMessage={errors.subdomain}
                 description={`Your workspace URL will be https://${data.subdomain || 'team'}.${baseDomain}`}
                 isRequired
+                classNames={{
+                  label: 'text-sm sm:text-base',
+                  input: 'text-sm sm:text-base',
+                  description: 'text-xs sm:text-sm'
+                }}
               />
               <Input
                 type="number"
@@ -95,14 +114,18 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 isInvalid={Boolean(errors.team_size)}
                 errorMessage={errors.team_size}
                 min={1}
+                classNames={{
+                  label: 'text-sm sm:text-base',
+                  input: 'text-sm sm:text-base'
+                }}
               />
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <Link href={route('platform.register.index')} className={`text-sm transition-colors ${palette.link}`}>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+              <Link href={route('platform.register.index')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
                 ← Back to account type
               </Link>
-              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600" type="submit" isLoading={processing}>
+              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={processing}>
                 Continue to modules
               </Button>
             </div>

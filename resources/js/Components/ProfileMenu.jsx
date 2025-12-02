@@ -28,6 +28,11 @@ const ProfileMenu = ({ children }) => {
 
   const user = auth.user;
   
+  // Additional safety check
+  if (!user || !user.name) {
+    return children;
+  }
+  
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {

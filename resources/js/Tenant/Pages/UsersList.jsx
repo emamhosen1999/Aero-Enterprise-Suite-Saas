@@ -60,6 +60,7 @@ import StatsCards from "@/Components/StatsCards.jsx";
 import UsersTable from '@/Tables/UsersTable.jsx';
 import AddEditUserForm from "@/Forms/AddEditUserForm.jsx";
 import InviteUserForm from "@/Forms/InviteUserForm.jsx";
+import PendingInvitationsPanel from "@/Components/PendingInvitationsPanel.jsx";
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
@@ -1638,6 +1639,11 @@ const UsersList = ({ title, roles, departments, designations }) => {
                         </Card>
                       </>
                     )}
+                  </div>
+
+                  {/* Pending Invitations Panel */}
+                  <div className="mb-6">
+                    <PendingInvitationsPanel onInvitationChange={fetchUsers} />
                   </div>
 
                   {/* Filters Section with Loading Skeleton */}

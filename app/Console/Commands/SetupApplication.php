@@ -27,7 +27,7 @@ class SetupApplication extends Command
      */
     public function handle()
     {
-        $this->info('Starting Aero-HR application setup...');
+        $this->info('Starting aeos365 application setup...');
 
         // Check if --fresh flag is set
         if ($this->option('fresh')) {
@@ -56,7 +56,7 @@ class SetupApplication extends Command
         ]);
         $this->info(Artisan::output());
 
-        $this->info('✅ Aero-HR application has been set up successfully!');
+        $this->info('✅ aeos365 application has been set up successfully!');
 
         // Output final information
         $this->info('Application is now ready to use.');

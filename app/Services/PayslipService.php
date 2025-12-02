@@ -183,7 +183,7 @@ class PayslipService
 
         return [
             'company' => [
-                'name' => config('app.name', 'Aero-HR'),
+                'name' => config('app.name', 'aeos365'),
                 'address' => 'Company Address Line 1',
                 'city' => 'City, State - ZIP',
                 'phone' => '+1 (555) 123-4567',
