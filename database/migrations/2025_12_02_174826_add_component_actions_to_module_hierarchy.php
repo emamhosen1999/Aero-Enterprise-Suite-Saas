@@ -29,17 +29,7 @@ return new class extends Migration
             $table->index('module_component_id');
         });
 
-        // Add module_component_action_id to module_permissions
-        Schema::table('module_permissions', function (Blueprint $table) {
-            $table->foreignId('module_component_action_id')
-                ->nullable()
-                ->after('component_id')
-                ->constrained('module_component_actions')
-                ->onDelete('cascade');
-
-            $table->boolean('is_required')->default(true)->after('requirement_group');
-            $table->dropColumn(['requirement_type', 'requirement_group']);
-        });
+        
     }
 
     /**
@@ -47,12 +37,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('module_permissions', function (Blueprint $table) {
-            $table->dropForeign(['module_component_action_id']);
-            $table->dropColumn(['module_component_action_id', 'is_required']);
-            $table->string('requirement_type')->default('required');
-            $table->string('requirement_group')->default('default');
-        });
+        
 
         Schema::dropIfExists('module_component_actions');
 

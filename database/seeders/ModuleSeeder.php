@@ -5,17 +5,17 @@ namespace Database\Seeders;
 use App\Models\Module;
 use App\Models\ModuleComponent;
 use App\Models\ModuleComponentAction;
-use App\Models\ModulePermission;
 use App\Models\SubModule;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 
 /**
- * Module Seeder - Seeds from config/modules.php
+ * Module Seeder - Seeds from config/modules.php (LANDLORD ONLY)
  *
  * Reads the hardcoded module hierarchy from configuration and populates
- * the database with modules, submodules, components, and actions.
- * The required permissions for each level can be configured by admins.
+ * the LANDLORD database with modules, submodules, components, and actions.
+ *
+ * Note: This seeder does NOT create permissions or module_permissions.
+ * Permission mapping is done per-tenant via Tenant\ModulePermissionSeeder.
  */
 class ModuleSeeder extends Seeder
 {
@@ -65,17 +65,6 @@ class ModuleSeeder extends Seeder
             ]
         );
 
-        // Link default required permissions for the module
-        if (! empty($moduleData['default_required_permissions'])) {
-            $this->linkPermissions(
-                $module->id,
-                null,
-                null,
-                null,
-                $moduleData['default_required_permissions']
-            );
-        }
-
         // Seed submodules
         if (! empty($moduleData['submodules'])) {
             foreach ($moduleData['submodules'] as $submoduleData) {
@@ -103,17 +92,6 @@ class ModuleSeeder extends Seeder
                 'is_active' => $submoduleData['is_active'] ?? true,
             ]
         );
-
-        // Link default required permissions for the submodule
-        if (! empty($submoduleData['default_required_permissions'])) {
-            $this->linkPermissions(
-                $module->id,
-                $subModule->id,
-                null,
-                null,
-                $submoduleData['default_required_permissions']
-            );
-        }
 
         // Seed components
         if (! empty($submoduleData['components'])) {
@@ -143,17 +121,6 @@ class ModuleSeeder extends Seeder
             ]
         );
 
-        // Link default required permissions for the component
-        if (! empty($componentData['default_required_permissions'])) {
-            $this->linkPermissions(
-                $module->id,
-                $subModule->id,
-                $component->id,
-                null,
-                $componentData['default_required_permissions']
-            );
-        }
-
         // Seed actions
         if (! empty($componentData['actions'])) {
             foreach ($componentData['actions'] as $actionData) {
@@ -167,7 +134,7 @@ class ModuleSeeder extends Seeder
      */
     protected function seedAction(Module $module, SubModule $subModule, ModuleComponent $component, array $actionData): void
     {
-        $action = ModuleComponentAction::updateOrCreate(
+        ModuleComponentAction::updateOrCreate(
             [
                 'module_component_id' => $component->id,
                 'code' => $actionData['code'],
@@ -177,54 +144,5 @@ class ModuleSeeder extends Seeder
                 'description' => $actionData['description'] ?? null,
             ]
         );
-
-        // Link default required permissions for the action
-        if (! empty($actionData['default_required_permissions'])) {
-            $this->linkPermissions(
-                $module->id,
-                $subModule->id,
-                $component->id,
-                $action->id,
-                $actionData['default_required_permissions']
-            );
-        }
-    }
-
-    /**
-     * Link permissions to a module/submodule/component/action.
-     */
-    protected function linkPermissions(
-        int $moduleId,
-        ?int $subModuleId,
-        ?int $componentId,
-        ?int $actionId,
-        array $permissionNames
-    ): void {
-        foreach ($permissionNames as $permissionName) {
-            // Find or create permission (tenant guard)
-            $permission = Permission::firstOrCreate(
-                [
-                    'name' => $permissionName,
-                    'guard_name' => 'web',
-                ],
-                [
-                    'description' => "Permission for {$permissionName}",
-                ]
-            );
-
-            // Link to module hierarchy
-            ModulePermission::updateOrCreate(
-                [
-                    'module_id' => $moduleId,
-                    'sub_module_id' => $subModuleId,
-                    'component_id' => $componentId,
-                    'module_component_action_id' => $actionId,
-                    'permission_id' => $permission->id,
-                ],
-                [
-                    'is_required' => true,
-                ]
-            );
-        }
     }
 }

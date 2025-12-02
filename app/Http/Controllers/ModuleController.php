@@ -9,7 +9,6 @@ use App\Models\SubModule;
 use App\Services\Module\ModulePermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -45,23 +44,32 @@ class ModuleController extends Controller
         // Get tenant's subscribed modules only
         $tenant = tenant();
         $subscribedModuleIds = collect();
-        
+
         if ($tenant && $tenant->plan) {
             $subscribedModuleIds = $tenant->plan->modules->pluck('id');
         }
 
-        $modules = Module::with([
+        // Build eager loading relationships - only load permission requirements in tenant context
+        $with = [
             'subModules' => fn ($q) => $q->ordered(),
-            'subModules.components.permissionRequirements.permission',
-            'subModules.permissionRequirements.permission',
-            'components.permissionRequirements.permission',
-            'permissionRequirements.permission',
-        ])
-        ->when($subscribedModuleIds->isNotEmpty(), function ($query) use ($subscribedModuleIds) {
-            $query->whereIn('id', $subscribedModuleIds);
-        })
-        ->ordered()
-        ->get();
+        ];
+
+        // Only load permission relationships when in tenant context
+        if (tenancy()->initialized) {
+            $with = array_merge($with, [
+                'subModules.components.permissionRequirements.permission',
+                'subModules.permissionRequirements.permission',
+                'components.permissionRequirements.permission',
+                'permissionRequirements.permission',
+            ]);
+        }
+
+        $modules = Module::with($with)
+            ->when($subscribedModuleIds->isNotEmpty(), function ($query) use ($subscribedModuleIds) {
+                $query->whereIn('id', $subscribedModuleIds);
+            })
+            ->ordered()
+            ->get();
 
         $permissions = Permission::orderBy('name')->get();
         $statistics = $this->modulePermissionService->getStatistics();
@@ -119,12 +127,18 @@ class ModuleController extends Controller
         }
     }
 
- 
     /**
      * Sync permissions for a module
      */
     public function syncModulePermissions(Request $request, $moduleId)
     {
+        // Module permissions can only be managed in tenant context
+        if (! tenancy()->initialized) {
+            return response()->json([
+                'error' => 'Module permissions can only be managed from tenant context. This is a tenant-level configuration.',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'permissions' => 'present|array',
             'permissions.*.permission' => 'required_with:permissions.*|string|exists:permissions,name',
@@ -169,6 +183,13 @@ class ModuleController extends Controller
      */
     public function syncSubModulePermissions(Request $request, $subModuleId)
     {
+        // Module permissions can only be managed in tenant context
+        if (! tenancy()->initialized) {
+            return response()->json([
+                'error' => 'Module permissions can only be managed from tenant context. This is a tenant-level configuration.',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'permissions' => 'present|array',
             'permissions.*.permission' => 'required_with:permissions.*|string|exists:permissions,name',
@@ -213,6 +234,13 @@ class ModuleController extends Controller
      */
     public function syncComponentPermissions(Request $request, $componentId)
     {
+        // Module permissions can only be managed in tenant context
+        if (! tenancy()->initialized) {
+            return response()->json([
+                'error' => 'Module permissions can only be managed from tenant context. This is a tenant-level configuration.',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'permissions' => 'present|array',
             'permissions.*.permission' => 'required_with:permissions.*|string|exists:permissions,name',

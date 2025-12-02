@@ -21,10 +21,7 @@ class PlatformSettingController extends Controller
 
     public function index(Request $request): Response|PlatformSettingResource
     {
-        // Check permission for landlord guard
-        if (! $request->user('landlord')->can('platform.settings.view')) {
-            abort(403, 'This action is unauthorized.');
-        }
+      
 
         $setting = PlatformSetting::current();
 
@@ -43,11 +40,11 @@ class PlatformSettingController extends Controller
         $user = $request->user('landlord');
 
         // Check permission for landlord guard
-        if (! $user || ! $user->can('platform.settings.update')) {
+        if (! $user || ! $user->hasPermissionTo('platform.settings.update', 'landlord')) {
             \Log::warning('Platform Settings Update - Authorization Failed', [
                 'user_id' => $user?->id,
                 'required_permission' => 'platform.settings.update',
-                'has_permission' => $user?->can('platform.settings.update'),
+                'has_permission' => $user?->hasPermissionTo('platform.settings.update', 'landlord'),
             ]);
             abort(403, 'This action is unauthorized.');
         }

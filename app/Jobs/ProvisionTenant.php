@@ -198,15 +198,15 @@ class ProvisionTenant implements ShouldQueue
     {
         // Extract local part before @
         $username = explode('@', $email)[0];
-        
+
         // Replace non-alphanumeric characters with underscore
         $username = preg_replace('/[^a-zA-Z0-9]/', '_', $username);
-        
+
         // Ensure it starts with a letter
-        if (!preg_match('/^[a-zA-Z]/', $username)) {
-            $username = 'user_' . $username;
+        if (! preg_match('/^[a-zA-Z]/', $username)) {
+            $username = 'user_'.$username;
         }
-        
+
         return strtolower($username);
     }
 
@@ -280,10 +280,10 @@ class ProvisionTenant implements ShouldQueue
 
         try {
             tenancy()->initialize($this->tenant);
-            
-            $seeder = new \Database\Seeders\Tenant\ComprehensiveRolePermissionSeeder();
+
+            $seeder = new \Database\Seeders\Tenant\ComprehensiveRolePermissionSeeder;
             $seeder->run();
-            
+
             $this->logStep('   → Roles and permissions seeded successfully', []);
         } catch (Throwable $e) {
             $this->logStep("   → Failed to seed roles and permissions: {$e->getMessage()}", [
@@ -305,10 +305,10 @@ class ProvisionTenant implements ShouldQueue
 
         try {
             tenancy()->initialize($this->tenant);
-            
-            $seeder = new \Database\Seeders\Tenant\ModulePermissionSeeder();
+
+            $seeder = new \Database\Seeders\Tenant\ModulePermissionSeeder;
             $seeder->run();
-            
+
             $this->logStep('   → Module permissions seeded successfully', []);
         } catch (Throwable $e) {
             $this->logStep("   → Failed to seed module permissions: {$e->getMessage()}", [
@@ -330,25 +330,25 @@ class ProvisionTenant implements ShouldQueue
 
         try {
             tenancy()->initialize($this->tenant);
-            
+
             // Find the first user (admin)
             $user = \App\Models\User::first();
-            
-            if (!$user) {
+
+            if (! $user) {
                 throw new \Exception('Admin user not found');
             }
 
             // Find Super Administrator role
             $role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
-            
-            if (!$role) {
+
+            if (! $role) {
                 throw new \Exception('Super Administrator role not found');
             }
 
             // Clear any existing roles and assign Super Administrator
             $user->syncRoles([]);
             $user->assignRole($role);
-            
+
             $this->logStep("   → Super Administrator role assigned to user: {$user->email}", [
                 'user_id' => $user->id,
                 'role_id' => $role->id,

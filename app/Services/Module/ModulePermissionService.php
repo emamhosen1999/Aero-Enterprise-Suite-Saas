@@ -30,15 +30,23 @@ class ModulePermissionService
      */
     public function getModulesWithStructure(): Collection
     {
+        $with = [
+            'subModules' => fn ($q) => $q->active()->ordered(),
+            'subModules.components' => fn ($q) => $q->active(),
+            'components' => fn ($q) => $q->active(),
+        ];
+
+        // Only load permission relationships when in tenant context
+        if (tenancy()->initialized) {
+            $with = array_merge($with, [
+                'subModules.permissionRequirements.permission',
+                'permissionRequirements.permission',
+            ]);
+        }
+
         return Module::active()
             ->ordered()
-            ->with([
-                'subModules' => fn ($q) => $q->active()->ordered(),
-                'subModules.components' => fn ($q) => $q->active(),
-                'subModules.permissionRequirements.permission',
-                'components' => fn ($q) => $q->active(),
-                'permissionRequirements.permission',
-            ])
+            ->with($with)
             ->get();
     }
 
@@ -468,13 +476,20 @@ class ModulePermissionService
      */
     public function getModulePermissionRequirements(string $moduleCode): array
     {
-        $module = Module::where('code', $moduleCode)
-            ->with([
+        $with = [];
+
+        // Only load permission relationships when in tenant context
+        if (tenancy()->initialized) {
+            $with = [
                 'permissionRequirements.permission',
                 'subModules.permissionRequirements.permission',
                 'subModules.components.permissionRequirements.permission',
                 'components.permissionRequirements.permission',
-            ])
+            ];
+        }
+
+        $module = Module::where('code', $moduleCode)
+            ->with($with)
             ->first();
 
         if (! $module) {

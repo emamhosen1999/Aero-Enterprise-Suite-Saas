@@ -17,6 +17,8 @@ class ModuleComponentAction extends Model
 {
     use HasFactory;
 
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'module_component_id',
         'code',
