@@ -457,7 +457,13 @@ class TenantOnboardingController extends Controller
             return true;
         }
 
-        $data = tenant()->data ?? [];
+        // Read directly from database to avoid cached data issues
+        $tenantData = \Illuminate\Support\Facades\DB::connection('mysql')
+            ->table('tenants')
+            ->where('id', tenant()->id)
+            ->value('data');
+
+        $data = json_decode($tenantData, true) ?? [];
 
         return ($data['onboarding']['completed'] ?? false) === true;
     }
