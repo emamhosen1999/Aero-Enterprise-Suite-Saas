@@ -31,6 +31,7 @@ class Kernel extends ConsoleKernel
                 });
         }
 
+        $schedule->command('queue:work --stop-when-empty --tries=3')->everyMinute();
         // Send attendance reminders daily at 8:00 AM
         $schedule->command('attendance:reminders')
             ->dailyAt('22:17')
