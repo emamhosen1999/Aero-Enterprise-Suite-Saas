@@ -1,0 +1,1 @@
+import{r as s,a,j as e}from"./app-BeSucDHO.js";const i=()=>{const[r,t]=s.useState(!1),{data:o,setData:p,post:m,processing:n,errors:c}=a({email:"",password:"",remember:!1});return e.jsx("div",{className:"auth-page-wrapper pt-5"})};export{i as default};
