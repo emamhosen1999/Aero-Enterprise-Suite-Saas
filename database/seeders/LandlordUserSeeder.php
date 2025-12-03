@@ -19,7 +19,7 @@ class LandlordUserSeeder extends Seeder
 
         // Create the default super admin user if it doesn't exist
         $user = LandlordUser::firstOrCreate(
-            ['email' => 'admin@aero-enterprise-suite-saas.com'],
+            ['email' => 'admin@aeos365.com'],
             [
                 'user_name' => 'platform-super-admin',
                 'name' => 'Platform Super Admin',
