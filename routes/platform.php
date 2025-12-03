@@ -27,6 +27,8 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     Route::get('/', [RegistrationPageController::class, 'accountType'])->name('index');
     Route::get('/details', [RegistrationPageController::class, 'details'])->name('details');
     Route::get('/admin-setup', [RegistrationPageController::class, 'admin'])->name('admin');
+    Route::get('/verify-email', [RegistrationPageController::class, 'verifyEmail'])->name('verify-email');
+    Route::get('/verify-phone', [RegistrationPageController::class, 'verifyPhone'])->name('verify-phone');
     Route::get('/plan', [RegistrationPageController::class, 'plan'])->name('plan');
     Route::get('/payment', [RegistrationPageController::class, 'payment'])->name('payment');
     Route::get('/success', [RegistrationPageController::class, 'success'])->name('success');
@@ -39,6 +41,21 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');
     Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');
     Route::post('/admin-setup', [RegistrationController::class, 'storeAdmin'])->name('admin.store');
+
+    // Email and Phone Verification Routes (during registration)
+    Route::post('/verify-email/send', [RegistrationController::class, 'sendEmailVerification'])
+        ->middleware('throttle:3,1')
+        ->name('verify-email.send');
+    Route::post('/verify-email', [RegistrationController::class, 'verifyEmail'])
+        ->middleware('throttle:5,1')
+        ->name('verify-email');
+    Route::post('/verify-phone/send', [RegistrationController::class, 'sendPhoneVerification'])
+        ->middleware('throttle:3,1')
+        ->name('verify-phone.send');
+    Route::post('/verify-phone', [RegistrationController::class, 'verifyPhone'])
+        ->middleware('throttle:5,1')
+        ->name('verify-phone');
+
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
     Route::post('/trial', [RegistrationController::class, 'activateTrial'])
         ->middleware('throttle:3,60') // 3 registration attempts per hour per IP

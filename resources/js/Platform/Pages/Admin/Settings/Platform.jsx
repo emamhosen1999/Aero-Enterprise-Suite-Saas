@@ -17,7 +17,7 @@ import {
   ModalFooter,
   useDisclosure,
 } from '@heroui/react';
-import { Cog6ToothIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils.jsx';
 
 const mainCardStyle = {
@@ -149,6 +149,103 @@ const TestEmailButton = ({ emailSettings }) => {
   );
 };
 
+const TestSmsButton = ({ smsSettings }) => {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [testPhone, setTestPhone] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendTest = async () => {
+    if (!testPhone) {
+      showToast.error('Please enter a phone number');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const response = await axios.post(route('admin.settings.platform.test-sms'), {
+        phone: testPhone,
+      });
+
+      if (response.data.success) {
+        showToast.success(response.data.message);
+        onOpenChange(false);
+        setTestPhone('');
+      }
+    } catch (error) {
+      let message = 'Failed to send test SMS';
+      
+      if (error.response?.data?.message) {
+        message = error.response.data.message;
+        
+        if (message.includes('credentials') || message.includes('Credentials')) {
+          message = 'SMS credentials not configured or invalid. Please check your provider settings.';
+        } else if (message.includes('provider') || message.includes('Provider')) {
+          message = 'SMS provider configuration error. Please verify your provider is correctly configured.';
+        }
+      }
+      
+      showToast.error(message, { duration: 8000 });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const hasSettings = smsSettings?.provider && smsSettings?.provider !== 'log';
+
+  return (
+    <>
+      <Button
+        color="primary"
+        variant="flat"
+        startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
+        onPress={onOpen}
+        isDisabled={!hasSettings}
+      >
+        Send Test SMS
+      </Button>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Send Test SMS
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-sm text-default-500 mb-4">
+                  This will send a test SMS using the current SMS settings to verify your configuration.
+                </p>
+                <Input
+                  autoFocus
+                  label="Recipient Phone"
+                  placeholder="+1234567890"
+                  type="tel"
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                  description="Enter the phone number with country code (e.g., +1234567890)"
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={handleSendTest}
+                  isLoading={isSending}
+                  isDisabled={!testPhone}
+                >
+                  {isSending ? 'Sending...' : 'Send Test SMS'}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
+  );
+};
+
 const FileInput = ({ label, description, error, onChange, currentUrl, accept }) => {
   const [preview, setPreview] = useState(currentUrl);
 
@@ -206,6 +303,7 @@ const PlatformSettings = () => {
   const branding = platformSettings.branding ?? {};
   const metadata = platformSettings.metadata ?? {};
   const email = platformSettings.email_settings ?? {};
+  const sms = platformSettings.sms_settings ?? {};
   const legal = platformSettings.legal ?? {};
   const integrations = platformSettings.integrations ?? {};
   const adminPreferences = platformSettings.admin_preferences ?? {};
@@ -243,6 +341,20 @@ const PlatformSettings = () => {
       from_address: email.from_address ?? '',
       from_name: email.from_name ?? site.name ?? '',
       reply_to: email.reply_to ?? '',
+    },
+    sms_settings: {
+      provider: sms.provider ?? 'log',
+      twilio_sid: sms.twilio_sid ?? '',
+      twilio_token: '',
+      twilio_from: sms.twilio_from ?? '',
+      bulksmsbd_api_key: '',
+      bulksmsbd_sender_id: sms.bulksmsbd_sender_id ?? '',
+      elitbuzz_username: sms.elitbuzz_username ?? '',
+      elitbuzz_password: '',
+      elitbuzz_sender_id: sms.elitbuzz_sender_id ?? '',
+      sslwireless_api_token: '',
+      sslwireless_sid: sms.sslwireless_sid ?? '',
+      sslwireless_sender_id: sms.sslwireless_sender_id ?? '',
     },
     legal: {
       terms_url: legal.terms_url ?? '',
@@ -763,6 +875,141 @@ const PlatformSettings = () => {
                   errorMessage={errors['email_settings.reply_to']}
                 />
                 <TestEmailButton emailSettings={data.email_settings} />
+              </div>
+
+              {/* SMS Infrastructure */}
+              <div className="p-4 space-y-4" style={sectionCardStyle}>
+                <div>
+                  <h5 className="text-base font-semibold text-foreground">SMS Infrastructure</h5>
+                  <p className="text-xs text-default-500">SMS gateway credentials for phone notifications and verification.</p>
+                </div>
+                <div className={fieldClass}>
+                  <div>
+                    <label className="text-sm font-medium text-default-700 mb-2 block">Provider</label>
+                    <select
+                      className="w-full px-3 py-2 text-sm border border-default-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      value={data.sms_settings.provider}
+                      onChange={(event) => updateNested('sms_settings', 'provider', event.target.value)}
+                    >
+                      <option value="log">Log (Development Only)</option>
+                      <option value="twilio">Twilio</option>
+                      <option value="bulksmsbd">BulkSMS BD</option>
+                      <option value="elitbuzz">ElitBuzz</option>
+                      <option value="ssl_wireless">SSL Wireless</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Twilio Settings */}
+                {data.sms_settings.provider === 'twilio' && (
+                  <>
+                    <div className={fieldClass}>
+                      <Input
+                        label="Twilio Account SID"
+                        value={data.sms_settings.twilio_sid}
+                        onChange={(event) => updateNested('sms_settings', 'twilio_sid', event.target.value)}
+                        description="Your Twilio Account SID"
+                      />
+                      <Input
+                        label="Twilio Auth Token"
+                        type="password"
+                        value={data.sms_settings.twilio_token}
+                        onChange={(event) => updateNested('sms_settings', 'twilio_token', event.target.value)}
+                        description={sms.twilio_token_set ? 'Token stored. Leave blank to keep current.' : 'Your Twilio Auth Token'}
+                      />
+                    </div>
+                    <Input
+                      label="From Phone Number"
+                      value={data.sms_settings.twilio_from}
+                      onChange={(event) => updateNested('sms_settings', 'twilio_from', event.target.value)}
+                      description="Your Twilio phone number (e.g., +1234567890)"
+                      placeholder="+1234567890"
+                    />
+                  </>
+                )}
+
+                {/* BulkSMS BD Settings */}
+                {data.sms_settings.provider === 'bulksmsbd' && (
+                  <div className={fieldClass}>
+                    <Input
+                      label="API Key"
+                      type="password"
+                      value={data.sms_settings.bulksmsbd_api_key}
+                      onChange={(event) => updateNested('sms_settings', 'bulksmsbd_api_key', event.target.value)}
+                      description={sms.bulksmsbd_api_key_set ? 'API Key stored. Leave blank to keep current.' : 'Your BulkSMS BD API Key'}
+                    />
+                    <Input
+                      label="Sender ID"
+                      value={data.sms_settings.bulksmsbd_sender_id}
+                      onChange={(event) => updateNested('sms_settings', 'bulksmsbd_sender_id', event.target.value)}
+                      description="Your registered sender ID"
+                    />
+                  </div>
+                )}
+
+                {/* ElitBuzz Settings */}
+                {data.sms_settings.provider === 'elitbuzz' && (
+                  <>
+                    <div className={fieldClass}>
+                      <Input
+                        label="Username"
+                        value={data.sms_settings.elitbuzz_username}
+                        onChange={(event) => updateNested('sms_settings', 'elitbuzz_username', event.target.value)}
+                        description="Your ElitBuzz username"
+                      />
+                      <Input
+                        label="Password/API Key"
+                        type="password"
+                        value={data.sms_settings.elitbuzz_password}
+                        onChange={(event) => updateNested('sms_settings', 'elitbuzz_password', event.target.value)}
+                        description={sms.elitbuzz_password_set ? 'Password stored. Leave blank to keep current.' : 'Your ElitBuzz password or API key'}
+                      />
+                    </div>
+                    <Input
+                      label="Sender ID"
+                      value={data.sms_settings.elitbuzz_sender_id}
+                      onChange={(event) => updateNested('sms_settings', 'elitbuzz_sender_id', event.target.value)}
+                      description="Your registered sender ID"
+                    />
+                  </>
+                )}
+
+                {/* SSL Wireless Settings */}
+                {data.sms_settings.provider === 'ssl_wireless' && (
+                  <>
+                    <div className={fieldClass}>
+                      <Input
+                        label="API Token"
+                        type="password"
+                        value={data.sms_settings.sslwireless_api_token}
+                        onChange={(event) => updateNested('sms_settings', 'sslwireless_api_token', event.target.value)}
+                        description={sms.sslwireless_api_token_set ? 'Token stored. Leave blank to keep current.' : 'Your SSL Wireless API Token'}
+                      />
+                      <Input
+                        label="SID"
+                        value={data.sms_settings.sslwireless_sid}
+                        onChange={(event) => updateNested('sms_settings', 'sslwireless_sid', event.target.value)}
+                        description="Your SSL Wireless SID"
+                      />
+                    </div>
+                    <Input
+                      label="Sender ID"
+                      value={data.sms_settings.sslwireless_sender_id}
+                      onChange={(event) => updateNested('sms_settings', 'sslwireless_sender_id', event.target.value)}
+                      description="Your registered sender ID"
+                    />
+                  </>
+                )}
+
+                {data.sms_settings.provider !== 'log' && (
+                  <TestSmsButton smsSettings={data.sms_settings} />
+                )}
+
+                {data.sms_settings.provider === 'log' && (
+                  <p className="text-xs text-warning">
+                    ⚠️ Log provider is for development only. SMS messages will be written to the log file instead of being sent.
+                  </p>
+                )}
               </div>
 
               {/* Legal & Trust Center */}

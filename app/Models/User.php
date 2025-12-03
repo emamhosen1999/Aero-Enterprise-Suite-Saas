@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\HRM\Attendance;
 use App\Models\HRM\AttendanceType;
 use App\Models\HRM\Department;
@@ -16,6 +15,7 @@ use App\Models\HRM\EmployeeEducation;
 use App\Models\HRM\EmployeePersonalDocument;
 use App\Models\HRM\EmployeeWorkExperience;
 use App\Models\HRM\Leave;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -38,7 +38,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method bool hasAllRoles(array $roles)
  * @method bool hasPermissionTo(string $permission, string $guardName = null)
  */
-class User extends Authenticatable implements HasMedia
+class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
     use HasFactory, HasPushSubscriptions, HasRoles, InteractsWithMedia, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
@@ -121,6 +121,9 @@ class User extends Authenticatable implements HasMedia
         'additional_esi_rate',
         'total_esi_rate',
         'email_verified_at',
+        'phone_verified_at',
+        'phone_verification_code',
+        'phone_verification_sent_at',
         'attendance_type_id',
         'attendance_config',
         'fcm_token',
@@ -150,6 +153,7 @@ class User extends Authenticatable implements HasMedia
         'remember_token',
         'oauth_token',
         'oauth_refresh_token',
+        'phone_verification_code',
     ];
 
     /**
@@ -159,6 +163,8 @@ class User extends Authenticatable implements HasMedia
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
+        'phone_verification_sent_at' => 'datetime',
         'password' => 'hashed',
         'report_to' => 'integer',
         'designation_id' => 'integer',

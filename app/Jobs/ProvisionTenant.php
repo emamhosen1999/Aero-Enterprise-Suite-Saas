@@ -243,30 +243,39 @@ class ProvisionTenant implements ShouldQueue
         try {
             // Create the admin user in the tenant database
             // Password is received in plain text and hashed here
-            // Email verification will be required on first login
+            // Apply email and phone verification from tenant record (verified during registration)
             $user = User::create([
                 'name' => $this->adminData['name'] ?? 'Administrator',
                 'user_name' => $this->adminData['user_name'] ?? $this->generateUsername($this->adminData['email']),
                 'email' => $this->adminData['email'],
                 'password' => Hash::make($this->adminData['password'] ?? 'password'),
+                'phone' => $this->tenant->phone,
                 'active' => true,
-                // Note: email_verified_at is NULL - user must verify email on first login
+                // Apply verification timestamps from tenant (verified during registration)
+                'email_verified_at' => $this->tenant->admin_email_verified_at,
+                'phone_verified_at' => $this->tenant->admin_phone_verified_at,
             ]);
 
             $this->logStep("   → Admin user created with ID: {$user->id}", [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
+                'email_verified' => ! empty($user->email_verified_at),
+                'phone_verified' => ! empty($user->phone_verified_at),
             ]);
 
-            // Send email verification notification
-            try {
-                $user->sendEmailVerificationNotification();
-                $this->logStep('   → Email verification sent', ['user_email' => $user->email]);
-            } catch (Throwable $e) {
-                Log::warning('Failed to send verification email', [
-                    'user_id' => $user->id,
-                    'error' => $e->getMessage(),
-                ]);
+            // Only send verification email if not already verified during registration
+            if (empty($user->email_verified_at)) {
+                try {
+                    $user->sendEmailVerificationNotification();
+                    $this->logStep('   → Email verification sent', ['user_email' => $user->email]);
+                } catch (Throwable $e) {
+                    Log::warning('Failed to send verification email', [
+                        'user_id' => $user->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            } else {
+                $this->logStep('   → Email already verified during registration', ['user_email' => $user->email]);
             }
 
             // Assign admin role using Spatie Permission (if available)

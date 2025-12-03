@@ -19,7 +19,7 @@ import {
     ModalFooter,
     useDisclosure,
 } from '@heroui/react';
-import { EnvelopeIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
@@ -128,6 +128,104 @@ const TestEmailButton = ({ emailSettings }) => {
     );
 };
 
+const TestSmsButton = ({ smsSettings }) => {
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [testPhone, setTestPhone] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const handleSendTest = async () => {
+        if (!testPhone) {
+            showToast.error('Please enter a phone number');
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            const response = await axios.post(route('settings.system.test-sms'), {
+                phone: testPhone,
+            });
+
+            if (response.data.success) {
+                showToast.success(response.data.message);
+                onOpenChange(false);
+                setTestPhone('');
+            }
+        } catch (error) {
+            let message = 'Failed to send test SMS';
+            
+            if (error.response?.status === 422) {
+                const errors = error.response.data.errors;
+                if (errors?.phone) {
+                    message = errors.phone[0];
+                } else if (error.response.data.message) {
+                    message = error.response.data.message;
+                }
+            } else if (error.response?.data?.message) {
+                message = error.response.data.message;
+            }
+            
+            showToast.error(message);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const hasSettings = smsSettings?.provider && smsSettings?.provider !== 'log';
+
+    return (
+        <>
+            <Button
+                color="primary"
+                variant="flat"
+                startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
+                onPress={onOpen}
+                isDisabled={!hasSettings}
+            >
+                Send Test SMS
+            </Button>
+
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1">
+                                Send Test SMS
+                            </ModalHeader>
+                            <ModalBody>
+                                <p className="text-sm text-default-500 mb-4">
+                                    This will send a test SMS using the current SMS settings to verify your configuration.
+                                </p>
+                                <Input
+                                    autoFocus
+                                    label="Phone Number"
+                                    placeholder="+1234567890"
+                                    type="tel"
+                                    value={testPhone}
+                                    onChange={(e) => setTestPhone(e.target.value)}
+                                    description="Enter the phone number (with country code)"
+                                />
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="danger" variant="light" onPress={onClose}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    onPress={handleSendTest}
+                                    isLoading={isSending}
+                                    isDisabled={!testPhone}
+                                >
+                                    {isSending ? 'Sending...' : 'Send Test SMS'}
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+        </>
+    );
+};
+
 const getInitial = (payload = {}) => payload ?? {};
 
 const SystemSettings = () => {
@@ -136,6 +234,7 @@ const SystemSettings = () => {
     const branding = getInitial(systemSettings.branding);
     const metadata = getInitial(systemSettings.metadata);
     const emailSettings = getInitial(systemSettings.email_settings);
+    const smsSettings = getInitial(systemSettings.sms_settings);
     const notificationChannels = getInitial(systemSettings.notification_channels);
     const integrations = getInitial(systemSettings.integrations);
     const advanced = getInitial(systemSettings.advanced);
@@ -178,6 +277,20 @@ const SystemSettings = () => {
             from_name: emailSettings.from_name ?? organization.company_name ?? '',
             reply_to: emailSettings.reply_to ?? '',
             queue: emailSettings.queue ?? false,
+        },
+        sms_settings: {
+            provider: smsSettings.provider ?? 'log',
+            twilio_sid: smsSettings.twilio_sid ?? '',
+            twilio_token: '',
+            twilio_from: smsSettings.twilio_from ?? '',
+            bulksmsbd_api_key: '',
+            bulksmsbd_sender_id: smsSettings.bulksmsbd_sender_id ?? '',
+            elitbuzz_username: smsSettings.elitbuzz_username ?? '',
+            elitbuzz_password: '',
+            elitbuzz_sender_id: smsSettings.elitbuzz_sender_id ?? '',
+            sslwireless_api_token: '',
+            sslwireless_sid: smsSettings.sslwireless_sid ?? '',
+            sslwireless_sender_id: smsSettings.sslwireless_sender_id ?? '',
         },
         notification_channels: {
             email: notificationChannels.email ?? true,
@@ -506,6 +619,157 @@ const SystemSettings = () => {
                                             </div>
                                         </div>
                                         <TestEmailButton emailSettings={data.email_settings} />
+                                    </div>
+                                </Tab>
+                                <Tab key="sms" title="SMS Gateway">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-sm font-medium text-default-700 mb-2 block">Provider</label>
+                                            <select
+                                                className="w-full px-3 py-2 text-sm border border-default-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                                value={data.sms_settings.provider}
+                                                onChange={(e) => updateNested('sms_settings', 'provider', e.target.value)}
+                                            >
+                                                <option value="log">Log (Development Only)</option>
+                                                <option value="twilio">Twilio</option>
+                                                <option value="bulksmsbd">BulkSMS BD</option>
+                                                <option value="elitbuzz">ElitBuzz</option>
+                                                <option value="ssl_wireless">SSL Wireless</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Twilio Settings */}
+                                        {data.sms_settings.provider === 'twilio' && (
+                                            <>
+                                                <div className={fieldClass}>
+                                                    <Input
+                                                        label="Twilio Account SID"
+                                                        value={data.sms_settings.twilio_sid}
+                                                        onChange={(e) => updateNested('sms_settings', 'twilio_sid', e.target.value)}
+                                                        description="Your Twilio Account SID"
+                                                        isInvalid={Boolean(errors['sms_settings.twilio_sid'])}
+                                                        errorMessage={errors['sms_settings.twilio_sid']}
+                                                    />
+                                                    <Input
+                                                        label="Twilio Auth Token"
+                                                        type="password"
+                                                        value={data.sms_settings.twilio_token}
+                                                        onChange={(e) => updateNested('sms_settings', 'twilio_token', e.target.value)}
+                                                        description={smsSettings.twilio_token_set ? 'Token stored. Leave blank to keep current.' : 'Your Twilio Auth Token'}
+                                                        isInvalid={Boolean(errors['sms_settings.twilio_token'])}
+                                                        errorMessage={errors['sms_settings.twilio_token']}
+                                                    />
+                                                </div>
+                                                <Input
+                                                    label="From Phone Number"
+                                                    value={data.sms_settings.twilio_from}
+                                                    onChange={(e) => updateNested('sms_settings', 'twilio_from', e.target.value)}
+                                                    description="Your Twilio phone number (e.g., +1234567890)"
+                                                    placeholder="+1234567890"
+                                                    isInvalid={Boolean(errors['sms_settings.twilio_from'])}
+                                                    errorMessage={errors['sms_settings.twilio_from']}
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* BulkSMS BD Settings */}
+                                        {data.sms_settings.provider === 'bulksmsbd' && (
+                                            <div className={fieldClass}>
+                                                <Input
+                                                    label="API Key"
+                                                    type="password"
+                                                    value={data.sms_settings.bulksmsbd_api_key}
+                                                    onChange={(e) => updateNested('sms_settings', 'bulksmsbd_api_key', e.target.value)}
+                                                    description={smsSettings.bulksmsbd_api_key_set ? 'API Key stored. Leave blank to keep current.' : 'Your BulkSMS BD API Key'}
+                                                    isInvalid={Boolean(errors['sms_settings.bulksmsbd_api_key'])}
+                                                    errorMessage={errors['sms_settings.bulksmsbd_api_key']}
+                                                />
+                                                <Input
+                                                    label="Sender ID"
+                                                    value={data.sms_settings.bulksmsbd_sender_id}
+                                                    onChange={(e) => updateNested('sms_settings', 'bulksmsbd_sender_id', e.target.value)}
+                                                    description="Your registered sender ID"
+                                                    isInvalid={Boolean(errors['sms_settings.bulksmsbd_sender_id'])}
+                                                    errorMessage={errors['sms_settings.bulksmsbd_sender_id']}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* ElitBuzz Settings */}
+                                        {data.sms_settings.provider === 'elitbuzz' && (
+                                            <>
+                                                <div className={fieldClass}>
+                                                    <Input
+                                                        label="Username"
+                                                        value={data.sms_settings.elitbuzz_username}
+                                                        onChange={(e) => updateNested('sms_settings', 'elitbuzz_username', e.target.value)}
+                                                        description="Your ElitBuzz username"
+                                                        isInvalid={Boolean(errors['sms_settings.elitbuzz_username'])}
+                                                        errorMessage={errors['sms_settings.elitbuzz_username']}
+                                                    />
+                                                    <Input
+                                                        label="Password/API Key"
+                                                        type="password"
+                                                        value={data.sms_settings.elitbuzz_password}
+                                                        onChange={(e) => updateNested('sms_settings', 'elitbuzz_password', e.target.value)}
+                                                        description={smsSettings.elitbuzz_password_set ? 'Password stored. Leave blank to keep current.' : 'Your ElitBuzz password or API key'}
+                                                        isInvalid={Boolean(errors['sms_settings.elitbuzz_password'])}
+                                                        errorMessage={errors['sms_settings.elitbuzz_password']}
+                                                    />
+                                                </div>
+                                                <Input
+                                                    label="Sender ID"
+                                                    value={data.sms_settings.elitbuzz_sender_id}
+                                                    onChange={(e) => updateNested('sms_settings', 'elitbuzz_sender_id', e.target.value)}
+                                                    description="Your registered sender ID"
+                                                    isInvalid={Boolean(errors['sms_settings.elitbuzz_sender_id'])}
+                                                    errorMessage={errors['sms_settings.elitbuzz_sender_id']}
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* SSL Wireless Settings */}
+                                        {data.sms_settings.provider === 'ssl_wireless' && (
+                                            <>
+                                                <div className={fieldClass}>
+                                                    <Input
+                                                        label="API Token"
+                                                        type="password"
+                                                        value={data.sms_settings.sslwireless_api_token}
+                                                        onChange={(e) => updateNested('sms_settings', 'sslwireless_api_token', e.target.value)}
+                                                        description={smsSettings.sslwireless_api_token_set ? 'Token stored. Leave blank to keep current.' : 'Your SSL Wireless API Token'}
+                                                        isInvalid={Boolean(errors['sms_settings.sslwireless_api_token'])}
+                                                        errorMessage={errors['sms_settings.sslwireless_api_token']}
+                                                    />
+                                                    <Input
+                                                        label="SID"
+                                                        value={data.sms_settings.sslwireless_sid}
+                                                        onChange={(e) => updateNested('sms_settings', 'sslwireless_sid', e.target.value)}
+                                                        description="Your SSL Wireless SID"
+                                                        isInvalid={Boolean(errors['sms_settings.sslwireless_sid'])}
+                                                        errorMessage={errors['sms_settings.sslwireless_sid']}
+                                                    />
+                                                </div>
+                                                <Input
+                                                    label="Sender ID"
+                                                    value={data.sms_settings.sslwireless_sender_id}
+                                                    onChange={(e) => updateNested('sms_settings', 'sslwireless_sender_id', e.target.value)}
+                                                    description="Your registered sender ID"
+                                                    isInvalid={Boolean(errors['sms_settings.sslwireless_sender_id'])}
+                                                    errorMessage={errors['sms_settings.sslwireless_sender_id']}
+                                                />
+                                            </>
+                                        )}
+
+                                        {data.sms_settings.provider !== 'log' && (
+                                            <TestSmsButton smsSettings={data.sms_settings} />
+                                        )}
+
+                                        {data.sms_settings.provider === 'log' && (
+                                            <p className="text-xs text-warning">
+                                                ⚠️ Log provider is for development only. SMS messages will be written to the log file instead of being sent.
+                                            </p>
+                                        )}
                                     </div>
                                 </Tab>
                                 <Tab key="notifications" title="Notifications">

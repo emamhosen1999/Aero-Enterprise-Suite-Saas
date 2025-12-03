@@ -44,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'track_security' => \App\Http\Middleware\TrackSecurityActivity::class,
             'session_expiry' => \App\Http\Middleware\CheckSessionExpiry::class, // Register alias
             'identify_domain' => \App\Http\Middleware\IdentifyDomainContext::class, // Domain context alias
+            'require_tenant_onboarding' => \App\Http\Middleware\RequireTenantOnboarding::class, // Tenant onboarding check
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

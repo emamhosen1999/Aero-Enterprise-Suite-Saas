@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\PhoneVerificationController;
 use App\Http\Controllers\Auth\SamlController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Settings\InvoiceBrandingController;
@@ -52,6 +53,14 @@ Route::middleware('auth')->group(function () {
     Route::post('email/verification-notification', [EmailVerificationController::class, 'send'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
+
+    // Phone Verification Routes
+    Route::post('phone/send-verification', [PhoneVerificationController::class, 'send'])
+        ->middleware('throttle:3,1')
+        ->name('phone.verification.send');
+    Route::post('phone/verify', [PhoneVerificationController::class, 'verify'])
+        ->middleware('throttle:5,1')
+        ->name('phone.verification.verify');
 
     // Logout Route
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');

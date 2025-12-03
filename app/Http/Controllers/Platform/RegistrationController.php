@@ -10,15 +10,19 @@ use App\Http\Requests\Platform\RegistrationDetailsRequest;
 use App\Http\Requests\Platform\RegistrationPlanRequest;
 use App\Http\Requests\Platform\RegistrationTrialRequest;
 use App\Jobs\ProvisionTenant;
+use App\Services\Platform\PlatformVerificationService;
 use App\Services\TenantProvisioner;
 use App\Services\TenantRegistrationSession;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class RegistrationController extends Controller
 {
     public function __construct(
         private TenantRegistrationSession $registrationSession,
         private TenantProvisioner $tenantProvisioner,
+        private PlatformVerificationService $verificationService,
     ) {}
 
     public function storeAccountType(RegistrationAccountTypeRequest $request): RedirectResponse
@@ -55,7 +59,170 @@ class RegistrationController extends Controller
 
         $this->registrationSession->putStep('admin', $validated);
 
-        return to_route('platform.register.plan');
+        return to_route('platform.register.verify-email');
+    }
+
+    /**
+     * Send email verification code.
+     */
+    public function sendEmailVerification(Request $request): JsonResponse
+    {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin'])) {
+            return response()->json(['message' => 'Invalid session'], 400);
+        }
+
+        $payload = $this->registrationSession->get();
+        $email = $payload['admin']['email'];
+
+        // Create temporary tenant record to store verification code
+        $tenant = \App\Models\Tenant::firstOrCreate(
+            ['email' => $payload['details']['email']],
+            [
+                'id' => \Illuminate\Support\Str::uuid(),
+                'subdomain' => $payload['details']['subdomain'],
+                'name' => $payload['details']['company_name'],
+                'type' => $payload['account']['account_type'],
+                'phone' => $payload['details']['phone'] ?? null,
+                'status' => \App\Models\Tenant::STATUS_PENDING,
+            ]
+        );
+
+        // Check rate limiting
+        if (! $this->verificationService->canResendEmailCode($tenant)) {
+            return response()->json([
+                'message' => 'Please wait 1 minute before requesting a new code',
+            ], 429);
+        }
+
+        // Send verification code
+        $sent = $this->verificationService->sendEmailVerificationCode($tenant, $email);
+
+        if (! $sent) {
+            return response()->json([
+                'message' => 'Failed to send verification code. Please try again.',
+            ], 500);
+        }
+
+        // Store tenant ID in session
+        $this->registrationSession->putStep('verification', ['tenant_id' => $tenant->id]);
+
+        return response()->json([
+            'message' => 'Verification code sent to your email',
+        ]);
+    }
+
+    /**
+     * Verify email verification code.
+     */
+    public function verifyEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'code' => ['required', 'string', 'size:6'],
+        ]);
+
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'verification'])) {
+            return response()->json(['message' => 'Invalid session'], 400);
+        }
+
+        $verification = $this->registrationSession->getStep('verification');
+        $tenant = \App\Models\Tenant::find($verification['tenant_id']);
+
+        if (! $tenant) {
+            return response()->json(['message' => 'Tenant not found'], 404);
+        }
+
+        $verified = $this->verificationService->verifyEmailCode($tenant, $request->code);
+
+        if (! $verified) {
+            return response()->json([
+                'message' => 'Invalid or expired verification code',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Email verified successfully',
+            'verified' => true,
+        ]);
+    }
+
+    /**
+     * Send phone verification code.
+     */
+    public function sendPhoneVerification(Request $request): JsonResponse
+    {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'verification'])) {
+            return response()->json(['message' => 'Invalid session'], 400);
+        }
+
+        $payload = $this->registrationSession->get();
+        $phone = $payload['details']['phone'] ?? null;
+
+        if (empty($phone)) {
+            return response()->json([
+                'message' => 'No phone number provided',
+            ], 422);
+        }
+
+        $verification = $this->registrationSession->getStep('verification');
+        $tenant = \App\Models\Tenant::find($verification['tenant_id']);
+
+        if (! $tenant) {
+            return response()->json(['message' => 'Tenant not found'], 404);
+        }
+
+        // Check rate limiting
+        if (! $this->verificationService->canResendPhoneCode($tenant)) {
+            return response()->json([
+                'message' => 'Please wait 1 minute before requesting a new code',
+            ], 429);
+        }
+
+        // Send verification code
+        $sent = $this->verificationService->sendPhoneVerificationCode($tenant, $phone);
+
+        if (! $sent) {
+            return response()->json([
+                'message' => 'Failed to send verification code. Please check your SMS configuration.',
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Verification code sent to your phone',
+        ]);
+    }
+
+    /**
+     * Verify phone verification code.
+     */
+    public function verifyPhone(Request $request): JsonResponse
+    {
+        $request->validate([
+            'code' => ['required', 'string', 'size:6'],
+        ]);
+
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'verification'])) {
+            return response()->json(['message' => 'Invalid session'], 400);
+        }
+
+        $verification = $this->registrationSession->getStep('verification');
+        $tenant = \App\Models\Tenant::find($verification['tenant_id']);
+
+        if (! $tenant) {
+            return response()->json(['message' => 'Tenant not found'], 404);
+        }
+
+        $verified = $this->verificationService->verifyPhoneCode($tenant, $request->code);
+
+        if (! $verified) {
+            return response()->json([
+                'message' => 'Invalid or expired verification code',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Phone verified successfully',
+            'verified' => true,
+        ]);
     }
 
     public function storePlan(RegistrationPlanRequest $request): RedirectResponse

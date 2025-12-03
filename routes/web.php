@@ -88,7 +88,7 @@ Route::prefix('invitation')->group(function () {
 
 // Device authentication is now handled globally via DeviceAuthMiddleware
 // No need to apply it here - it runs on all requests automatically
-$middlewareStack = ['auth', 'verified'];
+$middlewareStack = ['auth', 'verified', 'require_tenant_onboarding'];
 
 Route::middleware($middlewareStack)->group(function () {
 
@@ -96,7 +96,7 @@ Route::middleware($middlewareStack)->group(function () {
     // TENANT ONBOARDING WIZARD
     // =========================================================================
     // Multi-step setup wizard for new tenants (first-time login)
-    Route::prefix('onboarding')->name('onboarding.')->group(function () {
+    Route::prefix('onboarding')->name('onboarding.')->withoutMiddleware('require_tenant_onboarding')->group(function () {
         Route::get('/', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'index'])->name('index');
         Route::post('/company', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'saveCompany'])->name('company');
         Route::post('/branding', [\App\Http\Controllers\Tenant\TenantOnboardingController::class, 'saveBranding'])->name('branding');
@@ -361,6 +361,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/settings/system', [SystemSettingController::class, 'index'])->name('settings.system.index');
         Route::put('/settings/system', [SystemSettingController::class, 'update'])->name('settings.system.update');
         Route::post('/settings/system/test-email', [SystemSettingController::class, 'sendTestEmail'])->name('settings.system.test-email');
+        Route::post('/settings/system/test-sms', [SystemSettingController::class, 'sendTestSms'])->name('settings.system.test-sms');
 
         // Legacy aliases for backward compatibility
         Route::get('/company-settings', [SystemSettingController::class, 'index'])->name('admin.settings.company');

@@ -18,6 +18,8 @@ class RegistrationPageController extends Controller
         ['key' => 'account', 'label' => 'Account Type', 'route' => 'platform.register.index'],
         ['key' => 'details', 'label' => 'Company Details', 'route' => 'platform.register.details'],
         ['key' => 'admin', 'label' => 'Admin Details', 'route' => 'platform.register.admin'],
+        ['key' => 'verify-email', 'label' => 'Verify Email', 'route' => 'platform.register.verify-email'],
+        ['key' => 'verify-phone', 'label' => 'Verify Phone', 'route' => 'platform.register.verify-phone'],
         ['key' => 'plan', 'label' => 'Modules & Plan', 'route' => 'platform.register.plan'],
         ['key' => 'payment', 'label' => 'Review', 'route' => 'platform.register.payment'],
         ['key' => 'provisioning', 'label' => 'Setting Up', 'route' => 'platform.register.provisioning'],
@@ -58,6 +60,34 @@ class RegistrationPageController extends Controller
             'companyName' => $details['name'] ?? '',
             'subdomain' => $details['subdomain'] ?? '',
             'baseDomain' => config('platform.central_domain'),
+        ]);
+    }
+
+    public function verifyEmail(): Response|RedirectResponse
+    {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin'])) {
+            return to_route('platform.register.index');
+        }
+
+        $adminData = $this->registrationSession->get()['admin'] ?? [];
+
+        return $this->render('Public/Register/VerifyEmail', 'verify-email', [
+            'email' => $adminData['email'] ?? '',
+            'companyName' => $this->registrationSession->get()['details']['name'] ?? '',
+        ]);
+    }
+
+    public function verifyPhone(): Response|RedirectResponse
+    {
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'verification'])) {
+            return to_route('platform.register.index');
+        }
+
+        $adminData = $this->registrationSession->get()['admin'] ?? [];
+
+        return $this->render('Public/Register/VerifyPhone', 'verify-phone', [
+            'phone' => $adminData['phone'] ?? '',
+            'companyName' => $this->registrationSession->get()['details']['name'] ?? '',
         ]);
     }
 
