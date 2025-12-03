@@ -3,6 +3,8 @@ import { Link } from '@inertiajs/react';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-16' }) {
   const { themeSettings } = useTheme();
@@ -101,6 +103,20 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
           <p className={`${palette.muted} text-center sm:text-right`}>© {new Date().getFullYear()} {siteName || 'Enterprise Suite'}</p>
         </div>
       </footer>
+      
+      {/* Toast Notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={isDarkMode ? 'dark' : 'light'}
+      />
     </div>
   );
 }
