@@ -101,8 +101,16 @@ if (false) {
 
 const tenantPages = import.meta.glob('./Tenant/Pages/**/*.jsx');
 const platformPages = import.meta.glob('./Platform/Pages/**/*.jsx');
+const adminPages = import.meta.glob('./Admin/Pages/**/*.jsx');
+const publicPages = import.meta.glob('./Public/Pages/**/*.jsx');
 
 const resolveInertiaPage = (name) => {
+    // Check Admin pages first (for admin.* routes)
+    const adminKey = `./Admin/Pages/${name}.jsx`;
+    if (adminKey in adminPages) {
+        return resolvePageComponent(adminKey, adminPages);
+    }
+
     const tenantKey = `./Tenant/Pages/${name}.jsx`;
     if (tenantKey in tenantPages) {
         return resolvePageComponent(tenantKey, tenantPages);
@@ -111,6 +119,12 @@ const resolveInertiaPage = (name) => {
     const platformKey = `./Platform/Pages/${name}.jsx`;
     if (platformKey in platformPages) {
         return resolvePageComponent(platformKey, platformPages);
+    }
+
+    // Check Public pages (for public-facing routes)
+    const publicKey = `./Public/Pages/${name}.jsx`;
+    if (publicKey in publicPages) {
+        return resolvePageComponent(publicKey, publicPages);
     }
 
     throw new Error(`Unable to locate Inertia page: ${name}`);

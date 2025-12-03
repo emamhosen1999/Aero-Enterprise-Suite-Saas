@@ -29,6 +29,16 @@ class TenantRegistrationSession
         return $this->session->get(self::SESSION_KEY, []);
     }
 
+    /**
+     * Get a specific step's data.
+     */
+    public function getStep(string $step): ?array
+    {
+        $data = $this->get();
+
+        return $data[$step] ?? null;
+    }
+
     public function hasStep(string $step): bool
     {
         return array_key_exists($step, $this->get());

@@ -3,21 +3,24 @@
 namespace App\Services\Platform;
 
 use App\Models\Tenant;
+use App\Services\Mail\MailService;
 use App\Services\Notifications\SmsGatewayService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class PlatformVerificationService
 {
     public function __construct(
-        protected SmsGatewayService $smsGateway
+        protected SmsGatewayService $smsGateway,
+        protected MailService $mailService
     ) {}
 
     /**
      * Send email verification code to tenant admin during registration.
+     *
+     * @return array{success: bool, message: string}
      */
-    public function sendEmailVerificationCode(Tenant $tenant, string $email): bool
+    public function sendEmailVerificationCode(Tenant $tenant, string $email): array
     {
         // Generate 6-digit OTP
         $code = $this->generateCode();
@@ -28,37 +31,42 @@ class PlatformVerificationService
             'admin_email_verification_sent_at' => now(),
         ]);
 
-        // Send email with OTP
-        try {
-            Mail::send([], [], function ($message) use ($email, $code, $tenant) {
-                $message->to($email)
-                    ->subject('Verify Your Email - '.config('app.name'))
-                    ->html('
-                        <h2>Email Verification</h2>
-                        <p>Thank you for registering with '.config('app.name')."!</p>
-                        <p>Your verification code is:</p>
-                        <h1 style='font-size: 32px; letter-spacing: 8px; color: #4F46E5;'>{$code}</h1>
-                        <p>This code will expire in 10 minutes.</p>
-                        <p>Organization: {$tenant->name}</p>
-                        <p>If you didn't request this, please ignore this email.</p>
-                    ");
-            });
+        // Build email HTML content
+        $appName = config('app.name');
+        $htmlBody = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h2 style='color: #1a1a1a;'>Email Verification</h2>
+                <p>Thank you for registering with {$appName}!</p>
+                <p>Your verification code is:</p>
+                <h1 style='font-size: 32px; letter-spacing: 8px; color: #4F46E5; text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;'>{$code}</h1>
+                <p>This code will expire in <strong>10 minutes</strong>.</p>
+                <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                <p style='color: #666;'>Organization: {$tenant->name}</p>
+                <p style='color: #999; font-size: 12px;'>If you didn't request this, please ignore this email.</p>
+            </div>
+        ";
 
+        // Send email using MailService (uses platform settings)
+        $result = $this->mailService
+            ->usePlatformSettings()
+            ->sendMail($email, "Verify Your Email - {$appName}", $htmlBody);
+
+        if ($result['success']) {
             Log::info('Email verification code sent during registration', [
                 'tenant_id' => $tenant->id,
                 'email' => $email,
             ]);
 
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Failed to send email verification code', [
-                'tenant_id' => $tenant->id,
-                'email' => $email,
-                'error' => $e->getMessage(),
-            ]);
-
-            return false;
+            return ['success' => true, 'message' => 'Verification code sent'];
         }
+
+        Log::error('Failed to send email verification code', [
+            'tenant_id' => $tenant->id,
+            'email' => $email,
+            'error' => $result['message'],
+        ]);
+
+        return ['success' => false, 'message' => $result['message']];
     }
 
     /**

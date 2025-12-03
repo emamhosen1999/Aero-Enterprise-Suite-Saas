@@ -417,31 +417,25 @@ class ProvisionTenant implements ShouldQueue
                 'admin_email' => $this->adminData['email'],
             ]);
 
-            // Switch to tenant context to get the admin user
-            tenancy()->initialize($this->tenant);
+            // Use the notification's sendEmail method with MailService
+            $notification = new \App\Notifications\WelcomeToTenant($this->tenant);
+            $sent = $notification->sendEmail($this->adminData['email']);
 
-            $admin = User::where('email', $this->adminData['email'])->first();
-
-            if ($admin) {
-                $admin->notify(new \App\Notifications\WelcomeToTenant($this->tenant));
+            if ($sent) {
                 $this->logStep('   → Welcome email sent successfully', [
-                    'admin_email' => $admin->email,
+                    'admin_email' => $this->adminData['email'],
                 ]);
             } else {
-                Log::warning('Admin user not found for welcome email', [
-                    'tenant_id' => $this->tenant->id,
-                    'email' => $this->adminData['email'],
-                ]);
+                $this->logStep('   → Welcome email sending failed', [
+                    'admin_email' => $this->adminData['email'],
+                ], 'warning');
             }
-
-            tenancy()->end();
         } catch (Throwable $e) {
             // Don't fail provisioning if email fails
             Log::error('Failed to send welcome email', [
                 'tenant_id' => $this->tenant->id,
                 'error' => $e->getMessage(),
             ]);
-            tenancy()->end();
         }
     }
 
@@ -535,11 +529,12 @@ class ProvisionTenant implements ShouldQueue
         try {
             // Use tenant contact email
             if ($this->tenant->email) {
-                \Illuminate\Support\Facades\Notification::route('mail', $this->tenant->email)
-                    ->notify(new \App\Notifications\TenantProvisioningFailed(
-                        $this->tenant,
-                        $exception?->getMessage() ?? 'Unknown error'
-                    ));
+                // Use the notification's sendEmail method with MailService
+                $notification = new \App\Notifications\TenantProvisioningFailed(
+                    $this->tenant,
+                    $exception?->getMessage() ?? 'Unknown error'
+                );
+                $notification->sendEmail($this->tenant->email);
 
                 $this->logStep('📧 Provisioning failure notification sent', [
                     'email' => $this->tenant->email,

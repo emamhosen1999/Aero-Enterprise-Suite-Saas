@@ -83,6 +83,7 @@ class UpdatePlatformSettingRequest extends FormRequest
             'email_settings.from_address' => ['nullable', 'email', 'max:255'],
             'email_settings.from_name' => ['nullable', 'string', 'max:255'],
             'email_settings.reply_to' => ['nullable', 'email', 'max:255'],
+            'email_settings.verify_peer' => ['nullable', 'boolean'],
 
             'legal' => ['sometimes', 'array'],
             'legal.terms_url' => ['nullable', 'url', 'max:255'],

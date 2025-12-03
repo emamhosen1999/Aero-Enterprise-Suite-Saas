@@ -74,18 +74,22 @@ class RegistrationController extends Controller
         $payload = $this->registrationSession->get();
         $email = $payload['admin']['email'];
 
-        // Create temporary tenant record to store verification code
-        $tenant = \App\Models\Tenant::firstOrCreate(
-            ['email' => $payload['details']['email']],
-            [
-                'id' => \Illuminate\Support\Str::uuid(),
-                'subdomain' => $payload['details']['subdomain'],
-                'name' => $payload['details']['name'],
-                'type' => $payload['account']['type'],
-                'phone' => $payload['details']['phone'] ?? null,
-                'status' => \App\Models\Tenant::STATUS_PENDING,
-            ]
-        );
+        // Check if tenant already exists (for resume registration flow)
+        $existingTenant = \App\Models\Tenant::where('email', $payload['details']['email'])->first();
+
+        // Create or update temporary tenant record to store verification code
+        $tenant = $existingTenant ?? \App\Models\Tenant::create([
+            'id' => \Illuminate\Support\Str::uuid(),
+            'email' => $payload['details']['email'],
+            'subdomain' => $payload['details']['subdomain'],
+            'name' => $payload['details']['name'],
+            'type' => $payload['account']['type'],
+            'phone' => $payload['details']['phone'] ?? null,
+            'status' => \App\Models\Tenant::STATUS_PENDING,
+        ]);
+
+        // Update last activity timestamp for cleanup tracking
+        $tenant->touch();
 
         // Check rate limiting
         if (! $this->verificationService->canResendEmailCode($tenant)) {
@@ -95,11 +99,11 @@ class RegistrationController extends Controller
         }
 
         // Send verification code
-        $sent = $this->verificationService->sendEmailVerificationCode($tenant, $email);
+        $result = $this->verificationService->sendEmailVerificationCode($tenant, $email);
 
-        if (! $sent) {
+        if (! $result['success']) {
             return response()->json([
-                'message' => 'Failed to send verification code. Please try again.',
+                'message' => $result['message'] ?: 'Failed to send verification code. Please try again.',
             ], 500);
         }
 
@@ -108,6 +112,49 @@ class RegistrationController extends Controller
 
         return response()->json([
             'message' => 'Verification code sent to your email',
+        ]);
+    }
+
+    /**
+     * Cancel registration and clean up pending tenant.
+     *
+     * This allows users to explicitly cancel their registration,
+     * freeing up the subdomain/email for a fresh registration.
+     */
+    public function cancelRegistration(Request $request): JsonResponse
+    {
+        $verification = $this->registrationSession->getStep('verification');
+
+        if ($verification && ! empty($verification['tenant_id'])) {
+            $tenant = \App\Models\Tenant::find($verification['tenant_id']);
+
+            // Only delete if still in pending status and has no domains (not provisioned)
+            if ($tenant
+                && $tenant->status === \App\Models\Tenant::STATUS_PENDING
+                && $tenant->domains()->count() === 0
+            ) {
+                try {
+                    $tenant->delete();
+
+                    \Illuminate\Support\Facades\Log::info('User cancelled registration and tenant was cleaned up', [
+                        'tenant_id' => $tenant->id,
+                        'subdomain' => $tenant->subdomain,
+                        'email' => $tenant->email,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Failed to cleanup tenant on cancel', [
+                        'tenant_id' => $tenant->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        // Clear session
+        $this->registrationSession->clear();
+
+        return response()->json([
+            'message' => 'Registration cancelled successfully',
         ]);
     }
 
@@ -272,19 +319,33 @@ class RegistrationController extends Controller
         $trialData = $request->validated();
         $payload['trial'] = $trialData;
 
-        // Re-validate subdomain and email uniqueness before attempting tenant creation
-        // This prevents duplicate errors if user goes back and re-submits
         $subdomain = $payload['details']['subdomain'] ?? null;
         $email = $payload['details']['email'] ?? null;
         $adminEmail = $payload['admin']['email'] ?? null;
 
-        if ($subdomain && \App\Models\Tenant::where('subdomain', $subdomain)->exists()) {
+        // Get current session's tenant ID (if created during verification)
+        $verification = $this->registrationSession->getStep('verification');
+        $sessionTenantId = $verification['tenant_id'] ?? null;
+
+        // Check if subdomain is taken by a DIFFERENT tenant (not our session's temp tenant)
+        $existingBySubdomain = \App\Models\Tenant::where('subdomain', $subdomain)
+            ->when($sessionTenantId, fn ($q) => $q->where('id', '!=', $sessionTenantId))
+            ->where('status', '!=', \App\Models\Tenant::STATUS_PENDING) // Allow pending tenants
+            ->first();
+
+        if ($existingBySubdomain) {
             return back()->withErrors([
                 'subdomain' => 'This subdomain is already taken. Please choose a different one.',
             ])->withInput();
         }
 
-        if ($email && \App\Models\Tenant::where('email', $email)->exists()) {
+        // Check if email is taken by a DIFFERENT tenant (not our session's temp tenant)
+        $existingByEmail = \App\Models\Tenant::where('email', $email)
+            ->when($sessionTenantId, fn ($q) => $q->where('id', '!=', $sessionTenantId))
+            ->where('status', '!=', \App\Models\Tenant::STATUS_PENDING) // Allow pending tenants
+            ->first();
+
+        if ($existingByEmail) {
             return back()->withErrors([
                 'email' => 'This email is already registered. Please use a different email.',
             ])->withInput();

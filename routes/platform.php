@@ -44,17 +44,21 @@ Route::prefix('register')->name('platform.register.')->group(function () {
 
     // Email and Phone Verification Routes (during registration)
     Route::post('/verify-email/send', [RegistrationController::class, 'sendEmailVerification'])
-        ->middleware('throttle:3,1')
+        ->middleware('throttle:10,1')
         ->name('verify-email.send');
     Route::post('/verify-email', [RegistrationController::class, 'verifyEmail'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:20,1')
         ->name('verify-email.verify');
     Route::post('/verify-phone/send', [RegistrationController::class, 'sendPhoneVerification'])
-        ->middleware('throttle:3,1')
+        ->middleware('throttle:10,1')
         ->name('verify-phone.send');
     Route::post('/verify-phone', [RegistrationController::class, 'verifyPhone'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:20,1')
         ->name('verify-phone.verify');
+
+    // Cancel registration and cleanup pending tenant
+    Route::delete('/cancel', [RegistrationController::class, 'cancelRegistration'])
+        ->name('cancel');
 
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
     Route::post('/trial', [RegistrationController::class, 'activateTrial'])

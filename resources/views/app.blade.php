@@ -133,30 +133,42 @@
             background: var(--background, #0a0a0a);
         }
 
-        /* Enhanced Loading Screen - Optimized Performance & UX */
+        /* Enhanced Loading Screen - Theme-Aware with Smooth Transitions */
         #app-loading {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            /* Light mode gradient */
             background: 
-                linear-gradient(135deg, rgba(20, 30, 48, 0.98) 0%, rgba(36, 59, 85, 0.95) 50%, rgba(59, 130, 246, 0.92) 100%),
-                radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 50%);
-            background-size: cover, 400px 400px, 300px 300px;
-            background-position: center, 20% 20%, 80% 80%;
+                linear-gradient(135deg, 
+                    rgba(248, 250, 252, 0.98) 0%, 
+                    rgba(241, 245, 249, 0.95) 50%, 
+                    rgba(226, 232, 240, 0.92) 100%
+                );
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
             opacity: 1;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px) saturate(150%);
-            -webkit-backdrop-filter: blur(8px) saturate(150%);
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        background 0.3s ease;
             overflow: hidden;
             will-change: opacity, transform;
+        }
+
+        /* Dark mode loading screen */
+        [data-theme-mode="dark"] #app-loading,
+        .dark #app-loading {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.98) 0%, 
+                    rgba(30, 41, 59, 0.95) 50%, 
+                    rgba(51, 65, 85, 0.92) 100%
+                );
         }
 
         #app-loading.hidden {
@@ -171,28 +183,89 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(12px) saturate(180%);
-            -webkit-backdrop-filter: blur(12px) saturate(180%);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 2.5rem 3rem;
+            /* Light mode glassmorphism */
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: var(--borderRadius, 20px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 16px 64px rgba(0, 0, 0, 0.1),
-                inset 0 1px 1px rgba(255, 255, 255, 0.1);
-            animation: contentFloat 3s ease-in-out infinite;
-            max-width: 380px;
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 16px 48px rgba(0, 0, 0, 0.04),
+                inset 0 1px 1px rgba(255, 255, 255, 0.8);
+            max-width: 320px;
             text-align: center;
             will-change: transform;
+            transition: all 0.3s ease;
         }
 
-        /* Optimized Loading Spinner */
-        .loading-spinner {
-            width: 80px;
-            height: 80px;
-            position: relative;
+        /* Dark mode glassmorphism */
+        [data-theme-mode="dark"] .loading-content,
+        .dark .loading-content {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 16px 48px rgba(0, 0, 0, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Squared Logo Container - Medium Size */
+        .loading-logo {
+            width: 100px;
+            height: 100px;
             margin-bottom: 1.5rem;
+            position: relative;
+            border-radius: var(--borderRadius, 16px);
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .loading-logo:hover {
+            transform: scale(1.05);
+        }
+
+        [data-theme-mode="dark"] .loading-logo,
+        .dark .loading-logo {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: var(--borderRadius, 16px);
+            background: white;
+        }
+
+        [data-theme-mode="dark"] .loading-logo img,
+        .dark .loading-logo img {
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        /* Fallback logo letter */
+        .loading-logo-fallback {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--theme-primary, #3b82f6) 0%, #8b5cf6 100%);
+            border-radius: var(--borderRadius, 16px);
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        /* Loading Spinner - Positioned below logo */
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            position: relative;
+            margin-bottom: 1.25rem;
             will-change: transform;
         }
 
@@ -203,149 +276,68 @@
             left: 0;
             width: 100%;
             height: 100%;
-            border: 3px solid transparent;
-            border-top: 3px solid rgba(14, 165, 233, 0.8);
-            border-right: 3px solid rgba(168, 85, 247, 0.6);
+            border: 3px solid rgba(0, 0, 0, 0.08);
+            border-top: 3px solid var(--theme-primary, #3b82f6);
+            border-right: 3px solid var(--theme-success, #22c55e);
             border-radius: 50%;
-            animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        [data-theme-mode="dark"] .loading-spinner::before,
+        .dark .loading-spinner::before {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--theme-primary, #60a5fa);
+            border-right: 3px solid var(--theme-success, #4ade80);
         }
 
         .loading-spinner::after {
             content: '';
             position: absolute;
-            top: 12px;
-            left: 12px;
-            width: calc(100% - 24px);
-            height: calc(100% - 24px);
+            top: 8px;
+            left: 8px;
+            width: calc(100% - 16px);
+            height: calc(100% - 16px);
             border: 2px solid transparent;
-            border-bottom: 2px solid rgba(34, 197, 94, 0.7);
-            border-left: 2px solid rgba(255, 200, 87, 0.5);
+            border-bottom: 2px solid var(--theme-warning, #f59e0b);
+            border-left: 2px solid var(--theme-secondary, #a855f7);
             border-radius: 50%;
-            animation: spin 1s linear infinite reverse;
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
-        }
-
-        /* Optimized Logo */
-        .loading-logo {
-            width: 70px;
-            height: 70px;
-            margin-bottom: 1rem;
-            position: relative;
-            animation: logoFloat 2.5s ease-in-out infinite;
-            will-change: transform;
-        }
-
-        .logo-circle {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #8b5cf6 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: 
-                0 0 30px rgba(14, 165, 233, 0.4),
-                0 0 60px rgba(59, 130, 246, 0.2),
-                inset 0 2px 4px rgba(255, 255, 255, 0.2);
-            animation: logoGlow 2s ease-in-out infinite alternate;
-            will-change: box-shadow;
-        }
-
-        .logo-text {
-            color: white;
-            font-family: 'Inter', sans-serif;
-            font-weight: 800;
-            font-size: 1rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: 1px;
+            animation: spin 0.8s linear infinite reverse;
         }
 
         .loading-text {
-            color: white;
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 600;
             text-align: center;
             margin-bottom: 0.5rem;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.02em;
+            color: var(--theme-foreground, #1e293b);
+            font-family: var(--fontFamily, 'Inter', sans-serif);
+            transition: color 0.3s ease;
+        }
+
+        [data-theme-mode="dark"] .loading-text,
+        .dark .loading-text {
+            color: var(--theme-foreground, #f1f5f9);
         }
 
         .loading-subtitle {
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 400;
             text-align: center;
-            margin-bottom: 1rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            color: var(--theme-default-500, #64748b);
+            font-family: var(--fontFamily, 'Inter', sans-serif);
+            transition: color 0.3s ease;
         }
 
-        /* Optimized progress bar */
-        .loading-progress {
-            width: 100%;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            position: relative;
-            margin-top: 0.5rem;
+        [data-theme-mode="dark"] .loading-subtitle,
+        .dark .loading-subtitle {
+            color: var(--theme-default-400, #94a3b8);
         }
 
-        .loading-progress::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(14, 165, 233, 0.8) 50%, 
-                rgba(168, 85, 247, 0.6)
-            );
-            animation: progressSlide 2s ease-in-out infinite;
-            will-change: transform;
-        }
-
-        /* Optimized animations */
+        /* Animations */
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-6px) scale(1.02); }
-        }
-
-        @keyframes logoGlow {
-            0% { 
-                box-shadow: 
-                    0 0 30px rgba(14, 165, 233, 0.4),
-                    0 0 60px rgba(59, 130, 246, 0.2),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.2);
-            }
-            100% { 
-                box-shadow: 
-                    0 0 40px rgba(14, 165, 233, 0.6),
-                    0 0 80px rgba(59, 130, 246, 0.3),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.3);
-            }
-        }
-
-        @keyframes contentFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-        }
-
-        @keyframes progressSlide {
-            0% { left: -100%; }
-            100% { left: 100%; }
         }
 
         @keyframes fadeInUp {
@@ -404,18 +396,18 @@
             }
 
             .loading-logo {
-                width: 60px;
-                height: 60px;
+                width: 80px;
+                height: 80px;
                 margin-bottom: 1rem;
             }
 
-            .logo-text {
-                font-size: 0.9rem;
+            .loading-logo-fallback {
+                font-size: 36px;
             }
 
             .loading-spinner {
-                width: 60px;
-                height: 60px;
+                width: 40px;
+                height: 40px;
                 margin-bottom: 1rem;
             }
 
@@ -430,18 +422,22 @@
 
         @media (max-width: 480px) {
             .loading-content {
-                padding: 1rem 0.75rem;
+                padding: 1.5rem 1rem;
                 margin: 0.5rem;
             }
 
             .loading-logo {
-                width: 50px;
-                height: 50px;
+                width: 70px;
+                height: 70px;
+            }
+
+            .loading-logo-fallback {
+                font-size: 32px;
             }
 
             .loading-spinner {
-                width: 50px;
-                height: 50px;
+                width: 36px;
+                height: 36px;
             }
 
             .loading-text {
@@ -449,7 +445,13 @@
             }
         }
 
-
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
 
         /* Print styles */
         @media print {
@@ -466,18 +468,19 @@
     </a>
 
     <!-- Loading Screen -->
-    <div id="app-loading" aria-label="Loading application">
-        <div class="loading-content">
-            <div class="loading-logo">
-                <img src="{{ $logoUrl ?? asset('assets/images/logo.png') }}" alt="{{ $siteName ?? 'aeos365' }}" style="width: 80px; height: 80px; object-fit: contain;" 
+    <div id="app-loading" role="status" aria-live="polite" aria-label="Loading application">
+        <div class="loading-content" role="presentation">
+            <div class="loading-logo" aria-hidden="true">
+                <img src="{{ $logoUrl ?? asset('assets/images/logo.png') }}" alt=""
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div style="display: none; width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 16px; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white;">
+                <div class="loading-logo-fallback">
                     {{ substr($siteName ?? 'aeos365', 0, 1) }}
                 </div>
             </div>
-            <div class="loading-spinner"></div>
-            <div class="loading-text">{{ $siteName ?? 'aeos365' }}</div>
-            <div class="loading-subtitle">Preparing your workspace...</div>
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <div class="loading-text" aria-hidden="true">{{ $siteName ?? 'aeos365' }}</div>
+            <div class="loading-subtitle" aria-hidden="true">Preparing your workspace...</div>
+            <span class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">Loading {{ $siteName ?? 'aeos365' }}, please wait...</span>
         </div>
     </div>
     <!-- Inertia & Vite Scripts -->
@@ -511,37 +514,26 @@
             },
 
             showLoading: function(message = 'Loading...', subtitle = 'Please wait...') {
+                // Only show loading for initial page load or file uploads
+                // Regular Inertia navigation is handled by LoadingIndicator React component
                 let loading = document.getElementById('app-loading');
                 const app = document.getElementById('app');
 
-                // Create loading screen if it doesn't exist
+                // Don't recreate loading screen once app is initialized
                 if (!loading) {
-                    loading = document.createElement('div');
-                    loading.id = 'app-loading';
-                    loading.setAttribute('aria-label', 'Loading application');
-                    loading.innerHTML = `
-                        <div class="loading-content">
-                            <div class="loading-logo">
-                                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" style="width: 160px; height: 160px; object-fit: contain; border-radius: 12px;" 
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                               
-                            </div>
-                            
-                            <div class="loading-spinner" role="status" aria-label="Loading"></div>
-                            
-                            <div class="loading-text">${message}</div>
-                            <div class="loading-subtitle">${subtitle}</div>
-                            
-                            <div class="loading-progress"></div>
-                        </div>
-                    `;
-                    document.body.appendChild(loading);
+                    return; // Don't create new loading screen after initial load
                 }
 
                 if (loading && app) {
                     loading.style.opacity = '1';
                     loading.style.pointerEvents = 'auto';
                     app.classList.remove('loaded');
+                    
+                    // Update messages
+                    const loadingText = loading.querySelector('.loading-text');
+                    const loadingSubtitle = loading.querySelector('.loading-subtitle');
+                    if (loadingText) loadingText.textContent = message;
+                    if (loadingSubtitle) loadingSubtitle.textContent = subtitle;
                 }
             },
 
@@ -558,16 +550,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             let appReady = false;
             
-            // Listen for Inertia events with optimized handling
+            // Listen for Inertia events - but don't show #app-loading for navigations
+            // The React LoadingIndicator component handles all Inertia navigation loading states
             document.addEventListener('inertia:start', function(event) {
-                // Check if this is an authentication-related request
-                const url = event.detail.visit.url;
-                const urlString = typeof url === 'string' ? url : (url ? url.toString() : '');
-                const isAuthRequest = urlString.includes('/login') || urlString.includes('/register') || urlString.includes('/logout') || urlString.includes('/password');
-                
-                // For optimized loading, only show for non-GET requests or slow operations
-                if ((event.detail.visit.method !== 'get' || event.detail.visit.hasFiles) && !isAuthRequest) {
-                    window.AppLoader.showLoading('Processing...', 'Please wait...');
+                // Only show loading for file uploads or very specific scenarios
+                // Regular navigation is handled by the React LoadingIndicator component
+                if (event.detail.visit.hasFiles) {
+                    window.AppLoader.showLoading('Uploading...', 'Please wait...');
                 }
             });
 
@@ -660,24 +649,16 @@
             }
         });
 
-        // Enhanced error handling
+        // Enhanced error handling - just log errors, don't show loading screen
         window.addEventListener('error', function(e) {
             console.error('Unhandled error:', e.error);
-            // Hide loading screen on error but show error message
-            window.AppLoader.updateLoadingMessage('Error Loading', 'Attempting to recover...');
-            setTimeout(() => {
-                // Instead of full reload, try to navigate to dashboard
-                if (window.Inertia) {
-                    window.Inertia.visit('/dashboard');
-                } else {
-                    window.AppLoader.hideLoading();
-                }
-            }, 1500);
+            // Just hide loading if it's visible, don't show error UI
+            window.AppLoader.hideLoading();
         });
 
         window.addEventListener('unhandledrejection', function(e) {
             console.error('Unhandled promise rejection:', e.reason);
-            // Hide loading screen on error
+            // Just hide loading if it's visible
             window.AppLoader.hideLoading();
         });
 

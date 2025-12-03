@@ -34,6 +34,10 @@ class TenantProvisioner
      * database provisioning. Call dispatchProvisioning() after this
      * to start the async provisioning process.
      *
+     * If a tenant already exists from the verification step, it will be
+     * updated with the full registration data while preserving verification
+     * timestamps (admin_email_verified_at, admin_phone_verified_at).
+     *
      * @param  array  $payload  Registration data from multi-step wizard
      */
     public function createFromRegistration(array $payload): Tenant
@@ -49,14 +53,63 @@ class TenantProvisioner
         // Resolve plan_id from slug if provided
         $planId = $this->resolvePlanId($plan['plan_slug'] ?? null);
 
-        // Create tenant - status is 'pending' until provisioning completes
-        // NOTE: admin_data is NOT stored here - credentials are passed directly to the job
+        $email = (string) Arr::get($details, 'email');
+        $subdomain = (string) Arr::get($details, 'subdomain');
+
+        // Check if tenant already exists from verification step
+        // This preserves admin_email_verified_at and admin_phone_verified_at
+        $existingTenant = Tenant::where('email', $email)
+            ->orWhere('subdomain', $subdomain)
+            ->first();
+
+        if ($existingTenant) {
+            // Update existing tenant with full registration data
+            // Preserve verification timestamps that were set during email/phone verification
+            $existingTenant->update([
+                'name' => (string) Arr::get($details, 'name'),
+                'type' => (string) Arr::get($account, 'type', 'company'),
+                'subdomain' => $subdomain,
+                'email' => $email,
+                'phone' => Arr::get($details, 'phone'),
+                'plan_id' => $planId,
+                'subscription_plan' => Arr::get($plan, 'billing_cycle'),
+                'modules' => $modules,
+                'trial_ends_at' => $trialEndsAt,
+                'subscription_ends_at' => null,
+                'status' => Tenant::STATUS_PENDING,
+                'provisioning_step' => null,
+                'admin_data' => null,
+                'maintenance_mode' => false,
+                'data' => [
+                    'owner_name' => Arr::get($details, 'owner_name'),
+                    'owner_email' => Arr::get($details, 'owner_email', $email),
+                    'owner_phone' => Arr::get($details, 'owner_phone'),
+                    'team_size' => Arr::get($details, 'team_size'),
+                    'industry' => Arr::get($details, 'industry'),
+                    'notes' => Arr::get($plan, 'notes'),
+                    'registration_ip' => request()->ip(),
+                    'registered_at' => now()->toIso8601String(),
+                ],
+            ]);
+
+            // Create domain if doesn't exist
+            if ($existingTenant->domains()->count() === 0) {
+                $existingTenant->domains()->create([
+                    'domain' => $this->buildDomain($subdomain),
+                    'is_primary' => true,
+                ]);
+            }
+
+            return $existingTenant->fresh();
+        }
+
+        // Create new tenant if none exists
         $tenant = Tenant::create([
             'id' => (string) Str::uuid(),
             'name' => (string) Arr::get($details, 'name'),
             'type' => (string) Arr::get($account, 'type', 'company'),
-            'subdomain' => (string) Arr::get($details, 'subdomain'),
-            'email' => (string) Arr::get($details, 'email'),
+            'subdomain' => $subdomain,
+            'email' => $email,
             'phone' => Arr::get($details, 'phone'),
             'plan_id' => $planId,
             'subscription_plan' => Arr::get($plan, 'billing_cycle'),
@@ -65,12 +118,11 @@ class TenantProvisioner
             'subscription_ends_at' => null,
             'status' => Tenant::STATUS_PENDING,
             'provisioning_step' => null,
-            'admin_data' => null, // Never store credentials in database
+            'admin_data' => null,
             'maintenance_mode' => false,
-            // Flexible data stored in JSON column
             'data' => [
                 'owner_name' => Arr::get($details, 'owner_name'),
-                'owner_email' => Arr::get($details, 'owner_email', Arr::get($details, 'email')),
+                'owner_email' => Arr::get($details, 'owner_email', $email),
                 'owner_phone' => Arr::get($details, 'owner_phone'),
                 'team_size' => Arr::get($details, 'team_size'),
                 'industry' => Arr::get($details, 'industry'),
@@ -82,7 +134,7 @@ class TenantProvisioner
 
         // Create the primary domain for tenant routing
         $tenant->domains()->create([
-            'domain' => $this->buildDomain(Arr::get($details, 'subdomain')),
+            'domain' => $this->buildDomain($subdomain),
             'is_primary' => true,
         ]);
 

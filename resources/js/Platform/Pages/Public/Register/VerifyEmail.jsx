@@ -16,6 +16,7 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
   const [isSending, setIsSending] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const inputRefs = useRef([]);
+  const hasAutoSentRef = useRef(false);
 
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
@@ -28,9 +29,12 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
     link: isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-700',
   };
 
-  // Auto-send verification code on mount
+  // Auto-send verification code on mount (only once)
   useEffect(() => {
-    handleSendCode();
+    if (!hasAutoSentRef.current) {
+      hasAutoSentRef.current = true;
+      handleSendCode();
+    }
   }, []);
 
   // Countdown timer

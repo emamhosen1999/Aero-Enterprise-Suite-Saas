@@ -95,9 +95,20 @@ class Module extends Model
         return $this->hasMany(ModuleComponent::class)->orderBy('id');
     }
 
+    /**
+     * Get permission requirements from tenant database.
+     * This relationship crosses database boundaries (central -> tenant).
+     */
     public function permissionRequirements(): HasMany
     {
-        return $this->hasMany(ModulePermission::class);
+        $relation = $this->hasMany(ModulePermission::class);
+
+        // When tenancy is active, force the query to use tenant connection
+        if (tenancy()->initialized) {
+            $relation->getQuery()->getModel()->setConnection('tenant');
+        }
+
+        return $relation;
     }
 
     /**

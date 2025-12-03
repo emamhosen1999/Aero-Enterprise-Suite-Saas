@@ -12,12 +12,28 @@ use Spatie\Permission\Models\Permission;
  *
  * Links modules, sub-modules, and components to their required permissions.
  * Supports complex permission logic (required, any-of, all-of).
+ *
+ * This table exists ONLY in tenant databases (per-tenant permission mappings).
+ * Uses tenant connection when tenancy is active.
  */
 class ModulePermission extends Model
 {
     use HasFactory;
 
     protected $table = 'module_permissions';
+
+    /**
+     * Get the database connection for the model.
+     * Uses tenant connection when tenancy is initialized.
+     */
+    public function getConnectionName(): ?string
+    {
+        if (function_exists('tenancy') && tenancy()->initialized) {
+            return 'tenant';
+        }
+
+        return $this->connection;
+    }
 
     protected $fillable = [
         'module_id',

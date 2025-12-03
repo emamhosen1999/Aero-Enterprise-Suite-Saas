@@ -48,6 +48,7 @@ class SystemSetting extends Model implements HasMedia
         'notification_channels',
         'integrations',
         'advanced',
+        'organization',
     ];
 
     protected $casts = [
@@ -58,6 +59,7 @@ class SystemSetting extends Model implements HasMedia
         'notification_channels' => 'array',
         'integrations' => 'array',
         'advanced' => 'array',
+        'organization' => 'array',
     ];
 
     protected $attributes = [
@@ -68,6 +70,7 @@ class SystemSetting extends Model implements HasMedia
         'notification_channels' => '[]',
         'integrations' => '[]',
         'advanced' => '[]',
+        'organization' => '[]',
     ];
 
     public static function current(): self

@@ -341,6 +341,7 @@ const PlatformSettings = () => {
       from_address: email.from_address ?? '',
       from_name: email.from_name ?? site.name ?? '',
       reply_to: email.reply_to ?? '',
+      verify_peer: email.verify_peer ?? true,
     },
     sms_settings: {
       provider: sms.provider ?? 'log',
@@ -432,8 +433,12 @@ const PlatformSettings = () => {
     
     // Add email settings
     Object.keys(data.email_settings).forEach(key => {
-      if (data.email_settings[key]) {
-        formData.append(`email_settings[${key}]`, data.email_settings[key]);
+      const value = data.email_settings[key];
+      // Handle boolean values explicitly (verify_peer can be false)
+      if (typeof value === 'boolean') {
+        formData.append(`email_settings[${key}]`, value ? '1' : '0');
+      } else if (value) {
+        formData.append(`email_settings[${key}]`, value);
       }
     });
     
@@ -874,6 +879,18 @@ const PlatformSettings = () => {
                   isInvalid={Boolean(errors['email_settings.reply_to'])}
                   errorMessage={errors['email_settings.reply_to']}
                 />
+                <div className="p-3 bg-warning-50 dark:bg-warning-900/20 rounded-lg border border-warning-200 dark:border-warning-700">
+                  <Switch
+                    isSelected={!data.email_settings.verify_peer}
+                    onValueChange={(checked) => updateNested('email_settings', 'verify_peer', !checked)}
+                  >
+                    <span className="text-sm">Skip SSL Certificate Verification</span>
+                  </Switch>
+                  <p className="text-xs text-warning-600 dark:text-warning-400 mt-1">
+                    Enable this if your mail server uses a shared hosting certificate (e.g., *.web-hosting.com). 
+                    This is common on cPanel/shared hosts where the SSL cert doesn't match your domain.
+                  </p>
+                </div>
                 <TestEmailButton emailSettings={data.email_settings} />
               </div>
 

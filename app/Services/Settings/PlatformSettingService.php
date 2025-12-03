@@ -58,7 +58,16 @@ class PlatformSettingService
             $email['password'] = $existing['password'];
         }
 
-        return array_filter(array_merge($existing, $email), static fn ($value) => $value !== null && $value !== '');
+        // Handle verify_peer boolean - convert string '0'/'1' to actual boolean
+        if (isset($email['verify_peer'])) {
+            $email['verify_peer'] = filter_var($email['verify_peer'], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        // Filter empty values but preserve boolean false (for verify_peer)
+        return array_filter(
+            array_merge($existing, $email),
+            static fn ($value) => $value !== null && $value !== '' || $value === false
+        );
     }
 
     protected function maybeUpdateBrandingMedia(PlatformSetting $setting, array $files, array &$branding): void

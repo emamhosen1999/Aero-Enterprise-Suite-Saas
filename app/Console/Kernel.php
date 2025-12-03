@@ -71,6 +71,22 @@ class Kernel extends ConsoleKernel
             ],
         ])->daily();
 
+        // Clean up abandoned pending registrations (older than 24 hours)
+        $schedule->command('registrations:cleanup --hours=24')
+            ->hourly()
+            ->timezone(config('app.timezone', 'UTC'))
+            ->before(function () {
+                Log::info('Starting abandoned registrations cleanup');
+            })
+            ->onSuccess(function () {
+                Log::info('Abandoned registrations cleanup completed');
+            })
+            ->onFailure(function () {
+                Log::error('Abandoned registrations cleanup failed');
+            })
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/registration-cleanup.log'));
+
         // Clean up failed tenant provisioning attempts (keep 7 days)
         $schedule->command('tenants:cleanup-failed')
             ->dailyAt('02:00')

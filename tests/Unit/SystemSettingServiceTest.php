@@ -48,9 +48,11 @@ class SystemSettingServiceTest extends TestCase
             $table->json('branding')->nullable();
             $table->json('metadata')->nullable();
             $table->json('email_settings')->nullable();
+            $table->json('sms_settings')->nullable();
             $table->json('notification_channels')->nullable();
             $table->json('integrations')->nullable();
             $table->json('advanced')->nullable();
+            $table->json('organization')->nullable();
             $table->timestamps();
         });
     }

@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\Mail\PayslipEmail;
 use App\Models\HRM\Payroll;
 use App\Models\HRM\Payslip;
+use App\Services\Mail\MailService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class PayslipService
@@ -103,17 +102,37 @@ class PayslipService
 
         // Get PDF content
         $pdfContent = Storage::get($payslip->pdf_path);
+        $pdfPath = Storage::path($payslip->pdf_path);
 
-        // Send email
-        Mail::to($employee->email)->send(new PayslipEmail($payslip, $pdfContent));
+        // Build email HTML
+        $html = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h2>Your Payslip is Ready</h2>
+                <p>Dear {$employee->name},</p>
+                <p>Your payslip for <strong>{$payslip->pay_period}</strong> is attached to this email.</p>
+                <p>If you have any questions about your payslip, please contact HR.</p>
+                <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                <p style='color: #666;'>Best regards,<br>HR Department</p>
+            </div>
+        ";
 
-        // Update sent status
-        $payslip->update([
-            'is_sent' => true,
-            'sent_at' => now(),
-        ]);
+        // Send email using MailService
+        $result = app(MailService::class)
+            ->to($employee->email)
+            ->subject("Your Payslip - {$payslip->pay_period}")
+            ->html($html)
+            ->attach($pdfPath, "payslip-{$payslip->pay_period}.pdf", 'application/pdf')
+            ->send();
 
-        return true;
+        if ($result['success']) {
+            // Update sent status
+            $payslip->update([
+                'is_sent' => true,
+                'sent_at' => now(),
+            ]);
+        }
+
+        return $result['success'];
     }
 
     /**

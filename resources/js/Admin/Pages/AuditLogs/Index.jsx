@@ -39,7 +39,7 @@ import {
     XMarkIcon
 } from '@heroicons/react/24/outline';
 import AuditTimeline from '@/Components/AuditTimeline';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import App from '@/Layouts/App';
 
 /**
  * Activity Detail Modal
@@ -297,7 +297,7 @@ export default function Index({
     const hasActiveFilters = Object.values(currentFilters).some(v => v) || searchQuery;
 
     return (
-        <AuthenticatedLayout user={auth.user}>
+        <App>
             <Head title="Audit Logs" />
 
             <div className="py-6">
@@ -555,6 +555,6 @@ export default function Index({
                 isOpen={isOpen}
                 onClose={onClose}
             />
-        </AuthenticatedLayout>
+        </App>
     );
 }

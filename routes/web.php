@@ -76,11 +76,10 @@ Route::post('/locale', function (\Illuminate\Http\Request $request) {
 })->name('locale.update');
 
 // Team Invitation Acceptance Routes (public - no auth required)
-// These routes must be signed to prevent unauthorized access
+// These routes use token-based security - the token is a secure UUID validated in the controller
 Route::prefix('invitation')->group(function () {
     Route::get('/{token}', [\App\Http\Controllers\TeamMemberController::class, 'showAcceptForm'])
-        ->name('team.invitation.accept')
-        ->middleware('signed');
+        ->name('team.invitation.accept');
 
     Route::post('/{token}', [\App\Http\Controllers\TeamMemberController::class, 'accept'])
         ->name('team.invitation.process');

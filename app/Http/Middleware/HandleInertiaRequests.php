@@ -137,6 +137,12 @@ class HandleInertiaRequests extends Middleware
             'csrfToken' => csrf_token(),
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'info' => $request->session()->get('info'),
+            ],
         ];
     }
 
@@ -183,6 +189,12 @@ class HandleInertiaRequests extends Middleware
             'csrfToken' => session('csrfToken'),
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'info' => $request->session()->get('info'),
+            ],
         ];
     }
 
@@ -276,6 +288,14 @@ class HandleInertiaRequests extends Middleware
             'fallbackLocale' => config('app.fallback_locale', 'en'),
             'supportedLocales' => SetLocale::getSupportedLocales(),
             'translations' => fn () => $this->getTranslations(),
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'info' => $request->session()->get('info'),
+                'email_results' => $request->session()->get('email_results'),
+                'invitation_errors' => $request->session()->get('invitation_errors'),
+            ],
         ];
     }
 

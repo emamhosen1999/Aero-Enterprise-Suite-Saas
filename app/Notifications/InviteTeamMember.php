@@ -3,28 +3,38 @@
 namespace App\Notifications;
 
 use App\Models\TenantInvitation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use App\Services\Mail\MailService;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Log;
 
 /**
  * InviteTeamMember Notification
  *
  * Sends an invitation email to a prospective team member with a secure,
- * signed URL for accepting the invitation.
+ * token-based URL for accepting the invitation.
+ *
+ * Uses the unified MailService for reliable email delivery (bypasses SSL issues).
  */
-class InviteTeamMember extends Notification implements ShouldQueue
+class InviteTeamMember extends Notification
 {
-    use Queueable;
+    /**
+     * The tenant domain for URL generation.
+     */
+    protected string $tenantDomain;
 
     /**
      * Create a new notification instance.
      */
     public function __construct(
         public TenantInvitation $invitation
-    ) {}
+    ) {
+        // Capture the tenant domain at dispatch time
+        if ($tenant = tenant()) {
+            $this->tenantDomain = $tenant->domains()->first()?->domain ?? request()->getHost();
+        } else {
+            $this->tenantDomain = request()->getHost();
+        }
+    }
 
     /**
      * Get the notification's delivery channels.
@@ -33,37 +43,79 @@ class InviteTeamMember extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['database'];
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Send the invitation email using MailService.
      */
-    public function toMail(object $notifiable): MailMessage
+    public function sendEmail(): bool
     {
         $inviterName = $this->invitation->inviter?->name ?? 'The team administrator';
-        $roleName = $this->invitation->role;
+        $roleName = ucfirst($this->invitation->role);
         $expiresAt = $this->invitation->expires_at;
+        $acceptUrl = $this->buildAcceptUrl();
+        $organizationName = tenant()?->name ?? config('app.name', 'Our Organization');
+        $email = $this->invitation->email;
 
-        // Generate a signed URL that expires with the invitation
-        $acceptUrl = URL::temporarySignedRoute(
-            'team.invitation.accept',
-            $expiresAt,
-            ['token' => $this->invitation->token]
-        );
+        $html = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #4F46E5;'>You've Been Invited! 🎉</h1>
+                <p>Hello!</p>
+                <p><strong>{$inviterName}</strong> has invited you to join <strong>{$organizationName}</strong> as a <strong>{$roleName}</strong>.</p>
+                
+                <div style='background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <h3 style='margin-top: 0;'>Invitation Details:</h3>
+                    <ul style='list-style: none; padding: 0;'>
+                        <li>• <strong>Organization:</strong> {$organizationName}</li>
+                        <li>• <strong>Role:</strong> {$roleName}</li>
+                        <li>• <strong>Expires:</strong> {$expiresAt->format('F j, Y \\a\\t g:i A')}</li>
+                    </ul>
+                </div>
 
-        // Get organization name from config or app name
-        $organizationName = config('app.name', 'Our Organization');
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$acceptUrl}' style='background: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Accept Invitation</a>
+                </div>
 
-        return (new MailMessage)
-            ->subject("You've Been Invited to Join {$organizationName}")
-            ->greeting('Hello!')
-            ->line("{$inviterName} has invited you to join **{$organizationName}** as a **{$roleName}**.")
-            ->line('Click the button below to accept the invitation and create your account.')
-            ->action('Accept Invitation', $acceptUrl)
-            ->line("This invitation will expire on {$expiresAt->format('F j, Y \\a\\t g:i A')}.")
-            ->line('If you did not expect this invitation, you can safely ignore this email.')
-            ->salutation('Welcome to the team!');
+                <p style='color: #666; font-size: 14px;'>If you did not expect this invitation, you can safely ignore this email.</p>
+
+                <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
+
+                <p style='color: #666;'>Welcome to the team!<br>The {$organizationName} Team</p>
+            </div>
+        ";
+
+        // Use platform settings since tenant might not have email configured
+        $result = app(MailService::class)
+            ->usePlatformSettings()
+            ->sendMail($email, "You've Been Invited to Join {$organizationName}", $html);
+
+        if ($result['success']) {
+            Log::info('Team invitation email sent', [
+                'invitation_id' => $this->invitation->id,
+                'email' => $email,
+                'role' => $this->invitation->role,
+            ]);
+        } else {
+            Log::error('Failed to send team invitation email', [
+                'invitation_id' => $this->invitation->id,
+                'email' => $email,
+                'error' => $result['message'],
+            ]);
+        }
+
+        return $result['success'];
+    }
+
+    /**
+     * Build the accept invitation URL with proper tenant domain.
+     *
+     * Security: The invitation token itself is cryptographically secure (UUID).
+     * Additional validation is done in the controller to check expiration and status.
+     */
+    protected function buildAcceptUrl(): string
+    {
+        return "https://{$this->tenantDomain}/invitation/{$this->invitation->token}";
     }
 
     /**

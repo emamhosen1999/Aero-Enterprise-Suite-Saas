@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { Button } from '@heroui/react';
+import { 
+  Button, 
+  Modal, 
+  ModalContent, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter,
+  useDisclosure 
+} from '@heroui/react';
 import axios from 'axios';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
@@ -8,7 +16,7 @@ import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils';
 import ProgressSteps from './components/ProgressSteps.jsx';
-import { DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+import { DevicePhoneMobileIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export default function VerifyPhone({ steps = [], currentStep, savedData = {}, phone = '', companyName = '' }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -16,6 +24,8 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
   const [isSending, setIsSending] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const inputRefs = useRef([]);
+  const hasAutoSentRef = useRef(false);
+  const { isOpen: isSkipOpen, onOpen: onSkipOpen, onClose: onSkipClose } = useDisclosure();
 
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
@@ -28,9 +38,12 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
     link: isDarkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-700',
   };
 
-  // Auto-send verification code on mount
+  // Auto-send verification code on mount (only once)
   useEffect(() => {
-    handleSendCode();
+    if (!hasAutoSentRef.current) {
+      hasAutoSentRef.current = true;
+      handleSendCode();
+    }
   }, []);
 
   // Countdown timer
@@ -179,9 +192,13 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
   };
 
   const handleSkip = () => {
-    if (confirm('Are you sure you want to skip phone verification? You will need to verify your phone later.')) {
-      router.visit(route('platform.register.plan'));
-    }
+    onSkipOpen();
+  };
+
+  const confirmSkip = () => {
+    onSkipClose();
+    showToast.info('Phone verification skipped. You can verify later from settings.');
+    router.visit(route('platform.register.plan'));
   };
 
   return (
@@ -288,6 +305,38 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
           </AuthCard>
         </div>
       </section>
+
+      {/* Skip Confirmation Modal */}
+      <Modal 
+        isOpen={isSkipOpen} 
+        onOpenChange={onSkipClose}
+        classNames={{
+          base: "bg-content1",
+          header: "border-b border-divider",
+          body: "py-6",
+          footer: "border-t border-divider"
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex gap-2 items-center">
+            <ExclamationTriangleIcon className="w-5 h-5 text-warning" />
+            <span>Skip Phone Verification?</span>
+          </ModalHeader>
+          <ModalBody>
+            <p className={palette.copy}>
+              Are you sure you want to skip phone verification? You will need to verify your phone number later from your account settings.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={onSkipClose}>
+              Cancel
+            </Button>
+            <Button color="warning" onPress={confirmSkip}>
+              Skip Verification
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </RegisterLayout>
   );
 }

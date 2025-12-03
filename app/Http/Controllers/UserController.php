@@ -1060,8 +1060,9 @@ class UserController extends Controller
                 ],
             ]);
 
-            // Send notification
-            $invitation->notify(new InviteTeamMember($invitation));
+            // Send invitation email using MailService
+            $notification = new InviteTeamMember($invitation);
+            $notification->sendEmail();
 
             DB::commit();
 
@@ -1125,7 +1126,9 @@ class UserController extends Controller
         }
 
         try {
-            $invitation->notify(new InviteTeamMember($invitation));
+            // Send invitation email using MailService
+            $notification = new InviteTeamMember($invitation);
+            $notification->sendEmail();
 
             Log::info('Invitation resent', [
                 'invitation_id' => $invitation->id,

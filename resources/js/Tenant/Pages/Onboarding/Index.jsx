@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,6 +13,8 @@ import {
     Avatar,
     Chip,
     Divider,
+    Select,
+    SelectItem,
 } from '@heroui/react';
 import {
     Building2,
@@ -34,7 +36,25 @@ import {
     Sparkles,
     SkipForward,
 } from 'lucide-react';
-import { showToast } from '@/utils/toastUtils';
+import { showToast, toastStyles } from '@/utils/toastUtils';
+import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Helper function to convert theme borderRadius to HeroUI radius values
+const getThemeRadius = () => {
+    if (typeof window === 'undefined') return 'lg';
+    
+    const rootStyles = getComputedStyle(document.documentElement);
+    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+    
+    const radiusValue = parseInt(borderRadius);
+    if (radiusValue === 0) return 'none';
+    if (radiusValue <= 4) return 'sm';
+    if (radiusValue <= 8) return 'md';
+    if (radiusValue <= 16) return 'lg';
+    return 'full';
+};
 
 /**
  * Tenant Onboarding Wizard
@@ -54,9 +74,22 @@ export default function OnboardingWizard({
     tenant,
     systemSettings,
     user,
+    roles = [],
 }) {
     const [activeStep, setActiveStep] = useState(currentStep || 'welcome');
-    const [teamInvites, setTeamInvites] = useState([{ email: '', role: 'employee' }]);
+    const [teamInvites, setTeamInvites] = useState([{ email: '', role: roles[0]?.name || 'employee' }]);
+    const [themeRadius, setThemeRadius] = useState('lg');
+    
+    // Theme context for dark mode toggle
+    const { themeSettings, toggleMode } = useTheme();
+    const isDarkMode = themeSettings?.mode === 'dark';
+
+    // Set theme radius on mount (client-side only)
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setThemeRadius(getThemeRadius());
+        }
+    }, []);
 
     // Step order for navigation
     const stepOrder = ['welcome', 'company', 'branding', 'team', 'modules', 'complete'];
@@ -89,8 +122,35 @@ export default function OnboardingWizard({
         dark_mode: systemSettings?.branding?.dark_mode || false,
         logo_light: null,
         logo_dark: null,
+        logo: null, // Horizontal logo (legacy/fallback)
+        square_logo: null,
         favicon: null,
     });
+
+    // Logo preview state
+    const [logoPreviews, setLogoPreviews] = useState({
+        logo_light: systemSettings?.branding?.logo_light ? `/storage/${systemSettings.branding.logo_light}` : null,
+        logo_dark: systemSettings?.branding?.logo_dark ? `/storage/${systemSettings.branding.logo_dark}` : null,
+        logo: systemSettings?.branding?.logo ? `/storage/${systemSettings.branding.logo}` : null,
+        square_logo: systemSettings?.branding?.square_logo ? `/storage/${systemSettings.branding.square_logo}` : null,
+        favicon: systemSettings?.branding?.favicon ? `/storage/${systemSettings.branding.favicon}` : null,
+    });
+
+    // Handle file selection with preview
+    const handleLogoSelect = (field, file) => {
+        if (file) {
+            brandingForm.setData(field, file);
+            // Create preview URL
+            const previewUrl = URL.createObjectURL(file);
+            setLogoPreviews(prev => ({ ...prev, [field]: previewUrl }));
+        }
+    };
+
+    // Remove logo
+    const handleLogoRemove = (field) => {
+        brandingForm.setData(field, null);
+        setLogoPreviews(prev => ({ ...prev, [field]: null }));
+    };
 
     // Progress calculation
     const progress = useMemo(() => {
@@ -108,15 +168,19 @@ export default function OnboardingWizard({
     };
 
     // Navigation handlers
-    const goToStep = (step) => {
+    const goToStep = (step, syncWithServer = false) => {
         setActiveStep(step);
-        router.post(route('onboarding.step'), { step }, { preserveState: true });
+        // Only sync with server when explicitly needed (e.g., manual step navigation)
+        if (syncWithServer) {
+            router.post(route('onboarding.step'), { step }, { preserveState: true, preserveScroll: true });
+        }
     };
 
     const nextStep = () => {
         const nextIndex = currentStepIndex + 1;
         if (nextIndex < stepOrder.length) {
-            goToStep(stepOrder[nextIndex]);
+            // Just update local state - the step is already marked complete by the form submission
+            setActiveStep(stepOrder[nextIndex]);
         }
     };
 
@@ -133,7 +197,7 @@ export default function OnboardingWizard({
         companyForm.post(route('onboarding.company'), {
             preserveScroll: true,
             onSuccess: () => {
-                showToast('success', 'Company information saved!');
+                showToast.success('Company information saved!');
                 nextStep();
             },
         });
@@ -144,7 +208,7 @@ export default function OnboardingWizard({
         brandingForm.post(route('onboarding.branding'), {
             preserveScroll: true,
             onSuccess: () => {
-                showToast('success', 'Branding settings saved!');
+                showToast.success('Branding settings saved!');
                 nextStep();
             },
         });
@@ -152,13 +216,64 @@ export default function OnboardingWizard({
 
     const handleTeamSubmit = (e) => {
         e.preventDefault();
+        
+        const validInvites = teamInvites.filter(inv => inv.email);
+        console.log('Submitting team invitations:', validInvites);
+        
+        if (validInvites.length === 0) {
+            showToast.info('No invitations to send. Skipping to next step.');
+            nextStep();
+            return;
+        }
+        
         router.post(route('onboarding.team'), {
-            invitations: teamInvites.filter(inv => inv.email),
+            invitations: validInvites,
         }, {
             preserveScroll: true,
-            onSuccess: () => {
-                showToast('success', 'Team invitations sent!');
-                nextStep();
+            onSuccess: (page) => {
+                console.log('Team submission success, page props:', page.props);
+                
+                // Check for flash messages
+                const flash = page.props.flash || {};
+                console.log('Flash messages:', flash);
+                
+                const emailResults = flash.email_results || [];
+                const invitationErrors = flash.invitation_errors || [];
+                
+                // Track if we have any feedback to show
+                let hasMessages = false;
+                
+                // Show individual results for sent emails
+                emailResults.forEach(result => {
+                    hasMessages = true;
+                    if (result.sent) {
+                        showToast.success(`Invitation sent to ${result.email}`);
+                    } else {
+                        showToast.error(`Failed to send invitation to ${result.email}`);
+                    }
+                });
+                
+                // Show skip/error messages for skipped invitations
+                invitationErrors.forEach(error => {
+                    hasMessages = true;
+                    showToast.warning(error);
+                });
+                
+                // Show summary message
+                if (flash.success) {
+                    showToast.info(flash.success);
+                }
+                
+                // Delay moving to next step so user can see the toasts
+                setTimeout(() => {
+                    nextStep();
+                }, hasMessages ? 1500 : 300);
+            },
+            onError: (errors) => {
+                console.error('Team submission errors:', errors);
+                Object.values(errors).flat().forEach(error => {
+                    showToast.error(error);
+                });
             },
         });
     };
@@ -177,23 +292,26 @@ export default function OnboardingWizard({
 
     const handleComplete = () => {
         router.post(route('onboarding.complete'), {}, {
-            onSuccess: () => {
-                showToast('success', 'Welcome! Your organization is all set up.');
+            // Let Inertia handle the redirect from the backend
+            onError: () => {
+                showToast.error('Something went wrong. Please try again.');
             },
         });
     };
 
     const handleSkip = () => {
         router.post(route('onboarding.skip'), {}, {
-            onSuccess: () => {
-                showToast('info', 'You can complete the setup later in Settings.');
+            // Let Inertia handle the redirect from the backend
+            onError: () => {
+                showToast.error('Something went wrong. Please try again.');
             },
         });
     };
 
     // Team invite handlers
     const addTeamInvite = () => {
-        setTeamInvites([...teamInvites, { email: '', role: 'employee' }]);
+        const defaultRole = roles.length > 0 ? roles[roles.length - 1].name : 'employee'; // Use last role (usually most basic)
+        setTeamInvites([...teamInvites, { email: '', role: defaultRole }]);
     };
 
     const removeTeamInvite = (index) => {
@@ -240,14 +358,16 @@ export default function OnboardingWizard({
                             <Button
                                 color="primary"
                                 size="lg"
+                                radius={themeRadius}
                                 endContent={<ArrowRight className="w-5 h-5" />}
                                 onPress={nextStep}
                             >
                                 Let's Get Started
                             </Button>
                             <Button
-                                variant="ghost"
+                                variant="flat"
                                 size="lg"
+                                radius={themeRadius}
                                 startContent={<SkipForward className="w-5 h-5" />}
                                 onPress={handleSkip}
                             >
@@ -274,6 +394,8 @@ export default function OnboardingWizard({
                                     value={companyForm.data.company_name}
                                     onValueChange={(v) => companyForm.setData('company_name', v)}
                                     isRequired
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                     startContent={<Building2 className="w-4 h-4 text-default-400" />}
                                 />
                                 <Input
@@ -281,6 +403,8 @@ export default function OnboardingWizard({
                                     placeholder="Acme Corp Ltd."
                                     value={companyForm.data.legal_name}
                                     onValueChange={(v) => companyForm.setData('legal_name', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
                                     label="Tagline"
@@ -288,24 +412,30 @@ export default function OnboardingWizard({
                                     value={companyForm.data.tagline}
                                     onValueChange={(v) => companyForm.setData('tagline', v)}
                                     className="md:col-span-2"
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
                                     label="Industry"
                                     placeholder="Technology"
                                     value={companyForm.data.industry}
                                     onValueChange={(v) => companyForm.setData('industry', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
                                     label="Company Size"
                                     placeholder="10-50 employees"
                                     value={companyForm.data.company_size}
                                     onValueChange={(v) => companyForm.setData('company_size', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
 
                             <Divider />
 
-                            <h3 className="text-lg font-semibold">Contact Information</h3>
+                            <h3 className="text-lg font-semibold text-foreground">Contact Information</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input
                                     label="Support Email"
@@ -313,6 +443,8 @@ export default function OnboardingWizard({
                                     placeholder="support@company.com"
                                     value={companyForm.data.support_email}
                                     onValueChange={(v) => companyForm.setData('support_email', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                     startContent={<Mail className="w-4 h-4 text-default-400" />}
                                 />
                                 <Input
@@ -320,6 +452,8 @@ export default function OnboardingWizard({
                                     placeholder="+1 (555) 123-4567"
                                     value={companyForm.data.support_phone}
                                     onValueChange={(v) => companyForm.setData('support_phone', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                     startContent={<Phone className="w-4 h-4 text-default-400" />}
                                 />
                                 <Input
@@ -327,6 +461,8 @@ export default function OnboardingWizard({
                                     placeholder="https://company.com"
                                     value={companyForm.data.website_url}
                                     onValueChange={(v) => companyForm.setData('website_url', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                     startContent={<Globe className="w-4 h-4 text-default-400" />}
                                 />
                                 <Input
@@ -334,19 +470,23 @@ export default function OnboardingWizard({
                                     placeholder="America/New_York"
                                     value={companyForm.data.timezone}
                                     onValueChange={(v) => companyForm.setData('timezone', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                     startContent={<Clock className="w-4 h-4 text-default-400" />}
                                 />
                             </div>
 
                             <Divider />
 
-                            <h3 className="text-lg font-semibold">Address</h3>
+                            <h3 className="text-lg font-semibold text-foreground">Address</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input
                                     label="Address Line 1"
                                     placeholder="123 Main Street"
                                     value={companyForm.data.address_line1}
                                     onValueChange={(v) => companyForm.setData('address_line1', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                     startContent={<MapPin className="w-4 h-4 text-default-400" />}
                                 />
                                 <Input
@@ -354,36 +494,47 @@ export default function OnboardingWizard({
                                     placeholder="Suite 100"
                                     value={companyForm.data.address_line2}
                                     onValueChange={(v) => companyForm.setData('address_line2', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
                                     label="City"
                                     placeholder="New York"
                                     value={companyForm.data.city}
                                     onValueChange={(v) => companyForm.setData('city', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
                                     label="State/Province"
                                     placeholder="NY"
                                     value={companyForm.data.state}
                                     onValueChange={(v) => companyForm.setData('state', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
                                     label="Postal Code"
                                     placeholder="10001"
                                     value={companyForm.data.postal_code}
                                     onValueChange={(v) => companyForm.setData('postal_code', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
                                     label="Country"
                                     placeholder="United States"
                                     value={companyForm.data.country}
                                     onValueChange={(v) => companyForm.setData('country', v)}
+                                    radius={themeRadius}
+                                    classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
 
                             <div className="flex justify-between pt-6">
                                 <Button
-                                    variant="ghost"
+                                    variant="flat"
+                                    radius={themeRadius}
                                     startContent={<ArrowLeft className="w-4 h-4" />}
                                     onPress={prevStep}
                                 >
@@ -392,6 +543,7 @@ export default function OnboardingWizard({
                                 <Button
                                     type="submit"
                                     color="primary"
+                                    radius={themeRadius}
                                     endContent={<ArrowRight className="w-4 h-4" />}
                                     isLoading={companyForm.processing}
                                 >
@@ -422,12 +574,14 @@ export default function OnboardingWizard({
                                             type="color"
                                             value={brandingForm.data.primary_color}
                                             onChange={(e) => brandingForm.setData('primary_color', e.target.value)}
-                                            className="w-12 h-12 rounded-lg cursor-pointer border-2 border-default-200"
+                                            className="w-12 h-12 rounded-lg cursor-pointer border-2 border-divider"
                                         />
                                         <Input
                                             value={brandingForm.data.primary_color}
                                             onValueChange={(v) => brandingForm.setData('primary_color', v)}
                                             size="sm"
+                                            radius={themeRadius}
+                                            classNames={{ inputWrapper: "bg-default-100" }}
                                             className="flex-1"
                                         />
                                     </div>
@@ -441,71 +595,372 @@ export default function OnboardingWizard({
                                             type="color"
                                             value={brandingForm.data.accent_color}
                                             onChange={(e) => brandingForm.setData('accent_color', e.target.value)}
-                                            className="w-12 h-12 rounded-lg cursor-pointer border-2 border-default-200"
+                                            className="w-12 h-12 rounded-lg cursor-pointer border-2 border-divider"
                                         />
                                         <Input
                                             value={brandingForm.data.accent_color}
                                             onValueChange={(v) => brandingForm.setData('accent_color', v)}
                                             size="sm"
+                                            radius={themeRadius}
+                                            classNames={{ inputWrapper: "bg-default-100" }}
                                             className="flex-1"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between p-4 rounded-lg bg-default-100">
-                                <div>
-                                    <h4 className="font-medium">Dark Mode</h4>
-                                    <p className="text-sm text-default-500">Enable dark theme by default</p>
-                                </div>
-                                <Switch
-                                    isSelected={brandingForm.data.dark_mode}
-                                    onValueChange={(v) => brandingForm.setData('dark_mode', v)}
-                                />
-                            </div>
+                            <Card
+                                radius={themeRadius}
+                                classNames={{
+                                    base: "bg-default-100 border border-divider"
+                                }}
+                            >
+                                <CardBody className="flex flex-row items-center justify-between">
+                                    <div>
+                                        <h4 className="font-medium text-foreground">Dark Mode</h4>
+                                        <p className="text-sm text-default-500">Enable dark theme by default</p>
+                                    </div>
+                                    <Switch
+                                        isSelected={isDarkMode}
+                                        onValueChange={() => {
+                                            toggleMode();
+                                            brandingForm.setData('dark_mode', !isDarkMode);
+                                        }}
+                                    />
+                                </CardBody>
+                            </Card>
 
                             <Divider />
 
-                            <h3 className="text-lg font-semibold">Logo Upload</h3>
-                            <p className="text-sm text-default-500 mb-4">
-                                You can skip this for now and add logos later in Settings.
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="border-2 border-dashed border-default-200 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                                    <Upload className="w-8 h-8 mx-auto text-default-400 mb-2" />
-                                    <p className="text-sm text-default-500">Light Logo</p>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => brandingForm.setData('logo_light', e.target.files[0])}
-                                    />
+                            {/* Logo Upload Section */}
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-foreground">Brand Assets</h3>
+                                    <p className="text-sm text-default-500">
+                                        Upload your organization's logos and favicon. All fields are required for consistent branding.
+                                    </p>
                                 </div>
-                                <div className="border-2 border-dashed border-default-200 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                                    <Upload className="w-8 h-8 mx-auto text-default-400 mb-2" />
-                                    <p className="text-sm text-default-500">Dark Logo</p>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => brandingForm.setData('logo_dark', e.target.files[0])}
-                                    />
+
+                                {/* Theme-Aware Logos */}
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-medium text-default-700 flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-primary" />
+                                        Theme-Aware Logos
+                                        <Chip size="sm" color="danger" variant="flat">Required</Chip>
+                                    </h4>
+                                    <p className="text-xs text-default-500">
+                                        These logos automatically switch based on user's theme preference.
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Logo Light */}
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="logo_light"
+                                                accept="image/svg+xml,image/png,image/webp"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoSelect('logo_light', e.target.files[0])}
+                                            />
+                                            <Card
+                                                radius={themeRadius}
+                                                classNames={{
+                                                    base: `bg-white border-2 ${brandingForm.errors.logo_light ? 'border-danger' : logoPreviews.logo_light ? 'border-success' : 'border-dashed border-divider hover:border-primary'} transition-colors cursor-pointer`
+                                                }}
+                                                isPressable
+                                                onPress={() => document.getElementById('logo_light').click()}
+                                            >
+                                                <CardBody className="flex flex-col items-center justify-center py-6 min-h-[140px]">
+                                                    {logoPreviews.logo_light ? (
+                                                        <>
+                                                            <img 
+                                                                src={logoPreviews.logo_light} 
+                                                                alt="Light Logo Preview" 
+                                                                className="max-h-16 max-w-full object-contain mb-2"
+                                                            />
+                                                            <p className="text-xs text-success">Logo uploaded</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Upload className="w-8 h-8 text-default-400 mb-2" />
+                                                            <p className="text-sm font-medium text-foreground">Light Mode Logo</p>
+                                                            <p className="text-xs text-default-400">200x50px recommended</p>
+                                                        </>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                            {logoPreviews.logo_light && (
+                                                <Button
+                                                    isIconOnly
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="flat"
+                                                    className="absolute -top-2 -right-2 z-10"
+                                                    onPress={() => handleLogoRemove('logo_light')}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                            {brandingForm.errors.logo_light && (
+                                                <p className="text-xs text-danger mt-1">{brandingForm.errors.logo_light}</p>
+                                            )}
+                                        </div>
+
+                                        {/* Logo Dark */}
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="logo_dark"
+                                                accept="image/svg+xml,image/png,image/webp"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoSelect('logo_dark', e.target.files[0])}
+                                            />
+                                            <Card
+                                                radius={themeRadius}
+                                                classNames={{
+                                                    base: `bg-gray-800 border-2 ${brandingForm.errors.logo_dark ? 'border-danger' : logoPreviews.logo_dark ? 'border-success' : 'border-dashed border-divider hover:border-primary'} transition-colors cursor-pointer`
+                                                }}
+                                                isPressable
+                                                onPress={() => document.getElementById('logo_dark').click()}
+                                            >
+                                                <CardBody className="flex flex-col items-center justify-center py-6 min-h-[140px]">
+                                                    {logoPreviews.logo_dark ? (
+                                                        <>
+                                                            <img 
+                                                                src={logoPreviews.logo_dark} 
+                                                                alt="Dark Logo Preview" 
+                                                                className="max-h-16 max-w-full object-contain mb-2"
+                                                            />
+                                                            <p className="text-xs text-success">Logo uploaded</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                                            <p className="text-sm font-medium text-white">Dark Mode Logo</p>
+                                                            <p className="text-xs text-gray-400">200x50px recommended</p>
+                                                        </>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                            {logoPreviews.logo_dark && (
+                                                <Button
+                                                    isIconOnly
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="flat"
+                                                    className="absolute -top-2 -right-2 z-10"
+                                                    onPress={() => handleLogoRemove('logo_dark')}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                            {brandingForm.errors.logo_dark && (
+                                                <p className="text-xs text-danger mt-1">{brandingForm.errors.logo_dark}</p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="border-2 border-dashed border-default-200 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                                    <Upload className="w-8 h-8 mx-auto text-default-400 mb-2" />
-                                    <p className="text-sm text-default-500">Favicon</p>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => brandingForm.setData('favicon', e.target.files[0])}
-                                    />
+
+                                {/* Additional Logos */}
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-medium text-default-700 flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-secondary" />
+                                        Additional Brand Assets
+                                        <Chip size="sm" color="danger" variant="flat">Required</Chip>
+                                    </h4>
+                                    <p className="text-xs text-default-500">
+                                        Square logo for mobile apps, horizontal logo for documents, and favicon for browser tabs.
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {/* Square Logo */}
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="square_logo"
+                                                accept="image/svg+xml,image/png,image/webp"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoSelect('square_logo', e.target.files[0])}
+                                            />
+                                            <Card
+                                                radius={themeRadius}
+                                                classNames={{
+                                                    base: `bg-default-100 border-2 ${brandingForm.errors.square_logo ? 'border-danger' : logoPreviews.square_logo ? 'border-success' : 'border-dashed border-divider hover:border-primary'} transition-colors cursor-pointer`
+                                                }}
+                                                isPressable
+                                                onPress={() => document.getElementById('square_logo').click()}
+                                            >
+                                                <CardBody className="flex flex-col items-center justify-center py-6 min-h-[140px]">
+                                                    {logoPreviews.square_logo ? (
+                                                        <>
+                                                            <img 
+                                                                src={logoPreviews.square_logo} 
+                                                                alt="Square Logo Preview" 
+                                                                className="w-16 h-16 object-contain mb-2"
+                                                            />
+                                                            <p className="text-xs text-success">Logo uploaded</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-12 h-12 border-2 border-dashed border-default-300 rounded-lg flex items-center justify-center mb-2">
+                                                                <Upload className="w-6 h-6 text-default-400" />
+                                                            </div>
+                                                            <p className="text-sm font-medium text-foreground">Square Logo</p>
+                                                            <p className="text-xs text-default-400">100x100px recommended</p>
+                                                        </>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                            {logoPreviews.square_logo && (
+                                                <Button
+                                                    isIconOnly
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="flat"
+                                                    className="absolute -top-2 -right-2 z-10"
+                                                    onPress={() => handleLogoRemove('square_logo')}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                            {brandingForm.errors.square_logo && (
+                                                <p className="text-xs text-danger mt-1">{brandingForm.errors.square_logo}</p>
+                                            )}
+                                        </div>
+
+                                        {/* Horizontal Logo */}
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="logo"
+                                                accept="image/svg+xml,image/png,image/webp"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoSelect('logo', e.target.files[0])}
+                                            />
+                                            <Card
+                                                radius={themeRadius}
+                                                classNames={{
+                                                    base: `bg-default-100 border-2 ${brandingForm.errors.logo ? 'border-danger' : logoPreviews.logo ? 'border-success' : 'border-dashed border-divider hover:border-primary'} transition-colors cursor-pointer`
+                                                }}
+                                                isPressable
+                                                onPress={() => document.getElementById('logo').click()}
+                                            >
+                                                <CardBody className="flex flex-col items-center justify-center py-6 min-h-[140px]">
+                                                    {logoPreviews.logo ? (
+                                                        <>
+                                                            <img 
+                                                                src={logoPreviews.logo} 
+                                                                alt="Horizontal Logo Preview" 
+                                                                className="max-h-12 max-w-full object-contain mb-2"
+                                                            />
+                                                            <p className="text-xs text-success">Logo uploaded</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-20 h-10 border-2 border-dashed border-default-300 rounded-lg flex items-center justify-center mb-2">
+                                                                <Upload className="w-5 h-5 text-default-400" />
+                                                            </div>
+                                                            <p className="text-sm font-medium text-foreground">Horizontal Logo</p>
+                                                            <p className="text-xs text-default-400">200x50px recommended</p>
+                                                        </>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                            {logoPreviews.logo && (
+                                                <Button
+                                                    isIconOnly
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="flat"
+                                                    className="absolute -top-2 -right-2 z-10"
+                                                    onPress={() => handleLogoRemove('logo')}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                            {brandingForm.errors.logo && (
+                                                <p className="text-xs text-danger mt-1">{brandingForm.errors.logo}</p>
+                                            )}
+                                        </div>
+
+                                        {/* Favicon */}
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="favicon"
+                                                accept="image/x-icon,image/svg+xml,image/png,image/webp"
+                                                className="hidden"
+                                                onChange={(e) => handleLogoSelect('favicon', e.target.files[0])}
+                                            />
+                                            <Card
+                                                radius={themeRadius}
+                                                classNames={{
+                                                    base: `bg-default-100 border-2 ${brandingForm.errors.favicon ? 'border-danger' : logoPreviews.favicon ? 'border-success' : 'border-dashed border-divider hover:border-primary'} transition-colors cursor-pointer`
+                                                }}
+                                                isPressable
+                                                onPress={() => document.getElementById('favicon').click()}
+                                            >
+                                                <CardBody className="flex flex-col items-center justify-center py-6 min-h-[140px]">
+                                                    {logoPreviews.favicon ? (
+                                                        <>
+                                                            <img 
+                                                                src={logoPreviews.favicon} 
+                                                                alt="Favicon Preview" 
+                                                                className="w-8 h-8 object-contain mb-2"
+                                                            />
+                                                            <p className="text-xs text-success">Favicon uploaded</p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-8 h-8 border-2 border-dashed border-default-300 rounded flex items-center justify-center mb-2">
+                                                                <Upload className="w-4 h-4 text-default-400" />
+                                                            </div>
+                                                            <p className="text-sm font-medium text-foreground">Favicon</p>
+                                                            <p className="text-xs text-default-400">32x32px or 64x64px</p>
+                                                        </>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                            {logoPreviews.favicon && (
+                                                <Button
+                                                    isIconOnly
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="flat"
+                                                    className="absolute -top-2 -right-2 z-10"
+                                                    onPress={() => handleLogoRemove('favicon')}
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </Button>
+                                            )}
+                                            {brandingForm.errors.favicon && (
+                                                <p className="text-xs text-danger mt-1">{brandingForm.errors.favicon}</p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Tips */}
+                                <Card radius={themeRadius} classNames={{ base: "bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800" }}>
+                                    <CardBody className="py-3">
+                                        <div className="flex items-start gap-3">
+                                            <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                                            <div className="text-xs text-primary-700 dark:text-primary-300 space-y-1">
+                                                <p className="font-medium">Pro Tips:</p>
+                                                <ul className="list-disc list-inside space-y-0.5">
+                                                    <li>Use SVG format for crisp logos at any size</li>
+                                                    <li>Light logo should have dark text/elements for light backgrounds</li>
+                                                    <li>Dark logo should have light text/elements for dark backgrounds</li>
+                                                    <li>Square logo is used in mobile navigation and app icons</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </CardBody>
+                                </Card>
                             </div>
 
                             <div className="flex justify-between pt-6">
                                 <Button
-                                    variant="ghost"
+                                    variant="flat"
+                                    radius={themeRadius}
                                     startContent={<ArrowLeft className="w-4 h-4" />}
                                     onPress={prevStep}
                                 >
@@ -514,6 +969,7 @@ export default function OnboardingWizard({
                                 <Button
                                     type="submit"
                                     color="primary"
+                                    radius={themeRadius}
                                     endContent={<ArrowRight className="w-4 h-4" />}
                                     isLoading={brandingForm.processing}
                                 >
@@ -547,22 +1003,30 @@ export default function OnboardingWizard({
                                             value={invite.email}
                                             onValueChange={(v) => updateTeamInvite(index, 'email', v)}
                                             startContent={<Mail className="w-4 h-4 text-default-400" />}
+                                            radius={themeRadius}
+                                            classNames={{ inputWrapper: "bg-default-100" }}
                                             className="flex-1"
                                         />
-                                        <select
-                                            value={invite.role}
-                                            onChange={(e) => updateTeamInvite(index, 'role', e.target.value)}
-                                            className="px-3 py-2 rounded-lg border border-default-200 bg-default-100 text-sm"
+                                        <Select
+                                            selectedKeys={[invite.role]}
+                                            onSelectionChange={(keys) => updateTeamInvite(index, 'role', Array.from(keys)[0])}
+                                            radius={themeRadius}
+                                            classNames={{ trigger: "bg-default-100" }}
+                                            className="w-40"
+                                            aria-label="Select role"
                                         >
-                                            <option value="admin">Admin</option>
-                                            <option value="manager">Manager</option>
-                                            <option value="employee">Employee</option>
-                                        </select>
+                                            {roles.map((role) => (
+                                                <SelectItem key={role.name} textValue={role.name}>
+                                                    <span className="capitalize">{role.name.replace(/-/g, ' ')}</span>
+                                                </SelectItem>
+                                            ))}
+                                        </Select>
                                         {teamInvites.length > 1 && (
                                             <Button
                                                 isIconOnly
-                                                variant="ghost"
+                                                variant="flat"
                                                 color="danger"
+                                                radius={themeRadius}
                                                 onPress={() => removeTeamInvite(index)}
                                             >
                                                 <X className="w-4 h-4" />
@@ -573,7 +1037,8 @@ export default function OnboardingWizard({
                             </div>
 
                             <Button
-                                variant="ghost"
+                                variant="flat"
+                                radius={themeRadius}
                                 startContent={<Plus className="w-4 h-4" />}
                                 onPress={addTeamInvite}
                             >
@@ -582,7 +1047,8 @@ export default function OnboardingWizard({
 
                             <div className="flex justify-between pt-6">
                                 <Button
-                                    variant="ghost"
+                                    variant="flat"
+                                    radius={themeRadius}
                                     startContent={<ArrowLeft className="w-4 h-4" />}
                                     onPress={prevStep}
                                 >
@@ -590,7 +1056,8 @@ export default function OnboardingWizard({
                                 </Button>
                                 <div className="flex gap-3">
                                     <Button
-                                        variant="ghost"
+                                        variant="flat"
+                                        radius={themeRadius}
                                         onPress={nextStep}
                                     >
                                         Skip
@@ -598,6 +1065,7 @@ export default function OnboardingWizard({
                                     <Button
                                         type="submit"
                                         color="primary"
+                                        radius={themeRadius}
                                         endContent={<ArrowRight className="w-4 h-4" />}
                                     >
                                         Send Invites & Continue
@@ -629,13 +1097,25 @@ export default function OnboardingWizard({
                                     { id: 'dms', name: 'Document Management', description: 'File storage and sharing', icon: Building2 },
                                     { id: 'crm', name: 'CRM', description: 'Customer relationship management', icon: Users },
                                 ].map((module) => (
-                                    <Card key={module.id} className="border border-default-200">
+                                    <Card
+                                        key={module.id}
+                                        className="transition-all duration-200"
+                                        style={{
+                                            border: `var(--borderWidth, 2px) solid transparent`,
+                                            borderRadius: `var(--borderRadius, 12px)`,
+                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                            background: `linear-gradient(135deg, 
+                                                var(--theme-content1, #FAFAFA) 20%, 
+                                                var(--theme-content2, #F4F4F5) 10%, 
+                                                var(--theme-content3, #F1F3F4) 20%)`,
+                                        }}
+                                    >
                                         <CardBody className="flex flex-row items-center gap-4">
                                             <div className="p-3 rounded-lg bg-primary/10">
                                                 <module.icon className="w-6 h-6 text-primary" />
                                             </div>
                                             <div className="flex-1">
-                                                <h4 className="font-medium">{module.name}</h4>
+                                                <h4 className="font-medium text-foreground">{module.name}</h4>
                                                 <p className="text-sm text-default-500">{module.description}</p>
                                             </div>
                                             <Switch defaultSelected />
@@ -646,7 +1126,8 @@ export default function OnboardingWizard({
 
                             <div className="flex justify-between pt-6">
                                 <Button
-                                    variant="ghost"
+                                    variant="flat"
+                                    radius={themeRadius}
                                     startContent={<ArrowLeft className="w-4 h-4" />}
                                     onPress={prevStep}
                                 >
@@ -655,6 +1136,7 @@ export default function OnboardingWizard({
                                 <Button
                                     type="submit"
                                     color="primary"
+                                    radius={themeRadius}
                                     endContent={<ArrowRight className="w-4 h-4" />}
                                 >
                                     Continue
@@ -687,6 +1169,7 @@ export default function OnboardingWizard({
                             <Button
                                 color="primary"
                                 size="lg"
+                                radius={themeRadius}
                                 endContent={<Sparkles className="w-5 h-5" />}
                                 onPress={handleComplete}
                             >
@@ -707,13 +1190,14 @@ export default function OnboardingWizard({
 
             <div className="min-h-screen bg-gradient-to-br from-background to-default-100">
                 {/* Header */}
-                <div className="border-b border-default-200 bg-background/80 backdrop-blur-lg sticky top-0 z-10">
+                <div className="border-b border-divider bg-content1/80 backdrop-blur-lg sticky top-0 z-10">
                     <div className="max-w-4xl mx-auto px-4 py-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <Avatar
                                     name={tenant?.name || 'O'}
                                     className="bg-primary text-primary-foreground"
+                                    radius={themeRadius}
                                 />
                                 <div>
                                     <h2 className="font-semibold text-foreground">{tenant?.name}</h2>
@@ -721,8 +1205,9 @@ export default function OnboardingWizard({
                                 </div>
                             </div>
                             <Button
-                                variant="ghost"
+                                variant="flat"
                                 size="sm"
+                                radius={themeRadius}
                                 onPress={handleSkip}
                             >
                                 Skip Setup
@@ -737,7 +1222,12 @@ export default function OnboardingWizard({
                         value={progress}
                         color="primary"
                         size="sm"
-                        className="mb-2"
+                        radius={themeRadius}
+                        classNames={{
+                            track: "bg-default-100",
+                            indicator: "bg-primary"
+                        }}
+                        className="mb-4"
                     />
                     <div className="flex justify-between">
                         {stepOrder.map((step, index) => {
@@ -757,7 +1247,7 @@ export default function OnboardingWizard({
                                             : 'text-default-400'
                                     }`}
                                 >
-                                    <div className={`p-2 rounded-full ${
+                                    <div className={`p-2 rounded-lg ${
                                         isActive
                                             ? 'bg-primary/10'
                                             : isCompleted
@@ -777,8 +1267,25 @@ export default function OnboardingWizard({
 
                 {/* Content */}
                 <div className="max-w-4xl mx-auto px-4 pb-12">
-                    <Card className="shadow-lg">
-                        <CardHeader className="flex-col items-start gap-1 px-6 pt-6">
+                    <Card
+                        className="transition-all duration-200"
+                        style={{
+                            border: `var(--borderWidth, 2px) solid transparent`,
+                            borderRadius: `var(--borderRadius, 12px)`,
+                            fontFamily: `var(--fontFamily, "Inter")`,
+                            transform: `scale(var(--scale, 1))`,
+                            background: `linear-gradient(135deg, 
+                                var(--theme-content1, #FAFAFA) 20%, 
+                                var(--theme-content2, #F4F4F5) 10%, 
+                                var(--theme-content3, #F1F3F4) 20%)`,
+                        }}
+                    >
+                        <CardHeader 
+                            className="flex-col items-start gap-1 px-6 pt-6"
+                            style={{
+                                borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
+                            }}
+                        >
                             <h2 className="text-2xl font-bold text-foreground">
                                 {steps[activeStep]?.title}
                             </h2>
@@ -794,6 +1301,21 @@ export default function OnboardingWizard({
                     </Card>
                 </div>
             </div>
+            
+            {/* Toast Container for notifications */}
+            <ToastContainer
+                position="top-right"
+                autoClose={4000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="colored"
+                toastStyle={toastStyles.base}
+            />
         </>
     );
 }

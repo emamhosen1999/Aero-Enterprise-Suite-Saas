@@ -3,26 +3,20 @@
 namespace App\Notifications;
 
 use App\Models\Tenant;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
+use App\Services\Mail\MailService;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
 
 /**
  * WelcomeToTenant Notification
  *
  * Sends a welcome email to the tenant admin after successful provisioning.
- * Includes login link, getting started tips, and support information.
+ * Uses the unified MailService for reliable email delivery.
  */
-class WelcomeToTenant extends Notification implements ShouldQueue
+class WelcomeToTenant extends Notification
 {
-    use Queueable;
-
     public Tenant $tenant;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(Tenant $tenant)
     {
         $this->tenant = $tenant;
@@ -30,56 +24,91 @@ class WelcomeToTenant extends Notification implements ShouldQueue
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['database'];
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Send the welcome email using MailService.
      */
-    public function toMail(object $notifiable): MailMessage
+    public function sendEmail(string $email): bool
     {
         $domain = $this->tenant->domains()->where('is_primary', true)->first();
         $loginUrl = $domain ? "https://{$domain->domain}/login" : '#';
-        $trialDays = $this->tenant->trial_ends_at 
-            ? now()->diffInDays($this->tenant->trial_ends_at) 
+        $trialDays = $this->tenant->trial_ends_at
+            ? now()->diffInDays($this->tenant->trial_ends_at)
             : config('platform.trial_days', 14);
 
-        return (new MailMessage)
-            ->subject("🎉 Welcome to {$this->tenant->name}!")
-            ->greeting("Welcome to {$this->tenant->name}!")
-            ->line("Your workspace has been successfully set up and is ready to use.")
-            ->line("**Your Details:**")
-            ->line("• Organization: {$this->tenant->name}")
-            ->line("• Email: {$notifiable->email}")
-            ->line("• Workspace URL: {$loginUrl}")
-            ->line("• Trial Period: {$trialDays} days")
-            ->action('Login to Your Workspace', $loginUrl)
-            ->line('**Getting Started:**')
-            ->line('1. Complete your email verification')
-            ->line('2. Set up your company profile')
-            ->line('3. Invite your team members')
-            ->line('4. Configure your modules and permissions')
-            ->line('**Need Help?**')
-            ->line('Our support team is here to help you get started.')
-            ->line('Visit our documentation or contact support@eos365.com')
-            ->salutation("Best regards,\nThe EOS365 Team");
+        $appName = config('app.name');
+
+        $html = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <h1 style='color: #4F46E5;'>🎉 Welcome to {$this->tenant->name}!</h1>
+                <p>Your workspace has been successfully set up and is ready to use.</p>
+                
+                <div style='background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <h3 style='margin-top: 0;'>Your Details:</h3>
+                    <ul style='list-style: none; padding: 0;'>
+                        <li>• <strong>Organization:</strong> {$this->tenant->name}</li>
+                        <li>• <strong>Email:</strong> {$email}</li>
+                        <li>• <strong>Workspace URL:</strong> <a href='{$loginUrl}'>{$loginUrl}</a></li>
+                        <li>• <strong>Trial Period:</strong> {$trialDays} days</li>
+                    </ul>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$loginUrl}' style='background: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Login to Your Workspace</a>
+                </div>
+
+                <h3>Getting Started:</h3>
+                <ol>
+                    <li>Complete your email verification</li>
+                    <li>Set up your company profile</li>
+                    <li>Invite your team members</li>
+                    <li>Configure your modules and permissions</li>
+                </ol>
+
+                <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
+
+                <p><strong>Need Help?</strong></p>
+                <p>Our support team is here to help you get started. Visit our documentation or contact <a href='mailto:support@eos365.com'>support@eos365.com</a></p>
+
+                <p style='color: #666;'>Best regards,<br>The {$appName} Team</p>
+            </div>
+        ";
+
+        $result = app(MailService::class)
+            ->usePlatformSettings()
+            ->sendMail($email, "🎉 Welcome to {$this->tenant->name}!", $html);
+
+        if ($result['success']) {
+            Log::info('Welcome email sent to tenant admin', [
+                'tenant_id' => $this->tenant->id,
+                'email' => $email,
+            ]);
+        } else {
+            Log::error('Failed to send welcome email', [
+                'tenant_id' => $this->tenant->id,
+                'email' => $email,
+                'error' => $result['message'],
+            ]);
+        }
+
+        return $result['success'];
     }
 
     /**
      * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
         return [
             'tenant_id' => $this->tenant->id,
             'tenant_name' => $this->tenant->name,
+            'type' => 'welcome',
+            'message' => "Welcome to {$this->tenant->name}! Your workspace is ready.",
         ];
     }
 }
