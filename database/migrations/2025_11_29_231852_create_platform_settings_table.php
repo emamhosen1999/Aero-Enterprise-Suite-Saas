@@ -24,6 +24,7 @@ return new class extends Migration
             $table->json('branding')->nullable();
             $table->json('metadata')->nullable();
             $table->json('email_settings')->nullable();
+            $table->json('sms_settings')->nullable();
             $table->json('legal')->nullable();
             $table->json('integrations')->nullable();
             $table->json('admin_preferences')->nullable();
