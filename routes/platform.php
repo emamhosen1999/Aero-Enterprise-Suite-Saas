@@ -48,13 +48,13 @@ Route::prefix('register')->name('platform.register.')->group(function () {
         ->name('verify-email.send');
     Route::post('/verify-email', [RegistrationController::class, 'verifyEmail'])
         ->middleware('throttle:5,1')
-        ->name('verify-email');
+        ->name('verify-email.verify');
     Route::post('/verify-phone/send', [RegistrationController::class, 'sendPhoneVerification'])
         ->middleware('throttle:3,1')
         ->name('verify-phone.send');
     Route::post('/verify-phone', [RegistrationController::class, 'verifyPhone'])
         ->middleware('throttle:5,1')
-        ->name('verify-phone');
+        ->name('verify-phone.verify');
 
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
     Route::post('/trial', [RegistrationController::class, 'activateTrial'])

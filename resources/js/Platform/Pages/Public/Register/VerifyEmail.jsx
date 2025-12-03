@@ -116,7 +116,7 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
 
     setIsVerifying(true);
     try {
-      const response = await axios.post(route('platform.register.verify-email'), {
+      const response = await axios.post(route('platform.register.verify-email.verify'), {
         code: verificationCode,
       });
       
@@ -135,12 +135,6 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
       inputRefs.current[0]?.focus();
     } finally {
       setIsVerifying(false);
-    }
-  };
-
-  const handleSkip = () => {
-    if (confirm('Are you sure you want to skip email verification? You will need to verify your email later.')) {
-      router.visit(route('platform.register.verify-phone'));
     }
   };
 
@@ -209,26 +203,15 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                color="default"
-                variant="bordered"
-                onPress={handleSkip}
-                className="w-full sm:w-auto"
-                isDisabled={isVerifying}
-              >
-                Skip for now
-              </Button>
-              <Button
-                color="primary"
-                onPress={() => handleVerify()}
-                className="w-full flex-1"
-                isLoading={isVerifying}
-                isDisabled={code.some(digit => digit === '') || isVerifying}
-              >
-                {isVerifying ? 'Verifying...' : 'Verify Email'}
-              </Button>
-            </div>
+            <Button
+              color="primary"
+              onPress={() => handleVerify()}
+              className="w-full"
+              isLoading={isVerifying}
+              isDisabled={code.some(digit => digit === '') || isVerifying}
+            >
+              {isVerifying ? 'Verifying...' : 'Verify Email'}
+            </Button>
 
             <div className="text-center">
               <p className={`text-xs ${palette.copy}`}>

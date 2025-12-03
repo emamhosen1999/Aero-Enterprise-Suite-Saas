@@ -80,8 +80,8 @@ class RegistrationController extends Controller
             [
                 'id' => \Illuminate\Support\Str::uuid(),
                 'subdomain' => $payload['details']['subdomain'],
-                'name' => $payload['details']['company_name'],
-                'type' => $payload['account']['account_type'],
+                'name' => $payload['details']['name'],
+                'type' => $payload['account']['type'],
                 'phone' => $payload['details']['phone'] ?? null,
                 'status' => \App\Models\Tenant::STATUS_PENDING,
             ]

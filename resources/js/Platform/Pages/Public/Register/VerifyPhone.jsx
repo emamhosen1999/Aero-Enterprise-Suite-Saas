@@ -116,7 +116,7 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
 
     setIsVerifying(true);
     try {
-      const response = await axios.post(route('platform.register.verify-phone'), {
+      const response = await axios.post(route('platform.register.verify-phone.verify'), {
         code: verificationCode,
       });
       
@@ -158,8 +158,14 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
 
-        <AuthCard>
-          <div className="space-y-6 sm:space-y-8">
+        <div className="relative">
+          {/* Wire effect wrapping the card */}
+          <div className="absolute inset-0 rounded-2xl border-2 border-primary/30 -m-3 pointer-events-none animate-pulse-subtle">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-16 bg-gradient-to-b from-primary/60 to-transparent"></div>
+          </div>
+          
+          <AuthCard>
+            <div className="space-y-6 sm:space-y-8">
             <div className="flex justify-center">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                 <DevicePhoneMobileIcon className="w-8 h-8 text-primary" />
@@ -238,8 +244,9 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
                 </button>
               </p>
             </div>
-          </div>
-        </AuthCard>
+            </div>
+          </AuthCard>
+        </div>
       </section>
     </RegisterLayout>
   );
