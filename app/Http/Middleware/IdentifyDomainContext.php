@@ -49,9 +49,14 @@ class IdentifyDomainContext
     {
         $host = $request->getHost();
 
-        // Check for admin domain
+        // Check for admin domain (support both env var and pattern matching)
         $adminDomain = env('ADMIN_DOMAIN', 'admin.localhost');
         if ($this->matchesDomain($host, $adminDomain)) {
+            return self::CONTEXT_ADMIN;
+        }
+        
+        // Fallback: if host starts with 'admin.' it's likely admin domain
+        if (str_starts_with($host, 'admin.')) {
             return self::CONTEXT_ADMIN;
         }
 

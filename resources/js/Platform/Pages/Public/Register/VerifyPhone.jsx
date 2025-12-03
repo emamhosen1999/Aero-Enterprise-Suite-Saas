@@ -50,7 +50,27 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
       showToast.success(response.data.message || 'Verification code sent to your phone');
       setCountdown(60);
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to send verification code';
+      console.error('Failed to send code:', error);
+      
+      let message = 'Failed to send verification code';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 429) {
+          message = data.message || 'Too many attempts. Please wait before trying again.';
+        } else if (status === 500) {
+          message = data.message || 'Server error occurred. Please try again later.';
+        } else if (status === 422) {
+          message = data.message || 'Validation error. Please check your information.';
+        } else {
+          message = data.message || message;
+        }
+      } else if (error.request) {
+        message = 'No response from server. Please check your connection.';
+      }
+      
       showToast.error(message);
     } finally {
       setIsSending(false);
@@ -127,7 +147,27 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
         router.visit(route('platform.register.plan'));
       }, 500);
     } catch (error) {
-      const message = error.response?.data?.message || 'Invalid verification code';
+      console.error('Verification failed:', error);
+      
+      let message = 'Invalid verification code';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 429) {
+          message = data.message || 'Too many attempts. Please wait before trying again.';
+        } else if (status === 422) {
+          message = data.message || 'Invalid or expired verification code';
+        } else if (status === 500) {
+          message = data.message || 'Server error occurred. Please try again.';
+        } else {
+          message = data.message || message;
+        }
+      } else if (error.request) {
+        message = 'No response from server. Please check your connection.';
+      }
+      
       showToast.error(message);
       
       // Clear code on error
