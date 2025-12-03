@@ -109,6 +109,7 @@ class RegistrationController extends Controller
         // This prevents duplicate errors if user goes back and re-submits
         $subdomain = $payload['details']['subdomain'] ?? null;
         $email = $payload['details']['email'] ?? null;
+        $adminEmail = $payload['admin']['email'] ?? null;
 
         if ($subdomain && \App\Models\Tenant::where('subdomain', $subdomain)->exists()) {
             return back()->withErrors([
@@ -120,6 +121,16 @@ class RegistrationController extends Controller
             return back()->withErrors([
                 'email' => 'This email is already registered. Please use a different email.',
             ])->withInput();
+        }
+
+        // Check if admin email is already used by another tenant admin
+        if ($adminEmail) {
+            $existingTenant = \App\Models\Tenant::where('data->admin_email', $adminEmail)->first();
+            if ($existingTenant) {
+                return back()->withErrors([
+                    'admin_email' => 'This email is already registered as a tenant administrator. Please use a different email.',
+                ])->withInput();
+            }
         }
 
         // Build admin data to pass directly to job (never stored in database)

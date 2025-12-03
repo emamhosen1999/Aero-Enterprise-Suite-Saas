@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\TenantProvisioningStepCompleted;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -137,6 +138,11 @@ class ProvisionTenant implements ShouldQueue
             $this->activateTenant();
             $this->logStep('✅ Step 8 Complete: Tenant activated', $context);
 
+            // Step 9: Send welcome email
+            $this->logStep('📧 Step 9: Sending welcome email', $context);
+            $this->sendWelcomeEmail();
+            $this->logStep('✅ Step 9 Complete: Welcome email sent', $context);
+
             $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY', $context);
         } catch (Throwable $e) {
             $errorContext = array_merge($context, [
@@ -237,18 +243,31 @@ class ProvisionTenant implements ShouldQueue
         try {
             // Create the admin user in the tenant database
             // Password is received in plain text and hashed here
+            // Email verification will be required on first login
             $user = User::create([
                 'name' => $this->adminData['name'] ?? 'Administrator',
                 'user_name' => $this->adminData['user_name'] ?? $this->generateUsername($this->adminData['email']),
                 'email' => $this->adminData['email'],
                 'password' => Hash::make($this->adminData['password'] ?? 'password'),
                 'active' => true,
+                // Note: email_verified_at is NULL - user must verify email on first login
             ]);
 
             $this->logStep("   → Admin user created with ID: {$user->id}", [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
             ]);
+
+            // Send email verification notification
+            try {
+                $user->sendEmailVerificationNotification();
+                $this->logStep('   → Email verification sent', ['user_email' => $user->email]);
+            } catch (Throwable $e) {
+                Log::warning('Failed to send verification email', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             // Assign admin role using Spatie Permission (if available)
             if (method_exists($user, 'assignRole')) {
@@ -380,6 +399,44 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
+     * Send welcome email to the tenant admin.
+     */
+    protected function sendWelcomeEmail(): void
+    {
+        try {
+            $this->logStep('   → Sending welcome email to admin', [
+                'admin_email' => $this->adminData['email'],
+            ]);
+
+            // Switch to tenant context to get the admin user
+            tenancy()->initialize($this->tenant);
+
+            $admin = User::where('email', $this->adminData['email'])->first();
+
+            if ($admin) {
+                $admin->notify(new \App\Notifications\WelcomeToTenant($this->tenant));
+                $this->logStep('   → Welcome email sent successfully', [
+                    'admin_email' => $admin->email,
+                ]);
+            } else {
+                Log::warning('Admin user not found for welcome email', [
+                    'tenant_id' => $this->tenant->id,
+                    'email' => $this->adminData['email'],
+                ]);
+            }
+
+            tenancy()->end();
+        } catch (Throwable $e) {
+            // Don't fail provisioning if email fails
+            Log::error('Failed to send welcome email', [
+                'tenant_id' => $this->tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+            tenancy()->end();
+        }
+    }
+
+    /**
      * Rollback: Drop the tenant database if provisioning fails.
      *
      * This ensures we don't leave orphaned databases in an incomplete state.
@@ -416,6 +473,7 @@ class ProvisionTenant implements ShouldQueue
      * 1. Deletes tenant database (if created)
      * 2. Deletes domain records
      * 3. Deletes tenant record from platform database
+     * 4. Sends failure notification to user
      *
      * This ensures users can re-register with the same subdomain/email.
      */
@@ -426,6 +484,9 @@ class ProvisionTenant implements ShouldQueue
             'error' => $exception?->getMessage(),
             'trace' => $exception?->getTraceAsString(),
         ], 'error');
+
+        // Send failure notification to user before rollback
+        $this->notifyProvisioningFailure($exception);
 
         try {
             // Step 1: Drop tenant database if it exists
@@ -458,7 +519,34 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
+     * Notify user that provisioning failed.
+     */
+    protected function notifyProvisioningFailure(?Throwable $exception): void
+    {
+        try {
+            // Use tenant contact email
+            if ($this->tenant->email) {
+                \Illuminate\Support\Facades\Notification::route('mail', $this->tenant->email)
+                    ->notify(new \App\Notifications\TenantProvisioningFailed(
+                        $this->tenant,
+                        $exception?->getMessage() ?? 'Unknown error'
+                    ));
+
+                $this->logStep('📧 Provisioning failure notification sent', [
+                    'email' => $this->tenant->email,
+                ], 'warning');
+            }
+        } catch (Throwable $e) {
+            Log::error('Failed to send provisioning failure notification', [
+                'tenant_id' => $this->tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Log a provisioning step to both console and Laravel log.
+     * Also broadcasts the step completion for real-time updates.
      */
     protected function logStep(string $message, array $context = [], string $level = 'info'): void
     {
@@ -477,6 +565,21 @@ class ProvisionTenant implements ShouldQueue
         // Flush output immediately
         if (function_exists('flush')) {
             flush();
+        }
+
+        // Broadcast step completion for real-time updates (if WebSocket configured)
+        // This will only broadcast if BROADCAST_DRIVER is set to pusher/redis/etc
+        if (str_contains($message, '✅') && config('broadcasting.default') !== 'null') {
+            try {
+                broadcast(new TenantProvisioningStepCompleted(
+                    $this->tenant,
+                    $this->tenant->provisioning_step,
+                    $message
+                ));
+            } catch (Throwable $e) {
+                // Don't fail provisioning if broadcasting fails
+                Log::debug('Broadcasting failed', ['error' => $e->getMessage()]);
+            }
         }
     }
 }

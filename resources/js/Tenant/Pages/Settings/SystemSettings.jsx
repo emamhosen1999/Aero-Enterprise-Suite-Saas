@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import App from '@/Layouts/App';
+import axios from 'axios';
 import {
     Button,
     Card,
@@ -11,10 +12,121 @@ import {
     Tab,
     Tabs,
     Textarea,
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    useDisclosure,
 } from '@heroui/react';
+import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+const TestEmailButton = ({ emailSettings }) => {
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [testEmail, setTestEmail] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const handleSendTest = async () => {
+        if (!testEmail || !testEmail.includes('@')) {
+            showToast.error('Please enter a valid email address');
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            const response = await axios.post(route('settings.system.test-email'), {
+                email: testEmail,
+            });
+
+            if (response.data.success) {
+                showToast.success(response.data.message);
+                onOpenChange(false);
+                setTestEmail('');
+            }
+        } catch (error) {
+            let message = 'Failed to send test email';
+            
+            if (error.response?.data?.message) {
+                message = error.response.data.message;
+                
+                // Extract and format specific error types for better clarity
+                if (message.includes('Connection could not be established')) {
+                    const host = emailSettings?.host || 'mail server';
+                    const port = emailSettings?.port || 'configured port';
+                    message = `Cannot connect to ${host}:${port}. Please check:\n\n• Mail server hostname (try mail.${host})\n• Port number and encryption settings\n• Firewall/network access\n• Mail server credentials`;
+                } else if (message.includes('Authentication') || message.includes('Credentials')) {
+                    message = 'Authentication failed. Please verify your username and password are correct.';
+                } else if (message.includes('timed out') || message.includes('timeout')) {
+                    message = 'Connection timed out. The mail server may be unreachable or blocking connections.';
+                } else if (message.includes('SSL') || message.includes('TLS')) {
+                    message = `Encryption error. Please verify:\n\n• Port 465 requires SSL encryption\n• Port 587 requires TLS or STARTTLS encryption\n• Port 25 usually has no encryption`;
+                }
+            }
+            
+            showToast.error(message, { duration: 8000 });
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const hasSettings = emailSettings?.driver && emailSettings?.from_address;
+
+    return (
+        <>
+            <Button
+                color="primary"
+                variant="flat"
+                startContent={<EnvelopeIcon className="w-4 h-4" />}
+                onPress={onOpen}
+                isDisabled={!hasSettings}
+            >
+                Send Test Email
+            </Button>
+
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1">
+                                Send Test Email
+                            </ModalHeader>
+                            <ModalBody>
+                                <p className="text-sm text-default-500 mb-4">
+                                    This will send a test email using the current email settings to verify your configuration.
+                                </p>
+                                <Input
+                                    autoFocus
+                                    label="Recipient Email"
+                                    placeholder="admin@example.com"
+                                    type="email"
+                                    value={testEmail}
+                                    onChange={(e) => setTestEmail(e.target.value)}
+                                    description="Enter the email address where you want to receive the test email"
+                                />
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="danger" variant="light" onPress={onClose}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    onPress={handleSendTest}
+                                    isLoading={isSending}
+                                    isDisabled={!testEmail}
+                                >
+                                    {isSending ? 'Sending...' : 'Send Test Email'}
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
+        </>
+    );
+};
 
 const getInitial = (payload = {}) => payload ?? {};
 
@@ -393,6 +505,7 @@ const SystemSettings = () => {
                                                 </Switch>
                                             </div>
                                         </div>
+                                        <TestEmailButton emailSettings={data.email_settings} />
                                     </div>
                                 </Tab>
                                 <Tab key="notifications" title="Notifications">

@@ -149,6 +149,7 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/platform', [PlatformSettingController::class, 'index'])->name('platform.index');
         Route::put('/platform', [PlatformSettingController::class, 'update'])->name('platform.update');
         Route::post('/platform', [PlatformSettingController::class, 'update'])->name('platform.store');
+        Route::post('/platform/test-email', [PlatformSettingController::class, 'sendTestEmail'])->name('platform.test-email');
 
         // System Maintenance
         Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');

@@ -40,7 +40,9 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');
     Route::post('/admin-setup', [RegistrationController::class, 'storeAdmin'])->name('admin.store');
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
-    Route::post('/trial', [RegistrationController::class, 'activateTrial'])->name('trial.activate');
+    Route::post('/trial', [RegistrationController::class, 'activateTrial'])
+        ->middleware('throttle:3,60') // 3 registration attempts per hour per IP
+        ->name('trial.activate');
 });
 
 // Public info pages (navigation)

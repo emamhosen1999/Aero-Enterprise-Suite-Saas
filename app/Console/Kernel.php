@@ -71,6 +71,22 @@ class Kernel extends ConsoleKernel
             ],
         ])->daily();
 
+        // Clean up failed tenant provisioning attempts (keep 7 days)
+        $schedule->command('tenants:cleanup-failed')
+            ->dailyAt('02:00')
+            ->timezone(config('app.timezone', 'UTC'))
+            ->before(function () {
+                Log::info('Starting failed tenants cleanup');
+            })
+            ->onSuccess(function () {
+                Log::info('Failed tenants cleanup completed');
+            })
+            ->onFailure(function () {
+                Log::error('Failed tenants cleanup failed');
+            })
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/tenant-cleanup.log'));
+
         // Leave management scheduled tasks
         // Process leave carry forward - runs on January 1st at midnight
         $schedule->command('leave:process-carry-forward')

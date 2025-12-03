@@ -7,15 +7,19 @@ use App\Http\Requests\Settings\UpdatePlatformSettingRequest;
 use App\Http\Resources\PlatformSettingResource;
 use App\Models\PlatformSetting;
 use App\Services\Settings\PlatformSettingService;
+use App\Services\Mail\RuntimeMailConfigService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PlatformSettingController extends Controller
 {
-    public function __construct(private readonly PlatformSettingService $service)
-    {
+    public function __construct(
+        private readonly PlatformSettingService $service,
+        private readonly RuntimeMailConfigService $mailService
+    ) {
         // Middleware handled by route group (auth:landlord)
     }
 
@@ -65,5 +69,38 @@ class PlatformSettingController extends Controller
         );
 
         return redirect()->back()->with('success', 'Platform settings updated successfully.');
+    }
+
+    /**
+     * Send a test email using the current platform email settings.
+     */
+    public function sendTestEmail(Request $request): JsonResponse
+    {
+        $user = $request->user('landlord');
+
+        // Check permission for landlord guard
+        if (! $user || ! $user->hasPermissionTo('platform.settings.update', 'landlord')) {
+            abort(403, 'This action is unauthorized.');
+        }
+
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $result = $this->mailService->sendTestEmail($request->input('email'));
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'using_database_settings' => $result['using_database_settings'],
+            ]);
+        }
+
+        // Return 422 for configuration errors so they display properly in the UI
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'],
+        ], 422);
     }
 }

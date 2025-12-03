@@ -360,6 +360,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['permission:company.settings'])->group(function () {
         Route::get('/settings/system', [SystemSettingController::class, 'index'])->name('settings.system.index');
         Route::put('/settings/system', [SystemSettingController::class, 'update'])->name('settings.system.update');
+        Route::post('/settings/system/test-email', [SystemSettingController::class, 'sendTestEmail'])->name('settings.system.test-email');
 
         // Legacy aliases for backward compatibility
         Route::get('/company-settings', [SystemSettingController::class, 'index'])->name('admin.settings.company');

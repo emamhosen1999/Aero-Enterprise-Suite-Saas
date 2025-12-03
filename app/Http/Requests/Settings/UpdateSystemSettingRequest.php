@@ -53,7 +53,7 @@ class UpdateSystemSettingRequest extends FormRequest
             'metadata.enable_public_pages' => ['nullable', 'boolean'],
 
             'email_settings' => ['sometimes', 'array'],
-            'email_settings.driver' => ['nullable', 'string', Rule::in(['smtp', 'ses', 'mailgun', 'postmark', 'sendmail'])],
+            'email_settings.driver' => ['nullable', 'string', Rule::in(['smtp', 'ses', 'mailgun', 'postmark', 'sendmail', 'log'])],
             'email_settings.host' => ['nullable', 'string', 'max:255'],
             'email_settings.port' => ['nullable', 'integer'],
             'email_settings.encryption' => ['nullable', 'string', Rule::in(['tls', 'ssl', 'starttls'])],

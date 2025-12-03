@@ -7,6 +7,7 @@ use App\Http\Requests\Settings\UpdateSystemSettingRequest;
 use App\Http\Resources\SystemSettingResource;
 use App\Models\SystemSetting;
 use App\Services\Settings\SystemSettingService;
+use App\Services\Mail\RuntimeMailConfigService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,7 +15,10 @@ use Inertia\Response;
 
 class SystemSettingController extends Controller
 {
-    public function __construct(private readonly SystemSettingService $service) {}
+    public function __construct(
+        private readonly SystemSettingService $service,
+        private readonly RuntimeMailConfigService $mailService
+    ) {}
 
     public function index(Request $request): Response|SystemSettingResource
     {
@@ -48,5 +52,31 @@ class SystemSettingController extends Controller
         return (new SystemSettingResource($updated))
             ->response()
             ->setStatusCode(200);
+    }
+
+    /**
+     * Send a test email using the current tenant email settings.
+     */
+    public function sendTestEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $result = $this->mailService->sendTestEmail($request->input('email'));
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'using_database_settings' => $result['using_database_settings'],
+            ]);
+        }
+
+        // Return 422 for configuration errors so they display properly in the UI
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'],
+        ], 422);
     }
 }
