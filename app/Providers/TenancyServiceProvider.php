@@ -166,21 +166,14 @@ class TenancyServiceProvider extends ServiceProvider
             return;
         }
 
-        $centralDomains = $this->getCentralDomainsWithoutAdmin();
-
-        foreach ($centralDomains as $domain) {
-            if (empty($domain)) {
-                continue;
-            }
-
-            Route::domain($domain)
-                ->middleware([
-                    'web',
-                    IdentifyDomainContext::class,
-                ])
-                ->namespace(static::$controllerNamespace)
-                ->group(base_path('routes/platform.php'));
-        }
+        // Register platform routes without domain constraint
+        // The IdentifyDomainContext middleware will handle domain validation
+        Route::middleware([
+                'web',
+                IdentifyDomainContext::class,
+            ])
+            ->namespace(static::$controllerNamespace)
+            ->group(base_path('routes/platform.php'));
     }
 
     /**
