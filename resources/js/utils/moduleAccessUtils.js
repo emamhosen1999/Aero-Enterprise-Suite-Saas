@@ -172,7 +172,7 @@ export const getActionScope = (actionPath, auth = null) => {
 };
 
 /**
- * Check if user is a Super Admin
+ * Check if user is a Super Admin (platform or tenant)
  * @param {Object} user - User object
  * @returns {boolean} True if user is Super Admin
  */
@@ -182,16 +182,24 @@ export const isSuperAdmin = (user) => {
     // Check various super admin indicators
     if (user.is_super_admin) return true;
     
+    // Check platform super admin flag (passed from auth)
+    if (user.is_platform_super_admin) return true;
+    
+    // Check tenant super admin flag
+    if (user.is_tenant_super_admin) return true;
+    
     // Check roles array
     if (user.roles && Array.isArray(user.roles)) {
         return user.roles.some(role => 
             role.name === 'Super Administrator' || 
-            role.name === 'tenant_super_administrator'
+            role.name === 'tenant_super_administrator' ||
+            role.name === 'Platform Super Admin' ||
+            role.name === 'platform_super_admin'
         );
     }
     
     // Check role string
-    if (user.role === 'super_admin' || user.role === 'Super Administrator') {
+    if (user.role === 'super_admin' || user.role === 'Super Administrator' || user.role === 'Platform Super Admin') {
         return true;
     }
 

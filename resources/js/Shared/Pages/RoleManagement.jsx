@@ -188,6 +188,14 @@ const RoleManagement = (props) => {
         totalUsers: Array.isArray(users) ? users.length : 0
     }), [roles, users]);
 
+    // Count of users that can have roles assigned (excluding Super Administrators)
+    const assignableUsersCount = useMemo(() => {
+        const protectedRoles = ['Super Administrator'];
+        return users.filter(user => 
+            !user.roles?.some(role => protectedRoles.includes(role.name))
+        ).length;
+    }, [users]);
+
     // Prepare stats data for StatsCards component
     const statsData = useMemo(() => [
         {
@@ -251,13 +259,7 @@ const RoleManagement = (props) => {
         });
     }, [users, debouncedUserSearch, userRoleFilter]);
 
-    // Count of users that can have roles assigned (excluding Super Administrators)
-    const assignableUsersCount = useMemo(() => {
-        const protectedRoles = ['Super Administrator'];
-        return users.filter(user => 
-            !user.roles?.some(role => protectedRoles.includes(role.name))
-        ).length;
-    }, [users]);
+    
 
     // Pagination helpers
     const paginatedRoles = useMemo(() => {
@@ -506,210 +508,7 @@ const RoleManagement = (props) => {
         }
     };
 
-    // Enhanced toggle permission with independent state management and error handling
-    const togglePermission = useCallback(async (permissionName) => {
-        if (!activeRole) return;
-        
-        // Check if this specific permission is already loading
-        if (loadingStates.permissions[permissionName] === LOADING_STATES.LOADING) return;
-
-        // Cancel only this permission's previous request (if any)
-        if (permissionAbortControllers.current.has(permissionName)) {
-            permissionAbortControllers.current.get(permissionName).abort();
-        }
-        const controller = new AbortController();
-        permissionAbortControllers.current.set(permissionName, controller);
-
-        setLoadingStates(prev => ({
-            ...prev,
-            permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.LOADING }
-        }));
-
-        try {
-            const hasPermission = roleHasPermission(activeRole.id, permissionName);
-            const action = hasPermission ? 'revoke' : 'grant';
-
-            const response = await axios.post(`${getRolesApiBase()}/toggle-permission`, {
-                role_id: activeRole.id,
-                permission: permissionName,
-                action: action
-            }, {
-                signal: controller.signal
-            });
-
-            if (response.status === 200) {
-                    // Prefer server-authoritative data if provided
-                    if (response.data.role_has_permissions) {
-                        setRolePermissions(response.data.role_has_permissions);
-                        const updated = response.data.role_has_permissions
-                            .filter(rp => rp.role_id === activeRole.id)
-                            .map(rp => rp.permission_id);
-                        setSelectedPermissions(new Set(updated));
-                    } else {
-                        // Fallback to optimistic update
-                        const permission = permissions.find(p => p.name === permissionName);
-                        if (permission) {
-                            if (hasPermission) {
-                                setRolePermissions(prev => prev.filter(rp => !(rp.role_id === activeRole.id && rp.permission_id === permission.id)));
-                                setSelectedPermissions(prev => { const ns = new Set(prev); ns.delete(permission.id); return ns; });
-                            } else {
-                                setRolePermissions(prev => [...prev, { role_id: activeRole.id, permission_id: permission.id }]);
-                                setSelectedPermissions(prev => new Set([...prev, permission.id]));
-                            }
-                        }
-                    }
-
-                    setLoadingStates(prev => ({
-                        ...prev,
-                        permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.SUCCESS }
-                    }));
-
-                    setTimeout(() => {
-                        setLoadingStates(prev => ({
-                            ...prev,
-                            permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.IDLE }
-                        }));
-                    }, 2000);
-
-                    showToast.success(`Permission ${action}ed successfully`);
-                    lastUpdateRef.current = Date.now();
-
-                    // Force reload roles and permissions so UI updates immediately
-                    router.reload({ only: ['roles', 'permissions'] });
-            }
-        } catch (error) {
-            // Handle both AbortError (native) and CanceledError (axios)
-            const isCanceled = error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ERR_CANCELED';
-            if (!isCanceled) {
-                console.error('Error updating permission:', error);
-                setLoadingStates(prev => ({
-                    ...prev,
-                    permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.ERROR }
-                }));
-                setTimeout(() => {
-                    setLoadingStates(prev => ({
-                        ...prev,
-                        permissions: { ...prev.permissions, [permissionName]: LOADING_STATES.IDLE }
-                    }));
-                }, 3000);
-                showToast.error(error.response?.data?.message || 'Failed to update permission');
-                setErrorMessage(error.response?.data?.message || 'Failed to update permission');
-            }
-        } finally {
-            // Clean up the abort controller for this permission
-            permissionAbortControllers.current.delete(permissionName);
-        }
-    }, [activeRole, loadingStates.permissions, roleHasPermission, permissions]);
-
-    // Enhanced toggle module permissions with independent state management
-    const toggleModulePermissions = useCallback(async (module) => {
-        if (!activeRole) return;
-        
-        // Check if this specific module is already loading
-        if (loadingStates.modules[module] === LOADING_STATES.LOADING) return;
-
-        // Cancel only this module's previous request (if any)
-        if (moduleAbortControllers.current.has(module)) {
-            moduleAbortControllers.current.get(module).abort();
-        }
-        const controller = new AbortController();
-        moduleAbortControllers.current.set(module, controller);
-
-        // Set loading state for module
-        setLoadingStates(prev => ({
-            ...prev,
-            modules: { ...prev.modules, [module]: LOADING_STATES.LOADING }
-        }));
-
-        try {
-            const response = await axios.post(`${getRolesApiBase()}/update-module`, {
-                roleId: activeRole.id,
-                module: module,
-                action: 'toggle'
-            }, {
-                signal: controller.signal
-            });
-
-            if (response.status === 200) {
-                // Update role permissions from response
-                setRolePermissions(response.data.role_has_permissions);
-                
-                // Update selected permissions
-                const rolePerms = response.data.role_has_permissions
-                    .filter(rp => rp.role_id === activeRole.id)
-                    .map(rp => rp.permission_id);
-                setSelectedPermissions(new Set(rolePerms));
-
-                // Set success state
-                setLoadingStates(prev => ({
-                    ...prev,
-                    modules: { ...prev.modules, [module]: LOADING_STATES.SUCCESS }
-                }));
-
-                // Clear success state after 2 seconds
-                setTimeout(() => {
-                    setLoadingStates(prev => ({
-                        ...prev,
-                        modules: { ...prev.modules, [module]: LOADING_STATES.IDLE }
-                    }));
-                }, 2000);
-
-                showToast.success('Module permissions updated successfully');
-                lastUpdateRef.current = Date.now();
-            }
-        } catch (error) {
-            // Handle both AbortError (native) and CanceledError (axios)
-            const isCanceled = error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ERR_CANCELED';
-            if (!isCanceled) {
-                console.error('Error updating module permissions:', error);
-                
-                // Set error state
-                setLoadingStates(prev => ({
-                    ...prev,
-                    modules: { ...prev.modules, [module]: LOADING_STATES.ERROR }
-                }));
-
-                // Clear error state after 3 seconds
-                setTimeout(() => {
-                    setLoadingStates(prev => ({
-                        ...prev,
-                        modules: { ...prev.modules, [module]: LOADING_STATES.IDLE }
-                    }));
-                }, 3000);
-
-                showToast.error(error.response?.data?.message || 'Failed to update module permissions');
-                setErrorMessage(error.response?.data?.message || 'Failed to update module permissions');
-            }
-        } finally {
-            // Clean up the abort controller for this module
-            moduleAbortControllers.current.delete(module);
-        }
-    }, [activeRole, loadingStates.modules]);
-
-    // Enhanced form field handlers with validation
-    const handleFormFieldChange = useCallback((field, value) => {
-        setRoleForm(prev => ({ ...prev, [field]: value }));
-        
-        // Clear field-specific error when user starts typing
-        if (formErrors[field]) {
-            setFormErrors(prev => ({ ...prev, [field]: undefined }));
-        }
-    }, [formErrors]);
-
-    // Cleanup function for component unmount
-    useEffect(() => {
-        return () => {
-            // Abort all pending permission requests
-            permissionAbortControllers.current.forEach(controller => controller.abort());
-            permissionAbortControllers.current.clear();
-            
-            // Abort all pending module requests
-            moduleAbortControllers.current.forEach(controller => controller.abort());
-            moduleAbortControllers.current.clear();
-        };
-    }, []);
-
-    // Enhanced keyboard shortcuts
+    // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (event) => {
             // Focus search on '/' key (like GitHub)
@@ -725,9 +524,8 @@ const RoleManagement = (props) => {
             }
             
             // Escape to clear filters
-            if (event.key === 'Escape' && (roleSearchQuery || permissionSearchQuery || userSearchQuery)) {
+            if (event.key === 'Escape' && (roleSearchQuery || userSearchQuery)) {
                 setRoleSearchQuery('');
-                setPermissionSearchQuery('');
                 setUserSearchQuery('');
                 setRoleStatusFilter('all');
                 setUserRoleFilter('all');
@@ -748,8 +546,6 @@ const RoleManagement = (props) => {
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [roleSearchQuery, userSearchQuery, roleStatusFilter, userRoleFilter]);
-
-
 
     // Render all modals
     const renderModals = () => (
@@ -863,7 +659,7 @@ const RoleManagement = (props) => {
                     </ModalHeader>
                     <ModalBody>
                         <p className="text-foreground/90">
-                            Are you sure you want to delete {roleToDelete ? `the role "${roleToDelete.name}"` : permissionToDelete ? `the permission "${permissionToDelete.name}"` : 'this item'}? This action cannot be undone.
+                            Are you sure you want to delete {roleToDelete ? `the role "${roleToDelete.name}"` : 'this item'}? This action cannot be undone.
                         </p>
                     </ModalBody>
                     <ModalFooter className="flex gap-3">
@@ -875,10 +671,10 @@ const RoleManagement = (props) => {
                         </Button>
                         <Button
                             color="danger"
-                            onPress={roleToDelete ? handleDeleteRole : handleDeletePermission}
+                            onPress={handleDeleteRole}
                             isLoading={isLoading}
                         >
-                            Delete {roleToDelete ? 'Role' : 'Permission'}
+                            Delete Role
                         </Button>
                     </ModalFooter>
                 </ModalContent>
@@ -914,7 +710,7 @@ const RoleManagement = (props) => {
                                 size="sm"
                                 variant="flat"
                                 onPress={() => {
-                                    router.reload({ only: ['roles', 'permissions', 'users'] });
+                                    router.reload({ only: ['roles', 'users'] });
                                 }}
                                 startContent={<ArrowPathIcon className="w-4 h-4" />}
                             >
@@ -929,7 +725,7 @@ const RoleManagement = (props) => {
             <div 
                 className="flex flex-col w-full h-full p-4"
                 role="main"
-                aria-label="Role & Permission Management"
+                aria-label="Role Management"
             >
                 <div className="space-y-4">
                     <div className="w-full">
@@ -996,7 +792,7 @@ const RoleManagement = (props) => {
                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                             }}
                                                         >
-                                                            Role & Permission Management
+                                                            Role Management
                                                         </h4>
                                                         <p 
                                                             className={`
@@ -1008,7 +804,7 @@ const RoleManagement = (props) => {
                                                                 fontFamily: `var(--fontFamily, "Inter")`,
                                                             }}
                                                         >
-                                                            Comprehensive access control and permission management system
+                                                            Manage roles and assign them to users
                                                         </p>
                                                     </div>
                                                 </div>
@@ -1034,46 +830,12 @@ const RoleManagement = (props) => {
                                 </CardHeader>
 
                                 <CardBody className="p-6">
-                                    {/* Enhanced Statistics Cards */}
-                                    <StatsCards stats={[
-                                        {
-                                            title: "Total Roles",
-                                            value: roles.length,
-                                            icon: <UserGroupIcon />,
-                                            color: "text-blue-500",
-                                            iconBg: "bg-blue-500/20",
-                                            description: "System roles"
-                                        },
-                                        {
-                                            title: "Permissions", 
-                                            value: permissions.length,
-                                            icon: <KeyIcon />,
-                                            color: "text-green-500",
-                                            iconBg: "bg-green-500/20",
-                                            description: "Available permissions"
-                                        },
-                                        {
-                                            title: "Assignable Users",
-                                            value: assignableUsersCount,
-                                            icon: <UsersIcon />,
-                                            color: "text-purple-500",
-                                            iconBg: "bg-purple-500/20", 
-                                            description: "Users for role assignment"
-                                        },
-                                        {
-                                            title: "Modules",
-                                            value: modules.length,
-                                            icon: <Cog6ToothIcon />,
-                                            color: "text-orange-500",
-                                            iconBg: "bg-orange-500/20",
-                                            description: "Permission modules"
-                                        }
-                                    ]} />
+                                    {/* Statistics Cards */}
+                                    <StatsCards stats={statsData} />
 
-                                    {/* Enhanced Tabbed Interface using HeroUI Tabs */}
-                                    {/* NOTE: Permissions Management and Role-Permission Assignment tabs removed.
-                                        Role access is now managed through Module Access (Role-Module Access table).
-                                        See ModuleManagement page for role access configuration. */}
+                                    {/* Tabbed Interface using HeroUI Tabs */}
+                                    {/* NOTE: Permissions Management removed. Role access is now managed
+                                        through Module Access (Role-Module Access table) in ModuleManagement page. */}
                                     <div className="w-full mt-6">
                                         <Tabs 
                                             selectedKey={activeTab.toString()} 
@@ -1177,8 +939,6 @@ const RoleManagement = (props) => {
 
                                                 <RolesTable 
                                                     roles={paginatedRoles}
-                                                    permissions={permissions}
-                                                    getRolePermissions={getRolePermissions}
                                                     onEdit={openRoleModal}
                                                     onDelete={confirmDeleteRole}
                                                     canManageRole={canManageRole}

@@ -18,6 +18,18 @@ use Inertia\Inertia;
 | Uses central/platform database with LANDLORD GUARD.
 | These routes are for super admins managing the multi-tenant platform.
 |
+| Route structure matches config/modules.php platform_hierarchy:
+| 1. Dashboard (platform-dashboard)
+| 2. Tenants (tenants)
+| 3. Users & Auth (platform-users)
+| 4. Access Control (platform-roles)
+| 5. Billing (subscriptions)
+| 6. Notifications (notifications)
+| 7. File Manager (file-manager)
+| 8. Audit Logs (audit-logs)
+| 9. Settings (system-settings)
+| 10. Developer Tools (developer-tools)
+|
 | IMPORTANT: All routes use 'auth:landlord' middleware, NOT 'auth'.
 | This ensures authentication is checked against the landlord_users table
 | in the central database, not the tenant users table.
@@ -49,10 +61,17 @@ Route::get('/', function () {
 // =========================================================================
 
 Route::middleware(['auth:landlord'])->group(function () {
-    // Admin Dashboard
+
+    // =========================================================================
+    // 1. DASHBOARD MODULE (platform-dashboard)
+    // =========================================================================
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');
     })->name('admin.dashboard');
+
+    Route::get('/system-health', function () {
+        return Inertia::render('Admin/SystemHealth');
+    })->name('admin.system-health');
 
     // Tenant Management (Platform Super Admin Only)
     Route::middleware(['platform.super_admin'])->prefix('tenants')->name('admin.tenants.')->group(function () {
