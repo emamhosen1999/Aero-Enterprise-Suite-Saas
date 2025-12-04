@@ -373,6 +373,9 @@ class RoleController extends BaseController
                 return response()->json(['error' => 'Role not found'], 404);
             }
 
+            // CRITICAL: Authorize update using RolePolicy (Compliance: Section 10)
+            $this->authorize('update', $role);
+
             // Check if user can manage this role
             if (! $this->canManageRole(Auth::user(), $role)) {
                 return response()->json([
@@ -396,7 +399,9 @@ class RoleController extends BaseController
                     'description' => $request->description,
                     'updated_at' => now(),
                 ]);
-            }            // Sync permissions using the service
+            }
+
+            // Sync permissions using the service
             if ($request->has('permissions')) {
                 $this->rolePermissionService->assignPermissionsToRole($role, $request->permissions ?? []);
             }
@@ -445,6 +450,9 @@ class RoleController extends BaseController
                 return response()->json(['error' => 'Role not found'], 404);
             }
 
+            // CRITICAL: Authorize deletion using RolePolicy (Compliance: Section 5, 12)
+            $this->authorize('delete', $role);
+
             // Check if user can manage this role
             if (! $this->canManageRole(Auth::user(), $role)) {
                 return response()->json([
@@ -488,6 +496,12 @@ class RoleController extends BaseController
                 'message' => 'Role deleted successfully',
             ]);
 
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 403);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Role deletion failed: '.$e->getMessage());

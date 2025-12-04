@@ -16,6 +16,7 @@ import {
 
 export const getAdminPages = (auth = null) => {
   const isSuperAdmin = auth?.isSuperAdmin ?? false;
+  const isPlatformSuperAdmin = auth?.isPlatformSuperAdmin ?? false;
 
   const settingsMenu = [
     { name: 'General', icon: <Cog6ToothIcon className="" />, route: 'admin.settings.index' },
@@ -35,7 +36,8 @@ export const getAdminPages = (auth = null) => {
       priority: 1,
       module: 'admin-core',
     },
-    {
+    // Tenants - Platform Super Admin Only
+    ...(isPlatformSuperAdmin ? [{
       name: 'Tenants',
       icon: <BuildingOffice2Icon className="" />,
       priority: 2,
@@ -44,8 +46,9 @@ export const getAdminPages = (auth = null) => {
         { name: 'Directory', icon: <BuildingOffice2Icon className="" />, route: 'admin.tenants.index' },
         { name: 'Create Tenant', icon: <PlusCircleIcon className="" />, route: 'admin.tenants.create' },
       ],
-    },
-    {
+    }] : []),
+    // Plans - Platform Super Admin Only
+    ...(isPlatformSuperAdmin ? [{
       name: 'Plans',
       icon: <Squares2X2Icon className="" />,
       priority: 3,
@@ -54,14 +57,15 @@ export const getAdminPages = (auth = null) => {
         { name: 'All Plans', icon: <Squares2X2Icon className="" />, route: 'admin.plans.index' },
         { name: 'Create Plan', icon: <PlusCircleIcon className="" />, route: 'admin.plans.create' },
       ],
-    },
-    {
+    }] : []),
+    // Modules - Platform Super Admin Only
+    ...(isPlatformSuperAdmin ? [{
       name: 'Modules',
       icon: <PuzzlePieceIcon className="" />,
       priority: 4,
       module: 'admin-modules',
       route: 'admin.modules.index',
-    },
+    }] : []),
     {
       name: 'Billing',
       icon: <CreditCardIcon className="" />,
@@ -72,13 +76,14 @@ export const getAdminPages = (auth = null) => {
         { name: 'Invoices', icon: <DocumentTextIcon className="" />, route: 'admin.billing.invoices' },
       ],
     },
-    {
+    // Settings - Platform Super Admin Only
+    ...(isPlatformSuperAdmin ? [{
       name: 'Settings',
       icon: <Cog6ToothIcon className="" />,
       priority: 6,
       module: 'admin-settings',
       subMenu: settingsMenu,
-    },
+    }] : []),
     {
       name: 'Analytics',
       icon: <ChartBarSquareIcon className="" />,

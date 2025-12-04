@@ -501,30 +501,28 @@ Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(funct
 // Test route for role controller
 Route::middleware(['auth', 'verified'])->get('/admin/roles-test', [RoleController::class, 'test'])->name('admin.roles.test');
 
-// Module Permission Registry Management Routes
-Route::middleware(['auth', 'verified', 'permission:modules.view'])->group(function () {
+// Module Permission Registry Management Routes (Tenant Super Admin Only)
+Route::middleware(['auth', 'verified', 'tenant.super_admin'])->group(function () {
+    // View operations
     Route::get('/admin/modules', [ModuleController::class, 'index'])->name('modules.index');
     Route::get('/admin/modules/api', [ModuleController::class, 'apiIndex'])->name('modules.api.index');
     Route::get('/admin/modules/statistics', [ModuleController::class, 'statistics'])->name('modules.statistics');
     Route::get('/admin/modules/check-access', [ModuleController::class, 'checkAccess'])->name('modules.check-access');
-});
 
-Route::middleware(['auth', 'verified', 'permission:modules.create'])->group(function () {
+    // Create operations
     Route::post('/admin/modules', [ModuleController::class, 'storeModule'])->name('modules.store');
     Route::post('/admin/modules/{module}/sub-modules', [ModuleController::class, 'storeSubModule'])->name('modules.sub-modules.store');
     Route::post('/admin/modules/sub-modules/{subModule}/components', [ModuleController::class, 'storeComponent'])->name('modules.components.store');
-});
 
-Route::middleware(['auth', 'verified', 'permission:modules.update'])->group(function () {
+    // Update operations
     Route::put('/admin/modules/{module}', [ModuleController::class, 'updateModule'])->name('modules.update');
     Route::put('/admin/modules/sub-modules/{subModule}', [ModuleController::class, 'updateSubModule'])->name('modules.sub-modules.update');
     Route::put('/admin/modules/components/{component}', [ModuleController::class, 'updateComponent'])->name('modules.components.update');
     Route::post('/admin/modules/{module}/sync-permissions', [ModuleController::class, 'syncModulePermissions'])->name('modules.sync-permissions');
     Route::post('/admin/modules/sub-modules/{subModule}/sync-permissions', [ModuleController::class, 'syncSubModulePermissions'])->name('modules.sub-modules.sync-permissions');
     Route::post('/admin/modules/components/{component}/sync-permissions', [ModuleController::class, 'syncComponentPermissions'])->name('modules.components.sync-permissions');
-});
 
-Route::middleware(['auth', 'verified', 'permission:modules.delete'])->group(function () {
+    // Delete operations
     Route::delete('/admin/modules/{module}', [ModuleController::class, 'destroyModule'])->name('modules.destroy');
     Route::delete('/admin/modules/sub-modules/{subModule}', [ModuleController::class, 'destroySubModule'])->name('modules.sub-modules.destroy');
     Route::delete('/admin/modules/components/{component}', [ModuleController::class, 'destroyComponent'])->name('modules.components.destroy');

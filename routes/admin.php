@@ -53,8 +53,8 @@ Route::middleware(['auth:landlord'])->group(function () {
         return Inertia::render('Admin/Dashboard');
     })->name('admin.dashboard');
 
-    // Tenant Management
-    Route::prefix('tenants')->name('admin.tenants.')->group(function () {
+    // Tenant Management (Platform Super Admin Only)
+    Route::middleware(['platform.super_admin'])->prefix('tenants')->name('admin.tenants.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Tenants/Index');
         })->name('index');
@@ -76,8 +76,8 @@ Route::middleware(['auth:landlord'])->group(function () {
             ->name('impersonate');
     });
 
-    // Subscription Plans
-    Route::prefix('plans')->name('admin.plans.')->group(function () {
+    // Subscription Plans (Platform Super Admin Only)
+    Route::middleware(['platform.super_admin'])->prefix('plans')->name('admin.plans.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Plans/Index');
         })->name('index');
@@ -97,8 +97,8 @@ Route::middleware(['auth:landlord'])->group(function () {
     // Plans API
     Route::get('/api/plans', [\App\Http\Controllers\Admin\PlanController::class, 'index'])->name('api.plans.index');
 
-    // Modules Management
-    Route::prefix('modules')->name('admin.modules.')->group(function () {
+    // Modules Management (Platform Super Admin Only)
+    Route::middleware(['platform.super_admin'])->prefix('modules')->name('admin.modules.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Modules/Index');
         })->name('index');
@@ -132,8 +132,8 @@ Route::middleware(['auth:landlord'])->group(function () {
     // Stripe Checkout (for new subscriptions via registration flow)
     Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])->name('admin.checkout');
 
-    // System Settings
-    Route::prefix('settings')->name('admin.settings.')->group(function () {
+    // System Settings (Platform Super Admin Only)
+    Route::middleware(['platform.super_admin'])->prefix('settings')->name('admin.settings.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Settings/Index');
         })->name('index');

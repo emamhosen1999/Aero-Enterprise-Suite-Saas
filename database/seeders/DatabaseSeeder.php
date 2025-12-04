@@ -11,13 +11,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        if (function_exists('tenant') && tenant()) {
-            $this->call([
-                TenantSqlSeeder::class,
-            ]);
-
-            return;
-        }
 
         $this->command?->warn('No tenant context detected. Running central admin seeds.');
 

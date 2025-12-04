@@ -14,13 +14,32 @@ use Illuminate\Support\Facades\Cache;
  * Module Access Service
  *
  * Handles checking user access to modules based on:
- * 1. Plan Access - Is the module/submodule/component/action in the tenant's subscription plan?
- * 2. Permission Match - Does the user have the required permissions?
+ * 1. Super Admin Bypass - Platform/Tenant Super Admins have special access
+ * 2. Plan Access - Is the module/submodule/component/action in the tenant's subscription plan?
+ * 3. Permission Match - Does the user have the required permissions?
  *
- * Access Formula: User Access = Plan Access ∩ Permission Match
+ * Access Formula: User Access = Super Admin Bypass OR (Plan Access ∩ Permission Match)
+ *
+ * Compliance: Section 7 - Access Control Logic
  */
 class ModuleAccessService
 {
+    /**
+     * Check if user is platform super administrator.
+     */
+    protected function isPlatformSuperAdmin(User $user): bool
+    {
+        return $user->hasRole('platform_super_administrator');
+    }
+
+    /**
+     * Check if user is tenant super administrator.
+     */
+    protected function isTenantSuperAdmin(User $user): bool
+    {
+        return $user->hasRole('tenant_super_administrator');
+    }
+
     /**
      * Check if user can access a module.
      *
@@ -28,6 +47,11 @@ class ModuleAccessService
      */
     public function canAccessModule(User $user, string $moduleCode): array
     {
+        // EXCEPTION: platform_super_administrator bypasses everything
+        if ($this->isPlatformSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
+        }
+
         // Step 1: Check plan access
         if (! $this->isPlanAllowed($user, 'module', $moduleCode)) {
             return [
@@ -45,6 +69,11 @@ class ModuleAccessService
                 'reason' => 'not_found',
                 'message' => "Module '{$moduleCode}' does not exist.",
             ];
+        }
+
+        // EXCEPTION: tenant_super_administrator bypasses permission checks (but NOT subscription)
+        if ($this->isTenantSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
         // Get required permissions for this module
@@ -85,6 +114,11 @@ class ModuleAccessService
      */
     public function canAccessSubModule(User $user, string $moduleCode, string $subModuleCode): array
     {
+        // EXCEPTION: platform_super_administrator bypasses everything
+        if ($this->isPlatformSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
+        }
+
         // First check module access
         $moduleCheck = $this->canAccessModule($user, $moduleCode);
         if (! $moduleCheck['allowed']) {
@@ -98,6 +132,11 @@ class ModuleAccessService
                 'reason' => 'plan_restriction',
                 'message' => "Feature '{$subModuleCode}' is not included in your subscription plan.",
             ];
+        }
+
+        // EXCEPTION: tenant_super_administrator bypasses permission checks (but NOT subscription)
+        if ($this->isTenantSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
         // Check submodule permissions
@@ -148,6 +187,11 @@ class ModuleAccessService
      */
     public function canAccessComponent(User $user, string $moduleCode, string $subModuleCode, string $componentCode): array
     {
+        // EXCEPTION: platform_super_administrator bypasses everything
+        if ($this->isPlatformSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
+        }
+
         // First check submodule access
         $subModuleCheck = $this->canAccessSubModule($user, $moduleCode, $subModuleCode);
         if (! $subModuleCheck['allowed']) {
@@ -161,6 +205,11 @@ class ModuleAccessService
                 'reason' => 'plan_restriction',
                 'message' => 'This component is not included in your subscription plan.',
             ];
+        }
+
+        // EXCEPTION: tenant_super_administrator bypasses permission checks (but NOT subscription)
+        if ($this->isTenantSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
         // Check component permissions
@@ -218,6 +267,11 @@ class ModuleAccessService
         string $componentCode,
         string $actionCode
     ): array {
+        // EXCEPTION: platform_super_administrator bypasses everything
+        if ($this->isPlatformSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
+        }
+
         // First check component access
         $componentCheck = $this->canAccessComponent($user, $moduleCode, $subModuleCode, $componentCode);
         if (! $componentCheck['allowed']) {
@@ -241,6 +295,11 @@ class ModuleAccessService
                 'reason' => 'not_found',
                 'message' => "Action '{$actionCode}' does not exist.",
             ];
+        }
+
+        // EXCEPTION: tenant_super_administrator bypasses permission checks
+        if ($this->isTenantSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
         // Get required permissions for this action

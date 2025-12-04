@@ -30,6 +30,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Installation Secret Hash
+    |--------------------------------------------------------------------------
+    |
+    | Bcrypt hash of the installation secret code. This is used to verify
+    | access to the installation wizard. The plain text secret is: aEos365^T9*zB6_3
+    | Users must enter this exact secret to proceed with installation.
+    |
+    */
+
+    'installation_secret_hash' => env('INSTALLATION_SECRET_HASH', '$2y$12$8SvfCq6g4M7lywD6T.x5kOEvqRGSGZNoZrj7J4tO2Fb.tRijPbniK'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

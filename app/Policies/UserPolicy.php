@@ -62,12 +62,30 @@ class UserPolicy
 
     /**
      * Determine whether the user can delete the model.
+     *
+     * CRITICAL: Users with protected Super Admin roles cannot be deleted if they are the last one.
      */
     public function delete(User $user, User $model): bool
     {
         // Cannot delete yourself
         if ($user->id === $model->id) {
             return false;
+        }
+
+        // CRITICAL: Check if user being deleted has a protected role (Super Administrator)
+        // If so, ensure they are not the last Super Admin in their scope (Section 3, Rule 3)
+        if ($this->isLastSuperAdminInScope($model)) {
+            return false;
+        }
+
+        // Platform Super admins can delete anyone (after last super admin check)
+        if ($user->hasRole('platform_super_administrator')) {
+            return true;
+        }
+
+        // Tenant Super admins can delete users in their tenant
+        if ($user->hasRole('tenant_super_administrator')) {
+            return true;
         }
 
         // Super admins can delete anyone
@@ -78,6 +96,45 @@ class UserPolicy
         // HR managers and administrators can delete
         if ($user->hasRole(['Administrator', 'HR Manager'])) {
             return $user->hasPermissionTo('users.delete');
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user is the last Super Administrator in their scope.
+     *
+     * Compliance: Section 3, Rule 3 & 4
+     */
+    protected function isLastSuperAdminInScope(User $user): bool
+    {
+        // Check if user has platform_super_administrator role
+        if ($user->hasRole('platform_super_administrator')) {
+            $platformSuperAdminCount = User::whereHas('roles', function ($query) {
+                $query->where('name', 'platform_super_administrator')
+                    ->where('scope', 'platform');
+            })->count();
+
+            // If this is the last platform super admin, block deletion
+            if ($platformSuperAdminCount <= 1) {
+                return true;
+            }
+        }
+
+        // Check if user has tenant_super_administrator role
+        if ($user->hasRole('tenant_super_administrator') && $user->tenant_id) {
+            $tenantSuperAdminCount = User::whereHas('roles', function ($query) use ($user) {
+                $query->where('name', 'tenant_super_administrator')
+                    ->where('scope', 'tenant')
+                    ->where('tenant_id', $user->tenant_id);
+            })
+                ->where('tenant_id', $user->tenant_id)
+                ->count();
+
+            // If this is the last tenant super admin, block deletion
+            if ($tenantSuperAdminCount <= 1) {
+                return true;
+            }
         }
 
         return false;

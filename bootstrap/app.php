@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -11,6 +12,18 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function () {
+            // Load installation routes ONLY on platform domain (not admin subdomain)
+            // Note: Installation routes configure file-based sessions internally
+            // to avoid database dependency before migrations are run
+            $host = request()->getHost();
+            $isAdminDomain = str_starts_with($host, 'admin.');
+
+            if (! $isAdminDomain) {
+                Route::middleware('web')
+                    ->group(base_path('routes/installation.php'));
+            }
+        },
     )
     ->withMiddleware(function (Middleware $middleware) {
         // Configure where guests should be redirected (uses relative URL to work on any domain)
@@ -21,6 +34,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'sslcommerz/*',  // SSLCOMMERZ payment gateway callbacks
             'stripe/*',      // Stripe webhooks (already handled by Cashier but explicit for clarity)
             'saml/*/acs',    // SAML Assertion Consumer Service (POST from IdP)
+        ]);
+
+        // Prepend middleware to run BEFORE StartSession middleware
+        $middleware->web(prepend: [
+            \App\Http\Middleware\ForceFileSessionForInstallation::class, // Force file sessions for installation routes
+            \App\Http\Middleware\CheckInstallation::class, // Check if installation is needed (MUST run before HandleInertiaRequests)
         ]);
 
         $middleware->web(append: [
@@ -45,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'session_expiry' => \App\Http\Middleware\CheckSessionExpiry::class, // Register alias
             'identify_domain' => \App\Http\Middleware\IdentifyDomainContext::class, // Domain context alias
             'require_tenant_onboarding' => \App\Http\Middleware\RequireTenantOnboarding::class, // Tenant onboarding check
+            'check_installation' => \App\Http\Middleware\CheckInstallation::class, // Installation check
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

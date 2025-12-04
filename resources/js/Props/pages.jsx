@@ -515,7 +515,8 @@ export const getPages = (roles, permissions, auth = null) => {
         ...(permissions.includes('roles.view') ? [
           { name: 'Roles', icon: <UserGroupIcon  />, route: 'admin.roles-management' }
         ] : []),
-        ...(permissions.includes('modules.view') ? [
+        // Module Permissions - Tenant Super Admin Only
+        ...(auth?.isTenantSuperAdmin ? [
           { name: 'Modules', icon: <CubeIcon  />, route: 'modules.index' }
         ] : []),
         ...(auth?.user && auth?.roles?.includes('Super Administrator') ? [

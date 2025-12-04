@@ -90,11 +90,61 @@ class HandleInertiaRequests extends Middleware
      */
     protected function shareAdminProps(Request $request): array
     {
+        // Skip database queries if installation is not complete
+        if ($request->routeIs('installation.*') || $request->is('install*')) {
+            // Use .env values for installation context
+            View::share([
+                'logoUrl' => asset('assets/images/logo.png'),
+                'logoLightUrl' => asset('assets/images/logo.png'),
+                'logoDarkUrl' => asset('assets/images/logo.png'),
+                'faviconUrl' => asset('assets/images/favicon.ico'),
+                'siteName' => config('app.name', 'aeos365'),
+            ]);
+
+            return [
+                ...parent::share($request),
+                'auth' => ['user' => null, 'isAuthenticated' => false],
+                'context' => 'installation',
+                'app' => [
+                    'name' => config('app.name', 'aeos365'),
+                    'version' => config('app.version', '1.0.0'),
+                    'environment' => config('app.env', 'production'),
+                ],
+                'platformSettings' => [
+                    'branding' => [
+                        'logo' => asset('assets/images/logo.png'),
+                        'logo_light' => asset('assets/images/logo.png'),
+                        'logo_dark' => asset('assets/images/logo.png'),
+                        'favicon' => asset('assets/images/favicon.ico'),
+                        'primary_color' => '#006FEE',
+                        'border_radius' => '12px',
+                        'border_width' => '2px',
+                        'font_family' => 'Inter',
+                    ],
+                    'site' => [
+                        'name' => config('app.name', 'aeos365'),
+                    ],
+                ],
+            ];
+        }
+
         // IMPORTANT: Use landlord guard, not default web guard
         /** @var \App\Models\LandlordUser|null $user */
-        $user = \Illuminate\Support\Facades\Auth::guard('landlord')->user();
+        $user = null;
+        $platformSetting = null;
+        $platformSettingsPayload = null;
 
-        $platformSetting = $this->platformSetting();
+        try {
+            $user = \Illuminate\Support\Facades\Auth::guard('landlord')->user();
+        } catch (\Exception $e) {
+            // Database might not be set up yet, skip user loading
+        }
+
+        try {
+            $platformSetting = $this->platformSetting();
+        } catch (\Exception $e) {
+            // Database might not be set up yet
+        }
         $platformSettingsPayload = $platformSetting
             ? PlatformSettingResource::make($platformSetting)->resolve($request)
             : null;
@@ -125,6 +175,9 @@ class HandleInertiaRequests extends Middleware
                 'isSuperAdmin' => $user?->isSuperAdmin() ?? false,
                 'isAdmin' => $user?->isAdmin() ?? false,
                 'role' => $user?->role,
+                // Compliance: Section 10 - Frontend Super Admin flags
+                'isPlatformSuperAdmin' => $user?->hasRole('platform_super_administrator') ?? false,
+                'isTenantSuperAdmin' => false, // Admin context = platform only
             ],
             'context' => 'admin',
             'app' => [
@@ -153,6 +206,44 @@ class HandleInertiaRequests extends Middleware
      */
     protected function sharePlatformProps(Request $request): array
     {
+        // Skip database queries if installation is not complete
+        if ($request->routeIs('installation.*') || $request->is('install*')) {
+            // Use .env values for installation context
+            View::share([
+                'logoUrl' => asset('assets/images/logo.png'),
+                'logoLightUrl' => asset('assets/images/logo.png'),
+                'logoDarkUrl' => asset('assets/images/logo.png'),
+                'faviconUrl' => asset('assets/images/favicon.ico'),
+                'siteName' => config('app.name', 'aeos365'),
+            ]);
+
+            return [
+                ...parent::share($request),
+                'context' => 'platform',
+                'auth' => ['user' => null, 'isAuthenticated' => false],
+                'app' => [
+                    'name' => config('app.name', 'aeos365'),
+                    'version' => config('app.version', '1.0.0'),
+                    'environment' => config('app.env', 'production'),
+                ],
+                'platformSettings' => [
+                    'branding' => [
+                        'logo' => asset('assets/images/logo.png'),
+                        'logo_light' => asset('assets/images/logo.png'),
+                        'logo_dark' => asset('assets/images/logo.png'),
+                        'favicon' => asset('assets/images/favicon.ico'),
+                        'primary_color' => '#006FEE',
+                        'border_radius' => '12px',
+                        'border_width' => '2px',
+                        'font_family' => 'Inter',
+                    ],
+                    'site' => [
+                        'name' => config('app.name', 'aeos365'),
+                    ],
+                ],
+            ];
+        }
+
         $platformSetting = $this->platformSetting();
         $platformSettingsPayload = $platformSetting
             ? PlatformSettingResource::make($platformSetting)->resolve($request)
@@ -248,6 +339,9 @@ class HandleInertiaRequests extends Middleware
                 'accessibleModules' => fn () => $user
                     ? app(ModulePermissionService::class)->getNavigationForUser($user)
                     : [],
+                // Compliance: Section 10 - Frontend Super Admin flags
+                'isPlatformSuperAdmin' => $user?->hasRole('platform_super_administrator') ?? false,
+                'isTenantSuperAdmin' => $user?->hasRole('tenant_super_administrator') ?? false,
             ],
             'context' => 'tenant',
             'tenant' => [

@@ -1,0 +1,105 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * Adds scope and is_protected columns to roles and permissions tables
+     * to support platform/tenant separation and Super Administrator protection.
+     *
+     * Compliance: Section 2 - Role & Permission Scopes
+     */
+    public function up(): void
+    {
+        // Add scope and is_protected to roles table
+        if (Schema::hasTable('roles')) {
+            Schema::table('roles', function (Blueprint $table) {
+                if (! Schema::hasColumn('roles', 'scope')) {
+                    $table->enum('scope', ['platform', 'tenant'])
+                        ->default('tenant')
+                        ->after('guard_name')
+                        ->comment('Role scope: platform or tenant');
+                }
+
+                if (! Schema::hasColumn('roles', 'is_protected')) {
+                    $table->boolean('is_protected')
+                        ->default(false)
+                        ->after('scope')
+                        ->comment('Protected roles cannot be deleted or modified');
+                }
+
+                // Add index for scope queries
+                if (! Schema::hasColumn('roles', 'scope')) {
+                    $table->index('scope');
+                }
+                $table->index(['scope', 'tenant_id']);
+            });
+        }
+
+        // Add scope and tenant_id to permissions table
+        if (Schema::hasTable('permissions')) {
+            Schema::table('permissions', function (Blueprint $table) {
+                if (! Schema::hasColumn('permissions', 'scope')) {
+                    $table->enum('scope', ['platform', 'tenant'])
+                        ->default('tenant')
+                        ->after('guard_name')
+                        ->comment('Permission scope: platform or tenant');
+                }
+
+                if (! Schema::hasColumn('permissions', 'tenant_id')) {
+                    $table->string('tenant_id')
+                        ->nullable()
+                        ->after('scope')
+                        ->comment('Tenant ID for tenant-scoped permissions');
+                }
+
+                // Add indexes
+                if (! Schema::hasColumn('permissions', 'scope')) {
+                    $table->index('scope');
+                }
+                if (! Schema::hasColumn('permissions', 'tenant_id')) {
+                    $table->index('tenant_id');
+                }
+                $table->index(['scope', 'tenant_id']);
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        if (Schema::hasTable('permissions')) {
+            Schema::table('permissions', function (Blueprint $table) {
+                $table->dropIndex(['scope', 'tenant_id']);
+                if (Schema::hasColumn('permissions', 'tenant_id')) {
+                    $table->dropIndex(['tenant_id']);
+                    $table->dropColumn('tenant_id');
+                }
+                if (Schema::hasColumn('permissions', 'scope')) {
+                    $table->dropIndex(['scope']);
+                    $table->dropColumn('scope');
+                }
+            });
+        }
+
+        if (Schema::hasTable('roles')) {
+            Schema::table('roles', function (Blueprint $table) {
+                $table->dropIndex(['scope', 'tenant_id']);
+                if (Schema::hasColumn('roles', 'is_protected')) {
+                    $table->dropColumn('is_protected');
+                }
+                if (Schema::hasColumn('roles', 'scope')) {
+                    $table->dropIndex(['scope']);
+                    $table->dropColumn('scope');
+                }
+            });
+        }
+    }
+};
