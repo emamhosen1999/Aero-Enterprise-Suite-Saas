@@ -158,6 +158,21 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::post('/maintenance/toggle', [MaintenanceController::class, 'toggle'])->name('maintenance.toggle');
     });
 
+    // Role Management (Platform Super Admin Only)
+    Route::middleware(['platform.super_admin'])->prefix('roles')->name('admin.roles.')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Admin/Roles/Index');
+        })->name('index');
+
+        Route::get('/create', function () {
+            return Inertia::render('Admin/Roles/Create');
+        })->name('create');
+
+        Route::get('/{role}/edit', function ($role) {
+            return Inertia::render('Admin/Roles/Edit', ['roleId' => $role]);
+        })->name('edit');
+    });
+
     // Analytics & Reports
     Route::prefix('analytics')->name('admin.analytics.')->group(function () {
         Route::get('/', function () {

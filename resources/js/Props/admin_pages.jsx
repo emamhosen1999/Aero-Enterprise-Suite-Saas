@@ -15,8 +15,15 @@ import {
 } from '@heroicons/react/24/outline';
 
 export const getAdminPages = (auth = null) => {
+  console.log('🔍 Admin Pages - Auth Data:', auth);
+  console.log('🔍 isPlatformSuperAdmin:', auth?.isPlatformSuperAdmin);
+  console.log('🔍 isSuperAdmin:', auth?.isSuperAdmin);
+  
   const isSuperAdmin = auth?.isSuperAdmin ?? false;
   const isPlatformSuperAdmin = auth?.isPlatformSuperAdmin ?? false;
+  
+  console.log('🔍 Final isPlatformSuperAdmin:', isPlatformSuperAdmin);
+  console.log('🔍 Final isSuperAdmin:', isSuperAdmin);
 
   const settingsMenu = [
     { name: 'General', icon: <Cog6ToothIcon className="" />, route: 'admin.settings.index' },
@@ -76,18 +83,26 @@ export const getAdminPages = (auth = null) => {
         { name: 'Invoices', icon: <DocumentTextIcon className="" />, route: 'admin.billing.invoices' },
       ],
     },
+    // Role Management - Platform Super Admin Only
+    ...(isPlatformSuperAdmin ? [{
+      name: 'Role Management',
+      icon: <ShieldCheckIcon className="" />,
+      priority: 6,
+      module: 'admin-roles',
+      route: 'admin.roles.index',
+    }] : []),
     // Settings - Platform Super Admin Only
     ...(isPlatformSuperAdmin ? [{
       name: 'Settings',
       icon: <Cog6ToothIcon className="" />,
-      priority: 6,
+      priority: 7,
       module: 'admin-settings',
       subMenu: settingsMenu,
     }] : []),
     {
       name: 'Analytics',
       icon: <ChartBarSquareIcon className="" />,
-      priority: 7,
+      priority: 8,
       module: 'admin-analytics',
       subMenu: [
         { name: 'Overview', icon: <ChartBarSquareIcon className="" />, route: 'admin.analytics.index' },
@@ -98,7 +113,7 @@ export const getAdminPages = (auth = null) => {
     {
       name: 'Support',
       icon: <LifebuoyIcon className="" />,
-      priority: 8,
+      priority: 9,
       module: 'admin-support',
       route: 'admin.support.index',
     },
