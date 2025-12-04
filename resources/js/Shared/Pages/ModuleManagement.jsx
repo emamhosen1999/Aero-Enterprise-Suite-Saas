@@ -1291,7 +1291,7 @@ const ModuleManagement = (props) => {
     }, []);
 
     return (
-        <App>
+        <>
             <Head title={title} />
 
             <div 
@@ -2008,8 +2008,8 @@ const ModuleManagement = (props) => {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-        </App>
+        </>
     );
 };
-
+ModuleManagement.layout = (page) => <App>{page}</App>;
 export default ModuleManagement;

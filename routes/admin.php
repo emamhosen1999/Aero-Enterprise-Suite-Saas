@@ -73,7 +73,9 @@ Route::middleware(['auth:landlord'])->group(function () {
         return Inertia::render('Admin/SystemHealth');
     })->name('admin.system-health');
 
-    // Tenant Management (Platform Super Admin Only)
+    // =========================================================================
+    // 2. TENANT MANAGEMENT MODULE (tenants)
+    // =========================================================================
     Route::middleware(['platform.super_admin'])->prefix('tenants')->name('admin.tenants.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Tenants/Index');
@@ -91,33 +93,70 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Admin/Tenants/Edit', ['tenantId' => $tenant]);
         })->name('edit');
 
+        // Domain Management
+        Route::get('/domains', function () {
+            return Inertia::render('Admin/Tenants/Domains');
+        })->name('domains');
+
+        // Database Management
+        Route::get('/databases', function () {
+            return Inertia::render('Admin/Tenants/Databases');
+        })->name('databases');
+
         // Tenant Impersonation
         Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'impersonate'])
             ->name('impersonate');
     });
 
-    // Subscription Plans (Platform Super Admin Only)
-    Route::middleware(['platform.super_admin'])->prefix('plans')->name('admin.plans.')->group(function () {
+    // =========================================================================
+    // 3. USERS & AUTHENTICATION MODULE (platform-users)
+    // =========================================================================
+    Route::middleware(['platform.super_admin'])->prefix('users')->name('admin.users.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Plans/Index');
+            return Inertia::render('Admin/Users/Index');
         })->name('index');
 
         Route::get('/create', function () {
-            return Inertia::render('Admin/Plans/Create');
+            return Inertia::render('Admin/Users/Create');
         })->name('create');
 
-        // Plan-Module Management API
-        Route::get('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getPlanModules'])->name('modules.index');
-        Route::post('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'attachModules'])->name('modules.attach');
-        Route::delete('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'detachModules'])->name('modules.detach');
-        Route::put('/{plan}/modules/sync', [\App\Http\Controllers\Admin\PlanModuleController::class, 'syncModules'])->name('modules.sync');
-        Route::put('/{plan}/modules/{module}', [\App\Http\Controllers\Admin\PlanModuleController::class, 'updateModuleConfig'])->name('modules.update');
+        Route::get('/{user}', function ($user) {
+            return Inertia::render('Admin/Users/Show', ['userId' => $user]);
+        })->name('show');
+
+        Route::get('/{user}/edit', function ($user) {
+            return Inertia::render('Admin/Users/Edit', ['userId' => $user]);
+        })->name('edit');
     });
 
-    // Plans API
-    Route::get('/api/plans', [\App\Http\Controllers\Admin\PlanController::class, 'index'])->name('api.plans.index');
+    // Authentication Settings
+    Route::get('/authentication', function () {
+        return Inertia::render('Admin/Authentication/Index');
+    })->middleware(['platform.super_admin'])->name('admin.authentication');
 
-    // Modules Management (Platform Super Admin Only)
+    // Active Sessions
+    Route::get('/sessions', function () {
+        return Inertia::render('Admin/Sessions/Index');
+    })->middleware(['platform.super_admin'])->name('admin.sessions');
+
+    // =========================================================================
+    // 4. ROLES & ACCESS CONTROL MODULE (platform-roles)
+    // =========================================================================
+    Route::middleware(['platform.super_admin'])->prefix('roles')->name('admin.roles.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'storeRole'])->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRole'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'deleteRole'])->name('destroy');
+        Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'batchUpdatePermissions'])->name('permissions.batch');
+        Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'togglePermission'])->name('toggle-permission');
+        Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])->name('update-module');
+        Route::post('/clone/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'cloneRole'])->name('clone');
+        Route::get('/export', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'exportRoles'])->name('export');
+        Route::get('/snapshot', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'snapshot'])->name('snapshot');
+        Route::get('/admin/modules', [ModuleController::class, 'index'])->name('modules.index');
+    });
+
+    // Modules Management (Module Access)
     Route::middleware(['platform.super_admin'])->prefix('modules')->name('admin.modules.')->group(function () {
         // Main module management page (shared controller)
         Route::get('/', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'index'])->name('index');
@@ -157,11 +196,51 @@ Route::middleware(['auth:landlord'])->group(function () {
         });
     });
 
+    // Permission Management (Platform Super Admin Only)
+    Route::middleware(['platform.super_admin'])->prefix('permissions')->name('admin.permissions.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])->name('store');
+        Route::get('/grouped', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'groupedByModule'])->name('grouped');
+        Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'show'])->name('show');
+        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/sync-roles', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'syncRoles'])->name('sync-roles');
+    });
+
+    // =========================================================================
+    // 5. SUBSCRIPTIONS & BILLING MODULE (subscriptions)
+    // =========================================================================
+    // Subscription Plans
+    Route::middleware(['platform.super_admin'])->prefix('plans')->name('admin.plans.')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Admin/Plans/Index');
+        })->name('index');
+
+        Route::get('/create', function () {
+            return Inertia::render('Admin/Plans/Create');
+        })->name('create');
+
+        // Plan-Module Management API
+        Route::get('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getPlanModules'])->name('modules.index');
+        Route::post('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'attachModules'])->name('modules.attach');
+        Route::delete('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'detachModules'])->name('modules.detach');
+        Route::put('/{plan}/modules/sync', [\App\Http\Controllers\Admin\PlanModuleController::class, 'syncModules'])->name('modules.sync');
+        Route::put('/{plan}/modules/{module}', [\App\Http\Controllers\Admin\PlanModuleController::class, 'updateModuleConfig'])->name('modules.update');
+    });
+
+    // Plans API
+    Route::get('/api/plans', [\App\Http\Controllers\Admin\PlanController::class, 'index'])->name('api.plans.index');
+
     // Billing & Invoices
     Route::prefix('billing')->name('admin.billing.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Billing/Index');
         })->name('index');
+
+        // Subscriptions Overview
+        Route::get('/subscriptions', function () {
+            return Inertia::render('Admin/Billing/Subscriptions');
+        })->name('subscriptions');
 
         Route::get('/invoices', function () {
             return Inertia::render('Admin/Billing/Invoices');
@@ -182,20 +261,109 @@ Route::middleware(['auth:landlord'])->group(function () {
     // Stripe Checkout (for new subscriptions via registration flow)
     Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])->name('admin.checkout');
 
-    // System Settings (Platform Super Admin Only)
+    // =========================================================================
+    // 6. NOTIFICATIONS MODULE (notifications)
+    // =========================================================================
+    Route::middleware(['platform.super_admin'])->prefix('notifications')->name('admin.notifications.')->group(function () {
+        // Notification Channels
+        Route::get('/channels', function () {
+            return Inertia::render('Admin/Notifications/Channels');
+        })->name('channels');
+
+        // Notification Templates
+        Route::get('/templates', function () {
+            return Inertia::render('Admin/Notifications/Templates');
+        })->name('templates');
+
+        // Broadcasts
+        Route::get('/broadcasts', function () {
+            return Inertia::render('Admin/Notifications/Broadcasts');
+        })->name('broadcasts');
+    });
+
+    // =========================================================================
+    // 7. FILE MANAGER MODULE (file-manager)
+    // =========================================================================
+    Route::middleware(['platform.super_admin'])->prefix('files')->name('admin.files.')->group(function () {
+        // Storage Management
+        Route::get('/storage', function () {
+            return Inertia::render('Admin/Files/Storage');
+        })->name('storage');
+
+        // Storage Quotas
+        Route::get('/quotas', function () {
+            return Inertia::render('Admin/Files/Quotas');
+        })->name('quotas');
+
+        // Media Library
+        Route::get('/media', function () {
+            return Inertia::render('Admin/Files/Media');
+        })->name('media');
+    });
+
+    // =========================================================================
+    // 8. AUDIT & ACTIVITY LOGS MODULE (audit-logs)
+    // =========================================================================
+    Route::middleware(['platform.super_admin'])->prefix('logs')->name('admin.logs.')->group(function () {
+        // Activity Logs
+        Route::get('/activity', function () {
+            return Inertia::render('Admin/Logs/Activity');
+        })->name('activity');
+
+        // Security Logs
+        Route::get('/security', function () {
+            return Inertia::render('Admin/Logs/Security');
+        })->name('security');
+
+        // System Logs
+        Route::get('/system', function () {
+            return Inertia::render('Admin/Logs/System');
+        })->name('system');
+    });
+
+    // Legacy Audit Logs routes (for backward compatibility)
+    Route::prefix('audit-logs')->name('admin.audit-logs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('index');
+        Route::get('/export', [\App\Http\Controllers\AuditLogController::class, 'export'])->name('export');
+        Route::get('/statistics', [\App\Http\Controllers\AuditLogController::class, 'statistics'])->name('statistics');
+        Route::get('/{activity}', [\App\Http\Controllers\AuditLogController::class, 'show'])->name('show');
+    });
+
+    // =========================================================================
+    // 9. SYSTEM SETTINGS MODULE (system-settings)
+    // =========================================================================
     Route::middleware(['platform.super_admin'])->prefix('settings')->name('admin.settings.')->group(function () {
+        // General Settings
         Route::get('/', function () {
             return Inertia::render('Admin/Settings/Index');
         })->name('index');
 
-        Route::get('/payment-gateways', function () {
-            return Inertia::render('Admin/Settings/PaymentGateways');
-        })->name('payment-gateways');
+        // Branding Settings
+        Route::get('/branding', function () {
+            return Inertia::render('Admin/Settings/Branding');
+        })->name('branding');
 
+        // Localization Settings
+        Route::get('/localization', function () {
+            return Inertia::render('Admin/Settings/Localization');
+        })->name('localization');
+
+        // Email Settings
         Route::get('/email', function () {
             return Inertia::render('Admin/Settings/Email');
         })->name('email');
 
+        // Integrations
+        Route::get('/integrations', function () {
+            return Inertia::render('Admin/Settings/Integrations');
+        })->name('integrations');
+
+        // Payment Gateways
+        Route::get('/payment-gateways', function () {
+            return Inertia::render('Admin/Settings/PaymentGateways');
+        })->name('payment-gateways');
+
+        // Platform Settings API
         Route::get('/platform', [PlatformSettingController::class, 'index'])->name('platform.index');
         Route::put('/platform', [PlatformSettingController::class, 'update'])->name('platform.update');
         Route::post('/platform', [PlatformSettingController::class, 'update'])->name('platform.store');
@@ -208,34 +376,44 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::post('/maintenance/toggle', [MaintenanceController::class, 'toggle'])->name('maintenance.toggle');
     });
 
-    // Role Management (Platform Super Admin Only)
-    Route::middleware(['platform.super_admin'])->prefix('roles')->name('admin.roles.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'storeRole'])->name('store');
-        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRole'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'deleteRole'])->name('destroy');
-        Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'batchUpdatePermissions'])->name('permissions.batch');
-        Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'togglePermission'])->name('toggle-permission');
-        Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])->name('update-module');
-        Route::post('/clone/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'cloneRole'])->name('clone');
-        Route::get('/export', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'exportRoles'])->name('export');
-        Route::get('/snapshot', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'snapshot'])->name('snapshot');
+    // =========================================================================
+    // 10. DEVELOPER TOOLS MODULE (developer-tools)
+    // =========================================================================
+    Route::middleware(['platform.super_admin'])->prefix('developer')->name('admin.developer.')->group(function () {
+        // API Management
+        Route::get('/api', function () {
+            return Inertia::render('Admin/Developer/Api');
+        })->name('api');
 
-        Route::get('/admin/modules', [ModuleController::class, 'index'])->name('modules.index');
+        // Webhooks
+        Route::get('/webhooks', function () {
+            return Inertia::render('Admin/Developer/Webhooks');
+        })->name('webhooks');
+
+        // Debug Tools
+        Route::get('/debug', function () {
+            return Inertia::render('Admin/Developer/Debug');
+        })->name('debug');
+
+        // Queue Management
+        Route::get('/queues', function () {
+            return Inertia::render('Admin/Developer/Queues');
+        })->name('queues');
+
+        // Cache Management
+        Route::get('/cache', function () {
+            return Inertia::render('Admin/Developer/Cache');
+        })->name('cache');
+
+        // Maintenance Mode
+        Route::get('/maintenance', function () {
+            return Inertia::render('Admin/Developer/Maintenance');
+        })->name('maintenance');
     });
 
-    // Permission Management (Platform Super Admin Only)
-    Route::middleware(['platform.super_admin'])->prefix('permissions')->name('admin.permissions.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])->name('store');
-        Route::get('/grouped', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'groupedByModule'])->name('grouped');
-        Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'show'])->name('show');
-        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/sync-roles', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'syncRoles'])->name('sync-roles');
-    });
-
-    // Analytics & Reports
+    // =========================================================================
+    // ANALYTICS & REPORTS (Quick Access)
+    // =========================================================================
     Route::prefix('analytics')->name('admin.analytics.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Analytics/Index');
@@ -255,15 +433,9 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/modules-trends', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'trends'])->name('modules.trends');
     });
 
-    // Audit Logs
-    Route::prefix('audit-logs')->name('admin.audit-logs.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('index');
-        Route::get('/export', [\App\Http\Controllers\AuditLogController::class, 'export'])->name('export');
-        Route::get('/statistics', [\App\Http\Controllers\AuditLogController::class, 'statistics'])->name('statistics');
-        Route::get('/{activity}', [\App\Http\Controllers\AuditLogController::class, 'show'])->name('show');
-    });
-
-    // Support & Tickets
+    // =========================================================================
+    // SUPPORT & TICKETS (Quick Access)
+    // =========================================================================
     Route::prefix('support')->name('admin.support.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Support/Index');
