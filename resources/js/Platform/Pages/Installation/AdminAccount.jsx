@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import InstallationLayout from '@/Layouts/InstallationLayout';
 import { Card, CardHeader, CardBody, CardFooter, Button, Input } from '@heroui/react';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
@@ -7,10 +7,10 @@ import { showToast } from '@/utils/toastUtils';
 
 export default function AdminAccount({ adminConfig = {} }) {
     const { data, setData, post, processing, errors } = useForm({
-        name: adminConfig.name || '',
-        email: adminConfig.email || '',
-        password: adminConfig.password || '',
-        password_confirmation: '',
+        admin_name: adminConfig.admin_name || '',
+        admin_email: adminConfig.admin_email || '',
+        admin_password: '',
+        admin_password_confirmation: '',
     });
 
     const handleSubmit = (e) => {
@@ -20,7 +20,7 @@ export default function AdminAccount({ adminConfig = {} }) {
             post(route('installation.save-admin'), {
                 onSuccess: () => resolve(['Admin account configured successfully']),
                 onError: (errors) => reject(Object.values(errors)),
-                preserveState: true,
+                preserveState: false,
             });
         });
 
@@ -78,10 +78,10 @@ export default function AdminAccount({ adminConfig = {} }) {
                                 <Input
                                     label="Full Name"
                                     placeholder="John Doe"
-                                    value={data.name}
-                                    onValueChange={(value) => setData('name', value)}
-                                    isInvalid={!!errors.name}
-                                    errorMessage={errors.name}
+                                    value={data.admin_name}
+                                    onValueChange={(value) => setData('admin_name', value)}
+                                    isInvalid={!!errors.admin_name}
+                                    errorMessage={errors.admin_name}
                                     isRequired
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
@@ -90,10 +90,10 @@ export default function AdminAccount({ adminConfig = {} }) {
                                     type="email"
                                     label="Email Address"
                                     placeholder="admin@your-domain.com"
-                                    value={data.email}
-                                    onValueChange={(value) => setData('email', value)}
-                                    isInvalid={!!errors.email}
-                                    errorMessage={errors.email}
+                                    value={data.admin_email}
+                                    onValueChange={(value) => setData('admin_email', value)}
+                                    isInvalid={!!errors.admin_email}
+                                    errorMessage={errors.admin_email}
                                     isRequired
                                     description="You will use this email to log in"
                                     classNames={{ inputWrapper: "bg-default-100" }}
@@ -103,10 +103,10 @@ export default function AdminAccount({ adminConfig = {} }) {
                                     type="password"
                                     label="Password"
                                     placeholder="Enter a strong password"
-                                    value={data.password}
-                                    onValueChange={(value) => setData('password', value)}
-                                    isInvalid={!!errors.password}
-                                    errorMessage={errors.password}
+                                    value={data.admin_password}
+                                    onValueChange={(value) => setData('admin_password', value)}
+                                    isInvalid={!!errors.admin_password}
+                                    errorMessage={errors.admin_password}
                                     isRequired
                                     description="Minimum 8 characters, include letters and numbers"
                                     classNames={{ inputWrapper: "bg-default-100" }}
@@ -116,10 +116,10 @@ export default function AdminAccount({ adminConfig = {} }) {
                                     type="password"
                                     label="Confirm Password"
                                     placeholder="Re-enter your password"
-                                    value={data.password_confirmation}
-                                    onValueChange={(value) => setData('password_confirmation', value)}
-                                    isInvalid={!!errors.password_confirmation}
-                                    errorMessage={errors.password_confirmation}
+                                    value={data.admin_password_confirmation}
+                                    onValueChange={(value) => setData('admin_password_confirmation', value)}
+                                    isInvalid={!!errors.admin_password_confirmation}
+                                    errorMessage={errors.admin_password_confirmation}
                                     isRequired
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
@@ -143,7 +143,7 @@ export default function AdminAccount({ adminConfig = {} }) {
 
                     <CardFooter className="flex justify-between items-center border-t border-divider px-8 py-6">
                         <Button
-                            as="a"
+                            as={Link}
                             href={route('installation.platform')}
                             variant="flat"
                             color="default"

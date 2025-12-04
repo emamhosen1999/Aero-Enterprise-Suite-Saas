@@ -66,8 +66,25 @@ class InstallationService
         // Platform configuration
         $envContent = $this->updateEnvValue($envContent, 'APP_NAME', $platformConfig['app_name']);
         $envContent = $this->updateEnvValue($envContent, 'APP_URL', $platformConfig['app_url']);
+        $envContent = $this->updateEnvValue($envContent, 'APP_TIMEZONE', $platformConfig['app_timezone'] ?? 'UTC');
+        $envContent = $this->updateEnvValue($envContent, 'APP_LOCALE', $platformConfig['app_locale'] ?? 'en');
+        $envContent = $this->updateEnvValue($envContent, 'APP_DEBUG', $platformConfig['app_debug'] ? 'true' : 'false');
+
+        // Email configuration - write to .env as fallback
+        $envContent = $this->updateEnvValue($envContent, 'MAIL_MAILER', $platformConfig['mail_mailer'] ?? 'smtp');
+        $envContent = $this->updateEnvValue($envContent, 'MAIL_HOST', $platformConfig['mail_host'] ?? '127.0.0.1');
+        $envContent = $this->updateEnvValue($envContent, 'MAIL_PORT', $platformConfig['mail_port'] ?? 587);
+        $envContent = $this->updateEnvValue($envContent, 'MAIL_USERNAME', $platformConfig['mail_username'] ?? '');
+        $envContent = $this->updateEnvValue($envContent, 'MAIL_PASSWORD', $platformConfig['mail_password'] ?? '');
+        $envContent = $this->updateEnvValue($envContent, 'MAIL_ENCRYPTION', $platformConfig['mail_encryption'] ?? 'tls');
         $envContent = $this->updateEnvValue($envContent, 'MAIL_FROM_ADDRESS', $platformConfig['mail_from_address']);
         $envContent = $this->updateEnvValue($envContent, 'MAIL_FROM_NAME', $platformConfig['mail_from_name']);
+
+        // Backend driver configuration
+        $envContent = $this->updateEnvValue($envContent, 'QUEUE_CONNECTION', $platformConfig['queue_connection'] ?? 'sync');
+        $envContent = $this->updateEnvValue($envContent, 'SESSION_DRIVER', $platformConfig['session_driver'] ?? 'database');
+        $envContent = $this->updateEnvValue($envContent, 'CACHE_STORE', $platformConfig['cache_driver'] ?? 'database');
+        $envContent = $this->updateEnvValue($envContent, 'FILESYSTEM_DISK', $platformConfig['filesystem_disk'] ?? 'local');
 
         File::put($envPath, $envContent);
     }

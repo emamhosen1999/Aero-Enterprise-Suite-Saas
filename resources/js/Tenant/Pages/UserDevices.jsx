@@ -61,7 +61,7 @@ const UserDevices = ({ user, devices }) => {
             <Button
               as={Link}
               href={route('users')}
-              prefetch
+              
               variant="light"
               startContent={<ArrowLeftIcon className="w-4 h-4" />}
               className="mb-2"

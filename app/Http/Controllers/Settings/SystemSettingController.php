@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateSystemSettingRequest;
 use App\Http\Resources\SystemSettingResource;
 use App\Models\SystemSetting;
-use App\Services\Mail\RuntimeMailConfigService;
+use App\Services\Mail\MailService;
 use App\Services\Notifications\RuntimeSmsConfigService;
 use App\Services\Settings\SystemSettingService;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +18,7 @@ class SystemSettingController extends Controller
 {
     public function __construct(
         private readonly SystemSettingService $service,
-        private readonly RuntimeMailConfigService $mailService,
+        private readonly MailService $mailService,
         private readonly RuntimeSmsConfigService $smsService
     ) {}
 

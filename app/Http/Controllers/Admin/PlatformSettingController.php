@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdatePlatformSettingRequest;
 use App\Http\Resources\PlatformSettingResource;
 use App\Models\PlatformSetting;
-use App\Services\Mail\RuntimeMailConfigService;
+use App\Services\Mail\MailService;
 use App\Services\Notifications\RuntimeSmsConfigService;
 use App\Services\Settings\PlatformSettingService;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +19,7 @@ class PlatformSettingController extends Controller
 {
     public function __construct(
         private readonly PlatformSettingService $service,
-        private readonly RuntimeMailConfigService $mailService,
+        private readonly MailService $mailService,
         private readonly RuntimeSmsConfigService $smsService
     ) {
         // Middleware handled by route group (auth:landlord)

@@ -980,7 +980,7 @@ const EmployeeTable = ({
                   startContent={<PencilIcon className="w-4 h-4" />}
                   href={route('profile', { user: user.id })}
                   as={Link}
-                  prefetch
+                  
                 >
                   Edit Profile
                 </DropdownItem>

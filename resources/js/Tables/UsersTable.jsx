@@ -636,7 +636,7 @@ const UsersTable = ({
                   textValue="View Profile"
                   href={route('profile', { user: user.id })}
                   as={Link}
-                  prefetch
+                  
                   className="text-blue-500"
                   startContent={<UserIcon className="w-4 h-4" />}
                 >
@@ -646,7 +646,7 @@ const UsersTable = ({
                   textValue="Start Onboarding"
                   href={route('hr.onboarding.wizard', { employee: user.id })}
                   as={Link}
-                  prefetch
+                  
                   className="text-primary"
                   startContent={<BriefcaseIcon className="w-4 h-4" />}
                 >
@@ -729,7 +729,7 @@ const UsersTable = ({
                   textValue="View Devices"
                   href={route('admin.users.devices', { userId: user.id })}
                   as={Link}
-                  prefetch
+                  
                   startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
                   className="text-blue-500"
                 >

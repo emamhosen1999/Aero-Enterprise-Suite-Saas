@@ -1,1 +1,0 @@
-import{l as p,n as u,o as h,p as v,j as x}from"./app-guaz0inx.js";var r=p((o,d)=>{var a;const{as:l,className:t,children:c,...n}=o,m=l||"div",f=u(d),{slots:e,classNames:s}=h(),i=v(s==null?void 0:s.header,t);return x.jsx(m,{ref:f,className:(a=e.header)==null?void 0:a.call(e,{class:i}),...n,children:c})});r.displayName="HeroUI.CardHeader";var N=r;export{N as c};

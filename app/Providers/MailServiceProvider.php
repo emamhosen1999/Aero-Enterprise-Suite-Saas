@@ -2,10 +2,8 @@
 
 namespace App\Providers;
 
-use App\Services\Mail\RuntimeMailConfigService;
+use App\Services\Mail\MailService;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Notifications\Events\NotificationSending;
 
 /**
  * MailServiceProvider
@@ -22,9 +20,9 @@ class MailServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register the RuntimeMailConfigService as a singleton
-        $this->app->singleton(RuntimeMailConfigService::class, function ($app) {
-            return new RuntimeMailConfigService();
+        // Register the MailService as a singleton
+        $this->app->singleton(MailService::class, function ($app) {
+            return new MailService;
         });
     }
 
@@ -33,13 +31,7 @@ class MailServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Apply appropriate mail settings (platform or tenant) before any notification is sent
-        Event::listen(NotificationSending::class, function (NotificationSending $event) {
-            // Only apply for mail channel
-            if ($event->channel === 'mail') {
-                $mailService = app(RuntimeMailConfigService::class);
-                $mailService->applyMailSettings(); // Unified method that auto-detects context
-            }
-        });
+        // Note: MailService now handles context detection automatically
+        // No need to apply settings before sending - it's handled in sendMail()
     }
 }

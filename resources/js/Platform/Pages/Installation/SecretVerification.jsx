@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import InstallationLayout from '@/Layouts/InstallationLayout';
 import { Card, CardHeader, CardBody, CardFooter, Button, Input } from '@heroui/react';
 import { ShieldCheckIcon, KeyIcon } from '@heroicons/react/24/outline';
@@ -105,7 +105,7 @@ export default function SecretVerification() {
 
                     <CardFooter className="flex justify-between items-center border-t border-divider px-8 py-6">
                         <Button
-                            as="a"
+                            as={Link}
                             href={route('installation.index')}
                             variant="flat"
                             color="default"

@@ -329,7 +329,6 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             method={page.method}
             preserveState
             preserveScroll
-            prefetch
             variant="light"
             startContent={
               <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
@@ -562,7 +561,6 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           method={page.method}
           preserveState
           preserveScroll
-          prefetch
           startContent={
             <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
               {page.icon}

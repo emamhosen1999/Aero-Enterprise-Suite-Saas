@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\PlatformSetting;
-use App\Services\Mail\RuntimeMailConfigService;
+use App\Services\Mail\MailService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
@@ -34,7 +34,7 @@ class TestMailConfiguration extends Command
     protected $description = 'Test and configure platform mail settings for tenant provisioning';
 
     public function __construct(
-        protected RuntimeMailConfigService $mailConfigService
+        protected MailService $mailConfigService
     ) {
         parent::__construct();
     }

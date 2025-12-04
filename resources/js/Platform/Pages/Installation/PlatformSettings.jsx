@@ -1,15 +1,121 @@
 import React, { useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import InstallationLayout from '@/Layouts/InstallationLayout';
-import { Card, CardHeader, CardBody, CardFooter, Button, Input, Select, SelectItem } from '@heroui/react';
-import { Cog6ToothIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { 
+    Card, CardHeader, CardBody, CardFooter, 
+    Button, Input, Select, SelectItem, Switch,
+    Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
+    useDisclosure
+} from '@heroui/react';
+import { Cog6ToothIcon, CheckCircleIcon, XCircleIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
+// Test Email Modal Component
+const TestEmailModal = ({ isOpen, onOpenChange, emailSettings }) => {
+    const [testEmail, setTestEmail] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const handleSendTest = async () => {
+        if (!testEmail || !testEmail.includes('@')) {
+            showToast.error('Please enter a valid email address');
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            const response = await axios.post(route('installation.test-email'), {
+                test_email: testEmail,
+                ...emailSettings
+            });
+
+            if (response.data.success) {
+                showToast.success(response.data.message);
+                onOpenChange(false);
+                setTestEmail('');
+            }
+        } catch (error) {
+            let message = 'Failed to send test email';
+            
+            if (error.response?.data?.message) {
+                message = error.response.data.message;
+                
+                // Format error messages for better clarity
+                if (message.includes('Connection could not be established')) {
+                    const host = emailSettings?.mail_host || 'mail server';
+                    const port = emailSettings?.mail_port || 'configured port';
+                    message = `Cannot connect to ${host}:${port}. Please check:\n\n• Mail server hostname\n• Port number and encryption\n• Firewall/network access\n• Server credentials`;
+                } else if (message.includes('Authentication')) {
+                    message = 'Authentication failed. Verify username and password.';
+                } else if (message.includes('timed out')) {
+                    message = 'Connection timed out. Server may be unreachable.';
+                } else if (message.includes('SSL') || message.includes('TLS')) {
+                    message = 'Encryption error. Verify port and encryption settings match.';
+                }
+            }
+            
+            showToast.error(message, { duration: 8000 });
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const hasSettings = emailSettings?.mail_host && emailSettings?.mail_from_address;
+
+    return (
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <ModalContent>
+                {(onClose) => (
+                    <>
+                        <ModalHeader className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <EnvelopeIcon className="w-5 h-5 text-primary" />
+                                <span>Send Test Email</span>
+                            </div>
+                        </ModalHeader>
+                        <ModalBody>
+                            <p className="text-sm text-default-500 mb-4">
+                                This will send a test email using the current configuration to verify your settings.
+                            </p>
+                            <Input
+                                autoFocus
+                                label="Recipient Email"
+                                placeholder="admin@example.com"
+                                type="email"
+                                value={testEmail}
+                                onChange={(e) => setTestEmail(e.target.value)}
+                                description="Enter the email address to receive the test"
+                                isDisabled={!hasSettings}
+                                classNames={{ inputWrapper: "bg-default-100" }}
+                            />
+                            {!hasSettings && (
+                                <p className="text-xs text-warning-600 mt-2">
+                                    ⚠️ Please configure mail host and from address first
+                                </p>
+                            )}
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button variant="flat" onPress={onClose}>
+                                Cancel
+                            </Button>
+                            <Button
+                                color="primary"
+                                onPress={handleSendTest}
+                                isLoading={isSending}
+                                isDisabled={!testEmail || !hasSettings}
+                            >
+                                {isSending ? 'Sending...' : 'Send Test Email'}
+                            </Button>
+                        </ModalFooter>
+                    </>
+                )}
+            </ModalContent>
+        </Modal>
+    );
+};
+
 export default function PlatformSettings({ platformConfig = {} }) {
-    const [testingEmail, setTestingEmail] = useState(false);
-    const [emailTestResult, setEmailTestResult] = useState(null);
-    const [testingMail, setTestingMail] = useState('');
+    const { isOpen: isEmailModalOpen, onOpen: onEmailModalOpen, onOpenChange: onEmailModalChange } = useDisclosure();
     const [testingSms, setTestingSms] = useState(false);
     const [smsTestResult, setSmsTestResult] = useState(null);
     const [testingSmsNumber, setTestingSmsNumber] = useState('');
@@ -17,6 +123,9 @@ export default function PlatformSettings({ platformConfig = {} }) {
     const { data, setData, post, processing, errors } = useForm({
         app_name: platformConfig.app_name || 'Aero Enterprise Suite',
         app_url: platformConfig.app_url || window.location.origin,
+        app_timezone: platformConfig.app_timezone || 'UTC',
+        app_locale: platformConfig.app_locale || 'en',
+        app_debug: platformConfig.app_debug || false,
         mail_mailer: platformConfig.mail_mailer || 'smtp',
         mail_host: platformConfig.mail_host || 'smtp.mailtrap.io',
         mail_port: platformConfig.mail_port || '2525',
@@ -25,6 +134,9 @@ export default function PlatformSettings({ platformConfig = {} }) {
         mail_encryption: platformConfig.mail_encryption || 'tls',
         mail_from_address: platformConfig.mail_from_address || 'noreply@aero-enterprise-suite.com',
         mail_from_name: platformConfig.mail_from_name || 'Aero Enterprise Suite',
+        mail_verify_ssl: platformConfig.mail_verify_ssl !== undefined ? platformConfig.mail_verify_ssl : true,
+        mail_verify_ssl_name: platformConfig.mail_verify_ssl_name !== undefined ? platformConfig.mail_verify_ssl_name : true,
+        mail_allow_self_signed: platformConfig.mail_allow_self_signed || false,
         sms_provider: platformConfig.sms_provider || 'twilio',
         sms_twilio_sid: platformConfig.sms_twilio_sid || '',
         sms_twilio_token: platformConfig.sms_twilio_token || '',
@@ -32,38 +144,11 @@ export default function PlatformSettings({ platformConfig = {} }) {
         sms_nexmo_key: platformConfig.sms_nexmo_key || '',
         sms_nexmo_secret: platformConfig.sms_nexmo_secret || '',
         sms_nexmo_from: platformConfig.sms_nexmo_from || '',
+        queue_connection: platformConfig.queue_connection || 'sync',
+        session_driver: platformConfig.session_driver || 'database',
+        cache_driver: platformConfig.cache_driver || 'database',
+        filesystem_disk: platformConfig.filesystem_disk || 'local',
     });
-
-    const handleTestEmail = async () => {
-        if (!testingMail) {
-            showToast.warning('Please enter an email address to test');
-            return;
-        }
-
-        setTestingEmail(true);
-        setEmailTestResult(null);
-
-        try {
-            const response = await axios.post(route('installation.test-email'), {
-                ...data,
-                test_email: testingMail,
-            });
-
-            if (response.data.success) {
-                setEmailTestResult({ success: true, message: response.data.message });
-                showToast.success('Test email sent successfully!');
-            } else {
-                setEmailTestResult({ success: false, message: response.data.message });
-                showToast.error('Failed to send test email');
-            }
-        } catch (error) {
-            const message = error.response?.data?.message || 'Email test failed';
-            setEmailTestResult({ success: false, message });
-            showToast.error(message);
-        } finally {
-            setTestingEmail(false);
-        }
-    };
 
     const handleTestSms = async () => {
         if (!testingSmsNumber) {
@@ -103,13 +188,10 @@ export default function PlatformSettings({ platformConfig = {} }) {
             post(route('installation.save-platform'), {
                 onSuccess: () => {
                     resolve(['Platform settings saved successfully']);
-                    // Navigate to next step after short delay
-                    setTimeout(() => {
-                        router.visit(route('installation.admin'));
-                    }, 500);
+                    // Inertia will automatically handle redirect from backend
                 },
                 onError: (errors) => reject(Object.values(errors)),
-                preserveState: true,
+                preserveState: false, // Allow redirect to proceed
             });
         });
 
@@ -181,6 +263,72 @@ export default function PlatformSettings({ platformConfig = {} }) {
                                         description="The base URL where your platform is hosted"
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
+                                </div>
+                            </div>
+
+                            {/* Platform Details */}
+                            <div>
+                                <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Platform Details</h3>
+                                <div className="space-y-3 sm:space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <Select
+                                            label="Timezone"
+                                            placeholder="Select timezone"
+                                            selectedKeys={[data.app_timezone]}
+                                            onSelectionChange={(keys) => setData('app_timezone', Array.from(keys)[0])}
+                                            isInvalid={!!errors.app_timezone}
+                                            errorMessage={errors.app_timezone}
+                                            isRequired
+                                            description="Platform default timezone"
+                                            classNames={{ trigger: "bg-default-100" }}
+                                        >
+                                            <SelectItem key="UTC">UTC (Coordinated Universal Time)</SelectItem>
+                                            <SelectItem key="America/New_York">America/New York (EST/EDT)</SelectItem>
+                                            <SelectItem key="America/Chicago">America/Chicago (CST/CDT)</SelectItem>
+                                            <SelectItem key="America/Denver">America/Denver (MST/MDT)</SelectItem>
+                                            <SelectItem key="America/Los_Angeles">America/Los Angeles (PST/PDT)</SelectItem>
+                                            <SelectItem key="Europe/London">Europe/London (GMT/BST)</SelectItem>
+                                            <SelectItem key="Europe/Paris">Europe/Paris (CET/CEST)</SelectItem>
+                                            <SelectItem key="Asia/Dubai">Asia/Dubai (GST)</SelectItem>
+                                            <SelectItem key="Asia/Kolkata">Asia/Kolkata (IST)</SelectItem>
+                                            <SelectItem key="Asia/Dhaka">Asia/Dhaka (BST)</SelectItem>
+                                            <SelectItem key="Asia/Shanghai">Asia/Shanghai (CST)</SelectItem>
+                                            <SelectItem key="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+                                            <SelectItem key="Australia/Sydney">Australia/Sydney (AEDT/AEST)</SelectItem>
+                                        </Select>
+
+                                        <Select
+                                            label="Default Language"
+                                            placeholder="Select language"
+                                            selectedKeys={[data.app_locale]}
+                                            onSelectionChange={(keys) => setData('app_locale', Array.from(keys)[0])}
+                                            isInvalid={!!errors.app_locale}
+                                            errorMessage={errors.app_locale}
+                                            isRequired
+                                            description="Platform default language"
+                                            classNames={{ trigger: "bg-default-100" }}
+                                        >
+                                            <SelectItem key="en">English</SelectItem>
+                                            <SelectItem key="bn">বাংলা (Bengali)</SelectItem>
+                                            <SelectItem key="zh-CN">简体中文 (Simplified Chinese)</SelectItem>
+                                            <SelectItem key="zh-TW">繁體中文 (Traditional Chinese)</SelectItem>
+                                        </Select>
+                                    </div>
+
+                                    <div className="border border-warning-200 dark:border-warning-800 rounded-lg p-3 sm:p-4 bg-warning-50/50 dark:bg-warning-900/10">
+                                        <Switch
+                                            isSelected={data.app_debug}
+                                            onValueChange={(value) => setData('app_debug', value)}
+                                            size="sm"
+                                        >
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-medium text-foreground">Debug Mode</span>
+                                                <span className="text-xs text-warning-600 dark:text-warning-400">
+                                                    ⚠️ Enable only for development. Disable in production for security.
+                                                </span>
+                                            </div>
+                                        </Switch>
+                                    </div>
                                 </div>
                             </div>
 
@@ -270,76 +418,63 @@ export default function PlatformSettings({ platformConfig = {} }) {
                                         />
                                     </div>
 
-                                    <Input
-                                        type="email"
-                                        label="From Email Address"
-                                        placeholder="noreply@your-domain.com"
-                                        value={data.mail_from_address}
-                                        onValueChange={(value) => setData('mail_from_address', value)}
-                                        isInvalid={!!errors.mail_from_address}
-                                        errorMessage={errors.mail_from_address}
-                                        isRequired
-                                        description="Email address used for outgoing emails"
-                                        classNames={{ inputWrapper: "bg-default-100" }}
-                                    />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <Input
+                                            label="From Email Address"
+                                            type="email"
+                                            placeholder="noreply@your-domain.com"
+                                            value={data.mail_from_address}
+                                            onValueChange={(value) => setData('mail_from_address', value)}
+                                            isInvalid={!!errors.mail_from_address}
+                                            errorMessage={errors.mail_from_address}
+                                            isRequired
+                                            description="Email address used for outgoing emails"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
 
-                                    <Input
-                                        label="From Name"
-                                        placeholder="Aero Enterprise Suite"
-                                        value={data.mail_from_name}
-                                        onValueChange={(value) => setData('mail_from_name', value)}
-                                        isInvalid={!!errors.mail_from_name}
-                                        errorMessage={errors.mail_from_name}
-                                        isRequired
-                                        description="Name displayed as the sender of emails"
-                                        classNames={{ inputWrapper: "bg-default-100" }}
-                                    />
-
-                                    {/* Email Test Section */}
-                                    <div className="border border-divider rounded-lg p-4 bg-default-50/50">
-                                        <h4 className="text-sm font-semibold text-foreground mb-3">Test Email Configuration</h4>
-                                        <div className="flex flex-col gap-3">
-                                            <Input
-                                                type="email"
-                                                placeholder="test@example.com"
-                                                value={testingMail}
-                                                onValueChange={setTestingMail}
-                                                label="Test Email Address"
-                                                classNames={{ inputWrapper: "bg-white dark:bg-default-100" }}
-                                            />
-                                            <Button
-                                                type="button"
-                                                color="secondary"
-                                                variant="flat"
-                                                onPress={handleTestEmail}
-                                                isLoading={testingEmail}
-                                                isDisabled={!testingMail || testingEmail}
-                                            >
-                                                Send Test Email
-                                            </Button>
-                                            
-                                            {emailTestResult && (
-                                                <div className={`flex items-center gap-2 p-3 rounded-lg border ${
-                                                    emailTestResult.success
-                                                        ? 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800'
-                                                        : 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-800'
-                                                }`}>
-                                                    {emailTestResult.success ? (
-                                                        <CheckCircleIcon className="w-5 h-5 text-success-600 flex-shrink-0" />
-                                                    ) : (
-                                                        <XCircleIcon className="w-5 h-5 text-danger-600 flex-shrink-0" />
-                                                    )}
-                                                    <p className={`text-sm ${
-                                                        emailTestResult.success 
-                                                            ? 'text-success-800 dark:text-success-200' 
-                                                            : 'text-danger-800 dark:text-danger-200'
-                                                    }`}>
-                                                        {emailTestResult.message}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
+                                        <Input
+                                            label="From Name"
+                                            placeholder="Aero Enterprise Suite"
+                                            value={data.mail_from_name}
+                                            onValueChange={(value) => setData('mail_from_name', value)}
+                                            isInvalid={!!errors.mail_from_name}
+                                            errorMessage={errors.mail_from_name}
+                                            isRequired
+                                            description="Name displayed as sender"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
                                     </div>
+
+                                    {/* SSL Verification Settings */}
+                                    <div className="p-3 bg-warning-50 dark:bg-warning-900/20 rounded-lg border border-warning-200 dark:border-warning-700">
+                                        <Switch
+                                            isSelected={!data.mail_verify_ssl || data.mail_allow_self_signed}
+                                            onValueChange={(checked) => {
+                                                setData('mail_verify_ssl', !checked);
+                                                setData('mail_allow_self_signed', checked);
+                                            }}
+                                            size="sm"
+                                        >
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-medium">Skip SSL Certificate Verification</span>
+                                                <span className="text-xs text-warning-600 dark:text-warning-400">
+                                                    Enable for shared hosting with mismatched SSL certificates (e.g., cPanel)
+                                                </span>
+                                            </div>
+                                        </Switch>
+                                    </div>
+
+                                    {/* Test Email Button */}
+                                    <Button
+                                        type="button"
+                                        color="primary"
+                                        variant="flat"
+                                        startContent={<EnvelopeIcon className="w-4 h-4" />}
+                                        onPress={onEmailModalOpen}
+                                        isDisabled={!data.mail_host || !data.mail_from_address}
+                                    >
+                                        Send Test Email
+                                    </Button>
                                 </div>
                             </div>
 
@@ -485,13 +620,96 @@ export default function PlatformSettings({ platformConfig = {} }) {
                                 </div>
                             </div>
 
+                            {/* Backend Configuration */}
+                            <div>
+                                <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Backend Configuration</h3>
+                                <div className="space-y-3 sm:space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <Select
+                                            label="Queue Driver"
+                                            placeholder="Select queue driver"
+                                            selectedKeys={[data.queue_connection]}
+                                            onSelectionChange={(keys) => setData('queue_connection', Array.from(keys)[0])}
+                                            isInvalid={!!errors.queue_connection}
+                                            errorMessage={errors.queue_connection}
+                                            isRequired
+                                            description="Job queue system for background tasks"
+                                            classNames={{ trigger: "bg-default-100" }}
+                                        >
+                                            <SelectItem key="sync">Sync (No Queue - Development)</SelectItem>
+                                            <SelectItem key="database">Database (Recommended)</SelectItem>
+                                            <SelectItem key="redis">Redis (High Performance)</SelectItem>
+                                            <SelectItem key="beanstalkd">Beanstalkd</SelectItem>
+                                            <SelectItem key="sqs">Amazon SQS</SelectItem>
+                                        </Select>
+
+                                        <Select
+                                            label="Session Driver"
+                                            placeholder="Select session driver"
+                                            selectedKeys={[data.session_driver]}
+                                            onSelectionChange={(keys) => setData('session_driver', Array.from(keys)[0])}
+                                            isInvalid={!!errors.session_driver}
+                                            errorMessage={errors.session_driver}
+                                            isRequired
+                                            description="User session storage mechanism"
+                                            classNames={{ trigger: "bg-default-100" }}
+                                        >
+                                            <SelectItem key="file">File (Default)</SelectItem>
+                                            <SelectItem key="cookie">Cookie</SelectItem>
+                                            <SelectItem key="database">Database (Recommended)</SelectItem>
+                                            <SelectItem key="apc">APC</SelectItem>
+                                            <SelectItem key="memcached">Memcached</SelectItem>
+                                            <SelectItem key="redis">Redis</SelectItem>
+                                            <SelectItem key="array">Array (Testing)</SelectItem>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <Select
+                                            label="Cache Driver"
+                                            placeholder="Select cache driver"
+                                            selectedKeys={[data.cache_driver]}
+                                            onSelectionChange={(keys) => setData('cache_driver', Array.from(keys)[0])}
+                                            isInvalid={!!errors.cache_driver}
+                                            errorMessage={errors.cache_driver}
+                                            isRequired
+                                            description="Application caching system"
+                                            classNames={{ trigger: "bg-default-100" }}
+                                        >
+                                            <SelectItem key="file">File (Default)</SelectItem>
+                                            <SelectItem key="database">Database</SelectItem>
+                                            <SelectItem key="apc">APC</SelectItem>
+                                            <SelectItem key="memcached">Memcached</SelectItem>
+                                            <SelectItem key="redis">Redis (Recommended)</SelectItem>
+                                            <SelectItem key="array">Array (Testing)</SelectItem>
+                                        </Select>
+
+                                        <Select
+                                            label="Filesystem Disk"
+                                            placeholder="Select filesystem"
+                                            selectedKeys={[data.filesystem_disk]}
+                                            onSelectionChange={(keys) => setData('filesystem_disk', Array.from(keys)[0])}
+                                            isInvalid={!!errors.filesystem_disk}
+                                            errorMessage={errors.filesystem_disk}
+                                            isRequired
+                                            description="File storage system"
+                                            classNames={{ trigger: "bg-default-100" }}
+                                        >
+                                            <SelectItem key="local">Local Storage (Default)</SelectItem>
+                                            <SelectItem key="public">Public Storage</SelectItem>
+                                            <SelectItem key="s3">Amazon S3</SelectItem>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </div>
+
                            
                         </div>
                     </CardBody>
 
                     <CardFooter className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 border-t border-divider px-4 sm:px-6 md:px-8 py-4 sm:py-6">
                         <Button
-                            as="a"
+                            as={Link}
                             href={route('installation.database')}
                             variant="flat"
                             color="default"
@@ -512,6 +730,13 @@ export default function PlatformSettings({ platformConfig = {} }) {
                     </CardFooter>
                 </form>
             </Card>
+
+            {/* Test Email Modal */}
+            <TestEmailModal 
+                isOpen={isEmailModalOpen} 
+                onOpenChange={onEmailModalChange}
+                emailSettings={data}
+            />
         </InstallationLayout>
     );
 }

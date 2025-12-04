@@ -7,7 +7,6 @@ use App\Models\Tenant;
 use App\Notifications\TenantProvisioningFailed;
 use App\Notifications\WelcomeToTenant;
 use App\Services\Mail\MailService;
-use App\Services\Mail\RuntimeMailConfigService;
 use App\Services\Platform\PlatformVerificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
@@ -21,21 +20,18 @@ class MailConfigurationTest extends TestCase
 {
     use RefreshDatabase;
 
-    private RuntimeMailConfigService $runtimeMailService;
-
     private MailService $mailService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->runtimeMailService = app(RuntimeMailConfigService::class);
         $this->mailService = app(MailService::class);
     }
 
     /**
-     * Test that RuntimeMailConfigService applies platform mail settings.
+     * Test that MailService uses platform mail settings.
      */
-    public function test_runtime_mail_config_applies_platform_settings(): void
+    public function test_mail_service_uses_platform_settings(): void
     {
         // Create platform settings with email configuration
         $platformSetting = PlatformSetting::create([
@@ -53,29 +49,29 @@ class MailConfigurationTest extends TestCase
             ],
         ]);
 
-        // Apply platform mail settings
-        $applied = $this->runtimeMailService->applyPlatformMailSettings();
+        // Get platform mail settings
+        $config = $this->mailService->getPlatformConfig();
 
-        $this->assertTrue($applied);
-        $this->assertEquals('smtp', config('mail.default'));
-        $this->assertEquals('smtp.test.com', config('mail.mailers.smtp.host'));
-        $this->assertEquals(587, config('mail.mailers.smtp.port'));
-        $this->assertEquals('noreply@test.com', config('mail.from.address'));
-        $this->assertEquals('Test Platform', config('mail.from.name'));
+        $this->assertTrue($config['configured']);
+        $this->assertEquals('smtp', $config['driver']);
+        $this->assertEquals('smtp.test.com', $config['host']);
+        $this->assertEquals(587, $config['port']);
+        $this->assertEquals('noreply@test.com', $config['from_address']);
+        $this->assertEquals('Test Platform', $config['from_name']);
     }
 
     /**
-     * Test that RuntimeMailConfigService falls back to .env when no platform settings exist.
+     * Test that MailService falls back to .env when no platform settings exist.
      */
-    public function test_runtime_mail_config_falls_back_to_env(): void
+    public function test_mail_service_falls_back_to_env(): void
     {
         // Ensure no platform settings exist
         PlatformSetting::truncate();
 
-        // Apply platform mail settings (should fall back to .env)
-        $applied = $this->runtimeMailService->applyPlatformMailSettings();
+        // Get platform mail settings (should fall back to .env)
+        $config = $this->mailService->getPlatformConfig();
 
-        $this->assertFalse($applied);
+        $this->assertFalse($config['configured']);
     }
 
     /**

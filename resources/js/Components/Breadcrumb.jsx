@@ -193,7 +193,7 @@ const Breadcrumb = () => {
                             `}
                         >
                             {breadcrumb.href ? (
-                                <Link href={breadcrumb.href} prefetch className="hover:underline">
+                                <Link href={breadcrumb.href} className="hover:underline">
                                     {breadcrumb.label}
                                 </Link>
                             ) : (

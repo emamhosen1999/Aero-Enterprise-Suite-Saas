@@ -15,6 +15,7 @@ use Symfony\Component\Mime\Email;
  *
  * A single, unified mail service that handles all email sending for the application.
  * Uses Symfony Mailer directly for reliable SSL/TLS handling on shared hosting.
+ * Merges functionality from both MailService and RuntimeMailConfigService.
  *
  * Features:
  * - Automatic context detection (platform vs tenant)
@@ -22,10 +23,17 @@ use Symfony\Component\Mime\Email;
  * - HTML and plain text email support
  * - CC, BCC, Reply-To, and attachments support
  * - Fallback to platform settings when tenant has no custom config
+ * - Backward compatibility with RuntimeMailConfigService methods
  *
  * Usage:
- *   app(MailService::class)->send('user@example.com', 'Subject', '<h1>HTML Body</h1>');
+ *   // Fluent API (new style):
  *   MailService::make()->to('user@example.com')->subject('Hello')->html('<p>Body</p>')->send();
+ *
+ *   // Direct sending (simple):
+ *   app(MailService::class)->sendMail('user@example.com', 'Subject', '<h1>HTML Body</h1>');
+ *
+ *   // Test email:
+ *   app(MailService::class)->sendTestEmail('user@example.com');
  */
 class MailService
 {
@@ -362,7 +370,7 @@ class MailService
                 'username' => $emailSettings['username'] ?? '',
                 'password' => $settings->getEmailPassword() ?? '',
                 'encryption' => $emailSettings['encryption'] ?? 'tls',
-                'verify_peer' => $emailSettings['verify_peer'] ?? true,
+                'verify_peer' => $emailSettings['verify_peer'] ?? false,
                 'from_address' => $emailSettings['from_address'] ?? config('mail.from.address'),
                 'from_name' => $emailSettings['from_name'] ?? config('mail.from.name', config('app.name')),
             ];
@@ -399,7 +407,7 @@ class MailService
                 'username' => $emailSettings['username'] ?? '',
                 'password' => $settings->getEmailPassword() ?? '',
                 'encryption' => $emailSettings['encryption'] ?? 'tls',
-                'verify_peer' => $emailSettings['verify_peer'] ?? true,
+                'verify_peer' => $emailSettings['verify_peer'] ?? false,
                 'from_address' => $emailSettings['from_address'] ?? config('mail.from.address'),
                 'from_name' => $emailSettings['from_name'] ?? config('mail.from.name', config('app.name')),
             ];
@@ -423,7 +431,7 @@ class MailService
             'username' => config('mail.mailers.smtp.username', ''),
             'password' => config('mail.mailers.smtp.password', ''),
             'encryption' => config('mail.mailers.smtp.encryption', 'tls'),
-            'verify_peer' => true,
+            'verify_peer' => false, // Disable SSL verification for .env config (shared hosting compatibility)
             'from_address' => config('mail.from.address'),
             'from_name' => config('mail.from.name', config('app.name')),
         ];
@@ -439,9 +447,14 @@ class MailService
 
     /**
      * Send a test email.
+     *
+     * @param  string  $to  Recipient email address
+     * @param  string|null  $subject  Optional custom subject
+     * @return array{success: bool, message: string, using_database_settings: bool}
      */
-    public function sendTest(string $to): array
+    public function sendTestEmail(string $to, ?string $subject = null): array
     {
+        $subject = $subject ?? 'Test Email - '.config('app.name');
         $config = $this->getConfig();
 
         $html = '
@@ -461,6 +474,9 @@ class MailService
             </div>
         ';
 
-        return $this->sendMail($to, 'Test Email - '.config('app.name'), $html);
+        $result = $this->sendMail($to, $subject, $html);
+        $result['using_database_settings'] = $config['configured'];
+
+        return $result;
     }
 }

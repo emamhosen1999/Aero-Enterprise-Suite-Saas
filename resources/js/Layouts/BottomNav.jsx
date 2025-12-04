@@ -91,16 +91,6 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
         }
     ], [auth.user.id, auth.user.name]);
 
-    // ===== PREFETCH NAVIGATION ITEMS ON MOUNT =====
-    useEffect(() => {
-        // Prefetch all navigation destinations for instant transitions
-        // router.prefetch(url, visitOptions, prefetchOptions)
-        navItems.forEach(item => {
-            if (item.href && !item.action) {
-                router.prefetch(item.href, { method: 'get' }, { cacheFor: '1m' });
-            }
-        });
-    }, [navItems]);
 
     // ===== ENHANCED NAVIGATION HANDLER =====
     /**

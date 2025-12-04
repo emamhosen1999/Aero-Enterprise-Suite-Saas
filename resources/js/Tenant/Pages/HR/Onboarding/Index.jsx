@@ -32,8 +32,8 @@ export default function OnboardingIndex() {
         <h1 className="text-xl font-semibold">Onboarding Processes</h1>
         <div className="flex gap-2">
           {/* Placeholder for future filters */}
-          <Link href={route('hr.onboarding.create')} prefetch className="btn btn-outline">Traditional Onboarding</Link>
-          <Link href={route('users')} prefetch className="btn btn-primary">Go to User List</Link>
+          <Link href={route('hr.onboarding.create')}  className="btn btn-outline">Traditional Onboarding</Link>
+          <Link href={route('users')}  className="btn btn-primary">Go to User List</Link>
         </div>
       </div>
       <div className="bg-white rounded-sm shadow-sm divide-y">

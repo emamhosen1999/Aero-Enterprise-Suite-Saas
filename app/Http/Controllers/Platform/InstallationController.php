@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Platform;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\InstallationRequest;
 use App\Models\LandlordUser;
+use App\Models\PlatformSetting;
+use App\Services\Mail\MailService;
 use App\Services\Platform\InstallationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
@@ -152,11 +155,11 @@ class InstallationController extends Controller
                 // Store config in session for later use
                 session([
                     'db_config' => [
-                        'host' => $request->host,
-                        'port' => $request->port,
-                        'database' => $request->database,
-                        'username' => $request->username,
-                        'password' => $request->password,
+                        'db_host' => $request->host,
+                        'db_port' => $request->port,
+                        'db_database' => $request->database,
+                        'db_username' => $request->username,
+                        'db_password' => $request->password,
                     ],
                 ]);
 
@@ -191,6 +194,9 @@ class InstallationController extends Controller
         $platformConfig = session('platform_config', [
             'app_name' => config('app.name', 'Aero Enterprise Suite'),
             'app_url' => config('app.url', url('/')),
+            'app_timezone' => config('app.timezone', 'UTC'),
+            'app_locale' => config('app.locale', 'en'),
+            'app_debug' => config('app.debug', false),
             'mail_mailer' => config('mail.default', 'smtp'),
             'mail_host' => config('mail.mailers.smtp.host', 'smtp.mailtrap.io'),
             'mail_port' => config('mail.mailers.smtp.port', '2525'),
@@ -199,6 +205,13 @@ class InstallationController extends Controller
             'mail_encryption' => config('mail.mailers.smtp.encryption', 'tls'),
             'mail_from_address' => config('mail.from.address', 'noreply@aero-enterprise-suite.com'),
             'mail_from_name' => config('mail.from.name', 'Aero Enterprise Suite'),
+            'mail_verify_ssl' => config('mail.mailers.smtp.verify_peer', false),
+            'mail_verify_ssl_name' => config('mail.mailers.smtp.verify_peer_name', false),
+            'mail_allow_self_signed' => config('mail.mailers.smtp.allow_self_signed', false),
+            'queue_connection' => config('queue.default', 'sync'),
+            'session_driver' => config('session.driver', 'database'),
+            'cache_driver' => config('cache.default', 'database'),
+            'filesystem_disk' => config('filesystems.default', 'local'),
             'sms_provider' => config('services.sms.default', 'twilio'),
             'sms_twilio_sid' => config('services.twilio.sid', ''),
             'sms_twilio_token' => config('services.twilio.token', ''),
@@ -217,11 +230,14 @@ class InstallationController extends Controller
     /**
      * Save platform settings
      */
-    public function savePlatform(Request $request): \Illuminate\Http\JsonResponse
+    public function savePlatform(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'app_name' => ['required', 'string', 'max:255'],
             'app_url' => ['required', 'url'],
+            'app_timezone' => ['required', 'string'],
+            'app_locale' => ['required', 'string', 'in:en,bn,zh-CN,zh-TW'],
+            'app_debug' => ['required', 'boolean'],
             'mail_mailer' => ['required', 'string', 'in:smtp,sendmail,mailgun,ses,postmark,log'],
             'mail_host' => ['required', 'string'],
             'mail_port' => ['required', 'integer', 'min:1', 'max:65535'],
@@ -230,6 +246,13 @@ class InstallationController extends Controller
             'mail_encryption' => ['required', 'string', 'in:tls,ssl,null'],
             'mail_from_address' => ['required', 'email'],
             'mail_from_name' => ['required', 'string', 'max:255'],
+            'mail_verify_ssl' => ['required', 'boolean'],
+            'mail_verify_ssl_name' => ['required', 'boolean'],
+            'mail_allow_self_signed' => ['required', 'boolean'],
+            'queue_connection' => ['required', 'string', 'in:sync,database,redis,beanstalkd,sqs'],
+            'session_driver' => ['required', 'string', 'in:file,cookie,database,apc,memcached,redis,array'],
+            'cache_driver' => ['required', 'string', 'in:file,database,apc,memcached,redis,array'],
+            'filesystem_disk' => ['required', 'string', 'in:local,public,s3'],
             'sms_provider' => ['nullable', 'string', 'in:twilio,nexmo,messagebird,sns'],
             'sms_twilio_sid' => ['nullable', 'string'],
             'sms_twilio_token' => ['nullable', 'string'],
@@ -241,10 +264,7 @@ class InstallationController extends Controller
 
         session(['platform_config' => $validated]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Platform settings saved.',
-        ]);
+        return redirect()->route('installation.admin');
     }
 
     /**
@@ -261,30 +281,76 @@ class InstallationController extends Controller
             'mail_encryption' => ['required', 'string'],
             'mail_from_address' => ['required', 'email'],
             'mail_from_name' => ['required', 'string'],
+            'mail_verify_ssl' => ['required', 'boolean'],
+            'mail_verify_ssl_name' => ['required', 'boolean'],
+            'mail_allow_self_signed' => ['required', 'boolean'],
         ]);
 
         try {
-            // Temporarily configure mail settings
+            // Build temporary config for MailService
+            $tempConfig = [
+                'configured' => true,
+                'driver' => 'smtp',
+                'host' => $request->mail_host,
+                'port' => (int) $request->mail_port,
+                'username' => $request->mail_username,
+                'password' => $request->mail_password,
+                'encryption' => $request->mail_encryption === 'null' ? 'tls' : $request->mail_encryption,
+                'verify_peer' => ! $request->mail_allow_self_signed && $request->mail_verify_ssl,
+                'from_address' => $request->mail_from_address,
+                'from_name' => $request->mail_from_name,
+            ];
+
+            // Create HTML email body
+            $html = '
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #4F46E5;">✅ Test Email Successful</h2>
+                    <p>This is a test email from your <strong>Aero Enterprise Suite</strong> installation.</p>
+                    <p>If you received this, your email configuration is working correctly!</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p><strong>Configuration:</strong></p>
+                    <ul>
+                        <li>Host: '.$request->mail_host.':'.$request->mail_port.'</li>
+                        <li>Encryption: '.$request->mail_encryption.'</li>
+                        <li>From: '.$request->mail_from_address.'</li>
+                        <li>SSL Verification: '.($request->mail_verify_ssl ? 'Enabled' : 'Disabled').'</li>
+                        <li>Time: '.now()->toDateTimeString().'</li>
+                    </ul>
+                </div>
+            ';
+
+            // Use MailService with temporary configuration
+            $mailService = new MailService;
+
+            // Temporarily override config in MailService by setting env config
             config([
-                'mail.mailers.smtp.host' => $request->mail_host,
-                'mail.mailers.smtp.port' => $request->mail_port,
-                'mail.mailers.smtp.username' => $request->mail_username,
-                'mail.mailers.smtp.password' => $request->mail_password,
-                'mail.mailers.smtp.encryption' => $request->mail_encryption === 'null' ? null : $request->mail_encryption,
-                'mail.from.address' => $request->mail_from_address,
-                'mail.from.name' => $request->mail_from_name,
+                'mail.mailers.smtp.host' => $tempConfig['host'],
+                'mail.mailers.smtp.port' => $tempConfig['port'],
+                'mail.mailers.smtp.username' => $tempConfig['username'],
+                'mail.mailers.smtp.password' => $tempConfig['password'],
+                'mail.mailers.smtp.encryption' => $tempConfig['encryption'],
+                'mail.from.address' => $tempConfig['from_address'],
+                'mail.from.name' => $tempConfig['from_name'],
             ]);
 
-            // Send test email
-            \Mail::raw('This is a test email from your Aero Enterprise Suite installation. If you received this, your email configuration is working correctly!', function ($message) use ($request) {
-                $message->to($request->test_email)
-                    ->subject('Test Email - Aero Enterprise Suite Installation');
-            });
+            $result = $mailService
+                ->usePlatformSettings()
+                ->to($request->test_email)
+                ->subject('Test Email - Aero Enterprise Suite Installation')
+                ->html($html)
+                ->send();
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Test email sent successfully! Please check your inbox.',
+                ]);
+            }
 
             return response()->json([
-                'success' => true,
-                'message' => 'Test email sent successfully! Please check your inbox.',
-            ]);
+                'success' => false,
+                'message' => $result['message'],
+            ], 500);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -362,7 +428,7 @@ class InstallationController extends Controller
     /**
      * Save admin account details
      */
-    public function saveAdmin(Request $request): \Illuminate\Http\JsonResponse
+    public function saveAdmin(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
             'admin_name' => ['required', 'string', 'max:255'],
@@ -372,10 +438,7 @@ class InstallationController extends Controller
 
         session(['admin_config' => $validated]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin account details saved.',
-        ]);
+        return redirect()->route('installation.review');
     }
 
     /**
@@ -389,11 +452,9 @@ class InstallationController extends Controller
 
         return Inertia::render('Installation/Review', [
             'title' => 'Review & Install',
-            'config' => [
-                'platform' => session('platform_config'),
-                'database' => array_merge(session('db_config', []), ['password' => '***']),
-                'admin' => array_merge(session('admin_config', []), ['admin_password' => '***']),
-            ],
+            'dbConfig' => array_merge(session('db_config', []), ['db_password' => '***']),
+            'platformConfig' => session('platform_config'),
+            'adminConfig' => array_merge(session('admin_config', []), ['admin_password' => '***']),
         ]);
     }
 
@@ -406,72 +467,162 @@ class InstallationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Installation not verified.',
+                'stage' => 'verification',
             ], 403);
         }
 
-        try {
-            DB::beginTransaction();
+        $stages = [
+            'environment' => 'Updating environment configuration',
+            'migrations' => 'Running database migrations',
+            'seeding' => 'Seeding initial data',
+            'admin' => 'Creating administrator account',
+            'settings' => 'Configuring platform settings',
+            'finalization' => 'Finalizing installation',
+        ];
 
-            // 1. Update .env file with database and platform configuration
+        try {
             $dbConfig = session('db_config');
             $platformConfig = session('platform_config');
             $adminConfig = session('admin_config');
 
+            // Validate session data
+            if (! $dbConfig || ! $platformConfig || ! $adminConfig) {
+                \Log::error('Installation failed: Missing session data', [
+                    'db_config' => $dbConfig ? 'present' : 'missing',
+                    'platform_config' => $platformConfig ? 'present' : 'missing',
+                    'admin_config' => $adminConfig ? 'present' : 'missing',
+                    'all_session' => session()->all(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session data lost. Please go back to the Database step and continue from there.',
+                    'stage' => 'validation',
+                    'error' => 'Missing configuration data',
+                ], 400);
+            }
+
+            // Normalize database config keys (handle both old and new format)
+            $dbConfig = [
+                'db_host' => $dbConfig['db_host'] ?? $dbConfig['host'] ?? null,
+                'db_port' => $dbConfig['db_port'] ?? $dbConfig['port'] ?? null,
+                'db_database' => $dbConfig['db_database'] ?? $dbConfig['database'] ?? null,
+                'db_username' => $dbConfig['db_username'] ?? $dbConfig['username'] ?? null,
+                'db_password' => $dbConfig['db_password'] ?? $dbConfig['password'] ?? null,
+            ];
+
+            // Stage 1: Update environment file
+            \Log::info('Installation Stage: environment', ['stage' => 'environment']);
             $this->installationService->updateEnvironmentFile($dbConfig, $platformConfig);
 
-            // 2. Run migrations
-            Artisan::call('migrate', ['--force' => true]);
+            // Reconnect to use new database configuration
+            DB::purge('mysql');
+            config(['database.connections.mysql' => [
+                'driver' => 'mysql',
+                'host' => $dbConfig['db_host'],
+                'port' => $dbConfig['db_port'],
+                'database' => $dbConfig['db_database'],
+                'username' => $dbConfig['db_username'],
+                'password' => $dbConfig['db_password'],
+                'charset' => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix' => '',
+                'strict' => true,
+                'engine' => null,
+            ]]);
+            DB::reconnect('mysql');
 
-            // 3. Seed basic data (roles, permissions, super admin role)
+            // Stage 2: Run migrations
+            \Log::info('Installation Stage: migrations', ['stage' => 'migrations']);
+            Artisan::call('migrate', ['--force' => true]);
+            $migrationOutput = Artisan::output();
+            \Log::info('Migration output', ['output' => $migrationOutput]);
+
+            // Stage 3: Seed basic data
+            \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
             Artisan::call('db:seed', [
                 '--class' => 'SuperAdministratorRolesSeeder',
                 '--force' => true,
             ]);
+            $seedOutput = Artisan::output();
+            \Log::info('Seeding output', ['output' => $seedOutput]);
 
-            // 4. Create platform super administrator user
+            // Stage 4: Create admin user
+            \Log::info('Installation Stage: admin', ['stage' => 'admin']);
             $admin = LandlordUser::create([
                 'name' => $adminConfig['admin_name'],
                 'email' => $adminConfig['admin_email'],
                 'password' => Hash::make($adminConfig['admin_password']),
                 'email_verified_at' => now(),
             ]);
+            \Log::info('Admin created', ['admin_id' => $admin->id, 'email' => $admin->email]);
 
-            // 5. Assign platform_super_administrator role
+            // Assign platform_super_administrator role
             $admin->assignRole('platform_super_administrator');
+            \Log::info('Role assigned', ['role' => 'platform_super_administrator']);
 
-            // 6. Create installation lock file
+            // Stage 5: Create platform settings
+            \Log::info('Installation Stage: settings', ['stage' => 'settings']);
+            PlatformSetting::create([
+                'slug' => 'platform',
+                'site_name' => $platformConfig['app_name'],
+                'support_email' => $platformConfig['mail_from_address'],
+                'email_settings' => [
+                    'driver' => $platformConfig['mail_mailer'] ?? 'smtp',
+                    'host' => $platformConfig['mail_host'] ?? '127.0.0.1',
+                    'port' => (int) ($platformConfig['mail_port'] ?? 587),
+                    'username' => $platformConfig['mail_username'] ?? '',
+                    'password' => $platformConfig['mail_password'] ? Crypt::encryptString($platformConfig['mail_password']) : '',
+                    'encryption' => $platformConfig['mail_encryption'] ?? 'tls',
+                    'verify_peer' => ! ($platformConfig['mail_allow_self_signed'] ?? false),
+                    'from_address' => $platformConfig['mail_from_address'],
+                    'from_name' => $platformConfig['mail_from_name'],
+                ],
+            ]);
+
+            // Stage 6: Finalization
+            \Log::info('Installation Stage: finalization', ['stage' => 'finalization']);
             File::put(storage_path('installed'), json_encode([
                 'installed_at' => now()->toIso8601String(),
                 'version' => config('app.version', '1.0.0'),
                 'admin_email' => $admin->email,
             ]));
 
-            // 7. Clear all caches
+            // Clear all caches
             Artisan::call('config:clear');
             Artisan::call('cache:clear');
             Artisan::call('route:clear');
             Artisan::call('view:clear');
 
-            DB::commit();
-
             // Clear installation session
             session()->forget(['installation_verified', 'db_config', 'platform_config', 'admin_config']);
+
+            \Log::info('Installation completed successfully', [
+                'admin_email' => $admin->email,
+                'platform' => $platformConfig['app_name'],
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Platform installed successfully!',
                 'redirect' => route('login'),
+                'stages' => $stages,
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            \Log::error('Installation failed: '.$e->getMessage(), [
+            \Log::error('Installation failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Installation failed: '.$e->getMessage(),
+                'message' => $e->getMessage(),
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'stage' => 'error',
             ], 500);
         }
     }

@@ -1,1 +1,0 @@
-import{r as t}from"./app-guaz0inx.js";import{u as c}from"./index-CCM9v3xQ.js";function l(e,u=[]){const r=t.useRef(e);return c(()=>{r.current=e}),t.useCallback((...o)=>{var a;return(a=r.current)==null?void 0:a.call(r,...o)},u)}export{l as u};

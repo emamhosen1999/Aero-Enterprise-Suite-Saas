@@ -1,36 +1,99 @@
 import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import InstallationLayout from '@/Layouts/InstallationLayout';
-import { Card, CardHeader, CardBody, CardFooter, Button, Divider } from '@heroui/react';
-import { ClipboardDocumentCheckIcon, CircleStackIcon, Cog6ToothIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { Card, CardHeader, CardBody, CardFooter, Button, Divider, Progress, Chip } from '@heroui/react';
+import { ClipboardDocumentCheckIcon, CircleStackIcon, Cog6ToothIcon, UserCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
+import axios from 'axios';
 
 export default function Review({ dbConfig, platformConfig, adminConfig }) {
+    // Debug: Log received props
+    console.log('Review Page Props:', {
+        dbConfig,
+        platformConfig,
+        adminConfig
+    });
+
     const { post, processing } = useForm({});
     const [installing, setInstalling] = useState(false);
+    const [installStages, setInstallStages] = useState([
+        { key: 'environment', label: 'Updating environment configuration', status: 'pending' },
+        { key: 'migrations', label: 'Running database migrations', status: 'pending' },
+        { key: 'seeding', label: 'Seeding initial data', status: 'pending' },
+        { key: 'admin', label: 'Creating administrator account', status: 'pending' },
+        { key: 'settings', label: 'Configuring platform settings', status: 'pending' },
+        { key: 'finalization', label: 'Finalizing installation', status: 'pending' },
+    ]);
+    const [currentStage, setCurrentStage] = useState(-1);
+    const [installError, setInstallError] = useState(null);
 
-    const handleInstall = () => {
+    const handleInstall = async () => {
         setInstalling(true);
+        setInstallError(null);
+        setCurrentStage(0);
 
-        const promise = new Promise(async (resolve, reject) => {
-            post(route('installation.install'), {
-                onSuccess: () => resolve(['Installation completed successfully!']),
-                onError: (errors) => {
-                    setInstalling(false);
-                    reject(Object.values(errors));
-                },
-                preserveState: false,
+        try {
+            // Simulate stage progression
+            const stageInterval = setInterval(() => {
+                setCurrentStage(prev => {
+                    if (prev < installStages.length - 1) {
+                        const newStages = [...installStages];
+                        if (prev >= 0) newStages[prev].status = 'completed';
+                        if (prev + 1 < installStages.length) newStages[prev + 1].status = 'processing';
+                        setInstallStages(newStages);
+                        return prev + 1;
+                    }
+                    return prev;
+                });
+            }, 1000);
+
+            const response = await axios.post(route('installation.install'), {});
+
+            clearInterval(stageInterval);
+
+            console.log('✅ Installation Response:', response.data);
+
+            // Mark all stages as completed
+            const completedStages = installStages.map(stage => ({ ...stage, status: 'completed' }));
+            setInstallStages(completedStages);
+
+            showToast.success(response.data.message || 'Installation completed successfully!');
+
+            // Redirect to login after short delay
+            setTimeout(() => {
+                window.location.href = response.data.redirect || route('login');
+            }, 2000);
+
+        } catch (error) {
+            console.error('❌ Installation Error:', error);
+            
+            const errorData = error.response?.data;
+            console.error('Error Details:', {
+                message: errorData?.message,
+                error: errorData?.error,
+                file: errorData?.file,
+                line: errorData?.line,
+                stage: errorData?.stage,
             });
-        });
 
-        showToast.promise(promise, {
-            loading: 'Installing platform... This may take a few minutes.',
-            success: (data) => data.join(', '),
-            error: (err) => {
-                setInstalling(false);
-                return Array.isArray(err) ? err.join(', ') : 'Installation failed';
-            },
-        });
+            // Mark current stage as failed
+            if (currentStage >= 0 && currentStage < installStages.length) {
+                const failedStages = [...installStages];
+                failedStages[currentStage].status = 'failed';
+                setInstallStages(failedStages);
+            }
+
+            const errorMessage = errorData?.message || errorData?.error || 'Installation failed. Please check console for details.';
+            setInstallError({
+                message: errorMessage,
+                stage: errorData?.stage,
+                file: errorData?.file,
+                line: errorData?.line,
+            });
+
+            showToast.error(errorMessage);
+            setInstalling(false);
+        }
     };
 
     const ConfigSection = ({ icon: Icon, title, data }) => (
@@ -86,7 +149,85 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
                 </CardHeader>
 
                 <CardBody className="px-8 py-8">
-                    <div className="space-y-6">
+                    {/* Installation Progress */}
+                    {installing && (
+                        <div className="mb-8 space-y-4">
+                            <div className="text-center">
+                                <h3 className="text-lg font-semibold text-foreground mb-2">
+                                    Installing Platform...
+                                </h3>
+                                <p className="text-sm text-default-600">
+                                    Please wait while we set up your platform
+                                </p>
+                            </div>
+
+                            <Progress 
+                                value={(currentStage + 1) / installStages.length * 100}
+                                color="primary"
+                                size="lg"
+                                className="w-full"
+                            />
+
+                            <div className="space-y-2">
+                                {installStages.map((stage, index) => (
+                                    <div 
+                                        key={stage.key}
+                                        className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                                            stage.status === 'processing' ? 'bg-primary-50 dark:bg-primary-900/20' :
+                                            stage.status === 'completed' ? 'bg-success-50 dark:bg-success-900/20' :
+                                            stage.status === 'failed' ? 'bg-danger-50 dark:bg-danger-900/20' :
+                                            'bg-default-50 dark:bg-default-100/10'
+                                        }`}
+                                    >
+                                        {stage.status === 'completed' && (
+                                            <CheckCircleIcon className="w-5 h-5 text-success shrink-0" />
+                                        )}
+                                        {stage.status === 'processing' && (
+                                            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin shrink-0" />
+                                        )}
+                                        {stage.status === 'failed' && (
+                                            <div className="w-5 h-5 rounded-full bg-danger flex items-center justify-center shrink-0">
+                                                <span className="text-white text-xs">✕</span>
+                                            </div>
+                                        )}
+                                        {stage.status === 'pending' && (
+                                            <div className="w-5 h-5 rounded-full bg-default-200 shrink-0" />
+                                        )}
+                                        <span className={`text-sm ${
+                                            stage.status === 'completed' ? 'text-success' :
+                                            stage.status === 'processing' ? 'text-primary font-medium' :
+                                            stage.status === 'failed' ? 'text-danger' :
+                                            'text-default-600'
+                                        }`}>
+                                            {stage.label}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {installError && (
+                                <div className="bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-lg p-4">
+                                    <h4 className="font-semibold text-danger mb-2">Installation Failed</h4>
+                                    <p className="text-sm text-danger-700 dark:text-danger-300 mb-2">
+                                        {installError.message}
+                                    </p>
+                                    {installError.file && (
+                                        <div className="text-xs text-danger-600 dark:text-danger-400 space-y-1">
+                                            <div>File: {installError.file}</div>
+                                            <div>Line: {installError.line}</div>
+                                            <div>Stage: {installError.stage}</div>
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-danger-600 dark:text-danger-400 mt-2">
+                                        Check browser console and Laravel logs for more details.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {!installing && (
+                        <div className="space-y-6">
                         {/* Warning message */}
                         <div className="bg-warning-50 dark:bg-warning-900/20 rounded-lg p-4 border border-warning-200 dark:border-warning-800">
                             <p className="text-sm text-warning-800 dark:text-warning-200">
@@ -101,11 +242,11 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
                                 icon={CircleStackIcon}
                                 title="Database Configuration"
                                 data={{
-                                    host: dbConfig.db_host,
-                                    port: dbConfig.db_port,
-                                    database: dbConfig.db_database,
-                                    username: dbConfig.db_username,
-                                    password: dbConfig.db_password ? '********' : 'No password',
+                                    host: dbConfig.db_host || dbConfig.host,
+                                    port: dbConfig.db_port || dbConfig.port,
+                                    database: dbConfig.db_database || dbConfig.database,
+                                    username: dbConfig.db_username || dbConfig.username,
+                                    password: (dbConfig.db_password || dbConfig.password) ? '********' : 'No password',
                                 }}
                             />
                         )}
@@ -134,9 +275,9 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
                                 icon={UserCircleIcon}
                                 title="Admin Account"
                                 data={{
-                                    name: adminConfig.name,
-                                    email: adminConfig.email,
-                                    password: adminConfig.password ? '********' : 'N/A',
+                                    name: adminConfig.admin_name || adminConfig.name,
+                                    email: adminConfig.admin_email || adminConfig.email,
+                                    password: (adminConfig.admin_password || adminConfig.password) ? '********' : 'N/A',
                                 }}
                             />
                         )}
@@ -151,17 +292,18 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
                                 <li>• Run database migrations</li>
                                 <li>• Seed initial data (roles, permissions, modules)</li>
                                 <li>• Create platform super administrator account</li>
+                                <li>• Configure platform settings</li>
                                 <li>• Clear application cache</li>
-                                <li>• Generate application key</li>
                                 <li>• Create installation lock file</li>
                             </ul>
                         </div>
-                    </div>
+                        </div>
+                    )}
                 </CardBody>
 
                 <CardFooter className="flex justify-between items-center border-t border-divider px-8 py-6">
                     <Button
-                        as="a"
+                        as={Link}
                         href={route('installation.admin')}
                         variant="flat"
                         color="default"
