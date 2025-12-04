@@ -42,13 +42,13 @@
 **Issue:** The system does **NOT** have the required Super Administrator roles:
 
 #### Missing Roles:
-- ❌ `platform_super_administrator` (scope='platform', tenant_id=null, is_protected=true)
+- ❌ `Super Administrator` (scope='platform', tenant_id=null, is_protected=true)
 - ❌ `tenant_super_administrator` (scope='tenant', tenant_id={id}, is_protected=true)
 
 #### Current State:
 Existing roles use different naming:
 ```php
-- "Platform Super Admin" (should be platform_super_administrator)
+- "Platform Super Admin" (should be Super Administrator)
 - Guard: 'landlord' (custom guard)
 - No is_protected flag
 - No scope column
@@ -89,13 +89,13 @@ Existing roles use different naming:
 #### Current Implementation Issues:
 ```php
 // ModuleAccessService.php - canAccessModule()
-// ❌ No check for platform_super_administrator (should bypass everything)
+// ❌ No check for Super Administrator (should bypass everything)
 // ❌ No check for tenant_super_administrator (should bypass permissions but NOT subscription)
 ```
 
 **Required per Section 7:**
 ```php
-// EXCEPTION: platform_super_administrator bypasses everything
+// EXCEPTION: Super Administrator bypasses everything
 // EXCEPTION: tenant_super_administrator bypasses permission checks but NOT subscription checks
 ```
 
@@ -202,7 +202,7 @@ Route::group(['middleware' => ['auth:web', 'TenantSuperAdmin']], function() {
 
 **Status:** ❌ **CRITICAL FAILURE**
 
-**Issue:** No enforcement that only `platform_super_administrator` can manage platform modules/roles/plans.
+**Issue:** No enforcement that only `Super Administrator` can manage platform modules/roles/plans.
 
 #### Current State:
 - Platform admin routes exist in `routes/admin.php`
@@ -211,7 +211,7 @@ Route::group(['middleware' => ['auth:web', 'TenantSuperAdmin']], function() {
 
 **Required per Sections 9, 10:**
 ```php
-// Only platform_super_administrator can access:
+// Only Super Administrator can access:
 Route::group(['middleware' => ['auth:landlord', 'PlatformSuperAdmin']], function() {
     Route::resource('/admin/roles', ...);
     Route::resource('/admin/modules', ...);
@@ -303,7 +303,7 @@ $role->update($request->validated());
    - Create migration for `scope` and `tenant_id` on `permissions`
 
 2. **Create Super Administrator Roles**
-   - Seed `platform_super_administrator` role
+   - Seed `Super Administrator` role
    - Seed `tenant_super_administrator` roles for each tenant
    - Mark both as `is_protected = true`
 

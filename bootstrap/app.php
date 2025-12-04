@@ -65,6 +65,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'identify_domain' => \App\Http\Middleware\IdentifyDomainContext::class, // Domain context alias
             'require_tenant_onboarding' => \App\Http\Middleware\RequireTenantOnboarding::class, // Tenant onboarding check
             'check_installation' => \App\Http\Middleware\CheckInstallation::class, // Installation check
+            // Super Admin Protection Middleware (Compliance: Section 13)
+            'platform.super_admin' => \App\Http\Middleware\PlatformSuperAdmin::class,
+            'tenant.super_admin' => \App\Http\Middleware\TenantSuperAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

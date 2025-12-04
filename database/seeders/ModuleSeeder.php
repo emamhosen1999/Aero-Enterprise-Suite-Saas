@@ -11,8 +11,11 @@ use Illuminate\Database\Seeder;
 /**
  * Module Seeder - Seeds from config/modules.php (LANDLORD ONLY)
  *
- * Reads the hardcoded module hierarchy from configuration and populates
+ * Reads both platform_hierarchy and hierarchy from configuration and populates
  * the LANDLORD database with modules, submodules, components, and actions.
+ *
+ * - platform_hierarchy: 10 Platform Admin modules (platform_core category)
+ * - hierarchy: 5 Tenant modules (core, hrm, crm, project, finance)
  *
  * Note: This seeder does NOT create permissions or module_permissions.
  * Permission mapping is done per-tenant via Tenant\ModulePermissionSeeder.
@@ -24,35 +27,48 @@ class ModuleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get module hierarchy from config
-        $moduleHierarchy = config('modules.hierarchy', []);
+        $platformCount = 0;
+        $tenantCount = 0;
 
-        if (empty($moduleHierarchy)) {
-            if ($this->command) {
-                $this->command->error('❌ No module hierarchy found in config/modules.php');
+        // Seed Platform modules from platform_hierarchy
+        $platformHierarchy = config('modules.platform_hierarchy', []);
+        if (! empty($platformHierarchy)) {
+            foreach ($platformHierarchy as $moduleData) {
+                $this->seedModule($moduleData, 'platform');
+                $platformCount++;
             }
+        }
+
+        // Seed Tenant modules from hierarchy
+        $tenantHierarchy = config('modules.hierarchy', []);
+        if (! empty($tenantHierarchy)) {
+            foreach ($tenantHierarchy as $moduleData) {
+                $this->seedModule($moduleData, 'tenant');
+                $tenantCount++;
+            }
+        }
+
+        if ($platformCount === 0 && $tenantCount === 0) {
+            $this->command?->error('❌ No module hierarchy found in config/modules.php');
 
             return;
         }
 
-        foreach ($moduleHierarchy as $moduleData) {
-            $this->seedModule($moduleData);
-        }
-
-        if ($this->command) {
-            $this->command->info('✅ Module hierarchy seeded successfully from config/modules.php');
-        }
+        $this->command?->info("✅ Module hierarchy seeded: {$platformCount} platform modules, {$tenantCount} tenant modules");
     }
 
     /**
      * Seed a single module with its complete hierarchy.
+     *
+     * @param  string  $scope  'platform' or 'tenant'
      */
-    protected function seedModule(array $moduleData): void
+    protected function seedModule(array $moduleData, string $scope = 'tenant'): void
     {
         // Create or update the module
         $module = Module::updateOrCreate(
             ['code' => $moduleData['code']],
             [
+                'scope' => $scope,
                 'name' => $moduleData['name'],
                 'description' => $moduleData['description'] ?? null,
                 'icon' => $moduleData['icon'] ?? null,

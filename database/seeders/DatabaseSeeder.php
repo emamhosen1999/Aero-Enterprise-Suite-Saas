@@ -11,15 +11,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
         $this->command?->warn('No tenant context detected. Running central admin seeds.');
 
         $this->call([
-            AdminPanelPermissionSeeder::class,  // Platform admin permissions (landlord guard)
-            AdminPanelRoleSeeder::class,        // Platform admin roles (landlord guard)
-            LandlordUserSeeder::class,          // Platform/Admin super admin user (landlord_users table)
-            ModuleSeeder::class,                // Module hierarchy (modules, sub_modules, components, actions)
-            PlanSeeder::class,                  // Subscription plans with module assignments
+            // 1. Super Administrator role + platform permissions from config
+            SuperAdministratorRolesSeeder::class,
+
+            // 2. Platform module permissions from config/modules.platform_hierarchy
+            PlatformModulePermissionSeeder::class,
+
+            // 3. Tenant module hierarchy from config/modules.hierarchy
+            ModuleSeeder::class,
+
+            // 4. Subscription plans with module assignments
+            PlanSeeder::class,
+
+            // 5. Default landlord user (optional - for development)
+            LandlordUserSeeder::class,
         ]);
     }
 }

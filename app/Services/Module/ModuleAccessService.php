@@ -29,7 +29,7 @@ class ModuleAccessService
      */
     protected function isPlatformSuperAdmin(User $user): bool
     {
-        return $user->hasRole('platform_super_administrator');
+        return $user->hasRole('Super Administrator');
     }
 
     /**
@@ -47,7 +47,7 @@ class ModuleAccessService
      */
     public function canAccessModule(User $user, string $moduleCode): array
     {
-        // EXCEPTION: platform_super_administrator bypasses everything
+        // EXCEPTION: Super Administrator bypasses everything
         if ($this->isPlatformSuperAdmin($user)) {
             return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
         }
@@ -114,7 +114,7 @@ class ModuleAccessService
      */
     public function canAccessSubModule(User $user, string $moduleCode, string $subModuleCode): array
     {
-        // EXCEPTION: platform_super_administrator bypasses everything
+        // EXCEPTION: Super Administrator bypasses everything
         if ($this->isPlatformSuperAdmin($user)) {
             return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
         }
@@ -187,7 +187,7 @@ class ModuleAccessService
      */
     public function canAccessComponent(User $user, string $moduleCode, string $subModuleCode, string $componentCode): array
     {
-        // EXCEPTION: platform_super_administrator bypasses everything
+        // EXCEPTION: Super Administrator bypasses everything
         if ($this->isPlatformSuperAdmin($user)) {
             return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
         }
@@ -267,7 +267,7 @@ class ModuleAccessService
         string $componentCode,
         string $actionCode
     ): array {
-        // EXCEPTION: platform_super_administrator bypasses everything
+        // EXCEPTION: Super Administrator bypasses everything
         if ($this->isPlatformSuperAdmin($user)) {
             return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
         }

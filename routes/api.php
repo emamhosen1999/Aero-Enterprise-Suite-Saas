@@ -132,27 +132,31 @@ Route::prefix('locale')->group(function () {
 // ============================================================================
 Route::middleware(['web', 'auth'])->prefix('roles')->group(function () {
     // Role CRUD operations
-    Route::get('/', [\App\Http\Controllers\RoleController::class, 'apiIndex'])->name('api.roles.index');
-    Route::post('/', [\App\Http\Controllers\RoleController::class, 'storeRole'])->name('api.roles.store');
-    Route::get('/{id}', [\App\Http\Controllers\RoleController::class, 'apiShow'])->name('api.roles.show');
-    Route::put('/{id}', [\App\Http\Controllers\RoleController::class, 'updateRole'])->name('api.roles.update');
-    Route::delete('/{id}', [\App\Http\Controllers\RoleController::class, 'deleteRole'])->name('api.roles.destroy');
+    Route::get('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'apiIndex'])->name('api.roles.index');
+    Route::post('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'storeRole'])->name('api.roles.store');
+    Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'apiShow'])->name('api.roles.show');
+    Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRole'])->name('api.roles.update');
+    Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'deleteRole'])->name('api.roles.destroy');
 
     // Role-Permission assignment
-    Route::patch('/{id}/permissions', [\App\Http\Controllers\RoleController::class, 'batchUpdatePermissions'])->name('api.roles.permissions.batch');
-    Route::post('/{id}/permissions/sync', [\App\Http\Controllers\RoleController::class, 'syncRolePermissions'])->name('api.roles.permissions.sync');
+    Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'batchUpdatePermissions'])->name('api.roles.permissions.batch');
+    Route::post('/{id}/permissions/sync', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'syncRolePermissions'])->name('api.roles.permissions.sync');
+
+    // Role-Permission toggle operations
+    Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'togglePermission'])->name('api.roles.toggle-permission');
+    Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])->name('api.roles.update-module');
 });
 
 Route::middleware(['web', 'auth'])->prefix('permissions')->group(function () {
     // Permission CRUD operations
-    Route::get('/', [\App\Http\Controllers\PermissionController::class, 'index'])->name('api.permissions.index');
-    Route::post('/', [\App\Http\Controllers\PermissionController::class, 'store'])->name('api.permissions.store');
-    Route::get('/{id}', [\App\Http\Controllers\PermissionController::class, 'show'])->name('api.permissions.show');
-    Route::put('/{id}', [\App\Http\Controllers\PermissionController::class, 'update'])->name('api.permissions.update');
-    Route::delete('/{id}', [\App\Http\Controllers\PermissionController::class, 'destroy'])->name('api.permissions.destroy');
+    Route::get('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'index'])->name('api.permissions.index');
+    Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])->name('api.permissions.store');
+    Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'show'])->name('api.permissions.show');
+    Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])->name('api.permissions.update');
+    Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])->name('api.permissions.destroy');
 
     // Permission grouping
-    Route::get('/grouped/modules', [\App\Http\Controllers\PermissionController::class, 'groupedByModule'])->name('api.permissions.grouped');
+    Route::get('/grouped/modules', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'groupedByModule'])->name('api.permissions.grouped');
 });
 
 Route::middleware(['web', 'auth'])->prefix('users')->group(function () {

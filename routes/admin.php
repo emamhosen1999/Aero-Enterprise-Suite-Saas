@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\PlatformSettingController;
 use App\Http\Controllers\Landlord\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Landlord\ImpersonationController;
+use App\Http\Controllers\Shared\Admin\ModuleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -99,12 +100,42 @@ Route::middleware(['auth:landlord'])->group(function () {
 
     // Modules Management (Platform Super Admin Only)
     Route::middleware(['platform.super_admin'])->prefix('modules')->name('admin.modules.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Modules/Index');
-        })->name('index');
+        // Main module management page (shared controller)
+        Route::get('/', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'index'])->name('index');
+        Route::get('/api', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'apiIndex'])->name('api.index');
+
+        // Module CRUD (structure management - platform admin only)
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeModule'])->name('store');
+        Route::put('/{module}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateModule'])->name('update');
+        Route::delete('/{module}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroyModule'])->name('destroy');
+
+        // Sub-module CRUD
+        Route::post('/{module}/sub-modules', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeSubModule'])->name('sub-modules.store');
+        Route::put('/sub-modules/{subModule}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateSubModule'])->name('sub-modules.update');
+        Route::delete('/sub-modules/{subModule}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroySubModule'])->name('sub-modules.destroy');
+
+        // Component CRUD
+        Route::post('/sub-modules/{subModule}/components', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeComponent'])->name('components.store');
+        Route::put('/components/{component}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateComponent'])->name('components.update');
+        Route::delete('/components/{component}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroyComponent'])->name('components.destroy');
+
+        // Module access check
+        Route::post('/check-access', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'checkAccess'])->name('check-access');
+
+        // Module requirements
+        Route::get('/{moduleCode}/requirements', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getModuleRequirements'])->name('requirements');
 
         // Module Catalog API (for plan configuration)
         Route::get('/catalog', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getModules'])->name('catalog');
+
+        // Role Module Access Management
+        Route::prefix('role-access')->name('role-access.')->group(function () {
+            Route::get('/roles', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getRolesWithAccessCounts'])->name('roles');
+            Route::get('/{roleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getRoleAccess'])->name('show');
+            Route::post('/{roleId}/sync', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'syncRoleAccess'])->name('sync');
+            Route::post('/{roleId}/grant/{moduleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'grantModuleAccess'])->name('grant');
+            Route::post('/{roleId}/revoke/{moduleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'revokeModuleAccess'])->name('revoke');
+        });
     });
 
     // Billing & Invoices
@@ -160,17 +191,29 @@ Route::middleware(['auth:landlord'])->group(function () {
 
     // Role Management (Platform Super Admin Only)
     Route::middleware(['platform.super_admin'])->prefix('roles')->name('admin.roles.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Roles/Index');
-        })->name('index');
+        Route::get('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'storeRole'])->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRole'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'deleteRole'])->name('destroy');
+        Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'batchUpdatePermissions'])->name('permissions.batch');
+        Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'togglePermission'])->name('toggle-permission');
+        Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])->name('update-module');
+        Route::post('/clone/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'cloneRole'])->name('clone');
+        Route::get('/export', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'exportRoles'])->name('export');
+        Route::get('/snapshot', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'snapshot'])->name('snapshot');
 
-        Route::get('/create', function () {
-            return Inertia::render('Admin/Roles/Create');
-        })->name('create');
+        Route::get('/admin/modules', [ModuleController::class, 'index'])->name('modules.index');
+    });
 
-        Route::get('/{role}/edit', function ($role) {
-            return Inertia::render('Admin/Roles/Edit', ['roleId' => $role]);
-        })->name('edit');
+    // Permission Management (Platform Super Admin Only)
+    Route::middleware(['platform.super_admin'])->prefix('permissions')->name('admin.permissions.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])->name('store');
+        Route::get('/grouped', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'groupedByModule'])->name('grouped');
+        Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'show'])->name('show');
+        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/sync-roles', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'syncRoles'])->name('sync-roles');
     });
 
     // Analytics & Reports

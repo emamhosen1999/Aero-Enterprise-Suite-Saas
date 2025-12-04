@@ -30,6 +30,7 @@ class Module extends Model
 
     protected $fillable = [
         'code',
+        'scope',
         'name',
         'description',
         'icon',

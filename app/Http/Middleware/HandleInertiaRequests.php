@@ -176,7 +176,7 @@ class HandleInertiaRequests extends Middleware
                 'isAdmin' => $user?->isAdmin() ?? false,
                 'role' => $user?->role,
                 // Compliance: Section 10 - Frontend Super Admin flags
-                'isPlatformSuperAdmin' => $user?->hasRole('platform_super_administrator') ?? false,
+                'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
                 'isTenantSuperAdmin' => false, // Admin context = platform only
             ],
             'context' => 'admin',
@@ -340,7 +340,7 @@ class HandleInertiaRequests extends Middleware
                     ? app(ModulePermissionService::class)->getNavigationForUser($user)
                     : [],
                 // Compliance: Section 10 - Frontend Super Admin flags
-                'isPlatformSuperAdmin' => $user?->hasRole('platform_super_administrator') ?? false,
+                'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
                 'isTenantSuperAdmin' => $user?->hasRole('tenant_super_administrator') ?? false,
             ],
             'context' => 'tenant',

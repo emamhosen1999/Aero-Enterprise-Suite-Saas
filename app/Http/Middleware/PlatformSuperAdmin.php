@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Platform Super Admin Middleware
  *
  * Restricts access to platform administration area.
- * Only users with 'platform_super_administrator' role can access.
+ * Only users with 'Super Administrator' role can access.
  *
  * Compliance: Section 9 - Platform Module & Role Management Rules
  */
@@ -39,8 +39,8 @@ class PlatformSuperAdmin
 
         $user = Auth::guard('landlord')->user();
 
-        // Check if user has platform_super_administrator role
-        if (! $user->hasRole('platform_super_administrator')) {
+        // Check if user has Super Administrator role
+        if (! $user->hasRole('Super Administrator')) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,

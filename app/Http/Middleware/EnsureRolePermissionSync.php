@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\Role\RolePermissionService;
+use App\Services\Shared\Admin\RolePermissionService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

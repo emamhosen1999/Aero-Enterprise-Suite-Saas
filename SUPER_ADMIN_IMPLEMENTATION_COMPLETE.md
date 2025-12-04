@@ -29,7 +29,7 @@ Added to `permissions` table:
 **File:** `database/seeders/SuperAdministratorRolesSeeder.php`
 
 **Platform Super Administrator:**
-- Name: `platform_super_administrator`
+- Name: `Super Administrator`
 - Guard: `landlord`
 - Scope: `platform`
 - Protected: `true`
@@ -50,9 +50,9 @@ Added to `permissions` table:
 **File:** `app/Http/Middleware/PlatformSuperAdmin.php`
 
 ```php
-// Restricts access to platform_super_administrator only
+// Restricts access to Super Administrator only
 if (!Auth::guard('landlord')->check()) { return 401; }
-if (!$user->hasRole('platform_super_administrator')) { abort(403); }
+if (!$user->hasRole('Super Administrator')) { abort(403); }
 ```
 
 **Registered as:** `platform.super_admin`
@@ -120,7 +120,7 @@ public function delete(User $user, Role $role): Response {
 ```php
 protected function isLastSuperAdminInScope(User $user): bool {
     // Checks if deleting user would leave scope without Super Admin
-    if ($user->hasRole('platform_super_administrator')) {
+    if ($user->hasRole('Super Administrator')) {
         // Count platform Super Admins
     }
     if ($user->hasRole('tenant_super_administrator')) {
@@ -143,13 +143,13 @@ public function delete(User $user, User $model): bool {
 ```php
 // Admin context (landlord guard)
 'auth' => [
-    'isPlatformSuperAdmin' => $user?->hasRole('platform_super_administrator') ?? false,
+    'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
     'isTenantSuperAdmin' => false,
 ]
 
 // Tenant context (web guard)
 'auth' => [
-    'isPlatformSuperAdmin' => $user?->hasRole('platform_super_administrator') ?? false,
+    'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
     'isTenantSuperAdmin' => $user?->hasRole('tenant_super_administrator') ?? false,
 ]
 ```
@@ -238,7 +238,7 @@ public function updateRole(Request $request, $id) {
 ### Test 1: Protected Role Cannot Be Deleted
 ```php
 php artisan tinker
-$role = \Spatie\Permission\Models\Role::where('name', 'platform_super_administrator')->first();
+$role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
 $role->delete(); // Should fail with "This role is protected and cannot be deleted."
 ```
 
@@ -246,7 +246,7 @@ $role->delete(); // Should fail with "This role is protected and cannot be delet
 ```php
 php artisan tinker
 $user = User::find(1); // Platform Super Admin
-$user->assignRole('platform_super_administrator');
+$user->assignRole('Super Administrator');
 
 $service = app(\App\Services\Module\ModuleAccessService::class);
 $result = $service->canAccessModule($user, 'hr');
@@ -354,7 +354,7 @@ test('module permission routes require tenant super admin')
 - [x] Clear route cache: `php artisan route:clear`
 - [x] Clear config cache: `php artisan config:clear`
 - [x] Format code: `vendor/bin/pint --dirty`
-- [ ] Assign platform_super_administrator role to main admin user
+- [ ] Assign Super Administrator role to main admin user
 - [ ] Test protected role deletion (should fail)
 - [ ] Test Super Admin bypass (should succeed)
 - [ ] Test middleware blocking (non-Super Admin should get 403)
@@ -368,7 +368,7 @@ test('module permission routes require tenant super admin')
 ```php
 php artisan tinker
 $user = \App\Models\LandlordUser::find(1); // Your main admin user
-$user->assignRole('platform_super_administrator');
+$user->assignRole('Super Administrator');
 ```
 
 ### Tenant Super Administrator

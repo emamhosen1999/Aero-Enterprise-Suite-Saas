@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Role\RolePermissionService;
+use App\Services\Shared\Admin\RolePermissionService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

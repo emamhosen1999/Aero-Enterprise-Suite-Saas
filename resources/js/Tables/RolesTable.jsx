@@ -141,6 +141,25 @@ const RolesTable = ({
         );
 
       case "permissions":
+        // Super Administrator has full access - no need to show individual permissions
+        const isSuperAdminRole = ['Super Administrator', 'platform_super_administrator', 'tenant_super_administrator'].includes(role.name);
+        
+        if (isSuperAdminRole) {
+          return (
+            <div className="flex items-center gap-2">
+              <Chip
+                size="sm"
+                variant="flat"
+                color="warning"
+                startContent={<ShieldCheckIcon className="w-3 h-3" />}
+                className="text-xs"
+              >
+                Full Access
+              </Chip>
+            </div>
+          );
+        }
+        
         return (
           <div className="flex flex-wrap gap-1 max-w-[200px]">
             {permissionNames.slice(0, 3).map((permission, idx) => (
@@ -182,29 +201,32 @@ const RolesTable = ({
         );
 
       case "actions":
-        const canManage = canManageRole ? canManageRole(role) : true;
+        // Check if role is a protected Super Administrator role
+        const isProtectedRole = ['Super Administrator', 'platform_super_administrator', 'tenant_super_administrator'].includes(role.name);
+        const canManage = !isProtectedRole && (canManageRole ? canManageRole(role) : true);
+        
         return (
           <div className="relative flex justify-center items-center gap-2">
-            <Tooltip content="Edit Role">
+            <Tooltip content={isProtectedRole ? "Protected role cannot be edited" : "Edit Role"}>
               <Button
                 isIconOnly
                 size="sm"
                 variant="light"
                 onPress={() => onEdit?.(role)}
                 isDisabled={!canManage}
-                className="text-primary hover:text-primary/80"
+                className={canManage ? "text-primary hover:text-primary/80" : "text-default-300 cursor-not-allowed"}
               >
                 <PencilSquareIcon className="w-4 h-4" />
               </Button>
             </Tooltip>
-            <Tooltip content="Delete Role">
+            <Tooltip content={isProtectedRole ? "Protected role cannot be deleted" : "Delete Role"}>
               <Button
                 isIconOnly
                 size="sm"
                 variant="light"
                 onPress={() => onDelete?.(role)}
                 isDisabled={!canManage}
-                className="text-danger hover:text-danger/80"
+                className={canManage ? "text-danger hover:text-danger/80" : "text-default-300 cursor-not-allowed"}
               >
                 <TrashIcon className="w-4 h-4" />
               </Button>

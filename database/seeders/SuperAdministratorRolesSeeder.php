@@ -35,7 +35,7 @@ class SuperAdministratorRolesSeeder extends Seeder
     protected function createPlatformSuperAdministrator(): void
     {
         // Check if role already exists
-        $existingRole = Role::where('name', 'platform_super_administrator')
+        $existingRole = Role::where('name', 'Super Administrator')
             ->where('guard_name', 'landlord')
             ->first();
 
@@ -55,7 +55,7 @@ class SuperAdministratorRolesSeeder extends Seeder
 
         // Create new role
         $role = Role::create([
-            'name' => 'platform_super_administrator',
+            'name' => 'Super Administrator',
             'guard_name' => 'landlord',
             'scope' => 'platform',
             'tenant_id' => null,
@@ -150,22 +150,69 @@ class SuperAdministratorRolesSeeder extends Seeder
     }
 
     /**
-     * Get platform-level permissions.
+     * Get platform-level permissions from config/modules.php.
+     *
+     * This extracts all permissions defined in the platform_hierarchy
+     * to ensure Super Administrator has full platform access.
      */
     protected function getPlatformPermissions(): array
     {
-        return [
-            'platform.manage_tenants',
-            'platform.manage_plans',
-            'platform.manage_subscriptions',
-            'platform.manage_modules',
-            'platform.manage_roles',
-            'platform.manage_permissions',
-            'platform.manage_users',
-            'platform.manage_settings',
-            'platform.view_analytics',
-            'platform.manage_billing',
-        ];
+        $permissions = [];
+
+        // Get permissions from platform_hierarchy in config/modules.php
+        $platformHierarchy = config('modules.platform_hierarchy', []);
+
+        foreach ($platformHierarchy as $module) {
+            // Module level permissions (using default_required_permissions)
+            if (isset($module['default_required_permissions']) && is_array($module['default_required_permissions'])) {
+                $permissions = array_merge($permissions, $module['default_required_permissions']);
+            }
+
+            // Submodule level permissions (using submodules, not sub_modules)
+            if (isset($module['submodules']) && is_array($module['submodules'])) {
+                foreach ($module['submodules'] as $submodule) {
+                    if (isset($submodule['default_required_permissions']) && is_array($submodule['default_required_permissions'])) {
+                        $permissions = array_merge($permissions, $submodule['default_required_permissions']);
+                    }
+
+                    // Component level permissions
+                    if (isset($submodule['components']) && is_array($submodule['components'])) {
+                        foreach ($submodule['components'] as $component) {
+                            if (isset($component['default_required_permissions']) && is_array($component['default_required_permissions'])) {
+                                $permissions = array_merge($permissions, $component['default_required_permissions']);
+                            }
+
+                            // Action level permissions
+                            if (isset($component['actions']) && is_array($component['actions'])) {
+                                foreach ($component['actions'] as $action) {
+                                    if (isset($action['default_required_permissions']) && is_array($action['default_required_permissions'])) {
+                                        $permissions = array_merge($permissions, $action['default_required_permissions']);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fallback to basic permissions if config is empty
+        if (empty($permissions)) {
+            return [
+                'platform.manage_tenants',
+                'platform.manage_plans',
+                'platform.manage_subscriptions',
+                'platform.manage_modules',
+                'platform.manage_roles',
+                'platform.manage_permissions',
+                'platform.manage_users',
+                'platform.manage_settings',
+                'platform.view_analytics',
+                'platform.manage_billing',
+            ];
+        }
+
+        return array_unique($permissions);
     }
 
     /**

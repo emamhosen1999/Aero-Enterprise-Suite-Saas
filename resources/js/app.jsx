@@ -103,9 +103,17 @@ const tenantPages = import.meta.glob('./Tenant/Pages/**/*.jsx');
 const platformPages = import.meta.glob('./Platform/Pages/**/*.jsx');
 const adminPages = import.meta.glob('./Admin/Pages/**/*.jsx');
 const publicPages = import.meta.glob('./Public/Pages/**/*.jsx');
+const sharedPages = import.meta.glob('./Shared/Pages/**/*.jsx');
 
 const resolveInertiaPage = (name) => {
-    // Check Admin pages first (for admin.* routes)
+    // Check Shared pages (for shared components like RoleManagement)
+    // Supports both "Shared/Pages/RoleManagement" and direct paths
+    const sharedKey = `./Shared/Pages/${name.replace('Shared/Pages/', '')}.jsx`;
+    if (sharedKey in sharedPages) {
+        return resolvePageComponent(sharedKey, sharedPages);
+    }
+
+    // Check Admin pages (for admin.* routes)
     const adminKey = `./Admin/Pages/${name}.jsx`;
     if (adminKey in adminPages) {
         return resolvePageComponent(adminKey, adminPages);

@@ -16,15 +16,15 @@ use App\Http\Controllers\IMSController;
 use App\Http\Controllers\JurisdictionController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LetterController;
-use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileImageController;
-use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Settings\AttendanceSettingController;
 use App\Http\Controllers\Settings\CustomDomainController;
 use App\Http\Controllers\Settings\LeaveSettingController;
 use App\Http\Controllers\Settings\SystemSettingController;
+use App\Http\Controllers\Shared\Admin\ModuleController;
+use App\Http\Controllers\Shared\Admin\RoleController;
 use App\Http\Controllers\SystemMonitoringController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
@@ -506,26 +506,13 @@ Route::middleware(['auth', 'verified', 'tenant.super_admin'])->group(function ()
     // View operations
     Route::get('/admin/modules', [ModuleController::class, 'index'])->name('modules.index');
     Route::get('/admin/modules/api', [ModuleController::class, 'apiIndex'])->name('modules.api.index');
-    Route::get('/admin/modules/statistics', [ModuleController::class, 'statistics'])->name('modules.statistics');
-    Route::get('/admin/modules/check-access', [ModuleController::class, 'checkAccess'])->name('modules.check-access');
+    Route::post('/admin/modules/check-access', [ModuleController::class, 'checkAccess'])->name('modules.check-access');
+    Route::get('/admin/modules/{moduleCode}/requirements', [ModuleController::class, 'getModuleRequirements'])->name('modules.requirements');
 
-    // Create operations
-    Route::post('/admin/modules', [ModuleController::class, 'storeModule'])->name('modules.store');
-    Route::post('/admin/modules/{module}/sub-modules', [ModuleController::class, 'storeSubModule'])->name('modules.sub-modules.store');
-    Route::post('/admin/modules/sub-modules/{subModule}/components', [ModuleController::class, 'storeComponent'])->name('modules.components.store');
-
-    // Update operations
-    Route::put('/admin/modules/{module}', [ModuleController::class, 'updateModule'])->name('modules.update');
-    Route::put('/admin/modules/sub-modules/{subModule}', [ModuleController::class, 'updateSubModule'])->name('modules.sub-modules.update');
-    Route::put('/admin/modules/components/{component}', [ModuleController::class, 'updateComponent'])->name('modules.components.update');
+    // Permission sync operations (tenant context only - permission requirements are per-tenant)
     Route::post('/admin/modules/{module}/sync-permissions', [ModuleController::class, 'syncModulePermissions'])->name('modules.sync-permissions');
     Route::post('/admin/modules/sub-modules/{subModule}/sync-permissions', [ModuleController::class, 'syncSubModulePermissions'])->name('modules.sub-modules.sync-permissions');
     Route::post('/admin/modules/components/{component}/sync-permissions', [ModuleController::class, 'syncComponentPermissions'])->name('modules.components.sync-permissions');
-
-    // Delete operations
-    Route::delete('/admin/modules/{module}', [ModuleController::class, 'destroyModule'])->name('modules.destroy');
-    Route::delete('/admin/modules/sub-modules/{subModule}', [ModuleController::class, 'destroySubModule'])->name('modules.sub-modules.destroy');
-    Route::delete('/admin/modules/components/{component}', [ModuleController::class, 'destroyComponent'])->name('modules.components.destroy');
 });
 
 // Role Debug Routes (for troubleshooting live server issues)

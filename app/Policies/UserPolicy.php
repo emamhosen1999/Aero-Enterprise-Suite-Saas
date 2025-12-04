@@ -79,7 +79,7 @@ class UserPolicy
         }
 
         // Platform Super admins can delete anyone (after last super admin check)
-        if ($user->hasRole('platform_super_administrator')) {
+        if ($user->hasRole('Super Administrator')) {
             return true;
         }
 
@@ -108,10 +108,10 @@ class UserPolicy
      */
     protected function isLastSuperAdminInScope(User $user): bool
     {
-        // Check if user has platform_super_administrator role
-        if ($user->hasRole('platform_super_administrator')) {
+        // Check if user has Super Administrator role
+        if ($user->hasRole('Super Administrator')) {
             $platformSuperAdminCount = User::whereHas('roles', function ($query) {
-                $query->where('name', 'platform_super_administrator')
+                $query->where('name', 'Super Administrator')
                     ->where('scope', 'platform');
             })->count();
 
@@ -159,11 +159,18 @@ class UserPolicy
 
     /**
      * Determine whether the user can update roles.
+     *
+     * CRITICAL: Super Administrator users' roles cannot be changed.
      */
     public function updateRoles(User $user, User $model): bool
     {
         // Cannot change your own roles
         if ($user->id === $model->id) {
+            return false;
+        }
+
+        // CRITICAL: Super Administrator users' roles cannot be changed (Protected)
+        if ($model->hasRole(['Super Administrator', 'platform_super_administrator', 'tenant_super_administrator'])) {
             return false;
         }
 

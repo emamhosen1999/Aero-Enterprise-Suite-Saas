@@ -35,7 +35,7 @@
 
 #### Platform Super Administrator
 ```php
-Name: platform_super_administrator
+Name: Super Administrator
 Guard: landlord
 Scope: platform
 Tenant ID: null
@@ -69,7 +69,7 @@ Permissions: 8 tenant-level permissions
 **File:** `app/Http/Middleware/PlatformSuperAdmin.php`
 
 **Enforces:**
-- Only `platform_super_administrator` can access
+- Only `Super Administrator` can access
 - Guards: landlord guard check
 - Returns 403 for unauthorized access
 - JSON/redirect support
@@ -98,7 +98,7 @@ Permissions: 8 tenant-level permissions
 
 ```php
 // Platform Super Admin - FULL BYPASS
-if ($user->hasRole('platform_super_administrator')) {
+if ($user->hasRole('Super Administrator')) {
     return ['allowed' => true, 'reason' => 'platform_super_admin'];
 }
 
@@ -161,8 +161,8 @@ if ($role->is_protected) {
 ```php
 protected function isLastSuperAdminInScope(User $user): bool
 {
-    // Check platform_super_administrator count
-    if ($user->hasRole('platform_super_administrator')) {
+    // Check Super Administrator count
+    if ($user->hasRole('Super Administrator')) {
         if (platformSuperAdminCount <= 1) return true;
     }
     
@@ -370,7 +370,7 @@ Route::middleware(['auth:web', 'tenant.super_admin'])->group(function() {
 - [ ] Frontend components updated
 
 ### Post-Deployment
-- [ ] Verify platform_super_administrator role exists
+- [ ] Verify Super Administrator role exists
 - [ ] Assign platform super admin to at least one landlord user
 - [ ] Create tenant_super_administrator for all existing tenants
 - [ ] Assign tenant super admin to at least one user per tenant
@@ -409,7 +409,7 @@ use App\Models\LandlordUser;
 use Spatie\Permission\Models\Role;
 
 $user = LandlordUser::find(1);
-$role = Role::where('name', 'platform_super_administrator')->first();
+$role = Role::where('name', 'Super Administrator')->first();
 $user->assignRole($role);
 ```
 

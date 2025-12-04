@@ -121,11 +121,20 @@ export default function PlatformSettings({ platformConfig = {} }) {
     const [testingSmsNumber, setTestingSmsNumber] = useState('');
 
     const { data, setData, post, processing, errors } = useForm({
+        // Basic Platform Info
         app_name: platformConfig.app_name || 'Aero Enterprise Suite',
+        legal_name: platformConfig.legal_name || '',
+        tagline: platformConfig.tagline || '',
         app_url: platformConfig.app_url || window.location.origin,
         app_timezone: platformConfig.app_timezone || 'UTC',
         app_locale: platformConfig.app_locale || 'en',
         app_debug: platformConfig.app_debug || false,
+        // Contact Info
+        support_email: platformConfig.support_email || '',
+        support_phone: platformConfig.support_phone || '',
+        marketing_url: platformConfig.marketing_url || '',
+        status_page_url: platformConfig.status_page_url || '',
+        // Email Settings
         mail_mailer: platformConfig.mail_mailer || 'smtp',
         mail_host: platformConfig.mail_host || 'smtp.mailtrap.io',
         mail_port: platformConfig.mail_port || '2525',
@@ -137,6 +146,7 @@ export default function PlatformSettings({ platformConfig = {} }) {
         mail_verify_ssl: platformConfig.mail_verify_ssl !== undefined ? platformConfig.mail_verify_ssl : true,
         mail_verify_ssl_name: platformConfig.mail_verify_ssl_name !== undefined ? platformConfig.mail_verify_ssl_name : true,
         mail_allow_self_signed: platformConfig.mail_allow_self_signed || false,
+        // SMS Settings
         sms_provider: platformConfig.sms_provider || 'twilio',
         sms_twilio_sid: platformConfig.sms_twilio_sid || '',
         sms_twilio_token: platformConfig.sms_twilio_token || '',
@@ -144,6 +154,7 @@ export default function PlatformSettings({ platformConfig = {} }) {
         sms_nexmo_key: platformConfig.sms_nexmo_key || '',
         sms_nexmo_secret: platformConfig.sms_nexmo_secret || '',
         sms_nexmo_from: platformConfig.sms_nexmo_from || '',
+        // Backend Drivers
         queue_connection: platformConfig.queue_connection || 'sync',
         session_driver: platformConfig.session_driver || 'database',
         cache_driver: platformConfig.cache_driver || 'database',
@@ -240,15 +251,39 @@ export default function PlatformSettings({ platformConfig = {} }) {
                             <div>
                                 <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Application Settings</h3>
                                 <div className="space-y-3 sm:space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <Input
+                                            label="Application Name"
+                                            placeholder="Aero Enterprise Suite"
+                                            value={data.app_name}
+                                            onValueChange={(value) => setData('app_name', value)}
+                                            isInvalid={!!errors.app_name}
+                                            errorMessage={errors.app_name}
+                                            isRequired
+                                            description="Display name throughout the platform"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
+
+                                        <Input
+                                            label="Legal Name"
+                                            placeholder="Company Legal Name Inc."
+                                            value={data.legal_name}
+                                            onValueChange={(value) => setData('legal_name', value)}
+                                            isInvalid={!!errors.legal_name}
+                                            errorMessage={errors.legal_name}
+                                            description="Official company name for invoices"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
+                                    </div>
+
                                     <Input
-                                        label="Application Name"
-                                        placeholder="Aero Enterprise Suite"
-                                        value={data.app_name}
-                                        onValueChange={(value) => setData('app_name', value)}
-                                        isInvalid={!!errors.app_name}
-                                        errorMessage={errors.app_name}
-                                        isRequired
-                                        description="This name will be displayed throughout the platform"
+                                        label="Tagline"
+                                        placeholder="Your Enterprise Solution for Success"
+                                        value={data.tagline}
+                                        onValueChange={(value) => setData('tagline', value)}
+                                        isInvalid={!!errors.tagline}
+                                        errorMessage={errors.tagline}
+                                        description="A short description or slogan for your platform"
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
 
@@ -263,6 +298,61 @@ export default function PlatformSettings({ platformConfig = {} }) {
                                         description="The base URL where your platform is hosted"
                                         classNames={{ inputWrapper: "bg-default-100" }}
                                     />
+                                </div>
+                            </div>
+
+                            {/* Contact Information */}
+                            <div>
+                                <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Contact Information</h3>
+                                <div className="space-y-3 sm:space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <Input
+                                            label="Support Email"
+                                            placeholder="support@your-domain.com"
+                                            type="email"
+                                            value={data.support_email}
+                                            onValueChange={(value) => setData('support_email', value)}
+                                            isInvalid={!!errors.support_email}
+                                            errorMessage={errors.support_email}
+                                            description="Email for customer support inquiries"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
+
+                                        <Input
+                                            label="Support Phone"
+                                            placeholder="+1 (555) 123-4567"
+                                            value={data.support_phone}
+                                            onValueChange={(value) => setData('support_phone', value)}
+                                            isInvalid={!!errors.support_phone}
+                                            errorMessage={errors.support_phone}
+                                            description="Phone number for support"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <Input
+                                            label="Marketing Website"
+                                            placeholder="https://www.your-domain.com"
+                                            value={data.marketing_url}
+                                            onValueChange={(value) => setData('marketing_url', value)}
+                                            isInvalid={!!errors.marketing_url}
+                                            errorMessage={errors.marketing_url}
+                                            description="Link to your marketing website"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
+
+                                        <Input
+                                            label="Status Page URL"
+                                            placeholder="https://status.your-domain.com"
+                                            value={data.status_page_url}
+                                            onValueChange={(value) => setData('status_page_url', value)}
+                                            isInvalid={!!errors.status_page_url}
+                                            errorMessage={errors.status_page_url}
+                                            description="Link to service status page"
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

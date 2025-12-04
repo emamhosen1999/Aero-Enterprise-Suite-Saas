@@ -151,7 +151,7 @@ class LandlordUser extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('Platform Super Admin', 'landlord');
+        return $this->hasRole('Super Administrator', 'landlord');
     }
 
     /**
@@ -159,7 +159,7 @@ class LandlordUser extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->hasAnyRole(['Platform Super Admin', 'Platform Admin'], 'landlord');
+        return $this->hasAnyRole(['Super Administrator', 'Platform Admin'], 'landlord');
     }
 
     /**

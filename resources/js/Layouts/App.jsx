@@ -40,14 +40,11 @@ const LayoutContext = React.createContext({
   app: null
 });
 
-// ===== COMPLETELY STATIC HEADER WRAPPER =====
-// This component renders ONCE and never re-renders, regardless of any prop changes
+// ===== HEADER WRAPPER =====
+// Updates when pages change (e.g., when auth permissions are loaded)
 const StaticHeaderWrapper = React.memo(() => {
   const contextValue = React.useContext(LayoutContext);
   const [mounted, setMounted] = useState(false);
-  
-  // Capture initial context values and freeze them
-  const frozenContext = useRef(contextValue);
   
   useEffect(() => {
     setMounted(true);
@@ -57,24 +54,21 @@ const StaticHeaderWrapper = React.memo(() => {
   
   return (
     <Header
-      url={frozenContext.current.currentUrl}
-      pages={frozenContext.current.pages}
-      toggleSideBar={frozenContext.current.toggleSideBar}
-      sideBarOpen={frozenContext.current.sideBarOpen}
+      url={contextValue.currentUrl}
+      pages={contextValue.pages}
+      toggleSideBar={contextValue.toggleSideBar}
+      sideBarOpen={contextValue.sideBarOpen}
     />
   );
-}, () => true); // Always return true to prevent ANY re-renders
+});
 
 StaticHeaderWrapper.displayName = 'StaticHeaderWrapper';
 
-// ===== COMPLETELY STATIC SIDEBAR WRAPPER =====
-// This component renders ONCE and never re-renders, regardless of any prop changes
+// ===== SIDEBAR WRAPPER =====
+// Updates when pages change (e.g., when auth permissions are loaded)
 const StaticSidebarWrapper = React.memo(() => {
   const contextValue = React.useContext(LayoutContext);
   const [mounted, setMounted] = useState(false);
-  
-  // Capture initial context values and freeze them
-  const frozenContext = useRef(contextValue);
   
   useEffect(() => {
     setMounted(true);
@@ -84,13 +78,13 @@ const StaticSidebarWrapper = React.memo(() => {
   
   return (
     <Sidebar
-      url={frozenContext.current.currentUrl}
-      pages={frozenContext.current.pages}
-      toggleSideBar={frozenContext.current.toggleSideBar}
-      sideBarOpen={frozenContext.current.sideBarOpen}
+      url={contextValue.currentUrl}
+      pages={contextValue.pages}
+      toggleSideBar={contextValue.toggleSideBar}
+      sideBarOpen={contextValue.sideBarOpen}
     />
   );
-}, () => true); // Always return true to prevent ANY re-renders
+});
 
 StaticSidebarWrapper.displayName = 'StaticSidebarWrapper';
 
@@ -154,15 +148,20 @@ const App = React.memo(({ children }) => {
     dismissUpdate
   } = useVersionManager();
 
-  // ===== STATIC REFERENCE DATA (Never Changes After Initial Calculation) =====
-  // These values are calculated ONCE and then frozen to prevent any re-renders
+  // ===== NAVIGATION DATA =====
+  // Recalculates when auth changes to ensure navigation reflects user permissions
   const staticLayoutData = useMemo(() => {
     const currentAuth = {
       user: auth?.user,
       permissions: auth?.permissions,
       roles: auth?.roles,
       id: auth?.user?.id,
-      permissionCount: auth?.permissions?.length
+      permissionCount: auth?.permissions?.length,
+      // Include super admin flags for navigation filtering
+      isPlatformSuperAdmin: auth?.isPlatformSuperAdmin ?? false,
+      isTenantSuperAdmin: auth?.isTenantSuperAdmin ?? false,
+      isSuperAdmin: auth?.isSuperAdmin ?? false,
+      isAdmin: auth?.isAdmin ?? false,
     };
 
     const permissions = currentAuth?.permissions || [];
@@ -183,7 +182,19 @@ const App = React.memo(({ children }) => {
       app,
       url
     };
-  }, []); // Empty dependency array - calculate ONLY ONCE
+  }, [
+    auth?.user?.id,
+    auth?.isPlatformSuperAdmin,
+    auth?.isTenantSuperAdmin,
+    auth?.isSuperAdmin,
+    auth?.isAdmin,
+    auth?.permissions,
+    auth?.roles,
+    roles,
+    domainContext,
+    url,
+    app
+  ]); // Recalculate when auth or context changes
 
   // Responsive breakpoints
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -226,16 +237,16 @@ const App = React.memo(({ children }) => {
     }
   }, [forceUpdate]);
 
-  // ===== STATIC CONTEXT VALUE (Frozen After Initial Render) =====
-  // This context value is set ONCE and never changes to prevent any re-renders
+  // ===== CONTEXT VALUE =====
+  // Updates when pages or auth change to ensure navigation is always current
   const staticContextValue = useMemo(() => ({
-    sideBarOpen: false, // Always start with false - visual state managed by components internally
+    sideBarOpen: sideBarOpen,
     toggleSideBar: staticToggleSideBar,
     currentUrl: staticLayoutData.url,
     pages: staticLayoutData.pages,
     auth: staticLayoutData.currentAuth,
     app: staticLayoutData.app
-  }), []); // Empty dependency array - freeze the context value
+  }), [sideBarOpen, staticToggleSideBar, staticLayoutData.url, staticLayoutData.pages, staticLayoutData.currentAuth, staticLayoutData.app]);
 
   // ===== EFFECTS (Same as before) =====
   // Firebase initialization

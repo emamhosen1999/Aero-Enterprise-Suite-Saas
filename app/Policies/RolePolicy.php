@@ -24,7 +24,7 @@ class RolePolicy
     public function viewAny(User $user): bool
     {
         // Platform Super Admin can view all roles
-        if ($user->hasRole('platform_super_administrator')) {
+        if ($user->hasRole('Super Administrator')) {
             return true;
         }
 
@@ -43,7 +43,7 @@ class RolePolicy
     public function view(User $user, Role $role): bool
     {
         // Platform Super Admin can view all roles
-        if ($user->hasRole('platform_super_administrator')) {
+        if ($user->hasRole('Super Administrator')) {
             return true;
         }
 
@@ -61,7 +61,7 @@ class RolePolicy
     public function create(User $user): bool
     {
         // Platform Super Admin can create roles
-        if ($user->hasRole('platform_super_administrator')) {
+        if ($user->hasRole('Super Administrator')) {
             return true;
         }
 
@@ -74,6 +74,16 @@ class RolePolicy
     }
 
     /**
+     * Check if a role is protected (Super Administrator roles)
+     */
+    protected function isProtectedRole(Role $role): bool
+    {
+        $protectedRoleNames = ['Super Administrator', 'platform_super_administrator', 'tenant_super_administrator'];
+
+        return in_array($role->name, $protectedRoleNames) || ($role->is_protected ?? false);
+    }
+
+    /**
      * Determine whether the user can update the model.
      *
      * Protected roles (Super Administrators) cannot be modified.
@@ -81,12 +91,17 @@ class RolePolicy
     public function update(User $user, Role $role): Response
     {
         // CRITICAL: Protected roles cannot be modified (Section 3, Rule 2)
-        if ($role->is_protected) {
+        if ($this->isProtectedRole($role)) {
             return Response::deny('This role is protected and cannot be modified. Super Administrator roles are permanent.');
         }
 
         // Platform Super Admin can update non-protected roles
         if ($user->hasRole('platform_super_administrator')) {
+            return Response::allow();
+        }
+
+        // Super Administrator can update non-protected roles
+        if ($user->hasRole('Super Administrator')) {
             return Response::allow();
         }
 
@@ -110,12 +125,17 @@ class RolePolicy
     public function delete(User $user, Role $role): Response
     {
         // CRITICAL: Protected roles cannot be deleted (Section 3, Rule 1)
-        if ($role->is_protected) {
+        if ($this->isProtectedRole($role)) {
             return Response::deny('This role is protected and cannot be deleted. Super Administrator roles are permanent.');
         }
 
         // Platform Super Admin can delete non-protected roles
         if ($user->hasRole('platform_super_administrator')) {
+            return Response::allow();
+        }
+
+        // Super Administrator can delete non-protected roles
+        if ($user->hasRole('Super Administrator')) {
             return Response::allow();
         }
 

@@ -14,18 +14,25 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Inertia;
 
 class InstallationController extends Controller
 {
     /**
-     * Installation secret code hash (bcrypt)
-     * Plain text secret: aEos365^T9*zB6_3
-     *
-     * This hash should be stored in .env as INSTALLATION_SECRET_HASH
-     * Generated using: Hash::make('aEos365^T9*zB6_3')
+     * Rate limit key for secret code verification
      */
-    private const INSTALLATION_SECRET_HASH = '$2y$12$8SvfCq6g4M7lywD6T.x5kOEvqRGSGZNoZrj7J4tO2Fb.tRijPbniK';
+    private const RATE_LIMIT_KEY = 'installation_secret_attempts';
+
+    /**
+     * Maximum attempts allowed before lockout
+     */
+    private const MAX_ATTEMPTS = 5;
+
+    /**
+     * Lockout duration in seconds (15 minutes)
+     */
+    private const LOCKOUT_DURATION = 900;
 
     public function __construct(
         private readonly InstallationService $installationService
@@ -62,7 +69,7 @@ class InstallationController extends Controller
     }
 
     /**
-     * Verify installation secret code
+     * Verify installation secret code with rate limiting
      */
     public function verifySecret(Request $request): \Illuminate\Http\RedirectResponse
     {
@@ -70,18 +77,55 @@ class InstallationController extends Controller
             'secret_code' => ['required', 'string'],
         ]);
 
-        // Get hash from .env or use hardcoded fallback
-        $secretHash = config('app.installation_secret_hash', self::INSTALLATION_SECRET_HASH);
+        // Rate limiting to prevent brute-force attacks
+        $rateLimitKey = self::RATE_LIMIT_KEY.':'.$request->ip();
 
-        // Verify using bcrypt
-        if (! Hash::check($request->secret_code, $secretHash)) {
+        if (RateLimiter::tooManyAttempts($rateLimitKey, self::MAX_ATTEMPTS)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            $minutes = ceil($seconds / 60);
+
             return back()->withErrors([
-                'secret_code' => 'Invalid installation secret code. Please contact your system administrator.',
+                'secret_code' => "Too many failed attempts. Please try again in {$minutes} minute(s).",
             ]);
         }
 
+        // Get hash from .env - NO FALLBACK for security
+        $secretHash = config('app.installation_secret_hash');
+
+        if (empty($secretHash)) {
+            \Log::error('Installation secret hash not configured in .env file');
+
+            return back()->withErrors([
+                'secret_code' => 'Installation not properly configured. INSTALLATION_SECRET_HASH must be set in .env file.',
+            ]);
+        }
+
+        // Verify using bcrypt
+        if (! Hash::check($request->secret_code, $secretHash)) {
+            // Increment rate limiter on failed attempt
+            RateLimiter::hit($rateLimitKey, self::LOCKOUT_DURATION);
+            $attemptsLeft = self::MAX_ATTEMPTS - RateLimiter::attempts($rateLimitKey);
+
+            \Log::warning('Failed installation secret verification attempt', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'attempts_left' => $attemptsLeft,
+            ]);
+
+            return back()->withErrors([
+                'secret_code' => "Invalid installation secret code. {$attemptsLeft} attempt(s) remaining.",
+            ]);
+        }
+
+        // Clear rate limiter on success
+        RateLimiter::clear($rateLimitKey);
+
         // Store verification in session
         session(['installation_verified' => true]);
+
+        \Log::info('Installation secret verified successfully', [
+            'ip' => $request->ip(),
+        ]);
 
         return redirect()->route('installation.requirements')->with('success', 'Secret code verified successfully.');
     }
@@ -153,13 +197,15 @@ class InstallationController extends Controller
 
             if ($testConnection['success']) {
                 // Store config in session for later use
+                // Encrypt sensitive password before storing in session
                 session([
                     'db_config' => [
                         'db_host' => $request->host,
                         'db_port' => $request->port,
                         'db_database' => $request->database,
                         'db_username' => $request->username,
-                        'db_password' => $request->password,
+                        'db_password' => $request->password ? Crypt::encryptString($request->password) : '',
+                        'db_password_encrypted' => true,
                     ],
                 ]);
 
@@ -192,11 +238,20 @@ class InstallationController extends Controller
 
         // Get current configuration from session or .env
         $platformConfig = session('platform_config', [
+            // Basic Platform Info
             'app_name' => config('app.name', 'Aero Enterprise Suite'),
+            'legal_name' => '',
+            'tagline' => '',
             'app_url' => config('app.url', url('/')),
             'app_timezone' => config('app.timezone', 'UTC'),
             'app_locale' => config('app.locale', 'en'),
             'app_debug' => config('app.debug', false),
+            // Contact Info
+            'support_email' => '',
+            'support_phone' => '',
+            'marketing_url' => '',
+            'status_page_url' => '',
+            // Email Settings
             'mail_mailer' => config('mail.default', 'smtp'),
             'mail_host' => config('mail.mailers.smtp.host', 'smtp.mailtrap.io'),
             'mail_port' => config('mail.mailers.smtp.port', '2525'),
@@ -208,10 +263,12 @@ class InstallationController extends Controller
             'mail_verify_ssl' => config('mail.mailers.smtp.verify_peer', false),
             'mail_verify_ssl_name' => config('mail.mailers.smtp.verify_peer_name', false),
             'mail_allow_self_signed' => config('mail.mailers.smtp.allow_self_signed', false),
+            // Backend Drivers
             'queue_connection' => config('queue.default', 'sync'),
             'session_driver' => config('session.driver', 'database'),
             'cache_driver' => config('cache.default', 'database'),
             'filesystem_disk' => config('filesystems.default', 'local'),
+            // SMS Settings
             'sms_provider' => config('services.sms.default', 'twilio'),
             'sms_twilio_sid' => config('services.twilio.sid', ''),
             'sms_twilio_token' => config('services.twilio.token', ''),
@@ -233,11 +290,20 @@ class InstallationController extends Controller
     public function savePlatform(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
+            // Basic Platform Info
             'app_name' => ['required', 'string', 'max:255'],
+            'legal_name' => ['nullable', 'string', 'max:255'],
+            'tagline' => ['nullable', 'string', 'max:500'],
             'app_url' => ['required', 'url'],
             'app_timezone' => ['required', 'string'],
             'app_locale' => ['required', 'string', 'in:en,bn,zh-CN,zh-TW'],
             'app_debug' => ['required', 'boolean'],
+            // Contact Info
+            'support_email' => ['nullable', 'email', 'max:255'],
+            'support_phone' => ['nullable', 'string', 'max:50'],
+            'marketing_url' => ['nullable', 'url', 'max:255'],
+            'status_page_url' => ['nullable', 'url', 'max:255'],
+            // Email Settings
             'mail_mailer' => ['required', 'string', 'in:smtp,sendmail,mailgun,ses,postmark,log'],
             'mail_host' => ['required', 'string'],
             'mail_port' => ['required', 'integer', 'min:1', 'max:65535'],
@@ -249,10 +315,12 @@ class InstallationController extends Controller
             'mail_verify_ssl' => ['required', 'boolean'],
             'mail_verify_ssl_name' => ['required', 'boolean'],
             'mail_allow_self_signed' => ['required', 'boolean'],
+            // Backend Drivers
             'queue_connection' => ['required', 'string', 'in:sync,database,redis,beanstalkd,sqs'],
             'session_driver' => ['required', 'string', 'in:file,cookie,database,apc,memcached,redis,array'],
             'cache_driver' => ['required', 'string', 'in:file,database,apc,memcached,redis,array'],
             'filesystem_disk' => ['required', 'string', 'in:local,public,s3'],
+            // SMS Settings
             'sms_provider' => ['nullable', 'string', 'in:twilio,nexmo,messagebird,sns'],
             'sms_twilio_sid' => ['nullable', 'string'],
             'sms_twilio_token' => ['nullable', 'string'],
@@ -436,7 +504,15 @@ class InstallationController extends Controller
             'admin_password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        session(['admin_config' => $validated]);
+        // Encrypt sensitive password before storing in session
+        session([
+            'admin_config' => [
+                'admin_name' => $validated['admin_name'],
+                'admin_email' => $validated['admin_email'],
+                'admin_password' => Crypt::encryptString($validated['admin_password']),
+                'admin_password_encrypted' => true,
+            ],
+        ]);
 
         return redirect()->route('installation.review');
     }
@@ -504,12 +580,22 @@ class InstallationController extends Controller
 
             // Normalize database config keys (handle both old and new format)
             // Convert to format expected by InstallationService (without db_ prefix)
+            // Decrypt password if it was encrypted in session
+            $dbPassword = $dbConfig['db_password'] ?? $dbConfig['password'] ?? null;
+            if (! empty($dbConfig['db_password_encrypted']) && $dbPassword) {
+                try {
+                    $dbPassword = Crypt::decryptString($dbPassword);
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to decrypt db_password, using as-is', ['error' => $e->getMessage()]);
+                }
+            }
+
             $dbConfig = [
                 'host' => $dbConfig['db_host'] ?? $dbConfig['host'] ?? null,
                 'port' => $dbConfig['db_port'] ?? $dbConfig['port'] ?? null,
                 'database' => $dbConfig['db_database'] ?? $dbConfig['database'] ?? null,
                 'username' => $dbConfig['db_username'] ?? $dbConfig['username'] ?? null,
-                'password' => $dbConfig['db_password'] ?? $dbConfig['password'] ?? null,
+                'password' => $dbPassword,
             ];
 
             // Stage 1: Update environment file
@@ -541,33 +627,96 @@ class InstallationController extends Controller
 
             // Stage 3: Seed basic data
             \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
+
+            // 3a: Super Administrator role and platform permissions from config
             Artisan::call('db:seed', [
                 '--class' => 'SuperAdministratorRolesSeeder',
                 '--force' => true,
             ]);
+            \Log::info('SuperAdministratorRolesSeeder output', ['output' => Artisan::output()]);
+
+            // 3b: Platform module permissions from config/modules.platform_hierarchy
+            Artisan::call('db:seed', [
+                '--class' => 'PlatformModulePermissionSeeder',
+                '--force' => true,
+            ]);
+            \Log::info('PlatformModulePermissionSeeder output', ['output' => Artisan::output()]);
+
+            // 3c: Tenant module hierarchy from config/modules.hierarchy
+            Artisan::call('db:seed', [
+                '--class' => 'ModuleSeeder',
+                '--force' => true,
+            ]);
+            \Log::info('ModuleSeeder output', ['output' => Artisan::output()]);
+
+            // 3d: Subscription plans with module assignments
+            Artisan::call('db:seed', [
+                '--class' => 'PlanSeeder',
+                '--force' => true,
+            ]);
             $seedOutput = Artisan::output();
-            \Log::info('Seeding output', ['output' => $seedOutput]);
+            \Log::info('PlanSeeder output', ['output' => $seedOutput]);
 
             // Stage 4: Create admin user
             \Log::info('Installation Stage: admin', ['stage' => 'admin']);
+
+            // Decrypt admin password if it was encrypted in session
+            $adminPassword = $adminConfig['admin_password'];
+            if (! empty($adminConfig['admin_password_encrypted'])) {
+                try {
+                    $adminPassword = Crypt::decryptString($adminPassword);
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to decrypt admin_password, using as-is', ['error' => $e->getMessage()]);
+                }
+            }
+
             $admin = LandlordUser::create([
                 'name' => $adminConfig['admin_name'],
                 'email' => $adminConfig['admin_email'],
-                'password' => Hash::make($adminConfig['admin_password']),
+                'password' => Hash::make($adminPassword),
                 'email_verified_at' => now(),
             ]);
             \Log::info('Admin created', ['admin_id' => $admin->id, 'email' => $admin->email]);
 
-            // Assign platform_super_administrator role
-            $admin->assignRole('platform_super_administrator');
-            \Log::info('Role assigned', ['role' => 'platform_super_administrator']);
+            // Assign Super Administrator role
+            $admin->assignRole('Super Administrator');
+            \Log::info('Role assigned', ['role' => 'Super Administrator']);
 
-            // Stage 5: Create platform settings
+            // Stage 5: Create platform settings with all collected data
             \Log::info('Installation Stage: settings', ['stage' => 'settings']);
+
+            // Build SMS settings array
+            $smsSettings = [];
+            if (! empty($platformConfig['sms_provider'])) {
+                $smsSettings = [
+                    'provider' => $platformConfig['sms_provider'],
+                    'configured' => true,
+                ];
+
+                if ($platformConfig['sms_provider'] === 'twilio') {
+                    $smsSettings['twilio'] = [
+                        'sid' => $platformConfig['sms_twilio_sid'] ? Crypt::encryptString($platformConfig['sms_twilio_sid']) : '',
+                        'token' => $platformConfig['sms_twilio_token'] ? Crypt::encryptString($platformConfig['sms_twilio_token']) : '',
+                        'from' => $platformConfig['sms_twilio_from'] ?? '',
+                    ];
+                } elseif ($platformConfig['sms_provider'] === 'nexmo') {
+                    $smsSettings['nexmo'] = [
+                        'key' => $platformConfig['sms_nexmo_key'] ? Crypt::encryptString($platformConfig['sms_nexmo_key']) : '',
+                        'secret' => $platformConfig['sms_nexmo_secret'] ? Crypt::encryptString($platformConfig['sms_nexmo_secret']) : '',
+                        'from' => $platformConfig['sms_nexmo_from'] ?? '',
+                    ];
+                }
+            }
+
             PlatformSetting::create([
                 'slug' => 'platform',
                 'site_name' => $platformConfig['app_name'],
-                'support_email' => $platformConfig['mail_from_address'],
+                'legal_name' => $platformConfig['legal_name'] ?? null,
+                'tagline' => $platformConfig['tagline'] ?? null,
+                'support_email' => $platformConfig['support_email'] ?? $platformConfig['mail_from_address'],
+                'support_phone' => $platformConfig['support_phone'] ?? null,
+                'marketing_url' => $platformConfig['marketing_url'] ?? null,
+                'status_page_url' => $platformConfig['status_page_url'] ?? null,
                 'email_settings' => [
                     'driver' => $platformConfig['mail_mailer'] ?? 'smtp',
                     'host' => $platformConfig['mail_host'] ?? '127.0.0.1',
@@ -578,6 +727,13 @@ class InstallationController extends Controller
                     'verify_peer' => ! ($platformConfig['mail_allow_self_signed'] ?? false),
                     'from_address' => $platformConfig['mail_from_address'],
                     'from_name' => $platformConfig['mail_from_name'],
+                ],
+                'sms_settings' => $smsSettings,
+                'metadata' => [
+                    'timezone' => $platformConfig['app_timezone'] ?? 'UTC',
+                    'locale' => $platformConfig['app_locale'] ?? 'en',
+                    'installed_version' => config('app.version', '1.0.0'),
+                    'installed_at' => now()->toIso8601String(),
                 ],
             ]);
 

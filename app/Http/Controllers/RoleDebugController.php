@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Role\RolePermissionService;
+use App\Services\Shared\Admin\RolePermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

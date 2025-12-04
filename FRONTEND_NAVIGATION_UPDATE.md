@@ -129,7 +129,7 @@ This frontend navigation update adds **Layer 3** to the security model:
 
 ### Test 1: Platform Super Admin View
 ```javascript
-// User with platform_super_administrator role
+// User with Super Administrator role
 auth = {
   isPlatformSuperAdmin: true,
   isTenantSuperAdmin: false
@@ -148,7 +148,7 @@ auth = {
 
 ### Test 2: Regular Admin User View
 ```javascript
-// User without platform_super_administrator role
+// User without Super Administrator role
 auth = {
   isPlatformSuperAdmin: false,
   isTenantSuperAdmin: false

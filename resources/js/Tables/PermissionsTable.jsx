@@ -44,14 +44,13 @@ const PermissionsTable = ({
   const getColumns = () => {
     const baseColumns = [
       { name: "#", uid: "sl", width: 60 },
-      { name: "PERMISSION", uid: "permission", width: "auto", minWidth: 250 },
-      { name: "NAME (KEY)", uid: "name_key", width: 280 },
-      { name: "DESCRIPTION", uid: "description", width: "auto", minWidth: 300 },
+      { name: "NAME", uid: "name", width: "auto", minWidth: 300 },
+      { name: "DESCRIPTION", uid: "description", width: "auto", minWidth: 350 },
       { name: "ACTIONS", uid: "actions", width: 100 }
     ];
 
     if (isMobile) {
-      return baseColumns.filter(col => ['sl', 'permission', 'actions'].includes(col.uid));
+      return baseColumns.filter(col => ['sl', 'name', 'actions'].includes(col.uid));
     }
 
     if (isTablet) {
@@ -82,7 +81,7 @@ const PermissionsTable = ({
           </div>
         );
 
-      case "permission":
+      case "name":
         return (
           <div className="min-w-max">
             <div className="flex items-center gap-3">
@@ -96,30 +95,16 @@ const PermissionsTable = ({
               </div>
               <div className="flex flex-col">
                 <p className="font-semibold text-foreground text-left whitespace-nowrap">
-                  {permission.display_name || permission.name}
+                  {permission.name}
                 </p>
-                {isMobile && (
-                  <p className="text-default-500 text-left text-xs truncate max-w-[150px]">
-                    {permission.name}
-                  </p>
-                )}
               </div>
             </div>
           </div>
         );
 
-      case "name_key":
-        return (
-          <div className="max-w-[280px]">
-            <code className="text-xs px-2 py-1 rounded bg-default-100 text-default-700">
-              {permission.name}
-            </code>
-          </div>
-        );
-
       case "description":
         return (
-          <div className="max-w-[250px]">
+          <div className="max-w-[350px]">
             <p className="text-sm text-default-600 truncate">
               {permission.description || <span className="text-default-400 italic">No description</span>}
             </p>
@@ -273,25 +258,22 @@ const PermissionsTable = ({
             loadingContent={<Spinner />}
             isLoading={loading}
           >
-            {(item) => {
-              const itemIndex = permissions ? permissions.findIndex(perm => perm.id === item.id) : 0;
-              return (
-                <TableRow 
-                  key={item.id}
-                  className="transition-all duration-200"
-                  style={{
-                    color: 'var(--theme-foreground)',
-                    borderBottom: `1px solid color-mix(in srgb, var(--theme-content3) 30%, transparent)`,
-                  }}
-                >
-                  {(columnKey) => (
-                    <TableCell className="transition-all duration-300">
-                      {renderCell(item, columnKey, itemIndex)}
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            }}
+            {(permissions || []).map((item, index) => (
+              <TableRow 
+                key={item.id}
+                className="transition-all duration-200"
+                style={{
+                  color: 'var(--theme-foreground)',
+                  borderBottom: `1px solid color-mix(in srgb, var(--theme-content3) 30%, transparent)`,
+                }}
+              >
+                {columns.map((column) => (
+                  <TableCell key={column.uid} className="transition-all duration-300">
+                    {renderCell(item, column.uid, index)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
