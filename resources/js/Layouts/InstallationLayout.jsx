@@ -1,6 +1,8 @@
 import React from 'react';
 import { usePage } from '@inertiajs/react';
 import { Card, CardBody, Progress } from '@heroui/react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
     const { app, platformSettings } = usePage().props;
@@ -22,7 +24,20 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
     const progressPercentage = (currentStep / totalSteps) * 100;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+        <>
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
+            <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
             {/* Header */}
             <div className="w-full bg-white dark:bg-gray-900 border-b border-divider shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
@@ -131,6 +146,7 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

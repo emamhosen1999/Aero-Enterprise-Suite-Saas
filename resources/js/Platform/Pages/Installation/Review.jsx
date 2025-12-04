@@ -14,6 +14,17 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
         adminConfig
     });
 
+    // Check if session data is complete
+    const hasCompleteDbConfig = dbConfig && (
+        (dbConfig.db_host || dbConfig.host) &&
+        (dbConfig.db_database || dbConfig.database) &&
+        (dbConfig.db_username || dbConfig.username)
+    );
+    const hasCompletePlatformConfig = platformConfig && platformConfig.app_name && platformConfig.app_url;
+    const hasCompleteAdminConfig = adminConfig && adminConfig.admin_email;
+
+    const sessionDataIncomplete = !hasCompleteDbConfig || !hasCompletePlatformConfig || !hasCompleteAdminConfig;
+
     const { post, processing } = useForm({});
     const [installing, setInstalling] = useState(false);
     const [installStages, setInstallStages] = useState([
@@ -59,10 +70,14 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
 
             showToast.success(response.data.message || 'Installation completed successfully!');
 
-            // Redirect to login after short delay
+            // Redirect to login page (cross-domain requires full page navigation)
             setTimeout(() => {
-                window.location.href = response.data.redirect || route('login');
-            }, 2000);
+                const redirectUrl = response.data.redirect || route('login');
+                console.log('🔄 Redirecting to:', redirectUrl);
+                
+                // Use window.location.replace for cross-domain redirects (to admin subdomain)
+                window.location.replace(redirectUrl);
+            }, 1500);
 
         } catch (error) {
             console.error('❌ Installation Error:', error);
@@ -149,6 +164,42 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
                 </CardHeader>
 
                 <CardBody className="px-8 py-8">
+                    {/* Session Data Warning */}
+                    {sessionDataIncomplete && (
+                        <div className="mb-6 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-lg p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0">
+                                    <svg className="w-6 h-6 text-danger" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-lg font-semibold text-danger mb-2">
+                                        Incomplete Session Data
+                                    </h3>
+                                    <p className="text-sm text-danger-700 dark:text-danger-300 mb-4">
+                                        Your session data is incomplete or in an old format. This will cause installation errors. 
+                                        Please go back to the Database step and re-enter your configuration.
+                                    </p>
+                                    <div className="text-xs text-danger-600 dark:text-danger-400 mb-4 space-y-1">
+                                        <div>• Database Config: {hasCompleteDbConfig ? '✓ Complete' : '✗ Incomplete'}</div>
+                                        <div>• Platform Config: {hasCompletePlatformConfig ? '✓ Complete' : '✗ Incomplete'}</div>
+                                        <div>• Admin Config: {hasCompleteAdminConfig ? '✓ Complete' : '✗ Incomplete'}</div>
+                                    </div>
+                                    <Link 
+                                        href={route('installation.database')}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger-600 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                                        </svg>
+                                        Go Back to Database Step
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Installation Progress */}
                     {installing && (
                         <div className="mb-8 space-y-4">
@@ -316,7 +367,7 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
                         color="primary"
                         size="lg"
                         isLoading={processing || installing}
-                        isDisabled={processing || installing}
+                        isDisabled={processing || installing || sessionDataIncomplete}
                     >
                         {installing ? 'Installing...' : 'Install Now'}
                     </Button>

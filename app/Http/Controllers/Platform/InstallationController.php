@@ -50,7 +50,7 @@ class InstallationController extends Controller
     /**
      * Show secret code verification page
      */
-    public function showSecretVerification(): \Inertia\Response
+    public function showSecretVerification(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         if ($this->isInstalled()) {
             return redirect()->route('login');
@@ -89,7 +89,7 @@ class InstallationController extends Controller
     /**
      * Show requirements check page
      */
-    public function showRequirements(): \Inertia\Response
+    public function showRequirements(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         if (! session('installation_verified')) {
             return redirect()->route('installation.secret');
@@ -112,7 +112,7 @@ class InstallationController extends Controller
     /**
      * Show database configuration page
      */
-    public function showDatabase(): \Inertia\Response
+    public function showDatabase(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         if (! session('installation_verified')) {
             return redirect()->route('installation.secret');
@@ -184,7 +184,7 @@ class InstallationController extends Controller
     /**
      * Show platform settings page
      */
-    public function showPlatform(): \Inertia\Response
+    public function showPlatform(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         if (! session('installation_verified') || ! session('db_config')) {
             return redirect()->route('installation.database');
@@ -414,7 +414,7 @@ class InstallationController extends Controller
     /**
      * Show admin account creation page
      */
-    public function showAdmin(): \Inertia\Response
+    public function showAdmin(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         if (! session('installation_verified') || ! session('db_config')) {
             return redirect()->route('installation.database');
@@ -444,7 +444,7 @@ class InstallationController extends Controller
     /**
      * Show final review page
      */
-    public function showReview(): \Inertia\Response
+    public function showReview(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         if (! session('installation_verified') || ! session('db_config')) {
             return redirect()->route('installation.database');
@@ -503,12 +503,13 @@ class InstallationController extends Controller
             }
 
             // Normalize database config keys (handle both old and new format)
+            // Convert to format expected by InstallationService (without db_ prefix)
             $dbConfig = [
-                'db_host' => $dbConfig['db_host'] ?? $dbConfig['host'] ?? null,
-                'db_port' => $dbConfig['db_port'] ?? $dbConfig['port'] ?? null,
-                'db_database' => $dbConfig['db_database'] ?? $dbConfig['database'] ?? null,
-                'db_username' => $dbConfig['db_username'] ?? $dbConfig['username'] ?? null,
-                'db_password' => $dbConfig['db_password'] ?? $dbConfig['password'] ?? null,
+                'host' => $dbConfig['db_host'] ?? $dbConfig['host'] ?? null,
+                'port' => $dbConfig['db_port'] ?? $dbConfig['port'] ?? null,
+                'database' => $dbConfig['db_database'] ?? $dbConfig['database'] ?? null,
+                'username' => $dbConfig['db_username'] ?? $dbConfig['username'] ?? null,
+                'password' => $dbConfig['db_password'] ?? $dbConfig['password'] ?? null,
             ];
 
             // Stage 1: Update environment file
@@ -519,11 +520,11 @@ class InstallationController extends Controller
             DB::purge('mysql');
             config(['database.connections.mysql' => [
                 'driver' => 'mysql',
-                'host' => $dbConfig['db_host'],
-                'port' => $dbConfig['db_port'],
-                'database' => $dbConfig['db_database'],
-                'username' => $dbConfig['db_username'],
-                'password' => $dbConfig['db_password'],
+                'host' => $dbConfig['host'],
+                'port' => $dbConfig['port'],
+                'database' => $dbConfig['database'],
+                'username' => $dbConfig['username'],
+                'password' => $dbConfig['password'],
                 'charset' => 'utf8mb4',
                 'collation' => 'utf8mb4_unicode_ci',
                 'prefix' => '',
@@ -602,10 +603,14 @@ class InstallationController extends Controller
                 'platform' => $platformConfig['app_name'],
             ]);
 
+            // Redirect to admin subdomain login
+            $adminDomain = env('ADMIN_DOMAIN', 'admin.'.env('APP_DOMAIN'));
+            $redirectUrl = 'https://'.$adminDomain.'/login';
+
             return response()->json([
                 'success' => true,
                 'message' => 'Platform installed successfully!',
-                'redirect' => route('login'),
+                'redirect' => $redirectUrl,
                 'stages' => $stages,
             ]);
         } catch (\Exception $e) {
