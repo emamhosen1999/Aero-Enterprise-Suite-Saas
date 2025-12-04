@@ -574,4 +574,92 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             return null;
         }
     }
+
+    /**
+     * Check if user has access to a module by code.
+     */
+    public function hasModuleAccess(string $moduleCode): bool
+    {
+        $service = app(\App\Services\Module\ModuleAccessService::class);
+        $result = $service->canAccessModule($this, $moduleCode);
+
+        return $result['allowed'];
+    }
+
+    /**
+     * Check if user has access to a submodule by code.
+     */
+    public function hasSubModuleAccess(string $moduleCode, string $subModuleCode): bool
+    {
+        $service = app(\App\Services\Module\ModuleAccessService::class);
+        $result = $service->canAccessSubModule($this, $moduleCode, $subModuleCode);
+
+        return $result['allowed'];
+    }
+
+    /**
+     * Check if user has access to a component by code.
+     */
+    public function hasComponentAccess(string $moduleCode, string $subModuleCode, string $componentCode): bool
+    {
+        $service = app(\App\Services\Module\ModuleAccessService::class);
+        $result = $service->canAccessComponent($this, $moduleCode, $subModuleCode, $componentCode);
+
+        return $result['allowed'];
+    }
+
+    /**
+     * Check if user can perform an action by code.
+     */
+    public function canPerformAction(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): bool
+    {
+        $service = app(\App\Services\Module\ModuleAccessService::class);
+        $result = $service->canPerformAction($this, $moduleCode, $subModuleCode, $componentCode, $actionCode);
+
+        return $result['allowed'];
+    }
+
+    /**
+     * Get user's access scope for an action.
+     *
+     * Returns: 'all', 'department', 'team', 'own', or null if no access
+     */
+    public function getActionAccessScope(int $actionId): ?string
+    {
+        $service = app(\App\Services\Module\ModuleAccessService::class);
+
+        return $service->getUserAccessScope($this, $actionId);
+    }
+
+    /**
+     * Get all accessible modules for this user.
+     */
+    public function getAccessibleModules(): array
+    {
+        $service = app(\App\Services\Module\ModuleAccessService::class);
+
+        return $service->getAccessibleModules($this);
+    }
+
+    /**
+     * Get role module access tree (for frontend UI).
+     *
+     * Returns array of access at each level for user's primary role.
+     */
+    public function getModuleAccessTree(): array
+    {
+        $roleAccessService = app(\App\Services\Module\RoleModuleAccessService::class);
+        $role = $this->roles->first();
+
+        if (! $role) {
+            return [
+                'modules' => [],
+                'sub_modules' => [],
+                'components' => [],
+                'actions' => [],
+            ];
+        }
+
+        return $roleAccessService->getRoleAccessTree($role);
+    }
 }

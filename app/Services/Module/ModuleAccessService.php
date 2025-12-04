@@ -5,7 +5,7 @@ namespace App\Services\Module;
 use App\Models\Module;
 use App\Models\ModuleComponent;
 use App\Models\ModuleComponentAction;
-use App\Models\ModulePermission;
+use App\Models\Role;
 use App\Models\SubModule;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -16,14 +16,21 @@ use Illuminate\Support\Facades\Cache;
  * Handles checking user access to modules based on:
  * 1. Super Admin Bypass - Platform/Tenant Super Admins have special access
  * 2. Plan Access - Is the module/submodule/component/action in the tenant's subscription plan?
- * 3. Permission Match - Does the user have the required permissions?
+ * 3. Role Module Access - Does the user's role have access to the module hierarchy?
  *
- * Access Formula: User Access = Super Admin Bypass OR (Plan Access ∩ Permission Match)
+ * Access Formula: User Access = Super Admin Bypass OR (Plan Access ∩ Role Module Access)
  *
  * Compliance: Section 7 - Access Control Logic
  */
 class ModuleAccessService
 {
+    protected RoleModuleAccessService $roleAccessService;
+
+    public function __construct(RoleModuleAccessService $roleAccessService)
+    {
+        $this->roleAccessService = $roleAccessService;
+    }
+
     /**
      * Check if user is platform super administrator.
      */
@@ -38,6 +45,105 @@ class ModuleAccessService
     protected function isTenantSuperAdmin(User $user): bool
     {
         return $user->hasRole('tenant_super_administrator');
+    }
+
+    /**
+     * Check if user's role has access to a module by ID.
+     */
+    protected function userHasModuleAccess(User $user, int $moduleId): bool
+    {
+        // Get user's roles and check each
+        $roles = $user->roles;
+
+        foreach ($roles as $role) {
+            if ($this->roleAccessService->canAccessModule($role, $moduleId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user's role has access to a submodule by ID.
+     */
+    protected function userHasSubModuleAccess(User $user, int $subModuleId): bool
+    {
+        $roles = $user->roles;
+
+        foreach ($roles as $role) {
+            if ($this->roleAccessService->canAccessSubModule($role, $subModuleId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user's role has access to a component by ID.
+     */
+    protected function userHasComponentAccess(User $user, int $componentId): bool
+    {
+        $roles = $user->roles;
+
+        foreach ($roles as $role) {
+            if ($this->roleAccessService->canAccessComponent($role, $componentId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user's role has access to an action by ID.
+     */
+    protected function userHasActionAccess(User $user, int $actionId): bool
+    {
+        $roles = $user->roles;
+
+        foreach ($roles as $role) {
+            if ($this->roleAccessService->canAccessAction($role, $actionId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get user's access scope for an action.
+     */
+    public function getUserAccessScope(User $user, int $actionId): ?string
+    {
+        $roles = $user->roles;
+
+        // Return the most permissive scope from all roles
+        $scopes = [];
+        foreach ($roles as $role) {
+            $scope = $this->roleAccessService->getAccessScope($role, $actionId);
+            if ($scope) {
+                $scopes[] = $scope;
+            }
+        }
+
+        if (empty($scopes)) {
+            return null;
+        }
+
+        // Priority: all > department > team > own
+        if (in_array('all', $scopes)) {
+            return 'all';
+        }
+        if (in_array('department', $scopes)) {
+            return 'department';
+        }
+        if (in_array('team', $scopes)) {
+            return 'team';
+        }
+
+        return 'own';
     }
 
     /**
@@ -61,7 +167,7 @@ class ModuleAccessService
             ];
         }
 
-        // Step 2: Check permissions
+        // Step 2: Find the module
         $module = Module::where('code', $moduleCode)->first();
         if (! $module) {
             return [
@@ -71,36 +177,19 @@ class ModuleAccessService
             ];
         }
 
-        // EXCEPTION: tenant_super_administrator bypasses permission checks (but NOT subscription)
+        // EXCEPTION: tenant_super_administrator bypasses access checks (but NOT subscription)
         if ($this->isTenantSuperAdmin($user)) {
             return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
-        // Get required permissions for this module
-        $requiredPermissions = ModulePermission::where('module_id', $module->id)
-            ->whereNull('sub_module_id')
-            ->whereNull('component_id')
-            ->whereNull('module_component_action_id')
-            ->where('is_required', true)
-            ->with('permission')
-            ->get()
-            ->pluck('permission.name')
-            ->filter()
-            ->toArray();
+        // Step 3: Check role module access
+        $hasAccess = $this->userHasModuleAccess($user, $module->id);
 
-        // If no required permissions, allow access
-        if (empty($requiredPermissions)) {
-            return ['allowed' => true, 'reason' => 'success', 'message' => 'Access granted.'];
-        }
-
-        // Check if user has ANY of the required permissions (OR logic within level)
-        $hasPermission = $user->hasAnyPermission($requiredPermissions);
-
-        if (! $hasPermission) {
+        if (! $hasAccess) {
             return [
                 'allowed' => false,
-                'reason' => 'insufficient_permissions',
-                'message' => "You don't have the required permissions to access this module.",
+                'reason' => 'no_module_access',
+                'message' => "You don't have access to this module.",
             ];
         }
 
@@ -119,28 +208,27 @@ class ModuleAccessService
             return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
         }
 
-        // First check module access
-        $moduleCheck = $this->canAccessModule($user, $moduleCode);
-        if (! $moduleCheck['allowed']) {
-            return $moduleCheck;
-        }
-
-        // Check plan access for submodule
-        if (! $this->isPlanAllowed($user, 'submodule', $moduleCode, $subModuleCode)) {
+        // Find the module first
+        $module = Module::where('code', $moduleCode)->first();
+        if (! $module) {
             return [
                 'allowed' => false,
-                'reason' => 'plan_restriction',
-                'message' => "Feature '{$subModuleCode}' is not included in your subscription plan.",
+                'reason' => 'not_found',
+                'message' => "Module '{$moduleCode}' does not exist.",
             ];
         }
 
-        // EXCEPTION: tenant_super_administrator bypasses permission checks (but NOT subscription)
-        if ($this->isTenantSuperAdmin($user)) {
-            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
+        // Check plan access for module
+        if (! $this->isPlanAllowed($user, 'module', $moduleCode)) {
+            return [
+                'allowed' => false,
+                'reason' => 'plan_restriction',
+                'message' => "Module '{$moduleCode}' is not included in your subscription plan.",
+            ];
         }
 
-        // Check submodule permissions
-        $subModule = SubModule::whereHas('module', fn ($q) => $q->where('code', $moduleCode))
+        // Find the submodule
+        $subModule = SubModule::where('module_id', $module->id)
             ->where('code', $subModuleCode)
             ->first();
 
@@ -152,28 +240,19 @@ class ModuleAccessService
             ];
         }
 
-        // Get required permissions for this submodule
-        $requiredPermissions = ModulePermission::where('sub_module_id', $subModule->id)
-            ->whereNull('component_id')
-            ->whereNull('module_component_action_id')
-            ->where('is_required', true)
-            ->with('permission')
-            ->get()
-            ->pluck('permission.name')
-            ->filter()
-            ->toArray();
-
-        if (empty($requiredPermissions)) {
-            return ['allowed' => true, 'reason' => 'success', 'message' => 'Access granted.'];
+        // EXCEPTION: tenant_super_administrator bypasses access checks (but NOT subscription)
+        if ($this->isTenantSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
-        $hasPermission = $user->hasAnyPermission($requiredPermissions);
+        // Check role submodule access
+        $hasAccess = $this->userHasSubModuleAccess($user, $subModule->id);
 
-        if (! $hasPermission) {
+        if (! $hasAccess) {
             return [
                 'allowed' => false,
-                'reason' => 'insufficient_permissions',
-                'message' => "You don't have the required permissions to access this feature.",
+                'reason' => 'no_submodule_access',
+                'message' => "You don't have access to this feature.",
             ];
         }
 
@@ -192,31 +271,40 @@ class ModuleAccessService
             return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
         }
 
-        // First check submodule access
-        $subModuleCheck = $this->canAccessSubModule($user, $moduleCode, $subModuleCode);
-        if (! $subModuleCheck['allowed']) {
-            return $subModuleCheck;
-        }
-
-        // Check plan access for component
-        if (! $this->isPlanAllowed($user, 'component', $moduleCode, $subModuleCode, $componentCode)) {
+        // Find the module
+        $module = Module::where('code', $moduleCode)->first();
+        if (! $module) {
             return [
                 'allowed' => false,
-                'reason' => 'plan_restriction',
-                'message' => 'This component is not included in your subscription plan.',
+                'reason' => 'not_found',
+                'message' => "Module '{$moduleCode}' does not exist.",
             ];
         }
 
-        // EXCEPTION: tenant_super_administrator bypasses permission checks (but NOT subscription)
-        if ($this->isTenantSuperAdmin($user)) {
-            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
+        // Check plan access
+        if (! $this->isPlanAllowed($user, 'module', $moduleCode)) {
+            return [
+                'allowed' => false,
+                'reason' => 'plan_restriction',
+                'message' => "Module '{$moduleCode}' is not included in your subscription plan.",
+            ];
         }
 
-        // Check component permissions
-        $component = ModuleComponent::whereHas('subModule', function ($q) use ($moduleCode, $subModuleCode) {
-            $q->whereHas('module', fn ($mq) => $mq->where('code', $moduleCode))
-                ->where('code', $subModuleCode);
-        })
+        // Find the submodule
+        $subModule = SubModule::where('module_id', $module->id)
+            ->where('code', $subModuleCode)
+            ->first();
+
+        if (! $subModule) {
+            return [
+                'allowed' => false,
+                'reason' => 'not_found',
+                'message' => "Feature '{$subModuleCode}' does not exist.",
+            ];
+        }
+
+        // Find the component
+        $component = ModuleComponent::where('sub_module_id', $subModule->id)
             ->where('code', $componentCode)
             ->first();
 
@@ -228,27 +316,19 @@ class ModuleAccessService
             ];
         }
 
-        // Get required permissions for this component
-        $requiredPermissions = ModulePermission::where('component_id', $component->id)
-            ->whereNull('module_component_action_id')
-            ->where('is_required', true)
-            ->with('permission')
-            ->get()
-            ->pluck('permission.name')
-            ->filter()
-            ->toArray();
-
-        if (empty($requiredPermissions)) {
-            return ['allowed' => true, 'reason' => 'success', 'message' => 'Access granted.'];
+        // EXCEPTION: tenant_super_administrator bypasses access checks (but NOT subscription)
+        if ($this->isTenantSuperAdmin($user)) {
+            return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
-        $hasPermission = $user->hasAnyPermission($requiredPermissions);
+        // Check role component access
+        $hasAccess = $this->userHasComponentAccess($user, $component->id);
 
-        if (! $hasPermission) {
+        if (! $hasAccess) {
             return [
                 'allowed' => false,
-                'reason' => 'insufficient_permissions',
-                'message' => "You don't have the required permissions to access this component.",
+                'reason' => 'no_component_access',
+                'message' => "You don't have access to this component.",
             ];
         }
 
@@ -272,20 +352,53 @@ class ModuleAccessService
             return ['allowed' => true, 'reason' => 'platform_super_admin', 'message' => 'Platform Super Admin access.'];
         }
 
-        // First check component access
-        $componentCheck = $this->canAccessComponent($user, $moduleCode, $subModuleCode, $componentCode);
-        if (! $componentCheck['allowed']) {
-            return $componentCheck;
+        // Find the module
+        $module = Module::where('code', $moduleCode)->first();
+        if (! $module) {
+            return [
+                'allowed' => false,
+                'reason' => 'not_found',
+                'message' => "Module '{$moduleCode}' does not exist.",
+            ];
         }
 
-        // Get the action
-        $action = ModuleComponentAction::whereHas('component', function ($q) use ($moduleCode, $subModuleCode, $componentCode) {
-            $q->whereHas('subModule', function ($sq) use ($moduleCode, $subModuleCode) {
-                $sq->whereHas('module', fn ($mq) => $mq->where('code', $moduleCode))
-                    ->where('code', $subModuleCode);
-            })
-                ->where('code', $componentCode);
-        })
+        // Check plan access
+        if (! $this->isPlanAllowed($user, 'module', $moduleCode)) {
+            return [
+                'allowed' => false,
+                'reason' => 'plan_restriction',
+                'message' => "Module '{$moduleCode}' is not included in your subscription plan.",
+            ];
+        }
+
+        // Find the submodule
+        $subModule = SubModule::where('module_id', $module->id)
+            ->where('code', $subModuleCode)
+            ->first();
+
+        if (! $subModule) {
+            return [
+                'allowed' => false,
+                'reason' => 'not_found',
+                'message' => "Feature '{$subModuleCode}' does not exist.",
+            ];
+        }
+
+        // Find the component
+        $component = ModuleComponent::where('sub_module_id', $subModule->id)
+            ->where('code', $componentCode)
+            ->first();
+
+        if (! $component) {
+            return [
+                'allowed' => false,
+                'reason' => 'not_found',
+                'message' => "Component '{$componentCode}' does not exist.",
+            ];
+        }
+
+        // Find the action
+        $action = ModuleComponentAction::where('module_component_id', $component->id)
             ->where('code', $actionCode)
             ->first();
 
@@ -297,31 +410,19 @@ class ModuleAccessService
             ];
         }
 
-        // EXCEPTION: tenant_super_administrator bypasses permission checks
+        // EXCEPTION: tenant_super_administrator bypasses access checks (but NOT subscription)
         if ($this->isTenantSuperAdmin($user)) {
             return ['allowed' => true, 'reason' => 'tenant_super_admin', 'message' => 'Tenant Super Admin access.'];
         }
 
-        // Get required permissions for this action
-        $requiredPermissions = ModulePermission::where('module_component_action_id', $action->id)
-            ->where('is_required', true)
-            ->with('permission')
-            ->get()
-            ->pluck('permission.name')
-            ->filter()
-            ->toArray();
+        // Check role action access
+        $hasAccess = $this->userHasActionAccess($user, $action->id);
 
-        if (empty($requiredPermissions)) {
-            return ['allowed' => true, 'reason' => 'success', 'message' => 'Access granted.'];
-        }
-
-        $hasPermission = $user->hasAnyPermission($requiredPermissions);
-
-        if (! $hasPermission) {
+        if (! $hasAccess) {
             return [
                 'allowed' => false,
-                'reason' => 'insufficient_permissions',
-                'message' => "You don't have the required permissions to perform this action.",
+                'reason' => 'no_action_access',
+                'message' => "You don't have permission to perform this action.",
             ];
         }
 
@@ -381,14 +482,14 @@ class ModuleAccessService
     }
 
     /**
-     * Get all accessible modules for a user (respecting both plan and permissions).
+     * Get all accessible modules for a user (respecting both plan and role access).
      */
     public function getAccessibleModules(User $user): array
     {
         $cacheKey = "user_accessible_modules:{$user->id}";
 
         return Cache::remember($cacheKey, 300, function () use ($user) {
-            $modules = Module::active()->ordered()->get();
+            $modules = Module::where('is_active', true)->orderBy('id')->get();
             $accessible = [];
 
             foreach ($modules as $module) {
