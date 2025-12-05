@@ -465,6 +465,17 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/{activity}', [\App\Http\Controllers\AuditLogController::class, 'show'])->name('show');
     });
 
+    // Error Logs routes (part of Audit Logs module)
+    Route::middleware(['module:audit-logs'])->prefix('error-logs')->name('admin.error-logs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\ErrorLogController::class, 'index'])->name('index');
+        Route::get('/statistics', [\App\Http\Controllers\Admin\ErrorLogController::class, 'statistics'])->name('statistics');
+        Route::get('/{errorLog}', [\App\Http\Controllers\Admin\ErrorLogController::class, 'show'])->name('show');
+        Route::post('/{errorLog}/resolve', [\App\Http\Controllers\Admin\ErrorLogController::class, 'resolve'])->name('resolve');
+        Route::delete('/{errorLog}', [\App\Http\Controllers\Admin\ErrorLogController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-resolve', [\App\Http\Controllers\Admin\ErrorLogController::class, 'bulkResolve'])->name('bulk-resolve');
+        Route::post('/bulk-destroy', [\App\Http\Controllers\Admin\ErrorLogController::class, 'bulkDestroy'])->name('bulk-destroy');
+    });
+
     // =========================================================================
     // 9. SYSTEM SETTINGS MODULE (system-settings)
     // Access: system-settings, system-settings.general-settings, system-settings.branding, etc.
@@ -643,7 +654,7 @@ Route::middleware(['auth:landlord'])->group(function () {
     // Access: platform-support, platform-support.ticket-management, etc.
     // =========================================================================
     Route::middleware(['module:platform-support'])->prefix('support')->name('admin.support.')->group(function () {
-        
+
         // 13.1 Ticket Management
         Route::prefix('tickets')->name('tickets.')->group(function () {
             Route::get('/', function () {

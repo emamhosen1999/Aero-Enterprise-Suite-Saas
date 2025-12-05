@@ -4,13 +4,11 @@ namespace App\Jobs;
 
 use App\Events\TenantProvisioningStepCompleted;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Stancl\Tenancy\Jobs\CreateDatabase;
 use Stancl\Tenancy\Jobs\MigrateDatabase;
@@ -22,7 +20,12 @@ use Throwable;
  * Handles the asynchronous provisioning of a new tenant, including:
  * - Database creation
  * - Schema migrations
- * - Admin user seeding
+ * - Roles and permissions seeding
+ * - Module permissions seeding
+ *
+ * NOTE: Admin user creation is NOT done here. The admin user is created
+ * on the tenant domain AFTER provisioning completes, during the admin
+ * setup step of the registration flow.
  *
  * This job is designed to be queued and processed in the background,
  * allowing the registration flow to complete immediately while the
@@ -56,21 +59,13 @@ class ProvisionTenant implements ShouldQueue
     public Tenant $tenant;
 
     /**
-     * Admin user data (name, email, password).
-     * Passed directly to job - never stored in database.
-     */
-    private array $adminData;
-
-    /**
      * Create a new job instance.
      *
      * @param  Tenant  $tenant  The tenant to provision
-     * @param  array  $adminData  Admin credentials (name, email, password in plain text)
      */
-    public function __construct(Tenant $tenant, array $adminData = [])
+    public function __construct(Tenant $tenant)
     {
         $this->tenant = $tenant;
-        $this->adminData = $adminData;
     }
 
     /**
@@ -79,8 +74,12 @@ class ProvisionTenant implements ShouldQueue
      * Provision the tenant through the following steps:
      * 1. Create the tenant database
      * 2. Run migrations on the tenant database
-     * 3. Create the admin user in the tenant database
-     * 4. Activate the tenant and clear sensitive data
+     * 3. Seed roles and permissions
+     * 4. Seed module permissions
+     * 5. Activate the tenant
+     * 6. Send notification email
+     *
+     * NOTE: Admin user creation is done AFTER provisioning on the tenant domain.
      *
      * If any step fails, the entire provisioning is rolled back.
      */
@@ -113,37 +112,27 @@ class ProvisionTenant implements ShouldQueue
             $this->migrateDatabase();
             $this->logStep('✅ Step 3 Complete: Migrations applied successfully', $context);
 
-            // Step 4: Seed the admin user
-            $this->logStep('👤 Step 4: Creating admin user', $context);
-            $this->seedAdminUser();
-            $this->logStep('✅ Step 4 Complete: Admin user created', $context);
-
-            // Step 5: Seed roles and permissions
-            $this->logStep('🔐 Step 5: Seeding roles and permissions', $context);
+            // Step 4: Seed roles and permissions
+            $this->logStep('🔐 Step 4: Seeding roles and permissions', $context);
             $this->seedRolesAndPermissions();
-            $this->logStep('✅ Step 5 Complete: Roles and permissions seeded', $context);
+            $this->logStep('✅ Step 4 Complete: Roles and permissions seeded', $context);
 
-            // Step 6: Seed module permissions
-            $this->logStep('📦 Step 6: Seeding module permissions', $context);
+            // Step 5: Seed module permissions
+            $this->logStep('📦 Step 5: Seeding module permissions', $context);
             $this->seedModulePermissions();
-            $this->logStep('✅ Step 6 Complete: Module permissions seeded', $context);
+            $this->logStep('✅ Step 5 Complete: Module permissions seeded', $context);
 
-            // Step 7: Assign Super Administrator role to admin user
-            $this->logStep('👑 Step 7: Assigning Super Administrator role', $context);
-            $this->assignSuperAdminRole();
-            $this->logStep('✅ Step 7 Complete: Super Administrator role assigned', $context);
-
-            // Step 8: Activate the tenant
-            $this->logStep('🎉 Step 8: Activating tenant', $context);
+            // Step 6: Activate the tenant (ready for admin setup on tenant domain)
+            $this->logStep('🎉 Step 6: Activating tenant', $context);
             $this->activateTenant();
-            $this->logStep('✅ Step 8 Complete: Tenant activated', $context);
+            $this->logStep('✅ Step 6 Complete: Tenant activated and ready for admin setup', $context);
 
-            // Step 9: Send welcome email
-            $this->logStep('📧 Step 9: Sending welcome email', $context);
+            // Step 7: Send notification email
+            $this->logStep('📧 Step 7: Sending notification email', $context);
             $this->sendWelcomeEmail();
-            $this->logStep('✅ Step 9 Complete: Welcome email sent', $context);
+            $this->logStep('✅ Step 7 Complete: Notification email sent', $context);
 
-            $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY', $context);
+            $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY - AWAITING ADMIN SETUP', $context);
         } catch (Throwable $e) {
             $errorContext = array_merge($context, [
                 'failed_step' => $this->tenant->provisioning_step,
@@ -199,6 +188,8 @@ class ProvisionTenant implements ShouldQueue
 
     /**
      * Generate a username from email address.
+     *
+     * @deprecated Admin user creation is now done on tenant domain after provisioning
      */
     protected function generateUsername(string $email): string
     {
@@ -216,87 +207,10 @@ class ProvisionTenant implements ShouldQueue
         return strtolower($username);
     }
 
-    /**
-     * Create the admin user in the tenant database.
-     */
-    protected function seedAdminUser(): void
-    {
-        $this->logStep("   → Seeding admin user: {$this->adminData['email']}", [
-            'admin_email' => $this->adminData['email'],
-            'admin_name' => $this->adminData['name'],
-        ]);
-
-        $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_ADMIN);
-
-        // Use admin data passed to job constructor (never stored in database)
-        if (empty($this->adminData) || empty($this->adminData['email'])) {
-            Log::warning('No admin data provided for tenant, skipping admin creation', [
-                'tenant_id' => $this->tenant->id,
-            ]);
-
-            return;
-        }
-
-        // Switch to tenant context
-        tenancy()->initialize($this->tenant);
-
-        try {
-            // Create the admin user in the tenant database
-            // Password is received in plain text and hashed here
-            // Apply email and phone verification from tenant record (verified during registration)
-            $user = User::create([
-                'name' => $this->adminData['name'] ?? 'Administrator',
-                'user_name' => $this->adminData['user_name'] ?? $this->generateUsername($this->adminData['email']),
-                'email' => $this->adminData['email'],
-                'password' => Hash::make($this->adminData['password'] ?? 'password'),
-                'phone' => $this->tenant->phone,
-                'active' => true,
-                // Apply verification timestamps from tenant (verified during registration)
-                'email_verified_at' => $this->tenant->admin_email_verified_at,
-                'phone_verified_at' => $this->tenant->admin_phone_verified_at,
-            ]);
-
-            $this->logStep("   → Admin user created with ID: {$user->id}", [
-                'user_id' => $user->id,
-                'user_email' => $user->email,
-                'email_verified' => ! empty($user->email_verified_at),
-                'phone_verified' => ! empty($user->phone_verified_at),
-            ]);
-
-            // Only send verification email if not already verified during registration
-            if (empty($user->email_verified_at)) {
-                try {
-                    $user->sendEmailVerificationNotification();
-                    $this->logStep('   → Email verification sent', ['user_email' => $user->email]);
-                } catch (Throwable $e) {
-                    Log::warning('Failed to send verification email', [
-                        'user_id' => $user->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            } else {
-                $this->logStep('   → Email already verified during registration', ['user_email' => $user->email]);
-            }
-
-            // Assign admin role using Spatie Permission (if available)
-            if (method_exists($user, 'assignRole')) {
-                try {
-                    $this->logStep("   → Assigning 'admin' role", ['user_id' => $user->id]);
-                    $user->assignRole('admin');
-                    $this->logStep('   → Admin role assigned successfully', ['user_id' => $user->id]);
-                } catch (Throwable $e) {
-                    // Role may not exist yet, log but don't fail
-                    $this->logStep("   → Could not assign admin role: {$e->getMessage()}", [
-                        'user_id' => $user->id,
-                        'error' => $e->getMessage(),
-                    ], 'warning');
-                }
-            }
-        } finally {
-            // Always end tenancy context
-            tenancy()->end();
-        }
-    }
+    // NOTE: seedAdminUser() and assignSuperAdminRole() methods removed.
+    // Admin user creation is now handled on the tenant domain after provisioning
+    // completes, during the admin setup step of the registration flow.
+    // See: app/Http/Controllers/Tenant/AdminSetupController.php
 
     /**
      * Seed roles and permissions for the tenant.
@@ -351,45 +265,10 @@ class ProvisionTenant implements ShouldQueue
     /**
      * Assign Super Administrator role to the admin user.
      */
-    protected function assignSuperAdminRole(): void
-    {
-        $this->logStep('   → Assigning Super Administrator role to admin user', []);
-        $this->tenant->updateProvisioningStep('assigning_admin_role');
-
-        try {
-            tenancy()->initialize($this->tenant);
-
-            // Find the first user (admin)
-            $user = \App\Models\User::first();
-
-            if (! $user) {
-                throw new \Exception('Admin user not found');
-            }
-
-            // Find Super Administrator role
-            $role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
-
-            if (! $role) {
-                throw new \Exception('Super Administrator role not found');
-            }
-
-            // Clear any existing roles and assign Super Administrator
-            $user->syncRoles([]);
-            $user->assignRole($role);
-
-            $this->logStep("   → Super Administrator role assigned to user: {$user->email}", [
-                'user_id' => $user->id,
-                'role_id' => $role->id,
-            ]);
-        } catch (Throwable $e) {
-            $this->logStep("   → Failed to assign Super Administrator role: {$e->getMessage()}", [
-                'error' => $e->getMessage(),
-            ], 'error');
-            throw $e;
-        } finally {
-            tenancy()->end();
-        }
-    }
+    // NOTE: assignSuperAdminRole() method removed.
+    // Admin user and role assignment is now handled on the tenant domain
+    // after provisioning completes, during the admin setup step.
+    // See: app/Http/Controllers/Tenant/AdminSetupController.php
 
     /**
      * Activate the tenant and clear sensitive data.
@@ -408,31 +287,40 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
-     * Send welcome email to the tenant admin.
+     * Send notification email that tenant is ready for admin setup.
      */
     protected function sendWelcomeEmail(): void
     {
         try {
-            $this->logStep('   → Sending welcome email to admin', [
-                'admin_email' => $this->adminData['email'],
+            // Get the company email from tenant details
+            $email = $this->tenant->email;
+
+            if (empty($email)) {
+                $this->logStep('   → No email found for notification, skipping', [], 'warning');
+
+                return;
+            }
+
+            $this->logStep('   → Sending provisioning complete notification', [
+                'tenant_email' => $email,
             ]);
 
             // Use the notification's sendEmail method with MailService
             $notification = new \App\Notifications\WelcomeToTenant($this->tenant);
-            $sent = $notification->sendEmail($this->adminData['email']);
+            $sent = $notification->sendEmail($email);
 
             if ($sent) {
-                $this->logStep('   → Welcome email sent successfully', [
-                    'admin_email' => $this->adminData['email'],
+                $this->logStep('   → Notification email sent successfully', [
+                    'tenant_email' => $email,
                 ]);
             } else {
-                $this->logStep('   → Welcome email sending failed', [
-                    'admin_email' => $this->adminData['email'],
+                $this->logStep('   → Notification email sending failed', [
+                    'tenant_email' => $email,
                 ], 'warning');
             }
         } catch (Throwable $e) {
             // Don't fail provisioning if email fails
-            Log::error('Failed to send welcome email', [
+            Log::error('Failed to send notification email', [
                 'tenant_id' => $this->tenant->id,
                 'error' => $e->getMessage(),
             ]);

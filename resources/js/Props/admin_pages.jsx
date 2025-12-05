@@ -57,6 +57,7 @@ import {
   ArrowsRightLeftIcon,
   LinkIcon,
   BellAlertIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 import { hasAccess, isSuperAdmin, isAuthSuperAdmin } from '@/utils/moduleAccessUtils';
@@ -340,6 +341,12 @@ export const getAdminPages = (auth = null) => {
           icon: <CommandLineIcon className="" />,
           access: 'audit-logs.system-logs',
           route: 'admin.logs.system',
+        },
+        {
+          name: 'Error Logs',
+          icon: <ExclamationTriangleIcon className="" />,
+          access: 'audit-logs',
+          route: 'admin.error-logs.index',
         },
       ],
     },

@@ -10,26 +10,32 @@ import ProgressSteps from './components/ProgressSteps.jsx';
 
 /**
  * Human-readable step labels for provisioning process
+ * Note: Admin user creation is now done AFTER provisioning on the tenant domain
  */
 const PROVISIONING_STEPS = {
   creating_db: {
     label: 'Creating database',
     description: 'Setting up your isolated workspace database...',
-    progress: 25,
+    progress: 20,
   },
   migrating: {
     label: 'Configuring schema',
     description: 'Running database migrations and preparing tables...',
-    progress: 50,
+    progress: 40,
+  },
+  seeding_permissions: {
+    label: 'Configuring permissions',
+    description: 'Setting up roles and permissions...',
+    progress: 60,
+  },
+  seeding_modules: {
+    label: 'Configuring modules',
+    description: 'Setting up module permissions...',
+    progress: 80,
   },
   seeding: {
-    label: 'Seeding data',
-    description: 'Populating initial data and configurations...',
-    progress: 75,
-  },
-  creating_admin: {
-    label: 'Creating admin account',
-    description: 'Setting up your administrator credentials...',
+    label: 'Finalizing',
+    description: 'Completing workspace setup...',
     progress: 90,
   },
 };
@@ -179,10 +185,10 @@ export default function Provisioning({
                     Workspace Ready
                   </Chip>
                   <h1 className={`text-xl sm:text-3xl font-semibold ${palette.heading}`}>
-                    {isRedirecting ? 'Redirecting to your workspace...' : 'Success!'}
+                    {isRedirecting ? 'Redirecting to complete setup...' : 'Almost Done!'}
                   </h1>
                   <p className={`${palette.copy} text-sm sm:text-base`}>
-                    Your workspace <strong>{tenant.name}</strong> is now live and ready to use.
+                    Your workspace <strong>{tenant.name}</strong> is now live. Complete your admin account setup to get started.
                   </p>
                 </div>
 
@@ -196,7 +202,7 @@ export default function Provisioning({
                 {isRedirecting && (
                   <div className="flex items-center justify-center gap-2">
                     <Spinner size="sm" />
-                    <span className={`${palette.copy} text-sm sm:text-base`}>Redirecting...</span>
+                    <span className={`${palette.copy} text-sm sm:text-base`}>Redirecting to admin setup...</span>
                   </div>
                 )}
 
@@ -208,7 +214,7 @@ export default function Provisioning({
                       color="primary"
                       className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto"
                     >
-                      Go to workspace
+                      Complete Admin Setup
                     </Button>
                     <Button as={Link} href={route('landing')} variant="bordered" className="w-full sm:w-auto">
                       Back to home
