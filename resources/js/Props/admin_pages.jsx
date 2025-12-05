@@ -57,6 +57,8 @@ import {
   ArrowsRightLeftIcon,
   LinkIcon,
   BellAlertIcon,
+  UserPlusIcon, // Platform Onboarding main
+  ServerStackIcon, // Provisioning Queue
 } from '@heroicons/react/24/outline';
 
 import { hasAccess, isSuperAdmin, isAuthSuperAdmin } from '@/utils/moduleAccessUtils';
@@ -589,6 +591,64 @@ export const getAdminPages = (auth = null) => {
           icon: <WrenchScrewdriverIcon className="" />,
           access: 'platform-support.support-admin-tools',
           route: 'admin.support.tools.index',
+        },
+      ],
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | 14. Platform Onboarding Module (platform-onboarding)
+    |--------------------------------------------------------------------------
+    */
+    {
+      name: 'Onboarding',
+      icon: <UserPlusIcon className="" />,
+      module: 'platform-onboarding',
+      access: 'platform-onboarding',
+      route: 'admin.onboarding.dashboard',
+      priority: 14,
+      subMenu: [
+        {
+          name: 'Registration Dashboard',
+          icon: <ChartBarSquareIcon className="" />,
+          access: 'platform-onboarding.registration-dashboard',
+          route: 'admin.onboarding.dashboard',
+        },
+        {
+          name: 'Pending Registrations',
+          icon: <ClockIcon className="" />,
+          access: 'platform-onboarding.pending-registrations',
+          route: 'admin.onboarding.pending',
+        },
+        {
+          name: 'Provisioning Queue',
+          icon: <ServerStackIcon className="" />,
+          access: 'platform-onboarding.provisioning-queue',
+          route: 'admin.onboarding.provisioning',
+        },
+        {
+          name: 'Trial Management',
+          icon: <CalendarIcon className="" />,
+          access: 'platform-onboarding.trial-management',
+          route: 'admin.onboarding.trials',
+        },
+        {
+          name: 'Welcome Automation',
+          icon: <EnvelopeIcon className="" />,
+          access: 'platform-onboarding.welcome-automation',
+          route: 'admin.onboarding.automation',
+        },
+        {
+          name: 'Analytics',
+          icon: <ChartPieIcon className="" />,
+          access: 'platform-onboarding.onboarding-analytics',
+          route: 'admin.onboarding.analytics',
+        },
+        {
+          name: 'Settings',
+          icon: <Cog8ToothIcon className="" />,
+          access: 'platform-onboarding.onboarding-settings',
+          route: 'admin.onboarding.settings',
         },
       ],
     },

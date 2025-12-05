@@ -72,6 +72,12 @@ import {
   CloudIcon, // Integrations Cloud Storage
   ChatBubbleLeftRightIcon, // Integrations Slack/Teams
   ServerStackIcon, // Integrations Sync Engines
+  PencilSquareIcon, // DMS E-Signatures
+  WrenchIcon, // Quality Calibrations  
+  DocumentMagnifyingGlassIcon, // Quality Audits
+  ShieldExclamationIcon, // Compliance main
+  BadgeCheckIcon, // Certifications
+  ShareIcon, // DMS Sharing
 } from '@heroicons/react/24/outline';
 
 import { hasAccess, isAuthSuperAdmin } from '@/utils/moduleAccessUtils';
@@ -1010,12 +1016,18 @@ export const getPages = (roles, permissions, auth = null) => {
       module: 'dms',
       access: 'dms',
       subMenu: [
-        { name: 'Overview', icon: <HomeIcon />, route: 'dms.index' },
-        { name: 'Files', icon: <DocumentTextIcon />, route: 'dms.documents' },
-        { name: 'Upload', icon: <DocumentDuplicateIcon />, route: 'dms.documents.create' },
-        { name: 'Categories', icon: <FolderIcon />, route: 'dms.categories' },
-        { name: 'Shared', icon: <UserGroupIcon />, route: 'dms.shared' },
-        { name: 'Analytics', icon: <ChartBarSquareIcon />, route: 'dms.analytics' },
+        { name: 'Overview', icon: <HomeIcon />, route: 'dms.index', access: 'dms.documents.view' },
+        { name: 'Document Library', icon: <DocumentTextIcon />, route: 'dms.documents', access: 'dms.documents.view' },
+        { name: 'Version Control', icon: <ClockIcon />, route: 'dms.versions', access: 'dms.versions.view' },
+        { name: 'Folders', icon: <FolderIcon />, route: 'dms.folders', access: 'dms.folders.view' },
+        { name: 'Shared Documents', icon: <ShareIcon />, route: 'dms.shared', access: 'dms.sharing.view' },
+        { name: 'Workflows', icon: <ArrowPathIcon />, route: 'dms.workflows', access: 'dms.workflows.view' },
+        { name: 'Templates', icon: <DocumentDuplicateIcon />, route: 'dms.templates', access: 'dms.templates.view' },
+        { name: 'E-Signatures', icon: <PencilSquareIcon />, route: 'dms.signatures', access: 'dms.e-signatures.view' },
+        { name: 'Audit Trail', icon: <ClipboardDocumentCheckIcon />, route: 'dms.audit', access: 'dms.audit-trail.view' },
+        { name: 'Search', icon: <MagnifyingGlassIcon />, route: 'dms.search', access: 'dms.search.view' },
+        { name: 'Analytics', icon: <ChartBarSquareIcon />, route: 'dms.analytics', access: 'dms.dms-analytics.view' },
+        { name: 'Settings', icon: <Cog6ToothIcon />, route: 'dms.settings', access: 'dms.dms-settings.view' },
       ]
     }] : []),
 
@@ -1896,14 +1908,20 @@ export const getPages = (roles, permissions, auth = null) => {
     // 11. Compliance
     ...(can('compliance.view', auth, permissions) ? [{
       name: 'Compliance',
-      icon: <ShieldCheckIcon className="" />,
+      icon: <ShieldExclamationIcon className="" />,
       priority: 90,
       module: 'compliance',
+      access: 'compliance',
       subMenu: [
-        { name: 'Overview', icon: <ChartBarSquareIcon />, route: 'compliance.dashboard' },
-        { name: 'Policies', icon: <DocumentTextIcon />, route: 'compliance.policies.index' },
-        { name: 'Risks', icon: <ShieldCheckIcon />, route: 'compliance.risks.index' },
-        { name: 'Audits', icon: <ClipboardDocumentCheckIcon />, route: 'compliance.audits.index' },
+        { name: 'Dashboard', icon: <ChartBarSquareIcon />, route: 'compliance.dashboard', access: 'compliance.dashboard.view' },
+        { name: 'Policies & Procedures', icon: <DocumentTextIcon />, route: 'compliance.policies.index', access: 'compliance.policies.view' },
+        { name: 'Risk Register', icon: <ShieldCheckIcon />, route: 'compliance.risks.index', access: 'compliance.risks.view' },
+        { name: 'Compliance Audits', icon: <ClipboardDocumentCheckIcon />, route: 'compliance.audits.index', access: 'compliance.compliance-audits.view' },
+        { name: 'Regulatory Requirements', icon: <DocumentCheckIcon />, route: 'compliance.requirements.index', access: 'compliance.requirements.view' },
+        { name: 'Compliance Documents', icon: <FolderIcon />, route: 'compliance.documents.index', access: 'compliance.documents.view' },
+        { name: 'Training & Awareness', icon: <AcademicCapIcon />, route: 'compliance.training.index', access: 'compliance.training.view' },
+        { name: 'Certifications', icon: <BadgeCheckIcon />, route: 'compliance.certifications.index', access: 'compliance.certifications.view' },
+        { name: 'Reports & Analytics', icon: <DocumentChartBarIcon />, route: 'compliance.reports.index', access: 'compliance.reports.view' },
       ]
     }] : []),
 
@@ -1911,13 +1929,19 @@ export const getPages = (roles, permissions, auth = null) => {
     ...(can('quality.view', auth, permissions) ? [{
       name: 'Quality',
       icon: <BeakerIcon className="" />,
-      priority: 100,
+      priority: 95,
       module: 'quality',
+      access: 'quality',
       subMenu: [
-        { name: 'Inspections', icon: <ClipboardDocumentCheckIcon />, route: 'quality.inspections.index' },
-        { name: 'NCRs', icon: <DocumentTextIcon />, route: 'quality.ncrs.index' },
-        { name: 'Calibrations', icon: <ScaleIcon />, route: 'quality.calibrations.index' },
-        { name: 'Analytics', icon: <ChartBarSquareIcon />, route: 'quality.dashboard' },
+        { name: 'Dashboard', icon: <ChartBarSquareIcon />, route: 'quality.dashboard', access: 'quality.dashboard.view' },
+        { name: 'Inspections', icon: <ClipboardDocumentCheckIcon />, route: 'quality.inspections.index', access: 'quality.inspections.view' },
+        { name: 'NCRs', icon: <DocumentTextIcon />, route: 'quality.ncrs.index', access: 'quality.ncr.view' },
+        { name: 'CAPA', icon: <ArrowPathIcon />, route: 'quality.capa.index', access: 'quality.capa.view' },
+        { name: 'Calibrations', icon: <WrenchIcon />, route: 'quality.calibrations.index', access: 'quality.calibrations.view' },
+        { name: 'Quality Audits', icon: <DocumentMagnifyingGlassIcon />, route: 'quality.audits.index', access: 'quality.audits.view' },
+        { name: 'Certifications', icon: <BadgeCheckIcon />, route: 'quality.certifications.index', access: 'quality.certifications.view' },
+        { name: 'Analytics', icon: <ChartPieIcon />, route: 'quality.analytics', access: 'quality.quality-analytics.view' },
+        { name: 'Settings', icon: <Cog6ToothIcon />, route: 'quality.settings', access: 'quality.quality-settings.view' },
       ]
     }] : []),
 
