@@ -44,6 +44,11 @@ return [
             'priority' => 1,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,  // Available in all plans
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -114,6 +119,11 @@ return [
             'priority' => 2,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -370,6 +380,11 @@ return [
             'priority' => 5,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => ['tenants'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -1243,6 +1258,11 @@ return [
             'priority' => 14,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => ['tenants', 'subscriptions'],
+            'release_date' => '2025-12-05',
 
             'submodules' => [
                 // 14.1 Registration Dashboard
@@ -2410,6 +2430,11 @@ return [
             'priority' => 10,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'basic',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -3165,6 +3190,11 @@ return [
             'priority' => 20,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'basic',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -11093,6 +11123,11 @@ return [
             'priority' => 90,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'professional',
+            'license_type' => 'addon',
+            'dependencies' => [],
+            'release_date' => '2025-12-05',
 
             'submodules' => [
                 // 12.1 Documents
@@ -11390,6 +11425,11 @@ return [
             'priority' => 91,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'professional',
+            'license_type' => 'addon',
+            'dependencies' => [],
+            'release_date' => '2025-12-05',
 
             'submodules' => [
                 // 13.1 Dashboard
@@ -11635,6 +11675,11 @@ return [
             'priority' => 92,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'professional',
+            'license_type' => 'addon',
+            'dependencies' => [],
+            'release_date' => '2025-12-05',
 
             'submodules' => [
                 // 14.1 Dashboard
