@@ -16,27 +16,22 @@ const PROVISIONING_STEPS = {
   creating_db: {
     label: 'Creating database',
     description: 'Setting up your isolated workspace database...',
-    progress: 20,
+    progress: 25,
   },
   migrating: {
     label: 'Configuring schema',
     description: 'Running database migrations and preparing tables...',
-    progress: 40,
+    progress: 50,
   },
-  seeding_permissions: {
-    label: 'Configuring permissions',
-    description: 'Setting up roles and permissions...',
-    progress: 60,
+  seeding_roles: {
+    label: 'Setting up roles',
+    description: 'Configuring default roles for your workspace...',
+    progress: 75,
   },
-  seeding_modules: {
-    label: 'Configuring modules',
-    description: 'Setting up module permissions...',
-    progress: 80,
-  },
-  seeding: {
+  completed: {
     label: 'Finalizing',
     description: 'Completing workspace setup...',
-    progress: 90,
+    progress: 100,
   },
 };
 
@@ -73,8 +68,13 @@ export default function Provisioning({
   tenant = {},
   baseDomain = 'platform.test',
 }) {
-  const [status, setStatus] = useState(tenant.status || 'pending');
-  const [provisioningStep, setProvisioningStep] = useState(tenant.provisioning_step);
+  // Track if we should animate through steps (for sync queue where status is already 'active')
+  const [isAnimating, setIsAnimating] = useState(tenant.status === 'active');
+  const [animationStep, setAnimationStep] = useState(0);
+  const [status, setStatus] = useState(isAnimating ? 'provisioning' : (tenant.status || 'pending'));
+  const [provisioningStep, setProvisioningStep] = useState(
+    isAnimating ? 'creating_db' : tenant.provisioning_step
+  );
   const [error, setError] = useState(null);
   const [loginUrl, setLoginUrl] = useState(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -91,6 +91,56 @@ export default function Provisioning({
       : 'bg-white border border-slate-200 shadow-sm',
   };
 
+  // Animation sequence for sync queue (when provisioning already completed)
+  const stepSequence = ['creating_db', 'migrating', 'seeding_roles', 'completed'];
+
+  useEffect(() => {
+    if (!isAnimating) return;
+
+    // Animate through each step with a delay
+    const animateSteps = async () => {
+      for (let i = 0; i < stepSequence.length; i++) {
+        setProvisioningStep(stepSequence[i]);
+        setAnimationStep(i);
+        // Wait 600ms between steps for a smooth animation
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+
+      // After animation, show the actual status and fetch login URL
+      setIsAnimating(false);
+      setStatus(tenant.status);
+      setProvisioningStep(tenant.provisioning_step);
+
+      // If tenant is already active, fetch the redirect URL
+      if (tenant.status === 'active') {
+        try {
+          const response = await fetch(
+            route('platform.register.provisioning.status', { tenant: tenant.id }),
+            {
+              headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            }
+          );
+          const data = await response.json();
+          if (data.is_ready && data.login_url) {
+            setLoginUrl(data.login_url);
+            setIsRedirecting(true);
+            // Redirect after a brief delay to show success message
+            setTimeout(() => {
+              window.location.href = data.login_url;
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Failed to fetch redirect URL:', err);
+        }
+      }
+    };
+
+    animateSteps();
+  }, [isAnimating, tenant.status, tenant.provisioning_step, tenant.id]);
+
   // Current step info
   const currentStepInfo = PROVISIONING_STEPS[provisioningStep] || {
     label: 'Preparing',
@@ -100,7 +150,8 @@ export default function Provisioning({
 
   // Fetch status from API
   const fetchStatus = useCallback(async () => {
-    if (status === 'active' || status === 'failed' || isRedirecting) {
+    // Skip fetching during animation or when already completed/failed
+    if (isAnimating || status === 'active' || status === 'failed' || isRedirecting) {
       return;
     }
 
@@ -152,10 +203,13 @@ export default function Provisioning({
         });
       }
     }
-  }, [tenant.id, status, isRedirecting]);
+  }, [tenant.id, status, isRedirecting, isAnimating]);
 
-  // Poll for status updates
+  // Poll for status updates (only when not animating)
   useEffect(() => {
+    // Don't start polling during animation
+    if (isAnimating) return;
+
     // Initial fetch
     fetchStatus();
 
@@ -164,7 +218,7 @@ export default function Provisioning({
 
     // Cleanup on unmount
     return () => clearInterval(interval);
-  }, [fetchStatus]);
+  }, [fetchStatus, isAnimating]);
 
   // Render success state
   if (status === 'active') {

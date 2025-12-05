@@ -403,12 +403,12 @@ class RegistrationController extends Controller
                     $tenant = $this->tenantProvisioner->createFromRegistration($payload);
                 }
 
-                // Dispatch async provisioning job WITHOUT admin credentials
-                // Admin will be created after provisioning on tenant domain
-                ProvisionTenant::dispatch($tenant);
-
                 return $tenant;
             });
+
+            // Dispatch async provisioning job AFTER transaction commits
+            // Admin will be created after provisioning on tenant domain
+            ProvisionTenant::dispatch($tenant);
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Tenant creation/update failed', [
                 'error' => $e->getMessage(),

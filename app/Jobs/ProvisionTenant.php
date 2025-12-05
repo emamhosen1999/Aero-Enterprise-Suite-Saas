@@ -20,8 +20,7 @@ use Throwable;
  * Handles the asynchronous provisioning of a new tenant, including:
  * - Database creation
  * - Schema migrations
- * - Roles and permissions seeding
- * - Module permissions seeding
+ * - Default roles seeding (permissions are NOT used)
  *
  * NOTE: Admin user creation is NOT done here. The admin user is created
  * on the tenant domain AFTER provisioning completes, during the admin
@@ -74,10 +73,9 @@ class ProvisionTenant implements ShouldQueue
      * Provision the tenant through the following steps:
      * 1. Create the tenant database
      * 2. Run migrations on the tenant database
-     * 3. Seed roles and permissions
-     * 4. Seed module permissions
-     * 5. Activate the tenant
-     * 6. Send notification email
+     * 3. Seed default roles
+     * 4. Activate the tenant
+     * 5. Send notification email
      *
      * NOTE: Admin user creation is done AFTER provisioning on the tenant domain.
      *
@@ -112,25 +110,20 @@ class ProvisionTenant implements ShouldQueue
             $this->migrateDatabase();
             $this->logStep('✅ Step 3 Complete: Migrations applied successfully', $context);
 
-            // Step 4: Seed roles and permissions
-            $this->logStep('🔐 Step 4: Seeding roles and permissions', $context);
-            $this->seedRolesAndPermissions();
-            $this->logStep('✅ Step 4 Complete: Roles and permissions seeded', $context);
+            // Step 4: Seed default roles
+            $this->logStep('🔐 Step 4: Seeding default roles', $context);
+            $this->seedDefaultRoles();
+            $this->logStep('✅ Step 4 Complete: Default roles seeded', $context);
 
-            // Step 5: Seed module permissions
-            $this->logStep('📦 Step 5: Seeding module permissions', $context);
-            $this->seedModulePermissions();
-            $this->logStep('✅ Step 5 Complete: Module permissions seeded', $context);
-
-            // Step 6: Activate the tenant (ready for admin setup on tenant domain)
-            $this->logStep('🎉 Step 6: Activating tenant', $context);
+            // Step 5: Activate the tenant (ready for admin setup on tenant domain)
+            $this->logStep('🎉 Step 5: Activating tenant', $context);
             $this->activateTenant();
-            $this->logStep('✅ Step 6 Complete: Tenant activated and ready for admin setup', $context);
+            $this->logStep('✅ Step 5 Complete: Tenant activated and ready for admin setup', $context);
 
-            // Step 7: Send notification email
-            $this->logStep('📧 Step 7: Sending notification email', $context);
+            // Step 6: Send notification email
+            $this->logStep('📧 Step 6: Sending notification email', $context);
             $this->sendWelcomeEmail();
-            $this->logStep('✅ Step 7 Complete: Notification email sent', $context);
+            $this->logStep('✅ Step 6 Complete: Notification email sent', $context);
 
             $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY - AWAITING ADMIN SETUP', $context);
         } catch (Throwable $e) {
@@ -213,47 +206,60 @@ class ProvisionTenant implements ShouldQueue
     // See: app/Http/Controllers/Tenant/AdminSetupController.php
 
     /**
-     * Seed roles and permissions for the tenant.
+     * Seed default roles for the tenant.
+     *
+     * Creates the essential roles that every tenant needs.
+     * Permissions are NOT seeded - the system uses role-based access control only.
      */
-    protected function seedRolesAndPermissions(): void
+    protected function seedDefaultRoles(): void
     {
-        $this->logStep('   → Running ComprehensiveRolePermissionSeeder', []);
-        $this->tenant->updateProvisioningStep('seeding_permissions');
+        $this->logStep('   → Seeding default tenant roles', []);
+        $this->tenant->updateProvisioningStep('seeding_roles');
 
         try {
             tenancy()->initialize($this->tenant);
 
-            $seeder = new \Database\Seeders\Tenant\ComprehensiveRolePermissionSeeder;
-            $seeder->run();
+            // Default roles that every tenant should have
+            $defaultRoles = [
+                [
+                    'name' => 'Super Administrator',
+                    'guard_name' => 'web',
+                    'description' => 'Full access to all tenant features',
+                    'is_protected' => true,
+                ],
+                [
+                    'name' => 'Administrator',
+                    'guard_name' => 'web',
+                    'description' => 'Administrative access with most features',
+                    'is_protected' => false,
+                ],
+                [
+                    'name' => 'HR Manager',
+                    'guard_name' => 'web',
+                    'description' => 'Human Resources management access',
+                    'is_protected' => false,
+                ],
+                [
+                    'name' => 'Employee',
+                    'guard_name' => 'web',
+                    'description' => 'Basic employee access - self-service features',
+                    'is_protected' => false,
+                ],
+            ];
 
-            $this->logStep('   → Roles and permissions seeded successfully', []);
+            foreach ($defaultRoles as $roleData) {
+                \Spatie\Permission\Models\Role::firstOrCreate(
+                    ['name' => $roleData['name'], 'guard_name' => $roleData['guard_name']],
+                    [
+                        'description' => $roleData['description'],
+                        'is_protected' => $roleData['is_protected'] ?? false,
+                    ]
+                );
+            }
+
+            $this->logStep('   → Default roles seeded successfully', []);
         } catch (Throwable $e) {
-            $this->logStep("   → Failed to seed roles and permissions: {$e->getMessage()}", [
-                'error' => $e->getMessage(),
-            ], 'error');
-            throw $e;
-        } finally {
-            tenancy()->end();
-        }
-    }
-
-    /**
-     * Seed module permissions for the tenant.
-     */
-    protected function seedModulePermissions(): void
-    {
-        $this->logStep('   → Running ModulePermissionSeeder', []);
-        $this->tenant->updateProvisioningStep('seeding_modules');
-
-        try {
-            tenancy()->initialize($this->tenant);
-
-            $seeder = new \Database\Seeders\Tenant\ModulePermissionSeeder;
-            $seeder->run();
-
-            $this->logStep('   → Module permissions seeded successfully', []);
-        } catch (Throwable $e) {
-            $this->logStep("   → Failed to seed module permissions: {$e->getMessage()}", [
+            $this->logStep("   → Failed to seed default roles: {$e->getMessage()}", [
                 'error' => $e->getMessage(),
             ], 'error');
             throw $e;
@@ -461,11 +467,13 @@ class ProvisionTenant implements ShouldQueue
 
         // Broadcast step completion for real-time updates (if WebSocket configured)
         // This will only broadcast if BROADCAST_DRIVER is set to pusher/redis/etc
+        // Skip if provisioning_step is null (happens after activation clears it)
+        $step = $this->tenant->provisioning_step ?? 'completed';
         if (str_contains($message, '✅') && config('broadcasting.default') !== 'null') {
             try {
                 broadcast(new TenantProvisioningStepCompleted(
                     $this->tenant,
-                    $this->tenant->provisioning_step,
+                    $step,
                     $message
                 ));
             } catch (Throwable $e) {
