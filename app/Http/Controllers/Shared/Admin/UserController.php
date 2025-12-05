@@ -291,10 +291,14 @@ class UserController extends Controller
     {
         $modelClass = $this->getUserModel($context);
         $guardName = $this->getGuard($context);
+        
+        // Determine the connection and table for unique validation
+        $connection = $context === 'admin' ? 'central' : config('database.default');
+        $table = (new $modelClass)->getTable();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:'.(new $modelClass)->getTable().',email',
+            'email' => "required|email|unique:{$connection}.{$table},email",
             'password' => 'required|string|min:8|confirmed',
             'roles' => 'nullable|array',
             'active' => 'boolean',
@@ -318,6 +322,13 @@ class UserController extends Controller
                 'message' => 'User created successfully.',
                 'user' => $user->fresh(['roles']),
             ], 201);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'error' => 'A user with this email already exists.',
+                'message' => 'The email address is already in use.',
+            ], 422);
         } catch (\Exception $e) {
             DB::rollBack();
             report($e);
@@ -336,10 +347,14 @@ class UserController extends Controller
     {
         $modelClass = $this->getUserModel($context);
         $user = $modelClass::findOrFail($id);
+        
+        // Determine the connection and table for unique validation
+        $connection = $context === 'admin' ? 'central' : config('database.default');
+        $table = $user->getTable();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:'.$user->getTable().',email,'.$id,
+            'email' => "required|email|unique:{$connection}.{$table},email,{$id}",
             'password' => 'nullable|string|min:8|confirmed',
             'roles' => 'nullable|array',
             'active' => 'boolean',

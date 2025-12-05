@@ -578,13 +578,17 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Admin/Analytics/Revenue');
         })->middleware(['module:platform-analytics,revenue-analytics'])->name('revenue');
 
+        Route::get('/tenants', function () {
+            return Inertia::render('Admin/Analytics/Tenants');
+        })->middleware(['module:platform-analytics,tenant-analytics'])->name('tenants');
+
         Route::get('/usage', function () {
             return Inertia::render('Admin/Analytics/Usage');
         })->middleware(['module:platform-analytics,usage-analytics'])->name('usage');
 
-        Route::get('/tenants', function () {
-            return Inertia::render('Admin/Analytics/Tenants');
-        })->middleware(['module:platform-analytics,tenant-analytics'])->name('tenants');
+        Route::get('/performance', function () {
+            return Inertia::render('Admin/Analytics/Performance');
+        })->middleware(['module:platform-analytics,system-performance'])->name('performance');
 
         // Module Analytics API
         Route::get('/modules', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'index'])
@@ -607,6 +611,11 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Admin/Integrations/Index');
         })->middleware(['module:platform-integrations,global-connectors'])->name('index');
 
+        // Global Connectors
+        Route::get('/connectors', function () {
+            return Inertia::render('Admin/Integrations/Connectors');
+        })->middleware(['module:platform-integrations,global-connectors'])->name('connectors');
+
         Route::get('/api', function () {
             return Inertia::render('Admin/Integrations/Api');
         })->middleware(['module:platform-integrations,api-management'])->name('api');
@@ -619,21 +628,205 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Admin/Integrations/Tenants');
         })->middleware(['module:platform-integrations,tenant-integrations-overview'])->name('tenants');
 
+        // Third-Party Apps
+        Route::get('/apps', function () {
+            return Inertia::render('Admin/Integrations/Apps');
+        })->middleware(['module:platform-integrations,third-party-apps'])->name('apps');
+
         Route::get('/logs', function () {
             return Inertia::render('Admin/Integrations/Logs');
         })->middleware(['module:platform-integrations,integration-logs'])->name('logs');
     });
 
     // =========================================================================
-    // SUPPORT & TICKETS (Quick Access)
+    // 13. SUPPORT & TICKETING MODULE (platform-support)
+    // Access: platform-support, platform-support.ticket-management, etc.
     // =========================================================================
-    Route::prefix('support')->name('admin.support.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Support/Index');
-        })->name('index');
+    Route::middleware(['module:platform-support'])->prefix('support')->name('admin.support.')->group(function () {
+        
+        // 13.1 Ticket Management
+        Route::prefix('tickets')->name('tickets.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Tickets/Index');
+            })->middleware(['module:platform-support,ticket-management'])->name('index');
 
-        Route::get('/{ticket}', function ($ticket) {
-            return Inertia::render('Admin/Support/Show', ['ticketId' => $ticket]);
-        })->name('show');
+            Route::get('/sla-violations', function () {
+                return Inertia::render('Admin/Support/Tickets/SlaViolations');
+            })->middleware(['module:platform-support,ticket-management,sla-violations,view'])->name('sla-violations');
+
+            Route::get('/categories', function () {
+                return Inertia::render('Admin/Support/Tickets/Categories');
+            })->middleware(['module:platform-support,ticket-management,ticket-categories,view'])->name('categories');
+
+            Route::get('/priorities', function () {
+                return Inertia::render('Admin/Support/Tickets/Priorities');
+            })->middleware(['module:platform-support,ticket-management,ticket-priorities,view'])->name('priorities');
+
+            Route::get('/{ticket}', function ($ticket) {
+                return Inertia::render('Admin/Support/Tickets/Show', ['ticketId' => $ticket]);
+            })->middleware(['module:platform-support,ticket-management,ticket-detail,view'])->name('show');
+        });
+
+        // 13.2 Department & Agent Management
+        Route::prefix('departments')->name('departments.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Departments/Index');
+            })->middleware(['module:platform-support,department-agent,departments,view'])->name('index');
+        });
+
+        Route::prefix('agents')->name('agents.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Agents/Index');
+            })->middleware(['module:platform-support,department-agent,agents,view'])->name('index');
+        });
+
+        Route::prefix('schedules')->name('schedules.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Schedules/Index');
+            })->middleware(['module:platform-support,department-agent,schedules,view'])->name('index');
+        });
+
+        Route::prefix('auto-assign')->name('auto-assign.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/AutoAssign/Index');
+            })->middleware(['module:platform-support,department-agent,auto-assign,view'])->name('index');
+        });
+
+        // 13.3 Routing & SLA
+        Route::prefix('sla')->name('sla.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Sla/Index');
+            })->middleware(['module:platform-support,routing-sla'])->name('index');
+
+            Route::get('/policies', function () {
+                return Inertia::render('Admin/Support/Sla/Policies');
+            })->middleware(['module:platform-support,routing-sla,sla-policies,view'])->name('policies');
+
+            Route::get('/routing', function () {
+                return Inertia::render('Admin/Support/Sla/Routing');
+            })->middleware(['module:platform-support,routing-sla,routing-rules,view'])->name('routing');
+
+            Route::get('/escalation', function () {
+                return Inertia::render('Admin/Support/Sla/Escalation');
+            })->middleware(['module:platform-support,routing-sla,escalation-rules,view'])->name('escalation');
+        });
+
+        // 13.4 Knowledge Base
+        Route::prefix('kb')->name('kb.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Kb/Index');
+            })->middleware(['module:platform-support,knowledge-base'])->name('index');
+
+            Route::get('/categories', function () {
+                return Inertia::render('Admin/Support/Kb/Categories');
+            })->middleware(['module:platform-support,knowledge-base,kb-categories,view'])->name('categories');
+
+            Route::get('/articles', function () {
+                return Inertia::render('Admin/Support/Kb/Articles');
+            })->middleware(['module:platform-support,knowledge-base,kb-articles,view'])->name('articles');
+
+            Route::get('/templates', function () {
+                return Inertia::render('Admin/Support/Kb/Templates');
+            })->middleware(['module:platform-support,knowledge-base,article-templates,view'])->name('templates');
+        });
+
+        // 13.5 Canned Responses
+        Route::prefix('canned')->name('canned.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Canned/Index');
+            })->middleware(['module:platform-support,canned-responses'])->name('index');
+
+            Route::get('/templates', function () {
+                return Inertia::render('Admin/Support/Canned/Templates');
+            })->middleware(['module:platform-support,canned-responses,response-templates,view'])->name('templates');
+
+            Route::get('/categories', function () {
+                return Inertia::render('Admin/Support/Canned/Categories');
+            })->middleware(['module:platform-support,canned-responses,macro-categories,view'])->name('categories');
+        });
+
+        // 13.6 Reporting & Analytics
+        Route::prefix('analytics')->name('analytics.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Analytics/Index');
+            })->middleware(['module:platform-support,support-analytics'])->name('index');
+
+            Route::get('/volume', function () {
+                return Inertia::render('Admin/Support/Analytics/Volume');
+            })->middleware(['module:platform-support,support-analytics,ticket-volume,view'])->name('volume');
+
+            Route::get('/agents', function () {
+                return Inertia::render('Admin/Support/Analytics/Agents');
+            })->middleware(['module:platform-support,support-analytics,agent-performance,view'])->name('agents');
+
+            Route::get('/sla', function () {
+                return Inertia::render('Admin/Support/Analytics/Sla');
+            })->middleware(['module:platform-support,support-analytics,sla-compliance,view'])->name('sla');
+
+            Route::get('/csat', function () {
+                return Inertia::render('Admin/Support/Analytics/Csat');
+            })->middleware(['module:platform-support,support-analytics,csat-reports,view'])->name('csat');
+        });
+
+        // 13.7 Customer Feedback
+        Route::prefix('feedback')->name('feedback.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Feedback/Index');
+            })->middleware(['module:platform-support,customer-feedback'])->name('index');
+
+            Route::get('/ratings', function () {
+                return Inertia::render('Admin/Support/Feedback/Ratings');
+            })->middleware(['module:platform-support,customer-feedback,csat-ratings,view'])->name('ratings');
+
+            Route::get('/forms', function () {
+                return Inertia::render('Admin/Support/Feedback/Forms');
+            })->middleware(['module:platform-support,customer-feedback,feedback-forms,view'])->name('forms');
+        });
+
+        // 13.8 Multi-Channel Support
+        Route::prefix('channels')->name('channels.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Channels/Index');
+            })->middleware(['module:platform-support,multi-channel'])->name('index');
+
+            Route::get('/email', function () {
+                return Inertia::render('Admin/Support/Channels/Email');
+            })->middleware(['module:platform-support,multi-channel,email-channel,view'])->name('email');
+
+            Route::get('/chat', function () {
+                return Inertia::render('Admin/Support/Channels/Chat');
+            })->middleware(['module:platform-support,multi-channel,chat-widget,view'])->name('chat');
+
+            Route::get('/whatsapp', function () {
+                return Inertia::render('Admin/Support/Channels/Whatsapp');
+            })->middleware(['module:platform-support,multi-channel,whatsapp-channel,view'])->name('whatsapp');
+
+            Route::get('/sms', function () {
+                return Inertia::render('Admin/Support/Channels/Sms');
+            })->middleware(['module:platform-support,multi-channel,sms-channel,view'])->name('sms');
+
+            Route::get('/logs', function () {
+                return Inertia::render('Admin/Support/Channels/Logs');
+            })->middleware(['module:platform-support,multi-channel,channel-logs,view'])->name('logs');
+        });
+
+        // 13.9 Admin Tools
+        Route::prefix('tools')->name('tools.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Support/Tools/Index');
+            })->middleware(['module:platform-support,support-admin-tools'])->name('index');
+
+            Route::get('/tags', function () {
+                return Inertia::render('Admin/Support/Tools/Tags');
+            })->middleware(['module:platform-support,support-admin-tools,ticket-tags,view'])->name('tags');
+
+            Route::get('/fields', function () {
+                return Inertia::render('Admin/Support/Tools/Fields');
+            })->middleware(['module:platform-support,support-admin-tools,custom-fields,view'])->name('fields');
+
+            Route::get('/forms', function () {
+                return Inertia::render('Admin/Support/Tools/Forms');
+            })->middleware(['module:platform-support,support-admin-tools,ticket-forms,view'])->name('forms');
+        });
     });
 });

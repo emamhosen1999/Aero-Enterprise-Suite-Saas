@@ -819,6 +819,7 @@ require __DIR__.'/analytics.php';
 require __DIR__.'/project-management.php';
 require __DIR__.'/hr.php';
 require __DIR__.'/dms.php';
+require __DIR__.'/support.php';
 
 // NOTE: Auth routes are loaded via platform.php (central) and tenant.php (tenants)
 // to ensure proper database context. Do not include auth.php here.

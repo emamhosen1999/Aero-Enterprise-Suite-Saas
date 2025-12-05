@@ -49,7 +49,14 @@ import {
   ChartBarSquareIcon,
   CurrencyDollarIcon,
   LifebuoyIcon,
-  PlusCircleIcon
+  PlusCircleIcon,
+  QueueListIcon,
+  BoltIcon,
+  UserGroupIcon,
+  CpuChipIcon,
+  ArrowsRightLeftIcon,
+  LinkIcon,
+  BellAlertIcon,
 } from '@heroicons/react/24/outline';
 
 import { hasAccess, isSuperAdmin, isAuthSuperAdmin } from '@/utils/moduleAccessUtils';
@@ -388,7 +395,7 @@ export const getAdminPages = (auth = null) => {
     |--------------------------------------------------------------------------
     */
     {
-      name: 'Developer',
+      name: 'Developer Tools',
       icon: <CodeBracketIcon className="" />,
       module: 'developer-tools',
       access: 'developer-tools',
@@ -407,43 +414,112 @@ export const getAdminPages = (auth = null) => {
           route: 'admin.developer.webhooks',
         },
         {
-          name: 'Debug Tools',
+          name: 'Queue Management',
+          icon: <QueueListIcon className="" />,
+          access: 'developer-tools.queue-management',
+          route: 'admin.developer.queues',
+        },
+        {
+          name: 'Cache Management',
+          icon: <BoltIcon className="" />,
+          access: 'developer-tools.cache-management',
+          route: 'admin.developer.cache',
+        },
+        {
+          name: 'Maintenance Mode',
           icon: <WrenchScrewdriverIcon className="" />,
-          access: 'developer-tools.debug-tools',
-          route: 'admin.developer.debug',
+          access: 'developer-tools.maintenance',
+          route: 'admin.developer.maintenance',
         },
       ],
     },
 
     /*
     |--------------------------------------------------------------------------
-    | Quick Access Items (Always visible based on access)
+    | 11. Platform Analytics Module (platform-analytics)
     |--------------------------------------------------------------------------
     */
     {
       name: 'Analytics',
       icon: <ChartBarSquareIcon className="" />,
-      module: 'platform-dashboard',
-      access: 'platform-dashboard.overview',
+      module: 'platform-analytics',
+      access: 'platform-analytics',
       priority: 11,
       subMenu: [
         {
           name: 'Overview',
-          icon: <ChartBarSquareIcon className="" />,
-          access: 'platform-dashboard.overview',
+          icon: <ChartPieIcon className="" />,
+          access: 'platform-analytics.platform-overview',
           route: 'admin.analytics.index',
         },
         {
-          name: 'Revenue',
+          name: 'Revenue Analytics',
           icon: <CurrencyDollarIcon className="" />,
-          access: 'subscriptions.invoices',
+          access: 'platform-analytics.revenue-analytics',
           route: 'admin.analytics.revenue',
         },
         {
-          name: 'Usage',
-          icon: <ChartBarSquareIcon className="" />,
-          access: 'platform-dashboard.overview',
+          name: 'Tenant Analytics',
+          icon: <UserGroupIcon className="" />,
+          access: 'platform-analytics.tenant-analytics',
+          route: 'admin.analytics.tenants',
+        },
+        {
+          name: 'Usage Analytics',
+          icon: <ChartBarIcon className="" />,
+          access: 'platform-analytics.usage-analytics',
           route: 'admin.analytics.usage',
+        },
+        {
+          name: 'System Performance',
+          icon: <CpuChipIcon className="" />,
+          access: 'platform-analytics.system-performance',
+          route: 'admin.analytics.performance',
+        },
+      ],
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | 12. Platform Integrations Module (platform-integrations)
+    |--------------------------------------------------------------------------
+    */
+    {
+      name: 'Integrations',
+      icon: <ArrowsRightLeftIcon className="" />,
+      module: 'platform-integrations',
+      access: 'platform-integrations',
+      priority: 12,
+      subMenu: [
+        {
+          name: 'Global Connectors',
+          icon: <LinkIcon className="" />,
+          access: 'platform-integrations.global-connectors',
+          route: 'admin.integrations.connectors',
+        },
+        {
+          name: 'API Management',
+          icon: <KeyIcon className="" />,
+          access: 'platform-integrations.api-management',
+          route: 'admin.integrations.api',
+        },
+        {
+          name: 'Webhook Management',
+          icon: <BellAlertIcon className="" />,
+          access: 'platform-integrations.webhook-management',
+          route: 'admin.integrations.webhooks',
+        },
+        {
+          name: 'Tenant Integrations',
+          icon: <BuildingOffice2Icon className="" />,
+          access: 'platform-integrations.tenant-integrations-overview',
+          route: 'admin.integrations.tenants',
+        },
+        {
+          name: 'Third-Party Apps',
+          icon: <PuzzlePieceIcon className="" />,
+          access: 'platform-integrations.third-party-apps',
+          route: 'admin.integrations.apps',
         },
       ],
     },

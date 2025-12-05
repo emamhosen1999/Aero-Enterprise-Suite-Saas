@@ -999,7 +999,7 @@ return [
         */
         [
             'code' => 'platform-analytics',
-            'name' => 'Platform Analytics',
+            'name' => 'Analytics',
             'description' => 'Platform-wide analytics for tenant health, revenue, and system performance',
             'icon' => 'ChartBarSquareIcon',
             'route_prefix' => '/admin/analytics',
@@ -1236,7 +1236,7 @@ return [
         */
         [
             'code' => 'platform-integrations',
-            'name' => 'Platform Integrations',
+            'name' => 'Integrations',
             'description' => 'Manage platform-wide integrations, API keys, and connector configurations',
             'icon' => 'ArrowsRightLeftIcon',
             'route_prefix' => '/admin/integrations',
