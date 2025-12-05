@@ -20,9 +20,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
   EllipsisVerticalIcon,
-  UserGroupIcon,
-  ShieldCheckIcon,
-  KeyIcon
+  UserGroupIcon
 } from "@heroicons/react/24/outline";
 
 const RolesTable = ({ 
@@ -56,7 +54,6 @@ const RolesTable = ({
       { name: "#", uid: "sl", width: 60 },
       { name: "ROLE", uid: "role", width: "auto", minWidth: 200 },
       { name: "DESCRIPTION", uid: "description", width: 250 },
-      { name: "PERMISSIONS", uid: "permissions", width: 200 },
       { name: "STATUS", uid: "status", width: 100 },
       { name: "ACTIONS", uid: "actions", width: 100 }
     ];
@@ -137,55 +134,6 @@ const RolesTable = ({
             <p className="text-sm text-default-600 truncate">
               {role.description || <span className="text-default-400 italic">No description</span>}
             </p>
-          </div>
-        );
-
-      case "permissions":
-        // Super Administrator has full access - no need to show individual permissions
-        const isSuperAdminRole = ['Super Administrator', 'platform_super_administrator', 'tenant_super_administrator'].includes(role.name);
-        
-        if (isSuperAdminRole) {
-          return (
-            <div className="flex items-center gap-2">
-              <Chip
-                size="sm"
-                variant="flat"
-                color="warning"
-                startContent={<ShieldCheckIcon className="w-3 h-3" />}
-                className="text-xs"
-              >
-                Full Access
-              </Chip>
-            </div>
-          );
-        }
-        
-        return (
-          <div className="flex flex-wrap gap-1 max-w-[200px]">
-            {permissionNames.slice(0, 3).map((permission, idx) => (
-              <Chip
-                key={idx}
-                size="sm"
-                variant="flat"
-                color="primary"
-                className="text-xs"
-              >
-                {permission}
-              </Chip>
-            ))}
-            {permissionNames.length > 3 && (
-              <Chip
-                size="sm"
-                variant="flat"
-                color="secondary"
-                className="text-xs"
-              >
-                +{permissionNames.length - 3} more
-              </Chip>
-            )}
-            {permissionNames.length === 0 && (
-              <span className="text-default-400 text-xs italic">No permissions</span>
-            )}
           </div>
         );
 

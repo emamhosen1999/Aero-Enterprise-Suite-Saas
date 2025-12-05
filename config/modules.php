@@ -291,13 +291,13 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 4. Roles & Permissions Module
+        | 4. Access Control Module
         |--------------------------------------------------------------------------
         */
         [
             'code' => 'platform-roles',
-            'name' => 'Roles & Permissions',
-            'description' => 'Manage platform roles, permissions, and access control',
+            'name' => 'Access Control',
+            'description' => 'Manage platform roles and module access control',
             'icon' => 'ShieldCheckIcon',
             'route_prefix' => '/admin/roles',
             'category' => 'platform_core',
@@ -331,35 +331,12 @@ return [
                     ],
                 ],
                 [
-                    'code' => 'permission-management',
-                    'name' => 'Permission Management',
-                    'description' => 'View and manage permissions',
-                    'icon' => 'LockClosedIcon',
-                    'route' => '/admin/permissions',
-                    'priority' => 2,
-
-                    'components' => [
-                        [
-                            'code' => 'permission-list',
-                            'name' => 'Permission List',
-                            'type' => 'page',
-                            'route' => '/admin/permissions',
-                            'actions' => [
-                                ['code' => 'view', 'name' => 'View Permissions'],
-                                ['code' => 'create', 'name' => 'Create Permission'],
-                                ['code' => 'update', 'name' => 'Update Permission'],
-                                ['code' => 'delete', 'name' => 'Delete Permission'],
-                            ],
-                        ],
-                    ],
-                ],
-                [
                     'code' => 'module-permissions',
-                    'name' => 'Module Permissions',
-                    'description' => 'Configure module access and required permissions',
+                    'name' => 'Module Access',
+                    'description' => 'Configure role-based module access control',
                     'icon' => 'CubeIcon',
                     'route' => '/admin/modules',
-                    'priority' => 3,
+                    'priority' => 2,
 
                     'components' => [
                         [
@@ -369,7 +346,7 @@ return [
                             'route' => '/admin/modules',
                             'actions' => [
                                 ['code' => 'view', 'name' => 'View Modules'],
-                                ['code' => 'configure', 'name' => 'Configure Module Permissions'],
+                                ['code' => 'configure', 'name' => 'Configure Module Access'],
                                 ['code' => 'toggle', 'name' => 'Enable/Disable Module'],
                             ],
                         ],
@@ -1485,6 +1462,540 @@ return [
                 ],
             ],
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 13. Support & Ticketing Module (Platform Level)
+        |--------------------------------------------------------------------------
+        | Platform-wide support management for handling tenant support requests.
+        | Manages cross-tenant tickets, platform-level SLAs, and support staff.
+        */
+        [
+            'code' => 'platform-support',
+            'name' => 'Support & Ticketing',
+            'description' => 'Platform-wide support management, tenant tickets, SLAs, and knowledge base',
+            'icon' => 'LifebuoyIcon',
+            'route_prefix' => '/admin/support',
+            'category' => 'platform_core',
+            'priority' => 13,
+            'is_core' => false,
+            'is_active' => true,
+
+            'submodules' => [
+                /*
+                |--------------------------------------------------------------------------
+                | 13.1 Ticket Management
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'ticket-management',
+                    'name' => 'Ticket Management',
+                    'description' => 'Manage all platform support tickets',
+                    'icon' => 'TicketIcon',
+                    'route' => '/admin/support/tickets',
+                    'priority' => 1,
+
+                    'components' => [
+                        [
+                            'code' => 'all-tickets',
+                            'name' => 'All Tickets',
+                            'type' => 'page',
+                            'route' => '/admin/support/tickets',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View All Tickets'],
+                                ['code' => 'create', 'name' => 'Create Ticket'],
+                                ['code' => 'reply', 'name' => 'Reply to Ticket'],
+                                ['code' => 'assign', 'name' => 'Assign Ticket'],
+                                ['code' => 'change-status', 'name' => 'Change Status'],
+                                ['code' => 'change-priority', 'name' => 'Change Priority'],
+                                ['code' => 'add-tags', 'name' => 'Add Tags'],
+                                ['code' => 'merge', 'name' => 'Merge Tickets'],
+                                ['code' => 'delete', 'name' => 'Delete Ticket'],
+                                ['code' => 'close', 'name' => 'Close Ticket'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-detail',
+                            'name' => 'Ticket Detail',
+                            'type' => 'page',
+                            'route' => '/admin/support/tickets/{id}',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Ticket Detail'],
+                                ['code' => 'add-internal-note', 'name' => 'Add Internal Note'],
+                                ['code' => 'upload-attachment', 'name' => 'Upload Attachment'],
+                            ],
+                        ],
+                        [
+                            'code' => 'sla-violations',
+                            'name' => 'SLA Violations',
+                            'type' => 'page',
+                            'route' => '/admin/support/tickets/sla-violations',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SLA Violations'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-categories',
+                            'name' => 'Ticket Categories',
+                            'type' => 'page',
+                            'route' => '/admin/support/tickets/categories',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Categories'],
+                                ['code' => 'create', 'name' => 'Create Category'],
+                                ['code' => 'update', 'name' => 'Update Category'],
+                                ['code' => 'delete', 'name' => 'Delete Category'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-priorities',
+                            'name' => 'Ticket Priorities',
+                            'type' => 'page',
+                            'route' => '/admin/support/tickets/priorities',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Priorities'],
+                                ['code' => 'create', 'name' => 'Create Priority'],
+                                ['code' => 'update', 'name' => 'Update Priority'],
+                                ['code' => 'delete', 'name' => 'Delete Priority'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.2 Department & Agent Management
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'department-agent',
+                    'name' => 'Department & Agent Management',
+                    'description' => 'Manage support departments and agents',
+                    'icon' => 'UserGroupIcon',
+                    'route' => '/admin/support/departments',
+                    'priority' => 2,
+
+                    'components' => [
+                        [
+                            'code' => 'departments',
+                            'name' => 'Departments',
+                            'type' => 'page',
+                            'route' => '/admin/support/departments',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Departments'],
+                                ['code' => 'create', 'name' => 'Create Department'],
+                                ['code' => 'update', 'name' => 'Update Department'],
+                                ['code' => 'delete', 'name' => 'Delete Department'],
+                            ],
+                        ],
+                        [
+                            'code' => 'agents',
+                            'name' => 'Support Agents',
+                            'type' => 'page',
+                            'route' => '/admin/support/agents',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Agents'],
+                                ['code' => 'add', 'name' => 'Add Agent'],
+                                ['code' => 'remove', 'name' => 'Remove Agent'],
+                                ['code' => 'set-availability', 'name' => 'Set Agent Availability'],
+                                ['code' => 'assign-department', 'name' => 'Assign to Department'],
+                            ],
+                        ],
+                        [
+                            'code' => 'schedules',
+                            'name' => 'Working Hours & Schedules',
+                            'type' => 'page',
+                            'route' => '/admin/support/schedules',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Schedules'],
+                                ['code' => 'update', 'name' => 'Update Schedule'],
+                            ],
+                        ],
+                        [
+                            'code' => 'auto-assign',
+                            'name' => 'Auto-Assign Rules',
+                            'type' => 'page',
+                            'route' => '/admin/support/auto-assign',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Auto-Assign Rules'],
+                                ['code' => 'configure', 'name' => 'Configure Auto-Assign'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.3 Ticket Routing & SLA
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'routing-sla',
+                    'name' => 'Routing & SLA',
+                    'description' => 'SLA policies, auto-assign rules, and escalation',
+                    'icon' => 'ClockIcon',
+                    'route' => '/admin/support/sla',
+                    'priority' => 3,
+
+                    'components' => [
+                        [
+                            'code' => 'sla-policies',
+                            'name' => 'SLA Policies',
+                            'type' => 'page',
+                            'route' => '/admin/support/sla/policies',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SLA Policies'],
+                                ['code' => 'create', 'name' => 'Create SLA Policy'],
+                                ['code' => 'update', 'name' => 'Update SLA Policy'],
+                                ['code' => 'delete', 'name' => 'Delete SLA Policy'],
+                                ['code' => 'assign', 'name' => 'Assign SLA to Category'],
+                            ],
+                        ],
+                        [
+                            'code' => 'routing-rules',
+                            'name' => 'Routing Rules',
+                            'type' => 'page',
+                            'route' => '/admin/support/sla/routing',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Routing Rules'],
+                                ['code' => 'create', 'name' => 'Create Routing Rule'],
+                                ['code' => 'update', 'name' => 'Update Routing Rule'],
+                                ['code' => 'delete', 'name' => 'Delete Routing Rule'],
+                            ],
+                        ],
+                        [
+                            'code' => 'escalation-rules',
+                            'name' => 'Escalation Rules',
+                            'type' => 'page',
+                            'route' => '/admin/support/sla/escalation',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Escalation Rules'],
+                                ['code' => 'create', 'name' => 'Create Escalation Rule'],
+                                ['code' => 'update', 'name' => 'Update Escalation Rule'],
+                                ['code' => 'delete', 'name' => 'Delete Escalation Rule'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.4 Knowledge Base
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'knowledge-base',
+                    'name' => 'Knowledge Base',
+                    'description' => 'Platform knowledge base articles and categories',
+                    'icon' => 'BookOpenIcon',
+                    'route' => '/admin/support/kb',
+                    'priority' => 4,
+
+                    'components' => [
+                        [
+                            'code' => 'kb-categories',
+                            'name' => 'KB Categories',
+                            'type' => 'page',
+                            'route' => '/admin/support/kb/categories',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Categories'],
+                                ['code' => 'create', 'name' => 'Create Category'],
+                                ['code' => 'update', 'name' => 'Update Category'],
+                                ['code' => 'delete', 'name' => 'Delete Category'],
+                            ],
+                        ],
+                        [
+                            'code' => 'kb-articles',
+                            'name' => 'KB Articles',
+                            'type' => 'page',
+                            'route' => '/admin/support/kb/articles',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Articles'],
+                                ['code' => 'create', 'name' => 'Create Article'],
+                                ['code' => 'update', 'name' => 'Update Article'],
+                                ['code' => 'publish', 'name' => 'Publish Article'],
+                                ['code' => 'unpublish', 'name' => 'Unpublish Article'],
+                                ['code' => 'delete', 'name' => 'Delete Article'],
+                            ],
+                        ],
+                        [
+                            'code' => 'article-templates',
+                            'name' => 'Article Templates',
+                            'type' => 'page',
+                            'route' => '/admin/support/kb/templates',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Templates'],
+                                ['code' => 'create', 'name' => 'Create Template'],
+                                ['code' => 'update', 'name' => 'Update Template'],
+                                ['code' => 'delete', 'name' => 'Delete Template'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.5 Canned Responses
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'canned-responses',
+                    'name' => 'Canned Responses',
+                    'description' => 'Pre-defined response templates and macros',
+                    'icon' => 'DocumentDuplicateIcon',
+                    'route' => '/admin/support/canned',
+                    'priority' => 5,
+
+                    'components' => [
+                        [
+                            'code' => 'response-templates',
+                            'name' => 'Response Templates',
+                            'type' => 'page',
+                            'route' => '/admin/support/canned/templates',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Templates'],
+                                ['code' => 'create', 'name' => 'Create Template'],
+                                ['code' => 'update', 'name' => 'Update Template'],
+                                ['code' => 'delete', 'name' => 'Delete Template'],
+                                ['code' => 'categorize', 'name' => 'Categorize Templates'],
+                            ],
+                        ],
+                        [
+                            'code' => 'macro-categories',
+                            'name' => 'Macro Categories',
+                            'type' => 'page',
+                            'route' => '/admin/support/canned/categories',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Categories'],
+                                ['code' => 'create', 'name' => 'Create Category'],
+                                ['code' => 'update', 'name' => 'Update Category'],
+                                ['code' => 'delete', 'name' => 'Delete Category'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.6 Reporting & Analytics
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'support-analytics',
+                    'name' => 'Reporting & Analytics',
+                    'description' => 'Support metrics, agent performance, and SLA compliance',
+                    'icon' => 'ChartBarIcon',
+                    'route' => '/admin/support/analytics',
+                    'priority' => 6,
+
+                    'components' => [
+                        [
+                            'code' => 'ticket-volume',
+                            'name' => 'Ticket Volume Dashboard',
+                            'type' => 'page',
+                            'route' => '/admin/support/analytics/volume',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Ticket Volume'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                            ],
+                        ],
+                        [
+                            'code' => 'agent-performance',
+                            'name' => 'Agent Performance',
+                            'type' => 'page',
+                            'route' => '/admin/support/analytics/agents',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Agent Performance'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                            ],
+                        ],
+                        [
+                            'code' => 'sla-compliance',
+                            'name' => 'SLA Compliance',
+                            'type' => 'page',
+                            'route' => '/admin/support/analytics/sla',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SLA Compliance'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                            ],
+                        ],
+                        [
+                            'code' => 'csat-reports',
+                            'name' => 'Customer Satisfaction',
+                            'type' => 'page',
+                            'route' => '/admin/support/analytics/csat',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View CSAT Reports'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                                ['code' => 'share', 'name' => 'Share Report'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.7 Customer Feedback
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'customer-feedback',
+                    'name' => 'Customer Feedback',
+                    'description' => 'CSAT ratings and feedback management',
+                    'icon' => 'StarIcon',
+                    'route' => '/admin/support/feedback',
+                    'priority' => 7,
+
+                    'components' => [
+                        [
+                            'code' => 'csat-ratings',
+                            'name' => 'CSAT Ratings',
+                            'type' => 'page',
+                            'route' => '/admin/support/feedback/ratings',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Ratings'],
+                                ['code' => 'export', 'name' => 'Export Feedback'],
+                            ],
+                        ],
+                        [
+                            'code' => 'feedback-forms',
+                            'name' => 'Feedback Forms',
+                            'type' => 'page',
+                            'route' => '/admin/support/feedback/forms',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Forms'],
+                                ['code' => 'create', 'name' => 'Create Form'],
+                                ['code' => 'update', 'name' => 'Update Form'],
+                                ['code' => 'delete', 'name' => 'Delete Form'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.8 Multi-Channel Support
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'multi-channel',
+                    'name' => 'Multi-Channel Support',
+                    'description' => 'Email, chat, WhatsApp, and SMS channel management',
+                    'icon' => 'ChatBubbleLeftRightIcon',
+                    'route' => '/admin/support/channels',
+                    'priority' => 8,
+
+                    'components' => [
+                        [
+                            'code' => 'email-channel',
+                            'name' => 'Email-to-Ticket',
+                            'type' => 'page',
+                            'route' => '/admin/support/channels/email',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Email Channel'],
+                                ['code' => 'configure', 'name' => 'Configure Email Channel'],
+                                ['code' => 'disable', 'name' => 'Disable Channel'],
+                            ],
+                        ],
+                        [
+                            'code' => 'chat-widget',
+                            'name' => 'Chat Widget',
+                            'type' => 'page',
+                            'route' => '/admin/support/channels/chat',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Chat Widget'],
+                                ['code' => 'configure', 'name' => 'Configure Chat Widget'],
+                                ['code' => 'disable', 'name' => 'Disable Widget'],
+                            ],
+                        ],
+                        [
+                            'code' => 'whatsapp-channel',
+                            'name' => 'WhatsApp Support',
+                            'type' => 'page',
+                            'route' => '/admin/support/channels/whatsapp',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View WhatsApp Channel'],
+                                ['code' => 'connect', 'name' => 'Connect WhatsApp'],
+                                ['code' => 'configure', 'name' => 'Configure WhatsApp'],
+                                ['code' => 'disable', 'name' => 'Disable Channel'],
+                            ],
+                        ],
+                        [
+                            'code' => 'sms-channel',
+                            'name' => 'SMS Support',
+                            'type' => 'page',
+                            'route' => '/admin/support/channels/sms',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SMS Channel'],
+                                ['code' => 'configure', 'name' => 'Configure SMS'],
+                                ['code' => 'disable', 'name' => 'Disable Channel'],
+                            ],
+                        ],
+                        [
+                            'code' => 'channel-logs',
+                            'name' => 'Channel Logs',
+                            'type' => 'page',
+                            'route' => '/admin/support/channels/logs',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Channel Logs'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 13.9 Admin Tools
+                |--------------------------------------------------------------------------
+                */
+                [
+                    'code' => 'support-admin-tools',
+                    'name' => 'Admin Tools',
+                    'description' => 'Ticket tags, custom fields, and dynamic forms',
+                    'icon' => 'WrenchScrewdriverIcon',
+                    'route' => '/admin/support/tools',
+                    'priority' => 9,
+
+                    'components' => [
+                        [
+                            'code' => 'ticket-tags',
+                            'name' => 'Ticket Tags',
+                            'type' => 'page',
+                            'route' => '/admin/support/tools/tags',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Tags'],
+                                ['code' => 'create', 'name' => 'Create Tag'],
+                                ['code' => 'update', 'name' => 'Update Tag'],
+                                ['code' => 'delete', 'name' => 'Delete Tag'],
+                            ],
+                        ],
+                        [
+                            'code' => 'custom-fields',
+                            'name' => 'Custom Fields',
+                            'type' => 'page',
+                            'route' => '/admin/support/tools/fields',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Fields'],
+                                ['code' => 'create', 'name' => 'Create Field'],
+                                ['code' => 'update', 'name' => 'Update Field'],
+                                ['code' => 'delete', 'name' => 'Delete Field'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-forms',
+                            'name' => 'Ticket Forms',
+                            'type' => 'page',
+                            'route' => '/admin/support/tools/forms',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Forms'],
+                                ['code' => 'create', 'name' => 'Create Form'],
+                                ['code' => 'update', 'name' => 'Update Form'],
+                                ['code' => 'delete', 'name' => 'Delete Form'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ],
 
     /*
@@ -1582,16 +2093,16 @@ return [
                 ],
                 [
                     'code' => 'roles',
-                    'name' => 'Roles & Permissions',
-                    'description' => 'Manage roles and permissions',
+                    'name' => 'Role Management',
+                    'description' => 'Manage roles and user-role assignments',
                     'icon' => 'ShieldCheckIcon',
                     'route' => '/tenant/roles',
                     'priority' => 30,
 
                     'components' => [
                         [
-                            'code' => 'role-management',
-                            'name' => 'Role Management',
+                            'code' => 'role-list',
+                            'name' => 'Role List',
                             'type' => 'page',
                             'route' => '/tenant/roles',
                             'actions' => [
@@ -1599,7 +2110,29 @@ return [
                                 ['code' => 'create', 'name' => 'Create Role'],
                                 ['code' => 'update', 'name' => 'Edit Role'],
                                 ['code' => 'delete', 'name' => 'Delete Role'],
-                                ['code' => 'assign', 'name' => 'Assign Permissions'],
+                                ['code' => 'assign', 'name' => 'Assign Role to User'],
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'code' => 'module-access',
+                    'name' => 'Module Access',
+                    'description' => 'Configure role-based module access and permissions',
+                    'icon' => 'CubeIcon',
+                    'route' => '/tenant/modules',
+                    'priority' => 40,
+
+                    'components' => [
+                        [
+                            'code' => 'module-list',
+                            'name' => 'Module List',
+                            'type' => 'page',
+                            'route' => '/tenant/modules',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Modules'],
+                                ['code' => 'configure', 'name' => 'Configure Module Access'],
+                                ['code' => 'toggle', 'name' => 'Enable/Disable Module'],
                             ],
                         ],
                     ],
@@ -9686,6 +10219,609 @@ return [
                 ],
             ],
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Section 11 - Support & Ticketing
+        |--------------------------------------------------------------------------
+        | Tenant-scoped support and ticketing system with multi-channel support,
+        | knowledge base, SLA management, and customer feedback.
+        | 9 Submodules: Ticket Management, Departments, Routing & SLA, Knowledge Base,
+        |               Canned Responses, Analytics, Feedback, Multi-Channel, Admin Tools
+        */
+        [
+            'code' => 'support',
+            'name' => 'Support & Ticketing',
+            'description' => 'Help desk, ticket management, knowledge base, and customer support',
+            'icon' => 'LifebuoyIcon',
+            'route_prefix' => '/tenant/support',
+            'category' => 'customer_relations',
+            'priority' => 85,
+            'is_core' => false,
+            'is_active' => true,
+
+            'submodules' => [
+                /*
+                |--------------------------------------------------------------------------
+                | 11.1 Ticket Management
+                |--------------------------------------------------------------------------
+                | Components: All Tickets, My Tickets, Assigned Tickets, SLA Violations,
+                |            Ticket Categories, Ticket Priorities
+                */
+                [
+                    'code' => 'ticket-management',
+                    'name' => 'Ticket Management',
+                    'description' => 'Manage support tickets, assignments, and SLA tracking',
+                    'icon' => 'TicketIcon',
+                    'route' => '/tenant/support/tickets',
+                    'priority' => 1,
+
+                    'components' => [
+                        [
+                            'code' => 'all-tickets',
+                            'name' => 'All Tickets',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tickets',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View All Tickets'],
+                                ['code' => 'create', 'name' => 'Create Ticket'],
+                                ['code' => 'reply', 'name' => 'Reply to Ticket'],
+                                ['code' => 'add-internal-note', 'name' => 'Add Internal Note'],
+                                ['code' => 'assign', 'name' => 'Assign Ticket'],
+                                ['code' => 'change-status', 'name' => 'Change Status'],
+                                ['code' => 'change-priority', 'name' => 'Change Priority'],
+                                ['code' => 'add-tags', 'name' => 'Add Tags'],
+                                ['code' => 'upload-attachment', 'name' => 'Upload Attachment'],
+                                ['code' => 'merge', 'name' => 'Merge Tickets'],
+                                ['code' => 'delete', 'name' => 'Delete Ticket'],
+                                ['code' => 'close', 'name' => 'Close Ticket'],
+                            ],
+                        ],
+                        [
+                            'code' => 'my-tickets',
+                            'name' => 'My Tickets',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tickets/my',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View My Tickets'],
+                            ],
+                        ],
+                        [
+                            'code' => 'assigned-tickets',
+                            'name' => 'Assigned Tickets',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tickets/assigned',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Assigned Tickets'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-detail',
+                            'name' => 'Ticket Detail',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tickets/{id}',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Ticket Detail'],
+                            ],
+                        ],
+                        [
+                            'code' => 'sla-violations',
+                            'name' => 'SLA Violations',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tickets/sla-violations',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SLA Violations'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-categories',
+                            'name' => 'Ticket Categories',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tickets/categories',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Categories'],
+                                ['code' => 'create', 'name' => 'Create Category'],
+                                ['code' => 'update', 'name' => 'Update Category'],
+                                ['code' => 'delete', 'name' => 'Delete Category'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-priorities',
+                            'name' => 'Ticket Priorities',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tickets/priorities',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Priorities'],
+                                ['code' => 'create', 'name' => 'Create Priority'],
+                                ['code' => 'update', 'name' => 'Update Priority'],
+                                ['code' => 'delete', 'name' => 'Delete Priority'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.2 Department & Agent Management
+                |--------------------------------------------------------------------------
+                | Components: Departments, Agents, Agent Roles, Working Hours,
+                |            Escalation Paths, Load Balancing
+                */
+                [
+                    'code' => 'department-agent',
+                    'name' => 'Department & Agent Management',
+                    'description' => 'Manage support departments, agents, and assignments',
+                    'icon' => 'UserGroupIcon',
+                    'route' => '/tenant/support/departments',
+                    'priority' => 2,
+
+                    'components' => [
+                        [
+                            'code' => 'departments',
+                            'name' => 'Departments',
+                            'type' => 'page',
+                            'route' => '/tenant/support/departments',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Departments'],
+                                ['code' => 'create', 'name' => 'Create Department'],
+                                ['code' => 'update', 'name' => 'Update Department'],
+                                ['code' => 'delete', 'name' => 'Delete Department'],
+                            ],
+                        ],
+                        [
+                            'code' => 'agents',
+                            'name' => 'Support Agents',
+                            'type' => 'page',
+                            'route' => '/tenant/support/agents',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Agents'],
+                                ['code' => 'add', 'name' => 'Add Agent'],
+                                ['code' => 'remove', 'name' => 'Remove Agent'],
+                                ['code' => 'set-availability', 'name' => 'Set Agent Availability'],
+                                ['code' => 'assign-department', 'name' => 'Assign to Department'],
+                            ],
+                        ],
+                        [
+                            'code' => 'agent-roles',
+                            'name' => 'Agent Roles',
+                            'type' => 'page',
+                            'route' => '/tenant/support/agent-roles',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Agent Roles'],
+                                ['code' => 'create', 'name' => 'Create Agent Role'],
+                                ['code' => 'update', 'name' => 'Update Agent Role'],
+                                ['code' => 'delete', 'name' => 'Delete Agent Role'],
+                            ],
+                        ],
+                        [
+                            'code' => 'schedules',
+                            'name' => 'Working Hours & Schedules',
+                            'type' => 'page',
+                            'route' => '/tenant/support/schedules',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Schedules'],
+                                ['code' => 'update', 'name' => 'Update Schedule'],
+                            ],
+                        ],
+                        [
+                            'code' => 'auto-assign',
+                            'name' => 'Auto-Assign Rules',
+                            'type' => 'page',
+                            'route' => '/tenant/support/auto-assign',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Auto-Assign Rules'],
+                                ['code' => 'configure', 'name' => 'Configure Auto-Assign'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.3 Ticket Routing & SLA
+                |--------------------------------------------------------------------------
+                | Components: SLA Policies, Auto-Assign Rules, Escalation Rules,
+                |            Priority-based SLA, Department-based Routing
+                */
+                [
+                    'code' => 'routing-sla',
+                    'name' => 'Routing & SLA',
+                    'description' => 'SLA policies, routing rules, and escalation management',
+                    'icon' => 'ClockIcon',
+                    'route' => '/tenant/support/sla',
+                    'priority' => 3,
+
+                    'components' => [
+                        [
+                            'code' => 'sla-policies',
+                            'name' => 'SLA Policies',
+                            'type' => 'page',
+                            'route' => '/tenant/support/sla/policies',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SLA Policies'],
+                                ['code' => 'create', 'name' => 'Create SLA Policy'],
+                                ['code' => 'update', 'name' => 'Update SLA Policy'],
+                                ['code' => 'delete', 'name' => 'Delete SLA Policy'],
+                                ['code' => 'assign', 'name' => 'Assign SLA to Category/Priority'],
+                            ],
+                        ],
+                        [
+                            'code' => 'routing-rules',
+                            'name' => 'Routing Rules',
+                            'type' => 'page',
+                            'route' => '/tenant/support/sla/routing',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Routing Rules'],
+                                ['code' => 'create', 'name' => 'Create Routing Rule'],
+                                ['code' => 'update', 'name' => 'Update Routing Rule'],
+                                ['code' => 'delete', 'name' => 'Delete Routing Rule'],
+                            ],
+                        ],
+                        [
+                            'code' => 'escalation-rules',
+                            'name' => 'Escalation Rules',
+                            'type' => 'page',
+                            'route' => '/tenant/support/sla/escalation',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Escalation Rules'],
+                                ['code' => 'create', 'name' => 'Create Escalation Rule'],
+                                ['code' => 'update', 'name' => 'Update Escalation Rule'],
+                                ['code' => 'delete', 'name' => 'Delete Escalation Rule'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.4 Knowledge Base
+                |--------------------------------------------------------------------------
+                | Components: KB Categories, KB Articles, Article Templates,
+                |            Versioning, Article Analytics, Visibility Control
+                */
+                [
+                    'code' => 'knowledge-base',
+                    'name' => 'Knowledge Base',
+                    'description' => 'Self-service knowledge base with articles and categories',
+                    'icon' => 'BookOpenIcon',
+                    'route' => '/tenant/support/kb',
+                    'priority' => 4,
+
+                    'components' => [
+                        [
+                            'code' => 'kb-categories',
+                            'name' => 'KB Categories',
+                            'type' => 'page',
+                            'route' => '/tenant/support/kb/categories',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Categories'],
+                                ['code' => 'create', 'name' => 'Create Category'],
+                                ['code' => 'update', 'name' => 'Update Category'],
+                                ['code' => 'delete', 'name' => 'Delete Category'],
+                            ],
+                        ],
+                        [
+                            'code' => 'kb-articles',
+                            'name' => 'KB Articles',
+                            'type' => 'page',
+                            'route' => '/tenant/support/kb/articles',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Articles'],
+                                ['code' => 'create', 'name' => 'Create Article'],
+                                ['code' => 'update', 'name' => 'Update Article'],
+                                ['code' => 'publish', 'name' => 'Publish Article'],
+                                ['code' => 'unpublish', 'name' => 'Unpublish Article'],
+                                ['code' => 'delete', 'name' => 'Delete Article'],
+                            ],
+                        ],
+                        [
+                            'code' => 'article-templates',
+                            'name' => 'Article Templates',
+                            'type' => 'page',
+                            'route' => '/tenant/support/kb/templates',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Templates'],
+                                ['code' => 'create', 'name' => 'Create Template'],
+                                ['code' => 'update', 'name' => 'Update Template'],
+                                ['code' => 'delete', 'name' => 'Delete Template'],
+                            ],
+                        ],
+                        [
+                            'code' => 'article-analytics',
+                            'name' => 'Article Analytics',
+                            'type' => 'page',
+                            'route' => '/tenant/support/kb/analytics',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Article Analytics'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.5 Canned Responses (Macros)
+                |--------------------------------------------------------------------------
+                | Components: Response Templates, Macro Categories,
+                |            Placeholder Variables, Visibility Control
+                */
+                [
+                    'code' => 'canned-responses',
+                    'name' => 'Canned Responses',
+                    'description' => 'Pre-defined response templates and macros',
+                    'icon' => 'DocumentDuplicateIcon',
+                    'route' => '/tenant/support/canned',
+                    'priority' => 5,
+
+                    'components' => [
+                        [
+                            'code' => 'response-templates',
+                            'name' => 'Response Templates',
+                            'type' => 'page',
+                            'route' => '/tenant/support/canned/templates',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Templates'],
+                                ['code' => 'create', 'name' => 'Create Template'],
+                                ['code' => 'update', 'name' => 'Update Template'],
+                                ['code' => 'delete', 'name' => 'Delete Template'],
+                                ['code' => 'categorize', 'name' => 'Categorize Templates'],
+                            ],
+                        ],
+                        [
+                            'code' => 'macro-categories',
+                            'name' => 'Macro Categories',
+                            'type' => 'page',
+                            'route' => '/tenant/support/canned/categories',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Categories'],
+                                ['code' => 'create', 'name' => 'Create Category'],
+                                ['code' => 'update', 'name' => 'Update Category'],
+                                ['code' => 'delete', 'name' => 'Delete Category'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.6 Reporting & Analytics
+                |--------------------------------------------------------------------------
+                | Components: Ticket Volume Dashboard, Agent Performance,
+                |            SLA Compliance, Customer Satisfaction (CSAT)
+                */
+                [
+                    'code' => 'support-analytics',
+                    'name' => 'Reporting & Analytics',
+                    'description' => 'Support metrics, performance reports, and SLA compliance',
+                    'icon' => 'ChartBarIcon',
+                    'route' => '/tenant/support/analytics',
+                    'priority' => 6,
+
+                    'components' => [
+                        [
+                            'code' => 'ticket-volume',
+                            'name' => 'Ticket Volume Dashboard',
+                            'type' => 'page',
+                            'route' => '/tenant/support/analytics/volume',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Ticket Volume'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                                ['code' => 'download', 'name' => 'Download Report'],
+                            ],
+                        ],
+                        [
+                            'code' => 'agent-performance',
+                            'name' => 'Agent Performance',
+                            'type' => 'page',
+                            'route' => '/tenant/support/analytics/agents',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Agent Performance'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                            ],
+                        ],
+                        [
+                            'code' => 'sla-compliance',
+                            'name' => 'SLA Compliance',
+                            'type' => 'page',
+                            'route' => '/tenant/support/analytics/sla',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SLA Compliance'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                            ],
+                        ],
+                        [
+                            'code' => 'csat-reports',
+                            'name' => 'Customer Satisfaction',
+                            'type' => 'page',
+                            'route' => '/tenant/support/analytics/csat',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View CSAT Reports'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                                ['code' => 'share', 'name' => 'Share Report'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.7 Customer Feedback
+                |--------------------------------------------------------------------------
+                | Components: CSAT Rating, Feedback Forms, Satisfaction Logs
+                */
+                [
+                    'code' => 'customer-feedback',
+                    'name' => 'Customer Feedback',
+                    'description' => 'CSAT ratings, feedback forms, and satisfaction tracking',
+                    'icon' => 'StarIcon',
+                    'route' => '/tenant/support/feedback',
+                    'priority' => 7,
+
+                    'components' => [
+                        [
+                            'code' => 'csat-ratings',
+                            'name' => 'CSAT Ratings',
+                            'type' => 'page',
+                            'route' => '/tenant/support/feedback/ratings',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Ratings'],
+                                ['code' => 'export', 'name' => 'Export Feedback'],
+                                ['code' => 'mark-resolved', 'name' => 'Mark as Resolved'],
+                            ],
+                        ],
+                        [
+                            'code' => 'feedback-forms',
+                            'name' => 'Feedback Forms',
+                            'type' => 'page',
+                            'route' => '/tenant/support/feedback/forms',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Forms'],
+                                ['code' => 'create', 'name' => 'Create Form'],
+                                ['code' => 'update', 'name' => 'Update Form'],
+                                ['code' => 'delete', 'name' => 'Delete Form'],
+                            ],
+                        ],
+                        [
+                            'code' => 'satisfaction-logs',
+                            'name' => 'Satisfaction Logs',
+                            'type' => 'page',
+                            'route' => '/tenant/support/feedback/logs',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Satisfaction Logs'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.8 Multi-Channel Support
+                |--------------------------------------------------------------------------
+                | Components: Email-to-Ticket, Chat Widget, WhatsApp Support,
+                |            SMS Support, Channel Mapping
+                */
+                [
+                    'code' => 'multi-channel',
+                    'name' => 'Multi-Channel Support',
+                    'description' => 'Email, chat, WhatsApp, and SMS support channels',
+                    'icon' => 'ChatBubbleLeftRightIcon',
+                    'route' => '/tenant/support/channels',
+                    'priority' => 8,
+
+                    'components' => [
+                        [
+                            'code' => 'email-channel',
+                            'name' => 'Email-to-Ticket',
+                            'type' => 'page',
+                            'route' => '/tenant/support/channels/email',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Email Channel'],
+                                ['code' => 'configure', 'name' => 'Configure Email Channel'],
+                                ['code' => 'disable', 'name' => 'Disable Channel'],
+                            ],
+                        ],
+                        [
+                            'code' => 'chat-widget',
+                            'name' => 'Chat Widget',
+                            'type' => 'page',
+                            'route' => '/tenant/support/channels/chat',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Chat Widget'],
+                                ['code' => 'configure', 'name' => 'Configure Chat Widget'],
+                                ['code' => 'disable', 'name' => 'Disable Widget'],
+                            ],
+                        ],
+                        [
+                            'code' => 'whatsapp-channel',
+                            'name' => 'WhatsApp Support',
+                            'type' => 'page',
+                            'route' => '/tenant/support/channels/whatsapp',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View WhatsApp Channel'],
+                                ['code' => 'connect', 'name' => 'Connect WhatsApp'],
+                                ['code' => 'configure', 'name' => 'Configure WhatsApp'],
+                                ['code' => 'disable', 'name' => 'Disable Channel'],
+                            ],
+                        ],
+                        [
+                            'code' => 'sms-channel',
+                            'name' => 'SMS Support',
+                            'type' => 'page',
+                            'route' => '/tenant/support/channels/sms',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View SMS Channel'],
+                                ['code' => 'configure', 'name' => 'Configure SMS'],
+                                ['code' => 'disable', 'name' => 'Disable Channel'],
+                            ],
+                        ],
+                        [
+                            'code' => 'channel-logs',
+                            'name' => 'Channel Logs',
+                            'type' => 'page',
+                            'route' => '/tenant/support/channels/logs',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Channel Logs'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | 11.9 Admin Tools
+                |--------------------------------------------------------------------------
+                | Components: Ticket Tags, Custom Fields, Ticket Forms (Dynamic),
+                |            Form-level Validation, Category-specific Forms
+                */
+                [
+                    'code' => 'support-admin-tools',
+                    'name' => 'Admin Tools',
+                    'description' => 'Ticket customization, tags, custom fields, and dynamic forms',
+                    'icon' => 'WrenchScrewdriverIcon',
+                    'route' => '/tenant/support/tools',
+                    'priority' => 9,
+
+                    'components' => [
+                        [
+                            'code' => 'ticket-tags',
+                            'name' => 'Ticket Tags',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tools/tags',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Tags'],
+                                ['code' => 'create', 'name' => 'Create Tag'],
+                                ['code' => 'update', 'name' => 'Update Tag'],
+                                ['code' => 'delete', 'name' => 'Delete Tag'],
+                            ],
+                        ],
+                        [
+                            'code' => 'custom-fields',
+                            'name' => 'Custom Fields',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tools/fields',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Fields'],
+                                ['code' => 'create', 'name' => 'Create Field'],
+                                ['code' => 'update', 'name' => 'Update Field'],
+                                ['code' => 'delete', 'name' => 'Delete Field'],
+                            ],
+                        ],
+                        [
+                            'code' => 'ticket-forms',
+                            'name' => 'Ticket Forms',
+                            'type' => 'page',
+                            'route' => '/tenant/support/tools/forms',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Forms'],
+                                ['code' => 'create', 'name' => 'Create Form'],
+                                ['code' => 'update', 'name' => 'Update Form'],
+                                ['code' => 'delete', 'name' => 'Delete Form'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ],
 
     /*
@@ -9704,6 +10840,7 @@ return [
         'retail_sales' => 'Retail & Sales',
         'financial_management' => 'Financial Management',
         'system_administration' => 'System Administration',
+        'support_ticketing' => 'Support & Ticketing',
     ],
 
     /*

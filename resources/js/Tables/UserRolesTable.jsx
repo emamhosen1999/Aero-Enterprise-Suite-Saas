@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,24 +8,87 @@ import {
   TableRow,
   Chip,
   Spinner,
-  Pagination
+  Pagination,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Button
 } from "@heroui/react";
 import {
   UsersIcon,
   EnvelopeIcon
 } from "@heroicons/react/24/outline";
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils';
 
 const UserRolesTable = ({ 
   users = [], 
   roles = [],
   onRowClick,
+  onRoleChange,
   isMobile,
   isTablet,
   pagination,
   onPageChange,
-  loading = false
+  loading = false,
+  context = 'tenant', // 'tenant' or 'admin'
 }) => {
+  const [loadingStates, setLoadingStates] = useState({});
+
+  const setLoading = (userId, operation, isLoading) => {
+    setLoadingStates(prev => ({
+      ...prev,
+      [`${userId}-${operation}`]: isLoading
+    }));
+  };
+
+  const isLoadingState = (userId, operation) => {
+    return loadingStates[`${userId}-${operation}`] || false;
+  };
+
+  // Handle role change for a user
+  const handleRoleChange = async (userId, newRoleNames) => {
+    setLoading(userId, 'role', true);
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        // Use context-aware route and HTTP method for role updates
+        // Admin context uses PATCH, tenant context uses POST
+        const isAdminContext = context === 'admin' || context === 'platform';
+        const updateRoute = isAdminContext
+          ? route('admin.users.update-roles', { user: userId })
+          : route('users.updateRole', { id: userId });
+        
+        // Admin uses PATCH, tenant uses POST
+        const response = isAdminContext
+          ? await axios.patch(updateRoute, { roles: newRoleNames })
+          : await axios.post(updateRoute, { roles: newRoleNames });
+        
+        if (response.status === 200) {
+          // Call parent callback to update the user in state
+          if (onRoleChange) {
+            onRoleChange(userId, newRoleNames);
+          }
+          resolve([response.data.message || 'Role updated successfully']);
+        }
+      } catch (error) {
+        if (error.response?.status === 422) {
+          reject(error.response.data.errors || ['Failed to update user role.']);
+        } else {
+          reject(['An unexpected error occurred. Please try again later.']);
+        }
+      } finally {
+        setLoading(userId, 'role', false);
+      }
+    });
+    showToast.promise(promise, {
+      loading: 'Updating user role...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  };
+
   // Helper function to convert theme borderRadius to HeroUI radius values
   const getThemeRadius = () => {
     if (typeof window === 'undefined') return 'lg';
@@ -117,42 +180,62 @@ const UserRolesTable = ({
         );
 
       case "roles":
+        // Get simple role names for display - matching UsersTable exactly
+        const roleNames = userRoles.map(role => 
+          typeof role === 'object' && role !== null ? role.name : role
+        ) || [];
+        
+        // Convert the role names to a Set for selection
+        const roleSet = new Set(roleNames);
+        
+        // Create a simple string representation of roles
+        const selectedValue = Array.from(roleSet).join(", ") || "No Roles";
+        
         return (
-          <div className="flex flex-wrap gap-1 max-w-[300px]">
-            {userRoles.length > 0 ? (
-              <>
-                {userRoles.slice(0, 3).map((role, idx) => (
-                  <Chip
-                    key={idx}
-                    size="sm"
-                    variant="flat"
-                    color="primary"
-                    className="text-xs"
-                  >
-                    {role.name}
-                  </Chip>
-                ))}
-                {userRoles.length > 3 && (
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color="secondary"
-                    className="text-xs"
-                  >
-                    +{userRoles.length - 3} more
-                  </Chip>
-                )}
-              </>
-            ) : (
-              <Chip
-                size="sm"
+          <div className="flex items-center">
+            <Dropdown 
+              isDisabled={isLoadingState(user.id, 'role')}
+              className="max-w-[220px]"
+            >
+              <DropdownTrigger>
+                <Button 
+                  className="capitalize"
+                  variant="solid"
+                  size="sm"
+                  radius={getThemeRadius()}
+                  startContent={isLoadingState(user.id, 'role') ? <Spinner size="sm" /> : null}
+                  style={{
+                    background: `var(--theme-primary, #3B82F6)`,
+                    color: 'white',
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderRadius: getThemeRadius(),
+                    cursor: 'pointer',
+                  }}
+                >
+                  {selectedValue}
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                disallowEmptySelection={false}
+                aria-label="Role selection"
+                closeOnSelect={false}
+                selectedKeys={roleSet}
+                selectionMode="multiple"
                 variant="flat"
-                color="default"
-                className="text-xs"
+                onSelectionChange={(keys) => {
+                  const newRoles = Array.from(keys);
+                  handleRoleChange(user.id, newRoles);
+                }}
               >
-                No roles assigned
-              </Chip>
-            )}
+                {(roles || []).map((role) => (
+                  <DropdownItem 
+                    key={typeof role === 'object' && role !== null ? role.name : role}
+                  >
+                    {typeof role === 'object' && role !== null ? role.name : role}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
           </div>
         );
 

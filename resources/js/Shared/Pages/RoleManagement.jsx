@@ -100,8 +100,11 @@ const RoleManagement = (props) => {
     const title = props.title;
     const errorInfo = props.error || null;
     const dataValidationErrors = validatedData.errors;
-    const users = props.users || [];
+    const initialUsers = props.users || [];
     const isPlatformContext = props.is_platform_context || false;
+
+    // Local users state for real-time updates
+    const [users, setUsers] = useState(initialUsers);
 
     // Helper to get correct API base URL based on context
     // Platform context (admin subdomain) uses /roles directly (domain-based routing)
@@ -363,6 +366,19 @@ const RoleManagement = (props) => {
         setSelectedUser(null);
         setSelectedRoles(new Set());
     }, []);
+
+    // Handle role change from UserRolesTable inline dropdown
+    const handleUserRoleChangeFromTable = useCallback((userId, newRoleNames) => {
+        // Update local users state with new roles
+        setUsers(prevUsers => prevUsers.map(user => {
+            if (user.id === userId) {
+                // Find the full role objects from the roles list
+                const newRoles = roles.filter(role => newRoleNames.includes(role.name));
+                return { ...user, roles: newRoles };
+            }
+            return user;
+        }));
+    }, [roles]);
 
     // Delete confirmation handlers
     const confirmDeleteRole = useCallback((role) => {
@@ -1015,7 +1031,10 @@ const RoleManagement = (props) => {
 
                                                 <UserRolesTable
                                                     users={paginatedUsers}
+                                                    roles={roles}
                                                     onRowClick={openUserRoleModal}
+                                                    onRoleChange={handleUserRoleChangeFromTable}
+                                                    context={isPlatformContext ? 'admin' : 'tenant'}
                                                     isMobile={isMobile}
                                                     isTablet={isTablet}
                                                     pagination={{

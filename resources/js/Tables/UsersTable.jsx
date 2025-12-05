@@ -232,9 +232,18 @@ const UsersTable = ({
     setLoading(userId, 'role', true);
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await axios.post(route('user.updateRole', { id: userId }), {
-          roles: newRoleNames,
-        });
+        // Use context-aware route and HTTP method for role updates
+        // Admin context uses PATCH, tenant context uses POST
+        const isAdminContext = context === 'admin';
+        const updateRoute = isAdminContext 
+          ? route('admin.users.update-roles', { user: userId })
+          : route('users.updateRole', { id: userId });
+        
+        // Admin uses PATCH, tenant uses POST
+        const response = isAdminContext
+          ? await axios.patch(updateRoute, { roles: newRoleNames })
+          : await axios.post(updateRoute, { roles: newRoleNames });
+        
         if (response.status === 200) {
           // Only update the affected user locally without refreshing the entire table
           if (updateUserRolesOptimized) {
@@ -253,7 +262,7 @@ const UsersTable = ({
       }
     });
     showToast.promise(promise, {
-      loading: 'Updating employee role...',
+      loading: 'Updating user role...',
       success: (data) => data.join(', '),
       error: (data) => Array.isArray(data) ? data.join(', ') : data,
     });

@@ -585,6 +585,7 @@ class RolePermissionService
             $cacheKeys = [
                 config('permission.cache.key', 'spatie.permission.cache'),
                 'roles_with_permissions',
+                'roles_with_permissions_frontend', // Critical: Frontend role data cache
                 'permissions_grouped_by_module',
                 'enterprise_modules_cache',
             ];

@@ -1742,6 +1742,130 @@ export const getPages = (roles, permissions, auth = null) => {
       ]
     },
 
+    /*
+    |--------------------------------------------------------------------------
+    | Section 11 - Support & Ticketing
+    |--------------------------------------------------------------------------
+    | Help desk, ticket management, knowledge base, SLA management,
+    | multi-channel support, and customer feedback
+    */
+    {
+      name: 'Support & Ticketing',
+      icon: <TicketIcon className="" />,
+      priority: 85,
+      module: 'support',
+      access: 'support',
+      subMenu: [
+        // 11.1 Ticket Management
+        {
+          name: 'Ticket Management',
+          icon: <TicketIcon />,
+          access: 'support.ticket-management',
+          subMenu: [
+            { name: 'All Tickets', icon: <TicketIcon />, route: 'support.tickets.index', access: 'support.ticket-management.all-tickets.view' },
+            { name: 'My Tickets', icon: <UserIcon />, route: 'support.tickets.my', access: 'support.ticket-management.my-tickets.view' },
+            { name: 'Assigned Tickets', icon: <UsersIcon />, route: 'support.tickets.assigned', access: 'support.ticket-management.assigned-tickets.view' },
+            { name: 'SLA Violations', icon: <ExclamationTriangleIcon />, route: 'support.tickets.sla-violations', access: 'support.ticket-management.sla-violations.view' },
+            { name: 'Categories', icon: <TagIcon />, route: 'support.tickets.categories', access: 'support.ticket-management.ticket-categories.view' },
+            { name: 'Priorities', icon: <AdjustmentsHorizontalIcon />, route: 'support.tickets.priorities', access: 'support.ticket-management.ticket-priorities.view' },
+          ]
+        },
+        // 11.2 Department & Agent Management
+        {
+          name: 'Departments & Agents',
+          icon: <UserGroupIcon />,
+          access: 'support.department-agent',
+          subMenu: [
+            { name: 'Departments', icon: <BuildingOffice2Icon />, route: 'support.departments.index', access: 'support.department-agent.departments.view' },
+            { name: 'Support Agents', icon: <UsersIcon />, route: 'support.agents.index', access: 'support.department-agent.agents.view' },
+            { name: 'Agent Roles', icon: <ShieldCheckIcon />, route: 'support.agent-roles.index', access: 'support.department-agent.agent-roles.view' },
+            { name: 'Schedules', icon: <ClockIcon />, route: 'support.schedules.index', access: 'support.department-agent.schedules.view' },
+            { name: 'Auto-Assign Rules', icon: <ArrowPathIcon />, route: 'support.auto-assign.index', access: 'support.department-agent.auto-assign.view' },
+          ]
+        },
+        // 11.3 Routing & SLA
+        {
+          name: 'Routing & SLA',
+          icon: <ClockIcon />,
+          access: 'support.routing-sla',
+          subMenu: [
+            { name: 'SLA Policies', icon: <ClockIcon />, route: 'support.sla.policies', access: 'support.routing-sla.sla-policies.view' },
+            { name: 'Routing Rules', icon: <ArrowPathIcon />, route: 'support.sla.routing', access: 'support.routing-sla.routing-rules.view' },
+            { name: 'Escalation Rules', icon: <ArrowTrendingUpIcon />, route: 'support.sla.escalation', access: 'support.routing-sla.escalation-rules.view' },
+          ]
+        },
+        // 11.4 Knowledge Base
+        {
+          name: 'Knowledge Base',
+          icon: <BookOpenIcon />,
+          access: 'support.knowledge-base',
+          subMenu: [
+            { name: 'KB Categories', icon: <FolderIcon />, route: 'support.kb.categories', access: 'support.knowledge-base.kb-categories.view' },
+            { name: 'KB Articles', icon: <DocumentTextIcon />, route: 'support.kb.articles', access: 'support.knowledge-base.kb-articles.view' },
+            { name: 'Article Templates', icon: <DocumentDuplicateIcon />, route: 'support.kb.templates', access: 'support.knowledge-base.article-templates.view' },
+            { name: 'Article Analytics', icon: <ChartBarSquareIcon />, route: 'support.kb.analytics', access: 'support.knowledge-base.article-analytics.view' },
+          ]
+        },
+        // 11.5 Canned Responses
+        {
+          name: 'Canned Responses',
+          icon: <DocumentDuplicateIcon />,
+          access: 'support.canned-responses',
+          subMenu: [
+            { name: 'Response Templates', icon: <DocumentDuplicateIcon />, route: 'support.canned.templates', access: 'support.canned-responses.response-templates.view' },
+            { name: 'Macro Categories', icon: <TagIcon />, route: 'support.canned.categories', access: 'support.canned-responses.macro-categories.view' },
+          ]
+        },
+        // 11.6 Reporting & Analytics
+        {
+          name: 'Analytics',
+          icon: <ChartBarSquareIcon />,
+          access: 'support.support-analytics',
+          subMenu: [
+            { name: 'Ticket Volume', icon: <ChartBarSquareIcon />, route: 'support.analytics.volume', access: 'support.support-analytics.ticket-volume.view' },
+            { name: 'Agent Performance', icon: <UsersIcon />, route: 'support.analytics.agents', access: 'support.support-analytics.agent-performance.view' },
+            { name: 'SLA Compliance', icon: <ClockIcon />, route: 'support.analytics.sla', access: 'support.support-analytics.sla-compliance.view' },
+            { name: 'Customer Satisfaction', icon: <StarIcon />, route: 'support.analytics.csat', access: 'support.support-analytics.csat-reports.view' },
+          ]
+        },
+        // 11.7 Customer Feedback
+        {
+          name: 'Customer Feedback',
+          icon: <StarIcon />,
+          access: 'support.customer-feedback',
+          subMenu: [
+            { name: 'CSAT Ratings', icon: <StarIcon />, route: 'support.feedback.ratings', access: 'support.customer-feedback.csat-ratings.view' },
+            { name: 'Feedback Forms', icon: <ClipboardDocumentListIcon />, route: 'support.feedback.forms', access: 'support.customer-feedback.feedback-forms.view' },
+            { name: 'Satisfaction Logs', icon: <DocumentTextIcon />, route: 'support.feedback.logs', access: 'support.customer-feedback.satisfaction-logs.view' },
+          ]
+        },
+        // 11.8 Multi-Channel Support
+        {
+          name: 'Multi-Channel',
+          icon: <ChatBubbleLeftRightIcon />,
+          access: 'support.multi-channel',
+          subMenu: [
+            { name: 'Email-to-Ticket', icon: <EnvelopeIcon />, route: 'support.channels.email', access: 'support.multi-channel.email-channel.view' },
+            { name: 'Chat Widget', icon: <ChatBubbleLeftRightIcon />, route: 'support.channels.chat', access: 'support.multi-channel.chat-widget.view' },
+            { name: 'WhatsApp Support', icon: <PhoneIcon />, route: 'support.channels.whatsapp', access: 'support.multi-channel.whatsapp-channel.view' },
+            { name: 'SMS Support', icon: <PhoneIcon />, route: 'support.channels.sms', access: 'support.multi-channel.sms-channel.view' },
+            { name: 'Channel Logs', icon: <DocumentTextIcon />, route: 'support.channels.logs', access: 'support.multi-channel.channel-logs.view' },
+          ]
+        },
+        // 11.9 Admin Tools
+        {
+          name: 'Admin Tools',
+          icon: <WrenchScrewdriverIcon />,
+          access: 'support.support-admin-tools',
+          subMenu: [
+            { name: 'Ticket Tags', icon: <TagIcon />, route: 'support.tools.tags', access: 'support.support-admin-tools.ticket-tags.view' },
+            { name: 'Custom Fields', icon: <AdjustmentsHorizontalIcon />, route: 'support.tools.fields', access: 'support.support-admin-tools.custom-fields.view' },
+            { name: 'Ticket Forms', icon: <ClipboardDocumentListIcon />, route: 'support.tools.forms', access: 'support.support-admin-tools.ticket-forms.view' },
+          ]
+        },
+      ]
+    },
+
     // 11. SCM (Supply Chain Management)
     ...(can('scm.view', auth, permissions) ? [{
       name: 'SCM',
@@ -1799,22 +1923,50 @@ export const getPages = (roles, permissions, auth = null) => {
 
     /*
     |--------------------------------------------------------------------------
-    | Core Module - User & Role Management
+    | Core Module - Users & Authentication
     |--------------------------------------------------------------------------
     */
     {
-      name: 'Admin',
-      icon: <Cog6ToothIcon className="" />,
+      name: 'Users & Auth',
+      icon: <UsersIcon className="" />,
       module: 'core',
       access: 'core.users',
       priority: 110,
       subMenu: [
-        { name: 'Users', icon: <UsersIcon />, route: 'users', access: 'core.users.user-list.view' },
-        { name: 'Roles', icon: <UserGroupIcon />, route: 'admin.roles-management', access: 'core.roles.role-management.view' },
-        ...(auth?.isTenantSuperAdmin ? [
-          { name: 'Modules', icon: <CubeIcon />, route: 'modules.index', access: 'core' }
-        ] : []),
-        { name: 'Settings', icon: <Cog6ToothIcon />, route: 'admin.settings.company', access: 'core.settings.general.view' },
+        { name: 'User Management', icon: <UsersIcon />, route: 'users', access: 'core.users.user-list.view' },
+      ]
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Core Module - Access Control (Roles & Module Access)
+    |--------------------------------------------------------------------------
+    */
+    {
+      name: 'Access Control',
+      icon: <ShieldCheckIcon className="" />,
+      module: 'core',
+      access: 'core.roles',
+      priority: 111,
+      subMenu: [
+        { name: 'Role Management', icon: <ShieldCheckIcon />, route: 'admin.roles-management', access: 'core.roles.role-list.view' },
+        { name: 'Module Access', icon: <CubeIcon />, route: 'modules.index', access: 'core.module-access.module-list.view' },
+      ]
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Core Module - Settings
+    |--------------------------------------------------------------------------
+    */
+    {
+      name: 'Settings',
+      icon: <Cog6ToothIcon className="" />,
+      module: 'core',
+      access: 'core.settings',
+      priority: 112,
+      subMenu: [
+        { name: 'General Settings', icon: <Cog6ToothIcon />, route: 'admin.settings.company', access: 'core.settings.general.view' },
       ]
     },
   ];

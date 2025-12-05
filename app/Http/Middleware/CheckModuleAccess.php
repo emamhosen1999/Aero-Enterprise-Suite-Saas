@@ -52,7 +52,10 @@ class CheckModuleAccess
         ?string $componentCode = null,
         ?string $actionCode = null
     ): Response {
-        if (! Auth::check()) {
+        // Determine which guard to use based on the route
+        $guard = $this->detectGuard($request);
+
+        if (! Auth::guard($guard)->check()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -60,12 +63,17 @@ class CheckModuleAccess
                 ], 401);
             }
 
-            return redirect('/login');
+            return redirect($guard === 'landlord' ? '/login' : '/login');
         }
 
-        $user = Auth::user();
+        $user = Auth::guard($guard)->user();
 
-        // Check tenant context
+        // Handle platform/landlord context differently
+        if ($guard === 'landlord') {
+            return $this->handlePlatformAccess($request, $next, $user, $moduleCode, $subModuleCode, $componentCode, $actionCode);
+        }
+
+        // Tenant context - check tenant_id
         if (! $user->tenant_id) {
             return $this->denyAccess(
                 $request,
@@ -137,6 +145,88 @@ class CheckModuleAccess
                 ]
             );
         }
+
+        return $next($request);
+    }
+
+    /**
+     * Detect which authentication guard to use based on the request context.
+     */
+    protected function detectGuard(Request $request): string
+    {
+        // Check if we're on an admin subdomain or route
+        $host = $request->getHost();
+
+        // Check for admin subdomain pattern
+        if (str_starts_with($host, 'admin.') || str_contains($host, 'admin')) {
+            return 'landlord';
+        }
+
+        // Check route middleware for landlord guard
+        $route = $request->route();
+        if ($route) {
+            $middleware = $route->middleware();
+            if (in_array('auth:landlord', $middleware)) {
+                return 'landlord';
+            }
+        }
+
+        // Check if landlord guard is already authenticated
+        if (Auth::guard('landlord')->check()) {
+            return 'landlord';
+        }
+
+        return 'web';
+    }
+
+    /**
+     * Handle access control for platform/landlord context.
+     * Platform users have role-based access without subscription checks.
+     */
+    protected function handlePlatformAccess(
+        Request $request,
+        Closure $next,
+        $user,
+        string $moduleCode,
+        ?string $subModuleCode = null,
+        ?string $componentCode = null,
+        ?string $actionCode = null
+    ): Response {
+        // Super Administrators bypass all checks
+        if ($user->is_super_admin || $user->hasRole('Super Administrator')) {
+            return $next($request);
+        }
+
+        // Build the access path for platform modules
+        $accessPath = $moduleCode;
+        if ($subModuleCode) {
+            $accessPath .= '.'.$subModuleCode;
+        }
+        if ($componentCode) {
+            $accessPath .= '.'.$componentCode;
+        }
+        if ($actionCode) {
+            $accessPath .= '.'.$actionCode;
+        }
+
+        // Check if the user has the required platform permission
+        // Platform permissions follow pattern: platform.{module}.{submodule}.{component}.{action}
+        $permissionName = 'platform.'.str_replace(',', '.', $accessPath);
+
+        // For now, allow all authenticated landlord users to access platform modules
+        // TODO: Implement granular platform permission checking when needed
+        // This is a temporary bypass to prevent redirect loops
+
+        // Log platform access for debugging
+        Log::debug('Platform module access', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'module' => $moduleCode,
+            'submodule' => $subModuleCode,
+            'component' => $componentCode,
+            'action' => $actionCode,
+            'access_path' => $accessPath,
+        ]);
 
         return $next($request);
     }

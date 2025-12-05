@@ -119,12 +119,6 @@ export const getAdminPages = (auth = null) => {
           route: 'admin.tenants.index',
         },
         {
-          name: 'Create Tenant',
-          icon: <PlusCircleIcon className="" />,
-          access: 'tenants.tenant-list.tenant-management.create',
-          route: 'admin.tenants.create',
-        },
-        {
           name: 'Domain Management',
           icon: <GlobeAltIcon className="" />,
           access: 'tenants.domains',
@@ -187,13 +181,13 @@ export const getAdminPages = (auth = null) => {
         {
           name: 'Role Management',
           icon: <ShieldCheckIcon className="" />,
-          access: 'platform-roles.role-management',
+          access: 'platform-roles.role-management.role-list.view',
           route: 'admin.roles.index',
         },
         {
           name: 'Module Access',
           icon: <CubeIcon className="" />,
-          access: 'platform-roles.module-permissions',
+          access: 'platform-roles.module-permissions.module-list.view',
           route: 'admin.modules.index',
         },
       ],
@@ -453,13 +447,74 @@ export const getAdminPages = (auth = null) => {
         },
       ],
     },
+
+    /*
+    |--------------------------------------------------------------------------
+    | 13. Support & Ticketing Module (platform-support)
+    |--------------------------------------------------------------------------
+    */
     {
-      name: 'Support',
+      name: 'Support & Ticketing',
       icon: <LifebuoyIcon className="" />,
-      module: 'platform-dashboard',
-      access: 'platform-dashboard',
-      priority: 12,
-      route: 'admin.support.index',
+      module: 'platform-support',
+      access: 'platform-support',
+      priority: 13,
+      subMenu: [
+        {
+          name: 'Ticket Management',
+          icon: <ClipboardDocumentListIcon className="" />,
+          access: 'platform-support.ticket-management',
+          route: 'admin.support.tickets.index',
+        },
+        {
+          name: 'Departments & Agents',
+          icon: <UsersIcon className="" />,
+          access: 'platform-support.department-agent',
+          route: 'admin.support.departments.index',
+        },
+        {
+          name: 'Routing & SLA',
+          icon: <Cog8ToothIcon className="" />,
+          access: 'platform-support.routing-sla',
+          route: 'admin.support.sla.index',
+        },
+        {
+          name: 'Knowledge Base',
+          icon: <DocumentTextIcon className="" />,
+          access: 'platform-support.knowledge-base',
+          route: 'admin.support.kb.index',
+        },
+        {
+          name: 'Canned Responses',
+          icon: <DocumentDuplicateIcon className="" />,
+          access: 'platform-support.canned-responses',
+          route: 'admin.support.canned.index',
+        },
+        {
+          name: 'Analytics',
+          icon: <ChartBarIcon className="" />,
+          access: 'platform-support.support-analytics',
+          route: 'admin.support.analytics.index',
+        },
+        {
+          name: 'Customer Feedback',
+          icon: <MegaphoneIcon className="" />,
+          access: 'platform-support.customer-feedback',
+          route: 'admin.support.feedback.index',
+        },
+        {
+          name: 'Multi-Channel',
+          icon: <EnvelopeIcon className="" />,
+          access: 'platform-support.multi-channel',
+          route: 'admin.support.channels.index',
+        },
+        {
+          name: 'Admin Tools',
+          icon: <WrenchScrewdriverIcon className="" />,
+          access: 'platform-support.support-admin-tools',
+          route: 'admin.support.tools.index',
+        },
+      ],
     },
   ];
 

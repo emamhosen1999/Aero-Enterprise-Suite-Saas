@@ -246,8 +246,9 @@ class RoleController extends Controller
                                 ];
                             });
                     } else {
-                        // For platform context, get landlord users
-                        $users = LandlordUser::select(['id', 'name', 'email'])
+                        // For platform context, get landlord users with their roles
+                        $users = LandlordUser::with('roles')
+                            ->select(['id', 'name', 'email'])
                             ->orderBy('name')
                             ->get()
                             ->map(function ($u) {
@@ -255,7 +256,12 @@ class RoleController extends Controller
                                     'id' => $u->id,
                                     'name' => $u->name,
                                     'email' => $u->email,
-                                    'roles' => [], // LandlordUsers use different role system
+                                    'roles' => $u->roles->map(function ($role) {
+                                        return [
+                                            'id' => $role->id,
+                                            'name' => $role->name,
+                                        ];
+                                    }),
                                 ];
                             });
                     }
@@ -405,8 +411,8 @@ class RoleController extends Controller
 
             DB::commit();
 
-            // Clear Spatie Permission cache
-            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+            // Clear all role/permission caches including frontend cache
+            $this->rolePermissionService->resetCache();
 
             return response()->json([
                 'message' => 'Role created successfully',
@@ -502,8 +508,8 @@ class RoleController extends Controller
 
             DB::commit();
 
-            // Clear Spatie Permission cache
-            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+            // Clear all role/permission caches including frontend cache
+            $this->rolePermissionService->resetCache();
 
             return response()->json([
                 'message' => 'Role updated successfully',
@@ -573,8 +579,8 @@ class RoleController extends Controller
 
             DB::commit();
 
-            // Clear Spatie Permission cache
-            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+            // Clear all role/permission caches including frontend cache
+            $this->rolePermissionService->resetCache();
 
             return response()->json([
                 'message' => 'Role deleted successfully',
