@@ -10822,6 +10822,800 @@ return [
                 ],
             ],
         ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 12. Document Management System (DMS)
+        |--------------------------------------------------------------------------
+        | Purpose: Document storage, version control, sharing, and e-signatures
+        | Category: document_management
+        | Route: /tenant/dms
+        */
+        [
+            'code' => 'dms',
+            'name' => 'Document Management',
+            'description' => 'Document storage, version control, workflows, and e-signatures',
+            'icon' => 'FolderOpenIcon',
+            'route_prefix' => '/tenant/dms',
+            'category' => 'document_management',
+            'priority' => 90,
+            'is_core' => false,
+            'is_active' => true,
+
+            'submodules' => [
+                // 12.1 Documents
+                [
+                    'code' => 'documents',
+                    'name' => 'Document Library',
+                    'description' => 'Manage documents, folders, and file organization',
+                    'icon' => 'DocumentTextIcon',
+                    'route' => '/tenant/dms/documents',
+                    'priority' => 1,
+
+                    'components' => [
+                        [
+                            'code' => 'document-list',
+                            'name' => 'Document List',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/documents',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Documents'],
+                                ['code' => 'create', 'name' => 'Upload Document'],
+                                ['code' => 'update', 'name' => 'Update Document'],
+                                ['code' => 'delete', 'name' => 'Delete Document'],
+                                ['code' => 'download', 'name' => 'Download Document'],
+                                ['code' => 'share', 'name' => 'Share Document'],
+                                ['code' => 'move', 'name' => 'Move Document'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.2 Version Control
+                [
+                    'code' => 'versions',
+                    'name' => 'Version Control',
+                    'description' => 'Document version history and rollback',
+                    'icon' => 'ClockIcon',
+                    'route' => '/tenant/dms/versions',
+                    'priority' => 2,
+
+                    'components' => [
+                        [
+                            'code' => 'version-history',
+                            'name' => 'Version History',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/documents/{document}/versions',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Versions'],
+                                ['code' => 'create', 'name' => 'Upload New Version'],
+                                ['code' => 'download', 'name' => 'Download Version'],
+                                ['code' => 'rollback', 'name' => 'Rollback to Version'],
+                                ['code' => 'compare', 'name' => 'Compare Versions'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.3 Folders & Organization
+                [
+                    'code' => 'folders',
+                    'name' => 'Folder Management',
+                    'description' => 'Create and organize folder hierarchy',
+                    'icon' => 'FolderIcon',
+                    'route' => '/tenant/dms/folders',
+                    'priority' => 3,
+
+                    'components' => [
+                        [
+                            'code' => 'folder-list',
+                            'name' => 'Folder Structure',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/folders',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Folders'],
+                                ['code' => 'create', 'name' => 'Create Folder'],
+                                ['code' => 'update', 'name' => 'Update Folder'],
+                                ['code' => 'delete', 'name' => 'Delete Folder'],
+                                ['code' => 'move', 'name' => 'Move Folder'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.4 Sharing & Permissions
+                [
+                    'code' => 'sharing',
+                    'name' => 'Sharing & Permissions',
+                    'description' => 'Share documents with users and external parties',
+                    'icon' => 'ShareIcon',
+                    'route' => '/tenant/dms/shared',
+                    'priority' => 4,
+
+                    'components' => [
+                        [
+                            'code' => 'shared-documents',
+                            'name' => 'Shared With Me',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/shared',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Shared Documents'],
+                                ['code' => 'share', 'name' => 'Share Document'],
+                                ['code' => 'revoke', 'name' => 'Revoke Access'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.5 Workflows & Approvals
+                [
+                    'code' => 'workflows',
+                    'name' => 'Document Workflows',
+                    'description' => 'Approval workflows for document review',
+                    'icon' => 'ArrowPathIcon',
+                    'route' => '/tenant/dms/workflows',
+                    'priority' => 5,
+
+                    'components' => [
+                        [
+                            'code' => 'workflow-list',
+                            'name' => 'Workflows',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/workflows',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Workflows'],
+                                ['code' => 'create', 'name' => 'Create Workflow'],
+                                ['code' => 'update', 'name' => 'Update Workflow'],
+                                ['code' => 'delete', 'name' => 'Delete Workflow'],
+                                ['code' => 'approve', 'name' => 'Approve Document'],
+                                ['code' => 'reject', 'name' => 'Reject Document'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.6 Templates
+                [
+                    'code' => 'templates',
+                    'name' => 'Document Templates',
+                    'description' => 'Reusable document templates',
+                    'icon' => 'DocumentDuplicateIcon',
+                    'route' => '/tenant/dms/templates',
+                    'priority' => 6,
+
+                    'components' => [
+                        [
+                            'code' => 'template-list',
+                            'name' => 'Template Library',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/templates',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Templates'],
+                                ['code' => 'create', 'name' => 'Create Template'],
+                                ['code' => 'update', 'name' => 'Update Template'],
+                                ['code' => 'delete', 'name' => 'Delete Template'],
+                                ['code' => 'use', 'name' => 'Use Template'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.7 E-Signatures
+                [
+                    'code' => 'e-signatures',
+                    'name' => 'E-Signatures',
+                    'description' => 'Electronic signature requests and tracking',
+                    'icon' => 'PencilSquareIcon',
+                    'route' => '/tenant/dms/signatures',
+                    'priority' => 7,
+
+                    'components' => [
+                        [
+                            'code' => 'signature-requests',
+                            'name' => 'Signature Requests',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/signatures',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Requests'],
+                                ['code' => 'create', 'name' => 'Request Signature'],
+                                ['code' => 'sign', 'name' => 'Sign Document'],
+                                ['code' => 'cancel', 'name' => 'Cancel Request'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.8 Audit Trail
+                [
+                    'code' => 'audit-trail',
+                    'name' => 'Document Audit Trail',
+                    'description' => 'Track all document access and modifications',
+                    'icon' => 'ClipboardDocumentCheckIcon',
+                    'route' => '/tenant/dms/audit',
+                    'priority' => 8,
+
+                    'components' => [
+                        [
+                            'code' => 'audit-logs',
+                            'name' => 'Audit Logs',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/audit',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Audit Logs'],
+                                ['code' => 'export', 'name' => 'Export Logs'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.9 Search & Discovery
+                [
+                    'code' => 'search',
+                    'name' => 'Document Search',
+                    'description' => 'Full-text search across all documents',
+                    'icon' => 'MagnifyingGlassIcon',
+                    'route' => '/tenant/dms/search',
+                    'priority' => 9,
+
+                    'components' => [
+                        [
+                            'code' => 'search-engine',
+                            'name' => 'Search',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/search',
+                            'actions' => [
+                                ['code' => 'search', 'name' => 'Search Documents'],
+                                ['code' => 'advanced-search', 'name' => 'Advanced Search'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.10 Analytics
+                [
+                    'code' => 'dms-analytics',
+                    'name' => 'DMS Analytics',
+                    'description' => 'Document usage analytics and insights',
+                    'icon' => 'ChartBarSquareIcon',
+                    'route' => '/tenant/dms/analytics',
+                    'priority' => 10,
+
+                    'components' => [
+                        [
+                            'code' => 'analytics-dashboard',
+                            'name' => 'Analytics Dashboard',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/analytics',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Analytics'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 12.11 Settings
+                [
+                    'code' => 'dms-settings',
+                    'name' => 'DMS Settings',
+                    'description' => 'Document management system configuration',
+                    'icon' => 'Cog6ToothIcon',
+                    'route' => '/tenant/dms/settings',
+                    'priority' => 11,
+
+                    'components' => [
+                        [
+                            'code' => 'retention-policies',
+                            'name' => 'Retention Policies',
+                            'type' => 'page',
+                            'route' => '/tenant/dms/settings/retention',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Policies'],
+                                ['code' => 'create', 'name' => 'Create Policy'],
+                                ['code' => 'update', 'name' => 'Update Policy'],
+                                ['code' => 'delete', 'name' => 'Delete Policy'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 13. Quality Management System (QMS)
+        |--------------------------------------------------------------------------
+        | Purpose: Quality control, inspections, NCRs, calibrations, and audits
+        | Category: quality_compliance
+        | Route: /tenant/quality
+        */
+        [
+            'code' => 'quality',
+            'name' => 'Quality Management',
+            'description' => 'Quality control, inspections, non-conformance reports, and calibrations',
+            'icon' => 'ShieldCheckIcon',
+            'route_prefix' => '/tenant/quality',
+            'category' => 'quality_compliance',
+            'priority' => 91,
+            'is_core' => false,
+            'is_active' => true,
+
+            'submodules' => [
+                // 13.1 Dashboard
+                [
+                    'code' => 'dashboard',
+                    'name' => 'Quality Dashboard',
+                    'description' => 'Overview of quality metrics and KPIs',
+                    'icon' => 'ChartBarSquareIcon',
+                    'route' => '/tenant/quality/dashboard',
+                    'priority' => 1,
+
+                    'components' => [
+                        [
+                            'code' => 'dashboard-overview',
+                            'name' => 'Dashboard Overview',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/dashboard',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Dashboard'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.2 Inspections
+                [
+                    'code' => 'inspections',
+                    'name' => 'Quality Inspections',
+                    'description' => 'Conduct and track quality inspections',
+                    'icon' => 'ClipboardDocumentCheckIcon',
+                    'route' => '/tenant/quality/inspections',
+                    'priority' => 2,
+
+                    'components' => [
+                        [
+                            'code' => 'inspection-list',
+                            'name' => 'Inspection List',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/inspections',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Inspections'],
+                                ['code' => 'create', 'name' => 'Create Inspection'],
+                                ['code' => 'update', 'name' => 'Update Inspection'],
+                                ['code' => 'delete', 'name' => 'Delete Inspection'],
+                                ['code' => 'complete', 'name' => 'Complete Inspection'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.3 Non-Conformance Reports (NCR)
+                [
+                    'code' => 'ncr',
+                    'name' => 'Non-Conformance Reports',
+                    'description' => 'Track and manage non-conformance issues',
+                    'icon' => 'ExclamationTriangleIcon',
+                    'route' => '/tenant/quality/ncrs',
+                    'priority' => 3,
+
+                    'components' => [
+                        [
+                            'code' => 'ncr-list',
+                            'name' => 'NCR List',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/ncrs',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View NCRs'],
+                                ['code' => 'create', 'name' => 'Create NCR'],
+                                ['code' => 'update', 'name' => 'Update NCR'],
+                                ['code' => 'delete', 'name' => 'Delete NCR'],
+                                ['code' => 'close', 'name' => 'Close NCR'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.4 CAPA (Corrective & Preventive Actions)
+                [
+                    'code' => 'capa',
+                    'name' => 'CAPA Management',
+                    'description' => 'Corrective and preventive action management',
+                    'icon' => 'WrenchScrewdriverIcon',
+                    'route' => '/tenant/quality/capa',
+                    'priority' => 4,
+
+                    'components' => [
+                        [
+                            'code' => 'capa-list',
+                            'name' => 'CAPA List',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/capa',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View CAPA'],
+                                ['code' => 'create', 'name' => 'Create CAPA'],
+                                ['code' => 'update', 'name' => 'Update CAPA'],
+                                ['code' => 'delete', 'name' => 'Delete CAPA'],
+                                ['code' => 'implement', 'name' => 'Implement Action'],
+                                ['code' => 'verify', 'name' => 'Verify Effectiveness'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.5 Calibrations
+                [
+                    'code' => 'calibrations',
+                    'name' => 'Equipment Calibrations',
+                    'description' => 'Track equipment calibration schedules',
+                    'icon' => 'WrenchIcon',
+                    'route' => '/tenant/quality/calibrations',
+                    'priority' => 5,
+
+                    'components' => [
+                        [
+                            'code' => 'calibration-list',
+                            'name' => 'Calibration Records',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/calibrations',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Calibrations'],
+                                ['code' => 'create', 'name' => 'Record Calibration'],
+                                ['code' => 'update', 'name' => 'Update Calibration'],
+                                ['code' => 'delete', 'name' => 'Delete Calibration'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.6 Quality Audits
+                [
+                    'code' => 'audits',
+                    'name' => 'Quality Audits',
+                    'description' => 'Internal and external quality audits',
+                    'icon' => 'DocumentMagnifyingGlassIcon',
+                    'route' => '/tenant/quality/audits',
+                    'priority' => 6,
+
+                    'components' => [
+                        [
+                            'code' => 'audit-list',
+                            'name' => 'Audit List',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/audits',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Audits'],
+                                ['code' => 'create', 'name' => 'Schedule Audit'],
+                                ['code' => 'update', 'name' => 'Update Audit'],
+                                ['code' => 'delete', 'name' => 'Delete Audit'],
+                                ['code' => 'conduct', 'name' => 'Conduct Audit'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.7 Certifications
+                [
+                    'code' => 'certifications',
+                    'name' => 'Quality Certifications',
+                    'description' => 'Track ISO and other quality certifications',
+                    'icon' => 'AcademicCapIcon',
+                    'route' => '/tenant/quality/certifications',
+                    'priority' => 7,
+
+                    'components' => [
+                        [
+                            'code' => 'certification-list',
+                            'name' => 'Certifications',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/certifications',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Certifications'],
+                                ['code' => 'create', 'name' => 'Add Certification'],
+                                ['code' => 'update', 'name' => 'Update Certification'],
+                                ['code' => 'delete', 'name' => 'Delete Certification'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.8 Quality Analytics
+                [
+                    'code' => 'quality-analytics',
+                    'name' => 'Quality Analytics',
+                    'description' => 'Quality metrics and trend analysis',
+                    'icon' => 'ChartPieIcon',
+                    'route' => '/tenant/quality/analytics',
+                    'priority' => 8,
+
+                    'components' => [
+                        [
+                            'code' => 'analytics-dashboard',
+                            'name' => 'Analytics',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/analytics',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Analytics'],
+                                ['code' => 'export', 'name' => 'Export Reports'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 13.9 Quality Settings
+                [
+                    'code' => 'quality-settings',
+                    'name' => 'Quality Settings',
+                    'description' => 'Configure quality standards and parameters',
+                    'icon' => 'Cog6ToothIcon',
+                    'route' => '/tenant/quality/settings',
+                    'priority' => 9,
+
+                    'components' => [
+                        [
+                            'code' => 'standards',
+                            'name' => 'Quality Standards',
+                            'type' => 'page',
+                            'route' => '/tenant/quality/settings',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Standards'],
+                                ['code' => 'update', 'name' => 'Update Standards'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 14. Compliance Management System
+        |--------------------------------------------------------------------------
+        | Purpose: Regulatory compliance, policies, audits, and requirements tracking
+        | Category: quality_compliance
+        | Route: /tenant/compliance
+        */
+        [
+            'code' => 'compliance',
+            'name' => 'Compliance Management',
+            'description' => 'Regulatory compliance, policies, risk management, and audit trails',
+            'icon' => 'ShieldExclamationIcon',
+            'route_prefix' => '/tenant/compliance',
+            'category' => 'quality_compliance',
+            'priority' => 92,
+            'is_core' => false,
+            'is_active' => true,
+
+            'submodules' => [
+                // 14.1 Dashboard
+                [
+                    'code' => 'dashboard',
+                    'name' => 'Compliance Dashboard',
+                    'description' => 'Overview of compliance status and upcoming deadlines',
+                    'icon' => 'ChartBarSquareIcon',
+                    'route' => '/tenant/compliance/dashboard',
+                    'priority' => 1,
+
+                    'components' => [
+                        [
+                            'code' => 'dashboard-overview',
+                            'name' => 'Dashboard',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/dashboard',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Dashboard'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.2 Policies
+                [
+                    'code' => 'policies',
+                    'name' => 'Company Policies',
+                    'description' => 'Manage organizational policies and procedures',
+                    'icon' => 'DocumentTextIcon',
+                    'route' => '/tenant/compliance/policies',
+                    'priority' => 2,
+
+                    'components' => [
+                        [
+                            'code' => 'policy-list',
+                            'name' => 'Policy Library',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/policies',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Policies'],
+                                ['code' => 'create', 'name' => 'Create Policy'],
+                                ['code' => 'update', 'name' => 'Update Policy'],
+                                ['code' => 'delete', 'name' => 'Delete Policy'],
+                                ['code' => 'publish', 'name' => 'Publish Policy'],
+                                ['code' => 'archive', 'name' => 'Archive Policy'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.3 Risks
+                [
+                    'code' => 'risks',
+                    'name' => 'Risk Register',
+                    'description' => 'Identify and manage compliance risks',
+                    'icon' => 'ExclamationTriangleIcon',
+                    'route' => '/tenant/compliance/risks',
+                    'priority' => 3,
+
+                    'components' => [
+                        [
+                            'code' => 'risk-list',
+                            'name' => 'Risk Register',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/risks',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Risks'],
+                                ['code' => 'create', 'name' => 'Create Risk'],
+                                ['code' => 'update', 'name' => 'Update Risk'],
+                                ['code' => 'delete', 'name' => 'Delete Risk'],
+                                ['code' => 'assess', 'name' => 'Risk Assessment'],
+                                ['code' => 'mitigate', 'name' => 'Add Mitigation'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.4 Audits
+                [
+                    'code' => 'audits',
+                    'name' => 'Compliance Audits',
+                    'description' => 'Track internal and external compliance audits',
+                    'icon' => 'ClipboardDocumentCheckIcon',
+                    'route' => '/tenant/compliance/audits',
+                    'priority' => 4,
+
+                    'components' => [
+                        [
+                            'code' => 'audit-list',
+                            'name' => 'Audit Schedule',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/audits',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Audits'],
+                                ['code' => 'create', 'name' => 'Schedule Audit'],
+                                ['code' => 'update', 'name' => 'Update Audit'],
+                                ['code' => 'delete', 'name' => 'Delete Audit'],
+                                ['code' => 'add-finding', 'name' => 'Add Finding'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.5 Requirements
+                [
+                    'code' => 'requirements',
+                    'name' => 'Regulatory Requirements',
+                    'description' => 'Track regulatory and compliance requirements',
+                    'icon' => 'DocumentCheckIcon',
+                    'route' => '/tenant/compliance/requirements',
+                    'priority' => 5,
+
+                    'components' => [
+                        [
+                            'code' => 'requirement-list',
+                            'name' => 'Requirements',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/requirements',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Requirements'],
+                                ['code' => 'create', 'name' => 'Add Requirement'],
+                                ['code' => 'update', 'name' => 'Update Requirement'],
+                                ['code' => 'delete', 'name' => 'Delete Requirement'],
+                                ['code' => 'assess', 'name' => 'Assess Compliance'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.6 Documents
+                [
+                    'code' => 'documents',
+                    'name' => 'Compliance Documents',
+                    'description' => 'Store and manage compliance-related documents',
+                    'icon' => 'FolderIcon',
+                    'route' => '/tenant/compliance/documents',
+                    'priority' => 6,
+
+                    'components' => [
+                        [
+                            'code' => 'document-list',
+                            'name' => 'Document Library',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/documents',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Documents'],
+                                ['code' => 'create', 'name' => 'Upload Document'],
+                                ['code' => 'update', 'name' => 'Update Document'],
+                                ['code' => 'delete', 'name' => 'Delete Document'],
+                                ['code' => 'download', 'name' => 'Download Document'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.7 Training
+                [
+                    'code' => 'training',
+                    'name' => 'Compliance Training',
+                    'description' => 'Track mandatory compliance training',
+                    'icon' => 'AcademicCapIcon',
+                    'route' => '/tenant/compliance/training',
+                    'priority' => 7,
+
+                    'components' => [
+                        [
+                            'code' => 'training-list',
+                            'name' => 'Training Programs',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/training',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Training'],
+                                ['code' => 'create', 'name' => 'Create Training'],
+                                ['code' => 'update', 'name' => 'Update Training'],
+                                ['code' => 'delete', 'name' => 'Delete Training'],
+                                ['code' => 'assign', 'name' => 'Assign Training'],
+                                ['code' => 'complete', 'name' => 'Mark Complete'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.8 Certifications
+                [
+                    'code' => 'certifications',
+                    'name' => 'Industry Certifications',
+                    'description' => 'Manage industry-specific certifications and licenses',
+                    'icon' => 'ShieldCheckIcon',
+                    'route' => '/tenant/compliance/certifications',
+                    'priority' => 8,
+
+                    'components' => [
+                        [
+                            'code' => 'certification-list',
+                            'name' => 'Certifications',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/certifications',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Certifications'],
+                                ['code' => 'create', 'name' => 'Add Certification'],
+                                ['code' => 'update', 'name' => 'Update Certification'],
+                                ['code' => 'delete', 'name' => 'Delete Certification'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.9 Reports
+                [
+                    'code' => 'reports',
+                    'name' => 'Compliance Reports',
+                    'description' => 'Generate compliance reports and analytics',
+                    'icon' => 'ChartBarSquareIcon',
+                    'route' => '/tenant/compliance/reports',
+                    'priority' => 9,
+
+                    'components' => [
+                        [
+                            'code' => 'report-list',
+                            'name' => 'Reports',
+                            'type' => 'page',
+                            'route' => '/tenant/compliance/reports',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Reports'],
+                                ['code' => 'generate', 'name' => 'Generate Report'],
+                                ['code' => 'export', 'name' => 'Export Report'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ],
 
     /*
@@ -10841,6 +11635,7 @@ return [
         'financial_management' => 'Financial Management',
         'system_administration' => 'System Administration',
         'support_ticketing' => 'Support & Ticketing',
+        'quality_compliance' => 'Quality & Compliance',
     ],
 
     /*
