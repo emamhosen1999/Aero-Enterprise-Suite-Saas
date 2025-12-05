@@ -100,14 +100,18 @@ class TeamMemberController extends Controller
                 $user->assignRole($role);
             }
 
-            // Apply metadata from invitation (department, designation)
-            if (! empty($invitation->metadata['department_id'])) {
-                $user->department_id = $invitation->metadata['department_id'];
+            // Create Employee record if department/designation provided in invitation
+            if (! empty($invitation->metadata['department_id']) || ! empty($invitation->metadata['designation_id'])) {
+                \App\Models\HRM\Employee::create([
+                    'user_id' => $user->id,
+                    'employee_code' => \App\Models\HRM\Employee::generateEmployeeCode(),
+                    'department_id' => $invitation->metadata['department_id'] ?? null,
+                    'designation_id' => $invitation->metadata['designation_id'] ?? null,
+                    'date_of_joining' => now(),
+                    'status' => 'active',
+                    'employment_type' => 'full_time',
+                ]);
             }
-            if (! empty($invitation->metadata['designation_id'])) {
-                $user->designation_id = $invitation->metadata['designation_id'];
-            }
-            $user->save();
 
             // Mark invitation as accepted
             $invitation->markAsAccepted();

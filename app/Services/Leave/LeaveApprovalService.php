@@ -2,7 +2,8 @@
 
 namespace App\Services\Leave;
 
-use App\Models\Leave;
+use App\Models\HRM\Employee;
+use App\Models\HRM\Leave;
 use App\Models\User;
 use App\Notifications\LeaveApprovalNotification;
 use App\Notifications\LeaveApprovedNotification;
@@ -19,17 +20,17 @@ class LeaveApprovalService
     {
         $user = $leave->user;
         $leaveSetting = $leave->leaveSetting;
-        
+
         // Check if approval is required for this leave type
-        if (!$leaveSetting->requires_approval) {
+        if (! $leaveSetting->requires_approval) {
             return [];
         }
-        
+
         // Check if auto-approval is enabled for this leave type
         if ($leaveSetting->auto_approve) {
             return [];
         }
-        
+
         $approvalChain = [];
 
         // Level 1: Direct Manager (report_to)
@@ -45,21 +46,23 @@ class LeaveApprovalService
         }
 
         // Level 2: Department Head (if different from direct manager)
-        $departmentHead = User::where('department_id', $user->department_id)
+        $employee = $user->employee;
+        $departmentHead = $employee ? Employee::where('department_id', $employee->department_id)
             ->where('designation_id', function ($query) {
                 $query->selectRaw('MIN(id)') // Lowest designation_id = highest rank
                     ->from('designations')
-                    ->whereColumn('id', 'users.designation_id');
+                    ->whereColumn('id', 'employees.designation_id');
             })
-            ->where('id', '!=', $user->id)
-            ->where('id', '!=', $user->report_to_id)
-            ->first();
+            ->where('user_id', '!=', $user->id)
+            ->where('user_id', '!=', $user->report_to_id)
+            ->with('user')
+            ->first() : null;
 
         if ($departmentHead) {
             $approvalChain[] = [
                 'level' => 2,
-                'approver_id' => $departmentHead->id,
-                'approver_name' => $departmentHead->name,
+                'approver_id' => $departmentHead->user_id,
+                'approver_name' => $departmentHead->user->name ?? 'Unknown',
                 'status' => 'pending',
                 'approved_at' => null,
                 'comments' => null,

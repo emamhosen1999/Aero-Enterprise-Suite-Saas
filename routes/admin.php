@@ -29,6 +29,13 @@ use Inertia\Inertia;
 | 8. Audit Logs (audit-logs)
 | 9. Settings (system-settings)
 | 10. Developer Tools (developer-tools)
+| 11. Platform Analytics (platform-analytics)
+| 12. Platform Integrations (platform-integrations)
+|
+| Access Control:
+| - Routes use 'module:' middleware for granular access control
+| - Access paths match admin_pages.jsx and config/modules.php platform_hierarchy
+| - Super Administrators bypass all module access checks
 |
 | IMPORTANT: All routes use 'auth:landlord' middleware, NOT 'auth'.
 | This ensures authentication is checked against the landlord_users table
@@ -64,118 +71,189 @@ Route::middleware(['auth:landlord'])->group(function () {
 
     // =========================================================================
     // 1. DASHBOARD MODULE (platform-dashboard)
+    // Access: platform-dashboard, platform-dashboard.overview, platform-dashboard.system-health
     // =========================================================================
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');
-    })->name('admin.dashboard');
+    })->middleware(['module:platform-dashboard,overview'])->name('admin.dashboard');
 
     Route::get('/system-health', function () {
         return Inertia::render('Admin/SystemHealth');
-    })->name('admin.system-health');
+    })->middleware(['module:platform-dashboard,system-health'])->name('admin.system-health');
 
     // =========================================================================
     // 2. TENANT MANAGEMENT MODULE (tenants)
+    // Access: tenants, tenants.tenant-list, tenants.domains, tenants.databases
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('tenants')->name('admin.tenants.')->group(function () {
+    Route::middleware(['module:tenants'])->prefix('tenants')->name('admin.tenants.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Tenants/Index');
-        })->name('index');
+        })->middleware(['module:tenants,tenant-list'])->name('index');
 
         Route::get('/create', function () {
             return Inertia::render('Admin/Tenants/Create');
-        })->name('create');
+        })->middleware(['module:tenants,tenant-list,tenant-management,create'])->name('create');
 
         Route::get('/{tenant}', function ($tenant) {
             return Inertia::render('Admin/Tenants/Show', ['tenantId' => $tenant]);
-        })->name('show');
+        })->middleware(['module:tenants,tenant-list,tenant-management,view'])->name('show');
 
         Route::get('/{tenant}/edit', function ($tenant) {
             return Inertia::render('Admin/Tenants/Edit', ['tenantId' => $tenant]);
-        })->name('edit');
+        })->middleware(['module:tenants,tenant-list,tenant-management,update'])->name('edit');
 
         // Domain Management
         Route::get('/domains', function () {
             return Inertia::render('Admin/Tenants/Domains');
-        })->name('domains');
+        })->middleware(['module:tenants,domains'])->name('domains');
 
         // Database Management
         Route::get('/databases', function () {
             return Inertia::render('Admin/Tenants/Databases');
-        })->name('databases');
+        })->middleware(['module:tenants,databases'])->name('databases');
 
         // Tenant Impersonation
         Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'impersonate'])
+            ->middleware(['module:tenants,tenant-list,tenant-management,impersonate'])
             ->name('impersonate');
     });
 
     // =========================================================================
     // 3. USERS & AUTHENTICATION MODULE (platform-users)
+    // Access: platform-users, platform-users.admin-users, platform-users.authentication, platform-users.sessions
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('users')->name('admin.users.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Users/Index');
-        })->name('index');
+    Route::middleware(['module:platform-users'])->prefix('users')->name('admin.users.')->group(function () {
+        // Main index page (uses shared controller)
+        Route::get('/', [\App\Http\Controllers\Shared\Admin\UserController::class, 'adminIndex'])
+            ->middleware(['module:platform-users,admin-users'])
+            ->name('index');
 
-        Route::get('/create', function () {
-            return Inertia::render('Admin/Users/Create');
-        })->name('create');
+        // API routes for user management
+        Route::get('/paginate', function (\Illuminate\Http\Request $request) {
+            return app(\App\Http\Controllers\Shared\Admin\UserController::class)->paginate($request, 'admin');
+        })->middleware(['module:platform-users,admin-users,user-list,view'])->name('paginate');
+
+        Route::get('/stats', function (\Illuminate\Http\Request $request) {
+            return app(\App\Http\Controllers\Shared\Admin\UserController::class)->stats($request, 'admin');
+        })->middleware(['module:platform-users,admin-users,user-list,view'])->name('stats');
+
+        Route::post('/', function (\Illuminate\Http\Request $request) {
+            return app(\App\Http\Controllers\Shared\Admin\UserController::class)->store($request, 'admin');
+        })->middleware(['module:platform-users,admin-users,user-list,create'])->name('store');
+
+        Route::put('/{user}', function (\Illuminate\Http\Request $request, $user) {
+            return app(\App\Http\Controllers\Shared\Admin\UserController::class)->update($request, $user, 'admin');
+        })->middleware(['module:platform-users,admin-users,user-list,update'])->name('update');
+
+        Route::delete('/{user}', function ($user) {
+            return app(\App\Http\Controllers\Shared\Admin\UserController::class)->destroy($user, 'admin');
+        })->middleware(['module:platform-users,admin-users,user-list,delete'])->name('destroy');
+
+        Route::patch('/{user}/toggle-status', function (\Illuminate\Http\Request $request, $user) {
+            return app(\App\Http\Controllers\Shared\Admin\UserController::class)->toggleStatus($request, $user, 'admin');
+        })->middleware(['module:platform-users,admin-users,user-list,update'])->name('toggle-status');
+
+        Route::patch('/{user}/roles', function (\Illuminate\Http\Request $request, $user) {
+            return app(\App\Http\Controllers\Shared\Admin\UserController::class)->updateRoles($request, $user, 'admin');
+        })->middleware(['module:platform-users,admin-users,user-list,update'])->name('update-roles');
 
         Route::get('/{user}', function ($user) {
             return Inertia::render('Admin/Users/Show', ['userId' => $user]);
-        })->name('show');
+        })->middleware(['module:platform-users,admin-users,user-list,view'])->name('show');
 
         Route::get('/{user}/edit', function ($user) {
             return Inertia::render('Admin/Users/Edit', ['userId' => $user]);
-        })->name('edit');
+        })->middleware(['module:platform-users,admin-users,user-list,update'])->name('edit');
     });
 
     // Authentication Settings
     Route::get('/authentication', function () {
         return Inertia::render('Admin/Authentication/Index');
-    })->middleware(['platform.super_admin'])->name('admin.authentication');
+    })->middleware(['module:platform-users,authentication'])->name('admin.authentication');
 
     // Active Sessions
     Route::get('/sessions', function () {
         return Inertia::render('Admin/Sessions/Index');
-    })->middleware(['platform.super_admin'])->name('admin.sessions');
+    })->middleware(['module:platform-users,sessions'])->name('admin.sessions');
 
     // =========================================================================
     // 4. ROLES & ACCESS CONTROL MODULE (platform-roles)
+    // Access: platform-roles, platform-roles.role-management, platform-roles.module-permissions
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('roles')->name('admin.roles.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'storeRole'])->name('store');
-        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRole'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'deleteRole'])->name('destroy');
-        Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'batchUpdatePermissions'])->name('permissions.batch');
-        Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'togglePermission'])->name('toggle-permission');
-        Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])->name('update-module');
-        Route::post('/clone/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'cloneRole'])->name('clone');
-        Route::get('/export', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'exportRoles'])->name('export');
-        Route::get('/snapshot', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'snapshot'])->name('snapshot');
-        Route::get('/admin/modules', [ModuleController::class, 'index'])->name('modules.index');
+    Route::middleware(['module:platform-roles'])->prefix('roles')->name('admin.roles.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'index'])
+            ->middleware(['module:platform-roles,role-management'])
+            ->name('index');
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'storeRole'])
+            ->middleware(['module:platform-roles,role-management,role-list,create'])
+            ->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRole'])
+            ->middleware(['module:platform-roles,role-management,role-list,update'])
+            ->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'deleteRole'])
+            ->middleware(['module:platform-roles,role-management,role-list,delete'])
+            ->name('destroy');
+        Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'batchUpdatePermissions'])
+            ->middleware(['module:platform-roles,role-management,role-list,update'])
+            ->name('permissions.batch');
+        Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'togglePermission'])
+            ->middleware(['module:platform-roles,role-management,role-list,update'])
+            ->name('toggle-permission');
+        Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])
+            ->middleware(['module:platform-roles,role-management,role-list,update'])
+            ->name('update-module');
+        Route::post('/clone/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'cloneRole'])
+            ->middleware(['module:platform-roles,role-management,role-list,create'])
+            ->name('clone');
+        Route::get('/export', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'exportRoles'])
+            ->middleware(['module:platform-roles,role-management,role-list,view'])
+            ->name('export');
+        Route::get('/snapshot', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'snapshot'])
+            ->middleware(['module:platform-roles,role-management,role-list,view'])
+            ->name('snapshot');
+        Route::get('/admin/modules', [ModuleController::class, 'index'])
+            ->middleware(['module:platform-roles,module-permissions'])
+            ->name('modules.index');
     });
 
     // Modules Management (Module Access)
-    Route::middleware(['platform.super_admin'])->prefix('modules')->name('admin.modules.')->group(function () {
+    Route::middleware(['module:platform-roles,module-permissions'])->prefix('modules')->name('admin.modules.')->group(function () {
         // Main module management page (shared controller)
         Route::get('/', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'index'])->name('index');
         Route::get('/api', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'apiIndex'])->name('api.index');
 
         // Module CRUD (structure management - platform admin only)
-        Route::post('/', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeModule'])->name('store');
-        Route::put('/{module}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateModule'])->name('update');
-        Route::delete('/{module}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroyModule'])->name('destroy');
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeModule'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,create'])
+            ->name('store');
+        Route::put('/{module}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateModule'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,update'])
+            ->name('update');
+        Route::delete('/{module}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroyModule'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,delete'])
+            ->name('destroy');
 
         // Sub-module CRUD
-        Route::post('/{module}/sub-modules', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeSubModule'])->name('sub-modules.store');
-        Route::put('/sub-modules/{subModule}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateSubModule'])->name('sub-modules.update');
-        Route::delete('/sub-modules/{subModule}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroySubModule'])->name('sub-modules.destroy');
+        Route::post('/{module}/sub-modules', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeSubModule'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,create'])
+            ->name('sub-modules.store');
+        Route::put('/sub-modules/{subModule}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateSubModule'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,update'])
+            ->name('sub-modules.update');
+        Route::delete('/sub-modules/{subModule}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroySubModule'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,delete'])
+            ->name('sub-modules.destroy');
 
         // Component CRUD
-        Route::post('/sub-modules/{subModule}/components', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeComponent'])->name('components.store');
-        Route::put('/components/{component}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateComponent'])->name('components.update');
-        Route::delete('/components/{component}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroyComponent'])->name('components.destroy');
+        Route::post('/sub-modules/{subModule}/components', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'storeComponent'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,create'])
+            ->name('components.store');
+        Route::put('/components/{component}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'updateComponent'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,update'])
+            ->name('components.update');
+        Route::delete('/components/{component}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'destroyComponent'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,delete'])
+            ->name('components.destroy');
 
         // Module access check
         Route::post('/check-access', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'checkAccess'])->name('check-access');
@@ -184,253 +262,366 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/{moduleCode}/requirements', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getModuleRequirements'])->name('requirements');
 
         // Module Catalog API (for plan configuration)
-        Route::get('/catalog', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getModules'])->name('catalog');
+        Route::get('/catalog', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getModules'])
+            ->middleware(['module:subscriptions,plans'])
+            ->name('catalog');
 
         // Role Module Access Management
         Route::prefix('role-access')->name('role-access.')->group(function () {
-            Route::get('/roles', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getRolesWithAccessCounts'])->name('roles');
-            Route::get('/{roleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getRoleAccess'])->name('show');
-            Route::post('/{roleId}/sync', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'syncRoleAccess'])->name('sync');
-            Route::post('/{roleId}/grant/{moduleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'grantModuleAccess'])->name('grant');
-            Route::post('/{roleId}/revoke/{moduleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'revokeModuleAccess'])->name('revoke');
+            Route::get('/roles', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getRolesWithAccessCounts'])
+                ->middleware(['module:platform-roles,module-permissions,role-access,view'])
+                ->name('roles');
+            Route::get('/{roleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'getRoleAccess'])
+                ->middleware(['module:platform-roles,module-permissions,role-access,view'])
+                ->name('show');
+            Route::post('/{roleId}/sync', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'syncRoleAccess'])
+                ->middleware(['module:platform-roles,module-permissions,role-access,manage'])
+                ->name('sync');
+            Route::post('/{roleId}/grant/{moduleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'grantModuleAccess'])
+                ->middleware(['module:platform-roles,module-permissions,role-access,manage'])
+                ->name('grant');
+            Route::post('/{roleId}/revoke/{moduleId}', [\App\Http\Controllers\Shared\Admin\ModuleController::class, 'revokeModuleAccess'])
+                ->middleware(['module:platform-roles,module-permissions,role-access,manage'])
+                ->name('revoke');
         });
     });
 
-    // Permission Management (Platform Super Admin Only)
-    Route::middleware(['platform.super_admin'])->prefix('permissions')->name('admin.permissions.')->group(function () {
+    // Permission Management (Legacy - for backward compatibility)
+    Route::middleware(['module:platform-roles,module-permissions'])->prefix('permissions')->name('admin.permissions.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])->name('store');
+        Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,create'])
+            ->name('store');
         Route::get('/grouped', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'groupedByModule'])->name('grouped');
         Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'show'])->name('show');
-        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/sync-roles', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'syncRoles'])->name('sync-roles');
+        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,update'])
+            ->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])
+            ->middleware(['module:platform-roles,module-permissions,module-list,delete'])
+            ->name('destroy');
+        Route::post('/{id}/sync-roles', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'syncRoles'])
+            ->middleware(['module:platform-roles,module-permissions,role-access,manage'])
+            ->name('sync-roles');
     });
 
     // =========================================================================
     // 5. SUBSCRIPTIONS & BILLING MODULE (subscriptions)
+    // Access: subscriptions, subscriptions.plans, subscriptions.tenant-subscriptions, subscriptions.invoices
     // =========================================================================
     // Subscription Plans
-    Route::middleware(['platform.super_admin'])->prefix('plans')->name('admin.plans.')->group(function () {
+    Route::middleware(['module:subscriptions'])->prefix('plans')->name('admin.plans.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Plans/Index');
-        })->name('index');
+        })->middleware(['module:subscriptions,plans'])->name('index');
 
         Route::get('/create', function () {
             return Inertia::render('Admin/Plans/Create');
-        })->name('create');
+        })->middleware(['module:subscriptions,plans,plan-list,create'])->name('create');
 
         // Plan-Module Management API
-        Route::get('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getPlanModules'])->name('modules.index');
-        Route::post('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'attachModules'])->name('modules.attach');
-        Route::delete('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'detachModules'])->name('modules.detach');
-        Route::put('/{plan}/modules/sync', [\App\Http\Controllers\Admin\PlanModuleController::class, 'syncModules'])->name('modules.sync');
-        Route::put('/{plan}/modules/{module}', [\App\Http\Controllers\Admin\PlanModuleController::class, 'updateModuleConfig'])->name('modules.update');
+        Route::get('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'getPlanModules'])
+            ->middleware(['module:subscriptions,plans,plan-list,view'])
+            ->name('modules.index');
+        Route::post('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'attachModules'])
+            ->middleware(['module:subscriptions,plans,plan-list,update'])
+            ->name('modules.attach');
+        Route::delete('/{plan}/modules', [\App\Http\Controllers\Admin\PlanModuleController::class, 'detachModules'])
+            ->middleware(['module:subscriptions,plans,plan-list,update'])
+            ->name('modules.detach');
+        Route::put('/{plan}/modules/sync', [\App\Http\Controllers\Admin\PlanModuleController::class, 'syncModules'])
+            ->middleware(['module:subscriptions,plans,plan-list,update'])
+            ->name('modules.sync');
+        Route::put('/{plan}/modules/{module}', [\App\Http\Controllers\Admin\PlanModuleController::class, 'updateModuleConfig'])
+            ->middleware(['module:subscriptions,plans,plan-list,update'])
+            ->name('modules.update');
     });
 
     // Plans API
-    Route::get('/api/plans', [\App\Http\Controllers\Admin\PlanController::class, 'index'])->name('api.plans.index');
+    Route::get('/api/plans', [\App\Http\Controllers\Admin\PlanController::class, 'index'])
+        ->middleware(['module:subscriptions,plans'])
+        ->name('api.plans.index');
 
     // Billing & Invoices
-    Route::prefix('billing')->name('admin.billing.')->group(function () {
+    Route::middleware(['module:subscriptions'])->prefix('billing')->name('admin.billing.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Billing/Index');
-        })->name('index');
+        })->middleware(['module:subscriptions,tenant-subscriptions'])->name('index');
 
         // Subscriptions Overview
         Route::get('/subscriptions', function () {
             return Inertia::render('Admin/Billing/Subscriptions');
-        })->name('subscriptions');
+        })->middleware(['module:subscriptions,tenant-subscriptions'])->name('subscriptions');
 
         Route::get('/invoices', function () {
             return Inertia::render('Admin/Billing/Invoices');
-        })->name('invoices');
+        })->middleware(['module:subscriptions,invoices'])->name('invoices');
 
         // Tenant-specific billing management
-        Route::get('/tenants/{tenant}', [\App\Http\Controllers\Landlord\BillingController::class, 'index'])->name('tenant');
-        Route::post('/tenants/{tenant}/subscribe/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'subscribe'])->name('tenant.subscribe');
-        Route::post('/tenants/{tenant}/change-plan', [\App\Http\Controllers\Landlord\BillingController::class, 'changePlan'])->name('tenant.change-plan');
-        Route::post('/tenants/{tenant}/cancel', [\App\Http\Controllers\Landlord\BillingController::class, 'cancel'])->name('tenant.cancel');
-        Route::post('/tenants/{tenant}/resume', [\App\Http\Controllers\Landlord\BillingController::class, 'resume'])->name('tenant.resume');
-        Route::post('/tenants/{tenant}/portal', [\App\Http\Controllers\Landlord\BillingController::class, 'portal'])->name('tenant.portal');
-        Route::get('/tenants/{tenant}/invoices', [\App\Http\Controllers\Landlord\BillingController::class, 'invoices'])->name('tenant.invoices');
-        Route::get('/tenants/{tenant}/invoices/{invoice}', [\App\Http\Controllers\Landlord\BillingController::class, 'downloadInvoice'])->name('tenant.invoice.download');
-        Route::put('/tenants/{tenant}/billing-address', [\App\Http\Controllers\Landlord\BillingController::class, 'updateBillingAddress'])->name('tenant.billing-address');
+        Route::get('/tenants/{tenant}', [\App\Http\Controllers\Landlord\BillingController::class, 'index'])
+            ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,view'])
+            ->name('tenant');
+        Route::post('/tenants/{tenant}/subscribe/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'subscribe'])
+            ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,create'])
+            ->name('tenant.subscribe');
+        Route::post('/tenants/{tenant}/change-plan', [\App\Http\Controllers\Landlord\BillingController::class, 'changePlan'])
+            ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
+            ->name('tenant.change-plan');
+        Route::post('/tenants/{tenant}/cancel', [\App\Http\Controllers\Landlord\BillingController::class, 'cancel'])
+            ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
+            ->name('tenant.cancel');
+        Route::post('/tenants/{tenant}/resume', [\App\Http\Controllers\Landlord\BillingController::class, 'resume'])
+            ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
+            ->name('tenant.resume');
+        Route::post('/tenants/{tenant}/portal', [\App\Http\Controllers\Landlord\BillingController::class, 'portal'])
+            ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,view'])
+            ->name('tenant.portal');
+        Route::get('/tenants/{tenant}/invoices', [\App\Http\Controllers\Landlord\BillingController::class, 'invoices'])
+            ->middleware(['module:subscriptions,invoices,invoice-list,view'])
+            ->name('tenant.invoices');
+        Route::get('/tenants/{tenant}/invoices/{invoice}', [\App\Http\Controllers\Landlord\BillingController::class, 'downloadInvoice'])
+            ->middleware(['module:subscriptions,invoices,invoice-list,download'])
+            ->name('tenant.invoice.download');
+        Route::put('/tenants/{tenant}/billing-address', [\App\Http\Controllers\Landlord\BillingController::class, 'updateBillingAddress'])
+            ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
+            ->name('tenant.billing-address');
     });
 
     // Stripe Checkout (for new subscriptions via registration flow)
-    Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])->name('admin.checkout');
+    Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])
+        ->middleware(['module:subscriptions,payment-gateways'])
+        ->name('admin.checkout');
 
     // =========================================================================
     // 6. NOTIFICATIONS MODULE (notifications)
+    // Access: notifications, notifications.channels, notifications.templates, notifications.broadcasts
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('notifications')->name('admin.notifications.')->group(function () {
+    Route::middleware(['module:notifications'])->prefix('notifications')->name('admin.notifications.')->group(function () {
         // Notification Channels
         Route::get('/channels', function () {
             return Inertia::render('Admin/Notifications/Channels');
-        })->name('channels');
+        })->middleware(['module:notifications,channels'])->name('channels');
 
         // Notification Templates
         Route::get('/templates', function () {
             return Inertia::render('Admin/Notifications/Templates');
-        })->name('templates');
+        })->middleware(['module:notifications,templates'])->name('templates');
 
         // Broadcasts
         Route::get('/broadcasts', function () {
             return Inertia::render('Admin/Notifications/Broadcasts');
-        })->name('broadcasts');
+        })->middleware(['module:notifications,broadcasts'])->name('broadcasts');
     });
 
     // =========================================================================
     // 7. FILE MANAGER MODULE (file-manager)
+    // Access: file-manager, file-manager.storage, file-manager.quotas, file-manager.media-library
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('files')->name('admin.files.')->group(function () {
+    Route::middleware(['module:file-manager'])->prefix('files')->name('admin.files.')->group(function () {
         // Storage Management
         Route::get('/storage', function () {
             return Inertia::render('Admin/Files/Storage');
-        })->name('storage');
+        })->middleware(['module:file-manager,storage'])->name('storage');
 
         // Storage Quotas
         Route::get('/quotas', function () {
             return Inertia::render('Admin/Files/Quotas');
-        })->name('quotas');
+        })->middleware(['module:file-manager,quotas'])->name('quotas');
 
         // Media Library
         Route::get('/media', function () {
             return Inertia::render('Admin/Files/Media');
-        })->name('media');
+        })->middleware(['module:file-manager,media-library'])->name('media');
     });
 
     // =========================================================================
     // 8. AUDIT & ACTIVITY LOGS MODULE (audit-logs)
+    // Access: audit-logs, audit-logs.activity-logs, audit-logs.security-logs, audit-logs.system-logs
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('logs')->name('admin.logs.')->group(function () {
+    Route::middleware(['module:audit-logs'])->prefix('logs')->name('admin.logs.')->group(function () {
         // Activity Logs
         Route::get('/activity', function () {
             return Inertia::render('Admin/Logs/Activity');
-        })->name('activity');
+        })->middleware(['module:audit-logs,activity-logs'])->name('activity');
 
         // Security Logs
         Route::get('/security', function () {
             return Inertia::render('Admin/Logs/Security');
-        })->name('security');
+        })->middleware(['module:audit-logs,security-logs'])->name('security');
 
         // System Logs
         Route::get('/system', function () {
             return Inertia::render('Admin/Logs/System');
-        })->name('system');
+        })->middleware(['module:audit-logs,system-logs'])->name('system');
     });
 
     // Legacy Audit Logs routes (for backward compatibility)
-    Route::prefix('audit-logs')->name('admin.audit-logs.')->group(function () {
+    Route::middleware(['module:audit-logs,activity-logs'])->prefix('audit-logs')->name('admin.audit-logs.')->group(function () {
         Route::get('/', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('index');
-        Route::get('/export', [\App\Http\Controllers\AuditLogController::class, 'export'])->name('export');
+        Route::get('/export', [\App\Http\Controllers\AuditLogController::class, 'export'])
+            ->middleware(['module:audit-logs,activity-logs,log-list,export'])
+            ->name('export');
         Route::get('/statistics', [\App\Http\Controllers\AuditLogController::class, 'statistics'])->name('statistics');
         Route::get('/{activity}', [\App\Http\Controllers\AuditLogController::class, 'show'])->name('show');
     });
 
     // =========================================================================
     // 9. SYSTEM SETTINGS MODULE (system-settings)
+    // Access: system-settings, system-settings.general-settings, system-settings.branding, etc.
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('settings')->name('admin.settings.')->group(function () {
+    Route::middleware(['module:system-settings'])->prefix('settings')->name('admin.settings.')->group(function () {
         // General Settings
         Route::get('/', function () {
             return Inertia::render('Admin/Settings/Index');
-        })->name('index');
+        })->middleware(['module:system-settings,general-settings'])->name('index');
 
         // Branding Settings
         Route::get('/branding', function () {
             return Inertia::render('Admin/Settings/Branding');
-        })->name('branding');
+        })->middleware(['module:system-settings,branding'])->name('branding');
 
         // Localization Settings
         Route::get('/localization', function () {
             return Inertia::render('Admin/Settings/Localization');
-        })->name('localization');
+        })->middleware(['module:system-settings,localization'])->name('localization');
 
         // Email Settings
         Route::get('/email', function () {
             return Inertia::render('Admin/Settings/Email');
-        })->name('email');
+        })->middleware(['module:system-settings,email-settings'])->name('email');
 
         // Integrations
         Route::get('/integrations', function () {
             return Inertia::render('Admin/Settings/Integrations');
-        })->name('integrations');
+        })->middleware(['module:system-settings,integrations'])->name('integrations');
 
         // Payment Gateways
         Route::get('/payment-gateways', function () {
             return Inertia::render('Admin/Settings/PaymentGateways');
-        })->name('payment-gateways');
+        })->middleware(['module:subscriptions,payment-gateways'])->name('payment-gateways');
 
         // Platform Settings API
-        Route::get('/platform', [PlatformSettingController::class, 'index'])->name('platform.index');
-        Route::put('/platform', [PlatformSettingController::class, 'update'])->name('platform.update');
-        Route::post('/platform', [PlatformSettingController::class, 'update'])->name('platform.store');
-        Route::post('/platform/test-email', [PlatformSettingController::class, 'sendTestEmail'])->name('platform.test-email');
-        Route::post('/platform/test-sms', [PlatformSettingController::class, 'sendTestSms'])->name('platform.test-sms');
+        Route::get('/platform', [PlatformSettingController::class, 'index'])
+            ->middleware(['module:system-settings,general-settings,platform-settings,view'])
+            ->name('platform.index');
+        Route::put('/platform', [PlatformSettingController::class, 'update'])
+            ->middleware(['module:system-settings,general-settings,platform-settings,update'])
+            ->name('platform.update');
+        Route::post('/platform', [PlatformSettingController::class, 'update'])
+            ->middleware(['module:system-settings,general-settings,platform-settings,update'])
+            ->name('platform.store');
+        Route::post('/platform/test-email', [PlatformSettingController::class, 'sendTestEmail'])
+            ->middleware(['module:system-settings,email-settings,email-config,test'])
+            ->name('platform.test-email');
+        Route::post('/platform/test-sms', [PlatformSettingController::class, 'sendTestSms'])
+            ->middleware(['module:system-settings,general-settings,platform-settings,update'])
+            ->name('platform.test-sms');
 
         // System Maintenance
-        Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
-        Route::put('/maintenance', [MaintenanceController::class, 'update'])->name('maintenance.update');
-        Route::post('/maintenance/toggle', [MaintenanceController::class, 'toggle'])->name('maintenance.toggle');
+        Route::get('/maintenance', [MaintenanceController::class, 'index'])
+            ->middleware(['module:developer-tools,maintenance'])
+            ->name('maintenance.index');
+        Route::put('/maintenance', [MaintenanceController::class, 'update'])
+            ->middleware(['module:developer-tools,maintenance,maintenance-controls,update'])
+            ->name('maintenance.update');
+        Route::post('/maintenance/toggle', [MaintenanceController::class, 'toggle'])
+            ->middleware(['module:developer-tools,maintenance,maintenance-controls,update'])
+            ->name('maintenance.toggle');
     });
 
     // =========================================================================
     // 10. DEVELOPER TOOLS MODULE (developer-tools)
+    // Access: developer-tools, developer-tools.api-management, developer-tools.webhooks, etc.
     // =========================================================================
-    Route::middleware(['platform.super_admin'])->prefix('developer')->name('admin.developer.')->group(function () {
+    Route::middleware(['module:developer-tools'])->prefix('developer')->name('admin.developer.')->group(function () {
         // API Management
         Route::get('/api', function () {
             return Inertia::render('Admin/Developer/Api');
-        })->name('api');
+        })->middleware(['module:developer-tools,api-management'])->name('api');
 
         // Webhooks
         Route::get('/webhooks', function () {
             return Inertia::render('Admin/Developer/Webhooks');
-        })->name('webhooks');
+        })->middleware(['module:developer-tools,webhooks'])->name('webhooks');
 
         // Debug Tools
         Route::get('/debug', function () {
             return Inertia::render('Admin/Developer/Debug');
-        })->name('debug');
+        })->middleware(['module:developer-tools,debug-tools'])->name('debug');
 
         // Queue Management
         Route::get('/queues', function () {
             return Inertia::render('Admin/Developer/Queues');
-        })->name('queues');
+        })->middleware(['module:developer-tools,queue-jobs'])->name('queues');
 
         // Cache Management
         Route::get('/cache', function () {
             return Inertia::render('Admin/Developer/Cache');
-        })->name('cache');
+        })->middleware(['module:developer-tools,cache-management'])->name('cache');
 
         // Maintenance Mode
         Route::get('/maintenance', function () {
             return Inertia::render('Admin/Developer/Maintenance');
-        })->name('maintenance');
+        })->middleware(['module:developer-tools,maintenance'])->name('maintenance');
     });
 
     // =========================================================================
-    // ANALYTICS & REPORTS (Quick Access)
+    // 11. PLATFORM ANALYTICS MODULE (platform-analytics)
+    // Access: platform-analytics, platform-analytics.platform-overview, platform-analytics.revenue-analytics, etc.
     // =========================================================================
-    Route::prefix('analytics')->name('admin.analytics.')->group(function () {
+    Route::middleware(['module:platform-analytics'])->prefix('analytics')->name('admin.analytics.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Analytics/Index');
-        })->name('index');
+        })->middleware(['module:platform-analytics,platform-overview'])->name('index');
 
         Route::get('/revenue', function () {
             return Inertia::render('Admin/Analytics/Revenue');
-        })->name('revenue');
+        })->middleware(['module:platform-analytics,revenue-analytics'])->name('revenue');
 
         Route::get('/usage', function () {
             return Inertia::render('Admin/Analytics/Usage');
-        })->name('usage');
+        })->middleware(['module:platform-analytics,usage-analytics'])->name('usage');
+
+        Route::get('/tenants', function () {
+            return Inertia::render('Admin/Analytics/Tenants');
+        })->middleware(['module:platform-analytics,tenant-analytics'])->name('tenants');
 
         // Module Analytics API
-        Route::get('/modules', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'index'])->name('modules.index');
-        Route::get('/modules/{module}', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'show'])->name('modules.show');
-        Route::get('/modules-trends', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'trends'])->name('modules.trends');
+        Route::get('/modules', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'index'])
+            ->middleware(['module:platform-analytics,usage-analytics'])
+            ->name('modules.index');
+        Route::get('/modules/{module}', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'show'])
+            ->middleware(['module:platform-analytics,usage-analytics,api-usage,view'])
+            ->name('modules.show');
+        Route::get('/modules-trends', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'trends'])
+            ->middleware(['module:platform-analytics,usage-analytics,feature-usage,view'])
+            ->name('modules.trends');
+    });
+
+    // =========================================================================
+    // 12. PLATFORM INTEGRATIONS MODULE (platform-integrations)
+    // Access: platform-integrations, platform-integrations.global-connectors, etc.
+    // =========================================================================
+    Route::middleware(['module:platform-integrations'])->prefix('integrations')->name('admin.integrations.')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Admin/Integrations/Index');
+        })->middleware(['module:platform-integrations,global-connectors'])->name('index');
+
+        Route::get('/api', function () {
+            return Inertia::render('Admin/Integrations/Api');
+        })->middleware(['module:platform-integrations,api-management'])->name('api');
+
+        Route::get('/webhooks', function () {
+            return Inertia::render('Admin/Integrations/Webhooks');
+        })->middleware(['module:platform-integrations,webhook-management'])->name('webhooks');
+
+        Route::get('/tenants', function () {
+            return Inertia::render('Admin/Integrations/Tenants');
+        })->middleware(['module:platform-integrations,tenant-integrations-overview'])->name('tenants');
+
+        Route::get('/logs', function () {
+            return Inertia::render('Admin/Integrations/Logs');
+        })->middleware(['module:platform-integrations,integration-logs'])->name('logs');
     });
 
     // =========================================================================

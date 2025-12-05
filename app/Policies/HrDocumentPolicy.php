@@ -31,8 +31,8 @@ class HrDocumentPolicy
         // If the document is linked to a specific employee
         if ($document->user_id) {
             // Department managers can only see documents for their department members
-            if ($user->hasRole('Department Manager') && $user->department_id) {
-                return $document->user->department_id === $user->department_id;
+            if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
+                return $document->user->employee?->department_id === $user->employee->department_id;
             }
 
             // Employees can only see their own documents

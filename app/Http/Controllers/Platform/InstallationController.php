@@ -628,28 +628,21 @@ class InstallationController extends Controller
             // Stage 3: Seed basic data
             \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
 
-            // 3a: Super Administrator role and platform permissions from config
+            // 3a: Super Administrator role (no permissions - using role-module-access system)
             Artisan::call('db:seed', [
                 '--class' => 'SuperAdministratorRolesSeeder',
                 '--force' => true,
             ]);
             \Log::info('SuperAdministratorRolesSeeder output', ['output' => Artisan::output()]);
 
-            // 3b: Platform module permissions from config/modules.platform_hierarchy
-            Artisan::call('db:seed', [
-                '--class' => 'PlatformModulePermissionSeeder',
-                '--force' => true,
-            ]);
-            \Log::info('PlatformModulePermissionSeeder output', ['output' => Artisan::output()]);
-
-            // 3c: Tenant module hierarchy from config/modules.hierarchy
+            // 3b: Module hierarchy from config/modules.php (platform modules only needed for installation)
             Artisan::call('db:seed', [
                 '--class' => 'ModuleSeeder',
                 '--force' => true,
             ]);
             \Log::info('ModuleSeeder output', ['output' => Artisan::output()]);
 
-            // 3d: Subscription plans with module assignments
+            // 3c: Subscription plans with module assignments
             Artisan::call('db:seed', [
                 '--class' => 'PlanSeeder',
                 '--force' => true,
@@ -670,17 +663,19 @@ class InstallationController extends Controller
                 }
             }
 
-            $admin = LandlordUser::create([
-                'name' => $adminConfig['admin_name'],
-                'email' => $adminConfig['admin_email'],
-                'password' => Hash::make($adminPassword),
-                'email_verified_at' => now(),
-            ]);
-            \Log::info('Admin created', ['admin_id' => $admin->id, 'email' => $admin->email]);
+            $admin = LandlordUser::updateOrCreate(
+                ['email' => $adminConfig['admin_email']],
+                [
+                    'name' => $adminConfig['admin_name'],
+                    'password' => Hash::make($adminPassword),
+                    'email_verified_at' => now(),
+                ]
+            );
+            \Log::info('Admin created/updated', ['admin_id' => $admin->id, 'email' => $admin->email]);
 
-            // Assign Super Administrator role
-            $admin->assignRole('Super Administrator');
-            \Log::info('Role assigned', ['role' => 'Super Administrator']);
+            // Assign Super Administrator role (syncRoles to avoid duplicates)
+            $admin->syncRoles(['Super Administrator']);
+            \Log::info('Role synced', ['role' => 'Super Administrator']);
 
             // Stage 5: Create platform settings with all collected data
             \Log::info('Installation Stage: settings', ['stage' => 'settings']);

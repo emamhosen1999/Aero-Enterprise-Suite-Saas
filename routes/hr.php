@@ -18,10 +18,10 @@ use Illuminate\Support\Facades\Route;
 // Human Resources Module Routes
 Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(function () {
     // HR Dashboard
-    Route::middleware(['permission:hr.dashboard.view'])->get('/dashboard', [PerformanceReviewController::class, 'dashboard'])->name('dashboard');
+    Route::middleware(['module:hrm,dashboard'])->get('/dashboard', [PerformanceReviewController::class, 'dashboard'])->name('dashboard');
 
     // Performance Management
-    Route::middleware(['permission:hr.performance.view'])->group(function () {
+    Route::middleware(['module:hrm,performance'])->group(function () {
         Route::get('/performance', [PerformanceReviewController::class, 'index'])->name('performance.index');
         Route::get('/performance/create', [PerformanceReviewController::class, 'create'])->name('performance.create');
         Route::post('/performance', [PerformanceReviewController::class, 'store'])->name('performance.store');
@@ -41,7 +41,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Training Management
-    Route::middleware(['permission:hr.training.view'])->group(function () {
+    Route::middleware(['module:hrm,training'])->group(function () {
         Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
         Route::get('/training/create', [TrainingController::class, 'create'])->name('training.create');
         Route::post('/training', [TrainingController::class, 'store'])->name('training.store');
@@ -70,7 +70,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Recruitment Management
-    Route::middleware(['permission:hr.recruitment.view'])->group(function () {
+    Route::middleware(['module:hrm,recruitment'])->group(function () {
         Route::get('/recruitment', [RecruitmentController::class, 'index'])->name('recruitment.index');
         Route::post('/recruitment', [RecruitmentController::class, 'store'])->name('recruitment.store');
         Route::get('/recruitment/{id}', [RecruitmentController::class, 'show'])->name('recruitment.show');
@@ -122,7 +122,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Employee Onboarding & Offboarding
-    Route::middleware(['permission:hr.onboarding.view'])->group(function () {
+    Route::middleware(['module:hrm,onboarding'])->group(function () {
         Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
         Route::get('/onboarding/create', [OnboardingController::class, 'create'])->name('onboarding.create');
         Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
@@ -155,7 +155,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Skills & Competency Management
-    Route::middleware(['permission:hr.skills.view'])->group(function () {
+    Route::middleware(['module:hrm,employees,skills'])->group(function () {
         Route::get('/skills', [SkillsController::class, 'index'])->name('skills.index');
         Route::post('/skills', [SkillsController::class, 'store'])->name('skills.store');
         Route::put('/skills/{id}', [SkillsController::class, 'update'])->name('skills.update');
@@ -175,7 +175,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Time Off Management (Industry Standard)
-    Route::middleware(['permission:hr.timeoff.view'])->group(function () {
+    Route::middleware(['module:hrm,time-off'])->group(function () {
         // Time Off Dashboard
         Route::get('/time-off', [TimeOffManagementController::class, 'index'])->name('hr.timeoff.index');
         Route::get('/time-off/dashboard', [TimeOffManagementController::class, 'index'])->name('hr.timeoff.dashboard');
@@ -200,7 +200,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Legacy Time Off routes (for backward compatibility)
-    Route::middleware(['permission:hr.timeoff.view'])->group(function () {
+    Route::middleware(['module:hrm,time-off'])->group(function () {
         Route::get('/time-off-legacy', [TimeOffController::class, 'index'])->name('timeoff-legacy.index');
         Route::get('/time-off-legacy/calendar', [TimeOffController::class, 'calendar'])->name('timeoff-legacy.calendar');
         Route::get('/time-off-legacy/approvals', [TimeOffController::class, 'approvals'])->name('timeoff-legacy.approvals');
@@ -212,7 +212,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Employee Benefits Administration
-    Route::middleware(['permission:hr.benefits.view'])->group(function () {
+    Route::middleware(['module:hrm,employees,benefits'])->group(function () {
         Route::get('/benefits', [BenefitsController::class, 'index'])->name('benefits.index');
         Route::get('/benefits/create', [BenefitsController::class, 'create'])->name('benefits.create');
         Route::post('/benefits', [BenefitsController::class, 'store'])->name('benefits.store');
@@ -229,7 +229,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Enhanced Time-off Management
-    Route::middleware(['permission:hr.timeoff.view'])->group(function () {
+    Route::middleware(['module:hrm,time-off'])->group(function () {
         Route::get('/time-off', [TimeOffController::class, 'index'])->name('timeoff.index');
         Route::get('/time-off/calendar', [TimeOffController::class, 'calendar'])->name('timeoff.calendar');
         Route::get('/time-off/approvals', [TimeOffController::class, 'approvals'])->name('timeoff.approvals');
@@ -241,7 +241,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Workplace Health & Safety
-    Route::middleware(['permission:hr.safety.view'])->group(function () {
+    Route::middleware(['module:hrm,safety'])->group(function () {
         Route::get('/safety', [WorkplaceSafetyController::class, 'index'])->name('safety.index');
         Route::get('/safety/incidents', [WorkplaceSafetyController::class, 'incidents'])->name('safety.incidents.index');
         Route::get('/safety/incidents/create', [WorkplaceSafetyController::class, 'createIncident'])->name('safety.incidents.create');
@@ -265,7 +265,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // HR Analytics & Reporting
-    Route::middleware(['permission:hr.analytics.view'])->group(function () {
+    Route::middleware(['module:hrm,hr-reports'])->group(function () {
         Route::get('/analytics', [HrAnalyticsController::class, 'index'])->name('analytics.index');
         Route::get('/analytics/attendance', [HrAnalyticsController::class, 'attendanceAnalytics'])->name('analytics.attendance');
         Route::get('/analytics/performance', [HrAnalyticsController::class, 'performanceAnalytics'])->name('analytics.performance');
@@ -277,7 +277,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // HR Document Management
-    Route::middleware(['permission:hr.documents.view'])->group(function () {
+    Route::middleware(['module:hrm,documents'])->group(function () {
         Route::get('/documents', [HrDocumentController::class, 'index'])->name('documents.index');
         Route::get('/documents/create', [HrDocumentController::class, 'create'])->name('documents.create');
         Route::post('/documents', [HrDocumentController::class, 'store'])->name('documents.store');
@@ -299,7 +299,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Enhanced Employee Self-Service Portal
-    Route::middleware(['permission:hr.selfservice.view'])->group(function () {
+    Route::middleware(['module:hrm,employees,self-service'])->group(function () {
         Route::get('/self-service', [EmployeeSelfServiceController::class, 'index'])->name('selfservice.index');
         Route::get('/self-service/profile', [EmployeeSelfServiceController::class, 'profile'])->name('selfservice.profile');
         Route::put('/self-service/profile', [EmployeeSelfServiceController::class, 'updateProfile'])->name('selfservice.profile.update');
@@ -313,7 +313,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Payroll Management System
-    Route::middleware(['permission:hr.payroll.view'])->group(function () {
+    Route::middleware(['module:hrm,payroll'])->group(function () {
         Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
         Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
         Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
@@ -345,7 +345,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Employee Management - Core CRUD operations
-    Route::middleware(['permission:hr.employees.view'])->group(function () {
+    Route::middleware(['module:hrm,employees'])->group(function () {
         Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('employees.index');
         Route::get('/employees/paginate', [\App\Http\Controllers\EmployeeController::class, 'paginate'])->name('employees.paginate');
         Route::get('/employees/stats', [\App\Http\Controllers\EmployeeController::class, 'stats'])->name('employees.stats');
@@ -357,7 +357,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     });
 
     // Employee Profile Management (Bank Details, Emergency Contacts)
-    Route::middleware(['permission:hr.employees.view'])->prefix('employees/{user}')->name('employees.')->group(function () {
+    Route::middleware(['module:hrm,employees'])->prefix('employees/{user}')->name('employees.')->group(function () {
         // Profile Overview
         Route::get('/profile', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/edit', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'edit'])->name('profile.edit');
@@ -366,7 +366,7 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         // Bank Details
         Route::get('/bank-details', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
         Route::post('/bank-details/verify', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'verifyBankDetails'])
-            ->middleware('permission:hr.employees.verify')
+            ->middleware('module:hrm,employees,verify')
             ->name('bank-details.verify');
 
         // Emergency Contacts
@@ -382,17 +382,17 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         Route::put('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'update'])->name('documents.update');
         Route::delete('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
         Route::post('/documents/{document}/verify', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'verify'])
-            ->middleware('permission:hr.documents.verify')
+            ->middleware('module:hrm,documents,verify')
             ->name('documents.verify');
     });
 
     // Document Expiry Dashboard (HR Admin)
-    Route::middleware(['permission:hr.documents.view'])->group(function () {
+    Route::middleware(['module:hrm,documents'])->group(function () {
         Route::get('/documents/expiring', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
     });
 
     // Salary Structure Management
-    Route::middleware(['permission:hr.payroll.view'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
+    Route::middleware(['module:hrm,payroll'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
         Route::get('/', [\App\Http\Controllers\HR\SalaryStructureController::class, 'index'])->name('index');
         Route::post('/', [\App\Http\Controllers\HR\SalaryStructureController::class, 'store'])->name('store');
         Route::put('/{id}', [\App\Http\Controllers\HR\SalaryStructureController::class, 'update'])->name('update');

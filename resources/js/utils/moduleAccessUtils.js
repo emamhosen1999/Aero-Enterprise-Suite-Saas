@@ -179,10 +179,10 @@ export const getActionScope = (actionPath, auth = null) => {
 export const isSuperAdmin = (user) => {
     if (!user) return false;
     
-    // Check various super admin indicators
+    // Check various super admin indicators on user object
     if (user.is_super_admin) return true;
     
-    // Check platform super admin flag (passed from auth)
+    // Check platform super admin flag (passed from backend)
     if (user.is_platform_super_admin) return true;
     
     // Check tenant super admin flag
@@ -190,12 +190,13 @@ export const isSuperAdmin = (user) => {
     
     // Check roles array
     if (user.roles && Array.isArray(user.roles)) {
-        return user.roles.some(role => 
-            role.name === 'Super Administrator' || 
-            role.name === 'tenant_super_administrator' ||
-            role.name === 'Platform Super Admin' ||
-            role.name === 'platform_super_admin'
-        );
+        return user.roles.some(role => {
+            const roleName = typeof role === 'string' ? role : role.name;
+            return roleName === 'Super Administrator' || 
+                   roleName === 'tenant_super_administrator' ||
+                   roleName === 'Platform Super Admin' ||
+                   roleName === 'platform_super_admin';
+        });
     }
     
     // Check role string
@@ -203,6 +204,29 @@ export const isSuperAdmin = (user) => {
         return true;
     }
 
+    return false;
+};
+
+/**
+ * Check if auth object indicates super admin status
+ * Handles both admin context (isPlatformSuperAdmin on auth) and tenant context (on user)
+ * @param {Object} auth - Auth object from Inertia usePage().props
+ * @returns {boolean} True if Super Admin
+ */
+export const isAuthSuperAdmin = (auth) => {
+    if (!auth) return false;
+    
+    // Check auth-level flags (admin context)
+    if (auth.isPlatformSuperAdmin) return true;
+    if (auth.isTenantSuperAdmin) return true;
+    if (auth.isSuperAdmin) return true;
+    
+    // Check user-level flags
+    const user = auth.user;
+    if (user) {
+        return isSuperAdmin(user);
+    }
+    
     return false;
 };
 
@@ -298,6 +322,7 @@ export default {
     canPerformAction,
     getActionScope,
     isSuperAdmin,
+    isAuthSuperAdmin,
     getAccessibleModules,
     hasAccess,
     checkAccess,

@@ -29,8 +29,8 @@ class OffboardingPolicy
         }
 
         // Department managers can only see offboarding for their department members
-        if ($user->hasRole('Department Manager') && $user->department_id) {
-            return $offboarding->employee && $offboarding->employee->department_id === $user->department_id;
+        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
+            return $offboarding->employee && $offboarding->employee->department_id === $user->employee->department_id;
         }
 
         // Employees can only see their own offboarding

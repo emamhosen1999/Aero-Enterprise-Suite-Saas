@@ -27,6 +27,9 @@ class IdentifyDomainContext
      * - platform.com (CONTEXT_PLATFORM)
      * - {tenant}.platform.com (CONTEXT_TENANT)
      *
+     * Note: Database connection is set by SetDatabaseConnectionFromDomain
+     * middleware which runs globally before sessions start.
+     *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
@@ -54,7 +57,7 @@ class IdentifyDomainContext
         if ($this->matchesDomain($host, $adminDomain)) {
             return self::CONTEXT_ADMIN;
         }
-        
+
         // Fallback: if host starts with 'admin.' it's likely admin domain
         if (str_starts_with($host, 'admin.')) {
             return self::CONTEXT_ADMIN;

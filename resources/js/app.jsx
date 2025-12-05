@@ -114,7 +114,8 @@ const resolveInertiaPage = (name) => {
     }
 
     // Check Admin pages (for admin.* routes)
-    const adminKey = `./Admin/Pages/${name}.jsx`;
+    // Supports both "Admin/Users/Index" and "Users/Index" - strips Admin/ prefix if present
+    const adminKey = `./Admin/Pages/${name.replace(/^Admin\//, '')}.jsx`;
     if (adminKey in adminPages) {
         return resolvePageComponent(adminKey, adminPages);
     }

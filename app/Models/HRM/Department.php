@@ -58,19 +58,28 @@ class Department extends Model
     }
 
     /**
-     * Get employees belonging to this department
+     * Get employees belonging to this department.
+     * Employees are stored in the employees table, not users table.
      */
     public function employees()
     {
-        return $this->hasMany(User::class, 'department_id');
+        return $this->hasMany(Employee::class, 'department_id');
     }
 
     /**
-     * Alias for employees relationship (for consistency with other models)
+     * Get users belonging to this department (via employee relationship).
+     * This is a helper for getting User models through employees.
      */
     public function users()
     {
-        return $this->hasMany(User::class, 'department_id');
+        return $this->hasManyThrough(
+            User::class,
+            Employee::class,
+            'department_id', // Foreign key on employees table
+            'id',            // Foreign key on users table
+            'id',            // Local key on departments table
+            'user_id'        // Local key on employees table
+        );
     }
 
     /**

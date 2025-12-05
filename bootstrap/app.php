@@ -68,6 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // Super Admin Protection Middleware (Compliance: Section 13)
             'platform.super_admin' => \App\Http\Middleware\PlatformSuperAdmin::class,
             'tenant.super_admin' => \App\Http\Middleware\TenantSuperAdmin::class,
+            'module' => \App\Http\Middleware\CheckModuleAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('system_settings', function (Blueprint $table) {
-            $table->json('sms_settings')->nullable()->after('email_settings');
-            $table->json('organization')->nullable()->after('advanced');
+            if (! Schema::hasColumn('system_settings', 'sms_settings')) {
+                $table->json('sms_settings')->nullable()->after('email_settings');
+            }
+            if (! Schema::hasColumn('system_settings', 'organization')) {
+                $table->json('organization')->nullable()->after('advanced');
+            }
         });
     }
 
@@ -23,7 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('system_settings', function (Blueprint $table) {
-            $table->dropColumn(['sms_settings', 'organization']);
+            if (Schema::hasColumn('system_settings', 'sms_settings')) {
+                $table->dropColumn('sms_settings');
+            }
+            if (Schema::hasColumn('system_settings', 'organization')) {
+                $table->dropColumn('organization');
+            }
         });
     }
 };

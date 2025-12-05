@@ -35,8 +35,8 @@ class SafetyTrainingPolicy
         }
 
         // Department managers can only see trainings in their department
-        if ($user->hasRole('Department Manager') && $user->department_id) {
-            return $safetyTraining->department_id === $user->department_id;
+        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
+            return $safetyTraining->department_id === $user->employee->department_id;
         }
 
         // HR, Safety Officers, and higher roles can see all

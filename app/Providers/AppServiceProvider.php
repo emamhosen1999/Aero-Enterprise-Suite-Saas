@@ -7,6 +7,8 @@ use App\Repositories\Contracts\AttendanceSettingRepositoryInterface;
 use App\Repositories\Contracts\CompanySettingRepositoryInterface;
 use App\Repositories\Eloquent\AttendanceSettingRepository;
 use App\Repositories\Eloquent\CompanySettingRepository;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
@@ -20,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Force file-based cache/session during installation when database is not available
+        $this->forceFileDriversIfNeeded();
+
         $this->app->bind(
             CompanySettingRepositoryInterface::class,
             CompanySettingRepository::class
@@ -29,6 +34,45 @@ class AppServiceProvider extends ServiceProvider
             AttendanceSettingRepositoryInterface::class,
             AttendanceSettingRepository::class
         );
+    }
+
+    /**
+     * Force file-based cache and session drivers when database is not available.
+     * This is essential for the installation process to work without database.
+     */
+    private function forceFileDriversIfNeeded(): void
+    {
+        // Check if this is an installation route
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $isInstallationRoute = str_contains($uri, '/install');
+
+        // If using database drivers, check if database/tables are available
+        $cacheDriver = config('cache.default');
+        $sessionDriver = config('session.driver');
+
+        if ($cacheDriver === 'database' || $sessionDriver === 'database' || $isInstallationRoute) {
+            try {
+                // Try to connect to database
+                DB::connection()->getPdo();
+
+                // Check if required tables exist
+                $schema = DB::getSchemaBuilder();
+                $cacheTableExists = $schema->hasTable('cache');
+                $sessionsTableExists = $schema->hasTable('sessions');
+
+                if (! $cacheTableExists || $isInstallationRoute) {
+                    Config::set('cache.default', 'file');
+                }
+
+                if (! $sessionsTableExists || $isInstallationRoute) {
+                    Config::set('session.driver', 'file');
+                }
+            } catch (\Exception $e) {
+                // Database not accessible - force file drivers
+                Config::set('cache.default', 'file');
+                Config::set('session.driver', 'file');
+            }
+        }
     }
 
     /**

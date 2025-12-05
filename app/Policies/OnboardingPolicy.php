@@ -29,8 +29,8 @@ class OnboardingPolicy
         }
 
         // Department managers can only see onboarding for their department members
-        if ($user->hasRole('Department Manager') && $user->department_id) {
-            return $onboarding->employee && $onboarding->employee->department_id === $user->department_id;
+        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
+            return $onboarding->employee && $onboarding->employee->department_id === $user->employee->department_id;
         }
 
         // Employees can only see their own onboarding

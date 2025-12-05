@@ -8,6 +8,7 @@ use App\Models\Module;
 use App\Models\PlatformSetting;
 use App\Models\SystemSetting;
 use App\Services\Module\ModulePermissionService;
+use App\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
@@ -169,6 +170,21 @@ class HandleInertiaRequests extends Middleware
                     'role' => $user->role,
                     'avatar_url' => $user->avatar_url,
                     'initials' => $user->initials,
+                    // Module access data for non-super-admin users
+                    'module_access' => $user && ! $user->isSuperAdmin()
+                        ? $this->getUserModuleAccess($user)
+                        : null,
+                    'accessible_modules' => $user && ! $user->isSuperAdmin()
+                        ? $this->getUserAccessibleModules($user)
+                        : null,
+                    'modules_lookup' => $user && ! $user->isSuperAdmin()
+                        ? $this->getModulesLookup()
+                        : null,
+                    'sub_modules_lookup' => $user && ! $user->isSuperAdmin()
+                        ? $this->getSubModulesLookup()
+                        : null,
+                    'is_super_admin' => $user?->isSuperAdmin() ?? false,
+                    'is_platform_super_admin' => $user?->hasRole('Super Administrator') ?? false,
                 ] : null,
                 'isAuthenticated' => (bool) $user,
                 'sessionValid' => $user && $request->session()->isStarted(),
@@ -320,6 +336,9 @@ class HandleInertiaRequests extends Middleware
         // Get tenant plan limits for feature gating
         $tenantPlanLimits = $this->getTenantPlanLimits();
 
+        // Check if user is tenant super admin (bypasses module access checks)
+        $isTenantSuperAdmin = $user?->hasRole('tenant_super_administrator') ?? false;
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -330,6 +349,21 @@ class HandleInertiaRequests extends Middleware
                         'name' => $userWithRelations->attendanceType->name,
                         'slug' => $userWithRelations->attendanceType->slug,
                     ] : null,
+                    // Module access data for dynamic access checking
+                    'module_access' => $user && ! $isTenantSuperAdmin
+                        ? $this->getTenantUserModuleAccess($user)
+                        : null,
+                    'accessible_modules' => $user && ! $isTenantSuperAdmin
+                        ? $this->getTenantUserAccessibleModules($user)
+                        : null,
+                    'modules_lookup' => $user && ! $isTenantSuperAdmin
+                        ? $this->getModulesLookup()
+                        : null,
+                    'sub_modules_lookup' => $user && ! $isTenantSuperAdmin
+                        ? $this->getSubModulesLookup()
+                        : null,
+                    'is_super_admin' => $isTenantSuperAdmin,
+                    'is_tenant_super_admin' => $isTenantSuperAdmin,
                 ] : null,
                 'isAuthenticated' => (bool) $user,
                 'sessionValid' => $user && $request->session()->isStarted(),
@@ -341,7 +375,8 @@ class HandleInertiaRequests extends Middleware
                     : [],
                 // Compliance: Section 10 - Frontend Super Admin flags
                 'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
-                'isTenantSuperAdmin' => $user?->hasRole('tenant_super_administrator') ?? false,
+                'isTenantSuperAdmin' => $isTenantSuperAdmin,
+                'isSuperAdmin' => $isTenantSuperAdmin, // Tenant context: Super Admin = Tenant Super Admin
             ],
             'context' => 'tenant',
             'tenant' => [
@@ -752,6 +787,243 @@ class HandleInertiaRequests extends Middleware
                     })->values()->toArray(),
                 ];
             })->toArray();
+        });
+    }
+
+    /**
+     * Get user's module access tree (for admin/landlord users).
+     *
+     * Returns the access tree structure for frontend access checking.
+     *
+     * @param  \App\Models\LandlordUser  $user
+     * @return array<string, array>
+     */
+    protected function getUserModuleAccess($user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $cacheKey = "landlord_user_module_access:{$user->id}";
+
+        return Cache::remember($cacheKey, 600, function () use ($user) {
+            $roleModuleAccessService = app(RoleModuleAccessService::class);
+
+            // Get all roles for the user
+            $roles = $user->roles ?? collect();
+            if ($roles->isEmpty()) {
+                return [
+                    'modules' => [],
+                    'sub_modules' => [],
+                    'components' => [],
+                    'actions' => [],
+                ];
+            }
+
+            // Aggregate access from all roles
+            $allModuleIds = collect();
+            $allSubModuleIds = collect();
+            $allComponentIds = collect();
+            $allActions = collect();
+
+            foreach ($roles as $role) {
+                $accessTree = $roleModuleAccessService->getRoleAccessTree($role);
+                $allModuleIds = $allModuleIds->merge($accessTree['modules'] ?? []);
+                $allSubModuleIds = $allSubModuleIds->merge($accessTree['sub_modules'] ?? []);
+                $allComponentIds = $allComponentIds->merge($accessTree['components'] ?? []);
+                $allActions = $allActions->merge($accessTree['actions'] ?? []);
+            }
+
+            return [
+                'modules' => $allModuleIds->unique()->values()->toArray(),
+                'sub_modules' => $allSubModuleIds->unique()->values()->toArray(),
+                'components' => $allComponentIds->unique()->values()->toArray(),
+                'actions' => $allActions->unique(fn ($a) => $a['id'])->values()->toArray(),
+            ];
+        });
+    }
+
+    /**
+     * Get accessible modules for the user (for admin/landlord users).
+     *
+     * @param  \App\Models\LandlordUser  $user
+     * @return array<int, array{id: int, code: string, name: string}>
+     */
+    protected function getUserAccessibleModules($user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $cacheKey = "landlord_user_accessible_modules:{$user->id}";
+
+        return Cache::remember($cacheKey, 600, function () use ($user) {
+            $roleModuleAccessService = app(RoleModuleAccessService::class);
+
+            $roles = $user->roles ?? collect();
+            if ($roles->isEmpty()) {
+                return [];
+            }
+
+            $allModuleIds = collect();
+            foreach ($roles as $role) {
+                $moduleIds = $roleModuleAccessService->getAccessibleModuleIds($role);
+                $allModuleIds = $allModuleIds->merge($moduleIds);
+            }
+
+            $uniqueModuleIds = $allModuleIds->unique()->values()->toArray();
+
+            return Module::whereIn('id', $uniqueModuleIds)
+                ->where('is_active', true)
+                ->get(['id', 'code', 'name'])
+                ->toArray();
+        });
+    }
+
+    /**
+     * Get modules lookup (id => code mapping).
+     *
+     * @return array<int, string>
+     */
+    protected function getModulesLookup(): array
+    {
+        return Cache::remember('modules_lookup', 3600, function () {
+            return Module::where('is_active', true)
+                ->pluck('code', 'id')
+                ->toArray();
+        });
+    }
+
+    /**
+     * Get submodules lookup (id => "module.submodule" mapping).
+     *
+     * @return array<int, string>
+     */
+    protected function getSubModulesLookup(): array
+    {
+        return Cache::remember('sub_modules_lookup', 3600, function () {
+            return \App\Models\SubModule::with('module')
+                ->where('is_active', true)
+                ->get()
+                ->mapWithKeys(function ($subModule) {
+                    return [$subModule->id => $subModule->module->code.'.'.$subModule->code];
+                })
+                ->toArray();
+        });
+    }
+
+    /**
+     * Get module access for a tenant user.
+     *
+     * @param  \App\Models\User  $user
+     * @return array<string, array>
+     */
+    protected function getTenantUserModuleAccess($user): array
+    {
+        if (! $user || ! tenant()) {
+            return [];
+        }
+
+        $cacheKey = "tenant_user_module_access:{$user->id}";
+
+        return Cache::remember($cacheKey, 600, function () use ($user) {
+            $roleModuleAccessService = app(RoleModuleAccessService::class);
+
+            // Get all roles for the user
+            $roles = $user->roles ?? collect();
+            if ($roles->isEmpty()) {
+                return [
+                    'modules' => [],
+                    'sub_modules' => [],
+                    'components' => [],
+                    'actions' => [],
+                ];
+            }
+
+            // Aggregate access from all roles
+            $allModuleIds = collect();
+            $allSubModuleIds = collect();
+            $allComponentIds = collect();
+            $allActions = collect();
+
+            foreach ($roles as $role) {
+                $accessTree = $roleModuleAccessService->getRoleAccessTree($role);
+                $allModuleIds = $allModuleIds->merge($accessTree['modules'] ?? []);
+                $allSubModuleIds = $allSubModuleIds->merge($accessTree['sub_modules'] ?? []);
+                $allComponentIds = $allComponentIds->merge($accessTree['components'] ?? []);
+                $allActions = $allActions->merge($accessTree['actions'] ?? []);
+            }
+
+            // Filter by tenant's active modules
+            $tenantActiveModuleIds = $this->getTenantActiveModuleIds();
+
+            return [
+                'modules' => $allModuleIds->unique()->filter(fn ($id) => in_array($id, $tenantActiveModuleIds))->values()->toArray(),
+                'sub_modules' => $allSubModuleIds->unique()->values()->toArray(),
+                'components' => $allComponentIds->unique()->values()->toArray(),
+                'actions' => $allActions->unique(fn ($a) => $a['id'])->values()->toArray(),
+            ];
+        });
+    }
+
+    /**
+     * Get accessible modules for a tenant user.
+     *
+     * @param  \App\Models\User  $user
+     * @return array<int, array{id: int, code: string, name: string}>
+     */
+    protected function getTenantUserAccessibleModules($user): array
+    {
+        if (! $user || ! tenant()) {
+            return [];
+        }
+
+        $cacheKey = "tenant_user_accessible_modules:{$user->id}";
+
+        return Cache::remember($cacheKey, 600, function () use ($user) {
+            $roleModuleAccessService = app(RoleModuleAccessService::class);
+
+            $roles = $user->roles ?? collect();
+            if ($roles->isEmpty()) {
+                return [];
+            }
+
+            $allModuleIds = collect();
+            foreach ($roles as $role) {
+                $moduleIds = $roleModuleAccessService->getAccessibleModuleIds($role);
+                $allModuleIds = $allModuleIds->merge($moduleIds);
+            }
+
+            $uniqueModuleIds = $allModuleIds->unique()->values()->toArray();
+
+            // Filter by tenant's active modules
+            $tenantActiveModuleIds = $this->getTenantActiveModuleIds();
+            $filteredModuleIds = array_intersect($uniqueModuleIds, $tenantActiveModuleIds);
+
+            return Module::whereIn('id', $filteredModuleIds)
+                ->where('is_active', true)
+                ->get(['id', 'code', 'name'])
+                ->toArray();
+        });
+    }
+
+    /**
+     * Get tenant's active module IDs.
+     *
+     * @return array<int>
+     */
+    protected function getTenantActiveModuleIds(): array
+    {
+        if (! tenant()) {
+            return [];
+        }
+
+        $cacheKey = 'tenant_active_module_ids:'.tenant('id');
+
+        return Cache::remember($cacheKey, 1800, function () {
+            $activeModules = $this->getTenantActiveModules();
+
+            return collect($activeModules)->pluck('id')->toArray();
         });
     }
 }

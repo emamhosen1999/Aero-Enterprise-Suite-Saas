@@ -11,7 +11,7 @@ Route::middleware(['auth', 'verified'])->prefix('dms')->name('dms.')->group(func
     Route::get('/', [DMSController::class, 'index'])->name('index');
 
     // Document management routes
-    Route::middleware(['permission:dms.view'])->group(function () {
+    Route::middleware(['module:dms'])->group(function () {
         Route::get('/documents', [DMSController::class, 'documents'])->name('documents');
         Route::get('/documents/{document}', [DMSController::class, 'show'])->name('documents.show');
         Route::get('/documents/{document}/download', [DMSController::class, 'download'])->name('documents.download');
@@ -20,7 +20,7 @@ Route::middleware(['auth', 'verified'])->prefix('dms')->name('dms.')->group(func
     });
 
     // Document creation and upload
-    Route::middleware(['permission:dms.create'])->group(function () {
+    Route::middleware(['module:dms,documents,create'])->group(function () {
         Route::get('/documents/create', [DMSController::class, 'create'])->name('documents.create');
         Route::post('/documents', [DMSController::class, 'store'])->name('documents.store');
 
@@ -36,7 +36,7 @@ Route::middleware(['auth', 'verified'])->prefix('dms')->name('dms.')->group(func
     });
 
     // Document editing
-    Route::middleware(['permission:dms.update'])->group(function () {
+    Route::middleware(['module:dms,documents,update'])->group(function () {
         Route::put('/documents/{document}', [DMSController::class, 'update'])->name('documents.update');
         Route::post('/documents/{document}/share', [DMSController::class, 'share'])->name('documents.share');
 
@@ -51,12 +51,12 @@ Route::middleware(['auth', 'verified'])->prefix('dms')->name('dms.')->group(func
     });
 
     // Document deletion
-    Route::middleware(['permission:dms.delete'])->group(function () {
+    Route::middleware(['module:dms,documents,delete'])->group(function () {
         Route::delete('/documents/{document}', [DMSController::class, 'destroy'])->name('documents.destroy');
     });
 
     // Category and folder management
-    Route::middleware(['permission:dms.manage'])->group(function () {
+    Route::middleware(['module:dms,categories'])->group(function () {
         Route::get('/categories', [DMSController::class, 'categories'])->name('categories');
         Route::post('/categories', [DMSController::class, 'storeCategory'])->name('categories.store');
         Route::put('/categories/{category}', [DMSController::class, 'updateCategory'])->name('categories.update');
@@ -69,7 +69,7 @@ Route::middleware(['auth', 'verified'])->prefix('dms')->name('dms.')->group(func
     });
 
     // Admin routes
-    Route::middleware(['permission:dms.admin'])->group(function () {
+    Route::middleware(['module:dms,access-control'])->group(function () {
         Route::get('/access-control', [DMSController::class, 'accessControl'])->name('access-control');
         Route::post('/access-control/update', [DMSController::class, 'updateAccessControl'])->name('access-control.update');
     });

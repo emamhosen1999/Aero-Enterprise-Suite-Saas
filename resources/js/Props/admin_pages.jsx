@@ -52,7 +52,7 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 
-import { hasAccess, isSuperAdmin } from '@/utils/moduleAccessUtils';
+import { hasAccess, isSuperAdmin, isAuthSuperAdmin } from '@/utils/moduleAccessUtils';
 
 /**
  * Get Platform Admin navigation pages
@@ -62,9 +62,10 @@ import { hasAccess, isSuperAdmin } from '@/utils/moduleAccessUtils';
  */
 export const getAdminPages = (auth = null) => {
   const user = auth?.user || null;
-  // Check for super admin status via user object or auth flags
-  const userIsSuperAdmin = user ? isSuperAdmin(user) : false;
-  const isPlatformSuperAdmin = auth?.isPlatformSuperAdmin || auth?.isSuperAdmin || userIsSuperAdmin;
+  
+  // Check for super admin status using the auth-aware helper
+  // This handles both admin context (isPlatformSuperAdmin on auth) and user-level checks
+  const isPlatformSuperAdmin = isAuthSuperAdmin(auth);
 
   /**
    * Platform Navigation Structure

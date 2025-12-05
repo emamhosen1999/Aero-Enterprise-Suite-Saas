@@ -29,8 +29,8 @@ class SafetyInspectionPolicy
         }
 
         // Department managers can only see inspections in their department
-        if ($user->hasRole('Department Manager') && $user->department_id) {
-            return $safetyInspection->department_id === $user->department_id;
+        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
+            return $safetyInspection->department_id === $user->employee->department_id;
         }
 
         // HR, Safety Officers, and higher roles can see all

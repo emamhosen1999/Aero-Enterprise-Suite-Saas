@@ -17,6 +17,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\SetDatabaseConnectionFromDomain::class, // Set DB connection based on domain BEFORE sessions
         \App\Http\Middleware\DeviceAuthMiddleware::class, // Global device authentication
     ];
 

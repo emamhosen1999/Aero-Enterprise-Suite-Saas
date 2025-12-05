@@ -118,8 +118,14 @@ class DesignationController extends Controller
         ]);
 
         $user = User::findOrFail($id);
-        $user->designation_id = $request->input('designation_id');
-        $user->save();
+        $employee = $user->employee;
+
+        if (! $employee) {
+            return response()->json(['errors' => ['user' => 'User is not an employee. Please onboard them first.']], 422);
+        }
+
+        $employee->designation_id = $request->input('designation_id');
+        $employee->save();
 
         return response()->json(['messages' => ['Designation updated successfully']], 200);
     }

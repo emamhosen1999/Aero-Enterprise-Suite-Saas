@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Force file-based sessions for installation routes.
+ * Force file-based sessions and cache for installation routes.
  *
  * This middleware ensures that installation routes use file-based sessions
- * instead of the default database driver, since the sessions table doesn't
+ * and cache instead of the default database driver, since the tables don't
  * exist yet during initial installation.
  *
- * It also forces file sessions if database is not accessible.
+ * It also forces file drivers if database is not accessible.
  */
 class ForceFileSessionForInstallation
 {
@@ -26,31 +26,35 @@ class ForceFileSessionForInstallation
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $shouldUseFileSessions = false;
+        $shouldUseFileDrivers = false;
 
-        // Always use file sessions for installation routes
+        // Always use file drivers for installation routes
         if ($request->routeIs('installation.*') || $request->is('install*')) {
-            $shouldUseFileSessions = true;
+            $shouldUseFileDrivers = true;
         }
 
-        // Check if database is accessible - if not, force file sessions
+        // Check if database is accessible - if not, force file drivers
         // This prevents errors when database is not yet configured
-        if (! $shouldUseFileSessions) {
+        if (! $shouldUseFileDrivers) {
             try {
                 DB::connection()->getPdo();
-                // Check if sessions table exists
-                if (! DB::getSchemaBuilder()->hasTable('sessions')) {
-                    $shouldUseFileSessions = true;
+                // Check if required tables exist
+                $schema = DB::getSchemaBuilder();
+                if (! $schema->hasTable('sessions') || ! $schema->hasTable('cache')) {
+                    $shouldUseFileDrivers = true;
                 }
             } catch (\Exception $e) {
-                // Database not accessible - force file sessions
-                $shouldUseFileSessions = true;
+                // Database not accessible - force file drivers
+                $shouldUseFileDrivers = true;
             }
         }
 
-        if ($shouldUseFileSessions) {
+        if ($shouldUseFileDrivers) {
             // Force file-based session driver to avoid database dependency
             Config::set('session.driver', 'file');
+
+            // Force file-based cache driver to avoid database dependency
+            Config::set('cache.default', 'file');
         }
 
         return $next($request);

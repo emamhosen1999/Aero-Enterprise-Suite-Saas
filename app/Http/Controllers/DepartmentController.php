@@ -190,6 +190,14 @@ class DepartmentController extends Controller
 
             $user = User::findOrFail($id);
 
+            // Get or create employee record
+            $employee = $user->employee;
+            if (! $employee) {
+                return response()->json([
+                    'errors' => ['user' => 'User is not an employee. Please onboard them first.'],
+                ], 422);
+            }
+
             // Get the new department ID and verify it exists
             $newDepartmentId = $request->input('department');
             $department = Department::find($newDepartmentId);
@@ -201,21 +209,21 @@ class DepartmentController extends Controller
             }
 
             // Check if department changed
-            $departmentChanged = $user->department_id !== $newDepartmentId;
+            $departmentChanged = $employee->department_id !== $newDepartmentId;
 
-            // Update department
-            $user->department_id = $newDepartmentId;
+            // Update department on employee record
+            $employee->department_id = $newDepartmentId;
 
             // Optionally reset designation if department changed
             if ($departmentChanged) {
-                $user->designation_id = null; // Reset designation when department changes
+                $employee->designation_id = null; // Reset designation when department changes
             }
 
-            $user->save();
+            $employee->save();
 
             return response()->json([
                 'messages' => ['Department updated successfully'],
-                'user' => $user, // Optional: return updated user info
+                'user' => $user->load('employee.department', 'employee.designation'),
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error on updateUserDepartment', [

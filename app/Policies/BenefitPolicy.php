@@ -34,10 +34,10 @@ class BenefitPolicy
         }
 
         // Department managers can only see benefits for their department members
-        if ($user->hasRole('Department Manager') && $user->department_id) {
+        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
             return $benefit->employees()
                 ->whereHas('department', function ($query) use ($user) {
-                    $query->where('id', $user->department_id);
+                    $query->where('id', $user->employee->department_id);
                 })->exists();
         }
 

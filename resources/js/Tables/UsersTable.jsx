@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { showToast } from '@/utils/toastUtils';
 import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 import { 
@@ -17,6 +17,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  DropdownSection,
   Switch,
   Pagination,
   Spinner,
@@ -52,6 +53,25 @@ const getThemeRadius = () => {
   return 'var(--borderRadius, 12px)';
 };
 
+/**
+ * Helper to get routes based on context
+ */
+const getRoutes = (context) => {
+  const isAdmin = context === 'admin';
+  return {
+    // Device routes - available in tenant context only (admin uses different flow)
+    devices: isAdmin ? null : 'admin.users.devices',
+    devicesToggle: isAdmin ? null : 'admin.users.devices.toggle',
+    devicesReset: isAdmin ? null : 'admin.users.devices.reset',
+    // User management routes
+    toggleStatus: isAdmin ? 'admin.users.toggle-status' : 'users.toggleStatus',
+    updateRoles: isAdmin ? 'admin.users.update-roles' : 'users.updateRole',
+    destroy: isAdmin ? 'admin.users.destroy' : 'users.destroy',
+    profile: isAdmin ? 'admin.users.show' : 'profile',
+    profileDelete: isAdmin ? 'admin.users.destroy' : 'profile.delete',
+  };
+};
+
 const UsersTable = ({ 
   allUsers, 
   roles, 
@@ -72,7 +92,93 @@ const UsersTable = ({
   toggleSingleDeviceLogin,
   resetUserDevice,
   deviceActions = {},
+  // Context for route generation
+  context = 'tenant',
 }) => {
+  // Get routes for the current context
+  const routes = getRoutes(context);
+  
+  // Get current user's auth info
+  const { auth } = usePage().props;
+  
+  // Helper to check if a user has Super Admin role
+  const isSuperAdmin = (user) => {
+    if (!user) return false;
+    
+    // Check for platform admin context flags (from HandleInertiaRequests)
+    if (user.is_super_admin === true || user.is_platform_super_admin === true) {
+      return true;
+    }
+    
+    // Check roles array (tenant context or user list items)
+    if (user.roles && Array.isArray(user.roles)) {
+      const roleNames = user.roles.map(r => typeof r === 'object' ? r.name : r);
+      return roleNames.some(name => 
+        name.toLowerCase().includes('super') && name.toLowerCase().includes('admin')
+      );
+    }
+    
+    // Check single role field (admin context)
+    if (user.role && typeof user.role === 'string') {
+      return user.role.toLowerCase().includes('super') && user.role.toLowerCase().includes('admin');
+    }
+    
+    return false;
+  };
+  
+  // Check if current logged-in user is Super Admin
+  // Also check the auth-level flags for admin context
+  const currentUserIsSuperAdmin = useMemo(() => {
+    // First check auth-level flags (set by HandleInertiaRequests)
+    if (auth?.isSuperAdmin === true || auth?.isPlatformSuperAdmin === true) {
+      return true;
+    }
+    // Fall back to checking the user object
+    return isSuperAdmin(auth?.user);
+  }, [auth?.user, auth?.isSuperAdmin, auth?.isPlatformSuperAdmin]);
+  
+  // Count total Super Admins in the user list
+  const superAdminCount = useMemo(() => {
+    return (allUsers || []).filter(user => isSuperAdmin(user)).length;
+  }, [allUsers]);
+  
+  // Check if current user can EDIT another user
+  // Super Admins can edit other Super Admins (including themselves)
+  // Non-Super Admins cannot edit Super Admins
+  const canEditUser = (targetUser) => {
+    if (isSuperAdmin(targetUser)) {
+      return currentUserIsSuperAdmin;
+    }
+    return true;
+  };
+  
+  // Check if current user can DELETE another user
+  // Super Admins can delete other Super Admins, but:
+  // - Cannot delete themselves if they are the ONLY Super Admin
+  // - Can delete themselves if there are other Super Admins
+  const canDeleteUser = (targetUser) => {
+    const targetIsSuperAdmin = isSuperAdmin(targetUser);
+    const isCurrentUser = targetUser.id === auth?.user?.id;
+    
+    // Non-Super Admins cannot delete Super Admins
+    if (targetIsSuperAdmin && !currentUserIsSuperAdmin) {
+      return false;
+    }
+    
+    // If trying to delete self and is Super Admin
+    if (isCurrentUser && currentUserIsSuperAdmin) {
+      // Can only delete self if there's more than one Super Admin
+      return superAdminCount > 1;
+    }
+    
+    // Super Admins can delete other Super Admins
+    // Regular users can be deleted by anyone with permission
+    return true;
+  };
+  
+  // Legacy function for backward compatibility - used for edit actions
+  const canManageUser = canEditUser;
+  
   const [loadingStates, setLoadingStates] = useState({});
 
   // Device detection functions (copied from UserDeviceManagement)
@@ -162,7 +268,7 @@ const UsersTable = ({
     setLoading(userId, 'delete', true);
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch(route('profile.delete'), {
+        const response = await fetch(route(routes.profileDelete, { user: userId }), {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -197,21 +303,29 @@ const UsersTable = ({
       { name: "#", uid: "sl" },
       { name: "USER", uid: "user" },
       { name: "EMAIL", uid: "email" },
-      { name: "DEPARTMENT", uid: "department" },
-      { name: "DEVICE STATUS", uid: "device_status" },
+      // Department only for tenant context
+      ...(context === 'tenant' ? [{ name: "DEPARTMENT", uid: "department" }] : []),
       { name: "STATUS", uid: "status" },
       { name: "ROLES", uid: "roles" },
       { name: "ACTIONS", uid: "actions" }
     ];
 
+    // Add device status column only for tenant context
+    if (context === 'tenant') {
+      const statusIndex = baseColumns.findIndex(col => col.uid === 'status');
+      baseColumns.splice(statusIndex, 0, { name: "DEVICE STATUS", uid: "device_status" });
+    }
+
     // Add or remove columns based on screen size
     if (!isMobile && !isTablet) {
       baseColumns.splice(3, 0, { name: "PHONE", uid: "phone" });
     } else if (isMobile) {
-      // On mobile, remove phone and department to make room for device status
-      baseColumns.splice(baseColumns.findIndex(col => col.uid === "department"), 1);
-      baseColumns.splice(baseColumns.findIndex(col => col.uid === "device_status"), 1);
-    } else if (isTablet) {
+      // On mobile, remove phone and department to make room
+      const deptIndex = baseColumns.findIndex(col => col.uid === "department");
+      if (deptIndex > -1) baseColumns.splice(deptIndex, 1);
+      const deviceIndex = baseColumns.findIndex(col => col.uid === "device_status");
+      if (deviceIndex > -1) baseColumns.splice(deviceIndex, 1);
+    } else if (isTablet && context === 'tenant') {
       // On tablet, keep device status but maybe adjust positioning
       const deviceIndex = baseColumns.findIndex(col => col.uid === "device_status");
       if (deviceIndex > -1) {
@@ -222,7 +336,7 @@ const UsersTable = ({
     }
     
     return baseColumns;
-  }, [isMobile, isTablet]);
+  }, [isMobile, isTablet, context]);
 
   // Function to toggle user status - optimized to avoid full reloads
   const toggleUserStatus = async (userId, currentStatus) => {
@@ -556,12 +670,40 @@ const UsersTable = ({
         // Create a simple string representation of roles
         const selectedValue = Array.from(roleSet).join(", ") || "No Roles";
         
+        // Check if this user is a Super Admin - only Super Admins can change Super Admin roles
+        const targetIsSuperAdmin = isSuperAdmin(user);
+        const canChangeRoles = targetIsSuperAdmin ? currentUserIsSuperAdmin : true;
+        
+        // If user cannot change roles, show tooltip-wrapped disabled button without dropdown
+        if (!canChangeRoles) {
+          return (
+            <div className="flex items-center">
+              <Tooltip content="Only Super Administrators can modify Super Admin roles">
+                <Button 
+                  className="capitalize"
+                  variant="solid"
+                  size="sm"
+                  isDisabled
+                  radius={getThemeRadius()}
+                  style={{
+                    background: `var(--theme-default-200, #E5E7EB)`,
+                    color: `var(--theme-default-500, #6B7280)`,
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                    borderRadius: getThemeRadius(),
+                  }}
+                >
+                  {selectedValue}
+                </Button>
+              </Tooltip>
+            </div>
+          );
+        }
+        
         return (
           <div className="flex items-center">
             <Dropdown 
               isDisabled={isLoading(user.id, 'role')}
               className="max-w-[220px]"
-              
             >
               <DropdownTrigger>
                 <Button 
@@ -575,6 +717,7 @@ const UsersTable = ({
                     color: 'white',
                     fontFamily: `var(--fontFamily, "Inter")`,
                     borderRadius: getThemeRadius(),
+                    cursor: 'pointer',
                   }}
                 >
                   {selectedValue}
@@ -605,6 +748,197 @@ const UsersTable = ({
         );
         
       case "actions":
+        // Build dropdown items dynamically to avoid fragment issues
+        const actionItems = [];
+        
+        // View Profile - Only for tenant context
+        if (context === 'tenant') {
+          actionItems.push(
+            <DropdownItem 
+              key="view-profile"
+              textValue="View Profile"
+              href={route(routes.profile, { user: user.id })}
+              as={Link}
+              className="text-blue-500"
+              startContent={<UserIcon className="w-4 h-4" />}
+            >
+              View Profile
+            </DropdownItem>
+          );
+          actionItems.push(
+            <DropdownItem 
+              key="start-onboarding"
+              textValue="Start Onboarding"
+              href={route('hr.onboarding.wizard', { employee: user.id })}
+              as={Link}
+              className="text-primary"
+              startContent={<BriefcaseIcon className="w-4 h-4" />}
+            >
+              Start Onboarding
+            </DropdownItem>
+          );
+        }
+        
+        // Edit - Protected for Super Admins
+        if (canManageUser(user)) {
+          actionItems.push(
+            <DropdownItem 
+              key="edit"
+              textValue="Edit User"
+              onPress={() => {
+                if (onEdit) onEdit(user);
+              }}
+              className="text-amber-500"
+              startContent={<PencilIcon className="w-4 h-4" />}
+            >
+              Edit
+            </DropdownItem>
+          );
+        } else {
+          actionItems.push(
+            <DropdownItem 
+              key="edit-disabled"
+              textValue="Edit User (Restricted)"
+              isDisabled
+              className="text-default-400"
+              startContent={<PencilIcon className="w-4 h-4" />}
+            >
+              Edit (Super Admin Only)
+            </DropdownItem>
+          );
+        }
+        
+        // Device Management - Only for tenant context
+        if (context === 'tenant') {
+          actionItems.push(
+            <DropdownItem
+              key="device-toggle"
+              textValue="Device Toggle"
+              onPress={() => {
+                if (toggleSingleDeviceLogin && !isLoading(user.id, 'deviceToggle')) {
+                  setLoading(user.id, 'deviceToggle', true);
+                  toggleSingleDeviceLogin(user.id, !user.single_device_login)
+                    .finally(() => {
+                      setLoading(user.id, 'deviceToggle', false);
+                    });
+                }
+              }}
+              isDisabled={deviceActions[user.id] || isLoading(user.id, 'deviceToggle')}
+              startContent={
+                isLoading(user.id, 'deviceToggle') ? (
+                  <div className="animate-spin">
+                    <ArrowPathIcon className="w-4 h-4" />
+                  </div>
+                ) : user.single_device_login ? (
+                  <LockOpenIcon className="w-4 h-4" />
+                ) : (
+                  <LockClosedIcon className="w-4 h-4" />
+                )
+              }
+              className={user.single_device_login ? "text-orange-500" : "text-green-500"}
+            >
+              {isLoading(user.id, 'deviceToggle') 
+                ? 'Processing...' 
+                : user.single_device_login 
+                  ? 'Disable Device Lock' 
+                  : 'Enable Device Lock'
+              }
+            </DropdownItem>
+          );
+          
+          if (user.single_device_login && user.active_device) {
+            actionItems.push(
+              <DropdownItem
+                key="reset-device"
+                textValue="Reset Device"
+                onPress={() => {
+                  if (resetUserDevice && !isLoading(user.id, 'deviceReset')) {
+                    setLoading(user.id, 'deviceReset', true);
+                    resetUserDevice(user.id)
+                      .finally(() => {
+                        setLoading(user.id, 'deviceReset', false);
+                      });
+                  }
+                }}
+                isDisabled={deviceActions[user.id] || isLoading(user.id, 'deviceReset')}
+                startContent={
+                  isLoading(user.id, 'deviceReset') ? (
+                    <div className="animate-spin">
+                      <ArrowPathIcon className="w-4 h-4" />
+                    </div>
+                  ) : (
+                    <ArrowPathIcon className="w-4 h-4" />
+                  )
+                }
+                className="text-red-500"
+              >
+                {isLoading(user.id, 'deviceReset') ? 'Resetting...' : 'Reset Device'}
+              </DropdownItem>
+            );
+          }
+          
+          actionItems.push(
+            <DropdownItem
+              key="view-devices"
+              textValue="View Devices"
+              href={route(routes.devices, { userId: user.id })}
+              as={Link}
+              startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
+              className="text-blue-500"
+            >
+              View Device History
+            </DropdownItem>
+          );
+        }
+        
+        // Delete User - Protected for Super Admins and last Super Admin check
+        const isCurrentUserTarget = user.id === auth?.user?.id;
+        const userIsSuperAdmin = isSuperAdmin(user);
+        
+        if (canDeleteUser(user)) {
+          actionItems.push(
+            <DropdownItem 
+              key="delete"
+              textValue="Delete User"
+              onPress={() => handleDelete(user.id)}
+              className="text-danger"
+              color="danger"
+              startContent={
+                isLoading(user.id, 'delete') ? (
+                  <div className="animate-spin">
+                    <ArrowPathIcon className="w-4 h-4" />
+                  </div>
+                ) : (
+                  <TrashIcon className="w-4 h-4" />
+                )
+              }
+              isDisabled={isLoading(user.id, 'delete')}
+            >
+              {isLoading(user.id, 'delete') ? 'Deleting...' : 'Delete'}
+            </DropdownItem>
+          );
+        } else {
+          // Determine the reason for restriction
+          let restrictionMessage = 'Delete (Super Admin Only)';
+          if (isCurrentUserTarget && currentUserIsSuperAdmin && superAdminCount <= 1) {
+            restrictionMessage = 'Cannot delete (Last Super Admin)';
+          } else if (userIsSuperAdmin && !currentUserIsSuperAdmin) {
+            restrictionMessage = 'Delete (Super Admin Only)';
+          }
+          
+          actionItems.push(
+            <DropdownItem 
+              key="delete-disabled"
+              textValue="Delete User (Restricted)"
+              isDisabled
+              className="text-default-400"
+              startContent={<TrashIcon className="w-4 h-4" />}
+            >
+              {restrictionMessage}
+            </DropdownItem>
+          );
+        }
+        
         return (
           <div className="flex justify-center items-center">
             <Dropdown>
@@ -626,115 +960,14 @@ const UsersTable = ({
                 </Button>
               </DropdownTrigger>
               <DropdownMenu
+                aria-label="User Actions"
                 style={{
                   background: `var(--theme-content1, #FFFFFF)`,
                   border: `1px solid var(--theme-divider, #E5E7EB)`,
                   borderRadius: getThemeRadius(),
                 }}
               >
-                <DropdownItem 
-                  textValue="View Profile"
-                  href={route('profile', { user: user.id })}
-                  as={Link}
-                  
-                  className="text-blue-500"
-                  startContent={<UserIcon className="w-4 h-4" />}
-                >
-                  View Profile
-                </DropdownItem>
-                <DropdownItem 
-                  textValue="Start Onboarding"
-                  href={route('hr.onboarding.wizard', { employee: user.id })}
-                  as={Link}
-                  
-                  className="text-primary"
-                  startContent={<BriefcaseIcon className="w-4 h-4" />}
-                >
-                  Start Onboarding
-                </DropdownItem>
-                <DropdownItem 
-                  textValue="Edit User"
-                  onPress={() => {
-                    if (onEdit) onEdit(user);
-                  }}
-                  className="text-amber-500"
-                  startContent={<PencilIcon className="w-4 h-4" />}
-                >
-                  Edit
-                </DropdownItem>
-                
-                {/* Device Management Section */}
-                <DropdownItem
-                  textValue="Device Toggle"
-                  onPress={() => {
-                    if (toggleSingleDeviceLogin && !isLoading(user.id, 'deviceToggle')) {
-                      setLoading(user.id, 'deviceToggle', true);
-                      toggleSingleDeviceLogin(user.id, !user.single_device_login)
-                        .finally(() => {
-                          setLoading(user.id, 'deviceToggle', false);
-                        });
-                    }
-                  }}
-                  isDisabled={deviceActions[user.id] || isLoading(user.id, 'deviceToggle')}
-                  startContent={
-                    isLoading(user.id, 'deviceToggle') ? (
-                      <div className="animate-spin">
-                        <ArrowPathIcon className="w-4 h-4" />
-                      </div>
-                    ) : user.single_device_login ? (
-                      <LockOpenIcon className="w-4 h-4" />
-                    ) : (
-                      <LockClosedIcon className="w-4 h-4" />
-                    )
-                  }
-                  className={user.single_device_login ? "text-orange-500" : "text-green-500"}
-                >
-                  {isLoading(user.id, 'deviceToggle') 
-                    ? 'Processing...' 
-                    : user.single_device_login 
-                      ? 'Disable Device Lock' 
-                      : 'Enable Device Lock'
-                  }
-                </DropdownItem>
-                
-                {user.single_device_login && user.active_device && (
-                  <DropdownItem
-                    textValue="Reset Device"
-                    onPress={() => {
-                      if (resetUserDevice && !isLoading(user.id, 'deviceReset')) {
-                        setLoading(user.id, 'deviceReset', true);
-                        resetUserDevice(user.id)
-                          .finally(() => {
-                            setLoading(user.id, 'deviceReset', false);
-                          });
-                      }
-                    }}
-                    isDisabled={deviceActions[user.id] || isLoading(user.id, 'deviceReset')}
-                    startContent={
-                      isLoading(user.id, 'deviceReset') ? (
-                        <div className="animate-spin">
-                          <ArrowPathIcon className="w-4 h-4" />
-                        </div>
-                      ) : (
-                        <ArrowPathIcon className="w-4 h-4" />
-                      )
-                    }
-                    className="text-red-500"
-                  >
-                    {isLoading(user.id, 'deviceReset') ? 'Resetting...' : 'Reset Device'}
-                  </DropdownItem>
-                )}
-                
-                <DropdownItem
-                  textValue="View Devices"
-                  href={route('admin.users.devices', { userId: user.id })}
-                  as={Link}
-                  
-                  startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
-                  className="text-blue-500"
-                >
-                  View Device History
-                </DropdownItem>
+                {actionItems}
               </DropdownMenu>
             </Dropdown>
           </div>

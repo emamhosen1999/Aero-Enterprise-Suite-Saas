@@ -351,11 +351,12 @@ class EmployeeProfileController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            'employee_id' => $user->employee_id,
+            'employee_id' => $user->employee?->id,
+            'employee_code' => $user->employee?->employee_code,
             'profile_image_url' => $user->profile_image_url,
-            'department' => $user->department?->only(['id', 'name']),
-            'designation' => $user->designation?->only(['id', 'title']),
-            'date_of_joining' => $user->date_of_joining,
+            'department' => $user->employee?->department?->only(['id', 'name']),
+            'designation' => $user->employee?->designation?->only(['id', 'title']),
+            'date_of_joining' => $user->employee?->date_of_joining,
             'active' => $user->active,
         ];
     }

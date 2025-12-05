@@ -13,7 +13,7 @@ import {
     Chip
 } from "@heroui/react";
 import React, { useEffect, useState, useMemo } from "react";
-import { EnvelopeIcon, UserGroupIcon, BuildingOfficeIcon, BriefcaseIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { showToast } from "@/utils/toastUtils";
 
@@ -24,8 +24,6 @@ import { showToast } from "@/utils/toastUtils";
  * The invited user will receive an email to complete their registration.
  */
 const InviteUserForm = ({ 
-    departments = [], 
-    designations = [], 
     roles = [], 
     open, 
     closeModal,
@@ -33,14 +31,11 @@ const InviteUserForm = ({
 }) => {
     const [loading, setLoading] = useState(false);
     const [themeRadius, setThemeRadius] = useState('lg');
-    const [filteredDesignations, setFilteredDesignations] = useState(designations);
     
     // Form state
     const [formData, setFormData] = useState({
         email: '',
         role: '',
-        department_id: '',
-        designation_id: '',
         message: ''
     });
     
@@ -68,28 +63,6 @@ const InviteUserForm = ({
             setThemeRadius(getThemeRadius());
         }
     }, []);
-
-    // Filter designations when department changes
-    useEffect(() => {
-        if (formData.department_id) {
-            const filtered = designations?.filter(
-                designation => String(designation.department_id) === String(formData.department_id)
-            ) || [];
-            setFilteredDesignations(filtered);
-            
-            // Clear designation if it doesn't belong to the selected department
-            if (formData.designation_id) {
-                const isValid = filtered.some(
-                    d => String(d.id) === String(formData.designation_id)
-                );
-                if (!isValid) {
-                    setFormData(prev => ({ ...prev, designation_id: '' }));
-                }
-            }
-        } else {
-            setFilteredDesignations(designations || []);
-        }
-    }, [formData.department_id, designations]);
 
     // Handle input changes
     const handleChange = (field, value) => {
@@ -123,8 +96,6 @@ const InviteUserForm = ({
         setFormData({
             email: '',
             role: '',
-            department_id: '',
-            designation_id: '',
             message: ''
         });
         setErrors({});
@@ -269,55 +240,6 @@ const InviteUserForm = ({
                         ))}
                     </Select>
                     
-                    {/* Department Select (Optional) */}
-                    <Select
-                        label="Department (Optional)"
-                        placeholder="Select a department"
-                        selectedKeys={formData.department_id ? [String(formData.department_id)] : []}
-                        onChange={(e) => handleChange('department_id', e.target.value)}
-                        variant="bordered"
-                        radius={themeRadius}
-                        startContent={<BuildingOfficeIcon className="w-4 h-4 text-default-400" />}
-                        classNames={{
-                            trigger: "text-sm",
-                        }}
-                    >
-                        {departments.map((dept) => (
-                            <SelectItem 
-                                key={String(dept.id)} 
-                                value={String(dept.id)}
-                                textValue={dept.name}
-                            >
-                                {dept.name}
-                            </SelectItem>
-                        ))}
-                    </Select>
-                    
-                    {/* Designation Select (Optional - filtered by department) */}
-                    <Select
-                        label="Designation (Optional)"
-                        placeholder={formData.department_id ? "Select a designation" : "Select department first"}
-                        selectedKeys={formData.designation_id ? [String(formData.designation_id)] : []}
-                        onChange={(e) => handleChange('designation_id', e.target.value)}
-                        variant="bordered"
-                        radius={themeRadius}
-                        isDisabled={!formData.department_id}
-                        startContent={<BriefcaseIcon className="w-4 h-4 text-default-400" />}
-                        classNames={{
-                            trigger: "text-sm",
-                        }}
-                    >
-                        {filteredDesignations.map((designation) => (
-                            <SelectItem 
-                                key={String(designation.id)} 
-                                value={String(designation.id)}
-                                textValue={designation.title || designation.name}
-                            >
-                                {designation.title || designation.name}
-                            </SelectItem>
-                        ))}
-                    </Select>
-                    
                     {/* Personal Message (Optional) */}
                     <Textarea
                         label="Personal Message (Optional)"
@@ -345,6 +267,7 @@ const InviteUserForm = ({
                     >
                         <p className="text-default-600">
                             <strong>Note:</strong> The invited user will receive an email with a link to complete their registration. 
+                            After registration, you can onboard them as an employee from the Users list to assign department, designation, and other job details.
                             The invitation will expire in 7 days.
                         </p>
                     </div>

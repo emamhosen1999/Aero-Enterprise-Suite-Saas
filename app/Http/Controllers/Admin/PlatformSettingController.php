@@ -42,17 +42,7 @@ class PlatformSettingController extends Controller
 
     public function update(UpdatePlatformSettingRequest $request): RedirectResponse
     {
-        $user = $request->user('landlord');
-
-        // Check permission for landlord guard
-        if (! $user || ! $user->hasPermissionTo('platform.settings.update', 'landlord')) {
-            \Log::warning('Platform Settings Update - Authorization Failed', [
-                'user_id' => $user?->id,
-                'required_permission' => 'platform.settings.update',
-                'has_permission' => $user?->hasPermissionTo('platform.settings.update', 'landlord'),
-            ]);
-            abort(403, 'This action is unauthorized.');
-        }
+        // Authorization handled by module:system-settings,general-settings,platform-settings,update middleware
 
         $setting = PlatformSetting::current();
 
@@ -77,12 +67,7 @@ class PlatformSettingController extends Controller
      */
     public function sendTestEmail(Request $request): JsonResponse
     {
-        $user = $request->user('landlord');
-
-        // Check permission for landlord guard
-        if (! $user || ! $user->hasPermissionTo('platform.settings.update', 'landlord')) {
-            abort(403, 'This action is unauthorized.');
-        }
+        // Authorization handled by module:system-settings,email-settings,email-config,test middleware
 
         $request->validate([
             'email' => ['required', 'email'],
@@ -110,12 +95,7 @@ class PlatformSettingController extends Controller
      */
     public function sendTestSms(Request $request): JsonResponse
     {
-        $user = $request->user('landlord');
-
-        // Check permission for landlord guard
-        if (! $user || ! $user->hasPermissionTo('platform.settings.update', 'landlord')) {
-            abort(403, 'This action is unauthorized.');
-        }
+        // Authorization handled by module:system-settings,general-settings,platform-settings,update middleware
 
         $request->validate([
             'phone' => ['required', 'string'],

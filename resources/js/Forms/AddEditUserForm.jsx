@@ -9,29 +9,37 @@ import {
     ModalHeader,
     ModalBody,
     ModalFooter,
-    User,
     Switch,
     Chip,
-    Autocomplete,
-    AutocompleteItem
 } from "@heroui/react";
 import React, { useEffect, useState } from "react";
-import { X, Camera, Eye, EyeOff, Lock, UserIcon, CalendarIcon } from 'lucide-react';
+import { X, Camera, Eye, EyeOff, Lock } from 'lucide-react';
 import { useForm } from 'laravel-precognition-react';
 import { showToast } from "@/utils/toastUtils";
+import { UserIcon } from "@heroicons/react/24/solid";
 import ProfileAvatar from '@/Components/ProfileAvatar';
 
+/**
+ * Helper to get routes based on context
+ */
+const getRoutes = (context) => {
+    const isAdmin = context === 'admin';
+    return {
+        store: isAdmin ? 'admin.users.store' : 'users.store',
+        update: isAdmin ? 'admin.users.update' : 'users.update',
+    };
+};
 
-const AddEditUserForm = ({user, allUsers, departments, designations, roles, setUsers, open, closeModal, editMode = false }) => {
+const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = false, context = 'tenant' }) => {
+    
+    // Get routes for the current context
+    const routes = getRoutes(context);
     
     const [showPassword, setShowPassword] = useState(false);
     const [hover, setHover] = useState(false);
     const [selectedImage, setSelectedImage] = useState(user?.profile_image_url || user?.profile_image || null);
     const [selectedImageFile, setSelectedImageFile] = useState(null);
-    const [allReportTo, setAllReportTo] = useState(allUsers);
     const [themeRadius, setThemeRadius] = useState('lg');
-    const [filteredDesignations, setFilteredDesignations] = useState(designations || []);
-    const [filteredReportTo, setFilteredReportTo] = useState(allUsers || []);
 
     // Helper function to convert theme borderRadius to HeroUI radius values
     const getThemeRadius = () => {
@@ -47,7 +55,6 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
         if (radiusValue <= 16) return 'lg';
         return 'full';
     };
-
     // Set theme radius on mount (client-side only)
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -58,129 +65,21 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
     // Initialize Precognition form with proper method and URL
     const form = useForm(
         editMode ? 'put' : 'post',
-        editMode && user?.id ? route('users.update', { user: user.id }) : route('users.store'),
+        editMode && user?.id ? route(routes.update, { user: user.id }) : route(routes.store),
         {
             id: user?.id || '',
             name: user?.name || '',
             user_name: user?.user_name || '',
-            gender: user?.gender || '',
-            birthday: user?.birthday || '',
-            date_of_joining: user?.date_of_joining || '',
-            address: user?.address || '',
-            employee_id: user?.employee_id || '',
             phone: user?.phone || '',
             email: user?.email || '',
-            department_id: user?.department_id || '',
-            designation_id: user?.designation_id || '',
-            report_to: user?.report_to || '',
             password: '',
             password_confirmation: '',
             roles: user?.roles?.map(r => typeof r === 'object' ? r.name : r) || [],
-            single_device_login_enabled: user?.single_device_login_enabled || user?.single_device_login || false,
+            // Single device login is only applicable for tenant context
+            ...(context === 'tenant' ? { single_device_login_enabled: user?.single_device_login_enabled || user?.single_device_login || false } : {}),
             profile_image: null,
         }
     );
-
-    // Filter designations when department changes
-    useEffect(() => {
-        if (form.data.department_id) {
-            const filtered = designations?.filter(
-                designation => String(designation.department_id) === String(form.data.department_id)
-            ) || [];
-            setFilteredDesignations(filtered);
-            
-            // Clear designation if it doesn't belong to the selected department
-            if (form.data.designation_id) {
-                const isValid = filtered.some(
-                    d => String(d.id) === String(form.data.designation_id)
-                );
-                if (!isValid) {
-                    handleChange('designation_id', '');
-                }
-            }
-        } else {
-            // Show all designations if no department is selected
-            setFilteredDesignations(designations || []);
-        }
-    }, [form.data.department_id, designations]);
-
-    // Filter report to users when department and designation changes
-    useEffect(() => {
-        if (form.data.department_id && form.data.designation_id) {
-            // Find the selected designation to get its hierarchy level
-            const selectedDesignation = designations?.find(
-                d => String(d.id) === String(form.data.designation_id)
-            );
-            
-            if (!selectedDesignation) {
-                setFilteredReportTo([]);
-                handleChange('report_to', '');
-                return;
-            }
-
-            // Check if this is the top-level designation (hierarchy_level = 1)
-            if (selectedDesignation.hierarchy_level === 1) {
-                // Top-level positions don't report to anyone
-                setFilteredReportTo([]);
-                handleChange('report_to', '');
-                return;
-            }
-
-            // Filter users who:
-            // 1. Are in the same department
-            // 2. Have a designation with LOWER hierarchy_level (higher position)
-            // 3. Are not the current user (if editing)
-            const filtered = allUsers?.filter(u => {
-                const userDeptId = u.department_id || u.department?.id;
-                const deptMatch = String(userDeptId) === String(form.data.department_id);
-                
-                // Get the user's designation
-                const userDesignation = designations?.find(
-                    d => String(d.id) === String(u.designation_id)
-                );
-                
-                // Check if user has a higher hierarchy (lower hierarchy_level number)
-                const isHigherLevel = userDesignation && 
-                    userDesignation.hierarchy_level < selectedDesignation.hierarchy_level;
-                
-                const notSelf = !editMode || !form.data.id || u.id !== form.data.id;
-                
-                return deptMatch && isHigherLevel && notSelf;
-            }) || [];
-            
-  
-            setFilteredReportTo(filtered);
-            
-            // Clear report_to if the selected user is no longer valid
-            if (form.data.report_to) {
-                const isValid = filtered.some(
-                    u => String(u.id) === String(form.data.report_to)
-                );
-                if (!isValid) {
-                    handleChange('report_to', '');
-                }
-            }
-        } else if (form.data.department_id) {
-            // If only department is selected, show all users in department
-            const filtered = allUsers?.filter(u => {
-                const userDeptId = u.department_id || u.department?.id;
-                const deptMatch = String(userDeptId) === String(form.data.department_id);
-                const notSelf = !editMode || !form.data.id || u.id !== form.data.id;
-                return deptMatch && notSelf;
-            }) || [];
-            
-            setFilteredReportTo(filtered);
-        } else {
-            // No department selected, show all users
-            const allExceptSelf = allUsers?.filter(u => !editMode || !form.data.id || u.id !== form.data.id) || [];
-            setFilteredReportTo(allExceptSelf);
-        }
-    }, [form.data.department_id, form.data.designation_id, allUsers, form.data.id, editMode, designations]);
-
-    
-
-
-
 
     // Initialize selected image if user has profile image
     useEffect(() => {
@@ -208,12 +107,13 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
                 await form.submit({
                     preserveScroll: true,
                     transform: (data) => {
-                        // Convert boolean to proper format for backend
-                        // Laravel expects 0/1 or "0"/"1" for boolean fields when using FormData
-                        return {
-                            ...data,
-                            single_device_login_enabled: data.single_device_login_enabled ? 1 : 0,
-                        };
+                        // Only include single_device_login_enabled for tenant context
+                        const transformedData = { ...data };
+                        if (context === 'tenant' && data.single_device_login_enabled !== undefined) {
+                            // Laravel expects 0/1 or "0"/"1" for boolean fields when using FormData
+                            transformedData.single_device_login_enabled = data.single_device_login_enabled ? 1 : 0;
+                        }
+                        return transformedData;
                     },
                     onSuccess: (response) => {
                         if (setUsers) {
@@ -500,233 +400,7 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
                                             fontFamily: `var(--fontFamily, "Inter")`,
                                         }}
                                     />
-
-                                    <Select
-                                        label="Department"
-                                        placeholder="Select department"
-                                        selectedKeys={form.data.department_id ? new Set([String(form.data.department_id)]) : new Set()}
-                                        onSelectionChange={(keys) => {
-                                            const value = Array.from(keys)[0];
-                                            handleChange('department_id', value || '');
-                                        }}
-                                        onClose={() => form.validate('department_id')}
-                                        isInvalid={form.invalid('department_id')}
-                                        errorMessage={form.errors.department_id}
-                                        variant="bordered"
-                                        size="sm"
-                                        radius={themeRadius}
-                                        classNames={{
-                                            trigger: "min-h-unit-10",
-                                            value: "text-small"
-                                        }}
-                                        style={{
-                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                        }}
-                                    >
-                                        {departments?.map((department) => (
-                                            <SelectItem key={department.id} value={department.id}>
-                                                {department.name}
-                                            </SelectItem>
-                                        ))}
-                                    </Select>
-
-                                    <Select
-                                        label="Designation"
-                                        placeholder="Select designation"
-                                        selectedKeys={form.data.designation_id ? new Set([String(form.data.designation_id)]) : new Set()}
-                                        onSelectionChange={(keys) => {
-                                            const value = Array.from(keys)[0];
-                                            handleChange('designation_id', value || '');
-                                        }}
-                                        onClose={() => form.validate('designation_id')}
-                                        isInvalid={form.invalid('designation_id')}
-                                        errorMessage={form.errors.designation_id}
-                                        isDisabled={!form.data.department_id || filteredDesignations.length === 0}
-                                        variant="bordered"
-                                        size="sm"
-                                        radius={themeRadius}
-                                        classNames={{
-                                            trigger: "min-h-unit-10",
-                                            value: "text-small"
-                                        }}
-                                        style={{
-                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                        }}
-                                    >
-                                        {filteredDesignations?.map((designation) => (
-                                            <SelectItem key={designation.id} value={designation.id}>
-                                                {designation.title || designation.name}
-                                            </SelectItem>
-                                        ))}
-                                    </Select>
-
-                                    <Select
-                                        label="Gender"
-                                        placeholder="Select gender"
-                                        selectedKeys={form.data.gender ? new Set([form.data.gender]) : new Set()}
-                                        onSelectionChange={(keys) => {
-                                            const value = Array.from(keys)[0];
-                                            handleChange('gender', value || '');
-                                        }}
-                                        onClose={() => form.validate('gender')}
-                                        isInvalid={form.invalid('gender')}
-                                        errorMessage={form.errors.gender}
-                                        variant="bordered"
-                                        size="sm"
-                                        radius={themeRadius}
-                                        classNames={{
-                                            trigger: "min-h-unit-10",
-                                            value: "text-small"
-                                        }}
-                                        style={{
-                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                        }}
-                                    >
-                                        <SelectItem key="male" value="male">Male</SelectItem>
-                                        <SelectItem key="female" value="female">Female</SelectItem>
-                                        <SelectItem key="other" value="other">Other</SelectItem>
-                                    </Select>
-
-                                    <Input
-                                        label="Employee ID"
-                                        placeholder="Enter employee ID"
-                                        value={form.data.employee_id}
-                                        onChange={(e) => handleChange('employee_id', e.target.value)}
-                                        onBlur={() => form.validate('employee_id')}
-                                        isInvalid={form.invalid('employee_id')}
-                                        errorMessage={form.errors.employee_id}
-                                        variant="bordered"
-                                        size="sm"
-                                        radius={themeRadius}
-                                        classNames={{
-                                            input: "text-small",
-                                            inputWrapper: "min-h-unit-10"
-                                        }}
-                                        style={{
-                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                        }}
-                                    />
-
-                                    <Input
-                                        label="Date of Birth"
-                                        type="date"
-                                        value={form.data.birthday}
-                                        onChange={(e) => handleChange('birthday', e.target.value)}
-                                        onBlur={() => form.validate('birthday')}
-                                        isInvalid={form.invalid('birthday')}
-                                        errorMessage={form.errors.birthday}
-                                        variant="bordered"
-                                        size="sm"
-                                        radius={themeRadius}
-                                        classNames={{
-                                            input: "text-small",
-                                            inputWrapper: "min-h-unit-10"
-                                        }}
-                                        style={{
-                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                        }}
-                                    />
-
-                                    <Input
-                                        label="Date of Joining"
-                                        type="date"
-                                        value={form.data.date_of_joining}
-                                        onChange={(e) => handleChange('date_of_joining', e.target.value)}
-                                        onBlur={() => form.validate('date_of_joining')}
-                                        isInvalid={form.invalid('date_of_joining')}
-                                        errorMessage={form.errors.date_of_joining}
-                                        variant="bordered"
-                                        size="sm"
-                                        radius={themeRadius}
-                                        classNames={{
-                                            input: "text-small",
-                                            inputWrapper: "min-h-unit-10"
-                                        }}
-                                        style={{
-                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                        }}
-                                    />
-
-                                    <div className="flex flex-col gap-1">
-                                        <Autocomplete
-                                            label="Reports To"
-                                            placeholder={
-                                                !form.data.department_id 
-                                                    ? "Select department first" 
-                                                    : !form.data.designation_id
-                                                    ? "Select designation first"
-                                                    : filteredReportTo.length === 0
-                                                    ? "No supervisor needed (Top-level position)"
-                                                    : "Search for a supervisor..."
-                                            }
-                                            selectedKey={form.data.report_to ? String(form.data.report_to) : null}
-                                            onSelectionChange={(key) => {
-                                                handleChange('report_to', key || '');
-                                            }}
-                                            isInvalid={form.invalid('report_to')}
-                                            errorMessage={form.errors.report_to}
-                                            isDisabled={!form.data.department_id || !form.data.designation_id || filteredReportTo.length === 0}
-                                            variant="bordered"
-                                            size="sm"
-                                            radius={themeRadius}
-                                            classNames={{
-                                                base: "w-full",
-                                            }}
-                                            style={{
-                                                fontFamily: `var(--fontFamily, "Inter")`,
-                                            }}
-                                            allowsCustomValue={false}
-                                            items={filteredReportTo || []}
-                                        >
-                                            {(user) => (
-                                                <AutocompleteItem key={user.id} textValue={user.name}>
-                                                    <div className="flex items-center gap-2">
-                                                        <ProfileAvatar
-                                                            src={user.profile_image_url || user.profile_image}
-                                                            name={user.name}
-                                                            size="sm"
-                                                            className="flex-shrink-0"
-                                                        />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-small font-medium">{user.name}</span>
-                                                            {user.email && (
-                                                                <span className="text-tiny text-default-400">{user.email}</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </AutocompleteItem>
-                                            )}
-                                        </Autocomplete>
-                                        {form.data.designation_id && filteredReportTo.length === 0 && (
-                                            <p className="text-xs text-default-400 px-1" style={{
-                                                fontFamily: `var(--fontFamily, "Inter")`,
-                                            }}>
-                                                This designation is at the top of the hierarchy and doesn't require a supervisor.
-                                            </p>
-                                        )}
-                                    </div>
                                 </div>
-
-                                {/* Address - Full Width */}
-                                <Input
-                                    label="Address"
-                                    placeholder="Enter address"
-                                    value={form.data.address}
-                                    onChange={(e) => handleChange('address', e.target.value)}
-                                    onBlur={() => form.validate('address')}
-                                    isInvalid={form.invalid('address')}
-                                    errorMessage={form.errors.address}
-                                    variant="bordered"
-                                    size="sm"
-                                    radius={themeRadius}
-                                    classNames={{
-                                        input: "text-small",
-                                        inputWrapper: "min-h-unit-10"
-                                    }}
-                                    style={{
-                                        fontFamily: `var(--fontFamily, "Inter")`,
-                                    }}
-                                />
 
                                 {/* Roles Selection */}
                                 <div className="col-span-full">
@@ -775,33 +449,35 @@ const AddEditUserForm = ({user, allUsers, departments, designations, roles, setU
                                     </Select>
                                 </div>
 
-                                {/* Single Device Login Toggle */}
-                                <div className="col-span-full">
-                                    <div className="flex items-center justify-between p-4 rounded-lg border" style={{
-                                        borderColor: 'var(--theme-divider, #E4E4E7)',
-                                        background: 'color-mix(in srgb, var(--theme-content2) 30%, transparent)'
-                                    }}>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <Lock className="w-4 h-4" style={{ color: 'var(--theme-primary)' }} />
-                                                <span className="text-sm font-semibold" style={{
+                                {/* Single Device Login Toggle - Only for Tenant Context */}
+                                {context === 'tenant' && (
+                                    <div className="col-span-full">
+                                        <div className="flex items-center justify-between p-4 rounded-lg border" style={{
+                                            borderColor: 'var(--theme-divider, #E4E4E7)',
+                                            background: 'color-mix(in srgb, var(--theme-content2) 30%, transparent)'
+                                        }}>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <Lock className="w-4 h-4" style={{ color: 'var(--theme-primary)' }} />
+                                                    <span className="text-sm font-semibold" style={{
+                                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                                    }}>Single Device Login</span>
+                                                </div>
+                                                <p className="text-xs text-default-500 mt-1" style={{
                                                     fontFamily: `var(--fontFamily, "Inter")`,
-                                                }}>Single Device Login</span>
+                                                }}>
+                                                    Restrict user to login from only one device at a time
+                                                </p>
                                             </div>
-                                            <p className="text-xs text-default-500 mt-1" style={{
-                                                fontFamily: `var(--fontFamily, "Inter")`,
-                                            }}>
-                                                Restrict user to login from only one device at a time
-                                            </p>
+                                            <Switch
+                                                isSelected={form.data.single_device_login_enabled}
+                                                onValueChange={(checked) => handleChange('single_device_login_enabled', checked)}
+                                                color={form.data.single_device_login_enabled ? "warning" : "default"}
+                                                size="sm"
+                                            />
                                         </div>
-                                        <Switch
-                                            isSelected={form.data.single_device_login_enabled}
-                                            onValueChange={(checked) => handleChange('single_device_login_enabled', checked)}
-                                            color={form.data.single_device_login_enabled ? "warning" : "default"}
-                                            size="sm"
-                                        />
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Password fields (only for new users) */}
                                 {!editMode && (
