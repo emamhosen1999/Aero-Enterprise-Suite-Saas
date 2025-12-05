@@ -1229,6 +1229,258 @@ return [
 
         /*
         |--------------------------------------------------------------------------
+        | 14. Platform Onboarding Module
+        |--------------------------------------------------------------------------
+        | Tenant registration, provisioning workflow management, and trial oversight
+        */
+        [
+            'code' => 'platform-onboarding',
+            'name' => 'Tenant Onboarding',
+            'description' => 'Tenant registration workflow management, provisioning oversight, trial management, and welcome automation',
+            'icon' => 'UserPlusIcon',
+            'route_prefix' => '/admin/onboarding',
+            'category' => 'platform_core',
+            'priority' => 14,
+            'is_core' => true,
+            'is_active' => true,
+
+            'submodules' => [
+                // 14.1 Registration Dashboard
+                [
+                    'code' => 'registration-dashboard',
+                    'name' => 'Registration Dashboard',
+                    'description' => 'Overview of pending and completed registrations',
+                    'icon' => 'ChartBarSquareIcon',
+                    'route' => '/admin/onboarding',
+                    'priority' => 1,
+
+                    'components' => [
+                        [
+                            'code' => 'dashboard-overview',
+                            'name' => 'Dashboard',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Dashboard'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.2 Pending Registrations
+                [
+                    'code' => 'pending-registrations',
+                    'name' => 'Pending Registrations',
+                    'description' => 'View and manage in-progress registrations',
+                    'icon' => 'ClockIcon',
+                    'route' => '/admin/onboarding/pending',
+                    'priority' => 2,
+
+                    'components' => [
+                        [
+                            'code' => 'registration-list',
+                            'name' => 'Pending List',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/pending',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Pending Registrations'],
+                                ['code' => 'cancel', 'name' => 'Cancel Registration'],
+                                ['code' => 'approve', 'name' => 'Manually Approve'],
+                            ],
+                        ],
+                        [
+                            'code' => 'registration-detail',
+                            'name' => 'Registration Detail',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/pending/{id}',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Details'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.3 Provisioning Queue
+                [
+                    'code' => 'provisioning-queue',
+                    'name' => 'Provisioning Queue',
+                    'description' => 'Monitor tenant provisioning status and logs',
+                    'icon' => 'ServerStackIcon',
+                    'route' => '/admin/onboarding/provisioning',
+                    'priority' => 3,
+
+                    'components' => [
+                        [
+                            'code' => 'queue-status',
+                            'name' => 'Queue Status',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/provisioning',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Queue Status'],
+                                ['code' => 'retry', 'name' => 'Retry Failed Provisioning'],
+                            ],
+                        ],
+                        [
+                            'code' => 'provisioning-logs',
+                            'name' => 'Provisioning Logs',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/provisioning/{id}/logs',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Logs'],
+                                ['code' => 'download', 'name' => 'Download Logs'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.4 Trial Management
+                [
+                    'code' => 'trial-management',
+                    'name' => 'Trial Management',
+                    'description' => 'Manage trial extensions and conversions',
+                    'icon' => 'CalendarIcon',
+                    'route' => '/admin/onboarding/trials',
+                    'priority' => 4,
+
+                    'components' => [
+                        [
+                            'code' => 'trial-list',
+                            'name' => 'Active Trials',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/trials',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Trials'],
+                                ['code' => 'extend', 'name' => 'Extend Trial'],
+                                ['code' => 'convert', 'name' => 'Convert to Paid'],
+                            ],
+                        ],
+                        [
+                            'code' => 'trial-extensions',
+                            'name' => 'Trial Extensions',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/trials/extensions',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Extensions'],
+                                ['code' => 'create', 'name' => 'Grant Extension'],
+                            ],
+                        ],
+                        [
+                            'code' => 'trial-analytics',
+                            'name' => 'Trial Analytics',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/trials/analytics',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Analytics'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.5 Welcome Automation
+                [
+                    'code' => 'welcome-automation',
+                    'name' => 'Welcome Automation',
+                    'description' => 'Configure welcome emails and onboarding sequences',
+                    'icon' => 'EnvelopeIcon',
+                    'route' => '/admin/onboarding/automation',
+                    'priority' => 5,
+
+                    'components' => [
+                        [
+                            'code' => 'email-templates',
+                            'name' => 'Email Templates',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/automation/emails',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Templates'],
+                                ['code' => 'create', 'name' => 'Create Template'],
+                                ['code' => 'update', 'name' => 'Update Template'],
+                                ['code' => 'delete', 'name' => 'Delete Template'],
+                                ['code' => 'preview', 'name' => 'Preview Email'],
+                            ],
+                        ],
+                        [
+                            'code' => 'email-sequences',
+                            'name' => 'Email Sequences',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/automation/sequences',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Sequences'],
+                                ['code' => 'create', 'name' => 'Create Sequence'],
+                                ['code' => 'update', 'name' => 'Update Sequence'],
+                                ['code' => 'delete', 'name' => 'Delete Sequence'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.6 Onboarding Analytics
+                [
+                    'code' => 'onboarding-analytics',
+                    'name' => 'Onboarding Analytics',
+                    'description' => 'Registration funnel, conversion rates, and activation metrics',
+                    'icon' => 'ChartPieIcon',
+                    'route' => '/admin/onboarding/analytics',
+                    'priority' => 6,
+
+                    'components' => [
+                        [
+                            'code' => 'funnel-analytics',
+                            'name' => 'Registration Funnel',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/analytics/funnel',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Funnel Analytics'],
+                            ],
+                        ],
+                        [
+                            'code' => 'conversion-metrics',
+                            'name' => 'Conversion Metrics',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/analytics/conversions',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Conversion Metrics'],
+                            ],
+                        ],
+                        [
+                            'code' => 'activation-tracking',
+                            'name' => 'Activation Tracking',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/analytics/activation',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Activation Metrics'],
+                            ],
+                        ],
+                    ],
+                ],
+
+                // 14.7 Settings
+                [
+                    'code' => 'onboarding-settings',
+                    'name' => 'Onboarding Settings',
+                    'description' => 'Configure registration flow and trial defaults',
+                    'icon' => 'Cog6ToothIcon',
+                    'route' => '/admin/onboarding/settings',
+                    'priority' => 7,
+
+                    'components' => [
+                        [
+                            'code' => 'registration-config',
+                            'name' => 'Registration Configuration',
+                            'type' => 'page',
+                            'route' => '/admin/onboarding/settings',
+                            'actions' => [
+                                ['code' => 'view', 'name' => 'View Settings'],
+                                ['code' => 'update', 'name' => 'Update Settings'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
         | Platform Integrations Module (Platform Admin Only)
         |--------------------------------------------------------------------------
         | Platform-level integration management for configuring global connectors,
@@ -1472,8 +1724,8 @@ return [
         */
         [
             'code' => 'platform-support',
-            'name' => 'Support & Ticketing',
-            'description' => 'Platform-wide support management, tenant tickets, SLAs, and knowledge base',
+            'name' => 'Platform Help Desk',
+            'description' => 'Platform operations support - Tenants raise tickets ABOUT the platform (billing issues, bugs, feature requests, technical support)',
             'icon' => 'LifebuoyIcon',
             'route_prefix' => '/admin/support',
             'category' => 'platform_core',
@@ -10231,8 +10483,8 @@ return [
         */
         [
             'code' => 'support',
-            'name' => 'Support & Ticketing',
-            'description' => 'Help desk, ticket management, knowledge base, and customer support',
+            'name' => 'Customer Support',
+            'description' => 'Customer service help desk - Tenants provide support TO their customers (product questions, order issues, service requests)',
             'icon' => 'LifebuoyIcon',
             'route_prefix' => '/tenant/support',
             'category' => 'customer_relations',
