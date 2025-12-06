@@ -66,7 +66,7 @@ Route::middleware([
     require __DIR__.'/web.php';
 
     // Module routes
-    foreach (['hr', 'project-management', 'dms', 'quality', 'analytics', 'compliance', 'modules', 'support'] as $module) {
+    foreach (['hr', 'project-management', 'dms', 'quality', 'analytics', 'compliance', 'modules', 'support', 'finance', 'integrations'] as $module) {
         if (file_exists(__DIR__."/{$module}.php")) {
             require __DIR__."/{$module}.php";
         }

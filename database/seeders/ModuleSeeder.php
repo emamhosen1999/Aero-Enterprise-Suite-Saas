@@ -78,6 +78,11 @@ class ModuleSeeder extends Seeder
                 'is_active' => $moduleData['is_active'] ?? true,
                 'is_core' => $moduleData['is_core'] ?? false,
                 'settings' => $moduleData['settings'] ?? [],
+                'version' => $moduleData['version'] ?? null,
+                'min_plan' => $moduleData['min_plan'] ?? null,
+                'license_type' => $moduleData['license_type'] ?? null,
+                'dependencies' => $moduleData['dependencies'] ?? [],
+                'release_date' => $moduleData['release_date'] ?? null,
             ]
         );
 
