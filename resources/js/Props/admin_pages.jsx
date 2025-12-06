@@ -60,6 +60,8 @@ import {
   UserPlusIcon, // Platform Onboarding main
   ServerStackIcon, // Provisioning Queue
   ExclamationTriangleIcon,
+  ClockIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 
 import { hasAccess, isSuperAdmin, isAuthSuperAdmin } from '@/utils/moduleAccessUtils';

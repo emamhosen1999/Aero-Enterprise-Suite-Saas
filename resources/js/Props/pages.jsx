@@ -76,7 +76,7 @@ import {
   WrenchIcon, // Quality Calibrations  
   DocumentMagnifyingGlassIcon, // Quality Audits
   ShieldExclamationIcon, // Compliance main
-  BadgeCheckIcon, // Certifications
+  CheckBadgeIcon, // Certifications
   ShareIcon, // DMS Sharing
 } from '@heroicons/react/24/outline';
 
@@ -1920,7 +1920,7 @@ export const getPages = (roles, permissions, auth = null) => {
         { name: 'Regulatory Requirements', icon: <DocumentCheckIcon />, route: 'compliance.requirements.index', access: 'compliance.requirements.view' },
         { name: 'Compliance Documents', icon: <FolderIcon />, route: 'compliance.documents.index', access: 'compliance.documents.view' },
         { name: 'Training & Awareness', icon: <AcademicCapIcon />, route: 'compliance.training.index', access: 'compliance.training.view' },
-        { name: 'Certifications', icon: <BadgeCheckIcon />, route: 'compliance.certifications.index', access: 'compliance.certifications.view' },
+        { name: 'Certifications', icon: <CheckBadgeIcon />, route: 'compliance.certifications.index', access: 'compliance.certifications.view' },
         { name: 'Reports & Analytics', icon: <DocumentChartBarIcon />, route: 'compliance.reports.index', access: 'compliance.reports.view' },
       ]
     }] : []),
@@ -1939,7 +1939,7 @@ export const getPages = (roles, permissions, auth = null) => {
         { name: 'CAPA', icon: <ArrowPathIcon />, route: 'quality.capa.index', access: 'quality.capa.view' },
         { name: 'Calibrations', icon: <WrenchIcon />, route: 'quality.calibrations.index', access: 'quality.calibrations.view' },
         { name: 'Quality Audits', icon: <DocumentMagnifyingGlassIcon />, route: 'quality.audits.index', access: 'quality.audits.view' },
-        { name: 'Certifications', icon: <BadgeCheckIcon />, route: 'quality.certifications.index', access: 'quality.certifications.view' },
+        { name: 'Certifications', icon: <CheckBadgeIcon />, route: 'quality.certifications.index', access: 'quality.certifications.view' },
         { name: 'Analytics', icon: <ChartPieIcon />, route: 'quality.analytics', access: 'quality.quality-analytics.view' },
         { name: 'Settings', icon: <Cog6ToothIcon />, route: 'quality.settings', access: 'quality.quality-settings.view' },
       ]
