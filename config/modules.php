@@ -216,6 +216,11 @@ return [
             'priority' => 3,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -314,6 +319,11 @@ return [
             'priority' => 4,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -499,6 +509,11 @@ return [
             'priority' => 6,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -587,6 +602,11 @@ return [
             'priority' => 7,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -673,6 +693,11 @@ return [
             'priority' => 8,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -759,6 +784,11 @@ return [
             'priority' => 9,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -888,6 +918,11 @@ return [
             'priority' => 10,
             'is_core' => true,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -1022,6 +1057,11 @@ return [
             'priority' => 11,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => ['tenants', 'subscriptions'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -1516,6 +1556,11 @@ return [
             'priority' => 12,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -1752,6 +1797,11 @@ return [
             'priority' => 13,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => ['tenants'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -2295,6 +2345,11 @@ return [
             'priority' => 1,
             'is_core' => true,
             'is_active' => true, // Core always accessible
+            'version' => '1.0.0',
+            'min_plan' => null,
+            'license_type' => 'core',
+            'dependencies' => [],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 [
@@ -3946,6 +4001,11 @@ return [
             'priority' => 25,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'professional',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -4663,6 +4723,11 @@ return [
             'priority' => 30,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'business',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -5477,6 +5542,11 @@ return [
             'priority' => 40,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'business',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -6560,6 +6630,11 @@ return [
             'priority' => 50,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'business',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -7585,6 +7660,11 @@ return [
             'priority' => 60,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'business',
+            'license_type' => 'standard',
+            'dependencies' => ['core', 'inventory'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -8790,6 +8870,11 @@ return [
             'priority' => 70,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'professional',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -9808,6 +9893,11 @@ return [
             'priority' => 80,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'business',
+            'license_type' => 'standard',
+            'dependencies' => ['core'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
@@ -10521,6 +10611,11 @@ return [
             'priority' => 85,
             'is_core' => false,
             'is_active' => true,
+            'version' => '1.0.0',
+            'min_plan' => 'professional',
+            'license_type' => 'standard',
+            'dependencies' => ['core', 'crm'],
+            'release_date' => '2024-01-01',
 
             'submodules' => [
                 /*
