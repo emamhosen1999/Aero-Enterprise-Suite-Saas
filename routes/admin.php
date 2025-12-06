@@ -286,24 +286,7 @@ Route::middleware(['auth:landlord'])->group(function () {
         });
     });
 
-    // Permission Management (Legacy - for backward compatibility)
-    Route::middleware(['module:platform-roles,module-permissions'])->prefix('permissions')->name('admin.permissions.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])
-            ->middleware(['module:platform-roles,module-permissions,module-list,create'])
-            ->name('store');
-        Route::get('/grouped', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'groupedByModule'])->name('grouped');
-        Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'show'])->name('show');
-        Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])
-            ->middleware(['module:platform-roles,module-permissions,module-list,update'])
-            ->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])
-            ->middleware(['module:platform-roles,module-permissions,module-list,delete'])
-            ->name('destroy');
-        Route::post('/{id}/sync-roles', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'syncRoles'])
-            ->middleware(['module:platform-roles,module-permissions,role-access,manage'])
-            ->name('sync-roles');
-    });
+
 
     // =========================================================================
     // 5. SUBSCRIPTIONS & BILLING MODULE (subscriptions)

@@ -62,7 +62,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'api_security' => \App\Http\Middleware\ApiSecurityMiddleware::class,
             'security_headers' => \App\Http\Middleware\SecurityHeaders::class,
             'enhanced_rate_limit' => \App\Http\Middleware\EnhancedRateLimit::class,
-            'role_permission_sync' => \App\Http\Middleware\EnsureRolePermissionSync::class,
             'track_security' => \App\Http\Middleware\TrackSecurityActivity::class,
             'session_expiry' => \App\Http\Middleware\CheckSessionExpiry::class, // Register alias
             'identify_domain' => \App\Http\Middleware\IdentifyDomainContext::class, // Domain context alias

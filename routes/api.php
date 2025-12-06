@@ -128,17 +128,7 @@ Route::middleware(['web', 'auth'])->prefix('roles')->group(function () {
     Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])->name('api.roles.update-module');
 });
 
-Route::middleware(['web', 'auth'])->prefix('permissions')->group(function () {
-    // Permission CRUD operations
-    Route::get('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'index'])->name('api.permissions.index');
-    Route::post('/', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'store'])->name('api.permissions.store');
-    Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'show'])->name('api.permissions.show');
-    Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'update'])->name('api.permissions.update');
-    Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'destroy'])->name('api.permissions.destroy');
 
-    // Permission grouping
-    Route::get('/grouped/modules', [\App\Http\Controllers\Shared\Admin\PermissionController::class, 'groupedByModule'])->name('api.permissions.grouped');
-});
 
 Route::middleware(['web', 'auth'])->prefix('users')->group(function () {
     // User-Role assignment

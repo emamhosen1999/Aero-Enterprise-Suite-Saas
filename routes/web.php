@@ -516,13 +516,7 @@ Route::middleware(['auth', 'verified', 'tenant.super_admin'])->group(function ()
     Route::post('/admin/modules/components/{component}/sync-permissions', [ModuleController::class, 'syncComponentPermissions'])->name('modules.components.sync-permissions');
 });
 
-// Role Debug Routes (for troubleshooting live server issues)
-Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(function () {
-    Route::get('/admin/roles/debug', [App\Http\Controllers\RoleDebugController::class, 'debug'])->name('admin.roles.debug');
-    Route::post('/admin/roles/debug/refresh-cache', [App\Http\Controllers\RoleDebugController::class, 'refreshCache'])->name('admin.roles.debug.refresh-cache');
-    Route::get('/admin/roles/debug/test-role', [App\Http\Controllers\RoleDebugController::class, 'testRole'])->name('admin.roles.debug.test-role');
-    Route::post('/admin/roles/debug/test-permission', [App\Http\Controllers\RoleDebugController::class, 'testPermissionAssignment'])->name('admin.roles.debug.test-permission');
-});
+
 
 // System Monitoring Routes (Super Administrator only)
 Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(function () {
