@@ -29,6 +29,16 @@ class TenantDatabaseSeeder extends Seeder
         // 2. Create default tenant roles with permissions
         $this->seedDefaultRoles();
 
+        // 3. Seed Finance module sample data (optional - can be skipped in production)
+        if ($this->command?->confirm('Seed Finance module with sample data?', false)) {
+            $this->call(FinanceSeeder::class);
+        }
+
+        // 4. Seed Integrations module sample data (optional - can be skipped in production)
+        if ($this->command?->confirm('Seed Integrations module with sample data?', false)) {
+            $this->call(IntegrationsSeeder::class);
+        }
+
         $this->command?->info('✅ Tenant database seeded successfully!');
     }
 
