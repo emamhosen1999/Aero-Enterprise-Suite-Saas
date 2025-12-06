@@ -45,43 +45,24 @@ Route::middleware(['web', 'auth'])->prefix('notifications')->group(function () {
     Route::put('/preferences', [NotificationApiController::class, 'updatePreferences'])->name('api.notifications.preferences.update');
 });
 
-// Error logging endpoint
-Route::post('/log-error', function (Request $request) {
-    try {
-        $validated = $request->validate([
-            'error_id' => 'required|string',
-            'message' => 'required|string',
-            'stack' => 'nullable|string',
-            'component_stack' => 'nullable|string',
-            'url' => 'required|string',
-            'user_agent' => 'nullable|string',
-            'timestamp' => 'required|string',
-        ]);
+// ============================================================================
+// Error Logging API Routes
+// ============================================================================
+use App\Http\Controllers\Api\ErrorLogController;
 
-        DB::table('error_logs')->insert([
-            'error_id' => $validated['error_id'],
-            'message' => $validated['message'],
-            'stack_trace' => $validated['stack'] ?? null,
-            'component_stack' => $validated['component_stack'] ?? null,
-            'url' => $validated['url'],
-            'user_agent' => $validated['user_agent'] ?? null,
-            'user_id' => auth()->id(),
-            'ip_address' => $request->ip(),
-            'metadata' => json_encode([
-                'timestamp' => $validated['timestamp'],
-                'session_id' => session()->getId(),
-            ]),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+// Public error logging endpoint (frontend errors - no auth required for error capture)
+Route::post('/error-log', [ErrorLogController::class, 'store'])
+    ->middleware(['web'])
+    ->name('api.error-log.store');
 
-        return response()->json(['success' => true]);
-    } catch (\Exception $e) {
-        Log::error('Failed to log frontend error: '.$e->getMessage());
-
-        return response()->json(['success' => false], 500);
-    }
-})->middleware(['web']);
+// Authenticated error log management routes
+Route::middleware(['web', 'auth'])->prefix('error-logs')->group(function () {
+    Route::get('/', [ErrorLogController::class, 'index'])->name('api.error-logs.index');
+    Route::get('/stats', [ErrorLogController::class, 'stats'])->name('api.error-logs.stats');
+    Route::get('/{id}', [ErrorLogController::class, 'show'])->name('api.error-logs.show');
+    Route::delete('/{id}', [ErrorLogController::class, 'destroy'])->name('api.error-logs.destroy');
+    Route::post('/{id}/resolve', [ErrorLogController::class, 'resolve'])->name('api.error-logs.resolve');
+});
 
 // Performance logging endpoint
 

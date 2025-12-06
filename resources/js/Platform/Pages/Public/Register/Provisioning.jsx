@@ -10,6 +10,7 @@ import ProgressSteps from './components/ProgressSteps.jsx';
 
 /**
  * Human-readable step labels for provisioning process
+ * Note: Admin user creation is now done AFTER provisioning on the tenant domain
  */
 const PROVISIONING_STEPS = {
   creating_db: {
@@ -22,15 +23,15 @@ const PROVISIONING_STEPS = {
     description: 'Running database migrations and preparing tables...',
     progress: 50,
   },
-  seeding: {
-    label: 'Seeding data',
-    description: 'Populating initial data and configurations...',
+  seeding_roles: {
+    label: 'Setting up roles',
+    description: 'Configuring default roles for your workspace...',
     progress: 75,
   },
-  creating_admin: {
-    label: 'Creating admin account',
-    description: 'Setting up your administrator credentials...',
-    progress: 90,
+  completed: {
+    label: 'Finalizing',
+    description: 'Completing workspace setup...',
+    progress: 100,
   },
 };
 
@@ -67,8 +68,13 @@ export default function Provisioning({
   tenant = {},
   baseDomain = 'platform.test',
 }) {
-  const [status, setStatus] = useState(tenant.status || 'pending');
-  const [provisioningStep, setProvisioningStep] = useState(tenant.provisioning_step);
+  // Track if we should animate through steps (for sync queue where status is already 'active')
+  const [isAnimating, setIsAnimating] = useState(tenant.status === 'active');
+  const [animationStep, setAnimationStep] = useState(0);
+  const [status, setStatus] = useState(isAnimating ? 'provisioning' : (tenant.status || 'pending'));
+  const [provisioningStep, setProvisioningStep] = useState(
+    isAnimating ? 'creating_db' : tenant.provisioning_step
+  );
   const [error, setError] = useState(null);
   const [loginUrl, setLoginUrl] = useState(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -85,6 +91,56 @@ export default function Provisioning({
       : 'bg-white border border-slate-200 shadow-sm',
   };
 
+  // Animation sequence for sync queue (when provisioning already completed)
+  const stepSequence = ['creating_db', 'migrating', 'seeding_roles', 'completed'];
+
+  useEffect(() => {
+    if (!isAnimating) return;
+
+    // Animate through each step with a delay
+    const animateSteps = async () => {
+      for (let i = 0; i < stepSequence.length; i++) {
+        setProvisioningStep(stepSequence[i]);
+        setAnimationStep(i);
+        // Wait 600ms between steps for a smooth animation
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+
+      // After animation, show the actual status and fetch login URL
+      setIsAnimating(false);
+      setStatus(tenant.status);
+      setProvisioningStep(tenant.provisioning_step);
+
+      // If tenant is already active, fetch the redirect URL
+      if (tenant.status === 'active') {
+        try {
+          const response = await fetch(
+            route('platform.register.provisioning.status', { tenant: tenant.id }),
+            {
+              headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            }
+          );
+          const data = await response.json();
+          if (data.is_ready && data.login_url) {
+            setLoginUrl(data.login_url);
+            setIsRedirecting(true);
+            // Redirect after a brief delay to show success message
+            setTimeout(() => {
+              window.location.href = data.login_url;
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Failed to fetch redirect URL:', err);
+        }
+      }
+    };
+
+    animateSteps();
+  }, [isAnimating, tenant.status, tenant.provisioning_step, tenant.id]);
+
   // Current step info
   const currentStepInfo = PROVISIONING_STEPS[provisioningStep] || {
     label: 'Preparing',
@@ -94,7 +150,8 @@ export default function Provisioning({
 
   // Fetch status from API
   const fetchStatus = useCallback(async () => {
-    if (status === 'active' || status === 'failed' || isRedirecting) {
+    // Skip fetching during animation or when already completed/failed
+    if (isAnimating || status === 'active' || status === 'failed' || isRedirecting) {
       return;
     }
 
@@ -146,10 +203,13 @@ export default function Provisioning({
         });
       }
     }
-  }, [tenant.id, status, isRedirecting]);
+  }, [tenant.id, status, isRedirecting, isAnimating]);
 
-  // Poll for status updates
+  // Poll for status updates (only when not animating)
   useEffect(() => {
+    // Don't start polling during animation
+    if (isAnimating) return;
+
     // Initial fetch
     fetchStatus();
 
@@ -158,7 +218,7 @@ export default function Provisioning({
 
     // Cleanup on unmount
     return () => clearInterval(interval);
-  }, [fetchStatus]);
+  }, [fetchStatus, isAnimating]);
 
   // Render success state
   if (status === 'active') {
@@ -179,10 +239,10 @@ export default function Provisioning({
                     Workspace Ready
                   </Chip>
                   <h1 className={`text-xl sm:text-3xl font-semibold ${palette.heading}`}>
-                    {isRedirecting ? 'Redirecting to your workspace...' : 'Success!'}
+                    {isRedirecting ? 'Redirecting to complete setup...' : 'Almost Done!'}
                   </h1>
                   <p className={`${palette.copy} text-sm sm:text-base`}>
-                    Your workspace <strong>{tenant.name}</strong> is now live and ready to use.
+                    Your workspace <strong>{tenant.name}</strong> is now live. Complete your admin account setup to get started.
                   </p>
                 </div>
 
@@ -196,7 +256,7 @@ export default function Provisioning({
                 {isRedirecting && (
                   <div className="flex items-center justify-center gap-2">
                     <Spinner size="sm" />
-                    <span className={`${palette.copy} text-sm sm:text-base`}>Redirecting...</span>
+                    <span className={`${palette.copy} text-sm sm:text-base`}>Redirecting to admin setup...</span>
                   </div>
                 )}
 
@@ -208,7 +268,7 @@ export default function Provisioning({
                       color="primary"
                       className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto"
                     >
-                      Go to workspace
+                      Complete Admin Setup
                     </Button>
                     <Button as={Link} href={route('landing')} variant="bordered" className="w-full sm:w-auto">
                       Back to home

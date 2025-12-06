@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Platform;
 
+use App\Models\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,20 +19,45 @@ class RegistrationDetailsRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
+     * Email and subdomain uniqueness is validated against non-pending tenants only.
+     * This allows users to resume incomplete registrations with the same credentials.
+     * Pending/failed tenants can be "taken over" by the new registration attempt.
+     *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email:filter', 'max:150', Rule::unique('tenants', 'email')],
+            'email' => [
+                'required',
+                'email:filter',
+                'max:150',
+                Rule::unique('tenants', 'email')
+                    ->where(function ($query) {
+                        // Only block if there's an active/provisioning/suspended tenant
+                        // Allow pending/failed tenants to be resumed
+                        $query->whereNotIn('status', [
+                            Tenant::STATUS_PENDING,
+                            Tenant::STATUS_FAILED,
+                        ]);
+                    }),
+            ],
             'phone' => ['nullable', 'string', 'max:30'],
             'subdomain' => [
                 'required',
                 'string',
                 'max:40',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('tenants', 'subdomain'),
+                Rule::unique('tenants', 'subdomain')
+                    ->where(function ($query) {
+                        // Only block if there's an active/provisioning/suspended tenant
+                        // Allow pending/failed tenants to be resumed
+                        $query->whereNotIn('status', [
+                            Tenant::STATUS_PENDING,
+                            Tenant::STATUS_FAILED,
+                        ]);
+                    }),
             ],
             'team_size' => ['nullable', 'integer', 'min:1', 'max:100000'],
         ];
@@ -41,6 +67,8 @@ class RegistrationDetailsRequest extends FormRequest
     {
         return [
             'subdomain.regex' => 'Subdomain may only contain lowercase letters, numbers, and single hyphens.',
+            'email.unique' => 'This email is already registered with an active workspace.',
+            'subdomain.unique' => 'This subdomain is already in use by an active workspace.',
         ];
     }
 

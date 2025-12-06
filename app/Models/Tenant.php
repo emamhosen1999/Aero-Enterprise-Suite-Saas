@@ -66,6 +66,23 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public const STEP_CREATING_ADMIN = 'creating_admin';
 
     /**
+     * Registration step constants for tracking incomplete registrations.
+     */
+    public const REG_STEP_ACCOUNT_TYPE = 'account_type';
+
+    public const REG_STEP_DETAILS = 'details';
+
+    public const REG_STEP_ADMIN = 'admin';
+
+    public const REG_STEP_VERIFY_EMAIL = 'verify_email';
+
+    public const REG_STEP_VERIFY_PHONE = 'verify_phone';
+
+    public const REG_STEP_PLAN = 'plan';
+
+    public const REG_STEP_PAYMENT = 'payment';
+
+    /**
      * Custom columns that are stored directly on the tenants table
      * (not in the JSON 'data' column).
      *
@@ -94,13 +111,21 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'provisioning_step', // Async provisioning: creating_db, migrating, seeding, creating_admin
             'admin_data',        // Temporary admin credentials during provisioning
             'maintenance_mode',
-            // Admin verification columns (pre-provisioning)
+            // Admin verification columns (legacy - kept for backward compatibility)
             'admin_email_verified_at',
             'admin_phone_verified_at',
             'admin_email_verification_code',
             'admin_email_verification_sent_at',
             'admin_phone_verification_code',
             'admin_phone_verification_sent_at',
+            // Company verification columns (new - for verifying company contact info)
+            'company_email_verified_at',
+            'company_phone_verified_at',
+            'company_email_verification_code',
+            'company_email_verification_sent_at',
+            'company_phone_verification_code',
+            'company_phone_verification_sent_at',
+            'registration_step',  // Track which step user left from for resume functionality
             // Stripe Cashier columns
             'stripe_id',
             'pm_type',
@@ -129,6 +154,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'admin_phone_verified_at' => 'datetime',
             'admin_email_verification_sent_at' => 'datetime',
             'admin_phone_verification_sent_at' => 'datetime',
+            'company_email_verified_at' => 'datetime',
+            'company_phone_verified_at' => 'datetime',
+            'company_email_verification_sent_at' => 'datetime',
+            'company_phone_verification_sent_at' => 'datetime',
         ];
     }
 

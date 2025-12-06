@@ -47,7 +47,7 @@ return [
         'permissions' => 'permissions',
 
         /*
-         * When using the "HasPermissions" trait from this package, we need to know which
+         * When using the "HasRoles" trait from this package, we need to know which
          * table should be used to retrieve your models permissions. We have chosen a
          * basic default value but you may easily change it to any table you like.
          */
@@ -69,6 +69,7 @@ return [
          */
 
         'role_has_permissions' => 'role_has_permissions',
+
     ],
 
     'column_names' => [
@@ -100,8 +101,7 @@ return [
      * When set to true, the method for checking permissions will be registered on the gate.
      * Set this to false if you want to implement custom logic for checking permissions.
      */
-
-    'register_permission_check_method' => true,
+    'register_permission_check_method' => false,
 
     /*
      * When set to true, Laravel\Octane\Events\OperationTerminated event listener will be registered
@@ -137,8 +137,6 @@ return [
      * setting is false here for optimum safety.
      */
 
-    'display_permission_in_exception' => false,
-
     /*
      * When set to true, the required role names are added to exception messages.
      * This could be considered an information leak in some contexts, so the default
@@ -151,8 +149,6 @@ return [
      * By default wildcard permission lookups are disabled.
      * See documentation to understand supported syntax.
      */
-
-    'enable_wildcard_permission' => false,
 
     /*
      * The class to use for interpreting wildcard permissions.

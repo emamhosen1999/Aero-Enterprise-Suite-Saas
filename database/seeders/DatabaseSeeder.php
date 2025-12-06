@@ -14,12 +14,6 @@ class DatabaseSeeder extends Seeder
         $this->command?->warn('No tenant context detected. Running central admin seeds.');
 
         $this->call([
-            // 1. Super Administrator role + platform permissions from config
-            SuperAdministratorRolesSeeder::class,
-
-            // 2. Platform module permissions from config/modules.platform_hierarchy
-            PlatformModulePermissionSeeder::class,
-
             // 3. Tenant module hierarchy from config/modules.hierarchy
             ModuleSeeder::class,
 

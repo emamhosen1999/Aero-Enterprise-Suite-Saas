@@ -221,10 +221,10 @@ class MailConfigurationTest extends TestCase
         // But the verification code should still be generated and stored
         $result = $verificationService->sendEmailVerificationCode($tenant, 'admin@test.com');
 
-        // Verify tenant was updated with verification code
+        // Verify tenant was updated with verification code (now uses company_* columns)
         $tenant->refresh();
-        $this->assertNotNull($tenant->admin_email_verification_code);
-        $this->assertNotNull($tenant->admin_email_verification_sent_at);
+        $this->assertNotNull($tenant->company_email_verification_code);
+        $this->assertNotNull($tenant->company_email_verification_sent_at);
     }
 
     /**
@@ -257,9 +257,10 @@ class MailConfigurationTest extends TestCase
         $result = $verificationService->sendEmailVerificationCode($tenant, 'admin@test.com');
 
         // The verification code should still be generated and stored regardless of mail result
+        // (now uses company_* columns after migration to company verification)
         $tenant->refresh();
-        $this->assertNotNull($tenant->admin_email_verification_code);
-        $this->assertNotNull($tenant->admin_email_verification_sent_at);
+        $this->assertNotNull($tenant->company_email_verification_code);
+        $this->assertNotNull($tenant->company_email_verification_sent_at);
     }
 
     /**

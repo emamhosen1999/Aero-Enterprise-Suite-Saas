@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\ImpersonationController;
+use App\Http\Controllers\Tenant\AdminSetupController;
 use App\Http\Middleware\IdentifyDomainContext;
 use App\Http\Middleware\OptimizeTenantCache;
 use App\Http\Middleware\SetTenant;
@@ -34,6 +35,15 @@ Route::middleware([
     SetTenant::class,
     OptimizeTenantCache::class,
 ])->group(function () {
+    // =========================================================================
+    // ADMIN SETUP ROUTES (No auth required - for newly provisioned tenants)
+    // =========================================================================
+    // These routes are for creating the initial admin user after provisioning
+    Route::get('/admin-setup', [AdminSetupController::class, 'show'])
+        ->name('admin.setup');
+    Route::post('/admin-setup', [AdminSetupController::class, 'store'])
+        ->name('admin.setup.store');
+
     // =========================================================================
     // IMPERSONATION ROUTES (No auth required - token-based)
     // =========================================================================

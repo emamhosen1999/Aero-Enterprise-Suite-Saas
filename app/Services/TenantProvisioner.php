@@ -142,6 +142,68 @@ class TenantProvisioner
     }
 
     /**
+     * Update an existing tenant from registration payload.
+     *
+     * Used when resuming an incomplete registration for a tenant
+     * that was created during the verification step.
+     *
+     * @param  Tenant  $tenant  Existing tenant to update
+     * @param  array  $payload  Registration data from multi-step wizard
+     */
+    public function updateFromRegistration(Tenant $tenant, array $payload): Tenant
+    {
+        $account = $payload['account'] ?? [];
+        $details = $payload['details'] ?? [];
+        $plan = $payload['plan'] ?? [];
+
+        $trialEndsAt = now()->addDays((int) config('platform.trial_days', 14));
+        $modules = $this->cleanModules($plan['modules'] ?? []);
+
+        // Resolve plan_id from slug if provided
+        $planId = $this->resolvePlanId($plan['plan_slug'] ?? null);
+
+        // Get existing data as array (handles ArrayObject or array)
+        $existingData = $tenant->data instanceof \ArrayObject
+            ? $tenant->data->getArrayCopy()
+            : (array) ($tenant->data ?? []);
+
+        // Update tenant with full registration data
+        // Preserve company verification timestamps
+        $tenant->update([
+            'name' => (string) Arr::get($details, 'name', $tenant->name),
+            'type' => (string) Arr::get($account, 'type', $tenant->type ?? 'company'),
+            'plan_id' => $planId ?? $tenant->plan_id,
+            'subscription_plan' => Arr::get($plan, 'billing_cycle', $tenant->subscription_plan),
+            'modules' => ! empty($modules) ? $modules : $tenant->modules,
+            'trial_ends_at' => $trialEndsAt,
+            'subscription_ends_at' => null,
+            'status' => Tenant::STATUS_PENDING,
+            'provisioning_step' => null,
+            'maintenance_mode' => false,
+            'data' => array_merge($existingData, [
+                'owner_name' => Arr::get($details, 'owner_name'),
+                'owner_email' => Arr::get($details, 'owner_email', $tenant->email),
+                'owner_phone' => Arr::get($details, 'owner_phone'),
+                'team_size' => Arr::get($details, 'team_size'),
+                'industry' => Arr::get($details, 'industry'),
+                'notes' => Arr::get($plan, 'notes'),
+                'registration_ip' => request()->ip(),
+                'registered_at' => now()->toIso8601String(),
+            ]),
+        ]);
+
+        // Create domain if doesn't exist
+        if ($tenant->domains()->count() === 0) {
+            $tenant->domains()->create([
+                'domain' => $this->buildDomain($tenant->subdomain),
+                'is_primary' => true,
+            ]);
+        }
+
+        return $tenant->fresh();
+    }
+
+    /**
      * Resolve plan UUID from slug.
      */
     private function resolvePlanId(?string $planSlug): ?string

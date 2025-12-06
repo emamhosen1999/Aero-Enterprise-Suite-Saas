@@ -134,4 +134,17 @@ class TenantFactory extends Factory
             ], $data),
         ]);
     }
+
+    /**
+     * Indicate that admin setup has been completed.
+     */
+    public function withAdminSetupComplete(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'data' => array_merge($attributes['data'] ?? [], [
+                'admin_setup_completed' => true,
+                'admin_setup_completed_at' => now()->toISOString(),
+            ]),
+        ]);
+    }
 }

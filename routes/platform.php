@@ -22,11 +22,12 @@ Route::get('/', fn () => Inertia::render('Public/Landing'))->name('landing');
 Route::redirect('login', '/register', 302);
 
 // Multi-step Tenant Registration Flow
+// Flow: Account → Details → Verify Email → Verify Phone → Plan → Payment/Trial → Provisioning
+// Admin user setup happens on tenant domain AFTER provisioning completes
 Route::prefix('register')->name('platform.register.')->group(function () {
-    // Step pages
+    // Step pages (in order)
     Route::get('/', [RegistrationPageController::class, 'accountType'])->name('index');
     Route::get('/details', [RegistrationPageController::class, 'details'])->name('details');
-    Route::get('/admin-setup', [RegistrationPageController::class, 'admin'])->name('admin');
     Route::get('/verify-email', [RegistrationPageController::class, 'verifyEmail'])->name('verify-email');
     Route::get('/verify-phone', [RegistrationPageController::class, 'verifyPhone'])->name('verify-phone');
     Route::get('/plan', [RegistrationPageController::class, 'plan'])->name('plan');
@@ -37,10 +38,9 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     Route::get('/provisioning/{tenant}', [RegistrationPageController::class, 'provisioning'])->name('provisioning');
     Route::get('/provisioning/{tenant}/status', [RegistrationPageController::class, 'provisioningStatus'])->name('provisioning.status');
 
-    // Step submissions
+    // Step submissions (in order)
     Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');
     Route::post('/details', [RegistrationController::class, 'storeDetails'])->name('details.store');
-    Route::post('/admin-setup', [RegistrationController::class, 'storeAdmin'])->name('admin.store');
 
     // Email and Phone Verification Routes (during registration)
     Route::post('/verify-email/send', [RegistrationController::class, 'sendEmailVerification'])
@@ -62,7 +62,7 @@ Route::prefix('register')->name('platform.register.')->group(function () {
 
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
     Route::post('/trial', [RegistrationController::class, 'activateTrial'])
-        ->middleware('throttle:3,60') // 3 registration attempts per hour per IP
+        ->middleware('throttle:10,60') // 10 registration attempts per hour per IP
         ->name('trial.activate');
 });
 

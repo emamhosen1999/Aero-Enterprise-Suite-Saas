@@ -14,15 +14,18 @@ use Inertia\Response;
 
 class RegistrationPageController extends Controller
 {
+    /**
+     * Registration flow steps (admin setup moved to after provisioning on tenant domain).
+     */
     private array $steps = [
         ['key' => 'account', 'label' => 'Account Type', 'route' => 'platform.register.index'],
         ['key' => 'details', 'label' => 'Company Details', 'route' => 'platform.register.details'],
-        ['key' => 'admin', 'label' => 'Admin Details', 'route' => 'platform.register.admin'],
         ['key' => 'verify-email', 'label' => 'Verify Email', 'route' => 'platform.register.verify-email'],
         ['key' => 'verify-phone', 'label' => 'Verify Phone', 'route' => 'platform.register.verify-phone'],
         ['key' => 'plan', 'label' => 'Modules & Plan', 'route' => 'platform.register.plan'],
         ['key' => 'payment', 'label' => 'Review', 'route' => 'platform.register.payment'],
         ['key' => 'provisioning', 'label' => 'Setting Up', 'route' => 'platform.register.provisioning'],
+        // Admin setup happens on tenant domain after provisioning completes
     ];
 
     public function __construct(private TenantRegistrationSession $registrationSession) {}
@@ -48,52 +51,46 @@ class RegistrationPageController extends Controller
         ]);
     }
 
-    public function admin(): Response|RedirectResponse
+    /**
+     * Email verification page (verify company email from details step).
+     */
+    public function verifyEmail(): Response|RedirectResponse
     {
+        // Only require account and details (admin setup moved to after provisioning)
         if (! $this->registrationSession->ensureSteps(['account', 'details'])) {
             return to_route('platform.register.index');
         }
 
         $details = $this->registrationSession->get()['details'] ?? [];
 
-        return $this->render('Public/Register/AdminDetails', 'admin', [
-            'companyName' => $details['name'] ?? '',
-            'subdomain' => $details['subdomain'] ?? '',
-            'baseDomain' => config('platform.central_domain'),
-        ]);
-    }
-
-    public function verifyEmail(): Response|RedirectResponse
-    {
-        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin'])) {
-            return to_route('platform.register.index');
-        }
-
-        $adminData = $this->registrationSession->get()['admin'] ?? [];
-
         return $this->render('Public/Register/VerifyEmail', 'verify-email', [
-            'email' => $adminData['email'] ?? '',
-            'companyName' => $this->registrationSession->get()['details']['name'] ?? '',
+            'email' => $details['email'] ?? '',
+            'companyName' => $details['name'] ?? '',
         ]);
     }
 
+    /**
+     * Phone verification page (verify company phone from details step).
+     */
     public function verifyPhone(): Response|RedirectResponse
     {
-        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'verification'])) {
+        // Require verification step to have been started
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'verification'])) {
             return to_route('platform.register.index');
         }
 
-        $adminData = $this->registrationSession->get()['admin'] ?? [];
+        $details = $this->registrationSession->get()['details'] ?? [];
 
         return $this->render('Public/Register/VerifyPhone', 'verify-phone', [
-            'phone' => $adminData['phone'] ?? '',
-            'companyName' => $this->registrationSession->get()['details']['name'] ?? '',
+            'phone' => $details['phone'] ?? '',
+            'companyName' => $details['name'] ?? '',
         ]);
     }
 
     public function plan(): Response|RedirectResponse
     {
-        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin'])) {
+        // Only require account and details (admin setup moved to after provisioning)
+        if (! $this->registrationSession->ensureSteps(['account', 'details'])) {
             return to_route('platform.register.index');
         }
 
@@ -153,7 +150,8 @@ class RegistrationPageController extends Controller
 
     public function payment(): Response|RedirectResponse
     {
-        if (! $this->registrationSession->ensureSteps(['account', 'details', 'admin', 'plan'])) {
+        // Only require account, details, and plan (admin setup moved to after provisioning)
+        if (! $this->registrationSession->ensureSteps(['account', 'details', 'plan'])) {
             return to_route('platform.register.index');
         }
 
@@ -228,11 +226,25 @@ class RegistrationPageController extends Controller
      * API endpoint to check provisioning status.
      *
      * Called by the frontend to poll for status updates.
+     * Redirects to admin-setup page instead of login when ready.
      */
     public function provisioningStatus(Tenant $tenant): JsonResponse
     {
         $baseDomain = config('platform.central_domain');
         $domain = sprintf('%s.%s', $tenant->subdomain, $baseDomain);
+
+        // Check if tenant has already completed admin setup
+        $adminSetupCompleted = $tenant->data['admin_setup_completed'] ?? false;
+
+        // Determine redirect URL based on admin setup status
+        $redirectUrl = null;
+        if ($tenant->status === Tenant::STATUS_ACTIVE) {
+            // If admin setup is not complete, redirect to admin-setup page
+            // Otherwise redirect to login
+            $redirectUrl = $adminSetupCompleted
+                ? sprintf('https://%s/login', $domain)
+                : sprintf('https://%s/admin-setup', $domain);
+        }
 
         return response()->json([
             'id' => $tenant->id,
@@ -245,9 +257,8 @@ class RegistrationPageController extends Controller
             'error' => $tenant->status === Tenant::STATUS_FAILED
                 ? ($tenant->data['provisioning_error'] ?? 'Provisioning failed')
                 : null,
-            'login_url' => $tenant->status === Tenant::STATUS_ACTIVE
-                ? sprintf('https://%s/login', $domain)
-                : null,
+            'login_url' => $redirectUrl,
+            'needs_admin_setup' => ! $adminSetupCompleted,
         ]);
     }
 
