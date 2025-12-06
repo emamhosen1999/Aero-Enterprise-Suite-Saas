@@ -40,13 +40,20 @@ class Module extends Model
         'is_active',
         'is_core',
         'settings',
+        'version',
+        'min_plan',
+        'license_type',
+        'dependencies',
+        'release_date',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'is_core' => 'boolean',
         'settings' => 'array',
+        'dependencies' => 'array',
         'priority' => 'integer',
+        'release_date' => 'date',
     ];
 
     // Module categories
