@@ -140,18 +140,26 @@ GET /admin/users/analytics
 
 ### Current State (60%)
 **Exists:**
-- Role CRUD operations
-- Basic permission display
-- Role listing
+- Role CRUD operations (Spatie roles)
+- Basic role listing
+- User-role assignment
 
 **Missing:**
-- Visual permission assignment
-- Module-level granular permissions
-- Permission conflict detection
-- Role hierarchy management
-- Inheritance visualization
+- Visual module access assignment interface
+- Module hierarchy access control UI
+- Access scope management (all/own/team/department)
+- Role-to-module mapping dashboard
+- Access templates
 
 ### Target State (85%)
+
+**Access Control Architecture:**
+- Uses Spatie roles with `HasRoles` trait
+- `RoleModuleAccess` model for role-module mapping
+- Hierarchical access: Module → SubModule → Component → Action
+- Access scopes: all, own, team, department
+- Higher-level access cascades down to children
+- Protected roles (super admin) have full access
 
 #### Components to Create
 
@@ -159,66 +167,70 @@ GET /admin/users/analytics
 - Location: `resources/js/Platform/Pages/Admin/Roles/RoleManagement.jsx`
 - Features:
   - Role list with user counts
-  - Permission summary view
+  - Module access summary view
   - Quick role creation
   - Role duplication
-  - Permission templates
+  - Access templates
+  - Protected role indicators
 
-**2. Permission Assignment Interface**
-- Location: `resources/js/Components/Admin/PermissionMatrix.jsx`
+**2. Module Access Assignment Interface**
+- Location: `resources/js/Components/Admin/ModuleAccessMatrix.jsx`
 - Features:
-  - Module hierarchy tree
-  - Checkbox grid for permissions
-  - Bulk permission assignment
-  - Permission search
-  - Visual conflict indicators
+  - Hierarchical module tree (Module → SubModule → Component → Action)
+  - Checkbox selection with cascading logic
+  - Access scope selector per entry (all/own/team/department)
+  - Visual indicators for inherited access
+  - Bulk selection helpers
+  - Real-time access preview
 
-**3. Role Hierarchy Visualizer**
-- Location: `resources/js/Components/Admin/RoleHierarchy.jsx`
+**3. Role Access Overview Dashboard**
+- Location: `resources/js/Components/Admin/RoleAccessDashboard.jsx`
 - Features:
-  - Tree/graph visualization
-  - Inheritance paths
-  - Conflict detection
-  - Drag-and-drop reordering
+  - Matrix view showing role-module mapping
+  - Module coverage heatmap
+  - Access level indicators (module/submodule/component/action)
+  - Quick comparison between roles
+  - Export access reports
 
-**4. Permission Templates**
-- Location: `resources/js/Components/Admin/PermissionTemplates.jsx`
+**4. Access Templates**
+- Location: `resources/js/Components/Admin/AccessTemplates.jsx`
 - Templates:
-  - Super Administrator
-  - Administrator
-  - Manager
-  - Viewer
+  - Super Admin (full access, protected)
+  - Platform Admin template
+  - Tenant Manager template
+  - Support Staff template
   - Custom templates
 
 **5. Role Analytics**
 - Location: `resources/js/Components/Admin/RoleAnalytics.jsx`
 - Metrics:
   - Users per role
-  - Permission usage
-  - Access patterns
-  - Role effectiveness
+  - Module access coverage
+  - Unused access entries
+  - Access scope distribution
+  - Security audit indicators
 
-#### Permission Structure
+#### Module Access Structure
 
 ```javascript
-// Module-based permission structure
+// RoleModuleAccess model structure
 {
-  module: 'tenants',
-  permissions: {
-    view: boolean,
-    create: boolean,
-    update: boolean,
-    delete: boolean,
-    manage_subscription: boolean
-  }
+  role_id: 1,
+  module_id: 5,              // Access at module level
+  sub_module_id: null,       // Higher levels grant access to all children
+  component_id: null,
+  action_id: null,
+  access_scope: 'all'        // all|own|team|department
 }
 
-// Granular submodule permissions
+// Granular action-level access
 {
-  module: 'platform-users',
-  submodule: 'devices',
-  component: 'management',
-  actions: ['view', 'lock', 'unlock', 'revoke']
+  role_id: 2,
+  module_id: 5,
+  sub_module_id: 12,
+  component_id: 45,
+  action_id: 123,            // Access only to this specific action
+  access_scope: 'own'        // Can only access own data
 }
 ```
 
@@ -232,14 +244,13 @@ PUT /admin/roles/{id}
 DELETE /admin/roles/{id}
 
 // New endpoints
-GET /admin/roles/{id}/permissions
-POST /admin/roles/{id}/permissions
+GET /admin/roles/{id}/module-access
+POST /admin/roles/{id}/module-access/sync
 GET /admin/roles/{id}/users
-GET /admin/roles/hierarchy
 POST /admin/roles/duplicate
 GET /admin/roles/templates
-GET /admin/permissions/modules
-POST /admin/permissions/validate
+GET /admin/modules/hierarchy
+GET /admin/module-access/validate
 ```
 
 ---
