@@ -10,12 +10,12 @@ import {
     ChartBarIcon, Squares2X2Icon, TableCellsIcon, AdjustmentsHorizontalIcon,
     BuildingOfficeIcon, UsersIcon, PencilIcon
 } from '@heroicons/react/24/outline';
-import PageHeader from '@/Components/PageHeader.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import App from '@/Layouts/App.jsx';
-import DesignationTable from '@/Tables/DesignationTable.jsx';
-import DesignationForm from '@/Forms/DesignationForm.jsx';
-import DeleteDesignationForm from '@/Forms/DeleteDesignationForm.jsx';
+import PageHeader from '@/Shared/Components/Common/PageHeader';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
+import App from '@/Shared/Layouts/App';
+import DesignationTable from '@/Tenant/Tables/HRM/DesignationTable';
+import DesignationForm from '@/Tenant/Forms/HRM/DesignationForm';
+import DeleteDesignationForm from '@/Tenant/Forms/HRM/DeleteDesignationForm';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 

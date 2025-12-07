@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\Finance\AccountsPayableController;
-use App\Http\Controllers\Finance\AccountsReceivableController;
-use App\Http\Controllers\Finance\ChartOfAccountsController;
-use App\Http\Controllers\Finance\FinanceDashboardController;
-use App\Http\Controllers\Finance\GeneralLedgerController;
-use App\Http\Controllers\Finance\JournalEntryController;
+use App\Http\Controllers\Tenant\Finance\AccountsPayableController;
+use App\Http\Controllers\Tenant\Finance\AccountsReceivableController;
+use App\Http\Controllers\Tenant\Finance\ChartOfAccountsController;
+use App\Http\Controllers\Tenant\Finance\FinanceDashboardController;
+use App\Http\Controllers\Tenant\Finance\GeneralLedgerController;
+use App\Http\Controllers\Tenant\Finance\JournalEntryController;
 use Illuminate\Support\Facades\Route;
 
 /*

@@ -65,8 +65,8 @@ import {
     GlobeAltIcon,
     Squares2X2Icon
 } from "@heroicons/react/24/outline";
-import StatsCards from '@/Components/StatsCards.jsx';
-import App from '@/Layouts/App.jsx';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
+import App from '@/Shared/Layouts/App';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 

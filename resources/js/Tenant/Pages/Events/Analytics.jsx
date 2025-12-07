@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import App from '@/Layouts/App';
-import StatsCards from '@/Components/StatsCards';
+import App from '@/Shared/Layouts/App';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
 import {
     Select,
     SelectItem,

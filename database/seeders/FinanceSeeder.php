@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Finance\Account;
-use App\Models\Finance\JournalEntry;
-use App\Models\Finance\JournalEntryLine;
+
+
+
+use App\Models\Tenant\Finance\Account;
+use App\Models\Tenant\Finance\JournalEntry;
+use App\Models\Tenant\Finance\JournalEntryLine;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

@@ -20,7 +20,7 @@ import {
     TrashIcon,
     ArrowLeftIcon
 } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 

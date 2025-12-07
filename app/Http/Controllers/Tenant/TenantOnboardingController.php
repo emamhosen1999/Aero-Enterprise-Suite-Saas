@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Models\SystemSetting;
-use App\Models\TenantInvitation;
-use App\Models\User;
+use App\Models\Shared\SystemSetting;
+use App\Models\Platform\TenantInvitation;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

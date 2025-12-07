@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Jurisdiction;
+use App\Models\Tenant\Compliance\Jurisdiction;
 use App\Repositories\Contracts\AttendanceSettingRepositoryInterface;
 use App\Repositories\Contracts\CompanySettingRepositoryInterface;
 use App\Repositories\Eloquent\AttendanceSettingRepository;

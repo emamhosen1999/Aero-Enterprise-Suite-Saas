@@ -17,7 +17,7 @@ import {
   globalImpactStats,
   partnerLogos,
 } from '@/constants/marketing';
-import PublicLayout from '@/Layouts/PublicLayout';
+import PublicLayout from '@/Shared/Layouts/PublicLayout';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 
 const About = () => {

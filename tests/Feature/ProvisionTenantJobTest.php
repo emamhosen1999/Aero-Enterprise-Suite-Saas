@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\ProvisionTenant;
-use App\Models\Tenant;
+use App\Models\Platform\Tenant;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 

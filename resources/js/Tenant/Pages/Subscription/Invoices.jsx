@@ -28,7 +28,7 @@ import {
     ClockIcon,
     ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App';
+import App from '@/Shared/Layouts/App';
 import { showToast } from '@/utils/toastUtils';
 
 /**

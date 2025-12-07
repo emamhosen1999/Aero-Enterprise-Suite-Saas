@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Module;
-use App\Models\Plan;
+use App\Models\Shared\Module;
+use App\Models\Platform\Plan;
 use Illuminate\Database\Seeder;
 
 class PlanModuleSeeder extends Seeder

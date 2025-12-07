@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\HR;
 
-use App\Models\HRM\Offboarding;
+use App\Models\Tenant\HRM\Offboarding;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateOffboardingRequest extends FormRequest

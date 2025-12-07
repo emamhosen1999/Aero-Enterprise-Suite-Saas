@@ -38,8 +38,8 @@ import {
     EyeIcon,
     XMarkIcon
 } from '@heroicons/react/24/outline';
-import AuditTimeline from '@/Components/AuditTimeline';
-import App from '@/Layouts/App';
+import AuditTimeline from '@/Platform/Components/AuditTimeline';
+import App from '@/Shared/Layouts/App';
 
 /**
  * Activity Detail Modal

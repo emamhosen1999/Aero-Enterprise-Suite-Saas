@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\ProjectManagement\BudgetController;
-use App\Http\Controllers\ProjectManagement\GanttController;
-use App\Http\Controllers\ProjectManagement\IssueController;
-use App\Http\Controllers\ProjectManagement\MilestoneController;
-use App\Http\Controllers\ProjectManagement\ProjectController;
-use App\Http\Controllers\ProjectManagement\ResourceController;
-use App\Http\Controllers\ProjectManagement\TaskController;
-use App\Http\Controllers\ProjectManagement\TimeTrackingController;
+use App\Http\Controllers\Tenant\ProjectManagement\BudgetController;
+use App\Http\Controllers\Tenant\ProjectManagement\GanttController;
+use App\Http\Controllers\Tenant\ProjectManagement\IssueController;
+use App\Http\Controllers\Tenant\ProjectManagement\MilestoneController;
+use App\Http\Controllers\Tenant\ProjectManagement\ProjectController;
+use App\Http\Controllers\Tenant\ProjectManagement\ResourceController;
+use App\Http\Controllers\Tenant\ProjectManagement\TaskController;
+use App\Http\Controllers\Tenant\ProjectManagement\TimeTrackingController;
 use Illuminate\Support\Facades\Route;
 
 /*

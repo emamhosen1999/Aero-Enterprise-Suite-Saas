@@ -14,9 +14,9 @@ import {
     Tab
 } from '@heroui/react';
 import { ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App.jsx';
-import PageHeader from '@/Components/PageHeader';
-import KPIBuilder from '@/Components/HR/Performance/KPIBuilder';
+import App from '@/Shared/Layouts/App';
+import PageHeader from '@/Shared/Components/Common/PageHeader';
+import KPIBuilder from '@/Tenant/Components/HRM/HR/Performance/KPIBuilder';
 
 export default function PerformanceCreate({ auth, employees, templates, reviewTypes, review = null }) {
     const isEdit = !!review;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
-import InstallationLayout from '@/Layouts/InstallationLayout';
+import InstallationLayout from '@/Shared/Layouts/InstallationLayout';
 import { Card, CardHeader, CardBody, CardFooter, Button, Input } from '@heroui/react';
 import { CircleStackIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';

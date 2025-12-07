@@ -20,7 +20,7 @@ import {
 } from '@heroui/react';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { supportChannels, slaMatrix, demoSteps } from '@/constants/marketing';
-import PublicLayout from '@/Layouts/PublicLayout';
+import PublicLayout from '@/Shared/Layouts/PublicLayout';
 
 const tierData = [
   {

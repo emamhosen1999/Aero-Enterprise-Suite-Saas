@@ -23,7 +23,7 @@ import {
     CalendarIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-import App from '@/Layouts/App';
+import App from '@/Shared/Layouts/App';
 import { showToast } from '@/utils/toastUtils';
 
 /**

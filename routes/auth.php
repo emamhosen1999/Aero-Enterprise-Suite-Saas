@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\Auth\EmailVerificationController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\Auth\PhoneVerificationController;
-use App\Http\Controllers\Auth\SamlController;
-use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Shared\Auth\EmailVerificationController;
+use App\Http\Controllers\Shared\Auth\LoginController;
+use App\Http\Controllers\Shared\Auth\PasswordResetController;
+use App\Http\Controllers\Shared\Auth\PhoneVerificationController;
+use App\Http\Controllers\Shared\Auth\SamlController;
+use App\Http\Controllers\Shared\Auth\SocialAuthController;
 use App\Http\Controllers\Settings\InvoiceBrandingController;
 use Illuminate\Support\Facades\Route;
 

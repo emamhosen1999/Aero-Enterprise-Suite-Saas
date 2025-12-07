@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { Card, CardBody, CardHeader, Divider, Chip } from '@heroui/react';
 import { CubeIcon } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import ModuleHierarchyTree from '@/Components/ModuleHierarchyTree.jsx';
 
 /**

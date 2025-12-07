@@ -10,9 +10,9 @@ import {
   Tabs,
   Tab,
 } from "@heroui/react";
-import { useTheme } from '@/Contexts/ThemeContext';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 import App from "@/Layouts/App.jsx";
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
 import AttendanceEmployeeTable from "@/Tables/AttendanceEmployeeTable.jsx";
 import AttendanceCalendar from "@/Components/Attendance/AttendanceCalendar.jsx";
 import { 

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Head } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { planCatalog, analyticsTimeSeries, billingSummary } from '@/Platform/Pages/Admin/data/mockData.js';
 import {
   CurrencyDollarIcon,

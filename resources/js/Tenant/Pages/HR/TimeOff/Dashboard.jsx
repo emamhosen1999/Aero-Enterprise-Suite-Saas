@@ -15,7 +15,7 @@ import {
   User,
   Tooltip
 } from "@heroui/react";
-import { useTheme } from '@/Contexts/ThemeContext';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 
 import { 
   CalendarDaysIcon,

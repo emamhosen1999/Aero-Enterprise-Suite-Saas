@@ -1,33 +1,33 @@
 <?php
 
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\BulkLeaveController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\DesignationController;
-use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\Tenant\HRM\Attendance\AttendanceController;
+use App\Http\Controllers\Tenant\HRM\Leave\BulkLeaveController;
+use App\Http\Controllers\Tenant\Dashboard\DashboardController;
+use App\Http\Controllers\Tenant\HRM\Employee\DepartmentController;
+use App\Http\Controllers\Tenant\HRM\Employee\DesignationController;
+use App\Http\Controllers\Shared\Auth\DeviceController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\EmailController;
-use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\Tenant\HRM\Employee\EmployeeController;
 use App\Http\Controllers\ExperienceController;
-use App\Http\Controllers\FMSController;
+use App\Http\Controllers\Tenant\FMS\FMSController;
 use App\Http\Controllers\HolidayController;
-use App\Http\Controllers\IMSController;
+use App\Http\Controllers\Tenant\IMS\IMSController;
 use App\Http\Controllers\JurisdictionController;
-use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\Tenant\HRM\Leave\LeaveController;
 use App\Http\Controllers\LetterController;
-use App\Http\Controllers\POSController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ProfileImageController;
+use App\Http\Controllers\Tenant\POS\POSController;
+use App\Http\Controllers\Shared\Profile\ProfileController;
+use App\Http\Controllers\Shared\Profile\ProfileImageController;
 use App\Http\Controllers\Settings\AttendanceSettingController;
 use App\Http\Controllers\Settings\CustomDomainController;
 use App\Http\Controllers\Settings\LeaveSettingController;
 use App\Http\Controllers\Settings\SystemSettingController;
-use App\Http\Controllers\Shared\Admin\ModuleController;
-use App\Http\Controllers\Shared\Admin\RoleController;
-use App\Http\Controllers\SystemMonitoringController;
+use App\Http\Controllers\Shared\Platform\ModuleController;
+use App\Http\Controllers\Shared\Platform\RoleController;
+use App\Http\Controllers\Platform\SystemMonitoring\SystemMonitoringController;
 use App\Http\Controllers\TaskController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Shared\Auth\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -276,9 +276,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // HR Management routes
     Route::middleware(['module:hrm,employees'])->group(function () {
-        Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('employees');
-        Route::get('/employees/paginate', [\App\Http\Controllers\EmployeeController::class, 'paginate'])->name('employees.paginate');
-        Route::get('/employees/stats', [\App\Http\Controllers\EmployeeController::class, 'stats'])->name('employees.stats');
+        Route::get('/employees', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'index'])->name('employees');
+        Route::get('/employees/paginate', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
+        Route::get('/employees/stats', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
     });
 
     // Department management routes
@@ -376,11 +376,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Usage & Billing routes
         Route::prefix('settings/usage')->name('settings.usage.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\UsageController::class, 'index'])->name('index');
-            Route::get('/summary', [\App\Http\Controllers\UsageController::class, 'summary'])->name('summary');
-            Route::get('/trend/{metric}', [\App\Http\Controllers\UsageController::class, 'trend'])->name('trend');
-            Route::get('/limits', [\App\Http\Controllers\UsageController::class, 'limits'])->name('limits');
-            Route::get('/check/{metric}', [\App\Http\Controllers\UsageController::class, 'checkLimit'])->name('check');
+            Route::get('/', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'index'])->name('index');
+            Route::get('/summary', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'summary'])->name('summary');
+            Route::get('/trend/{metric}', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'trend'])->name('trend');
+            Route::get('/limits', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'limits'])->name('limits');
+            Route::get('/check/{metric}', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'checkLimit'])->name('check');
         });
     });    // Legacy role routes (maintained for backward compatibility)
     Route::middleware(['module:core,roles-permissions'])->get('/roles-permissions', [RoleController::class, 'getRolesAndPermissions'])->name('roles-settings');
@@ -526,29 +526,29 @@ Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(funct
     Route::get('/admin/optimization-report', [SystemMonitoringController::class, 'getOptimizationReport'])->name('admin.optimization-report');
     // CRM Module routes
     Route::middleware(['module:crm'])->prefix('crm')->group(function () {
-        Route::get('/', [App\Http\Controllers\CRMController::class, 'index'])->name('crm.index');
-        Route::get('/leads', [App\Http\Controllers\CRMController::class, 'leads'])->name('crm.leads');
-        Route::post('/leads', [App\Http\Controllers\CRMController::class, 'storeLeads'])->name('crm.leads.store')->middleware('module:crm,leads,lead-list,create');
-        Route::get('/customers', [App\Http\Controllers\CRMController::class, 'customers'])->name('crm.customers')->middleware('module:crm,customers');
-        Route::get('/opportunities', [App\Http\Controllers\CRMController::class, 'opportunities'])->name('crm.opportunities')->middleware('module:crm,opportunities');
-        Route::get('/reports', [App\Http\Controllers\CRMController::class, 'reports'])->name('crm.reports')->middleware('module:crm,reports');
-        Route::get('/settings', [App\Http\Controllers\CRMController::class, 'settings'])->name('crm.settings')->middleware('module:crm,settings');
+        Route::get('/', [App\Http\Controllers\Tenant\CRM\CRMController::class, 'index'])->name('crm.index');
+        Route::get('/leads', [App\Http\Controllers\Tenant\CRM\CRMController::class, 'leads'])->name('crm.leads');
+        Route::post('/leads', [App\Http\Controllers\Tenant\CRM\CRMController::class, 'storeLeads'])->name('crm.leads.store')->middleware('module:crm,leads,lead-list,create');
+        Route::get('/customers', [App\Http\Controllers\Tenant\CRM\CRMController::class, 'customers'])->name('crm.customers')->middleware('module:crm,customers');
+        Route::get('/opportunities', [App\Http\Controllers\Tenant\CRM\CRMController::class, 'opportunities'])->name('crm.opportunities')->middleware('module:crm,opportunities');
+        Route::get('/reports', [App\Http\Controllers\Tenant\CRM\CRMController::class, 'reports'])->name('crm.reports')->middleware('module:crm,reports');
+        Route::get('/settings', [App\Http\Controllers\Tenant\CRM\CRMController::class, 'settings'])->name('crm.settings')->middleware('module:crm,settings');
 
         // Kanban Pipeline routes
         Route::middleware(['module:crm,sales-pipeline'])->prefix('pipeline')->group(function () {
-            Route::get('/', [App\Http\Controllers\CRM\PipelineController::class, 'index'])->name('crm.pipeline');
-            Route::get('/{pipeline}/data', [App\Http\Controllers\CRM\PipelineController::class, 'getData'])->name('crm.pipeline.data');
+            Route::get('/', [App\Http\Controllers\Tenant\CRM\PipelineController::class, 'index'])->name('crm.pipeline');
+            Route::get('/{pipeline}/data', [App\Http\Controllers\Tenant\CRM\PipelineController::class, 'getData'])->name('crm.pipeline.data');
         });
 
         // Deal routes
         Route::middleware(['module:crm,deals'])->prefix('deals')->group(function () {
-            Route::post('/', [App\Http\Controllers\CRM\DealController::class, 'store'])->name('crm.deals.store');
-            Route::post('/{deal}/move', [App\Http\Controllers\CRM\DealController::class, 'move'])->name('crm.deals.move');
-            Route::put('/{deal}', [App\Http\Controllers\CRM\DealController::class, 'update'])->name('crm.deals.update');
-            Route::post('/{deal}/won', [App\Http\Controllers\CRM\DealController::class, 'markAsWon'])->name('crm.deals.won');
-            Route::post('/{deal}/lost', [App\Http\Controllers\CRM\DealController::class, 'markAsLost'])->name('crm.deals.lost');
-            Route::post('/{deal}/reopen', [App\Http\Controllers\CRM\DealController::class, 'reopen'])->name('crm.deals.reopen');
-            Route::delete('/{deal}', [App\Http\Controllers\CRM\DealController::class, 'destroy'])->name('crm.deals.destroy');
+            Route::post('/', [App\Http\Controllers\Tenant\CRM\DealController::class, 'store'])->name('crm.deals.store');
+            Route::post('/{deal}/move', [App\Http\Controllers\Tenant\CRM\DealController::class, 'move'])->name('crm.deals.move');
+            Route::put('/{deal}', [App\Http\Controllers\Tenant\CRM\DealController::class, 'update'])->name('crm.deals.update');
+            Route::post('/{deal}/won', [App\Http\Controllers\Tenant\CRM\DealController::class, 'markAsWon'])->name('crm.deals.won');
+            Route::post('/{deal}/lost', [App\Http\Controllers\Tenant\CRM\DealController::class, 'markAsLost'])->name('crm.deals.lost');
+            Route::post('/{deal}/reopen', [App\Http\Controllers\Tenant\CRM\DealController::class, 'reopen'])->name('crm.deals.reopen');
+            Route::delete('/{deal}', [App\Http\Controllers\Tenant\CRM\DealController::class, 'destroy'])->name('crm.deals.destroy');
         });
     });
 
@@ -653,17 +653,17 @@ Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(funct
     // Designation Management
     Route::middleware(['module:hrm,organization,designations'])->group(function () {
         // Initial page render (Inertia)
-        Route::get('/designations', [\App\Http\Controllers\DesignationController::class, 'index'])->name('designations.index');
+        Route::get('/designations', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'index'])->name('designations.index');
         // API data fetch (JSON)
-        Route::get('/designations/json', [\App\Http\Controllers\DesignationController::class, 'getDesignations'])->name('designations.json');
+        Route::get('/designations/json', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'getDesignations'])->name('designations.json');
         // Stats endpoint for frontend analytics
-        Route::get('/designations/stats', [\App\Http\Controllers\DesignationController::class, 'stats'])->name('designations.stats');
-        Route::post('/designations', [\App\Http\Controllers\DesignationController::class, 'store'])->name('designations.store');
-        Route::get('/designations/{id}', [\App\Http\Controllers\DesignationController::class, 'show'])->name('designations.show');
-        Route::put('/designations/{id}', [\App\Http\Controllers\DesignationController::class, 'update'])->name('designations.update');
-        Route::delete('/designations/{id}', [\App\Http\Controllers\DesignationController::class, 'destroy'])->name('designations.destroy');
+        Route::get('/designations/stats', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'stats'])->name('designations.stats');
+        Route::post('/designations', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'store'])->name('designations.store');
+        Route::get('/designations/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'show'])->name('designations.show');
+        Route::put('/designations/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'update'])->name('designations.update');
+        Route::delete('/designations/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'destroy'])->name('designations.destroy');
         // For dropdowns and API
-        Route::get('/designations/list', [\App\Http\Controllers\DesignationController::class, 'list'])->name('designations.list');
+        Route::get('/designations/list', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'list'])->name('designations.list');
     });
 });
 
@@ -716,7 +716,7 @@ Route::middleware(['auth', 'verified'])->get('/test-employee-auth', function () 
         return response()->json(['error' => 'No other employee found for testing']);
     }
 
-    $controller = new \App\Http\Controllers\EmployeeController;
+    $controller = new \App\Http\Controllers\Tenant\HRM\Employee\EmployeeController;
     $reflection = new ReflectionClass($controller);
     $method = $reflection->getMethod('canDeleteEmployee');
     $method->setAccessible(true);

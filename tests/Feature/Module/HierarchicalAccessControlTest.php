@@ -2,16 +2,16 @@
 
 namespace Tests\Feature\Module;
 
-use App\Models\Module;
+use App\Models\Shared\Module;
 use App\Models\ModuleComponent;
 use App\Models\ModuleComponentAction;
 use App\Models\ModulePermission;
-use App\Models\Plan;
+use App\Models\Platform\Plan;
 use App\Models\SubModule;
-use App\Models\Subscription;
-use App\Models\Tenant;
-use App\Models\User;
-use App\Services\Module\ModuleAccessService;
+use App\Models\Platform\Subscription;
+use App\Models\Platform\Tenant;
+use App\Models\Shared\User;
+use App\Services\Shared\Module\ModuleAccessService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;

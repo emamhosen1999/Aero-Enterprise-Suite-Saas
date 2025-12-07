@@ -19,7 +19,7 @@ import {
 import StatsCards from "@/Components/StatsCards.jsx";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import App from "@/Layouts/App.jsx";
-import TimeSheetTable from '@/Tables/TimeSheetTable.jsx';
+import TimeSheetTable from '@/Tenant/Tables/HRM/TimeSheetTable';
 import MarkAsPresentForm from "@/Forms/MarkAsPresentForm.jsx";
 import BulkMarkAsPresentForm from "@/Forms/BulkMarkAsPresentForm.jsx";
 import dayjs from "dayjs";

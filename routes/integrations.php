@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\Integrations\ApiKeyController;
-use App\Http\Controllers\Integrations\ConnectorController;
-use App\Http\Controllers\Integrations\IntegrationDashboardController;
-use App\Http\Controllers\Integrations\WebhookController;
+use App\Http\Controllers\Platform\Integrations\ApiKeyController;
+use App\Http\Controllers\Platform\Integrations\ConnectorController;
+use App\Http\Controllers\Platform\Integrations\IntegrationDashboardController;
+use App\Http\Controllers\Platform\Integrations\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*

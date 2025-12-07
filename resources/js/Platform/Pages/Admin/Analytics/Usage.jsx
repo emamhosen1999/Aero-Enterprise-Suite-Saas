@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { usageHeatmap, moduleCatalog } from '@/Platform/Pages/Admin/data/mockData.js';
 import {
   BoltIcon,

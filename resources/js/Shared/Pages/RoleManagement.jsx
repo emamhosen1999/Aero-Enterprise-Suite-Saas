@@ -40,10 +40,10 @@ import {
   XCircleIcon,
   KeyIcon 
 } from "@heroicons/react/24/outline";
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
 import RolesTable from '@/Tables/RolesTable.jsx';
 import UserRolesTable from '@/Tables/UserRolesTable.jsx';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 

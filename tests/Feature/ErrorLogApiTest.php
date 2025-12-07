@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ErrorLog;
-use App\Models\LandlordUser;
+use App\Models\Platform\LandlordUser;
 use Tests\TestCase;
 
 class ErrorLogApiTest extends TestCase

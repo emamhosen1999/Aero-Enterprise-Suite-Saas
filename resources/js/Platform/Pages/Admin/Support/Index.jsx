@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { ticketQueues, supportTickets } from '@/Platform/Pages/Admin/data/mockData.js';
 import {
   LifebuoyIcon,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { emailTransports, emailTemplates } from '@/Platform/Pages/Admin/data/mockData.js';
 import { showToast } from '@/utils/toastUtils.jsx';
 import {

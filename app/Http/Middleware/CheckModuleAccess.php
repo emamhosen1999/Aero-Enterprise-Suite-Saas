@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Tenant;
-use App\Services\Module\ModuleAccessService;
+use App\Models\Platform\Tenant;
+use App\Services\Shared\Module\ModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

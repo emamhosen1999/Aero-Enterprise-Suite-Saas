@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import StatsCards from '@/Components/StatsCards';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
 import { motion } from 'framer-motion';
 
 import {

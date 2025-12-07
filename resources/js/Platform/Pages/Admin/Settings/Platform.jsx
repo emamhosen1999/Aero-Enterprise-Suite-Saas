@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import axios from 'axios';
 import {
   Button,

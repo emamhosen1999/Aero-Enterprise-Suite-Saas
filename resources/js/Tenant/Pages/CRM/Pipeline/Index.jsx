@@ -19,7 +19,7 @@ import {
     Cog6ToothIcon,
     ChevronDownIcon,
 } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import KanbanBoard from './KanbanBoard';
 
 export default function Index({

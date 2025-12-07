@@ -35,13 +35,13 @@ import {
     MapPinIcon,
     CalendarIcon
 } from '@heroicons/react/24/outline';
-import PageHeader from '@/Components/PageHeader.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import App from '@/Layouts/App.jsx';
-import DepartmentTable from '@/Tables/DepartmentTable.jsx';
-import DepartmentForm from '@/Forms/DepartmentForm.jsx';
-import DeleteDepartmentForm from '@/Forms/DeleteDepartmentForm.jsx';
-import { useTheme } from '@/Contexts/ThemeContext';
+import PageHeader from '@/Shared/Components/Common/PageHeader';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
+import App from '@/Shared/Layouts/App';
+import DepartmentTable from '@/Tenant/Tables/HRM/DepartmentTable';
+import DepartmentForm from '@/Tenant/Forms/HRM/DepartmentForm';
+import DeleteDepartmentForm from '@/Tenant/Forms/HRM/DeleteDepartmentForm';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import dayjs from 'dayjs';

@@ -23,8 +23,8 @@ import {
     UserIcon,
     CalendarIcon
 } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App.jsx';
-import PageHeader from '@/Components/PageHeader';
+import App from '@/Shared/Layouts/App';
+import PageHeader from '@/Shared/Components/Common/PageHeader';
 
 export default function PerformanceIndex({ auth, reviews, filters, employees, templates }) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');

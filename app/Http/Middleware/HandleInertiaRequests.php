@@ -4,9 +4,9 @@ namespace App\Http\Middleware;
 
 use App\Http\Resources\PlatformSettingResource;
 use App\Http\Resources\SystemSettingResource;
-use App\Models\Module;
-use App\Models\PlatformSetting;
-use App\Models\SystemSetting;
+use App\Models\Shared\Module;
+use App\Models\Platform\PlatformSetting;
+use App\Models\Shared\SystemSetting;
 
 use App\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;

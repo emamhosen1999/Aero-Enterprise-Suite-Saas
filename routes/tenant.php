@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Auth\ImpersonationController;
+use App\Http\Controllers\Shared\Auth\ImpersonationController;
 use App\Http\Controllers\Tenant\AdminSetupController;
 use App\Http\Middleware\IdentifyDomainContext;
 use App\Http\Middleware\OptimizeTenantCache;
