@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\HR;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
+use App\Http\Config\HRConfig;
 use App\Models\HRM\Department;
 use App\Models\HRM\Job;
 use App\Models\HRM\JobApplication;
@@ -11,9 +12,8 @@ use App\Models\HRM\JobInterview;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
-class RecruitmentController extends Controller
+class RecruitmentController extends BaseController
 {
     /**
      * Display a listing of the jobs.
@@ -59,28 +59,14 @@ class RecruitmentController extends Controller
 
         $data = [
             'jobs' => $jobs,
-            'filters' => $request->only(['search', 'status', 'department_id', 'job_type', 'sort_by', 'sort_order']),
+            'filters' => $this->getCommonFilters($request),
             'departments' => Department::select('id', 'name')->get(),
             'managers' => User::role(['Super Administrator', 'Administrator', 'HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
-            'jobTypes' => [
-                ['id' => 'full_time', 'name' => 'Full Time'],
-                ['id' => 'part_time', 'name' => 'Part Time'],
-                ['id' => 'contract', 'name' => 'Contract'],
-                ['id' => 'temporary', 'name' => 'Temporary'],
-                ['id' => 'internship', 'name' => 'Internship'],
-                ['id' => 'remote', 'name' => 'Remote'],
-            ],
-            'statuses' => [
-                ['id' => 'draft', 'name' => 'Draft'],
-                ['id' => 'open', 'name' => 'Open'],
-                ['id' => 'closed', 'name' => 'Closed'],
-                ['id' => 'on_hold', 'name' => 'On Hold'],
-                ['id' => 'cancelled', 'name' => 'Cancelled'],
-            ],
+            'jobTypes' => HRConfig::getJobTypes(),
+            'statuses' => HRConfig::getJobStatuses(),
         ];
 
-        // Always return Inertia response for page loads
-        return Inertia::render('HR/Recruitment/Index', $data);
+        return $this->renderInertia('HR/Recruitment/Index', $data);
     }
 
     /**
