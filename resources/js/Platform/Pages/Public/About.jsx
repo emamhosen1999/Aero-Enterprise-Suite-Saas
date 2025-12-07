@@ -18,7 +18,7 @@ import {
   partnerLogos,
 } from '@/constants/marketing';
 import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 
 const About = () => {
   const { themeSettings } = useTheme();

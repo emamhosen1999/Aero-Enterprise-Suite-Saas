@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { useTheme } from '@/Contexts/ThemeContext';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 
 /**
  * Domain-aware branding hook with theme support

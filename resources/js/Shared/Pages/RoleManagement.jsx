@@ -23,7 +23,7 @@ import {
   ModalFooter,
   Switch
 } from "@heroui/react";
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import useMediaQuery from '@/Hooks/useMediaQuery';
 import { 
   UserGroupIcon, 

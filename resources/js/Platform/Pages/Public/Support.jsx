@@ -17,7 +17,7 @@ import {
 } from '@heroui/react';
 import { supportChannels, slaMatrix } from '@/constants/marketing';
 import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 
 const Support = () => {
   const { themeSettings } = useTheme();

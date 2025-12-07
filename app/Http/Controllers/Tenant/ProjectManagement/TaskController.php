@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\ProjectManagement;
 
+use App\Http\Controllers\Controller;
 use App\Models\Tenant\Analytics\Report;
 use App\Models\Shared\User;
 use App\Services\Task\TaskCrudService;

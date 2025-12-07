@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\IMS;
 
+use App\Http\Controllers\Controller;
 use App\Services\Tenant\IMS\IMSService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

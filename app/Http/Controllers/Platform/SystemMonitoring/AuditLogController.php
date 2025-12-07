@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Platform\SystemMonitoring;
 
+use App\Http\Controllers\Controller;
 use App\Services\AuditExportService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;

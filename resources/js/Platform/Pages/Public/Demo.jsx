@@ -11,7 +11,7 @@ import {
 } from '@heroui/react';
 import { demoSteps, demoStats, testimonialSlides } from '@/constants/marketing';
 import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 
 const Demo = () => {
   const { themeSettings } = useTheme();

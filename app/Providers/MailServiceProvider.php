@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\Mail\MailService;
+use App\Services\Shared\MailService;
 use Illuminate\Support\ServiceProvider;
 
 /**

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, usePage, Head } from '@inertiajs/react';
 import { Button } from '@heroui/react';
-import { useTheme } from '../Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import Footer from '@/Platform/Pages/Public/Footer';
 import { publicNavLinks } from '@/Config/publicNavigation';

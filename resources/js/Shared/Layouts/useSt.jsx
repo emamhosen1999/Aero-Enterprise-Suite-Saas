@@ -4,7 +4,7 @@ import Header from "@/Layouts/Header.jsx";
 import Breadcrumb from "@/Components/Breadcrumb.jsx";
 import BottomNav from "@/Layouts/BottomNav.jsx";
 import { usePage } from "@inertiajs/react";
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

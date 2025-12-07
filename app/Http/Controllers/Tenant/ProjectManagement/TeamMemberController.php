@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\ProjectManagement;
 
+use App\Http\Controllers\Controller;
 use App\Models\Platform\TenantInvitation;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;

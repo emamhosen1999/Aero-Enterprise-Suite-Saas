@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\FMS;
 
+use App\Http\Controllers\Controller;
 use App\Services\FMSService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

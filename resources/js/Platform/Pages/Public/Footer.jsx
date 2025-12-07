@@ -8,7 +8,7 @@ import {
   PhoneIcon 
 } from '@heroicons/react/24/outline';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import { Card } from '@heroui/react';
 import { publicNavLinks, footerColumns } from '@/Config/publicNavigation';

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdatePlatformSettingRequest;
 use App\Http\Resources\PlatformSettingResource;
 use App\Models\Platform\PlatformSetting;
-use App\Services\Mail\MailService;
+use App\Services\Shared\MailService;
 use App\Services\Notifications\RuntimeSmsConfigService;
 use App\Services\Settings\PlatformSettingService;
 use Illuminate\Http\JsonResponse;

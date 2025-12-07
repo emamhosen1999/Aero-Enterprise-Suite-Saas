@@ -3,8 +3,8 @@
 namespace App\Services\Platform\Monitoring;
 
 use App\Models\Platform\Tenant;
-use App\Services\Mail\MailService;
-use App\Services\Notifications\SmsGatewayService;
+use App\Services\Shared\MailService;
+use App\Services\Shared\Notification\SmsGatewayService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 

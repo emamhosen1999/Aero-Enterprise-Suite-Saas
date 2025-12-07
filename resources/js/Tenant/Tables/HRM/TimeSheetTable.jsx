@@ -25,7 +25,7 @@ import {
 } from "@heroui/react";
 import { usePage } from "@inertiajs/react";
 import dayjs from "dayjs";
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { 
     MagnifyingGlassIcon,

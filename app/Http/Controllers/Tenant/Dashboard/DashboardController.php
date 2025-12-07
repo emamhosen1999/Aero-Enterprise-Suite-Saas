@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\Dashboard;
 
+use App\Http\Controllers\Controller;
 use App\Models\Shared\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

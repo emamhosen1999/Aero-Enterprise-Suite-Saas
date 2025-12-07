@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\DMS;
 
-
-
-
-
+use App\Http\Controllers\Controller;
 use App\Models\Tenant\DMS\Category;
 use App\Models\Tenant\DMS\Document;
 use App\Models\Tenant\DMS\DocumentVersion;

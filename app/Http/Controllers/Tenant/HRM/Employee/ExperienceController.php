@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
+use App\Http\Controllers\Controller;
 use App\Models\Tenant\HRM\Experience;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

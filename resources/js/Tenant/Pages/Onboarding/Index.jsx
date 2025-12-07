@@ -37,7 +37,7 @@ import {
     SkipForward,
 } from 'lucide-react';
 import { showToast, toastStyles } from '@/utils/toastUtils';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Leave;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkLeaveRequest;
 use App\Http\Resources\LeaveResource;
 use App\Models\Tenant\HRM\Department;

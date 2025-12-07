@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Shared\Module;
 use App\Models\Shared\ModuleComponent;
-use App\Models\ModuleComponentAction;
+use App\Models\Shared\ModuleComponentAction;
 use App\Models\Shared\SubModule;
 use Illuminate\Database\Seeder;
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shared\Auth;
 
+use App\Http\Controllers\Controller;
 use App\Models\Shared\User;
 use App\Services\Shared\Auth\DeviceAuthService;
 use Illuminate\Http\Request;

@@ -4,7 +4,7 @@ import { Button, Card, CardBody, CardHeader, Chip, Switch, Textarea, Divider, Ch
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';

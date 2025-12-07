@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\TenantInvitation;
-use App\Services\Mail\MailService;
+use App\Services\Shared\MailService;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 

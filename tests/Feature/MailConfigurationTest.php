@@ -6,7 +6,7 @@ use App\Models\PlatformSetting;
 use App\Models\Platform\Tenant;
 use App\Notifications\TenantProvisioningFailed;
 use App\Notifications\WelcomeToTenant;
-use App\Services\Mail\MailService;
+use App\Services\Shared\MailService;
 use App\Services\Platform\PlatformVerificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;

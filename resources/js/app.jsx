@@ -5,9 +5,8 @@ import {createRoot} from 'react-dom/client';
 import {createInertiaApp} from '@inertiajs/react';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
-import ErrorBoundary from './Components/ErrorBoundary/ErrorBoundary';
 import LoadingIndicator from './Components/LoadingIndicator';
-import { ThemeProvider } from './Contexts/ThemeContext';
+import { ThemeProvider } from '@/Shared/Context/ThemeContext'
 import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';
 import { initializeDeviceAuth } from './utils/deviceAuth';
@@ -157,14 +156,14 @@ createInertiaApp({
         const renderStart = performance.now();
         
         root.render(
-            <ErrorBoundary>
+           
                 <ThemeProvider>
                     <HeroUIProvider>
                         <LoadingIndicator />
                         <App {...props} />
                     </HeroUIProvider>
                 </ThemeProvider>
-            </ErrorBoundary>
+        
         );
         
         // Log render performance only in development

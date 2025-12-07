@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Shared\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\VersionService;
+use App\Services\Shared\VersionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

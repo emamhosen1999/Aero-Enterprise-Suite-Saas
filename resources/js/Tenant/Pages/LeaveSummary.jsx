@@ -44,7 +44,7 @@ import {
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import LeaveAnalytics from "@/Components/Leave/LeaveAnalytics.jsx";
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import App from "@/Layouts/App.jsx";
 import axios from 'axios';

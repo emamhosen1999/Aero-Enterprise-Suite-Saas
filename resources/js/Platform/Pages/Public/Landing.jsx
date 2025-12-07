@@ -9,7 +9,7 @@ import {
   Divider,
 } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import {
   heroStats,
   platformModules,

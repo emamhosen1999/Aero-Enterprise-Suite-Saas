@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Leave;
 
+use App\Http\Controllers\Controller;
 use App\Events\Leave\LeaveApproved;
 use App\Events\Leave\LeaveCancelled;
 use App\Events\Leave\LeaveRejected;

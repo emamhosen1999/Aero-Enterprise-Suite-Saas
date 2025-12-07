@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\PlatformSetting;
-use App\Services\Mail\MailService;
+use App\Services\Shared\MailService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;

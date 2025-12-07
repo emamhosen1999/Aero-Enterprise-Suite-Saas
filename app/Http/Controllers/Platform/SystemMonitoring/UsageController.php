@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Platform\SystemMonitoring;
 
+use App\Http\Controllers\Controller;
 use App\Services\Billing\MeteredBillingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

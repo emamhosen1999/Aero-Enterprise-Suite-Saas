@@ -17,7 +17,7 @@ import {
     ClockIcon,
     ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 
 export default function SessionExpiredModal({ setSessionExpired }) {
     const [countdown, setCountdown] = useState(10);

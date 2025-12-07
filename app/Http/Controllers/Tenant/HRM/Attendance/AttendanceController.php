@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Attendance;
 
+use App\Http\Controllers\Controller;
 use App\Exports\AttendanceAdminExport;
 use App\Exports\AttendanceExport;
 use App\Models\Tenant\HRM\Attendance;

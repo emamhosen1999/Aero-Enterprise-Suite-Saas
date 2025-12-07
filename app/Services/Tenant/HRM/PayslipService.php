@@ -4,7 +4,7 @@ namespace App\Services\Tenant\HRM;
 
 use App\Models\Tenant\HRM\Payroll;
 use App\Models\Tenant\HRM\Payslip;
-use App\Services\Mail\MailService;
+use App\Services\Shared\MailService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shared\Profile;
 
+use App\Http\Controllers\Controller;
 use App\Models\Shared\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

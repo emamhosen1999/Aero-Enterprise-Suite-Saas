@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shared\Auth;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\SendTeamInvitationRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;

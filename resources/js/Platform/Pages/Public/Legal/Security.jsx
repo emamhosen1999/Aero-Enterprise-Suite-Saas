@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Card, CardBody, Chip, Listbox, ListboxItem } from '@heroui/react';
 import { securityHighlights } from '@/constants/marketing';
 import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 
 const Security = () => {
   const { themeSettings } = useTheme();

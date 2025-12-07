@@ -4,7 +4,7 @@ import { Button, Card, CardBody, Chip, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import Checkbox from '@/Components/Checkbox.jsx';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils.jsx';
 import ProgressSteps from './components/ProgressSteps.jsx';

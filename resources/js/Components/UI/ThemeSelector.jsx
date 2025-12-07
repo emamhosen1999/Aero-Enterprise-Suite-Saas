@@ -23,7 +23,7 @@ import {
   CheckIcon,
   SwatchIcon
 } from '@heroicons/react/24/outline';
-import { useTheme, THEME_CONFIG, THEME_CATEGORIES } from '@/Contexts/ThemeContext';
+import { useTheme, THEME_CONFIG, THEME_CATEGORIES } from '@/Shared/Context/ThemeContext';
 
 const ThemePreview = ({ theme, config, isSelected, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\InstallationRequest;
 use App\Models\Platform\LandlordUser;
 use App\Models\Platform\PlatformSetting;
-use App\Services\Mail\MailService;
+use App\Services\Shared\MailService;
 use App\Services\Platform\InstallationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;

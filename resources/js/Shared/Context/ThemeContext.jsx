@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { heroUIThemes, applyThemeToDocument, generateHeroUIConfig } from '../theme/index.js';
+import { heroUIThemes, applyThemeToDocument, generateHeroUIConfig } from '@/theme/index';
 
 const ThemeContext = createContext();
 

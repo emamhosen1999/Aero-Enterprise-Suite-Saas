@@ -2,6 +2,7 @@
 
 namespace App\Models\Platform;
 
+use App\Models\Shared\Module;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

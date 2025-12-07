@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shared\Notification;
 
+use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 
 class EmailController extends Controller

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shared\Profile;
 
+use App\Http\Controllers\Controller;
 use App\Models\Tenant\HRM\Department;
 use App\Models\Tenant\HRM\Designation;
 use App\Models\Shared\User;

@@ -2,11 +2,13 @@
 
 namespace App\Models\Platform;
 
+use App\Models\Shared\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * LandlordUser Model (Platform Admin)
@@ -40,7 +42,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  */
 class LandlordUser extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable, HasRoles;
 
     /**
      * CRITICAL: Force this model to ALWAYS use the central database connection.

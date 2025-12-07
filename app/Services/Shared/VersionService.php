@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\home\runner\work\Aero-Enterprise-Suite-Saas\Aero-Enterprise-Suite-Saas\app\Services;
+namespace App\Services\Shared;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;

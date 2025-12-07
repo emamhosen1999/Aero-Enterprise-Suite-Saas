@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link, Head } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip, Divider, Accordion, AccordionItem } from '@heroui/react';
 import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Contexts/ThemeContext.jsx';
+import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import {
   productHighlights,

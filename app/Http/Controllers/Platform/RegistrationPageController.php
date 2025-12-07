@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Models\Platform\Tenant;
-use App\Services\TenantRegistrationSession;
+use App\Services\Platform\Monitoring\Tenant\TenantRegistrationSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -126,7 +126,7 @@ class RegistrationPageController extends Controller
             });
 
         // Fetch all modules (excluding core) for individual selection
-        $modules = \App\Models\Module::where('is_active', true)
+        $modules = \App\Models\Shared\Module::where('is_active', true)
             ->where('is_core', false) // Core is always included
             ->select('id', 'code', 'name', 'description', 'category')
             ->orderBy('priority')
@@ -187,7 +187,7 @@ class RegistrationPageController extends Controller
             });
 
         // Fetch modules for display
-        $modules = \App\Models\Module::where('is_active', true)
+        $modules = \App\Models\Shared\Module::where('is_active', true)
             ->where('is_core', false)
             ->select('id', 'code', 'name')
             ->get();

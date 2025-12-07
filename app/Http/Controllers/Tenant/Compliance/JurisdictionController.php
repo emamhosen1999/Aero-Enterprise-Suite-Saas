@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\Compliance;
 
+use App\Http\Controllers\Controller;
 use App\Models\Tenant\Compliance\Jurisdiction;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;

@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\HealthCheckController;
-use App\Http\Controllers\Api\NotificationApiController;
-use App\Http\Controllers\Api\VersionController;
+use App\Http\Controllers\Shared\Api\HealthCheckController;
+use App\Http\Controllers\Shared\Api\NotificationApiController;
+use App\Http\Controllers\Shared\Api\VersionController;
 use App\Http\Controllers\Shared\Notification\NotificationController;
 use App\Http\Controllers\Platform\RegistrationPageController;
 use App\Http\Controllers\Platform\SystemMonitoring\SystemMonitoringController;
@@ -48,7 +48,7 @@ Route::middleware(['web', 'auth'])->prefix('notifications')->group(function () {
 // ============================================================================
 // Error Logging API Routes
 // ============================================================================
-use App\Http\Controllers\Api\ErrorLogController;
+use App\Http\Controllers\Shared\Api\ErrorLogController;
 
 // Public error logging endpoint (frontend errors - no auth required for error capture)
 Route::post('/error-log', [ErrorLogController::class, 'store'])
