@@ -4,15 +4,24 @@ namespace App\Policies;
 
 use App\Models\HRM\Attendance;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 
 class AttendancePolicy
 {
+    use ChecksModuleAccess;
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('attendance.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.attendance.daily-attendance.view
+        return $this->canPerformAction($user, 'hrm', 'attendance', 'daily-attendance', 'view');
     }
 
     /**
@@ -20,7 +29,18 @@ class AttendancePolicy
      */
     public function view(User $user, Attendance $attendance): bool
     {
-        return $user->hasPermissionTo('attendance.view') || $attendance->user_id === $user->id;
+        // Users can view their own attendance
+        if ($attendance->user_id === $user->id) {
+            return true;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access with scope: hrm.attendance.daily-attendance.view
+        return $this->canPerformActionWithScope($user, 'hrm', 'attendance', 'daily-attendance', 'view', $attendance);
     }
 
     /**
@@ -28,7 +48,13 @@ class AttendancePolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('attendance.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.attendance.daily-attendance.mark
+        return $this->canPerformAction($user, 'hrm', 'attendance', 'daily-attendance', 'mark');
     }
 
     /**
@@ -36,7 +62,13 @@ class AttendancePolicy
      */
     public function update(User $user, Attendance $attendance): bool
     {
-        return $user->hasPermissionTo('attendance.edit');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.attendance.daily-attendance.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'attendance', 'daily-attendance', 'update', $attendance);
     }
 
     /**
@@ -44,6 +76,12 @@ class AttendancePolicy
      */
     public function delete(User $user, Attendance $attendance): bool
     {
-        return $user->hasPermissionTo('attendance.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.attendance.daily-attendance.delete
+        return $this->canPerformActionWithScope($user, 'hrm', 'attendance', 'daily-attendance', 'delete', $attendance);
     }
 }

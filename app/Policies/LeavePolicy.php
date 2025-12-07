@@ -4,15 +4,24 @@ namespace App\Policies;
 
 use App\Models\HRM\Leave;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 
 class LeavePolicy
 {
+    use ChecksModuleAccess;
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('leaves.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.leaves.leave-requests.view
+        return $this->canPerformAction($user, 'hrm', 'leaves', 'leave-requests', 'view');
     }
 
     /**
@@ -20,7 +29,18 @@ class LeavePolicy
      */
     public function view(User $user, Leave $leave): bool
     {
-        return $user->hasPermissionTo('leaves.view') || $leave->user_id === $user->id;
+        // Users can view their own leave
+        if ($leave->user_id === $user->id) {
+            return true;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access with scope: hrm.leaves.leave-requests.view
+        return $this->canPerformActionWithScope($user, 'hrm', 'leaves', 'leave-requests', 'view', $leave);
     }
 
     /**
@@ -28,7 +48,13 @@ class LeavePolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('leaves.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.leaves.leave-requests.create
+        return $this->canPerformAction($user, 'hrm', 'leaves', 'leave-requests', 'create');
     }
 
     /**
@@ -36,9 +62,18 @@ class LeavePolicy
      */
     public function update(User $user, Leave $leave): bool
     {
-        // Can update if has permission, or is own leave and status is pending
-        return $user->hasPermissionTo('leaves.edit') ||
-               ($leave->user_id === $user->id && $leave->status === 'pending');
+        // Can update if is own leave and status is pending
+        if ($leave->user_id === $user->id && $leave->status === 'pending') {
+            return true;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.leaves.leave-requests.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'leaves', 'leave-requests', 'update', $leave);
     }
 
     /**
@@ -46,8 +81,18 @@ class LeavePolicy
      */
     public function delete(User $user, Leave $leave): bool
     {
-        return $user->hasPermissionTo('leaves.delete') ||
-               ($leave->user_id === $user->id && $leave->status === 'pending');
+        // Can delete own pending leave
+        if ($leave->user_id === $user->id && $leave->status === 'pending') {
+            return true;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.leaves.leave-requests.delete
+        return $this->canPerformActionWithScope($user, 'hrm', 'leaves', 'leave-requests', 'delete', $leave);
     }
 
     /**
@@ -55,8 +100,18 @@ class LeavePolicy
      */
     public function approve(User $user, Leave $leave): bool
     {
-        return $user->hasPermissionTo('leaves.approve') ||
-               $leave->user->manager_id === $user->id;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check if user is the manager of the leave requester
+        if ($leave->user->manager_id === $user->id) {
+            return true;
+        }
+
+        // Check module access: hrm.leaves.leave-requests.approve
+        return $this->canPerformActionWithScope($user, 'hrm', 'leaves', 'leave-requests', 'approve', $leave);
     }
 
     /**
@@ -64,7 +119,17 @@ class LeavePolicy
      */
     public function reject(User $user, Leave $leave): bool
     {
-        return $user->hasPermissionTo('leaves.approve') ||
-               $leave->user->manager_id === $user->id;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check if user is the manager of the leave requester
+        if ($leave->user->manager_id === $user->id) {
+            return true;
+        }
+
+        // Check module access: hrm.leaves.leave-requests.reject
+        return $this->canPerformActionWithScope($user, 'hrm', 'leaves', 'leave-requests', 'reject', $leave);
     }
 }

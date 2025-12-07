@@ -3,15 +3,24 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 
 class UserPolicy
 {
+    use ChecksModuleAccess;
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('users.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -19,8 +28,18 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        // Users can view themselves, or if they have permission
-        return $user->id === $model->id || $user->hasPermissionTo('users.view');
+        // Users can view themselves
+        if ($user->id === $model->id) {
+            return true;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access with scope
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $model);
     }
 
     /**
@@ -28,36 +47,33 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('users.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
+
 
     /**
      * Determine whether the user can update the model.
      */
     public function update(User $user, User $model): bool
     {
-        // Users can update themselves (limited fields), or with permission
+        // Users can update themselves (limited fields)
         if ($user->id === $model->id) {
             return true;
         }
 
         // Super admins can update anyone
-        if ($user->hasRole('Super Administrator')) {
+        if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // HR managers can update employees in their organization
-        if ($user->hasRole(['Administrator', 'HR Manager'])) {
-            return $user->hasPermissionTo('users.update');
-        }
-
-        // Department managers can update users in their department
-        if ($user->hasRole('Department Manager') &&
-            $user->employee?->department_id === $model->employee?->department_id) {
-            return $user->hasPermissionTo('users.update');
-        }
-
-        return false;
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $model);
     }
 
     /**
@@ -78,27 +94,13 @@ class UserPolicy
             return false;
         }
 
-        // Platform Super admins can delete anyone (after last super admin check)
-        if ($user->hasRole('Super Administrator')) {
+        // Super admins can delete anyone (after last super admin check)
+        if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Tenant Super admins can delete users in their tenant
-        if ($user->hasRole('tenant_super_administrator')) {
-            return true;
-        }
-
-        // Super admins can delete anyone
-        if ($user->hasRole('Super Administrator')) {
-            return true;
-        }
-
-        // HR managers and administrators can delete
-        if ($user->hasRole(['Administrator', 'HR Manager'])) {
-            return $user->hasPermissionTo('users.delete');
-        }
-
-        return false;
+        // Check module access: hrm.employees.employee-directory.delete
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $model);
     }
 
     /**
@@ -140,12 +142,19 @@ class UserPolicy
         return false;
     }
 
+
     /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('users.delete'); // Same as delete permission
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.delete (same as delete)
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $model);
     }
 
     /**
@@ -154,7 +163,7 @@ class UserPolicy
     public function forceDelete(User $user, User $model): bool
     {
         // Only super administrators can permanently delete
-        return $user->hasRole('Super Administrator');
+        return $this->isSuperAdmin($user);
     }
 
     /**
@@ -174,8 +183,13 @@ class UserPolicy
             return false;
         }
 
-        return $user->hasPermissionTo('users.update') &&
-               $user->hasRole(['Super Administrator', 'Administrator']);
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 
     /**
@@ -188,7 +202,13 @@ class UserPolicy
             return false;
         }
 
-        return $user->hasPermissionTo('users.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.change-status
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'change-status');
     }
 
     /**
@@ -201,8 +221,13 @@ class UserPolicy
             return true;
         }
 
-        // Admins can manage any user's devices
-        return $user->hasPermissionTo('users.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $model);
     }
 
     /**
@@ -210,9 +235,13 @@ class UserPolicy
      */
     public function updateDepartment(User $user, User $model): bool
     {
-        // HR managers and admins can update departments
-        return $user->hasRole(['Super Administrator', 'Administrator', 'HR Manager']) &&
-               $user->hasPermissionTo('users.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 
     /**
@@ -220,9 +249,13 @@ class UserPolicy
      */
     public function updateDesignation(User $user, User $model): bool
     {
-        // HR managers and admins can update designations
-        return $user->hasRole(['Super Administrator', 'Administrator', 'HR Manager']) &&
-               $user->hasPermissionTo('users.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 
     /**
@@ -230,8 +263,12 @@ class UserPolicy
      */
     public function updateAttendanceType(User $user, User $model): bool
     {
-        // HR managers and admins can update attendance types
-        return $user->hasRole(['Super Administrator', 'Administrator', 'HR Manager']) &&
-               $user->hasPermissionTo('users.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 }

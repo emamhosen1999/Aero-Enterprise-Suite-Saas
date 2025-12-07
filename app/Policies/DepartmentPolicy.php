@@ -4,15 +4,24 @@ namespace App\Policies;
 
 use App\Models\HRM\Department;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 
 class DepartmentPolicy
 {
+    use ChecksModuleAccess;
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('departments.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.departments.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'view');
     }
 
     /**
@@ -20,7 +29,13 @@ class DepartmentPolicy
      */
     public function view(User $user, Department $department): bool
     {
-        return $user->hasPermissionTo('departments.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.departments.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'view');
     }
 
     /**
@@ -28,7 +43,13 @@ class DepartmentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('departments.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.departments.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'create');
     }
 
     /**
@@ -36,7 +57,13 @@ class DepartmentPolicy
      */
     public function update(User $user, Department $department): bool
     {
-        return $user->hasPermissionTo('departments.edit');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.departments.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'update');
     }
 
     /**
@@ -44,6 +71,12 @@ class DepartmentPolicy
      */
     public function delete(User $user, Department $department): bool
     {
-        return $user->hasPermissionTo('departments.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.departments.delete
+        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'delete');
     }
 }
