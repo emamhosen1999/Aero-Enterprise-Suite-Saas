@@ -78,7 +78,7 @@ return new class extends Migration
         // API Keys table
         Schema::create('integrations_api_keys', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('landlord_users')->onDelete('cascade');
             $table->string('name')->comment('API key display name');
             $table->string('key', 128)->unique()->comment('Hashed API key');
             $table->json('scopes')->comment('Allowed scopes: ["read:users", "write:orders"]');

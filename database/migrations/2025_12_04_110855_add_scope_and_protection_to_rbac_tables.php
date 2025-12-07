@@ -51,33 +51,7 @@ return new class extends Migration
             });
         }
 
-        // Add scope and tenant_id to permissions table
-        if (Schema::hasTable('permissions')) {
-            Schema::table('permissions', function (Blueprint $table) {
-                if (! Schema::hasColumn('permissions', 'scope')) {
-                    $table->enum('scope', ['platform', 'tenant'])
-                        ->default('tenant')
-                        ->after('guard_name')
-                        ->comment('Permission scope: platform or tenant');
-                }
-
-                if (! Schema::hasColumn('permissions', 'tenant_id')) {
-                    $table->string('tenant_id')
-                        ->nullable()
-                        ->after('scope')
-                        ->comment('Tenant ID for tenant-scoped permissions');
-                }
-
-                // Add indexes
-                if (! Schema::hasColumn('permissions', 'scope')) {
-                    $table->index('scope');
-                }
-                if (! Schema::hasColumn('permissions', 'tenant_id')) {
-                    $table->index('tenant_id');
-                }
-                $table->index(['scope', 'tenant_id']);
-            });
-        }
+       
     }
 
     /**
@@ -85,19 +59,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('permissions')) {
-            Schema::table('permissions', function (Blueprint $table) {
-                $table->dropIndex(['scope', 'tenant_id']);
-                if (Schema::hasColumn('permissions', 'tenant_id')) {
-                    $table->dropIndex(['tenant_id']);
-                    $table->dropColumn('tenant_id');
-                }
-                if (Schema::hasColumn('permissions', 'scope')) {
-                    $table->dropIndex(['scope']);
-                    $table->dropColumn('scope');
-                }
-            });
-        }
+      
 
         if (Schema::hasTable('roles')) {
             Schema::table('roles', function (Blueprint $table) {

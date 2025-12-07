@@ -62,49 +62,7 @@ return new class extends Migration
             }
         }
 
-        // Add scope and tenant_id to permissions table
-        if (Schema::hasTable('permissions')) {
-            Schema::table('permissions', function (Blueprint $table) {
-                if (! Schema::hasColumn('permissions', 'scope')) {
-                    $table->enum('scope', ['platform', 'tenant'])
-                        ->default('tenant')
-                        ->after('guard_name')
-                        ->comment('Permission scope: platform or tenant');
-                }
-
-                if (! Schema::hasColumn('permissions', 'tenant_id')) {
-                    $table->string('tenant_id')
-                        ->nullable()
-                        ->after('scope')
-                        ->comment('Tenant ID for tenant-scoped permissions');
-                }
-            });
-
-            // Add indexes separately
-            try {
-                Schema::table('permissions', function (Blueprint $table) {
-                    $table->index('scope', 'permissions_scope_index');
-                });
-            } catch (\Exception $e) {
-                // Index may already exist
-            }
-
-            try {
-                Schema::table('permissions', function (Blueprint $table) {
-                    $table->index('tenant_id', 'permissions_tenant_id_index');
-                });
-            } catch (\Exception $e) {
-                // Index may already exist
-            }
-
-            try {
-                Schema::table('permissions', function (Blueprint $table) {
-                    $table->index(['scope', 'tenant_id'], 'permissions_scope_tenant_id_index');
-                });
-            } catch (\Exception $e) {
-                // Index may already exist
-            }
-        }
+       
     }
 
     /**
@@ -112,30 +70,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('permissions')) {
-            Schema::table('permissions', function (Blueprint $table) {
-                try {
-                    $table->dropIndex('permissions_scope_tenant_id_index');
-                } catch (\Exception $e) {
-                }
-                try {
-                    $table->dropIndex('permissions_tenant_id_index');
-                } catch (\Exception $e) {
-                }
-                try {
-                    $table->dropIndex('permissions_scope_index');
-                } catch (\Exception $e) {
-                }
-
-                if (Schema::hasColumn('permissions', 'tenant_id')) {
-                    $table->dropColumn('tenant_id');
-                }
-                if (Schema::hasColumn('permissions', 'scope')) {
-                    $table->dropColumn('scope');
-                }
-            });
-        }
-
+      
         if (Schema::hasTable('roles')) {
             Schema::table('roles', function (Blueprint $table) {
                 try {

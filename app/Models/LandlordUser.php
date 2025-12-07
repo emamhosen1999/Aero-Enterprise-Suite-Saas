@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Spatie\Permission\Traits\HasRoles;
 
 /**
  * LandlordUser Model (Platform Admin)
@@ -41,7 +40,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class LandlordUser extends Authenticatable
 {
-    use HasFactory, HasRoles, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * CRITICAL: Force this model to ALWAYS use the central database connection.
@@ -143,15 +142,53 @@ class LandlordUser extends Authenticatable
     }
 
     // =========================================================================
+    // RELATIONSHIPS
+    // =========================================================================
+
+    /**
+     * Get the roles for the landlord user.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id')
+            ->where('model_type', self::class)
+            ->where('guard_name', 'landlord');
+    }
+
+    // =========================================================================
     // HELPER METHODS
     // =========================================================================
+
+    /**
+     * Check if the user has a specific role.
+     */
+    public function hasRole($role, $guard = null): bool
+    {
+        if (is_string($role)) {
+            return $this->roles()->where('name', $role)->exists();
+        }
+
+        if (is_array($role)) {
+            return $this->roles()->whereIn('name', $role)->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user has any of the given roles.
+     */
+    public function hasAnyRole($roles, $guard = null): bool
+    {
+        return $this->roles()->whereIn('name', (array) $roles)->exists();
+    }
 
     /**
      * Check if the user is a super admin (has Platform Super Admin role).
      */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('Super Administrator', 'landlord');
+        return $this->hasRole('Super Administrator');
     }
 
     /**
@@ -159,7 +196,7 @@ class LandlordUser extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->hasAnyRole(['Super Administrator', 'Platform Admin'], 'landlord');
+        return $this->hasAnyRole(['Super Administrator', 'Platform Admin']);
     }
 
     /**
@@ -167,7 +204,7 @@ class LandlordUser extends Authenticatable
      */
     public function isSupport(): bool
     {
-        return $this->hasRole('Platform Support', 'landlord');
+        return $this->hasRole('Platform Support');
     }
 
     /**

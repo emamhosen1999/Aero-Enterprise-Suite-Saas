@@ -1,302 +1,205 @@
-import React from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
-import TenantStatusBadge from '@/Components/Admin/TenantStatusBadge.jsx';
-import { 
-  Button, 
-  Card, 
-  CardBody, 
-  CardHeader, 
-  Chip, 
-  Input,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@heroui/react';
-import {
-  BuildingOffice2Icon,
-  CircleStackIcon,
-  RocketLaunchIcon,
-  ExclamationTriangleIcon,
-  UsersIcon,
-} from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { Card, CardBody, CardHeader, Button, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Input } from "@heroui/react";
+import { BuildingOfficeIcon, PlusIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import App from "@/Layouts/App.jsx";
+import PageHeader from "@/Components/PageHeader.jsx";
+import StatsCards from "@/Components/StatsCards.jsx";
 
-const segmentStats = [
-  { label: 'Enterprise', value: '68 tenants', change: '+3 this week', icon: BuildingOffice2Icon, trend: 'up' },
-  { label: 'Growth', value: '42 tenants', change: '+1', icon: RocketLaunchIcon, trend: 'up' },
-  { label: 'Trials', value: '18 live evaluations', change: '54% win rate', icon: CircleStackIcon, trend: 'up' },
-  { label: 'At risk', value: '4 accounts', change: 'Need QBR', icon: ExclamationTriangleIcon, trend: 'down' },
-];
+const Index = ({ auth, tenants }) => {
+    const [isMobile, setIsMobile] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
-const mainCardStyle = {
-  border: 'var(--borderWidth, 2px) solid transparent',
-  borderRadius: 'var(--borderRadius, 12px)',
-  background: `linear-gradient(135deg, 
-    var(--theme-content1, #FAFAFA) 20%, 
-    var(--theme-content2, #F4F4F5) 10%, 
-    var(--theme-content3, #F1F3F4) 20%)`,
-};
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
-const statCardStyle = {
-  background: 'var(--theme-content1, #FAFAFA)',
-  borderColor: 'var(--theme-divider, #E4E4E7)',
-  borderWidth: 'var(--borderWidth, 2px)',
-  borderRadius: 'var(--borderRadius, 12px)',
-};
+    const getThemeRadius = () => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 12) return 'lg';
+        return 'full';
+    };
 
-const fallbackTenants = [
-  {
-    id: 1,
-    name: 'Northwind Retail',
-    segment: 'Enterprise',
-    owner: 'Avery Holt',
-    plan: 'Enterprise',
-    seats: 820,
-    status: 'active',
-    maintenance_mode: false,
-    renewal: 'Oct 4, 2025',
-  },
-  {
-    id: 2,
-    name: 'Waypoint Logistics',
-    segment: 'Growth',
-    owner: 'Dana Kingsley',
-    plan: 'Growth',
-    seats: 260,
-    status: 'active',
-    maintenance_mode: true,
-    renewal: 'Mar 18, 2025',
-  },
-  {
-    id: 3,
-    name: 'Aero Health',
-    segment: 'Enterprise',
-    owner: 'Priya Patel',
-    plan: 'Enterprise',
-    seats: 1340,
-    status: 'active',
-    maintenance_mode: false,
-    renewal: 'Jan 12, 2026',
-  },
-  {
-    id: 4,
-    name: 'Summit Manufacturing',
-    segment: 'Growth',
-    owner: 'Luca Romero',
-    plan: 'Growth',
-    seats: 410,
-    status: 'suspended',
-    maintenance_mode: false,
-    renewal: 'Aug 2, 2025',
-  },
-];
+    const getCardStyle = () => ({
+        border: `var(--borderWidth, 2px) solid transparent`,
+        borderRadius: `var(--borderRadius, 12px)`,
+        fontFamily: `var(--fontFamily, "Inter")`,
+        transform: `scale(var(--scale, 1))`,
+        background: `linear-gradient(135deg, 
+            var(--theme-content1, #FAFAFA) 20%, 
+            var(--theme-content2, #F4F4F5) 10%, 
+            var(--theme-content3, #F1F3F4) 20%)`,
+    });
 
-const columns = [
-  { uid: 'tenant', name: 'Tenant' },
-  { uid: 'segment', name: 'Segment' },
-  { uid: 'plan', name: 'Plan' },
-  { uid: 'seats', name: 'Seats' },
-  { uid: 'owner', name: 'Owner' },
-  { uid: 'renewal', name: 'Renewal' },
-  { uid: 'status', name: 'Status' },
-];
+    const getCardHeaderStyle = () => ({
+        borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
+    });
 
-const TenantsIndex = () => {
-  const { tenants = [] } = usePage().props;
-  const rows = tenants.length ? tenants : fallbackTenants;
+    const tenantStats = [
+        {
+            title: "Total Tenants",
+            value: "245",
+            icon: <BuildingOfficeIcon className="w-6 h-6" />,
+            color: "text-blue-400",
+            iconBg: "bg-blue-500/20",
+            description: "All registered",
+        },
+        {
+            title: "Active",
+            value: "218",
+            icon: <BuildingOfficeIcon className="w-6 h-6" />,
+            color: "text-green-400",
+            iconBg: "bg-green-500/20",
+            description: "Currently active",
+        },
+        {
+            title: "Trial",
+            value: "27",
+            icon: <BuildingOfficeIcon className="w-6 h-6" />,
+            color: "text-orange-400",
+            iconBg: "bg-orange-500/20",
+            description: "In trial period",
+        },
+        {
+            title: "Suspended",
+            value: "5",
+            icon: <BuildingOfficeIcon className="w-6 h-6" />,
+            color: "text-red-400",
+            iconBg: "bg-red-500/20",
+            description: "Needs attention",
+        },
+    ];
 
-  return (
-    <>
-      <Head title="Tenants - Admin" />
-      <div className="flex flex-col w-full h-full p-4">
-        <div className="space-y-4">
-          {/* Single Parent Card - matching tenant Employee page structure */}
-          <Card style={mainCardStyle} shadow="none" className="transition-all duration-200">
-            <CardHeader 
-              className="border-b p-0"
-              style={{ borderColor: 'var(--theme-divider, #E4E4E7)' }}
-            >
-              <div className="p-6 w-full">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div 
-                      className="p-3 rounded-xl flex items-center justify-center"
-                      style={{
-                        background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)',
-                        borderColor: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)',
-                        borderWidth: 'var(--borderWidth, 2px)',
-                        borderRadius: 'var(--borderRadius, 12px)',
-                      }}
+    const columns = [
+        { uid: "name", name: "TENANT" },
+        { uid: "subdomain", name: "SUBDOMAIN" },
+        { uid: "plan", name: "PLAN" },
+        { uid: "status", name: "STATUS" },
+        { uid: "users", name: "USERS" },
+        { uid: "created", name: "CREATED" },
+    ];
+
+    const mockTenants = [
+        { id: '1', name: "Acme Corp", subdomain: "acme", plan: "Professional", status: "active", users: 45, created: "2024-11-15" },
+        { id: '2', name: "Tech Solutions", subdomain: "techsol", plan: "Enterprise", status: "active", users: 120, created: "2024-10-22" },
+        { id: '3', name: "Startup Inc", subdomain: "startup", plan: "Basic", status: "trial", users: 8, created: "2024-12-01" },
+    ];
+
+    const renderCell = (item, columnKey) => {
+        switch (columnKey) {
+            case "name":
+                return <span className="font-medium">{item.name}</span>;
+            case "subdomain":
+                return <span className="text-sm text-default-500">{item.subdomain}.domain.com</span>;
+            case "plan":
+                return <span>{item.plan}</span>;
+            case "status":
+                const statusColors = {
+                    active: 'success',
+                    trial: 'warning',
+                    suspended: 'danger',
+                };
+                return (
+                    <Chip 
+                        size="sm" 
+                        color={statusColors[item.status]} 
+                        variant="flat"
                     >
-                      <UsersIcon className="w-8 h-8" style={{ color: 'var(--theme-primary)' }} />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl font-bold text-foreground">Tenant directory</h1>
-                      <p className="text-sm text-default-500">
-                        Unified view of every company onboarded onto the platform. Filter by lifecycle, plan, or health signal.
-                      </p>
-                    </div>
-                  </div>
-                  <Button 
-                    as={Link} 
-                    color="primary" 
-                    href={route('admin.tenants.create')}
-                    className="text-white font-medium"
-                    style={{
-                      background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))',
-                    }}
-                  >
-                    New tenant
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
+                        {item.status}
+                    </Chip>
+                );
+            case "users":
+                return <span>{item.users}</span>;
+            case "created":
+                return <span className="text-sm text-default-500">{item.created}</span>;
+            default:
+                return item[columnKey];
+        }
+    };
 
-            <CardBody className="p-6">
-              {/* Stats Grid - icons on RIGHT like tenant Employee page */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {segmentStats.map((stat, index) => (
-                  <Card key={index} style={statCardStyle} className="transition-all duration-200 min-h-[120px]">
-                    <CardBody className="p-4 flex flex-row items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-default-400">
-                          {stat.label}
-                        </span>
-                        <span className="text-2xl font-bold text-foreground mt-1">
-                          {stat.value}
-                        </span>
-                        <span className={`text-sm mt-1 ${stat.trend === 'down' ? 'text-danger' : 'text-success'}`}>
-                          {stat.change}
-                        </span>
-                      </div>
-                      <div 
-                        className="p-3 rounded-xl flex items-center justify-center shrink-0"
-                        style={{
-                          background: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)',
-                          border: '1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)',
-                        }}
-                      >
-                        <stat.icon className="w-6 h-6" style={{ color: 'var(--theme-primary)' }} />
-                      </div>
-                    </CardBody>
-                  </Card>
-                ))}
-              </div>
+    return (
+        <>
+            <Head title="Tenant Management" />
+            <PageHeader
+                title="Tenant Management"
+                subtitle="Manage all tenants, subscriptions, and configurations"
+                icon={<BuildingOfficeIcon className="w-8 h-8" />}
+                action={
+                    <Button
+                        color="primary"
+                        startContent={<PlusIcon className="w-4 h-4" />}
+                        onPress={() => router.visit(route('admin.tenants.create'))}
+                        radius={getThemeRadius()}
+                    >
+                        Create Tenant
+                    </Button>
+                }
+            />
+            
+            <div className="space-y-6">
+                <StatsCards stats={tenantStats} />
 
-              {/* Live Tenants Section Header */}
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
-                <div>
-                  <p className="text-lg font-semibold text-foreground">Live tenants</p>
-                  <p className="text-sm text-default-500">Search across plan tiers, statuses, and account owners.</p>
-                </div>
-                <Input 
-                  placeholder="Search tenants" 
-                  size="sm" 
-                  className="min-w-[220px]" 
-                  variant="bordered" 
-                  startContent={<span className="text-default-400">⌕</span>} 
-                />
-              </div>
-
-              {/* Table - using HeroUI Table like Employee page */}
-              <div className="overflow-auto">
-                <Table
-                  aria-label="Tenants table"
-                  removeWrapper
-                  classNames={{
-                    base: "bg-transparent min-w-[800px]",
-                    th: "backdrop-blur-md font-medium text-xs sticky top-0 z-10 whitespace-nowrap",
-                    td: "py-3 whitespace-nowrap",
-                    table: "border-collapse table-auto",
-                    tr: "hover:opacity-80 transition-all duration-200"
-                  }}
-                  style={{
-                    '--table-header-bg': 'color-mix(in srgb, var(--theme-content2) 60%, transparent)',
-                    '--table-row-hover': 'color-mix(in srgb, var(--theme-content2) 30%, transparent)',
-                    '--table-border': 'color-mix(in srgb, var(--theme-content3) 30%, transparent)',
-                  }}
-                  isHeaderSticky
+                <Card 
+                    className="transition-all duration-200"
+                    style={getCardStyle()}
                 >
-                  <TableHeader columns={columns}>
-                    {(column) => (
-                      <TableColumn 
-                        key={column.uid} 
-                        align={column.uid === "status" ? "end" : "start"}
-                        className="backdrop-blur-md"
-                        style={{
-                          backgroundColor: 'color-mix(in srgb, var(--theme-content2) 60%, transparent)',
-                          color: 'var(--theme-foreground)',
-                          borderBottom: '1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)',
-                        }}
-                      >
-                        {column.name}
-                      </TableColumn>
-                    )}
-                  </TableHeader>
-                  <TableBody 
-                    items={rows}
-                    emptyContent={
-                      <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <UsersIcon className="w-12 h-12 mb-4 opacity-40" style={{ color: 'var(--theme-foreground)' }} />
-                        <h6 className="text-lg font-semibold mb-2" style={{ color: 'var(--theme-foreground)' }}>
-                          No tenants found
-                        </h6>
-                        <p className="text-sm opacity-70" style={{ color: 'var(--theme-foreground)' }}>
-                          Try adjusting your search or filter criteria
-                        </p>
-                      </div>
-                    }
-                  >
-                    {(tenant) => (
-                      <TableRow 
-                        key={tenant.id}
-                        className="transition-all duration-200"
-                        style={{
-                          color: 'var(--theme-foreground)',
-                          borderBottom: '1px solid color-mix(in srgb, var(--theme-content3) 30%, transparent)',
-                        }}
-                      >
-                        <TableCell>
-                          <Link 
-                            href={route('admin.tenants.show', tenant.id)} 
-                            className="font-semibold text-foreground hover:underline"
-                          >
-                            {tenant.name}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{tenant.segment}</TableCell>
-                        <TableCell>{tenant.plan}</TableCell>
-                        <TableCell>{tenant.seats.toLocaleString()}</TableCell>
-                        <TableCell>{tenant.owner}</TableCell>
-                        <TableCell>{tenant.renewal}</TableCell>
-                        <TableCell>
-                          <TenantStatusBadge 
-                            status={tenant.status} 
-                            maintenanceMode={tenant.maintenance_mode}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-4 text-xs text-default-500">
-                <span>Showing {rows.length} tenants</span>
-                <span className="text-default-400">Synced {new Date().toLocaleDateString()}</span>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
-      </div>
-    </>
-  );
+                    <CardHeader style={getCardHeaderStyle()}>
+                        <div className="flex justify-between items-center w-full">
+                            <h3 className="text-lg font-semibold">All Tenants</h3>
+                            <Input
+                                placeholder="Search tenants..."
+                                value={searchQuery}
+                                onValueChange={setSearchQuery}
+                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                                className="max-w-xs"
+                                size="sm"
+                                radius={getThemeRadius()}
+                            />
+                        </div>
+                    </CardHeader>
+                    <CardBody>
+                        <Table
+                            aria-label="Tenants table"
+                            classNames={{
+                                wrapper: "shadow-none",
+                            }}
+                            selectionMode="single"
+                            onRowAction={(key) => router.visit(route('admin.tenants.show', key))}
+                        >
+                            <TableHeader columns={columns}>
+                                {(column) => (
+                                    <TableColumn key={column.uid}>
+                                        {column.name}
+                                    </TableColumn>
+                                )}
+                            </TableHeader>
+                            <TableBody items={mockTenants}>
+                                {(item) => (
+                                    <TableRow key={item.id} className="cursor-pointer hover:bg-default-100">
+                                        {(columnKey) => (
+                                            <TableCell>{renderCell(item, columnKey)}</TableCell>
+                                        )}
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardBody>
+                </Card>
+            </div>
+        </>
+    );
 };
 
-TenantsIndex.layout = (page) => <App>{page}</App>;
+Index.layout = (page) => <App>{page}</App>;
 
-export default TenantsIndex;
+export default Index;

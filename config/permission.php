@@ -100,6 +100,8 @@ return [
     /*
      * When set to true, the method for checking permissions will be registered on the gate.
      * Set this to false if you want to implement custom logic for checking permissions.
+     * 
+     * DISABLED: EOS365 uses custom Role-Module Access system, not Spatie permissions.
      */
     'register_permission_check_method' => false,
 
@@ -109,6 +111,11 @@ return [
      * NOTE: This should not be needed in most cases, but an Octane/Vapor combination benefited from it.
      */
     'register_octane_reset_listener' => false,
+
+    /*
+     * By default, wildcard permission lookups are disabled.
+     */
+    'enable_wildcard_permission' => false,
 
     /*
      * Teams Feature (Tenant-Scoped Roles & Permissions).
@@ -163,9 +170,12 @@ return [
         /*
          * By default all permissions are cached for 24 hours to speed up performance.
          * When permissions or roles are updated the cache is flushed automatically.
+         * 
+         * DISABLED: EOS365 uses custom Role-Module Access system.
+         * Set expiration to 0 to disable permission caching.
          */
 
-        'expiration_time' => \DateInterval::createFromDateString('24 hours'),
+        'expiration_time' => 0,
 
         /*
          * The cache key used to store all permissions.

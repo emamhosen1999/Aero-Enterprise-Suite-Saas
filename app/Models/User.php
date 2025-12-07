@@ -21,7 +21,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\Permission\Traits\HasRoles;
 
 /**
  * User Model - Authentication & Account Only
@@ -55,7 +54,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
-    use HasFactory, HasPushSubscriptions, HasRoles, InteractsWithMedia, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory, HasPushSubscriptions, InteractsWithMedia, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -207,6 +206,15 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
             'id',              // Local key on users table
             'designation_id'   // Local key on employees table
         );
+    }
+
+    /**
+     * Get the roles for the user.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id')
+            ->where('model_type', self::class);
     }
 
     // =========================================================================
@@ -527,6 +535,38 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
         return $result['allowed'];
     }
+
+    // =========================================================================
+    // ROLE HELPER METHODS
+    // =========================================================================
+
+    /**
+     * Check if the user has a specific role.
+     */
+    public function hasRole($role, $guard = null): bool
+    {
+        if (is_string($role)) {
+            return $this->roles()->where('name', $role)->exists();
+        }
+
+        if (is_array($role)) {
+            return $this->roles()->whereIn('name', $role)->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user has any of the given roles.
+     */
+    public function hasAnyRole($roles, $guard = null): bool
+    {
+        return $this->roles()->whereIn('name', (array) $roles)->exists();
+    }
+
+    // =========================================================================
+    // MODULE ACCESS METHODS
+    // =========================================================================
 
     /**
      * Check if user can perform an action.

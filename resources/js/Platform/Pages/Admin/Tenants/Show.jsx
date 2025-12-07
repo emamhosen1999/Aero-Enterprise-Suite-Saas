@@ -1,153 +1,159 @@
-import React, { useState } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import TenantStatusBadge from '@/Components/Admin/TenantStatusBadge.jsx';
-import { Button, Card, CardBody, CardHeader, Chip, Tooltip } from '@heroui/react';
+import { useState, useEffect } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { Card, CardBody, CardHeader, Button, Chip, Tabs, Tab } from "@heroui/react";
+import { BuildingOfficeIcon, PencilIcon } from "@heroicons/react/24/outline";
+import App from "@/Layouts/App.jsx";
+import PageHeader from "@/Components/PageHeader.jsx";
 
-const buildProfile = (tenantId) => ({
-  id: tenantId,
-  name: 'Waypoint Logistics',
-  plan: 'Growth',
-  status: 'active',
-  maintenance_mode: false,
-  seats: 260,
-  owner: 'Dana Kingsley',
-  region: 'US-EAST',
-  created_at: 'Mar 12, 2024',
-  renewal: 'Mar 18, 2025',
-  modules: [
-    { name: 'Core HR', adoption: '95%', health: 'Healthy' },
-    { name: 'Time & Attendance', adoption: '88%', health: 'Healthy' },
-    { name: 'Payroll', adoption: '62%', health: 'Pilot' },
-  ],
-  automation: [
-    { step: 'Tenant database', time: 'Completed · 2m', status: 'done' },
-    { step: 'Branding assets', time: 'Completed · 4m', status: 'done' },
-    { step: 'Integrations', time: 'Queued', status: 'pending' },
-  ],
-});
+const Show = ({ auth, tenantId }) => {
+    const [isMobile, setIsMobile] = useState(false);
+    const [selectedTab, setSelectedTab] = useState('overview');
 
-const TenantsShow = () => {
-  const { tenant, tenantId, platformSettings = {} } = usePage().props;
-  const profile = tenant ?? buildProfile(tenantId);
-  const [isImpersonating, setIsImpersonating] = useState(false);
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
-  // Check if impersonation is enabled
-  const adminPreferences = platformSettings.admin_preferences ?? {};
-  const impersonationEnabled = Boolean(adminPreferences.enable_impersonation);
-  const canImpersonate = profile.status === 'active' && impersonationEnabled;
+    const getThemeRadius = () => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 12) return 'lg';
+        return 'full';
+    };
 
-  const handleImpersonate = () => {
-    if (!canImpersonate) return;
+    const getCardStyle = () => ({
+        border: `var(--borderWidth, 2px) solid transparent`,
+        borderRadius: `var(--borderRadius, 12px)`,
+        fontFamily: `var(--fontFamily, "Inter")`,
+        transform: `scale(var(--scale, 1))`,
+        background: `linear-gradient(135deg, 
+            var(--theme-content1, #FAFAFA) 20%, 
+            var(--theme-content2, #F4F4F5) 10%, 
+            var(--theme-content3, #F1F3F4) 20%)`,
+    });
 
-    setIsImpersonating(true);
-    router.post(
-      route('admin.tenants.impersonate', profile.id),
-      {},
-      {
-        onError: () => {
-          setIsImpersonating(false);
-        },
-        // Don't reset on success since we'll be redirected
-      }
+    const getCardHeaderStyle = () => ({
+        borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
+    });
+
+    // Mock data
+    const tenant = {
+        id: tenantId,
+        name: "Acme Corp",
+        subdomain: "acme",
+        plan: "Professional",
+        status: "active",
+        users: 45,
+        created: "2024-11-15",
+        database: "tenant_" + tenantId,
+    };
+
+    return (
+        <>
+            <Head title={`Tenant: ${tenant.name}`} />
+            <PageHeader
+                title={tenant.name}
+                subtitle={`${tenant.subdomain}.domain.com`}
+                icon={<BuildingOfficeIcon className="w-8 h-8" />}
+                action={
+                    <Button
+                        color="primary"
+                        startContent={<PencilIcon className="w-4 h-4" />}
+                        onPress={() => router.visit(route('admin.tenants.edit', tenantId))}
+                        radius={getThemeRadius()}
+                    >
+                        Edit Tenant
+                    </Button>
+                }
+            />
+            
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Card style={getCardStyle()}>
+                        <CardBody className="p-4">
+                            <p className="text-sm text-default-500">Plan</p>
+                            <p className="text-lg font-semibold">{tenant.plan}</p>
+                        </CardBody>
+                    </Card>
+                    <Card style={getCardStyle()}>
+                        <CardBody className="p-4">
+                            <p className="text-sm text-default-500">Status</p>
+                            <Chip color="success" variant="flat" size="sm">{tenant.status}</Chip>
+                        </CardBody>
+                    </Card>
+                    <Card style={getCardStyle()}>
+                        <CardBody className="p-4">
+                            <p className="text-sm text-default-500">Users</p>
+                            <p className="text-lg font-semibold">{tenant.users}</p>
+                        </CardBody>
+                    </Card>
+                    <Card style={getCardStyle()}>
+                        <CardBody className="p-4">
+                            <p className="text-sm text-default-500">Database</p>
+                            <p className="text-sm font-mono">{tenant.database}</p>
+                        </CardBody>
+                    </Card>
+                </div>
+
+                <Card style={getCardStyle()}>
+                    <CardHeader style={getCardHeaderStyle()}>
+                        <Tabs selectedKey={selectedTab} onSelectionChange={setSelectedTab}>
+                            <Tab key="overview" title="Overview" />
+                            <Tab key="users" title="Users" />
+                            <Tab key="subscription" title="Subscription" />
+                            <Tab key="settings" title="Settings" />
+                        </Tabs>
+                    </CardHeader>
+                    <CardBody>
+                        {selectedTab === 'overview' && (
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="font-semibold mb-2">Tenant Information</h4>
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                            <span className="text-default-500">Name:</span>
+                                            <span className="ml-2 font-medium">{tenant.name}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-default-500">Subdomain:</span>
+                                            <span className="ml-2 font-medium">{tenant.subdomain}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-default-500">Created:</span>
+                                            <span className="ml-2 font-medium">{tenant.created}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-default-500">Database:</span>
+                                            <span className="ml-2 font-mono text-xs">{tenant.database}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {selectedTab === 'users' && (
+                            <p className="text-default-600">User management interface coming soon.</p>
+                        )}
+                        {selectedTab === 'subscription' && (
+                            <p className="text-default-600">Subscription details coming soon.</p>
+                        )}
+                        {selectedTab === 'settings' && (
+                            <p className="text-default-600">Tenant settings coming soon.</p>
+                        )}
+                    </CardBody>
+                </Card>
+            </div>
+        </>
     );
-  };
-
-  const getImpersonateTooltip = () => {
-    if (!impersonationEnabled) {
-      return 'Impersonation is disabled in platform settings';
-    }
-    if (profile.status !== 'active') {
-      return 'Cannot impersonate inactive or suspended tenants';
-    }
-    return 'Log in as the tenant admin';
-  };
-
-  return (
-    <>
-      <Head title={`${profile.name} - Admin`} />
-      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6">
-        <div className="flex flex-col gap-4 rounded-3xl border border-default-100/70 bg-white/85 p-6 shadow-xl backdrop-blur">
-          <div className="flex flex-col gap-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-default-400">Tenant</p>
-            <h1 className="text-2xl font-semibold text-foreground">{profile.name}</h1>
-            <p className="text-sm text-default-500">Live snapshot spanning contract terms, adoption trends, and provisioning log.</p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button as={Link} href={route('admin.tenants.edit', profile.id)} variant="bordered">
-              Edit tenant
-            </Button>
-            <Tooltip content={getImpersonateTooltip()} isDisabled={canImpersonate}>
-              <Button
-                color="primary"
-                isDisabled={!canImpersonate}
-                isLoading={isImpersonating}
-                onPress={handleImpersonate}
-              >
-                {isImpersonating ? 'Redirecting...' : 'Impersonate'}
-              </Button>
-            </Tooltip>
-          </div>
-        </div>
-
-        <StatsCards
-          stats={[
-            { title: 'Plan', value: profile.plan, description: `Renewal ${profile.renewal}` },
-            { 
-              title: 'Status', 
-              value: <TenantStatusBadge status={profile.status} maintenanceMode={profile.maintenance_mode} />, 
-              description: `Region · ${profile.region}` 
-            },
-            { title: 'Seats', value: profile.seats, description: 'Licensed users' },
-            { title: 'Owner', value: profile.owner, description: `Since ${profile.created_at}` },
-          ]}
-        />
-
-        <Card shadow="none" className="border border-default-100/70 bg-white/95 shadow-2xl" style={{ borderRadius: 'var(--borderRadius, 24px)' }}>
-          <CardHeader className="flex flex-col gap-1 border-b border-default-100/60 px-6 py-5">
-            <h2 className="text-lg font-semibold text-foreground">Enabled modules</h2>
-            <p className="text-sm text-default-500">Each module reports adoption and health from telemetry.</p>
-          </CardHeader>
-          <CardBody className="grid gap-4 p-6 md:grid-cols-2">
-            {profile.modules.map((module) => (
-              <div key={module.name} className="rounded-2xl border border-default-100 bg-white/80 p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-default-900 dark:text-white">{module.name}</p>
-                  <Chip color="success" variant="flat">
-                    {module.health}
-                  </Chip>
-                </div>
-                <p className="mt-2 text-sm text-default-500">Adoption {module.adoption}</p>
-              </div>
-            ))}
-          </CardBody>
-        </Card>
-
-        <Card shadow="none" className="border border-default-100/70 bg-white/95 shadow-2xl" style={{ borderRadius: 'var(--borderRadius, 24px)' }}>
-          <CardHeader className="flex flex-col gap-1 border-b border-default-100/60 px-6 py-5">
-            <h2 className="text-lg font-semibold text-foreground">Provisioning timeline</h2>
-            <p className="text-sm text-default-500">Output from the automation pipeline.</p>
-          </CardHeader>
-          <CardBody className="space-y-4 p-6">
-            {profile.automation.map((step) => (
-              <div key={step.step} className="flex items-center justify-between rounded-2xl bg-default-50 px-4 py-3">
-                <div>
-                  <p className="font-medium text-default-900 dark:text-white">{step.step}</p>
-                  <p className="text-sm text-default-500">{step.time}</p>
-                </div>
-                <Chip color={step.status === 'done' ? 'success' : 'warning'} variant="flat">
-                  {step.status === 'done' ? 'Completed' : 'Pending'}
-                </Chip>
-              </div>
-            ))}
-          </CardBody>
-        </Card>
-      </div>
-    </>
-  );
 };
 
-TenantsShow.layout = (page) => <App>{page}</App>;
+Show.layout = (page) => <App>{page}</App>;
 
-export default TenantsShow;
+export default Show;

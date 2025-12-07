@@ -7,18 +7,15 @@ use App\Models\LandlordUser;
 use App\Models\Module;
 use App\Models\ModuleComponent;
 use App\Models\ModuleComponentAction;
-use App\Models\ModulePermission;
 use App\Models\Role;
 use App\Models\RoleModuleAccess;
 use App\Models\SubModule;
-use App\Services\Module\ModulePermissionService;
 use App\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Permission;
 
 /**
  * Shared Admin Module Controller
@@ -32,15 +29,10 @@ use Spatie\Permission\Models\Permission;
  */
 class ModuleController extends Controller
 {
-    private ModulePermissionService $modulePermissionService;
-
     private RoleModuleAccessService $roleModuleAccessService;
 
-    public function __construct(
-        ModulePermissionService $modulePermissionService,
-        RoleModuleAccessService $roleModuleAccessService
-    ) {
-        $this->modulePermissionService = $modulePermissionService;
+    public function __construct(RoleModuleAccessService $roleModuleAccessService)
+    {
         $this->roleModuleAccessService = $roleModuleAccessService;
     }
 
@@ -105,11 +97,6 @@ class ModuleController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'guard_name', 'is_protected']);
 
-        // Get permissions based on context (still needed for legacy support)
-        $permissions = Permission::where('guard_name', $guardName)
-            ->orderBy('name')
-            ->get();
-
         $statistics = $this->getDatabaseStatistics($moduleScope);
 
         // Get access scopes for dropdown
@@ -119,16 +106,10 @@ class ModuleController extends Controller
             'title' => $isPlatform ? 'Platform Module Management' : 'Module Permission Management',
             'modules' => $modules,
             'roles' => $roles,
-            'permissions' => $permissions,
             'statistics' => $statistics,
             'accessScopes' => $accessScopes,
             'categories' => config('modules.categories', []),
             'componentTypes' => config('modules.component_types', []),
-            'requirementTypes' => [
-                ModulePermission::TYPE_REQUIRED => 'Required (must have)',
-                ModulePermission::TYPE_ANY => 'Any (need one of group)',
-                ModulePermission::TYPE_ALL => 'All (need all in group)',
-            ],
             'is_platform_context' => $isPlatform,
             'can_manage_structure' => false, // Modules are defined in config/modules.php - read-only
             'readonly' => false, // Permissions can still be assigned
@@ -155,8 +136,6 @@ class ModuleController extends Controller
                 'priority' => $module['priority'] ?? ($index + 1),
                 'is_core' => $module['is_core'] ?? false,
                 'is_active' => $module['is_active'] ?? true,
-                'default_required_permissions' => $module['default_required_permissions'] ?? [],
-                'permission_requirements' => [], // For compatibility with frontend
                 'sub_modules' => [], // Frontend expects sub_modules not submodules
             ];
 
@@ -171,8 +150,6 @@ class ModuleController extends Controller
                     'route' => $submodule['route'] ?? '',
                     'priority' => $submodule['priority'] ?? ($subIndex + 1),
                     'is_active' => true,
-                    'default_required_permissions' => $submodule['default_required_permissions'] ?? [],
-                    'permission_requirements' => [], // For compatibility with frontend
                     'components' => [],
                 ];
 
@@ -186,17 +163,16 @@ class ModuleController extends Controller
                         'type' => $component['type'] ?? 'page',
                         'route' => $component['route'] ?? '',
                         'is_active' => true,
-                        'default_required_permissions' => $component['default_required_permissions'] ?? [],
-                        'permission_requirements' => [], // For compatibility with frontend
                         'actions' => [],
                     ];
 
                     // Process actions
                     foreach ($component['actions'] ?? [] as $action) {
                         $componentData['actions'][] = [
-                            'code' => $action['code'],
-                            'name' => $action['name'],
-                            'default_required_permissions' => $action['default_required_permissions'] ?? [],
+                            $componentData['actions'][] = [
+                                'code' => $action['code'],
+                                'name' => $action['name'],
+                            ]
                         ];
                     }
 
@@ -214,28 +190,24 @@ class ModuleController extends Controller
 
     /**
      * Get statistics from config-based modules
+    **
+     * Get statistics from config-based modules
      */
     protected function getConfigStatistics(array $modules): array
     {
         $totalSubmodules = 0;
         $totalComponents = 0;
         $totalActions = 0;
-        $totalPermissions = 0;
 
         foreach ($modules as $module) {
-            $totalPermissions += count($module['default_required_permissions'] ?? []);
-
             foreach ($module['sub_modules'] ?? [] as $submodule) {
                 $totalSubmodules++;
-                $totalPermissions += count($submodule['default_required_permissions'] ?? []);
 
                 foreach ($submodule['components'] ?? [] as $component) {
                     $totalComponents++;
-                    $totalPermissions += count($component['default_required_permissions'] ?? []);
 
                     foreach ($component['actions'] ?? [] as $action) {
                         $totalActions++;
-                        $totalPermissions += count($action['default_required_permissions'] ?? []);
                     }
                 }
             }
@@ -246,11 +218,12 @@ class ModuleController extends Controller
             'total_sub_modules' => $totalSubmodules,
             'total_components' => $totalComponents,
             'total_actions' => $totalActions,
-            'total_permission_requirements' => $totalPermissions,
             'active_modules' => collect($modules)->where('is_active', true)->count(),
         ];
     }
 
+
+    
     /**
      * Get modules from database with hierarchical structure for frontend
      */
@@ -807,243 +780,7 @@ class ModuleController extends Controller
 
     /**
      * Sync permissions for a module (Tenant Context Only)
-     */
-    public function syncModulePermissions(Request $request, $moduleId)
-    {
-        // Permission requirements are tenant-specific
-        if ($this->isPlatformContext()) {
-            return response()->json([
-                'error' => 'Module permission requirements are managed per-tenant. Switch to a tenant context to manage permission mappings.',
-            ], 403);
-        }
-
-        if (! tenancy()->initialized) {
-            return response()->json([
-                'error' => 'Module permissions can only be managed from tenant context.',
-            ], 403);
-        }
-
-        $user = $this->getCurrentUser();
-        if (! $user->can('modules.update')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'permissions' => 'present|array',
-            'permissions.*.permission' => 'required_with:permissions.*|string|exists:permissions,name',
-            'permissions.*.type' => 'required_with:permissions.*|in:required,any,all',
-            'permissions.*.group' => 'nullable|string|max:50',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        try {
-            Module::findOrFail($moduleId);
-
-            $this->modulePermissionService->syncModulePermissions($moduleId, $request->permissions);
-
-            Log::info('Module permissions synced', [
-                'module_id' => $moduleId,
-                'permissions_count' => count($request->permissions),
-                'synced_by' => $user->id,
-            ]);
-
-            return response()->json([
-                'message' => 'Module permissions synced successfully',
-                'requirements' => ModulePermission::forModule($moduleId)
-                    ->with('permission')
-                    ->get(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to sync module permissions: '.$e->getMessage());
-
-            return response()->json(['error' => 'Failed to sync permissions', 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Sync permissions for a sub-module (Tenant Context Only)
-     */
-    public function syncSubModulePermissions(Request $request, $subModuleId)
-    {
-        if ($this->isPlatformContext()) {
-            return response()->json([
-                'error' => 'Module permission requirements are managed per-tenant.',
-            ], 403);
-        }
-
-        if (! tenancy()->initialized) {
-            return response()->json([
-                'error' => 'Module permissions can only be managed from tenant context.',
-            ], 403);
-        }
-
-        $user = $this->getCurrentUser();
-        if (! $user->can('modules.update')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'permissions' => 'present|array',
-            'permissions.*.permission' => 'required_with:permissions.*|string|exists:permissions,name',
-            'permissions.*.type' => 'required_with:permissions.*|in:required,any,all',
-            'permissions.*.group' => 'nullable|string|max:50',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        try {
-            SubModule::findOrFail($subModuleId);
-
-            $this->modulePermissionService->syncSubModulePermissions($subModuleId, $request->permissions);
-
-            Log::info('Sub-module permissions synced', [
-                'sub_module_id' => $subModuleId,
-                'permissions_count' => count($request->permissions),
-                'synced_by' => $user->id,
-            ]);
-
-            return response()->json([
-                'message' => 'Sub-module permissions synced successfully',
-                'requirements' => ModulePermission::forSubModule($subModuleId)
-                    ->with('permission')
-                    ->get(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to sync sub-module permissions: '.$e->getMessage());
-
-            return response()->json(['error' => 'Failed to sync permissions', 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Sync permissions for a component (Tenant Context Only)
-     */
-    public function syncComponentPermissions(Request $request, $componentId)
-    {
-        if ($this->isPlatformContext()) {
-            return response()->json([
-                'error' => 'Module permission requirements are managed per-tenant.',
-            ], 403);
-        }
-
-        if (! tenancy()->initialized) {
-            return response()->json([
-                'error' => 'Module permissions can only be managed from tenant context.',
-            ], 403);
-        }
-
-        $user = $this->getCurrentUser();
-        if (! $user->can('modules.update')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'permissions' => 'present|array',
-            'permissions.*.permission' => 'required_with:permissions.*|string|exists:permissions,name',
-            'permissions.*.type' => 'required_with:permissions.*|in:required,any,all',
-            'permissions.*.group' => 'nullable|string|max:50',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        try {
-            ModuleComponent::findOrFail($componentId);
-
-            $this->modulePermissionService->syncComponentPermissions($componentId, $request->permissions);
-
-            Log::info('Component permissions synced', [
-                'component_id' => $componentId,
-                'permissions_count' => count($request->permissions),
-                'synced_by' => $user->id,
-            ]);
-
-            return response()->json([
-                'message' => 'Component permissions synced successfully',
-                'requirements' => ModulePermission::forComponent($componentId)
-                    ->with('permission')
-                    ->get(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to sync component permissions: '.$e->getMessage());
-
-            return response()->json(['error' => 'Failed to sync permissions', 'message' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Get the permission requirements for a specific module
-     */
-    public function getModuleRequirements($moduleCode)
-    {
-        try {
-            $requirements = $this->modulePermissionService->getModulePermissionRequirements($moduleCode);
-
-            if (empty($requirements)) {
-                return response()->json(['error' => 'Module not found'], 404);
-            }
-
-            return response()->json($requirements);
-        } catch (\Exception $e) {
-            Log::error('Failed to get module requirements: '.$e->getMessage());
-
-            return response()->json(['error' => 'Failed to retrieve requirements'], 500);
-        }
-    }
-
-    /**
-     * Check if current user can access a specific module/sub-module/component
-     */
-    public function checkAccess(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'module' => 'required|string',
-            'sub_module' => 'nullable|string',
-            'component' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        try {
-            $canAccess = false;
-
-            if ($request->component) {
-                $canAccess = $this->modulePermissionService->userCanAccessComponent(
-                    $request->module,
-                    $request->sub_module,
-                    $request->component
-                );
-            } elseif ($request->sub_module) {
-                $canAccess = $this->modulePermissionService->userCanAccessSubModule(
-                    $request->module,
-                    $request->sub_module
-                );
-            } else {
-                $canAccess = $this->modulePermissionService->userCanAccessModule($request->module);
-            }
-
-            return response()->json([
-                'can_access' => $canAccess,
-                'module' => $request->module,
-                'sub_module' => $request->sub_module,
-                'component' => $request->component,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to check access: '.$e->getMessage());
-
-            return response()->json(['error' => 'Failed to check access'], 500);
-        }
-    }
-
-    // =====================================================
+/ =====================================================
     // Role Module Access Management Endpoints
     // =====================================================
 

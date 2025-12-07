@@ -368,7 +368,6 @@ class HandleInertiaRequests extends Middleware
                 'isAuthenticated' => (bool) $user,
                 'sessionValid' => $user && $request->session()->isStarted(),
                 'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
-                'permissions' => $user ? $user->getAllPermissions()->pluck('name')->toArray() : [],
                 'designation' => $userWithRelations?->designation?->title,
                 'accessibleModules' => fn () => $user
                     ? app(ModulePermissionService::class)->getNavigationForUser($user)

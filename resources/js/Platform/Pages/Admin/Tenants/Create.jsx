@@ -1,37 +1,69 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
-import { Card, CardBody, CardHeader } from '@heroui/react';
-import TenantForm from '@/Platform/Pages/Admin/Tenants/components/TenantForm.jsx';
+import { Card, CardBody, CardHeader } from "@heroui/react";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import App from "@/Layouts/App.jsx";
+import PageHeader from "@/Components/PageHeader.jsx";
 
-const TenantsCreate = () => (
-  <>
-    <Head title="Create Tenant - Admin" />
-    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 md:px-6">
-      <div className="rounded-3xl border border-default-100/70 bg-white/80 p-6 shadow-xl backdrop-blur">
-        <h1 className="text-2xl font-semibold text-foreground">Provision new tenant</h1>
-        <p className="mt-2 text-sm text-default-500">
-          Kick off the automation workflow that prepares infrastructure, billing, and starter content for a customer.
-        </p>
-      </div>
+const Create = ({ auth }) => {
+    const [isMobile, setIsMobile] = useState(false);
 
-      <Card
-        shadow="none"
-        className="border border-default-100/70 bg-white/90 shadow-2xl"
-        style={{ borderRadius: 'var(--borderRadius, 24px)' }}
-      >
-        <CardHeader className="flex flex-col gap-1 border-b border-default-100/60 px-6 py-5">
-          <h2 className="text-lg font-semibold text-foreground">Tenant details</h2>
-          <p className="text-sm text-default-500">Provide the basics and let the provisioning pipeline handle the rest.</p>
-        </CardHeader>
-        <CardBody className="p-6">
-          <TenantForm mode="create" />
-        </CardBody>
-      </Card>
-    </div>
-  </>
-);
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
-TenantsCreate.layout = (page) => <App>{page}</App>;
+    const getCardStyle = () => ({
+        border: `var(--borderWidth, 2px) solid transparent`,
+        borderRadius: `var(--borderRadius, 12px)`,
+        fontFamily: `var(--fontFamily, "Inter")`,
+        transform: `scale(var(--scale, 1))`,
+        background: `linear-gradient(135deg, 
+            var(--theme-content1, #FAFAFA) 20%, 
+            var(--theme-content2, #F4F4F5) 10%, 
+            var(--theme-content3, #F1F3F4) 20%)`,
+    });
 
-export default TenantsCreate;
+    const getCardHeaderStyle = () => ({
+        borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
+    });
+
+    return (
+        <>
+            <Head title="Create Tenant" />
+            <PageHeader
+                title="Create New Tenant"
+                subtitle="Provision a new tenant with database and configuration"
+                icon={<PlusIcon className="w-8 h-8" />}
+            />
+            
+            <div className="space-y-6">
+                <Card 
+                    className="transition-all duration-200"
+                    style={getCardStyle()}
+                >
+                    <CardHeader style={getCardHeaderStyle()}>
+                        <h3 className="text-lg font-semibold">Tenant Creation</h3>
+                    </CardHeader>
+                    <CardBody>
+                        <p className="text-default-600">
+                            Create a new tenant with automated database provisioning, configuration setup, 
+                            and initial admin user creation.
+                        </p>
+                        <p className="mt-4 text-sm text-default-500">
+                            Tenant creation form coming soon.
+                        </p>
+                    </CardBody>
+                </Card>
+            </div>
+        </>
+    );
+};
+
+Create.layout = (page) => <App>{page}</App>;
+
+export default Create;
