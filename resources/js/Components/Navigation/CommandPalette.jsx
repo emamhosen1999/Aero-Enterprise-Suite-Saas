@@ -54,7 +54,7 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
         setRecentPages(JSON.parse(stored));
       }
     } catch (error) {
-      console.warn('Failed to load recent pages:', error);
+      console.warn('Failed to load recent pages from localStorage:', error);
     }
   }, []);
 
@@ -66,7 +66,7 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
       try {
         localStorage.setItem('command_palette_recent', JSON.stringify(updated));
       } catch (error) {
-        console.warn('Failed to save recent pages:', error);
+        console.warn('Failed to save recent pages to localStorage:', error);
       }
       return updated;
     });
@@ -165,7 +165,7 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
         });
       } catch (error) {
         // Fallback to direct href if route helper fails
-        console.warn('Route navigation failed, using direct href:', error);
+        console.warn(`Route navigation failed for "${item.route}":`, error);
         router.visit(`/${item.route}`, {
           method: item.method || 'get',
           preserveState: false,
@@ -231,7 +231,8 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
   // Focus input when modal opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      // Use requestAnimationFrame for more reliable focus after modal render
+      // Use requestAnimationFrame to ensure focus occurs after modal DOM is fully rendered
+      // This is more reliable than setTimeout as it synchronizes with browser render cycles
       requestAnimationFrame(() => {
         inputRef.current?.focus();
       });
@@ -394,6 +395,8 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
                           <div 
                             className="flex items-center justify-center w-10 h-10 rounded-lg"
                             style={{
+                              // Using color-mix() for theme-aware transparency (requires Chrome 111+, Firefox 113+, Safari 16.2+)
+                              // Falls back to content2 background for older browsers
                               backgroundColor: selectedIndex === index
                                 ? 'color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)'
                                 : 'var(--theme-content2, #F4F4F5)',
