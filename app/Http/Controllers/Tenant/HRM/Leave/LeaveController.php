@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\HRM\Leave;
 
 use App\Events\Leave\LeaveApproved;
 use App\Events\Leave\LeaveCancelled;

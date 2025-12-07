@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\POS;
 
 use App\Services\POSService;
 use Illuminate\Http\Request;

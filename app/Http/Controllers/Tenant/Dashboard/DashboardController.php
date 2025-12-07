@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\Dashboard;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;

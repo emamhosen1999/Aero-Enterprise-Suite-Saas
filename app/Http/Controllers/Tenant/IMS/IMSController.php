@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\IMS;
 
 use App\Services\IMSService;
 use Illuminate\Support\Facades\Auth;

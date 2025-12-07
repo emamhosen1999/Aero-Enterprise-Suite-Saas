@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Quality;
+namespace App\Http\Controllers\Tenant\Quality;
 
 use App\Http\Controllers\Controller;
 use App\Models\HRM\Department;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\ProjectManagement;
+namespace App\Http\Controllers\Tenant\ProjectManagement;
 
 use App\Http\Controllers\Controller;
 use App\Models\HRM\Department;

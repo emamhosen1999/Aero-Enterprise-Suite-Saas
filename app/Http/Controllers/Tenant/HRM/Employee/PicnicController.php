@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\HRM\Employee;
 
 use App\Models\PicnicParticipant;
 use Illuminate\Support\Str;

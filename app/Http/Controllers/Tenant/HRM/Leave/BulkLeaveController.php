@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\HRM\Leave;
 
 use App\Http\Requests\BulkLeaveRequest;
 use App\Http\Resources\LeaveResource;

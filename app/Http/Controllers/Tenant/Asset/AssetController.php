@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Asset;
+namespace App\Http\Controllers\Tenant\Asset;
 
 use App\Http\Controllers\Controller;
 use App\Models\Asset;

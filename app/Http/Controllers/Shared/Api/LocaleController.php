@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Shared\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetLocale;

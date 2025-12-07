@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Platform\SystemMonitoring;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;

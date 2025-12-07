@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\FMS;
+namespace App\Http\Controllers\Tenant\FMS;
 
 use App\Http\Controllers\Controller;
 use App\Models\FinancialAccount;

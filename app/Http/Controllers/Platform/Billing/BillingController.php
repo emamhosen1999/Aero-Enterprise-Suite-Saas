@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Landlord;
+namespace App\Http\Controllers\Platform\Billing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;

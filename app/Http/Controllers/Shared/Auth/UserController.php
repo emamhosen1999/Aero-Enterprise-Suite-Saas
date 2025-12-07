@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shared\Auth;
 
 use App\Http\Requests\SendTeamInvitationRequest;
 use App\Http\Requests\StoreUserRequest;

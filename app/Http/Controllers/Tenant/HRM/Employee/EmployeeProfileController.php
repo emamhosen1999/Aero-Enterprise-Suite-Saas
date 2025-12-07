@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\HR;
+namespace App\Http\Controllers\Tenant\HRM\Employee;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\HR\UpdateEmployeeProfileRequest;

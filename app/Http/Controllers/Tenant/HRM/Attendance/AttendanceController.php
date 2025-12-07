@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\HRM\Attendance;
 
 use App\Exports\AttendanceAdminExport;
 use App\Exports\AttendanceExport;

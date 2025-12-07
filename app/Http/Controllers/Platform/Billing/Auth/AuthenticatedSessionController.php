@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Landlord\Auth;
+namespace App\Http\Controllers\Platform\Billing\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\LandlordUser;

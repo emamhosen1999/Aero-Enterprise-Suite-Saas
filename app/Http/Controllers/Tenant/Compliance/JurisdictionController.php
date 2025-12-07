@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\Compliance;
 
 use App\Models\Jurisdiction;
 use App\Models\User;

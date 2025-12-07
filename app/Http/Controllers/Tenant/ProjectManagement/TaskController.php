@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\ProjectManagement;
 
 use App\Models\Report;
 use App\Models\User;

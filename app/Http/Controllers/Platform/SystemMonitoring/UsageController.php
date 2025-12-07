@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Platform\SystemMonitoring;
 
 use App\Services\Billing\MeteredBillingService;
 use Illuminate\Http\JsonResponse;

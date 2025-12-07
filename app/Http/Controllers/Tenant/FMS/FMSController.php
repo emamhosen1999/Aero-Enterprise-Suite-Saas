@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\FMS;
 
 use App\Services\FMSService;
 use Illuminate\Http\Request;

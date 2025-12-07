@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Helpdesk;
+namespace App\Http\Controllers\Tenant\Helpdesk;
 
 use App\Http\Controllers\Controller;
 use App\Models\HelpDeskTicket;

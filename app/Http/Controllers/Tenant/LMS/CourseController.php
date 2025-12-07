@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\LMS;
+namespace App\Http\Controllers\Tenant\LMS;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;

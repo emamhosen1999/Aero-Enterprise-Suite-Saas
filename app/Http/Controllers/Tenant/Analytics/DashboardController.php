@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Analytics;
+namespace App\Http\Controllers\Tenant\Analytics;
 
 use App\Http\Controllers\Controller;
 use App\Models\HRM\Attendance;

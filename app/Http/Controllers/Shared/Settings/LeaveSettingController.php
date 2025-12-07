@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Settings;
+namespace App\Http\Controllers\Shared\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\HRM\LeaveSetting;

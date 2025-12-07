@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\CRM;
+namespace App\Http\Controllers\Tenant\CRM;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;

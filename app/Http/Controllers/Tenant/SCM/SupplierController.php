@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\SCM;
+namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
 use App\Models\LogisticsShipment;

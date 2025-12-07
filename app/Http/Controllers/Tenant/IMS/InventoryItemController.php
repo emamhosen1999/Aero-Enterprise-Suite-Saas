@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\IMS;
+namespace App\Http\Controllers\Tenant\IMS;
 
 use App\Http\Controllers\Controller;
 use App\Models\InventoryItem;

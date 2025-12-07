@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Tenant\DMS;
 
 use App\Models\DMS\Category;
 use App\Models\DMS\Document;

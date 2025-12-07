@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Compliance;
+namespace App\Http\Controllers\Tenant\Compliance;
 
 use App\Http\Controllers\Controller;
 use App\Models\ComplianceAudit;

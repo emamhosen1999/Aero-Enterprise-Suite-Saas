@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Shared\Profile;
 
 use App\Models\HRM\Department;
 use App\Models\HRM\Designation;

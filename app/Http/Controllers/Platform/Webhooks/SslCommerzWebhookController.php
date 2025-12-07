@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Webhooks;
+namespace App\Http\Controllers\Platform\Webhooks;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
