@@ -4,6 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * DUPLICATE MIGRATION - Also exists in database/migrations/tenant/
+ * 
+ * This migration adds scope and protection columns to RBAC tables.
+ * It exists in BOTH root and tenant migrations because:
+ * - Root (Central DB): Updates landlord permission tables (platform admin roles)
+ * - Tenant (Tenant DB): Updates tenant permission tables (tenant user roles)
+ * 
+ * Both contexts need these columns for proper role/permission management.
+ */
 return new class extends Migration
 {
     /**

@@ -4,6 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * DUPLICATE MIGRATION - Also exists in database/migrations/tenant/
+ * 
+ * This migration creates the permission tables from Spatie Permission package.
+ * It exists in BOTH root and tenant migrations because:
+ * - Root (Central DB): Platform admin roles/permissions (super_admin, admin, support)
+ * - Tenant (Tenant DB): Tenant user roles/permissions (admin, manager, employee)
+ * 
+ * Each context has independent RBAC system for its users.
+ */
 return new class extends Migration
 {
     /**

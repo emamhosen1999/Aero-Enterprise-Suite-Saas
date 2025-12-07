@@ -50,3 +50,31 @@ This will build and start the following services:
 - If you add a web server container, link it to `php-app:9000`.
 
 ---
+
+## 📚 Database Migrations
+
+This application uses a **multi-tenant architecture** with separate migration folders:
+
+- **Central/Landlord migrations** (`database/migrations/`): Platform-level tables (tenants, plans, subscriptions, modules)
+- **Tenant migrations** (`database/migrations/tenant/`): Tenant-specific tables (users, employees, HRM, payroll)
+
+### Migration Commands
+
+```bash
+# Central database migrations
+php artisan migrate
+
+# Tenant database migrations (all tenants)
+php artisan tenants:migrate
+
+# Check migration status
+php artisan migrate:status                    # Central
+php artisan tenants:run migrate:status       # Tenants
+```
+
+### Documentation
+
+- **[Migration Organization Guide](MIGRATION_ORGANIZATION_GUIDE.md)** - Comprehensive guide on migration structure
+- **[Migration Verification Report](docs/MIGRATION_VERIFICATION_REPORT.md)** - Complete migration inventory and verification
+
+---

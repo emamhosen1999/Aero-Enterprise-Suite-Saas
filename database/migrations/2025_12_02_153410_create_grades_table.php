@@ -4,6 +4,17 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * DUPLICATE MIGRATION - Also exists in database/migrations/tenant/
+ * 
+ * This migration creates the grades lookup table.
+ * It exists in BOTH root and tenant migrations because:
+ * - Root (Central DB): Platform-level grade definitions (shared/standardized)
+ * - Tenant (Tenant DB): Tenant-specific grade usage (isolated data)
+ * 
+ * This allows tenants to have their own grade data while maintaining
+ * platform-level definitions if needed.
+ */
 return new class extends Migration
 {
     /**
