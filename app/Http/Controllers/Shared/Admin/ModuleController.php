@@ -190,8 +190,6 @@ class ModuleController extends Controller
 
     /**
      * Get statistics from config-based modules
-    **
-     * Get statistics from config-based modules
      */
     protected function getConfigStatistics(array $modules): array
     {

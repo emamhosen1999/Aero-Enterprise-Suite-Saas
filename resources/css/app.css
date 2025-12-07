@@ -15,6 +15,16 @@ layer(base);
   z-index: 99999 !important;
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Line clamp utilities for text wrapping */
 .line-clamp-2 {
   display: -webkit-box;

@@ -28,7 +28,7 @@ import {
     PlusIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import { hasPermission } from '@/utils/permissions';
+// Permission checks removed - using role-based access via middleware
 
 const TaxReturns = () => {
     const { auth, taxReturns: initialData } = usePage().props;
@@ -195,11 +195,9 @@ const TaxReturns = () => {
                             <h2 className="text-xl font-semibold">Tax Returns</h2>
                             <p className="text-sm text-default-600">Manage tax filings and payments</p>
                         </div>
-                        {hasPermission(auth, 'finance.tax-returns.create') && (
-                            <Button color="primary" radius={themeRadius} startContent={<PlusIcon className="w-4 h-4" />}>
-                                New Return
-                            </Button>
-                        )}
+                        <Button color="primary" radius={themeRadius} startContent={<PlusIcon className="w-4 h-4" />}>
+                            New Return
+                        </Button>
                     </CardHeader>
 
                     <CardBody className="space-y-4">

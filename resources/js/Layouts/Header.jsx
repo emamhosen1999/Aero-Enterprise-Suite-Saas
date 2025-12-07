@@ -124,10 +124,11 @@ const ProfileButton = React.memo(React.forwardRef(({ size = "sm", ...props }, re
       ref={ref}
       {...props}
       className={`
-        group relative flex items-center gap-3 cursor-pointer 
+        group relative flex items-center gap-2 cursor-pointer 
         hover:bg-white/10 active:bg-white/15 
         rounded-xl transition-all duration-300 ease-out
         focus:outline-hidden focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-transparent
+        shrink-0 max-w-[200px] overflow-hidden
         ${size === "sm" ? "p-1.5" : "p-2"}
         ${props.className || ""}
       `}
@@ -171,8 +172,8 @@ const ProfileButton = React.memo(React.forwardRef(({ size = "sm", ...props }, re
         </div>
       </div>
 
-      {/* User info for desktop */}
-      <div className={`hidden ${size === "sm" ? "lg:flex" : "md:flex"} flex-col text-left min-w-0 flex-1`}>
+      {/* User info for desktop - with fixed max-width */}
+      <div className={`hidden ${size === "sm" ? "lg:flex" : "md:flex"} flex-col text-left min-w-0 w-[140px] max-w-[140px]`}>
         <span className="text-xs text-default-500 leading-tight font-medium">
           {getTimeBasedGreeting()},
         </span>
@@ -1030,7 +1031,7 @@ const DesktopHeader = React.memo(({
           }}
         >
           <Card 
-            className="backdrop-blur-md overflow-visible"
+            className="backdrop-blur-md overflow-hidden"
             style={{
               background: `linear-gradient(to bottom right, 
                 var(--theme-content1, #FAFAFA) 20%, 
@@ -1041,12 +1042,11 @@ const DesktopHeader = React.memo(({
               borderStyle: 'solid',
               borderRadius: `var(--borderRadius, 8px)`,
               boxShadow: `0 8px 32px color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
-              overflow: 'visible'
             }}
           >
-            <div className="w-full px-4 lg:px-6 overflow-visible">
+            <div className="w-full px-4 lg:px-6 overflow-hidden">
               {/* Three-Section Layout: Logo | Menu | Profile */}
-              <div className="flex items-center min-h-[64px] overflow-visible">
+              <div className="flex items-center min-h-[64px] overflow-hidden">
                 
                 {/* Section 1: Logo - Fixed width */}
                 <div className="flex items-center gap-3 shrink-0 pr-4">
@@ -1124,7 +1124,12 @@ const DesktopHeader = React.memo(({
                 {!internalSidebarOpen && (
                   <nav 
                     ref={navContainerRef} 
-                    className={`flex-1 flex items-center gap-1 py-2 overflow-visible ${isExpanded ? 'flex-wrap content-start' : 'flex-nowrap'}`}
+                    className={`flex-1 flex items-center gap-1 py-2 min-w-0 ${
+                      isExpanded 
+                        ? 'flex-wrap content-start overflow-y-auto max-h-[200px]' 
+                        : 'flex-nowrap overflow-x-auto scrollbar-hide'
+                    }`}
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   >
                       {/* When collapsed: show visible items only. When expanded: show ALL items */}
                       {(isExpanded ? currentPages : visiblePages).map((page, index) => {
@@ -1338,8 +1343,8 @@ const DesktopHeader = React.memo(({
                   </nav>
                 )}
 
-                {/* Section 3: Profile & Actions - Always aligned right */}
-                <div className="flex items-center gap-1 shrink-0 ml-auto">
+                {/* Section 3: Profile & Actions - Always aligned right, contained */}
+                <div className="flex items-center gap-1 shrink-0 ml-auto max-w-[50%] overflow-hidden">
                   {/* Search Field - Show when sidebar is open and enough space */}
                   {internalSidebarOpen && !isTablet && (
                     <div className="hidden lg:flex items-center mr-2">

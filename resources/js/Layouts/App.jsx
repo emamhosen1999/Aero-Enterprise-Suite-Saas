@@ -525,8 +525,7 @@ const App = React.memo(({ children }) => {
             {/* Main Content */}
             <motion.main
               ref={contentRef}
-              className="flex flex-1 flex-col h-full overflow-hidden"
-             
+              className="flex flex-1 flex-col h-full overflow-hidden w-full min-w-0"
               animate={{
                 transition: { 
                   duration: 0.4, 
@@ -535,7 +534,7 @@ const App = React.memo(({ children }) => {
               }}
             >
               {/* Header: COMPLETELY STATIC - Never re-renders */}
-              <header className="sticky top-0 z-[30] border-b border-divider">
+              <header className="sticky top-0 z-[30] border-b border-divider w-full overflow-hidden">
                 <ImpersonationBanner />
                 <StaticHeaderWrapper />
                 <Divider />

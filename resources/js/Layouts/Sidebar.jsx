@@ -37,15 +37,16 @@ const highlightSearchMatch = (text, searchTerm) => {
   return parts.map((part, index) => {
     if (part.toLowerCase() === searchTerm.toLowerCase()) {
       return (
-        <Chip 
+        <span 
           key={index} 
-          size="sm"
-          color="primary"
-          variant="flat"
-          className="px-1 py-0.5 font-semibold"
+          className="px-1.5 py-0.5 rounded-md font-semibold"
+          style={{
+            backgroundColor: 'var(--theme-primary, #3b82f6)',
+            color: '#FFFFFF'
+          }}
         >
           {part}
-        </Chip>
+        </span>
       );
     }
     return part;
