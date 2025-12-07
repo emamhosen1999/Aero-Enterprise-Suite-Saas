@@ -40,20 +40,20 @@ class TenantSuperAdmin
         $user = Auth::guard('web')->user();
 
         // Check tenant context
-        if (! $user->tenant_id || ! function_exists('tenant') || ! tenant()) {
+        if (! tenant()) {
             abort(403, 'Tenant context required.');
         }
 
         // Check if user has tenant_super_administrator role for this tenant
-        if (! $user->hasRole('tenant_super_administrator')) {
+        if (! $user->hasRole('Super Administrator')) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Access denied. Tenant Super Administrator access required.',
+                    'message' => 'Access denied. Super Administrator access required.',
                 ], 403);
             }
 
-            abort(403, 'Access denied. Only Tenant Super Administrators can access this area.');
+            abort(403, 'Access denied. Only Super Administrators can access this area.');
         }
 
         return $next($request);

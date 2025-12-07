@@ -441,34 +441,44 @@ class ModuleAccessService
         ?string $subModuleCode = null,
         ?string $componentCode = null
     ): bool {
-        // Get tenant's active modules from subscription
-        $cacheKey = "tenant_modules_access:{$user->tenant_id}";
+        // Get tenant's active modules from subscription OR custom selection
+        $tenant = tenant();
 
-        $activeModuleCodes = Cache::remember($cacheKey, 300, function () use ($user) {
-            if (! $user->tenant_id) {
-                return [];
+        if (! $tenant) {
+            return false;
+        }
+
+        $cacheKey = "tenant_modules_access:{$tenant->id}";
+
+        $activeModuleCodes = Cache::remember($cacheKey, 300, function () use ($tenant) {
+            $moduleCodes = [];
+
+            // Check 1: Get modules from subscription plan (if plan_id exists)
+            if ($tenant->plan_id) {
+                $plan = \App\Models\Plan::find($tenant->plan_id);
+                if ($plan) {
+                    $planModules = $plan->modules()
+                        ->where('is_active', true)
+                        ->pluck('modules.code')
+                        ->toArray();
+                    $moduleCodes = array_merge($moduleCodes, $planModules);
+                }
             }
 
-            $tenant = \App\Models\Tenant::find($user->tenant_id);
-            if (! $tenant) {
-                return [];
+            // Check 2: Get modules from tenant's custom modules collection
+            if (! empty($tenant->modules) && is_array($tenant->modules)) {
+                $moduleCodes = array_merge($moduleCodes, $tenant->modules);
             }
 
-            $subscription = $tenant->currentSubscription;
-            if (! $subscription || ! $subscription->plan) {
-                // No subscription - only core modules
-                return Module::where('is_core', true)
-                    ->where('is_active', true)
-                    ->pluck('code')
-                    ->toArray();
-            }
-
-            // Get modules from subscription plan
-            return $subscription->plan
-                ->modules()
+            // Add core modules (always accessible)
+            $coreModules = Module::where('is_core', true)
                 ->where('is_active', true)
-                ->pluck('modules.code')
+                ->pluck('code')
                 ->toArray();
+            $moduleCodes = array_merge($moduleCodes, $coreModules);
+
+            // Return unique module codes
+            return array_unique($moduleCodes);
         });
 
         // Check if module is allowed
@@ -515,6 +525,10 @@ class ModuleAccessService
     public function clearUserCache(User $user): void
     {
         Cache::forget("user_accessible_modules:{$user->id}");
-        Cache::forget("tenant_modules_access:{$user->tenant_id}");
+
+        $tenant = tenant();
+        if ($tenant) {
+            Cache::forget("tenant_modules_access:{$tenant->id}");
+        }
     }
 }

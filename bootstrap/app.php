@@ -72,6 +72,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.super_admin' => \App\Http\Middleware\TenantSuperAdmin::class,
             'module' => \App\Http\Middleware\CheckModuleAccess::class,
             'tenant.setup' => \App\Http\Middleware\EnsureTenantIsSetup::class,
+            'redirect.if.no.admin' => \App\Http\Middleware\RedirectIfNoAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

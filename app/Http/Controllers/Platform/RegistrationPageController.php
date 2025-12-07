@@ -234,7 +234,7 @@ class RegistrationPageController extends Controller
         $domain = sprintf('%s.%s', $tenant->subdomain, $baseDomain);
 
         // Check if tenant has already completed admin setup
-        $adminSetupCompleted = $tenant->data['admin_setup_completed'] ?? false;
+        $adminSetupCompleted = $tenant->isAdminSetupComplete();
 
         // Determine redirect URL based on admin setup status
         $redirectUrl = null;

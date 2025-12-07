@@ -541,4 +541,35 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return $this->subscribedToPrice($priceId, 'default');
     }
+
+    // =========================================================================
+    // ADMIN SETUP HELPER METHODS
+    // =========================================================================
+
+    /**
+     * Check if admin setup has been completed for this tenant.
+     *
+     * This checks the admin_setup_completed flag in the data column.
+     * This flag is set when the first admin user is created via AdminSetupController.
+     */
+    public function isAdminSetupComplete(): bool
+    {
+        $data = $this->data instanceof \ArrayObject
+            ? $this->data->getArrayCopy()
+            : (array) ($this->data ?? []);
+
+        return ! empty($data['admin_setup_completed']);
+    }
+
+    /**
+     * Get the timestamp when admin setup was completed.
+     */
+    public function getAdminSetupCompletedAt(): ?string
+    {
+        $data = $this->data instanceof \ArrayObject
+            ? $this->data->getArrayCopy()
+            : (array) ($this->data ?? []);
+
+        return $data['admin_setup_completed_at'] ?? null;
+    }
 }

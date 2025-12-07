@@ -73,12 +73,13 @@ class CheckModuleAccess
             return $this->handlePlatformAccess($request, $next, $user, $moduleCode, $subModuleCode, $componentCode, $actionCode);
         }
 
-        // Tenant context - check tenant_id
-        if (! $user->tenant_id) {
+        // Tenant context - check if tenant is properly initialized (from domain routing)
+        $tenant = tenant();
+        if (! $tenant) {
             return $this->denyAccess(
                 $request,
                 'no_tenant',
-                'User is not associated with a tenant.',
+                'Tenant context not found. Please access via tenant subdomain.',
                 401
             );
         }
@@ -341,13 +342,19 @@ class CheckModuleAccess
         // Inertia response
         if ($request->header('X-Inertia')) {
             return response()->json([
-                'component' => 'Tenant/Pages/Errors/Forbidden',
+                'component' => 'Errors/UnifiedError',
                 'props' => [
-                    'reason' => $reason,
-                    'message' => $message,
-                    'statusCode' => $statusCode,
-                    'accessType' => $reason === 'plan_restriction' ? 'subscription' : 'permission',
-                    'meta' => $meta,
+                    'error' => [
+                        'code' => $statusCode,
+                        'type' => $reason === 'plan_restriction' ? 'SubscriptionRequired' : 'AccessDenied',
+                        'title' => $reason === 'plan_restriction' ? 'Upgrade Required' : 'Access Denied',
+                        'message' => $message,
+                        'trace_id' => \Illuminate\Support\Str::uuid()->toString(),
+                        'showHomeButton' => true,
+                        'showRetryButton' => false,
+                        'details' => $meta,
+                        'timestamp' => now()->toISOString(),
+                    ],
                 ],
                 'url' => $request->url(),
                 'version' => '',

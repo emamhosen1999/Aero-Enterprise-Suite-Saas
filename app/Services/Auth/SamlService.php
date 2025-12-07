@@ -238,8 +238,8 @@ class SamlService
         $user->saml_id = $userData['saml_name_id'];
         $user->auth_provider = 'saml:'.$this->idpName;
 
-        // Set tenant if provided
-        if ($tenant) {
+        // Set tenant if provided (only for landlord users with tenant_id field)
+        if ($tenant && \Schema::hasColumn($user->getTable(), 'tenant_id')) {
             $user->tenant_id = $tenant->id;
         }
 

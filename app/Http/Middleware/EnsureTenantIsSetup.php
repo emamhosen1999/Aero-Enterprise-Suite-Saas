@@ -143,8 +143,12 @@ class EnsureTenantIsSetup
      */
     protected function isInMaintenanceMode(): bool
     {
-        // Check platform-level maintenance mode
-        if (PlatformSetting::isMaintenanceModeEnabled()) {
+        // Check platform-level maintenance mode (use central database)
+        $platformMaintenance = tenancy()->central(function () {
+            return PlatformSetting::isMaintenanceModeEnabled();
+        });
+
+        if ($platformMaintenance) {
             return true;
         }
 

@@ -33,12 +33,20 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
-        // Level 1: Check Global Platform Maintenance Mode
-        if (PlatformSetting::isMaintenanceModeEnabled()) {
+        // Level 1: Check Global Platform Maintenance Mode (use central database)
+        $platformMaintenanceEnabled = tenancy()->central(function () {
+            return PlatformSetting::isMaintenanceModeEnabled();
+        });
+
+        if ($platformMaintenanceEnabled) {
+            $maintenanceStatus = tenancy()->central(function () {
+                return PlatformSetting::getMaintenanceStatus();
+            });
+
             return $this->maintenanceResponse(
                 $request,
                 'platform',
-                PlatformSetting::getMaintenanceStatus()
+                $maintenanceStatus
             );
         }
 
@@ -62,19 +70,31 @@ class CheckMaintenanceMode
      */
     protected function shouldBypass(Request $request): bool
     {
-        // Check IP bypass
-        if (PlatformSetting::isIpBypassed($request->ip())) {
+        // Check IP bypass (use central database for platform settings)
+        $ipBypassed = tenancy()->central(function () use ($request) {
+            return PlatformSetting::isIpBypassed($request->ip());
+        });
+
+        if ($ipBypassed) {
             return true;
         }
 
         // Check secret header bypass
         $bypassSecret = $request->header(PlatformSetting::BYPASS_HEADER);
-        if (PlatformSetting::isSecretValid($bypassSecret)) {
+        $secretValid = tenancy()->central(function () use ($bypassSecret) {
+            return PlatformSetting::isSecretValid($bypassSecret);
+        });
+
+        if ($secretValid) {
             return true;
         }
 
         // Check allowed paths (health checks, status endpoints, etc.)
-        if (PlatformSetting::isPathAllowed($request->path())) {
+        $pathAllowed = tenancy()->central(function () use ($request) {
+            return PlatformSetting::isPathAllowed($request->path());
+        });
+
+        if ($pathAllowed) {
             return true;
         }
 

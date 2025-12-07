@@ -14,7 +14,6 @@ import {
     UserIcon, 
     EnvelopeIcon, 
     LockClosedIcon, 
-    CheckCircleIcon,
     BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
@@ -24,20 +23,19 @@ import { showToast } from '@/utils/toastUtils';
  * 
  * This page is shown after a tenant has been provisioned but before
  * they have an admin user. It's the final step of tenant registration.
+ * 
+ * The admin can use any email/phone - no verification is required.
+ * The company email/phone verification (done during registration) is separate.
  */
 export default function AdminSetup({ 
     title = 'Complete Your Account Setup',
     tenant = {},
-    prefillEmail = '',
-    prefillPhone = '',
-    emailVerified = false,
-    phoneVerified = false,
 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         user_name: '',
-        email: prefillEmail || '',
-        phone: prefillPhone || '',
+        email: '',
+        phone: '',
         password: '',
         password_confirmation: '',
     });
@@ -164,34 +162,8 @@ export default function AdminSetup({
                                 Create Admin Account
                             </h2>
                             <p className="text-sm text-default-500">
-                                Create your super administrator login. No verification required - get started immediately!
+                                Set up your super administrator account. Use any email and phone - no verification required!
                             </p>
-                            
-                            {/* Company Verification Status - Informational Only */}
-                            {(emailVerified || phoneVerified) && (
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {emailVerified && (
-                                        <Chip 
-                                            color="success" 
-                                            variant="flat" 
-                                            size="sm"
-                                            startContent={<CheckCircleIcon className="w-4 h-4" />}
-                                        >
-                                            Company Email Verified
-                                        </Chip>
-                                    )}
-                                    {phoneVerified && (
-                                        <Chip 
-                                            color="success" 
-                                            variant="flat" 
-                                            size="sm"
-                                            startContent={<CheckCircleIcon className="w-4 h-4" />}
-                                        >
-                                            Company Phone Verified
-                                        </Chip>
-                                    )}
-                                </div>
-                            )}
                         </CardHeader>
 
                         <form onSubmit={handleSubmit}>
@@ -216,13 +188,13 @@ export default function AdminSetup({
                                 {/* Email */}
                                 <Input
                                     type="email"
-                                    label="Admin Email Address"
+                                    label="Your Email Address"
                                     placeholder="your.email@example.com"
                                     value={data.email}
                                     onValueChange={(value) => setData('email', value)}
                                     isInvalid={Boolean(errors.email)}
                                     errorMessage={errors.email}
-                                    description="Use any email - no verification required. This will be your login email."
+                                    description="Your personal email for login - no verification needed"
                                     isRequired
                                     radius={themeRadius}
                                     startContent={<EnvelopeIcon className="w-4 h-4 text-default-400" />}
@@ -252,16 +224,13 @@ export default function AdminSetup({
                                 {/* Phone (optional) */}
                                 <Input
                                     type="tel"
-                                    label="Phone Number"
+                                    label="Phone Number (Optional)"
                                     placeholder="+1 234 567 8900"
                                     value={data.phone}
                                     onValueChange={(value) => setData('phone', value)}
                                     isInvalid={Boolean(errors.phone)}
                                     errorMessage={errors.phone}
-                                    description={phoneVerified && data.phone === prefillPhone 
-                                        ? "Using verified phone from registration" 
-                                        : "Optional contact number"
-                                    }
+                                    description="Your personal contact number - optional"
                                     radius={themeRadius}
                                     classNames={{
                                         inputWrapper: "bg-default-100"

@@ -57,12 +57,6 @@ class AdminSetupController extends Controller
                 'email' => $tenant->email,
                 'phone' => $tenant->phone,
             ],
-            // Pre-fill email and phone from company verification
-            'prefillEmail' => $tenant->email,
-            'prefillPhone' => $tenant->phone,
-            // Pass verification status from tenant (verified during registration)
-            'emailVerified' => ! empty($tenant->admin_email_verified_at),
-            'phoneVerified' => ! empty($tenant->admin_phone_verified_at),
         ]);
     }
 
@@ -103,51 +97,44 @@ class AdminSetupController extends Controller
 
         try {
             // Create the admin user
-            // Apply email/phone verification from tenant if they match the registration verified values
-            $emailVerifiedAt = null;
-            $phoneVerifiedAt = null;
-
-            // If using the same email that was verified during registration
-            if ($validated['email'] === $tenant->email && ! empty($tenant->admin_email_verified_at)) {
-                $emailVerifiedAt = $tenant->admin_email_verified_at;
-            }
-
-            // If using the same phone that was verified during registration
-            if (! empty($validated['phone']) && $validated['phone'] === $tenant->phone && ! empty($tenant->admin_phone_verified_at)) {
-                $phoneVerifiedAt = $tenant->admin_phone_verified_at;
-            }
-
+            // Admin user email/phone are independent and don't require verification
             $user = User::create([
                 'name' => $validated['name'],
                 'user_name' => $validated['user_name'],
                 'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? $tenant->phone,
+                'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
                 'active' => true,
-                'email_verified_at' => $emailVerifiedAt,
-                'phone_verified_at' => $phoneVerifiedAt,
+                'email_verified_at' => now(), // Mark as verified - no verification needed
+                'phone_verified_at' => ! empty($validated['phone']) ? now() : null,
             ]);
 
             Log::info('Admin user created for tenant', [
                 'tenant_id' => $tenant->id,
                 'user_id' => $user->id,
                 'user_email' => $user->email,
-                'email_verified' => ! empty($emailVerifiedAt),
-                'phone_verified' => ! empty($phoneVerifiedAt),
             ]);
 
-            // Assign Super Administrator role
+            // Assign Super Administrator role BEFORE login
             $this->assignSuperAdminRole($user);
+
+            // Refresh user to ensure role is loaded
+            $user->refresh();
+            $user->load('roles');
 
             // Mark tenant as having admin setup complete
             $this->markAdminSetupComplete($tenant);
 
-            // Log the user in
-            auth()->login($user);
+            // Log the user in and regenerate session
+            auth()->login($user, true); // Remember me = true
+            request()->session()->regenerate(); // Regenerate session for security
 
             Log::info('Admin user logged in and tenant setup complete', [
                 'tenant_id' => $tenant->id,
                 'user_id' => $user->id,
+                'email_verified' => ! is_null($user->email_verified_at),
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'has_super_admin_role' => $user->hasRole('Super Administrator'),
             ]);
 
             // Always return Inertia redirect (no JSON response needed for Inertia forms)

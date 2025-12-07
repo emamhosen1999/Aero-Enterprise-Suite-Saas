@@ -83,20 +83,8 @@ class UserPolicy
             return true;
         }
 
-        // Tenant Super admins can delete users in their tenant
-        if ($user->hasRole('tenant_super_administrator')) {
-            return true;
-        }
+   
 
-        // Super admins can delete anyone
-        if ($user->hasRole('Super Administrator')) {
-            return true;
-        }
-
-        // HR managers and administrators can delete
-        if ($user->hasRole(['Administrator', 'HR Manager'])) {
-            return $user->hasPermissionTo('users.delete');
-        }
 
         return false;
     }
@@ -122,13 +110,11 @@ class UserPolicy
         }
 
         // Check if user has tenant_super_administrator role
-        if ($user->hasRole('tenant_super_administrator') && $user->tenant_id) {
-            $tenantSuperAdminCount = User::whereHas('roles', function ($query) use ($user) {
-                $query->where('name', 'tenant_super_administrator')
-                    ->where('scope', 'tenant')
-                    ->where('tenant_id', $user->tenant_id);
+        if ($user->hasRole('Super Administrator')) {
+            $tenantSuperAdminCount = User::whereHas('roles', function ($query) {
+                $query->where('name', 'Super Administrator')
+                    ->where('scope', 'tenant');
             })
-                ->where('tenant_id', $user->tenant_id)
                 ->count();
 
             // If this is the last tenant super admin, block deletion
@@ -170,7 +156,7 @@ class UserPolicy
         }
 
         // CRITICAL: Super Administrator users' roles cannot be changed (Protected)
-        if ($model->hasRole(['Super Administrator', 'platform_super_administrator', 'tenant_super_administrator'])) {
+        if ($model->hasRole(['Super Administrator'])) {
             return false;
         }
 

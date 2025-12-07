@@ -47,8 +47,8 @@ class RolePolicy
             return true;
         }
 
-        // Tenant Super Admin can view roles in their tenant
-        if ($user->hasRole('tenant_super_administrator') && $role->tenant_id === $user->tenant_id) {
+        // Tenant Super Admin can view all roles in their tenant database
+        if ($user->hasRole('tenant_super_administrator')) {
             return true;
         }
 
@@ -95,21 +95,13 @@ class RolePolicy
             return Response::deny('This role is protected and cannot be modified. Super Administrator roles are permanent.');
         }
 
-        // Platform Super Admin can update non-protected roles
-        if ($user->hasRole('platform_super_administrator')) {
-            return Response::allow();
-        }
-
+    
         // Super Administrator can update non-protected roles
         if ($user->hasRole('Super Administrator')) {
             return Response::allow();
         }
 
-        // Tenant Super Admin can update non-protected tenant roles
-        if ($user->hasRole('tenant_super_administrator') && $role->tenant_id === $user->tenant_id) {
-            return Response::allow();
-        }
-
+      
         if ($user->can('tenant.manage_roles') || $user->can('platform.manage_roles')) {
             return Response::allow();
         }
@@ -129,20 +121,13 @@ class RolePolicy
             return Response::deny('This role is protected and cannot be deleted. Super Administrator roles are permanent.');
         }
 
-        // Platform Super Admin can delete non-protected roles
-        if ($user->hasRole('platform_super_administrator')) {
-            return Response::allow();
-        }
-
+       
         // Super Administrator can delete non-protected roles
         if ($user->hasRole('Super Administrator')) {
             return Response::allow();
         }
 
-        // Tenant Super Admin can delete non-protected tenant roles
-        if ($user->hasRole('tenant_super_administrator') && $role->tenant_id === $user->tenant_id) {
-            return Response::allow();
-        }
+    
 
         if ($user->can('tenant.manage_roles') || $user->can('platform.manage_roles')) {
             return Response::allow();

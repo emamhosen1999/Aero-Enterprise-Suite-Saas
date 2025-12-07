@@ -79,6 +79,8 @@ class Kernel extends HttpKernel
         'subscription' => \App\Http\Middleware\EnforceSubscription::class,
         // Tenant Setup Check - ensures admin and onboarding are completed
         'tenant.setup' => \App\Http\Middleware\EnsureTenantIsSetup::class,
+        // Redirect to admin-setup if no admin user exists
+        'redirect.if.no.admin' => \App\Http\Middleware\RedirectIfNoAdmin::class,
         // Maintenance Mode Gatekeeper (Global + Tenant level)
         'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
     ];

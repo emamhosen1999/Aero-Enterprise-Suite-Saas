@@ -20,15 +20,26 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('guest')->group(function () {
-    // Login Routes
-    Route::get('login', [LoginController::class, 'create'])->name('login');
-    Route::post('login', [LoginController::class, 'store']);
+    // Login Routes - redirect to admin-setup if no admin user exists
+    Route::get('login', [LoginController::class, 'create'])
+        ->middleware('redirect.if.no.admin')
+        ->name('login');
+    Route::post('login', [LoginController::class, 'store'])
+        ->middleware('redirect.if.no.admin');
 
-    // Password Reset Routes
-    Route::get('forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
-    Route::post('forgot-password', [PasswordResetController::class, 'store'])->name('password.email');
-    Route::get('reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
-    Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.update');
+    // Password Reset Routes - redirect to admin-setup if no admin user exists
+    Route::get('forgot-password', [PasswordResetController::class, 'create'])
+        ->middleware('redirect.if.no.admin')
+        ->name('password.request');
+    Route::post('forgot-password', [PasswordResetController::class, 'store'])
+        ->middleware('redirect.if.no.admin')
+        ->name('password.email');
+    Route::get('reset-password/{token}', [PasswordResetController::class, 'edit'])
+        ->middleware('redirect.if.no.admin')
+        ->name('password.reset');
+    Route::post('reset-password', [PasswordResetController::class, 'update'])
+        ->middleware('redirect.if.no.admin')
+        ->name('password.update');
 
     // OAuth / Social Login Routes
     Route::get('auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
