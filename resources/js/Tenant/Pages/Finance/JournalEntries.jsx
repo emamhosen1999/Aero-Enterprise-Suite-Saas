@@ -28,7 +28,7 @@ import {
     PlusIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-import { hasPermission } from '@/utils/permissions';
+
 
 const JournalEntries = () => {
     const { auth, journalEntries: initialData } = usePage().props;
@@ -196,11 +196,11 @@ const JournalEntries = () => {
                             <h2 className="text-xl font-semibold">Journal Entries</h2>
                             <p className="text-sm text-default-600">Manual accounting entries and adjustments</p>
                         </div>
-                        {hasPermission(auth, 'finance.journal-entries.create') && (
-                            <Button color="primary" radius={themeRadius} startContent={<PlusIcon className="w-4 h-4" />}>
-                                New Entry
-                            </Button>
-                        )}
+                        
+                        <Button color="primary" radius={themeRadius} startContent={<PlusIcon className="w-4 h-4" />}>
+                            New Entry
+                        </Button>
+                       
                     </CardHeader>
 
                     <CardBody className="space-y-4">

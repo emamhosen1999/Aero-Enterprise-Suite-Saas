@@ -33,13 +33,14 @@ class MaintenanceController extends Controller
             'maintenance_allowed_paths' => $setting->maintenance_allowed_paths ?? ['/api/health', '/status'],
             'maintenance_ends_at' => $setting->maintenance_ends_at?->format('Y-m-d\TH:i') ?? '',
             'scheduled_maintenance_at' => $setting->scheduled_maintenance_at?->format('Y-m-d\TH:i') ?? '',
+            'maintenance_skip_verification' => $setting->maintenance_skip_verification ?? false,
         ];
 
         if ($request->wantsJson()) {
             return response()->json($maintenanceSettings);
         }
 
-        return Inertia::render('Admin/Settings/MaintenanceControl', [
+        return Inertia::render('Admin/Developer/Maintenance', [
             'title' => 'System Maintenance',
             'settings' => $maintenanceSettings,
         ]);
@@ -60,6 +61,7 @@ class MaintenanceController extends Controller
             'maintenance_allowed_paths.*' => 'string|max:255',
             'maintenance_ends_at' => 'nullable|date',
             'scheduled_maintenance_at' => 'nullable|date',
+            'maintenance_skip_verification' => 'nullable|boolean',
         ]);
 
         $setting = PlatformSetting::current();

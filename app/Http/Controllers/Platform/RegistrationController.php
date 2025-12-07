@@ -10,6 +10,7 @@ use App\Http\Requests\Platform\RegistrationDetailsRequest;
 use App\Http\Requests\Platform\RegistrationPlanRequest;
 use App\Http\Requests\Platform\RegistrationTrialRequest;
 use App\Jobs\ProvisionTenant;
+use App\Models\PlatformSetting;
 use App\Models\Tenant;
 use App\Services\Platform\PlatformVerificationService;
 use App\Services\TenantProvisioner;
@@ -84,6 +85,36 @@ class RegistrationController extends Controller
         }
 
         $this->registrationSession->putStep('details', $validated);
+
+        // Check if maintenance mode is enabled with skip verification
+        $platformSettings = PlatformSetting::current();
+        $skipVerification = $platformSettings->maintenance_mode && $platformSettings->maintenance_skip_verification;
+
+        if ($skipVerification) {
+            // Skip verification steps during maintenance mode
+            Log::info('Skipping verification due to maintenance mode', [
+                'email' => $email,
+                'subdomain' => $subdomain,
+            ]);
+
+            // Mark verification as complete
+            $tenant = $this->getOrCreatePendingTenant($this->registrationSession->get());
+            $tenant->update([
+                'registration_step' => Tenant::REG_STEP_VERIFY_PHONE, // Mark as if verifications passed
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+            ]);
+
+            $this->registrationSession->putStep('verification', [
+                'tenant_id' => $tenant->id,
+                'email_verified' => true,
+                'phone_verified' => true,
+                'skipped_due_to_maintenance' => true,
+            ]);
+
+            // Go directly to plan selection
+            return to_route('platform.register.plan');
+        }
 
         // Go directly to email verification (admin setup moved to after provisioning)
         return to_route('platform.register.verify-email');

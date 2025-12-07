@@ -71,6 +71,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'platform.super_admin' => \App\Http\Middleware\PlatformSuperAdmin::class,
             'tenant.super_admin' => \App\Http\Middleware\TenantSuperAdmin::class,
             'module' => \App\Http\Middleware\CheckModuleAccess::class,
+            'tenant.setup' => \App\Http\Middleware\EnsureTenantIsSetup::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

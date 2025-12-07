@@ -164,32 +164,34 @@ export default function AdminSetup({
                                 Create Admin Account
                             </h2>
                             <p className="text-sm text-default-500">
-                                This will be your super administrator login
+                                Create your super administrator login. No verification required - get started immediately!
                             </p>
                             
-                            {/* Verification Status */}
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {emailVerified && (
-                                    <Chip 
-                                        color="success" 
-                                        variant="flat" 
-                                        size="sm"
-                                        startContent={<CheckCircleIcon className="w-4 h-4" />}
-                                    >
-                                        Email Verified
-                                    </Chip>
-                                )}
-                                {phoneVerified && (
-                                    <Chip 
-                                        color="success" 
-                                        variant="flat" 
-                                        size="sm"
-                                        startContent={<CheckCircleIcon className="w-4 h-4" />}
-                                    >
-                                        Phone Verified
-                                    </Chip>
-                                )}
-                            </div>
+                            {/* Company Verification Status - Informational Only */}
+                            {(emailVerified || phoneVerified) && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {emailVerified && (
+                                        <Chip 
+                                            color="success" 
+                                            variant="flat" 
+                                            size="sm"
+                                            startContent={<CheckCircleIcon className="w-4 h-4" />}
+                                        >
+                                            Company Email Verified
+                                        </Chip>
+                                    )}
+                                    {phoneVerified && (
+                                        <Chip 
+                                            color="success" 
+                                            variant="flat" 
+                                            size="sm"
+                                            startContent={<CheckCircleIcon className="w-4 h-4" />}
+                                        >
+                                            Company Phone Verified
+                                        </Chip>
+                                    )}
+                                </div>
+                            )}
                         </CardHeader>
 
                         <form onSubmit={handleSubmit}>
@@ -214,16 +216,13 @@ export default function AdminSetup({
                                 {/* Email */}
                                 <Input
                                     type="email"
-                                    label="Email Address"
-                                    placeholder="admin@company.com"
+                                    label="Admin Email Address"
+                                    placeholder="your.email@example.com"
                                     value={data.email}
                                     onValueChange={(value) => setData('email', value)}
                                     isInvalid={Boolean(errors.email)}
                                     errorMessage={errors.email}
-                                    description={emailVerified && data.email === prefillEmail 
-                                        ? "Using verified email from registration" 
-                                        : "This will be your login email"
-                                    }
+                                    description="Use any email - no verification required. This will be your login email."
                                     isRequired
                                     radius={themeRadius}
                                     startContent={<EnvelopeIcon className="w-4 h-4 text-default-400" />}

@@ -204,13 +204,16 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
 
   return (
     <RegisterLayout>
-      <Head title={`Verify email - ${siteName || 'aeos365'}`} />
+      <Head title={`Verify Company Email - ${siteName || 'aeos365'}`} />
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-3 sm:space-y-4 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 4</p>
-          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Verify your email address</h1>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Verify Company Email</h1>
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>
-            We've sent a 6-digit code to <strong className={palette.heading}>{email}</strong>
+            We've sent a 6-digit verification code to your company email <strong className={palette.heading}>{email}</strong>
+          </p>
+          <p className={`${palette.copy} text-xs sm:text-sm px-2 italic`}>
+            Note: You'll create your admin account after completing registration
           </p>
         </div>
 
@@ -286,7 +289,7 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
               isLoading={isVerifying}
               isDisabled={code.some(digit => digit === '') || isVerifying}
             >
-              {isVerifying ? 'Verifying...' : 'Verify Email'}
+              {isVerifying ? 'Verifying...' : 'Verify Company Email'}
             </Button>
 
             <div className="text-center space-y-3">
@@ -295,6 +298,9 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
                 <button onClick={handleSendCode} disabled={countdown > 0 || isSending} className={palette.link}>
                   resend it
                 </button>
+              </p>
+              <p className={`text-xs ${palette.copy} bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800`}>
+                💡 <strong>Next Step:</strong> After verification, you'll create your admin account on your workspace subdomain
               </p>
               <div className="pt-2 border-t border-divider">
                 <CancelRegistrationButton variant="light" size="sm" />

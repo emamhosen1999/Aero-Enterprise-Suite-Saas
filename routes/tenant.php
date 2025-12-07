@@ -57,18 +57,20 @@ Route::middleware([
     // Root redirects to dashboard
     Route::get('/', function () {
         return redirect('/dashboard');
-    })->middleware('auth');
+    })->middleware(['auth', 'tenant.setup']);
 
     // Auth routes (login, logout, password reset - NO registration)
     require __DIR__.'/auth.php';
 
-    // App routes (dashboard, profile, etc.)
-    require __DIR__.'/web.php';
-
-    // Module routes
-    foreach (['hr', 'project-management', 'dms', 'quality', 'analytics', 'compliance', 'modules', 'support', 'finance', 'integrations'] as $module) {
-        if (file_exists(__DIR__."/{$module}.php")) {
-            require __DIR__."/{$module}.php";
+    // App routes (dashboard, profile, etc.) - protected by tenant.setup middleware
+    Route::middleware(['auth', 'tenant.setup'])->group(function () {
+        require __DIR__.'/web.php';
+        
+        // Module routes
+        foreach (['hr', 'project-management', 'dms', 'quality', 'analytics', 'compliance', 'modules', 'support', 'finance', 'integrations'] as $module) {
+            if (file_exists(__DIR__."/{$module}.php")) {
+                require __DIR__."/{$module}.php";
+            }
         }
-    }
+    });
 });

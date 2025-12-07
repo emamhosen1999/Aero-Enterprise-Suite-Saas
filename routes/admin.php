@@ -554,9 +554,15 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->middleware(['module:developer-tools,cache-management'])->name('cache');
 
         // Maintenance Mode
-        Route::get('/maintenance', function () {
-            return Inertia::render('Admin/Developer/Maintenance');
-        })->middleware(['module:developer-tools,maintenance'])->name('maintenance');
+        Route::get('/maintenance', [MaintenanceController::class, 'index'])
+            ->middleware(['module:developer-tools,maintenance'])
+            ->name('maintenance');
+        Route::put('/maintenance', [MaintenanceController::class, 'update'])
+            ->middleware(['module:developer-tools,maintenance'])
+            ->name('maintenance.update');
+        Route::post('/maintenance/toggle', [MaintenanceController::class, 'toggle'])
+            ->middleware(['module:developer-tools,maintenance'])
+            ->name('maintenance.toggle');
     });
 
     // =========================================================================

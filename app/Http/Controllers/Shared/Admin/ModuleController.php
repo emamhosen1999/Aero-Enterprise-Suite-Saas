@@ -220,8 +220,6 @@ class ModuleController extends Controller
         ];
     }
 
-
-    
     /**
      * Get modules from database with hierarchical structure for frontend
      */

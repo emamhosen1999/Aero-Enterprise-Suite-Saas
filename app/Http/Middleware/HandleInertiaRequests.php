@@ -7,7 +7,7 @@ use App\Http\Resources\SystemSettingResource;
 use App\Models\Module;
 use App\Models\PlatformSetting;
 use App\Models\SystemSetting;
-use App\Services\Module\ModulePermissionService;
+
 use App\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -369,9 +369,7 @@ class HandleInertiaRequests extends Middleware
                 'sessionValid' => $user && $request->session()->isStarted(),
                 'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
                 'designation' => $userWithRelations?->designation?->title,
-                'accessibleModules' => fn () => $user
-                    ? app(ModulePermissionService::class)->getNavigationForUser($user)
-                    : [],
+               
                 // Compliance: Section 10 - Frontend Super Admin flags
                 'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
                 'isTenantSuperAdmin' => $isTenantSuperAdmin,

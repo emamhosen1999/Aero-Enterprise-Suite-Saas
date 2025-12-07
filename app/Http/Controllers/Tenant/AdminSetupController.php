@@ -49,7 +49,7 @@ class AdminSetupController extends Controller
                 ->with('info', 'Admin account already exists. Please login.');
         }
 
-        return Inertia::render('Pages/AdminSetup', [
+        return Inertia::render('AdminSetup', [
             'title' => 'Complete Your Account Setup',
             'tenant' => [
                 'id' => $tenant->id,
@@ -78,13 +78,6 @@ class AdminSetupController extends Controller
 
         // Prevent creating duplicate admin users
         if ($this->tenantHasAdminUser()) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Admin account already exists.',
-                ], 409);
-            }
-
             return redirect()->route('login')
                 ->with('error', 'Admin account already exists.');
         }
@@ -157,14 +150,7 @@ class AdminSetupController extends Controller
                 'user_id' => $user->id,
             ]);
 
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Admin account created successfully!',
-                    'redirect' => route('dashboard'),
-                ]);
-            }
-
+            // Always return Inertia redirect (no JSON response needed for Inertia forms)
             return redirect()->route('dashboard')
                 ->with('success', 'Welcome! Your admin account has been created.');
 
@@ -174,13 +160,6 @@ class AdminSetupController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to create admin account. Please try again.',
-                ], 500);
-            }
 
             return back()->withErrors([
                 'email' => 'Failed to create admin account. Please try again.',

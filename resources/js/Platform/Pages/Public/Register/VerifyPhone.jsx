@@ -204,13 +204,16 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
 
   return (
     <RegisterLayout>
-      <Head title={`Verify phone - ${siteName || 'aeos365'}`} />
+      <Head title={`Verify Company Phone - ${siteName || 'aeos365'}`} />
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-3 sm:space-y-4 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 5</p>
-          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Verify your phone number</h1>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Verify Company Phone</h1>
           <p className={`${palette.copy} text-sm sm:text-base px-2`}>
-            We've sent a 6-digit code to <strong className={palette.heading}>{phone}</strong>
+            We've sent a 6-digit verification code to your company phone <strong className={palette.heading}>{phone}</strong>
+          </p>
+          <p className={`${palette.copy} text-xs sm:text-sm px-2 italic`}>
+            Note: You'll create your admin account after completing registration
           </p>
         </div>
 
@@ -286,11 +289,11 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
               <Button
                 color="primary"
                 onPress={() => handleVerify()}
-                className="w-full flex-1"
+                className="w-full"
                 isLoading={isVerifying}
                 isDisabled={code.some(digit => digit === '') || isVerifying}
               >
-                {isVerifying ? 'Verifying...' : 'Verify Phone'}
+                {isVerifying ? 'Verifying...' : 'Verify Company Phone'}
               </Button>
             </div>
 

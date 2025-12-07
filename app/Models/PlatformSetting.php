@@ -69,6 +69,7 @@ class PlatformSetting extends Model implements HasMedia
         'maintenance_allowed_paths',
         'scheduled_maintenance_at',
         'maintenance_ends_at',
+        'maintenance_skip_verification',
     ];
 
     protected $casts = [
@@ -85,6 +86,7 @@ class PlatformSetting extends Model implements HasMedia
         'maintenance_allowed_paths' => 'array',
         'scheduled_maintenance_at' => 'datetime',
         'maintenance_ends_at' => 'datetime',
+        'maintenance_skip_verification' => 'boolean',
     ];
 
     protected $attributes = [
@@ -98,6 +100,7 @@ class PlatformSetting extends Model implements HasMedia
         'maintenance_mode' => false,
         'maintenance_bypass_ips' => '[]',
         'maintenance_allowed_paths' => '[]',
+        'maintenance_skip_verification' => false,
     ];
 
     /**
