@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\Benefit;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class BenefitPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.benefits.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -23,26 +30,18 @@ class BenefitPolicy
      */
     public function view(User $user, Benefit $benefit): bool
     {
-        // Basic permission check
-        if (! $user->can('hr.benefits.view')) {
-            return false;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
         }
 
         // Employees can only see their assigned benefits
-        if ($user->hasRole('Employee')) {
-            return $benefit->employees()->where('user_id', $user->id)->exists();
+        if ($benefit->employees()->where('user_id', $user->id)->exists()) {
+            return true;
         }
 
-        // Department managers can only see benefits for their department members
-        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
-            return $benefit->employees()
-                ->whereHas('department', function ($query) use ($user) {
-                    $query->where('id', $user->employee->department_id);
-                })->exists();
-        }
-
-        // HR and higher roles can see all
-        return true;
+        // Check module access: hrm.employees.employee-directory.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -50,7 +49,13 @@ class BenefitPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.benefits.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
     /**
@@ -58,7 +63,13 @@ class BenefitPolicy
      */
     public function update(User $user, Benefit $benefit): bool
     {
-        return $user->can('hr.benefits.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 
     /**
@@ -66,7 +77,13 @@ class BenefitPolicy
      */
     public function delete(User $user, Benefit $benefit): bool
     {
-        return $user->can('hr.benefits.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.delete
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'delete');
     }
 
     /**
@@ -74,7 +91,7 @@ class BenefitPolicy
      */
     public function restore(User $user, Benefit $benefit): bool
     {
-        return $user->can('hr.benefits.delete');
+        return $this->delete($user, $benefit);
     }
 
     /**
@@ -82,6 +99,6 @@ class BenefitPolicy
      */
     public function forceDelete(User $user, Benefit $benefit): bool
     {
-        return $user->can('hr.benefits.delete');
+        return $this->isSuperAdmin($user);
     }
 }

@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\HRM\Onboarding;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class OnboardingPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.onboarding.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.onboarding-wizard.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'onboarding-wizard', 'view');
     }
 
     /**
@@ -23,23 +30,18 @@ class OnboardingPolicy
      */
     public function view(User $user, Onboarding $onboarding): bool
     {
-        // Basic permission check
-        if (! $user->can('hr.onboarding.view')) {
-            return false;
-        }
-
-        // Department managers can only see onboarding for their department members
-        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
-            return $onboarding->employee && $onboarding->employee->department_id === $user->employee->department_id;
-        }
-
         // Employees can only see their own onboarding
-        if ($user->hasRole('Employee')) {
-            return $onboarding->employee_id === $user->id;
+        if ($onboarding->employee_id === $user->id) {
+            return true;
         }
 
-        // HR and higher roles can see all
-        return true;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access with scope: hrm.employees.onboarding-wizard.view
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'onboarding-wizard', 'view', $onboarding);
     }
 
     /**
@@ -47,7 +49,13 @@ class OnboardingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.onboarding.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.onboarding-wizard.onboard
+        return $this->canPerformAction($user, 'hrm', 'employees', 'onboarding-wizard', 'onboard');
     }
 
     /**
@@ -55,7 +63,13 @@ class OnboardingPolicy
      */
     public function update(User $user, Onboarding $onboarding): bool
     {
-        return $user->can('hr.onboarding.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.onboarding-wizard.onboard
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'onboarding-wizard', 'onboard', $onboarding);
     }
 
     /**
@@ -63,7 +77,13 @@ class OnboardingPolicy
      */
     public function delete(User $user, Onboarding $onboarding): bool
     {
-        return $user->can('hr.onboarding.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.onboarding-wizard.onboard
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'onboarding-wizard', 'onboard', $onboarding);
     }
 
     /**
@@ -71,7 +91,7 @@ class OnboardingPolicy
      */
     public function restore(User $user, Onboarding $onboarding): bool
     {
-        return $user->can('hr.onboarding.delete');
+        return $this->delete($user, $onboarding);
     }
 
     /**
@@ -79,6 +99,6 @@ class OnboardingPolicy
      */
     public function forceDelete(User $user, Onboarding $onboarding): bool
     {
-        return $user->can('hr.onboarding.delete');
+        return $this->isSuperAdmin($user);
     }
 }

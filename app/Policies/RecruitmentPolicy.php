@@ -4,15 +4,24 @@ namespace App\Policies;
 
 use App\Models\HRM\Job;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 
 class RecruitmentPolicy
 {
+    use ChecksModuleAccess;
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('hr.recruitment.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.recruitment.job-openings.view
+        return $this->canPerformAction($user, 'hrm', 'recruitment', 'job-openings', 'view');
     }
 
     /**
@@ -20,7 +29,13 @@ class RecruitmentPolicy
      */
     public function view(User $user, Job $job): bool
     {
-        return $user->hasPermissionTo('hr.recruitment.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.recruitment.job-openings.view
+        return $this->canPerformAction($user, 'hrm', 'recruitment', 'job-openings', 'view');
     }
 
     /**
@@ -28,7 +43,13 @@ class RecruitmentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('hr.recruitment.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.recruitment.job-openings.create
+        return $this->canPerformAction($user, 'hrm', 'recruitment', 'job-openings', 'create');
     }
 
     /**
@@ -36,7 +57,13 @@ class RecruitmentPolicy
      */
     public function update(User $user, Job $job): bool
     {
-        return $user->hasPermissionTo('hr.recruitment.edit');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.recruitment.job-openings.update
+        return $this->canPerformAction($user, 'hrm', 'recruitment', 'job-openings', 'update');
     }
 
     /**
@@ -44,7 +71,13 @@ class RecruitmentPolicy
      */
     public function delete(User $user, Job $job): bool
     {
-        return $user->hasPermissionTo('hr.recruitment.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.recruitment.job-openings.delete
+        return $this->canPerformAction($user, 'hrm', 'recruitment', 'job-openings', 'delete');
     }
 
     /**
@@ -52,7 +85,13 @@ class RecruitmentPolicy
      */
     public function publish(User $user, Job $job): bool
     {
-        return $user->hasPermissionTo('hr.recruitment.publish');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.recruitment.job-openings.create (publish requires create permission)
+        return $this->canPerformAction($user, 'hrm', 'recruitment', 'job-openings', 'create');
     }
 
     /**
@@ -60,6 +99,12 @@ class RecruitmentPolicy
      */
     public function close(User $user, Job $job): bool
     {
-        return $user->hasPermissionTo('hr.recruitment.close');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.recruitment.job-openings.update (close requires update permission)
+        return $this->canPerformAction($user, 'hrm', 'recruitment', 'job-openings', 'update');
     }
 }

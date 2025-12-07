@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\HRM\Offboarding;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class OffboardingPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.offboarding.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.exit-termination.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'exit-termination', 'view');
     }
 
     /**
@@ -23,23 +30,18 @@ class OffboardingPolicy
      */
     public function view(User $user, Offboarding $offboarding): bool
     {
-        // Basic permission check
-        if (! $user->can('hr.offboarding.view')) {
-            return false;
-        }
-
-        // Department managers can only see offboarding for their department members
-        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
-            return $offboarding->employee && $offboarding->employee->department_id === $user->employee->department_id;
-        }
-
         // Employees can only see their own offboarding
-        if ($user->hasRole('Employee')) {
-            return $offboarding->employee_id === $user->id;
+        if ($offboarding->employee_id === $user->id) {
+            return true;
         }
 
-        // HR and higher roles can see all
-        return true;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access with scope: hrm.employees.exit-termination.view
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'exit-termination', 'view', $offboarding);
     }
 
     /**
@@ -47,7 +49,13 @@ class OffboardingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.offboarding.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.exit-termination.offboard
+        return $this->canPerformAction($user, 'hrm', 'employees', 'exit-termination', 'offboard');
     }
 
     /**
@@ -55,7 +63,13 @@ class OffboardingPolicy
      */
     public function update(User $user, Offboarding $offboarding): bool
     {
-        return $user->can('hr.offboarding.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.exit-termination.offboard
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'exit-termination', 'offboard', $offboarding);
     }
 
     /**
@@ -63,7 +77,13 @@ class OffboardingPolicy
      */
     public function delete(User $user, Offboarding $offboarding): bool
     {
-        return $user->can('hr.offboarding.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.exit-termination.offboard
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'exit-termination', 'offboard', $offboarding);
     }
 
     /**
@@ -71,7 +91,7 @@ class OffboardingPolicy
      */
     public function restore(User $user, Offboarding $offboarding): bool
     {
-        return $user->can('hr.offboarding.delete');
+        return $this->delete($user, $offboarding);
     }
 
     /**
@@ -79,6 +99,6 @@ class OffboardingPolicy
      */
     public function forceDelete(User $user, Offboarding $offboarding): bool
     {
-        return $user->can('hr.offboarding.delete');
+        return $this->isSuperAdmin($user);
     }
 }

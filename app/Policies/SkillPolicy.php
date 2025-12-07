@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\Skill;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SkillPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.skills.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -23,7 +30,13 @@ class SkillPolicy
      */
     public function view(User $user, Skill $skill): bool
     {
-        return $user->can('hr.skills.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -31,7 +44,13 @@ class SkillPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.skills.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
     /**
@@ -39,7 +58,13 @@ class SkillPolicy
      */
     public function update(User $user, Skill $skill): bool
     {
-        return $user->can('hr.skills.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 
     /**
@@ -47,7 +72,13 @@ class SkillPolicy
      */
     public function delete(User $user, Skill $skill): bool
     {
-        return $user->can('hr.skills.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.delete
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'delete');
     }
 
     /**
@@ -55,7 +86,7 @@ class SkillPolicy
      */
     public function restore(User $user, Skill $skill): bool
     {
-        return $user->can('hr.skills.delete');
+        return $this->delete($user, $skill);
     }
 
     /**
@@ -63,6 +94,6 @@ class SkillPolicy
      */
     public function forceDelete(User $user, Skill $skill): bool
     {
-        return $user->can('hr.skills.delete');
+        return $this->isSuperAdmin($user);
     }
 }
