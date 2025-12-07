@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Button, Input } from '@heroui/react';
+import { Button, Input, Chip, Spinner } from '@heroui/react';
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import axios from 'axios';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
@@ -17,6 +19,10 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
     team_size: details.team_size ?? '',
   });
 
+  // Subdomain availability check state
+  const [subdomainStatus, setSubdomainStatus] = useState({ checking: false, available: null, message: '' });
+  const [subdomainCheckTimer, setSubdomainCheckTimer] = useState(null);
+
   const { themeSettings } = useTheme();
   const isDarkMode = themeSettings?.mode === 'dark';
   const { siteName } = useBranding();
@@ -27,12 +33,55 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
     link: isDarkMode ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900',
   };
 
+  // Check subdomain availability with debounce
+  useEffect(() => {
+    if (subdomainCheckTimer) {
+      clearTimeout(subdomainCheckTimer);
+    }
+
+    const subdomain = data.subdomain.trim().toLowerCase();
+    
+    // Reset status if empty or invalid format
+    if (!subdomain || subdomain.length < 3 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(subdomain)) {
+      setSubdomainStatus({ checking: false, available: null, message: '' });
+      return;
+    }
+
+    // Debounce the API call
+    const timer = setTimeout(async () => {
+      setSubdomainStatus({ checking: true, available: null, message: '' });
+      
+      try {
+        const response = await axios.post('/api/check-subdomain', { subdomain });
+        setSubdomainStatus({
+          checking: false,
+          available: response.data.available,
+          message: response.data.message || (response.data.available ? 'Subdomain is available' : 'Subdomain is taken')
+        });
+      } catch (error) {
+        // If endpoint doesn't exist yet, silently fail
+        setSubdomainStatus({ checking: false, available: null, message: '' });
+      }
+    }, 500);
+
+    setSubdomainCheckTimer(timer);
+
+    return () => clearTimeout(timer);
+  }, [data.subdomain]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     post(route('platform.register.details.store'));
   };
 
   const personaLabel = accountType === 'individual' ? 'Your name' : 'Organization name';
+
+  // Helper to format phone number
+  const formatPhoneNumber = (value) => {
+    // Remove all non-numeric characters except +
+    const cleaned = value.replace(/[^\d+]/g, '');
+    return cleaned;
+  };
 
   return (
     <RegisterLayout>
@@ -80,12 +129,14 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 label="Phone (optional)"
                 placeholder="+1 415 555 0110"
                 value={data.phone}
-                onChange={(event) => setData('phone', event.target.value)}
+                onChange={(event) => setData('phone', formatPhoneNumber(event.target.value))}
                 isInvalid={Boolean(errors.phone)}
                 errorMessage={errors.phone}
+                description="International format recommended (e.g., +1 234 567 8900)"
                 classNames={{
                   label: 'text-sm sm:text-base',
-                  input: 'text-sm sm:text-base'
+                  input: 'text-sm sm:text-base',
+                  description: 'text-xs sm:text-sm'
                 }}
               />
             </div>
@@ -95,10 +146,19 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 placeholder="acme"
                 value={data.subdomain}
                 onChange={(event) => setData('subdomain', event.target.value.toLowerCase())}
-                isInvalid={Boolean(errors.subdomain)}
-                errorMessage={errors.subdomain}
+                isInvalid={Boolean(errors.subdomain) || subdomainStatus.available === false}
+                errorMessage={errors.subdomain || (subdomainStatus.available === false ? subdomainStatus.message : '')}
                 description={`Your workspace URL will be https://${data.subdomain || 'team'}.${baseDomain}`}
                 isRequired
+                endContent={
+                  subdomainStatus.checking ? (
+                    <Spinner size="sm" />
+                  ) : subdomainStatus.available === true ? (
+                    <CheckCircleIcon className="w-5 h-5 text-success" />
+                  ) : subdomainStatus.available === false ? (
+                    <XCircleIcon className="w-5 h-5 text-danger" />
+                  ) : null
+                }
                 classNames={{
                   label: 'text-sm sm:text-base',
                   input: 'text-sm sm:text-base',

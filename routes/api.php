@@ -109,6 +109,27 @@ Route::prefix('locale')->group(function () {
 });
 
 // ============================================================================
+// Registration Helper API Routes (no auth - used during registration)
+// ============================================================================
+Route::post('/check-subdomain', function (Request $request) {
+    $request->validate([
+        'subdomain' => ['required', 'string', 'max:40', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
+    ]);
+
+    $subdomain = strtolower($request->input('subdomain'));
+    
+    // Check if subdomain is taken by an active/provisioning tenant
+    $exists = \App\Models\Tenant::where('subdomain', $subdomain)
+        ->whereNotIn('status', [\App\Models\Tenant::STATUS_PENDING, \App\Models\Tenant::STATUS_FAILED])
+        ->exists();
+
+    return response()->json([
+        'available' => !$exists,
+        'message' => $exists ? 'This subdomain is already taken' : 'Subdomain is available',
+    ]);
+})->middleware(['web'])->name('api.check-subdomain');
+
+// ============================================================================
 // RBAC API Routes - Role and Permission Management
 // ============================================================================
 Route::middleware(['web', 'auth'])->prefix('roles')->group(function () {

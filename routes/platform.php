@@ -37,6 +37,7 @@ Route::prefix('register')->name('platform.register.')->group(function () {
     // Provisioning waiting room
     Route::get('/provisioning/{tenant}', [RegistrationPageController::class, 'provisioning'])->name('provisioning');
     Route::get('/provisioning/{tenant}/status', [RegistrationPageController::class, 'provisioningStatus'])->name('provisioning.status');
+    Route::post('/provisioning/{tenant}/retry', [RegistrationController::class, 'retryProvisioning'])->name('provisioning.retry');
 
     // Step submissions (in order)
     Route::post('/account-type', [RegistrationController::class, 'storeAccountType'])->name('account-type.store');

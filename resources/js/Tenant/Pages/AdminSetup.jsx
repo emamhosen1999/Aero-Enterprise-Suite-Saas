@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { 
     Button, 
@@ -7,7 +7,8 @@ import {
     CardHeader, 
     CardBody, 
     CardFooter,
-    Chip
+    Chip,
+    Progress
 } from '@heroui/react';
 import { 
     UserIcon, 
@@ -61,6 +62,45 @@ export default function AdminSetup({
         else if (radiusValue <= 12) setThemeRadius('lg');
         else setThemeRadius('full');
     }, []);
+
+    // Password strength calculation
+    const passwordStrength = useMemo(() => {
+        const password = data.password;
+        if (!password) return { score: 0, label: '', color: 'default' };
+
+        let score = 0;
+        
+        // Length check
+        if (password.length >= 8) score += 25;
+        if (password.length >= 12) score += 10;
+        if (password.length >= 16) score += 10;
+        
+        // Character variety checks
+        if (/[a-z]/.test(password)) score += 15;
+        if (/[A-Z]/.test(password)) score += 15;
+        if (/[0-9]/.test(password)) score += 15;
+        if (/[^a-zA-Z0-9]/.test(password)) score += 10; // Special chars
+        
+        // Determine label and color
+        let label = '';
+        let color = 'default';
+        
+        if (score < 40) {
+            label = 'Weak';
+            color = 'danger';
+        } else if (score < 60) {
+            label = 'Fair';
+            color = 'warning';
+        } else if (score < 80) {
+            label = 'Good';
+            color = 'primary';
+        } else {
+            label = 'Strong';
+            color = 'success';
+        }
+        
+        return { score, label, color };
+    }, [data.password]);
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -230,37 +270,57 @@ export default function AdminSetup({
                                 />
 
                                 {/* Password Fields */}
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <Input
-                                        type="password"
-                                        label="Password"
-                                        placeholder="Create a secure password"
-                                        value={data.password}
-                                        onValueChange={(value) => setData('password', value)}
-                                        isInvalid={Boolean(errors.password)}
-                                        errorMessage={errors.password}
-                                        isRequired
-                                        radius={themeRadius}
-                                        startContent={<LockClosedIcon className="w-4 h-4 text-default-400" />}
-                                        classNames={{
-                                            inputWrapper: "bg-default-100"
-                                        }}
-                                    />
-                                    <Input
-                                        type="password"
-                                        label="Confirm Password"
-                                        placeholder="Repeat your password"
-                                        value={data.password_confirmation}
-                                        onValueChange={(value) => setData('password_confirmation', value)}
-                                        isInvalid={Boolean(errors.password_confirmation)}
-                                        errorMessage={errors.password_confirmation}
-                                        isRequired
-                                        radius={themeRadius}
-                                        startContent={<LockClosedIcon className="w-4 h-4 text-default-400" />}
-                                        classNames={{
-                                            inputWrapper: "bg-default-100"
-                                        }}
-                                    />
+                                <div className="space-y-4">
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <Input
+                                            type="password"
+                                            label="Password"
+                                            placeholder="Create a secure password"
+                                            value={data.password}
+                                            onValueChange={(value) => setData('password', value)}
+                                            isInvalid={Boolean(errors.password)}
+                                            errorMessage={errors.password}
+                                            isRequired
+                                            radius={themeRadius}
+                                            startContent={<LockClosedIcon className="w-4 h-4 text-default-400" />}
+                                            classNames={{
+                                                inputWrapper: "bg-default-100"
+                                            }}
+                                        />
+                                        <Input
+                                            type="password"
+                                            label="Confirm Password"
+                                            placeholder="Repeat your password"
+                                            value={data.password_confirmation}
+                                            onValueChange={(value) => setData('password_confirmation', value)}
+                                            isInvalid={Boolean(errors.password_confirmation)}
+                                            errorMessage={errors.password_confirmation}
+                                            isRequired
+                                            radius={themeRadius}
+                                            startContent={<LockClosedIcon className="w-4 h-4 text-default-400" />}
+                                            classNames={{
+                                                inputWrapper: "bg-default-100"
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Password Strength Indicator */}
+                                    {data.password && (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="text-default-500">Password Strength:</span>
+                                                <Chip size="sm" color={passwordStrength.color} variant="flat">
+                                                    {passwordStrength.label}
+                                                </Chip>
+                                            </div>
+                                            <Progress 
+                                                value={passwordStrength.score} 
+                                                color={passwordStrength.color}
+                                                size="sm"
+                                                className="max-w-full"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Password Requirements */}

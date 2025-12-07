@@ -8,6 +8,7 @@ import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils';
 import ProgressSteps from './components/ProgressSteps.jsx';
+import CancelRegistrationButton from './components/CancelRegistrationButton.jsx';
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 
 export default function VerifyEmail({ steps = [], currentStep, savedData = {}, email = '', companyName = '' }) {
@@ -15,6 +16,7 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [codeExpiration, setCodeExpiration] = useState(600); // 10 minutes in seconds
   const inputRefs = useRef([]);
   const hasAutoSentRef = useRef(false);
 
@@ -37,13 +39,28 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
     }
   }, []);
 
-  // Countdown timer
+  // Countdown timer for resend button
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [countdown]);
+
+  // Code expiration countdown
+  useEffect(() => {
+    if (codeExpiration > 0) {
+      const timer = setTimeout(() => setCodeExpiration(codeExpiration - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [codeExpiration]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleSendCode = async () => {
     if (countdown > 0) return;
@@ -53,6 +70,7 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
       const response = await axios.post(route('platform.register.verify-email.send'));
       showToast.success(response.data.message || 'Verification code sent to your email');
       setCountdown(60);
+      setCodeExpiration(600); // Reset to 10 minutes
     } catch (error) {
       console.error('Failed to send code:', error);
       
@@ -231,7 +249,19 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
                 ))}
               </div>
 
-              <div className="text-center">
+              <div className="text-center space-y-2">
+                {/* Code expiration countdown */}
+                {codeExpiration > 0 ? (
+                  <p className={`text-xs ${codeExpiration < 60 ? 'text-warning' : palette.copy}`}>
+                    Code expires in <strong>{formatTime(codeExpiration)}</strong>
+                  </p>
+                ) : (
+                  <p className="text-xs text-danger">
+                    Code has expired. Please request a new one.
+                  </p>
+                )}
+                
+                {/* Resend button */}
                 {countdown > 0 ? (
                   <p className={`text-sm ${palette.copy}`}>
                     Resend code in <strong>{countdown}s</strong>
@@ -259,13 +289,16 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
               {isVerifying ? 'Verifying...' : 'Verify Email'}
             </Button>
 
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <p className={`text-xs ${palette.copy}`}>
                 Didn't receive the code? Check your spam folder or{' '}
                 <button onClick={handleSendCode} disabled={countdown > 0 || isSending} className={palette.link}>
                   resend it
                 </button>
               </p>
+              <div className="pt-2 border-t border-divider">
+                <CancelRegistrationButton variant="light" size="sm" />
+              </div>
             </div>
           </div>
         </AuthCard>

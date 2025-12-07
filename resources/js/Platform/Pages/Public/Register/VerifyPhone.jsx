@@ -16,6 +16,7 @@ import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils';
 import ProgressSteps from './components/ProgressSteps.jsx';
+import CancelRegistrationButton from './components/CancelRegistrationButton.jsx';
 import { DevicePhoneMobileIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export default function VerifyPhone({ steps = [], currentStep, savedData = {}, phone = '', companyName = '' }) {
@@ -293,13 +294,16 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
               </Button>
             </div>
 
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <p className={`text-xs ${palette.copy}`}>
                 Didn't receive the code?{' '}
                 <button onClick={handleSendCode} disabled={countdown > 0 || isSending} className={palette.link}>
                   Resend it
                 </button>
               </p>
+              <div className="pt-2 border-t border-divider">
+                <CancelRegistrationButton variant="light" size="sm" />
+              </div>
             </div>
             </div>
           </AuthCard>
