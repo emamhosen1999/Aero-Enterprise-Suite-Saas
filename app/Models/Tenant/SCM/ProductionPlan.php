@@ -2,7 +2,7 @@
 
 namespace App\Models\Tenant\SCM;
 
-use App\Models\InventoryItem;
+use App\Models\Tenant\IMS\InventoryItem;
 use App\Models\Shared\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

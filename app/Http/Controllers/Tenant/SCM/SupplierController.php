@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\LogisticsShipment;
-use App\Models\PurchaseOrder;
-use App\Models\Supplier;
+use App\Models\Tenant\SCM\LogisticsShipment;
+use App\Models\Tenant\Procurement\PurchaseOrder;
+use App\Models\Tenant\SCM\Supplier;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

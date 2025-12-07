@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\LandlordUser;
+use App\Models\Platform\LandlordUser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;

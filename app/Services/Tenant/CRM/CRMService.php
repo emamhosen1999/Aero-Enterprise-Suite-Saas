@@ -2,10 +2,10 @@
 
 namespace App\Services\Tenant\CRM;
 
-use App\Models\CRM\Customer;
-use App\Models\CRM\Lead;
+use App\Models\Tenant\CRM\Customer;
+use App\Models\Tenant\CRM\Lead;
 use App\Models\CRM\LeadSource;
-use App\Models\CRM\Opportunity;
+use App\Models\Tenant\CRM\Opportunity;
 use App\Models\CRM\SalesStage;
 use Illuminate\Support\Facades\DB;
 

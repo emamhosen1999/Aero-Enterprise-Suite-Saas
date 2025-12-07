@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\CRM;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customer;
+use App\Models\Tenant\CRM\Customer;
 use App\Models\HRM\Opportunity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

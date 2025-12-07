@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Tenant\ProjectManagement;
 
 use App\Http\Controllers\Controller;
-use App\Models\Project;
+use App\Models\Tenant\ProjectManagement\Project;
 use App\Models\ProjectMilestone;
-use App\Models\ProjectTask;
+use App\Models\Tenant\ProjectManagement\ProjectTask;
 use App\Models\ProjectTaskDependency;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

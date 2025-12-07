@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\Compliance;
 
-use App\Models\Jurisdiction;
+use App\Models\Tenant\Compliance\Jurisdiction;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

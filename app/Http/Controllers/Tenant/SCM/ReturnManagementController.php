@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\SCM\ReturnRequest;
+use App\Models\Tenant\SCM$1
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;

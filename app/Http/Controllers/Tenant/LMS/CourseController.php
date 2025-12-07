@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\LMS;
 
 use App\Http\Controllers\Controller;
-use App\Models\Course;
+use App\Models\Tenant\LMS\Course;
 use App\Models\CourseCategory;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;

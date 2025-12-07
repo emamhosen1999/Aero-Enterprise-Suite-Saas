@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\Compliance;
 
 use App\Http\Controllers\Controller;
-use App\Models\ComplianceDocument;
+use App\Models\Tenant\Compliance\ControlledDocument;
 use App\Models\ComplianceDocumentRevision;
 use App\Models\Tenant\HRM\Department;
 use Illuminate\Http\Request;

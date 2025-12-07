@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant\Compliance;
 
 use App\Http\Controllers\Controller;
-use App\Models\Compliance\CompliancePolicy;
-use App\Models\Compliance\CompliancePolicyAcknowledgment;
+use App\Models\Tenant\Compliance$1
+use App\Models\Tenant\Compliance$1
 use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

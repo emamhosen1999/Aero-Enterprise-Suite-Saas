@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\Dashboard;
 
-use App\Models\Report;
+use App\Models\Tenant\Analytics\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;

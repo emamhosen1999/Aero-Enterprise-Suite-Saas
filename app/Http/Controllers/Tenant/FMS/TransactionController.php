@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\FMS;
 use App\Http\Controllers\Controller;
 use App\Models\FinancialAccount;
 use App\Models\FinancialCategory;
-use App\Models\Transaction;
+use App\Models\Tenant\FMS\Transaction;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

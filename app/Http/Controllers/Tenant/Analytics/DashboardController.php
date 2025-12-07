@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\Analytics;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\HRM\Attendance;
 use App\Models\Tenant\HRM\Leave;
-use App\Models\Project;
+use App\Models\Tenant\ProjectManagement\Project;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

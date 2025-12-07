@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\Asset;
 
 use App\Http\Controllers\Controller;
-use App\Models\Asset;
+use App\Models\Tenant\Asset\Asset;
 use App\Models\AssetCategory;
 use App\Models\AssetStatus;
 use App\Models\Tenant\HRM\Department;

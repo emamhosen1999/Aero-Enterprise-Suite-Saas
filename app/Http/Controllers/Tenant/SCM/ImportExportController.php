@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\SCM\CustomsDeclaration;
-use App\Models\SCM\TradeDocument;
+use App\Models\Tenant\SCM$1
+use App\Models\Tenant\SCM$1
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\POS;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sale;
+use App\Models\Tenant\POS\Sale;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

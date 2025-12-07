@@ -2,10 +2,10 @@
 
 namespace App\Services\Tenant\CRM;
 
-use App\Models\CRM\Deal;
+use App\Models\Tenant\CRM\Deal;
 use App\Models\CRM\DealActivity;
 use App\Models\CRM\DealStageHistory;
-use App\Models\CRM\Pipeline;
+use App\Models\Tenant\CRM\Pipeline;
 use App\Models\CRM\PipelineStage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

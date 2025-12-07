@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
 use App\Models\Tenant\HRM\Event;
-use App\Models\EventActivityLog;
+use App\Models\Tenant\HRM\EventActivityLog;
 use App\Models\Tenant\HRM\EventRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

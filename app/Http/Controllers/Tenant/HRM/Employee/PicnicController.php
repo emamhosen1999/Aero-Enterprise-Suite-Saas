@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
-use App\Models\PicnicParticipant;
+use App\Models\Tenant\HRM\PicnicParticipant;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;

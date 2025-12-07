@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\CRM;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CRM\StoreDealRequest;
 use App\Http\Requests\CRM\UpdateDealRequest;
-use App\Models\CRM\Deal;
+use App\Models\Tenant\CRM\Deal;
 use App\Models\CRM\DealLostReason;
 use App\Services\CRM\PipelineService;
 use Illuminate\Http\Request;

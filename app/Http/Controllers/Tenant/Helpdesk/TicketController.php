@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\Helpdesk;
 
 use App\Http\Controllers\Controller;
-use App\Models\HelpDeskTicket;
+use App\Models\Tenant\Helpdesk\HelpDeskTicket;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

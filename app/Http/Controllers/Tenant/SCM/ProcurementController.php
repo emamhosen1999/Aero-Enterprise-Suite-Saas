@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\HRM\Department;
-use App\Models\SCM\ProcurementRequest;
-use App\Models\SCM\ProcurementRequestItem;
+use App\Models\Tenant\SCM$1
+use App\Models\Tenant\SCM$1
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

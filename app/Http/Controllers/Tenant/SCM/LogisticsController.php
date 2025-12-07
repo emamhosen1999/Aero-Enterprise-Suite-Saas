@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\InventoryLocation;
-use App\Models\LogisticsCarrier;
-use App\Models\LogisticsShipment;
+use App\Models\Tenant\IMS\InventoryLocation;
+use App\Models\Tenant\SCM\LogisticsCarrier;
+use App\Models\Tenant\SCM\LogisticsShipment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;

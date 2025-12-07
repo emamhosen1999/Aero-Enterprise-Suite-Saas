@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\ProjectManagement;
 
 use App\Http\Controllers\Controller;
-use App\Models\Project;
+use App\Models\Tenant\ProjectManagement\Project;
 use App\Models\ProjectIssue;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;

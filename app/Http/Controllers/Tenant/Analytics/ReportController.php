@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\Analytics;
 
 use App\Http\Controllers\Controller;
-use App\Models\Report;
+use App\Models\Tenant\Analytics\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

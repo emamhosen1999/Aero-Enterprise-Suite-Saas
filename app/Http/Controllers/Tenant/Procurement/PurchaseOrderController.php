@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant\Procurement;
 
 use App\Http\Controllers\Controller;
-use App\Models\PurchaseOrder;
-use App\Models\Supplier;
+use App\Models\Tenant\Procurement\PurchaseOrder;
+use App\Models\Tenant\SCM\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;

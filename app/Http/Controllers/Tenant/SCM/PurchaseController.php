@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\InventoryItem;
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderItem;
-use App\Models\Supplier;
+use App\Models\Tenant\IMS\InventoryItem;
+use App\Models\Tenant\Procurement\PurchaseOrder;
+use App\Models\Tenant\Procurement\PurchaseOrderItem;
+use App\Models\Tenant\SCM\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

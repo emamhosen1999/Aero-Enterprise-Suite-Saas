@@ -2,7 +2,7 @@
 
 namespace App\Models\Tenant\HRM;
 
-use App\Models\Customer;
+use App\Models\Tenant\CRM\Customer;
 use App\Models\OpportunityActivity;
 use App\Models\Shared\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

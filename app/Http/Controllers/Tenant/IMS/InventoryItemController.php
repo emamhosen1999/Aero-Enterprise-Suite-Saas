@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\IMS;
 
 use App\Http\Controllers\Controller;
-use App\Models\InventoryItem;
+use App\Models\Tenant\IMS\InventoryItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

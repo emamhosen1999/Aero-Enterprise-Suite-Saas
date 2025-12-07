@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\ProjectManagement;
 
-use App\Models\Report;
+use App\Models\Tenant\Analytics\Report;
 use App\Models\Shared\User;
 use App\Services\Task\TaskCrudService;
 use App\Services\Task\TaskImportService;

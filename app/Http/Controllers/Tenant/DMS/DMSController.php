@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Tenant\DMS;
 
-use App\Models\DMS\Category;
-use App\Models\DMS\Document;
-use App\Models\DMS\DocumentVersion;
-use App\Models\DMS\Folder;
+use App\Models\Tenant\DMS$1
+use App\Models\Tenant\DMS$1
+use App\Models\Tenant\DMS$1
+use App\Models\Tenant\DMS$1
 use App\Services\Tenant\DMS\DMSService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
