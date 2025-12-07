@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { router, usePage, Link } from '@inertiajs/react';
 import {
   Modal,
   ModalContent,
@@ -156,11 +156,22 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
   const handleSelect = useCallback((item) => {
     if (item.route) {
       addToRecent(item);
-      router.visit(route(item.route), {
-        method: item.method || 'get',
-        preserveState: false,
-        preserveScroll: false
-      });
+      // Use Inertia router with route helper (provided by Ziggy globally)
+      try {
+        router.visit(route(item.route), {
+          method: item.method || 'get',
+          preserveState: false,
+          preserveScroll: false
+        });
+      } catch (error) {
+        // Fallback to direct href if route helper fails
+        console.warn('Route navigation failed, using direct href:', error);
+        router.visit(`/${item.route}`, {
+          method: item.method || 'get',
+          preserveState: false,
+          preserveScroll: false
+        });
+      }
       onClose();
       setQuery('');
     }
@@ -220,7 +231,10 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
   // Focus input when modal opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      // Use requestAnimationFrame for more reliable focus after modal render
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     }
   }, [isOpen]);
 
@@ -381,7 +395,7 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
                             className="flex items-center justify-center w-10 h-10 rounded-lg"
                             style={{
                               backgroundColor: selectedIndex === index
-                                ? 'var(--theme-primary, #006FEE)15'
+                                ? 'color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)'
                                 : 'var(--theme-content2, #F4F4F5)',
                               color: 'var(--theme-primary, #006FEE)'
                             }}
