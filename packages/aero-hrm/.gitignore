@@ -1,0 +1,11 @@
+/vendor/
+/node_modules/
+/.phpunit.cache/
+/coverage/
+.env
+.env.testing
+.DS_Store
+Thumbs.db
+*.log
+composer.lock
+package-lock.json
