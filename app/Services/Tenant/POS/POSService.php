@@ -2,11 +2,16 @@
 
 namespace App\Services\Tenant\POS;
 
-use App\Models\Tenant\POS$1
-use App\Models\Tenant\POS$1
-use App\Models\Tenant\POS$1
-use App\Models\Tenant\POS$1
-use App\Models\Tenant\POS$1
+
+
+
+
+
+use App\Models\Tenant\POS\Category;
+use App\Models\Tenant\POS\Customer;
+use App\Models\Tenant\POS\PaymentMethod;
+use App\Models\Tenant\POS\Product;
+use App\Models\Tenant\POS\Transaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 

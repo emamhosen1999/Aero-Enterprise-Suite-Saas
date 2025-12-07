@@ -2,7 +2,7 @@
 
 namespace Database\Factories\HRM;
 
-use App\Models\Tenant\HRM$1
+use App\Models\Tenant\HRM\LeaveSetting;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

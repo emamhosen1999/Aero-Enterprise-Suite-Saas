@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Tenant\Compliance;
 
+use App\Models\Tenant\Compliance\CompliancePolicy;
+use App\Models\Tenant\Compliance\CompliancePolicyAcknowledgment;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\Compliance$1
-use App\Models\Tenant\Compliance$1
+
+
 use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

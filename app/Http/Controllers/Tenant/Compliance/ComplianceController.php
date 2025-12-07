@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers\Tenant\Compliance;
 
+use App\Models\Tenant\Compliance\AuditFinding;
+use App\Models\Tenant\Compliance\ComplianceAudit;
+use App\Models\Tenant\Compliance\CompliancePolicy;
+use App\Models\Tenant\Compliance\ControlledDocument;
+use App\Models\Tenant\Compliance\RegulatoryRequirement;
+use App\Models\Tenant\Compliance\RiskAssessment;
+use App\Models\Tenant\Compliance\RiskMitigationAction;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\Compliance$1
-use App\Models\Tenant\Compliance$1
-use App\Models\Tenant\Compliance$1
-use App\Models\Tenant\Compliance$1
-use App\Models\Tenant\Compliance$1
-use App\Models\Tenant\Compliance$1
-use App\Models\Tenant\Compliance$1
+
+
+
+
+
+
+
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
