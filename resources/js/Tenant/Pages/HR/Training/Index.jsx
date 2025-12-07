@@ -63,10 +63,10 @@ import {
 import { 
     MagnifyingGlassIcon 
 } from '@heroicons/react/24/solid';
-import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import TrainingForm from '@/Forms/TrainingForm.jsx';
-import DeleteTrainingForm from '@/Forms/DeleteTrainingForm.jsx';
+import App from '@/Shared/Layouts/App';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
+import TrainingForm from '@/Tenant/Forms/HRM/TrainingForm';
+import DeleteTrainingForm from '@/Tenant/Forms/HRM/DeleteTrainingForm';
 import ProfileAvatar from '@/Components/ProfileAvatar';
 import dayjs from 'dayjs';
 import axios from 'axios';

@@ -18,7 +18,7 @@ import {
     CalendarIcon,
     CheckCircleIcon
 } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
 
 export default function PerformanceShow({ auth, review, canEdit }) {

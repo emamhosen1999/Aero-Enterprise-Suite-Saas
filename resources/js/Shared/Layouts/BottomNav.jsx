@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Link, usePage, router } from "@inertiajs/react";
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '@/Contexts/ThemeContext';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 import { showToast } from '@/utils/toastUtils';
 
 /**

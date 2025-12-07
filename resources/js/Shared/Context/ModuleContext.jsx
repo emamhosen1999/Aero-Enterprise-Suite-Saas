@@ -11,7 +11,7 @@ import { usePage } from '@inertiajs/react';
  * 
  * @example
  * // In your app layout
- * import { ModuleProvider } from '@/Context/ModuleContext';
+ * import { ModuleProvider } from '@/Shared/Context/ModuleContext';
  * 
  * function App({ children }) {
  *   return (
@@ -23,7 +23,7 @@ import { usePage } from '@inertiajs/react';
  * 
  * @example
  * // In any child component
- * import { useModuleContext } from '@/Context/ModuleContext';
+ * import { useModuleContext } from '@/Shared/Context/ModuleContext';
  * 
  * function MyComponent() {
  *   const { isModuleEnabled, enabledModules } = useModuleContext();

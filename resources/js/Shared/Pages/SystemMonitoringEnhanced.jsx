@@ -23,7 +23,7 @@ import {
   Select,
   SelectItem
 } from "@heroui/react";
-import { useTheme } from '@/Contexts/ThemeContext';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 import { 
   Button as HeroButton,
   Select as HeroSelect,
@@ -61,7 +61,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { ChevronDown } from 'lucide-react';
 import App from "@/Layouts/App.jsx";
-import PageHeader from '@/Components/PageHeader';
+import PageHeader from '@/Shared/Components/Common/PageHeader';
 import { 
     LineChart, 
     Line, 

@@ -38,8 +38,8 @@ import {
     DocumentArrowDownIcon,
     PrinterIcon
 } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
+import App from '@/Shared/Layouts/App';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import dayjs from 'dayjs';

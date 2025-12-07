@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { Card, CardHeader, CardBody } from '@heroui/react';
 import { CubeIcon } from '@heroicons/react/24/outline';
 import PlanForm from '@/Platform/Pages/Admin/Plans/components/PlanForm.jsx';

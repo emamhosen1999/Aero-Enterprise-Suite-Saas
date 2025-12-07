@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { addOnCatalog, planMetrics } from '@/Platform/Pages/Admin/data/mockData.js';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';

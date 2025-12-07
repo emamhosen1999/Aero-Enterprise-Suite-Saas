@@ -17,13 +17,13 @@ import ThemeSettingDrawer from "@/Components/ThemeSettingDrawer.jsx";
 import UpdateNotification from '@/Components/UpdateNotification.jsx';
 import ImpersonationBanner from '@/Components/Admin/ImpersonationBanner.jsx';
 import CommandPalette from '@/Components/Navigation/CommandPalette.jsx';
-import { FadeIn, SlideIn } from '@/Components/Animations/SmoothAnimations';
+import { FadeIn, SlideIn } from '@/Shared/Components/Animations/SmoothAnimations';
 import { useVersionManager } from '@/Hooks/useVersionManager.js';
 import AuthGuard from '@/Components/AuthGuard.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import { TranslationProvider } from '@/Contexts/TranslationContext';
-import { GlobalAutoTranslator } from '@/Contexts/GlobalAutoTranslator';
-import { AppStateProvider } from '@/Contexts/AppStateContext';
+import { TranslationProvider } from '@/Shared/Context/TranslationContext';
+import { GlobalAutoTranslator } from '@/Shared/Context/GlobalAutoTranslator';
+import { AppStateProvider } from '@/Shared/Context/AppStateContext';
 import { useBranding } from '@/Hooks/useBranding';
 
 import '@/utils/serviceWorkerManager.js';

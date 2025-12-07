@@ -39,14 +39,14 @@ import {
 import { 
     MagnifyingGlassIcon 
 } from '@heroicons/react/24/solid';
-import App from '@/Layouts/App.jsx';
-import PageHeader from '@/Components/PageHeader.jsx';
-import StatsCards from '@/Components/StatsCards.jsx';
-import LeaveEmployeeTable from '@/Tables/LeaveEmployeeTable.jsx';
-import LeaveForm from '@/Forms/LeaveForm.jsx';
-import DeleteLeaveForm from '@/Forms/DeleteLeaveForm.jsx';
-import BulkLeaveModal from '@/Components/BulkLeave/BulkLeaveModal.jsx';
-import BulkDeleteModal from '@/Components/BulkDelete/BulkDeleteModal.jsx';
+import App from '@/Shared/Layouts/App';
+import PageHeader from '@/Shared/Components/Common/PageHeader';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
+import LeaveEmployeeTable from '@/Tenant/Tables/HRM/LeaveEmployeeTable';
+import LeaveForm from '@/Tenant/Forms/HRM/LeaveForm';
+import DeleteLeaveForm from '@/Tenant/Forms/HRM/DeleteLeaveForm';
+import BulkLeaveModal from '@/Tenant/Components/HRM/BulkLeave/BulkLeaveModal';
+import BulkDeleteModal from '@/Tenant/Components/HRM/BulkDelete/BulkDeleteModal';
 import dayjs from 'dayjs';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';

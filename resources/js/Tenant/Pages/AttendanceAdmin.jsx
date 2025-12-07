@@ -24,9 +24,9 @@ import {
     XCircleIcon
 } from "@heroicons/react/24/outline";
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
-import StatsCards from '@/Components/StatsCards.jsx';
+import StatsCards from '@/Shared/Components/Common/StatsCards';
 import App from "@/Layouts/App.jsx";
-import AttendanceAdminTable from '@/Tables/AttendanceAdminTable.jsx';
+import AttendanceAdminTable from '@/Tenant/Tables/HRM/AttendanceAdminTable';
 import { motion } from 'framer-motion';
 import axios from "axios";
 import { showToast } from "@/utils/toastUtils";

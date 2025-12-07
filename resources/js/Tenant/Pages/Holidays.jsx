@@ -17,7 +17,7 @@ import {
 import StatsCards from "@/Components/StatsCards.jsx";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import App from "@/Layouts/App.jsx";
-import HolidayTable from '@/Tables/HolidayTable.jsx';
+import HolidayTable from '@/Tenant/Tables/HRM/HolidayTable';
 import HolidayForm from "@/Forms/HolidayForm.jsx";
 import DeleteHolidayForm from "@/Forms/DeleteHolidayForm.jsx";
 

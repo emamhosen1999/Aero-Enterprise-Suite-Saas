@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import App from '@/Layouts/App.jsx';
+import App from '@/Shared/Layouts/App';
 import { billingSummary, transactionHistory, invoiceCollection, analyticsTimeSeries } from '@/Platform/Pages/Admin/data/mockData.js';
 import {
   CurrencyDollarIcon,
