@@ -4,6 +4,20 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * DUPLICATE MIGRATION - Also exists in database/migrations/tenant/
+ * 
+ * This migration creates the role_module_access table.
+ * It exists in BOTH root and tenant migrations with DIFFERENT IMPLEMENTATIONS:
+ * 
+ * - Root (Central DB): Has foreign key constraints to modules, sub_modules, etc.
+ *   (all tables are in the same central database)
+ * 
+ * - Tenant (Tenant DB): Uses unsigned integers WITHOUT foreign keys
+ *   (module hierarchy is in central DB, so cross-database references not possible)
+ * 
+ * This architectural difference is intentional and required for multi-tenant isolation.
+ */
 return new class extends Migration
 {
     /**
