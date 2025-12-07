@@ -16,6 +16,7 @@ import BottomNav from "@/Layouts/BottomNav.jsx";
 import ThemeSettingDrawer from "@/Components/ThemeSettingDrawer.jsx";
 import UpdateNotification from '@/Components/UpdateNotification.jsx';
 import ImpersonationBanner from '@/Components/Admin/ImpersonationBanner.jsx';
+import CommandPalette from '@/Components/Navigation/CommandPalette.jsx';
 import { FadeIn, SlideIn } from '@/Components/Animations/SmoothAnimations';
 import { useVersionManager } from '@/Hooks/useVersionManager.js';
 import AuthGuard from '@/Components/AuthGuard.jsx';
@@ -131,6 +132,7 @@ const App = React.memo(({ children }) => {
     }
   });
   const [themeDrawerOpen, setThemeDrawerOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Get global page props
@@ -227,6 +229,14 @@ const App = React.memo(({ children }) => {
     setThemeDrawerOpen(false);
   }, []); // Explicit close function
 
+  const staticToggleCommandPalette = useCallback(() => {
+    setCommandPaletteOpen(prev => !prev);
+  }, []); // Command palette toggle
+
+  const staticCloseCommandPalette = useCallback(() => {
+    setCommandPaletteOpen(false);
+  }, []); // Command palette close
+
   const staticHandleUpdate = useCallback(async () => {
     setIsUpdating(true);
     try {
@@ -293,6 +303,20 @@ const App = React.memo(({ children }) => {
   // Session authentication is now handled by AuthGuard component
   // No need for redundant session checking here
 
+  // Command Palette keyboard shortcut (⌘K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        staticToggleCommandPalette();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [staticToggleCommandPalette]);
+
   // Inertia loading state
   useEffect(() => {
     let loadingTimeout;
@@ -352,6 +376,14 @@ const App = React.memo(({ children }) => {
     />
   ), [themeDrawerOpen, staticCloseThemeDrawer]);
 
+  const commandPalette = useMemo(() => (
+    <CommandPalette
+      isOpen={commandPaletteOpen}
+      onClose={staticCloseCommandPalette}
+      pages={staticLayoutData.pages}
+    />
+  ), [commandPaletteOpen, staticCloseCommandPalette, staticLayoutData.pages]);
+
   // ===== RENDER =====
   return (
     <>
@@ -361,6 +393,9 @@ const App = React.memo(({ children }) => {
           <LayoutContext.Provider value={staticContextValue}>
             {/* Theme Settings Drawer */}
             {themeDrawer}
+
+            {/* Command Palette (⌘K / Ctrl+K) */}
+            {commandPalette}
 
             <AuthGuard auth={auth} url={url}>
           <div className="relative w-full h-screen overflow-hidden">
