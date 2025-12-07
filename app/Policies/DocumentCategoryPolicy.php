@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\DocumentCategory;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class DocumentCategoryPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.documents.categories.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-documents.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'view');
     }
 
     /**
@@ -23,7 +30,13 @@ class DocumentCategoryPolicy
      */
     public function view(User $user, DocumentCategory $documentCategory): bool
     {
-        return $user->can('hr.documents.categories.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-documents.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'view');
     }
 
     /**
@@ -31,7 +44,13 @@ class DocumentCategoryPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.documents.categories.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-documents.manage
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'manage');
     }
 
     /**
@@ -39,7 +58,13 @@ class DocumentCategoryPolicy
      */
     public function update(User $user, DocumentCategory $documentCategory): bool
     {
-        return $user->can('hr.documents.categories.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-documents.manage
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'manage');
     }
 
     /**
@@ -47,7 +72,13 @@ class DocumentCategoryPolicy
      */
     public function delete(User $user, DocumentCategory $documentCategory): bool
     {
-        return $user->can('hr.documents.categories.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-documents.manage
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'manage');
     }
 
     /**
@@ -55,7 +86,7 @@ class DocumentCategoryPolicy
      */
     public function restore(User $user, DocumentCategory $documentCategory): bool
     {
-        return $user->can('hr.documents.categories.delete');
+        return $this->delete($user, $documentCategory);
     }
 
     /**
@@ -63,6 +94,6 @@ class DocumentCategoryPolicy
      */
     public function forceDelete(User $user, DocumentCategory $documentCategory): bool
     {
-        return $user->can('hr.documents.categories.delete');
+        return $this->isSuperAdmin($user);
     }
 }

@@ -4,18 +4,23 @@ namespace App\Policies;
 
 use App\Models\HRM\HrDocument;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class HrDocumentPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.documents.view');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'view');
     }
 
     /**
@@ -23,26 +28,16 @@ class HrDocumentPolicy
      */
     public function view(User $user, HrDocument $document): bool
     {
-        // Basic permission check
-        if (! $user->can('hr.documents.view')) {
-            return false;
+        // Employees can only see their own documents
+        if ($document->user_id === $user->id) {
+            return true;
         }
 
-        // If the document is linked to a specific employee
-        if ($document->user_id) {
-            // Department managers can only see documents for their department members
-            if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
-                return $document->user->employee?->department_id === $user->employee->department_id;
-            }
-
-            // Employees can only see their own documents
-            if ($user->hasRole('Employee')) {
-                return $document->user_id === $user->id;
-            }
+        if ($this->isSuperAdmin($user)) {
+            return true;
         }
 
-        // HR and higher roles can see all
-        return true;
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-documents', 'view', $document);
     }
 
     /**
@@ -50,7 +45,11 @@ class HrDocumentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.documents.create');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'manage');
     }
 
     /**
@@ -58,7 +57,11 @@ class HrDocumentPolicy
      */
     public function update(User $user, HrDocument $document): bool
     {
-        return $user->can('hr.documents.update');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-documents', 'manage', $document);
     }
 
     /**
@@ -66,7 +69,11 @@ class HrDocumentPolicy
      */
     public function delete(User $user, HrDocument $document): bool
     {
-        return $user->can('hr.documents.delete');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-documents', 'manage', $document);
     }
 
     /**
@@ -74,7 +81,7 @@ class HrDocumentPolicy
      */
     public function restore(User $user, HrDocument $document): bool
     {
-        return $user->can('hr.documents.delete');
+        return $this->delete($user, $document);
     }
 
     /**
@@ -82,6 +89,6 @@ class HrDocumentPolicy
      */
     public function forceDelete(User $user, HrDocument $document): bool
     {
-        return $user->can('hr.documents.delete');
+        return $this->isSuperAdmin($user);
     }
 }

@@ -4,15 +4,24 @@ namespace App\Policies;
 
 use App\Models\HRM\Payroll;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 
 class PayrollPolicy
 {
+    use ChecksModuleAccess;
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('hr.payroll.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view (using employee directory for payroll)
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -20,7 +29,18 @@ class PayrollPolicy
      */
     public function view(User $user, Payroll $payroll): bool
     {
-        return $user->hasPermissionTo('hr.payroll.view') || $payroll->employee_id === $user->id;
+        // Users can view their own payroll
+        if ($payroll->employee_id === $user->id) {
+            return true;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access with scope
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $payroll);
     }
 
     /**
@@ -28,7 +48,13 @@ class PayrollPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('hr.payroll.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
     /**
@@ -36,7 +62,18 @@ class PayrollPolicy
      */
     public function update(User $user, Payroll $payroll): bool
     {
-        return $user->hasPermissionTo('hr.payroll.edit') && $payroll->status !== 'locked';
+        // Cannot update locked payroll
+        if ($payroll->status === 'locked') {
+            return false;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $payroll);
     }
 
     /**
@@ -44,7 +81,18 @@ class PayrollPolicy
      */
     public function delete(User $user, Payroll $payroll): bool
     {
-        return $user->hasPermissionTo('hr.payroll.delete') && $payroll->status !== 'locked';
+        // Cannot delete locked payroll
+        if ($payroll->status === 'locked') {
+            return false;
+        }
+
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.delete
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $payroll);
     }
 
     /**
@@ -52,7 +100,13 @@ class PayrollPolicy
      */
     public function lock(User $user, Payroll $payroll): bool
     {
-        return $user->hasPermissionTo('hr.payroll.lock');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 
     /**
@@ -60,6 +114,12 @@ class PayrollPolicy
      */
     public function process(User $user): bool
     {
-        return $user->hasPermissionTo('hr.payroll.process');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 }

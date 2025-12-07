@@ -4,37 +4,60 @@ namespace App\Policies;
 
 use App\Models\Checklist;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 
 class ChecklistPolicy
 {
+    use ChecksModuleAccess;
+
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.checklists.view');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     public function view(User $user, Checklist $checklist): bool
     {
-        return $user->can('hr.checklists.view');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     public function create(User $user): bool
     {
-        return $user->can('hr.checklists.create');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
     public function update(User $user, Checklist $checklist): bool
     {
-        return $user->can('hr.checklists.update');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
     }
 
     public function delete(User $user, Checklist $checklist): bool
     {
-        return $user->can('hr.checklists.delete');
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'delete');
     }
 
     public function restore(User $user, Checklist $checklist): bool
     {
-        return $user->can('hr.checklists.update');
+        return $this->update($user, $checklist);
     }
 
     public function forceDelete(User $user, Checklist $checklist): bool
