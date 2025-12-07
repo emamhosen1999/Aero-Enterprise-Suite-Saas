@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\QualityCalibration;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class QualityCalibrationPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('quality.calibrations.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.view (using inspection module for calibrations)
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'view');
     }
 
     /**
@@ -23,7 +30,13 @@ class QualityCalibrationPolicy
      */
     public function view(User $user, QualityCalibration $qualityCalibration): bool
     {
-        return $user->hasPermissionTo('quality.calibrations.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.view
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'view');
     }
 
     /**
@@ -31,7 +44,13 @@ class QualityCalibrationPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('quality.calibrations.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.create
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'create');
     }
 
     /**
@@ -39,7 +58,13 @@ class QualityCalibrationPolicy
      */
     public function update(User $user, QualityCalibration $qualityCalibration): bool
     {
-        return $user->hasPermissionTo('quality.calibrations.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.update
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'update');
     }
 
     /**
@@ -47,7 +72,13 @@ class QualityCalibrationPolicy
      */
     public function delete(User $user, QualityCalibration $qualityCalibration): bool
     {
-        return $user->hasPermissionTo('quality.calibrations.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.delete
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'delete');
     }
 
     /**
@@ -55,7 +86,7 @@ class QualityCalibrationPolicy
      */
     public function restore(User $user, QualityCalibration $qualityCalibration): bool
     {
-        return $user->hasPermissionTo('quality.calibrations.update');
+        return $this->update($user, $qualityCalibration);
     }
 
     /**
@@ -63,6 +94,6 @@ class QualityCalibrationPolicy
      */
     public function forceDelete(User $user, QualityCalibration $qualityCalibration): bool
     {
-        return $user->hasPermissionTo('quality.calibrations.delete');
+        return $this->isSuperAdmin($user);
     }
 }

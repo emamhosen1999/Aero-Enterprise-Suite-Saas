@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\QualityInspection;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class QualityInspectionPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('quality.inspections.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.view
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'view');
     }
 
     /**
@@ -23,7 +30,13 @@ class QualityInspectionPolicy
      */
     public function view(User $user, QualityInspection $qualityInspection): bool
     {
-        return $user->hasPermissionTo('quality.inspections.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.view
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'view');
     }
 
     /**
@@ -31,7 +44,13 @@ class QualityInspectionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('quality.inspections.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.create
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'create');
     }
 
     /**
@@ -39,7 +58,13 @@ class QualityInspectionPolicy
      */
     public function update(User $user, QualityInspection $qualityInspection): bool
     {
-        return $user->hasPermissionTo('quality.inspections.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.update
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'update');
     }
 
     /**
@@ -47,7 +72,13 @@ class QualityInspectionPolicy
      */
     public function delete(User $user, QualityInspection $qualityInspection): bool
     {
-        return $user->hasPermissionTo('quality.inspections.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.inspections.inspection-list.delete
+        return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'delete');
     }
 
     /**
@@ -55,7 +86,7 @@ class QualityInspectionPolicy
      */
     public function restore(User $user, QualityInspection $qualityInspection): bool
     {
-        return $user->hasPermissionTo('quality.inspections.update');
+        return $this->update($user, $qualityInspection);
     }
 
     /**
@@ -63,6 +94,6 @@ class QualityInspectionPolicy
      */
     public function forceDelete(User $user, QualityInspection $qualityInspection): bool
     {
-        return $user->hasPermissionTo('quality.inspections.delete');
+        return $this->isSuperAdmin($user);
     }
 }

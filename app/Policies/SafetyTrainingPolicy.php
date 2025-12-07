@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\SafetyTraining;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SafetyTrainingPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.safety.training.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -23,24 +30,19 @@ class SafetyTrainingPolicy
      */
     public function view(User $user, SafetyTraining $safetyTraining): bool
     {
-        // Basic permission check
-        if (! $user->can('hr.safety.training.view')) {
-            return false;
-        }
-
         // Employees can view trainings they're enrolled in
-        if ($user->hasRole('Employee')) {
-            return $safetyTraining->participants()->where('user_id', $user->id)->exists() ||
-                   $safetyTraining->trainer_id === $user->id;
+        if ($safetyTraining->participants()->where('user_id', $user->id)->exists() ||
+            $safetyTraining->trainer_id === $user->id) {
+            return true;
         }
 
-        // Department managers can only see trainings in their department
-        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
-            return $safetyTraining->department_id === $user->employee->department_id;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
         }
 
-        // HR, Safety Officers, and higher roles can see all
-        return true;
+        // Check module access with scope
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $safetyTraining);
     }
 
     /**
@@ -48,7 +50,13 @@ class SafetyTrainingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.safety.training.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
     /**
@@ -56,7 +64,13 @@ class SafetyTrainingPolicy
      */
     public function update(User $user, SafetyTraining $safetyTraining): bool
     {
-        return $user->can('hr.safety.training.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $safetyTraining);
     }
 
     /**
@@ -64,7 +78,13 @@ class SafetyTrainingPolicy
      */
     public function delete(User $user, SafetyTraining $safetyTraining): bool
     {
-        return $user->can('hr.safety.training.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.delete
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $safetyTraining);
     }
 
     /**
@@ -72,7 +92,7 @@ class SafetyTrainingPolicy
      */
     public function restore(User $user, SafetyTraining $safetyTraining): bool
     {
-        return $user->can('hr.safety.training.delete');
+        return $this->delete($user, $safetyTraining);
     }
 
     /**
@@ -80,6 +100,6 @@ class SafetyTrainingPolicy
      */
     public function forceDelete(User $user, SafetyTraining $safetyTraining): bool
     {
-        return $user->can('hr.safety.training.delete');
+        return $this->isSuperAdmin($user);
     }
 }

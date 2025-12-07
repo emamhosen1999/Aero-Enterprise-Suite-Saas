@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\SafetyIncident;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SafetyIncidentPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.safety.incidents.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -23,25 +30,19 @@ class SafetyIncidentPolicy
      */
     public function view(User $user, SafetyIncident $safetyIncident): bool
     {
-        // Basic permission check
-        if (! $user->can('hr.safety.incidents.view')) {
-            return false;
-        }
-
         // Employees can view incidents they're involved in
-        if ($user->hasRole('Employee')) {
-            return $safetyIncident->participants()->where('user_id', $user->id)->exists() ||
-                   $safetyIncident->reported_by === $user->id;
+        if ($safetyIncident->participants()->where('user_id', $user->id)->exists() ||
+            $safetyIncident->reported_by === $user->id) {
+            return true;
         }
 
-        // Department managers can only see incidents in their department
-        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
-            // Check if incident is in manager's department
-            return $safetyIncident->department_id === $user->employee->department_id;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
         }
 
-        // HR, Safety Officers, and higher roles can see all
-        return true;
+        // Check module access with scope
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $safetyIncident);
     }
 
     /**
@@ -49,7 +50,13 @@ class SafetyIncidentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.safety.incidents.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
     /**
@@ -57,7 +64,13 @@ class SafetyIncidentPolicy
      */
     public function update(User $user, SafetyIncident $safetyIncident): bool
     {
-        return $user->can('hr.safety.incidents.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $safetyIncident);
     }
 
     /**
@@ -65,7 +78,13 @@ class SafetyIncidentPolicy
      */
     public function delete(User $user, SafetyIncident $safetyIncident): bool
     {
-        return $user->can('hr.safety.incidents.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.delete
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $safetyIncident);
     }
 
     /**
@@ -73,7 +92,7 @@ class SafetyIncidentPolicy
      */
     public function restore(User $user, SafetyIncident $safetyIncident): bool
     {
-        return $user->can('hr.safety.incidents.delete');
+        return $this->delete($user, $safetyIncident);
     }
 
     /**
@@ -81,6 +100,6 @@ class SafetyIncidentPolicy
      */
     public function forceDelete(User $user, SafetyIncident $safetyIncident): bool
     {
-        return $user->can('hr.safety.incidents.delete');
+        return $this->isSuperAdmin($user);
     }
 }

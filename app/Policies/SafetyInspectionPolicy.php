@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\SafetyInspection;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SafetyInspectionPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('hr.safety.inspections.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.view (safety is part of employee management)
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
@@ -23,18 +30,13 @@ class SafetyInspectionPolicy
      */
     public function view(User $user, SafetyInspection $safetyInspection): bool
     {
-        // Basic permission check
-        if (! $user->can('hr.safety.inspections.view')) {
-            return false;
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
         }
 
-        // Department managers can only see inspections in their department
-        if ($user->hasRole('Department Manager') && $user->employee?->department_id) {
-            return $safetyInspection->department_id === $user->employee->department_id;
-        }
-
-        // HR, Safety Officers, and higher roles can see all
-        return true;
+        // Check module access with scope
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $safetyInspection);
     }
 
     /**
@@ -42,7 +44,13 @@ class SafetyInspectionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('hr.safety.inspections.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
     /**
@@ -50,7 +58,13 @@ class SafetyInspectionPolicy
      */
     public function update(User $user, SafetyInspection $safetyInspection): bool
     {
-        return $user->can('hr.safety.inspections.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.update
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $safetyInspection);
     }
 
     /**
@@ -58,7 +72,13 @@ class SafetyInspectionPolicy
      */
     public function delete(User $user, SafetyInspection $safetyInspection): bool
     {
-        return $user->can('hr.safety.inspections.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: hrm.employees.employee-directory.delete
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $safetyInspection);
     }
 
     /**
@@ -66,7 +86,7 @@ class SafetyInspectionPolicy
      */
     public function restore(User $user, SafetyInspection $safetyInspection): bool
     {
-        return $user->can('hr.safety.inspections.delete');
+        return $this->delete($user, $safetyInspection);
     }
 
     /**
@@ -74,6 +94,6 @@ class SafetyInspectionPolicy
      */
     public function forceDelete(User $user, SafetyInspection $safetyInspection): bool
     {
-        return $user->can('hr.safety.inspections.delete');
+        return $this->isSuperAdmin($user);
     }
 }

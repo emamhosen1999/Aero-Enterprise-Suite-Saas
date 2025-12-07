@@ -4,18 +4,25 @@ namespace App\Policies;
 
 use App\Models\QualityNCR;
 use App\Models\User;
+use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class QualityNCRPolicy
 {
-    use HandlesAuthorization;
+    use ChecksModuleAccess, HandlesAuthorization;
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('quality.ncr.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.ncr.ncr-list.view
+        return $this->canPerformAction($user, 'quality', 'ncr', 'ncr-list', 'view');
     }
 
     /**
@@ -23,7 +30,13 @@ class QualityNCRPolicy
      */
     public function view(User $user, QualityNCR $qualityNCR): bool
     {
-        return $user->hasPermissionTo('quality.ncr.view');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.ncr.ncr-list.view
+        return $this->canPerformAction($user, 'quality', 'ncr', 'ncr-list', 'view');
     }
 
     /**
@@ -31,7 +44,13 @@ class QualityNCRPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('quality.ncr.create');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.ncr.ncr-list.create
+        return $this->canPerformAction($user, 'quality', 'ncr', 'ncr-list', 'create');
     }
 
     /**
@@ -39,7 +58,13 @@ class QualityNCRPolicy
      */
     public function update(User $user, QualityNCR $qualityNCR): bool
     {
-        return $user->hasPermissionTo('quality.ncr.update');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.ncr.ncr-list.update
+        return $this->canPerformAction($user, 'quality', 'ncr', 'ncr-list', 'update');
     }
 
     /**
@@ -47,7 +72,13 @@ class QualityNCRPolicy
      */
     public function delete(User $user, QualityNCR $qualityNCR): bool
     {
-        return $user->hasPermissionTo('quality.ncr.delete');
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: quality.ncr.ncr-list.delete
+        return $this->canPerformAction($user, 'quality', 'ncr', 'ncr-list', 'delete');
     }
 
     /**
@@ -55,7 +86,7 @@ class QualityNCRPolicy
      */
     public function restore(User $user, QualityNCR $qualityNCR): bool
     {
-        return $user->hasPermissionTo('quality.ncr.update');
+        return $this->update($user, $qualityNCR);
     }
 
     /**
@@ -63,6 +94,6 @@ class QualityNCRPolicy
      */
     public function forceDelete(User $user, QualityNCR $qualityNCR): bool
     {
-        return $user->hasPermissionTo('quality.ncr.delete');
+        return $this->isSuperAdmin($user);
     }
 }
