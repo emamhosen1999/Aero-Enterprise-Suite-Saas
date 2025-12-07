@@ -43,7 +43,7 @@ class RegistrationDetailsRequest extends FormRequest
                         ]);
                     }),
             ],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/^\+?[1-9]\d{1,14}$/'],
             'subdomain' => [
                 'required',
                 'string',
@@ -69,6 +69,7 @@ class RegistrationDetailsRequest extends FormRequest
             'subdomain.regex' => 'Subdomain may only contain lowercase letters, numbers, and single hyphens.',
             'email.unique' => 'This email is already registered with an active workspace.',
             'subdomain.unique' => 'This subdomain is already in use by an active workspace.',
+            'phone.regex' => 'Please enter a valid phone number in international format (e.g., +1234567890).',
         ];
     }
 
