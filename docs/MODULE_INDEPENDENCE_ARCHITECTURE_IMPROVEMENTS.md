@@ -100,59 +100,92 @@ The `config/modules.php` demonstrates:
 
 ### 2. ⚠️ Critical Gaps & Improvements Needed
 
-#### 2.1 **CRITICAL: Package Extraction Tooling Missing**
+#### 2.1 **CRITICAL: Manual Extraction Strategy & Support Tooling**
 
 **Gap:** The plan mentions "extraction tooling" but provides no implementation details.
 
-**Risk:** Manual extraction is error-prone and time-consuming.
+**Risk:** Fully automated extraction can cause inappropriate extraction and miss complex interdependencies. However, purely manual extraction is time-consuming and prone to human error.
 
-**Recommendation: Create Extraction Automation Suite**
+**Recommendation: Manual-First Extraction with Tooling Support**
 
-Create `tools/module-extraction/` with:
+**Approach:** Manual extraction with helper tools for analysis and validation, NOT automated extraction.
 
-**A. Migration Extractor**
+**A. Dependency Analyzer (Analysis Tool)**
 ```php
-// tools/module-extraction/MigrationExtractor.php
-class MigrationExtractor
+// tools/module-extraction/DependencyAnalyzer.php
+class DependencyAnalyzer
 {
-    public function extractMigrations(string $moduleCode): array
+    /**
+     * Analyze module dependencies - does NOT auto-extract
+     * Output: Report for manual review
+     */
+    public function analyzeModule(string $moduleCode): DependencyReport
     {
-        // 1. Identify module-related migrations
-        // 2. Extract to package structure
-        // 3. Update foreign keys
-        // 4. Generate rollback strategy
+        return new DependencyReport([
+            'migrations' => $this->findRelatedMigrations($moduleCode),
+            'models' => $this->findRelatedModels($moduleCode),
+            'controllers' => $this->findRelatedControllers($moduleCode),
+            'relationships' => $this->mapRelationships($moduleCode),
+            'frontend_components' => $this->findReactComponents($moduleCode),
+            'dependencies' => $this->findExternalDependencies($moduleCode),
+            'warnings' => $this->detectPotentialIssues($moduleCode),
+        ]);
     }
 }
 ```
 
-**B. Model & Controller Extractor**
+**B. Validation Tool (Post-Extraction Validation)**
 ```php
-class CodeExtractor
+class ExtractionValidator
 {
-    public function extractModels(string $namespace): array
+    /**
+     * Validate manual extraction - does NOT perform extraction
+     * Use AFTER manual extraction to verify completeness
+     */
+    public function validateExtraction(string $packagePath): ValidationReport
     {
-        // 1. Parse models
-        // 2. Extract relationships
-        // 3. Update namespaces
-        // 4. Handle polymorphic relations
+        return new ValidationReport([
+            'missing_files' => $this->checkMissingFiles($packagePath),
+            'broken_references' => $this->checkBrokenReferences($packagePath),
+            'namespace_issues' => $this->validateNamespaces($packagePath),
+            'test_coverage' => $this->checkTestCoverage($packagePath),
+        ]);
     }
 }
 ```
 
-**C. Frontend Asset Bundler**
-```javascript
-// tools/module-extraction/frontend-bundler.js
-class ComponentExtractor {
-    extractReactComponents(modulePath) {
-        // 1. Identify module React components
-        // 2. Extract dependencies
-        // 3. Bundle with Vite
-        // 4. Generate publishable assets
-    }
-}
+**C. Migration Helper (Reference Tool)**
+```bash
+# tools/module-extraction/migration-helper.sh
+# Provides guidance, does NOT auto-migrate
+php artisan module:analyze hrm
+# Output:
+# - List of files to copy
+# - Namespace changes needed
+# - Dependency warnings
+# - Manual checklist
 ```
 
-**Implementation Priority:** 🔴 **HIGH** (Weeks 1-2)
+**Manual Extraction Workflow:**
+
+1. **Analyze** - Run `DependencyAnalyzer` to understand module scope
+2. **Plan** - Review analysis report, identify all dependencies manually
+3. **Extract** - Manually copy files to package structure
+4. **Update** - Manually update namespaces, imports, and references
+5. **Validate** - Run `ExtractionValidator` to check for issues
+6. **Test** - Write and run tests for the extracted package
+7. **Iterate** - Fix issues found during validation and testing
+
+**Why Manual-First?**
+- ✅ Developer maintains full control over extraction decisions
+- ✅ Complex interdependencies are properly handled
+- ✅ Reduces risk of inappropriate automated extraction
+- ✅ Tooling provides guidance without making decisions
+- ✅ Validation catches mistakes before deployment
+
+**Implementation Priority:** 🟡 **MEDIUM** (Weeks 2-3)
+
+*Note: Extraction tooling changed to analysis & validation tools per feedback. Manual extraction is recommended to avoid inappropriate automated decisions.*
 
 ---
 
@@ -770,17 +803,24 @@ class ConflictResolver
 
 #### **Phase 1: Foundation (Weeks 1-3) - CRITICAL**
 
-**Week 1: Extraction Tooling**
-- [ ] Create `MigrationExtractor`
-- [ ] Create `CodeExtractor`
-- [ ] Create `ComponentExtractor`
-- [ ] Test extraction on HRM module
+**Week 1: Analysis & Validation Tools**
+- [ ] Create `DependencyAnalyzer` (analysis tool, not auto-extraction)
+- [ ] Create `ExtractionValidator` (post-extraction validation)
+- [ ] Create manual extraction checklist
+- [ ] Document manual extraction workflow
 
-**Week 2: Package Structure**
+**Week 2: Manual Package Extraction**
 - [ ] Set up `packages/` directory structure
-- [ ] Create first package: `aero-core`
-- [ ] Extract HRM as proof-of-concept
-- [ ] Test standalone installation
+- [ ] Manually analyze HRM module dependencies
+- [ ] Manually extract HRM files to package structure
+- [ ] Update namespaces and imports manually
+- [ ] Validate extraction with `ExtractionValidator`
+
+**Week 3: Testing & Refinement**
+- [ ] Test extracted HRM package in standalone mode
+- [ ] Fix issues identified during testing
+- [ ] Create first package: `aero-core` (manually)
+- [ ] Document lessons learned from manual extraction
 
 **Week 3: Package Registry & Security**
 - [ ] Set up GitHub Packages
@@ -907,22 +947,27 @@ jobs:
 
 #### **Immediate Actions (Week 1)**
 
-1. **Create Extraction Tooling**
-   - Start with `MigrationExtractor`
-   - Essential for any module extraction
+1. **Create Analysis & Validation Tools** *(Not automated extraction)*
+   - Build `DependencyAnalyzer` for analysis
+   - Build `ExtractionValidator` for validation
+   - Manual extraction maintains control and quality
 
 2. **Set Up Package Registry**
    - Use GitHub Packages initially
    - Plan for Satis migration later
 
 3. **Document Current State**
-   - Map all module dependencies
+   - Map all module dependencies manually
    - Identify shared models/services
+   - Create manual extraction checklist
 
 #### **Short-term (Weeks 2-4)**
 
-1. **Extract First Module (HRM)**
-   - Proof of concept
+1. **Manually Extract First Module (HRM)**
+   - Use analysis tools for guidance
+   - Manually extract to maintain control
+   - Validate with tooling after extraction
+   - Document lessons learned
    - Learn from challenges
    - Document lessons learned
 
@@ -1002,7 +1047,9 @@ The **Module Independence Architecture** plan is **well-conceived and implementa
 ✅ Create marketplace opportunities  
 
 **Recommended Next Step:**  
-**Implement Phase 1 (Weeks 1-3)** focusing on extraction tooling and package registry setup. This foundation will enable rapid progress on module extraction.
+**Implement Phase 1 (Weeks 1-3)** focusing on analysis & validation tools (not automated extraction) and manual extraction workflow. Manual extraction maintains control and quality, while analysis tools provide guidance.
+
+**Note:** Extraction approach revised to manual-first with tool support per feedback. Automated extraction can cause inappropriate extraction; manual process ensures proper handling of complex interdependencies.
 
 **Overall Assessment: 9/10**  
 A solid, well-thought-out architecture that needs implementation details and operational tooling to become production-ready.

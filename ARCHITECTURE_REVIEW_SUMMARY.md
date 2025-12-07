@@ -72,28 +72,40 @@ Your `config/modules.php` has:
 
 ## ⚠️ Areas Needing Improvement
 
-### 🔴 **CRITICAL: Package Extraction Tooling Missing**
+### 🔴 **CRITICAL: Manual Extraction Strategy with Tool Support**
 
-**Problem:** The plan mentions "extraction tooling" but provides no implementation.
+**Problem:** The plan mentions "extraction tooling" but provides no implementation. Automated extraction can cause inappropriate extraction.
 
-**Impact:** Manual extraction is error-prone and time-consuming.
+**Impact:** Need a balanced approach between automation and manual control.
 
 **Solution Provided:**
-I created detailed specifications for:
-- `MigrationExtractor` - Automated migration extraction
-- `CodeExtractor` - Model/Controller extraction with namespace updates
-- `ComponentExtractor` - React component bundling
+Manual-first extraction with analysis and validation tools (NOT automated extraction):
+- `DependencyAnalyzer` - Analyzes module dependencies for manual review
+- `ExtractionValidator` - Validates manual extraction after completion
+- Manual extraction workflow and checklist
+
+**Why Manual-First:**
+- Developer maintains full control over extraction decisions
+- Complex interdependencies are properly handled
+- Reduces risk of inappropriate automated extraction
+- Tooling provides guidance without making decisions
 
 **Example:**
 ```php
-class MigrationExtractor
+class DependencyAnalyzer
 {
-    public function extractMigrations(string $moduleCode): array
+    /**
+     * Analyze module dependencies - does NOT auto-extract
+     * Output: Report for manual review
+     */
+    public function analyzeModule(string $moduleCode): DependencyReport
     {
-        // 1. Identify module-related migrations
-        // 2. Extract to package structure
-        // 3. Update foreign keys
-        // 4. Generate rollback strategy
+        return new DependencyReport([
+            'migrations' => $this->findRelatedMigrations($moduleCode),
+            'models' => $this->findRelatedModels($moduleCode),
+            'relationships' => $this->mapRelationships($moduleCode),
+            'warnings' => $this->detectPotentialIssues($moduleCode),
+        ]);
     }
 }
 ```
@@ -222,17 +234,24 @@ class ModuleMigrationManager
 
 ### **Phase 1: Foundation (Weeks 1-3) - CRITICAL**
 
-**Week 1: Extraction Tooling**
-- [ ] Create `MigrationExtractor`
-- [ ] Create `CodeExtractor`
-- [ ] Create `ComponentExtractor`
-- [ ] Test extraction on HRM module
+**Week 1: Analysis & Validation Tools**
+- [ ] Create `DependencyAnalyzer` (analysis, not extraction)
+- [ ] Create `ExtractionValidator` (post-extraction validation)
+- [ ] Create manual extraction checklist
+- [ ] Document manual extraction workflow
 
-**Week 2: Package Structure**
-- [ ] Set up `packages/` directory
-- [ ] Create `aero-core` package
-- [ ] Extract HRM as proof-of-concept
-- [ ] Test standalone installation
+**Week 2: Manual Package Extraction**
+- [ ] Set up `packages/` directory structure
+- [ ] Manually analyze HRM dependencies
+- [ ] Manually extract HRM files
+- [ ] Update namespaces manually
+- [ ] Validate with `ExtractionValidator`
+
+**Week 3: Testing & Refinement**
+- [ ] Test extracted HRM in standalone mode
+- [ ] Fix issues from testing
+- [ ] Create `aero-core` manually
+- [ ] Document lessons learned
 
 **Week 3: Package Registry & Security**
 - [ ] Set up GitHub Packages
@@ -274,18 +293,19 @@ class ModuleMigrationManager
 
 ### **Immediate Actions (This Week)**
 
-1. **Start with Extraction Tooling**
-   - This is the foundation for everything else
-   - Without it, manual extraction is too risky
+1. **Start with Analysis Tools** *(Not automated extraction)*
+   - Build tools for analysis and validation
+   - Manual extraction maintains control
 
 2. **Set Up GitHub Packages**
    - Quick to implement
    - Provides immediate package distribution
    - Can migrate to Satis later
 
-3. **Extract HRM Module First**
+3. **Manually Extract HRM Module First**
    - Good proof-of-concept
-   - Not too complex
+   - Manual extraction ensures quality
+   - Use analysis tools for guidance
    - High standalone value
 
 ### **Short-term (Next Month)**
