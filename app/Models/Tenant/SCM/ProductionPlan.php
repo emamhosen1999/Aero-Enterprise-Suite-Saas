@@ -3,7 +3,7 @@
 namespace App\Models\Tenant\SCM;
 
 use App\Models\InventoryItem;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

@@ -2,7 +2,7 @@
 
 namespace App\Services\Platform\Monitoring\Tenant;
 
-use App\Models\ErrorLog;
+use App\Models\Platform\ErrorLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

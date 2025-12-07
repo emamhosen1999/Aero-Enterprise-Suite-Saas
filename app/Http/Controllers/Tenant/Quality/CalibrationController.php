@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant\Quality;
 
 use App\Http\Controllers\Controller;
-use App\Models\QualityCalibration;
-use App\Models\User;
+use App\Models\Tenant\Quality\QualityCalibration;
+use App\Models\Shared\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;

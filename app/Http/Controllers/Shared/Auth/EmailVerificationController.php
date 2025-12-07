@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Shared\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\ModernAuthenticationService;
+use App\Services\Shared\Auth\ModernAuthenticationService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;

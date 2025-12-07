@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\HRM\Employee;
 use App\Http\Controllers\Controller;
 use App\Models\HRM\EmployeeSalaryStructure;
 use App\Models\HRM\SalaryComponent;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;

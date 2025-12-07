@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\SCM;
 
 use App\Http\Controllers\Controller;
-use App\Models\HRM\Department;
+use App\Models\Tenant\HRM\Department;
 use App\Models\SCM\ProcurementRequest;
 use App\Models\SCM\ProcurementRequestItem;
 use Illuminate\Http\Request;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Platform\Billing\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\LandlordUser;
+use App\Models\Platform\LandlordUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

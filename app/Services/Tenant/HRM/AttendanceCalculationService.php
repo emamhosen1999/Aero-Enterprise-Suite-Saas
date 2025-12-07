@@ -2,9 +2,9 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Attendance;
-use App\Models\HRM\AttendanceSetting;
-use App\Models\User;
+use App\Models\Tenant\HRM\Attendance;
+use App\Models\Tenant\HRM\AttendanceSetting;
+use App\Models\Shared\User;
 use Carbon\Carbon;
 
 class AttendanceCalculationService

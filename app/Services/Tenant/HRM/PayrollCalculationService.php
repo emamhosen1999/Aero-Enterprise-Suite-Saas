@@ -2,10 +2,10 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Payroll;
+use App\Models\Tenant\HRM\Payroll;
 use App\Models\HRM\PayrollAllowance;
 use App\Models\HRM\PayrollDeduction;
-use App\Models\User;
+use App\Models\Shared\User;
 use Carbon\Carbon;
 
 class PayrollCalculationService

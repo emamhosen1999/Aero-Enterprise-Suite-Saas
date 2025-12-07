@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shared\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\Domain;
-use App\Services\CustomDomainService;
+use App\Models\Platform\Domain;
+use App\Services\Platform\Monitoring\Tenant\CustomDomainService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

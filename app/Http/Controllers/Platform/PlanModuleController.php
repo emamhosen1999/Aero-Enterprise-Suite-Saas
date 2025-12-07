@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
-use App\Models\Module;
-use App\Models\Plan;
+use App\Models\Shared\Module;
+use App\Models\Platform\Plan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

@@ -2,8 +2,8 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Holiday;
-use App\Models\HRM\Leave;
+use App\Models\Tenant\HRM\Holiday;
+use App\Models\Tenant\HRM\Leave;
 use App\Models\HRM\LeaveSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InventoryItem;
 use App\Models\SCM\ProductionPlan;
 use App\Models\SCM\ProductionPlanMaterial;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;

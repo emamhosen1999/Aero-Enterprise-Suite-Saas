@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shared\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\ErrorLog;
-use App\Services\ErrorLogService;
+use App\Models\Platform\ErrorLog;
+use App\Services\Platform\Monitoring\Tenant\ErrorLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

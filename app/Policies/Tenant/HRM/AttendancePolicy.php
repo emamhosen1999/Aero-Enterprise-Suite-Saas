@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\HRM;
 
-use App\Models\HRM\Attendance;
-use App\Models\User;
+use App\Models\Tenant\HRM\Attendance;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 
 class AttendancePolicy

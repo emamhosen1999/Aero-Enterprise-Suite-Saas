@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\LMS;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseCategory;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;

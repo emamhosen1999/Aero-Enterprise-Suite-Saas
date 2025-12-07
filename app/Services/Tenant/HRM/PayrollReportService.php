@@ -3,7 +3,7 @@
 namespace App\Services\Tenant\HRM;
 
 use App\Exports\PayrollReportExport;
-use App\Models\HRM\Payroll;
+use App\Models\Tenant\HRM\Payroll;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 

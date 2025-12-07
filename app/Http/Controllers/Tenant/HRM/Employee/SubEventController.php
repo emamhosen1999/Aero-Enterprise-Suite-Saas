@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
-use App\Models\Event;
+use App\Models\Tenant\HRM\Event;
 use App\Models\EventActivityLog;
 use App\Models\SubEvent;
 use Illuminate\Http\Request;

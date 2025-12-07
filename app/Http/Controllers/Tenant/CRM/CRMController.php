@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\CRM;
 
-use App\Services\CRMService;
+use App\Services\Tenant\CRM\CRMService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

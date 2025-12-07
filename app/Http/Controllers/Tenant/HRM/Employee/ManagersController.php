@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Shared\User;
 
 class ManagersController extends Controller
 {

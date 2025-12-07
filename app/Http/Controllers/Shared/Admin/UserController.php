@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Shared\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserCollection;
-use App\Models\HRM\Department;
-use App\Models\HRM\Designation;
-use App\Models\LandlordUser;
-use App\Models\User;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Tenant\HRM\Designation;
+use App\Models\Platform\LandlordUser;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

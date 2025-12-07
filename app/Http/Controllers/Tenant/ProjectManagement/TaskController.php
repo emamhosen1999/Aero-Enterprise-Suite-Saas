@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\ProjectManagement;
 
 use App\Models\Report;
-use App\Models\User;
+use App\Models\Shared\User;
 use App\Services\Task\TaskCrudService;
 use App\Services\Task\TaskImportService;
 use App\Services\Task\TaskNotificationService;

@@ -2,8 +2,8 @@
 
 namespace App\Services\Platform\Monitoring\Tenant;
 
-use App\Models\Domain;
-use App\Models\Tenant;
+use App\Models\Platform\Domain;
+use App\Models\Platform\Tenant;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 

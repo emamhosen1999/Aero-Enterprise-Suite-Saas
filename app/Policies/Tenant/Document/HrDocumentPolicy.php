@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\Document;
 
-use App\Models\HRM\HrDocument;
-use App\Models\User;
+use App\Models\Tenant\HRM\HrDocument;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 

@@ -2,7 +2,7 @@
 
 namespace App\Services\Platform\Monitoring\Billing;
 
-use App\Models\Tenant;
+use App\Models\Platform\Tenant;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 

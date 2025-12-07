@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\HR\UpdateEmployeeProfileRequest;
 use App\Models\HRM\EmergencyContact;
 use App\Models\HRM\EmployeeBankDetail;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

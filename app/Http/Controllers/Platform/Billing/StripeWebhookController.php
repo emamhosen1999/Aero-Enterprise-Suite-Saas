@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Platform\Billing;
 
-use App\Models\Plan;
-use App\Models\Subscription;
-use App\Models\Tenant;
+use App\Models\Platform\Plan;
+use App\Models\Platform\Subscription;
+use App\Models\Platform\Tenant;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierWebhookController;
 use Symfony\Component\HttpFoundation\Response;

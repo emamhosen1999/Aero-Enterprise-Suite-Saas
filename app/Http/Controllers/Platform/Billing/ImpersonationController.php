@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Platform\Billing;
 
 use App\Http\Controllers\Controller;
-use App\Models\PlatformSetting;
-use App\Models\Tenant;
-use App\Models\TenantImpersonationToken;
-use App\Models\User;
+use App\Models\Platform\PlatformSetting;
+use App\Models\Platform\Tenant;
+use App\Models\Platform\TenantImpersonationToken;
+use App\Models\Shared\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

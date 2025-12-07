@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\Compliance;
 use App\Http\Controllers\Controller;
 use App\Models\ComplianceDocument;
 use App\Models\ComplianceDocumentRevision;
-use App\Models\HRM\Department;
+use App\Models\Tenant\HRM\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;

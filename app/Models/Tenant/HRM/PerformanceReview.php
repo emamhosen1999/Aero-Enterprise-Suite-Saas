@@ -4,7 +4,7 @@ namespace App\Models\Tenant\HRM;
 
 use App\Models\PerformanceCompetencyScore;
 use App\Models\PerformanceGoal;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

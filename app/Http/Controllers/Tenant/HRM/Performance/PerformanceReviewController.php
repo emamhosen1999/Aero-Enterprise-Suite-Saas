@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Tenant\HRM\Performance;
 
 use App\Http\Controllers\Controller;
-use App\Models\HRM\Department;
-use App\Models\HRM\PerformanceReview;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Tenant\HRM\PerformanceReview;
 use App\Models\HRM\PerformanceReviewTemplate;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

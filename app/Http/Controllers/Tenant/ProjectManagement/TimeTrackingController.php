@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Tenant\ProjectManagement;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectTimeEntry;
-use App\Models\User;
+use App\Models\Shared\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

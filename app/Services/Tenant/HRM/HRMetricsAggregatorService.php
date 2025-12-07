@@ -2,11 +2,11 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Attendance;
-use App\Models\HRM\Job;
-use App\Models\HRM\JobApplication;
-use App\Models\HRM\Payroll;
-use App\Models\User;
+use App\Models\Tenant\HRM\Attendance;
+use App\Models\Tenant\HRM\Job;
+use App\Models\Tenant\HRM\JobApplication;
+use App\Models\Tenant\HRM\Payroll;
+use App\Models\Shared\User;
 use Illuminate\Support\Facades\DB;
 
 class HRMetricsAggregatorService

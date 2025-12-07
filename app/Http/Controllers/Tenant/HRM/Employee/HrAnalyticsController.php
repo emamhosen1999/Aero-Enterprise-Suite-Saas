@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\HRM\Department;
+use App\Models\Tenant\HRM\Department;
 use App\Services\HRMetricsAggregatorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

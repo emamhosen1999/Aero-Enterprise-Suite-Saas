@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
-use App\Models\HRM\Holiday;
+use App\Models\Tenant\HRM\Holiday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;

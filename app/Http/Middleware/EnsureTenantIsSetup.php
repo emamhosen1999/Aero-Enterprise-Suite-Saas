@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\Tenant\TenantOnboardingController;
-use App\Models\PlatformSetting;
-use App\Models\Tenant;
+use App\Models\Platform\PlatformSetting;
+use App\Models\Platform\Tenant;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Tenant\HRM\Attendance;
 
 use App\Exports\AttendanceAdminExport;
 use App\Exports\AttendanceExport;
-use App\Models\HRM\Attendance;
-use App\Models\HRM\AttendanceSetting;
-use App\Models\HRM\Holiday;
+use App\Models\Tenant\HRM\Attendance;
+use App\Models\Tenant\HRM\AttendanceSetting;
+use App\Models\Tenant\HRM\Holiday;
 use App\Models\HRM\LeaveSetting;
-use App\Models\User;
+use App\Models\Shared\User;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Carbon\Carbon;
 use Illuminate\Http\Request;

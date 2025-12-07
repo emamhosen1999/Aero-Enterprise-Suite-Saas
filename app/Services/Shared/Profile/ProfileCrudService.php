@@ -2,7 +2,7 @@
 
 namespace App\Services\Shared\Profile;
 
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileCrudService

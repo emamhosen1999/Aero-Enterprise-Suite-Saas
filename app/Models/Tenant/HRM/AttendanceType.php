@@ -2,7 +2,7 @@
 
 namespace App\Models\Tenant\HRM;
 
-use App\Models\User;
+use App\Models\Shared\User;
 use Database\Factories\AttendanceTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

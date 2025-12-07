@@ -2,7 +2,7 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Attendance;
+use App\Models\Tenant\HRM\Attendance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

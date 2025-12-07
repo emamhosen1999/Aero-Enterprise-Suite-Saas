@@ -2,12 +2,12 @@
 
 namespace App\Models\Shared;
 
-use App\Models\HRM\Attendance;
-use App\Models\HRM\AttendanceType;
-use App\Models\HRM\Department;
-use App\Models\HRM\Designation;
-use App\Models\HRM\Employee;
-use App\Models\HRM\Leave;
+use App\Models\Tenant\HRM\Attendance;
+use App\Models\Tenant\HRM\AttendanceType;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Tenant\HRM\Designation;
+use App\Models\Tenant\HRM\Employee;
+use App\Models\Tenant\HRM\Leave;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;

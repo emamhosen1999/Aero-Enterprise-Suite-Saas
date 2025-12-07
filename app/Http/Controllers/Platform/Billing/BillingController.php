@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Platform\Billing;
 
 use App\Http\Controllers\Controller;
-use App\Models\Plan;
-use App\Models\Tenant;
+use App\Models\Platform\Plan;
+use App\Models\Platform\Tenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

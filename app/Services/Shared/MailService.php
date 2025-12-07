@@ -2,8 +2,8 @@
 
 namespace App\Services\Shared;
 
-use App\Models\PlatformSetting;
-use App\Models\SystemSetting;
+use App\Models\Platform\PlatformSetting;
+use App\Models\Shared\SystemSetting;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;

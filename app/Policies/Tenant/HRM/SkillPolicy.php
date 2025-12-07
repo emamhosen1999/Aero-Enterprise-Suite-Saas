@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\HRM;
 
-use App\Models\Skill;
-use App\Models\User;
+use App\Models\Tenant\HRM\Skill;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 

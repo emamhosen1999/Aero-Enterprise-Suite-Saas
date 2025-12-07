@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\Quality;
 
-use App\Models\QualityInspection;
-use App\Models\User;
+use App\Models\Tenant\Quality\QualityInspection;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 

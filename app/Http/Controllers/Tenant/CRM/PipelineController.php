@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Tenant\CRM;
 
 use App\Http\Controllers\Controller;
 use App\Models\CRM\Pipeline;
-use App\Models\User;
+use App\Models\Shared\User;
 use App\Services\CRM\PipelineService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

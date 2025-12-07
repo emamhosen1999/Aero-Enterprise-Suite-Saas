@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Tenant\HRM\Leave;
 
 use App\Http\Requests\BulkLeaveRequest;
 use App\Http\Resources\LeaveResource;
-use App\Models\HRM\Department;
+use App\Models\Tenant\HRM\Department;
 use App\Services\Leave\BulkLeaveService;
 use App\Services\Leave\LeaveQueryService;
 use Illuminate\Http\JsonResponse;

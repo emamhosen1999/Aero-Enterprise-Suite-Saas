@@ -2,7 +2,7 @@
 
 namespace App\Services\Shared;
 
-use App\Models\SystemSetting;
+use App\Models\Shared\SystemSetting;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;

@@ -3,7 +3,7 @@
 namespace App\Services\Tenant;
 
 use App\Models\Tasks;
-use App\Models\User;
+use App\Models\Shared\User;
 use App\Models\WorkLocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -2,8 +2,8 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Payroll;
-use App\Models\HRM\Payslip;
+use App\Models\Tenant\HRM\Payroll;
+use App\Models\Tenant\HRM\Payslip;
 use App\Services\Mail\MailService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;

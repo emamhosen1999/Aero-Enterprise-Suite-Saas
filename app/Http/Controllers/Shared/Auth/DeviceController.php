@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Shared\Auth;
 
-use App\Models\User;
-use App\Services\DeviceAuthService;
+use App\Models\Shared\User;
+use App\Services\Shared\Auth\DeviceAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

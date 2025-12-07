@@ -2,7 +2,7 @@
 
 namespace App\Services\Shared\Notification;
 
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 

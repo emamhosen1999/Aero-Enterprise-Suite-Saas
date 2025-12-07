@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Shared\Profile;
 
-use App\Models\HRM\Department;
-use App\Models\HRM\Designation;
-use App\Models\User;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Tenant\HRM\Designation;
+use App\Models\Shared\User;
 use App\Services\Profile\ProfileCrudService;
 use App\Services\Profile\ProfileUpdateService;
 use App\Services\Profile\ProfileValidationService;

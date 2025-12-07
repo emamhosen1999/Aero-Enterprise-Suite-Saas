@@ -2,8 +2,8 @@
 
 namespace App\Services\Shared\Notification;
 
-use App\Models\PlatformSetting;
-use App\Models\SystemSetting;
+use App\Models\Platform\PlatformSetting;
+use App\Models\Shared\SystemSetting;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;

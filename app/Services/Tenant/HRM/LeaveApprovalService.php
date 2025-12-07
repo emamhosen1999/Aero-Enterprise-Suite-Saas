@@ -2,9 +2,9 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Employee;
-use App\Models\HRM\Leave;
-use App\Models\User;
+use App\Models\Tenant\HRM\Employee;
+use App\Models\Tenant\HRM\Leave;
+use App\Models\Shared\User;
 use App\Notifications\LeaveApprovalNotification;
 use App\Notifications\LeaveApprovedNotification;
 use App\Notifications\LeaveRejectedNotification;

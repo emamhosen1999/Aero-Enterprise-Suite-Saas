@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shared\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Services\ModernAuthenticationService;
+use App\Models\Shared\User;
+use App\Services\Shared\Auth\ModernAuthenticationService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

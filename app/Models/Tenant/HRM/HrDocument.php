@@ -2,8 +2,8 @@
 
 namespace App\Models\Tenant\HRM;
 
-use App\Models\DocumentCategory;
-use App\Models\User;
+use App\Models\Tenant\DMS\DocumentCategory;
+use App\Models\Shared\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

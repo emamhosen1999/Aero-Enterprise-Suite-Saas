@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\Document;
 
-use App\Models\Checklist;
-use App\Models\User;
+use App\Models\Tenant\HRM\Checklist;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 
 class ChecklistPolicy

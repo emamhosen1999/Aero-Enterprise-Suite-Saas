@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shared\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\HRM\AttendanceSetting;
-use App\Models\HRM\AttendanceType;
+use App\Models\Tenant\HRM\AttendanceSetting;
+use App\Models\Tenant\HRM\AttendanceType;
 use App\Services\Attendance\QrCodeValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;

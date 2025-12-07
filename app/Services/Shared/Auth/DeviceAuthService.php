@@ -2,8 +2,8 @@
 
 namespace App\Services\Shared\Auth;
 
-use App\Models\User;
-use App\Models\UserDevice;
+use App\Models\Shared\User;
+use App\Models\Shared\UserDevice;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

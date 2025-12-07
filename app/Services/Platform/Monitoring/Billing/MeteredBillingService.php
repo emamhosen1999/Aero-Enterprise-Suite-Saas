@@ -2,9 +2,9 @@
 
 namespace App\Services\Platform\Monitoring\Billing;
 
-use App\Models\Subscription;
-use App\Models\Tenant;
-use App\Models\UsageRecord;
+use App\Models\Platform\Subscription;
+use App\Models\Platform\Tenant;
+use App\Models\Platform\UsageRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

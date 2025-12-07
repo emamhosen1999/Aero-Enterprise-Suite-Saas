@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Tenant\Compliance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Compliance\RegulatoryRequirement;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

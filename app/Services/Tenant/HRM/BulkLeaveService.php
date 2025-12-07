@@ -2,9 +2,9 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Leave;
+use App\Models\Tenant\HRM\Leave;
 use App\Models\HRM\LeaveSetting;
-use App\Models\User;
+use App\Models\Shared\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

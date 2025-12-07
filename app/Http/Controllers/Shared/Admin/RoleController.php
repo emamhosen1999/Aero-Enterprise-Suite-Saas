@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shared\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\LandlordUser;
-use App\Models\User;
+use App\Models\Platform\LandlordUser;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;

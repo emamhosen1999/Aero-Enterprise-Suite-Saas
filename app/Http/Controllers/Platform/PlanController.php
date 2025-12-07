@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
-use App\Models\Plan;
+use App\Models\Platform\Plan;
 
 class PlanController extends Controller
 {

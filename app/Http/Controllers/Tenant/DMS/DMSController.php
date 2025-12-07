@@ -6,7 +6,7 @@ use App\Models\DMS\Category;
 use App\Models\DMS\Document;
 use App\Models\DMS\DocumentVersion;
 use App\Models\DMS\Folder;
-use App\Services\DMSService;
+use App\Services\Tenant\DMS\DMSService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

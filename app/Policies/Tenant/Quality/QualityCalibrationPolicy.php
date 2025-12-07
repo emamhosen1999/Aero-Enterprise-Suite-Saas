@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\Quality;
 
-use App\Models\QualityCalibration;
-use App\Models\User;
+use App\Models\Tenant\Quality\QualityCalibration;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 

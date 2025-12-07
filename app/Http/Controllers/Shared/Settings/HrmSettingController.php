@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Shared\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\Benefit;
-use App\Models\Checklist;
-use App\Models\Competency;
-use App\Models\DocumentCategory;
-use App\Models\OnboardingStep;
-use App\Models\SafetyIncident;
-use App\Models\SafetyTraining;
-use App\Models\Skill;
+use App\Models\Tenant\HRM\Benefit;
+use App\Models\Tenant\HRM\Checklist;
+use App\Models\Tenant\HRM\Competency;
+use App\Models\Tenant\DMS\DocumentCategory;
+use App\Models\Tenant\HRM\OnboardingStep;
+use App\Models\Tenant\HRM\SafetyIncident;
+use App\Models\Tenant\HRM\SafetyTraining;
+use App\Models\Tenant\HRM\Skill;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

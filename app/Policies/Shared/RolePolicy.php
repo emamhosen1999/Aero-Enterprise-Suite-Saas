@@ -2,7 +2,7 @@
 
 namespace App\Policies\Shared;
 
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Auth\Access\Response;
 use Spatie\Permission\Models\Role;
 

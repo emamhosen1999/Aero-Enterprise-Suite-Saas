@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Shared\Profile;
 
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

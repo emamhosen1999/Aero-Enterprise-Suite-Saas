@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\HRM\Holiday;
-use App\Models\HRM\Leave;
+use App\Models\Tenant\HRM\Holiday;
+use App\Models\Tenant\HRM\Leave;
 use App\Models\HRM\LeaveSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;

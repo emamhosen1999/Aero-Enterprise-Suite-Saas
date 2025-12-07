@@ -2,10 +2,10 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Department;
-use App\Models\HRM\Leave;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Tenant\HRM\Leave;
 use App\Models\HRM\LeaveSetting;
-use App\Models\User;
+use App\Models\Shared\User;
 use Carbon\Carbon;
 
 class LeaveSummaryService

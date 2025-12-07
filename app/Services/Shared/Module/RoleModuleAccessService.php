@@ -2,12 +2,12 @@
 
 namespace App\Services\Shared\Module;
 
-use App\Models\Module;
-use App\Models\ModuleComponent;
-use App\Models\ModuleComponentAction;
-use App\Models\Role;
-use App\Models\RoleModuleAccess;
-use App\Models\SubModule;
+use App\Models\Shared\Module;
+use App\Models\Shared\ModuleComponent;
+use App\Models\Shared\ModuleComponentAction;
+use App\Models\Shared\Role;
+use App\Models\Shared\RoleModuleAccess;
+use App\Models\Shared\SubModule;
 use Illuminate\Support\Facades\Cache;
 
 /**

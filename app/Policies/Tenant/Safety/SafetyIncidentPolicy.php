@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\Safety;
 
-use App\Models\SafetyIncident;
-use App\Models\User;
+use App\Models\Tenant\HRM\SafetyIncident;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 

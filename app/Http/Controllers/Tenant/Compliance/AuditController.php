@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Tenant\Compliance;
 use App\Http\Controllers\Controller;
 use App\Models\ComplianceAudit;
 use App\Models\ComplianceAuditFinding;
-use App\Models\HRM\Department;
-use App\Models\User;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Shared\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\IdentifyDomainContext;
-use App\Models\User;
-use App\Services\DeviceAuthService;
-use App\Services\ModernAuthenticationService;
+use App\Models\Shared\User;
+use App\Services\Shared\Auth\DeviceAuthService;
+use App\Services\Shared\Auth\ModernAuthenticationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

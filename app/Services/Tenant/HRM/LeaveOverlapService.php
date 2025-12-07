@@ -2,8 +2,8 @@
 
 namespace App\Services\Tenant\HRM;
 
-use App\Models\HRM\Holiday;
-use App\Models\HRM\Leave;
+use App\Models\Tenant\HRM\Holiday;
+use App\Models\Tenant\HRM\Leave;
 use Carbon\Carbon;
 
 class LeaveOverlapService

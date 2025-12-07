@@ -2,7 +2,7 @@
 
 namespace App\Services\Platform\Monitoring;
 
-use App\Models\Tenant;
+use App\Models\Platform\Tenant;
 use App\Services\Mail\MailService;
 use App\Services\Notifications\SmsGatewayService;
 use Illuminate\Support\Facades\Hash;

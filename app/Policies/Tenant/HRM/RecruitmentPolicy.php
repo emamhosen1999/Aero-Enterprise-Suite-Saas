@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\HRM;
 
-use App\Models\HRM\Job;
-use App\Models\User;
+use App\Models\Tenant\HRM\Job;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 
 class RecruitmentPolicy

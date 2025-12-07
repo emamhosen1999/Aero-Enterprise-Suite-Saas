@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\HRM\Payroll;
+use App\Models\Tenant\HRM\Payroll;
 use App\Models\HRM\PayrollAllowance;
 use App\Models\HRM\PayrollDeduction;
-use App\Models\HRM\Payslip;
-use App\Models\User;
-use App\Services\PayrollCalculationService;
-use App\Services\PayrollReportService;
-use App\Services\PayslipService;
+use App\Models\Tenant\HRM\Payslip;
+use App\Models\Shared\User;
+use App\Services\Tenant\HRM\PayrollCalculationService;
+use App\Services\Tenant\HRM\PayrollReportService;
+use App\Services\Tenant\HRM\PayslipService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

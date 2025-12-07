@@ -3,7 +3,7 @@
 namespace App\Services\Tenant;
 
 use App\Models\Tasks;
-use App\Models\User;
+use App\Models\Shared\User;
 use App\Notifications\PushNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;

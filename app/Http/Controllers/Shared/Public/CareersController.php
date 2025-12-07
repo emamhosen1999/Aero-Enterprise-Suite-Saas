@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Shared\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\HRM\Job;
-use App\Models\HRM\JobApplication;
+use App\Models\Tenant\HRM\Job;
+use App\Models\Tenant\HRM\JobApplication;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

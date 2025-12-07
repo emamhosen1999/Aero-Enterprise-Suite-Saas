@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Monitoring\Tenant;
 
-use App\Models\Plan;
-use App\Models\Tenant;
+use App\Models\Platform\Plan;
+use App\Models\Platform\Tenant;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 

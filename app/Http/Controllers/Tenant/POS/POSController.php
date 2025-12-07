@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Tenant\POS;
 
-use App\Services\POSService;
+use App\Services\Tenant\POS\POSService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

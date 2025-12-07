@@ -7,7 +7,7 @@ use App\Models\DMS\Document;
 use App\Models\DMS\DocumentAccessLog;
 use App\Models\DMS\DocumentShare;
 use App\Models\DMS\Folder;
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

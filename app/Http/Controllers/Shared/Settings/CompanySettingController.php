@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Shared\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\CompanySetting;
+use App\Models\Shared\CompanySetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

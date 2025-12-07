@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Tenant\HRM\Employee;
 
-use App\Models\HRM\AttendanceType;
-use App\Models\HRM\Department;
-use App\Models\HRM\Designation;
-use App\Models\HRM\Employee;
-use App\Models\User;
+use App\Models\Tenant\HRM\AttendanceType;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Tenant\HRM\Designation;
+use App\Models\Tenant\HRM\Employee;
+use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

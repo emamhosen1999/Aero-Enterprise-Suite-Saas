@@ -2,8 +2,8 @@
 
 namespace App\Services\Tenant\FMS;
 
-use App\Models\HRM\Department;
-use App\Models\User;
+use App\Models\Tenant\HRM\Department;
+use App\Models\Shared\User;
 
 class FMSService
 {

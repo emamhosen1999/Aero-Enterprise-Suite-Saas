@@ -2,8 +2,8 @@
 
 namespace App\Policies\Tenant\HRM;
 
-use App\Models\HRM\Designation;
-use App\Models\User;
+use App\Models\Tenant\HRM\Designation;
+use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 
 class DesignationPolicy

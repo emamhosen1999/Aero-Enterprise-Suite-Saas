@@ -2,7 +2,7 @@
 
 namespace App\Models\Tenant\CRM;
 
-use App\Models\User;
+use App\Models\Shared\User;
 use Illuminate\Database\Eloquent\Model;
 
 class PipelineAutomation extends Model

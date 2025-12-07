@@ -2,8 +2,8 @@
 
 namespace App\Policies\Concerns;
 
-use App\Models\User;
-use App\Services\Module\ModuleAccessService;
+use App\Models\Shared\User;
+use App\Services\Shared\Module\ModuleAccessService;
 
 /**
  * Trait ChecksModuleAccess

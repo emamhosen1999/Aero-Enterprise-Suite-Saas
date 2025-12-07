@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\HR;
 
-use App\Models\HRM\Onboarding;
+use App\Models\Tenant\HRM\Onboarding;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateOnboardingRequest extends FormRequest

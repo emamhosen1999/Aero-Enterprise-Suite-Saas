@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Platform\Webhooks;
 
 use App\Http\Controllers\Controller;
-use App\Models\Subscription;
+use App\Models\Platform\Subscription;
 use App\Services\Payment\SslCommerzService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
