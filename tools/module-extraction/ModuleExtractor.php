@@ -17,6 +17,7 @@ class ModuleExtractor
     protected string $packageName;
     protected string $namespace;
     protected string $outputPath;
+    protected string $basePath;
     protected array $config;
     protected array $extractedFiles = [];
 
@@ -25,7 +26,8 @@ class ModuleExtractor
         $this->moduleName = strtolower($moduleName);
         $this->packageName = "aero-modules/{$this->moduleName}";
         $this->namespace = $this->generateNamespace($moduleName);
-        $this->outputPath = $config['output_path'] ?? base_path("packages/aero-{$this->moduleName}");
+        $this->basePath = $config['base_path'] ?? realpath(__DIR__ . '/../..');
+        $this->outputPath = $config['output_path'] ?? $this->basePath . "/packages/aero-{$this->moduleName}";
         $this->config = array_merge($this->getDefaultConfig(), $config);
     }
 
@@ -366,5 +368,5 @@ class ModuleExtractor
     public function getNamespace(): string { return $this->namespace; }
     public function getOutputPath(): string { return $this->outputPath; }
     public function getConfig(string $key = null) { return $key ? ($this->config[$key] ?? null) : $this->config; }
-    public function getBasePath(): string { return base_path(); }
+    public function getBasePath(): string { return $this->basePath; }
 }

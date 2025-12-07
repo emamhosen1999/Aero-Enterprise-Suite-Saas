@@ -66,9 +66,9 @@ function parseArguments(array $argv): array
 /**
  * Display usage information
  */
-function displayUsage(): void
+function displayUsage()
 {
-    echo <<<USAGE
+    echo <<<'HELP'
 
 ╔════════════════════════════════════════════════════════════════════════╗
 ║                    MODULE EXTRACTION TOOL                              ║
@@ -113,60 +113,7 @@ AVAILABLE MODULES:
 
 For more information, visit: https://docs.aero.com/module-extraction
 
-
-USAGE;
-}
-
-/**
- * Main execution
- */
-function main(array $argv): int
-{
-    [$moduleName, $options] = parseArguments($argv);
-
-    // Check for help
-    if (isset($options['help']) || $moduleName === null) {
-        displayUsage();
-        return 0;
-    }
-
-    // Validate module name
-    if (empty($moduleName)) {
-        echo "❌ Error: Module name is required\n\n";
-        displayUsage();
-        return 1;
-    }
-
-    // Build configuration from options
-    $config = [];
-    if (isset($options['output'])) {
-        $config['output_path'] = $options['output'];
-    }
-
-    // Dry run mode
-    if (isset($options['dry-run'])) {
-        echo "🔍 DRY RUN MODE - No files will be created\n\n";
-        // TODO: Implement dry-run mode
-        return 0;
-    }
-
-    // Create extractor and run
-    try {
-        $extractor = new ModuleExtractor($moduleName, $config);
-        $result = $extractor->extract();
-
-        return 0;
-    } catch (\Exception $e) {
-        echo "\n❌ Extraction failed: " . $e->getMessage() . "\n";
-        echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
-        return 1;
-    }
-}
-
-// Execute
-exit(main($argv));
-
-USAGE;
+HELP;
 }
 
 /**

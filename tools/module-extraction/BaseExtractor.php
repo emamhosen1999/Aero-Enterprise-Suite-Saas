@@ -243,4 +243,14 @@ abstract class BaseExtractor
     {
         return str_replace($basePath . DIRECTORY_SEPARATOR, '', $fullPath);
     }
+
+    /**
+     * Ensure directory exists
+     */
+    protected function ensureDirectory(string $path): void
+    {
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+    }
 }
