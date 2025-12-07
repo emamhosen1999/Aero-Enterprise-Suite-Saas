@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Platform\Billing;
+namespace App\Http\Controllers\Platform\Webhooks;
 
 use App\Models\Platform\Plan;
 use App\Models\Platform\Subscription;

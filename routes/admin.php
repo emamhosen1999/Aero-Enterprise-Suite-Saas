@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Platform\MaintenanceController;
 use App\Http\Controllers\Platform\PlatformSettingController;
-use App\Http\Controllers\Platform\Billing\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Platform\Billing\ImpersonationController;
+use App\Http\Controllers\Platform\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Platform\Auth\ImpersonationController;
 use App\Http\Controllers\Shared\Platform\ModuleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;

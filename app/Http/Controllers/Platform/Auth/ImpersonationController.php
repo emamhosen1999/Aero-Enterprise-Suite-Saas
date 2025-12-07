@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Platform\Billing;
+namespace App\Http\Controllers\Platform\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Platform\PlatformSetting;

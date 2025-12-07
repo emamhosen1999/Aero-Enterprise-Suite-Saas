@@ -90,7 +90,7 @@ Route::get('/privacy', fn () => redirect('/legal/privacy'));
 Route::get('/terms', fn () => redirect('/legal/terms'));
 
 // Stripe Webhook (must be outside any auth middleware)
-Route::post('/stripe/webhook', [\App\Http\Controllers\Platform\Billing\StripeWebhookController::class, 'handleWebhook'])
+Route::post('/stripe/webhook', [\App\Http\Controllers\Platform\Webhooks\StripeWebhookController::class, 'handleWebhook'])
     ->name('stripe.webhook');
 
 // SSLCOMMERZ Payment Gateway Routes (IPN callbacks - must be outside CSRF protection)
