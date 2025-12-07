@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Compliance\AuditController;
-use App\Http\Controllers\Compliance\DocumentController;
-use App\Http\Controllers\Compliance\RequirementController;
+use App\Http\Controllers\Tenant\Compliance\AuditController;
+use App\Http\Controllers\Tenant\Compliance\DocumentController;
+use App\Http\Controllers\Tenant\Compliance\RequirementController;
 use Illuminate\Support\Facades\Route;
 
 // Compliance Routes

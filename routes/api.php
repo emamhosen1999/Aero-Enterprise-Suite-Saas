@@ -3,9 +3,9 @@
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\NotificationApiController;
 use App\Http\Controllers\Api\VersionController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Shared\Notification\NotificationController;
 use App\Http\Controllers\Platform\RegistrationPageController;
-use App\Http\Controllers\SystemMonitoringController;
+use App\Http\Controllers\Platform\SystemMonitoring\SystemMonitoringController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -134,31 +134,31 @@ Route::post('/check-subdomain', function (Request $request) {
 // ============================================================================
 Route::middleware(['web', 'auth'])->prefix('roles')->group(function () {
     // Role CRUD operations
-    Route::get('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'apiIndex'])->name('api.roles.index');
-    Route::post('/', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'storeRole'])->name('api.roles.store');
-    Route::get('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'apiShow'])->name('api.roles.show');
-    Route::put('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRole'])->name('api.roles.update');
-    Route::delete('/{id}', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'deleteRole'])->name('api.roles.destroy');
+    Route::get('/', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'apiIndex'])->name('api.roles.index');
+    Route::post('/', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'storeRole'])->name('api.roles.store');
+    Route::get('/{id}', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'apiShow'])->name('api.roles.show');
+    Route::put('/{id}', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'updateRole'])->name('api.roles.update');
+    Route::delete('/{id}', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'deleteRole'])->name('api.roles.destroy');
 
     // Role-Permission assignment
-    Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'batchUpdatePermissions'])->name('api.roles.permissions.batch');
-    Route::post('/{id}/permissions/sync', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'syncRolePermissions'])->name('api.roles.permissions.sync');
+    Route::patch('/{id}/permissions', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'batchUpdatePermissions'])->name('api.roles.permissions.batch');
+    Route::post('/{id}/permissions/sync', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'syncRolePermissions'])->name('api.roles.permissions.sync');
 
     // Role-Permission toggle operations
-    Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'togglePermission'])->name('api.roles.toggle-permission');
-    Route::post('/update-module', [\App\Http\Controllers\Shared\Admin\RoleController::class, 'updateRoleModule'])->name('api.roles.update-module');
+    Route::post('/toggle-permission', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'togglePermission'])->name('api.roles.toggle-permission');
+    Route::post('/update-module', [\App\Http\Controllers\Shared\Platform\RoleController::class, 'updateRoleModule'])->name('api.roles.update-module');
 });
 
 
 
 Route::middleware(['web', 'auth'])->prefix('users')->group(function () {
     // User-Role assignment
-    Route::get('/{id}/roles', [\App\Http\Controllers\UserController::class, 'getUserRoles'])->name('api.users.roles.index');
-    Route::post('/{id}/roles', [\App\Http\Controllers\UserController::class, 'updateUserRole'])->name('api.users.roles.sync');
+    Route::get('/{id}/roles', [\App\Http\Controllers\Shared\Auth\UserController::class, 'getUserRoles'])->name('api.users.roles.index');
+    Route::post('/{id}/roles', [\App\Http\Controllers\Shared\Auth\UserController::class, 'updateUserRole'])->name('api.users.roles.sync');
 
     // User-Permission direct assignment
-    Route::get('/{id}/permissions', [\App\Http\Controllers\UserController::class, 'getUserPermissions'])->name('api.users.permissions.index');
-    Route::post('/{id}/permissions', [\App\Http\Controllers\UserController::class, 'syncUserPermissions'])->name('api.users.permissions.sync');
-    Route::post('/{id}/permissions/give', [\App\Http\Controllers\UserController::class, 'giveUserPermission'])->name('api.users.permissions.give');
-    Route::post('/{id}/permissions/revoke', [\App\Http\Controllers\UserController::class, 'revokeUserPermission'])->name('api.users.permissions.revoke');
+    Route::get('/{id}/permissions', [\App\Http\Controllers\Shared\Auth\UserController::class, 'getUserPermissions'])->name('api.users.permissions.index');
+    Route::post('/{id}/permissions', [\App\Http\Controllers\Shared\Auth\UserController::class, 'syncUserPermissions'])->name('api.users.permissions.sync');
+    Route::post('/{id}/permissions/give', [\App\Http\Controllers\Shared\Auth\UserController::class, 'giveUserPermission'])->name('api.users.permissions.give');
+    Route::post('/{id}/permissions/revoke', [\App\Http\Controllers\Shared\Auth\UserController::class, 'revokeUserPermission'])->name('api.users.permissions.revoke');
 });

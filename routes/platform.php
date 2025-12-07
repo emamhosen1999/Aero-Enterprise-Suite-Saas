@@ -90,7 +90,7 @@ Route::get('/privacy', fn () => redirect('/legal/privacy'));
 Route::get('/terms', fn () => redirect('/legal/terms'));
 
 // Stripe Webhook (must be outside any auth middleware)
-Route::post('/stripe/webhook', [\App\Http\Controllers\Landlord\StripeWebhookController::class, 'handleWebhook'])
+Route::post('/stripe/webhook', [\App\Http\Controllers\Platform\Billing\StripeWebhookController::class, 'handleWebhook'])
     ->name('stripe.webhook');
 
 // SSLCOMMERZ Payment Gateway Routes (IPN callbacks - must be outside CSRF protection)
@@ -109,5 +109,5 @@ Route::prefix('sslcommerz')->name('sslcommerz.')->group(function () {
 });
 
 // Checkout routes (called from registration flow)
-Route::post('/checkout/{plan}', [\App\Http\Controllers\Landlord\BillingController::class, 'checkout'])
+Route::post('/checkout/{plan}', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'checkout'])
     ->name('platform.checkout');

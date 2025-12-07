@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ChunkedUploadController;
-use App\Http\Controllers\DMSController;
+use App\Http\Controllers\Tenant\DMS\DMSController;
 use Illuminate\Support\Facades\Route;
 
 // DMS (Document Management System) Routes

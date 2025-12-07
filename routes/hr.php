@@ -1,18 +1,18 @@
 <?php
 
-use App\Http\Controllers\HR\BenefitsController;
-use App\Http\Controllers\HR\EmployeeSelfServiceController;
-use App\Http\Controllers\HR\HrAnalyticsController;
-use App\Http\Controllers\HR\HrDocumentController;
-use App\Http\Controllers\HR\OnboardingController;
-use App\Http\Controllers\HR\PayrollController;
-use App\Http\Controllers\HR\PerformanceReviewController;
-use App\Http\Controllers\HR\RecruitmentController;
-use App\Http\Controllers\HR\SkillsController;
-use App\Http\Controllers\HR\TimeOffController;
-use App\Http\Controllers\HR\TimeOffManagementController;
-use App\Http\Controllers\HR\TrainingController;
-use App\Http\Controllers\HR\WorkplaceSafetyController;
+use App\Http\Controllers\Tenant\HRM\Employee\BenefitsController;
+use App\Http\Controllers\Tenant\HRM\Employee\EmployeeSelfServiceController;
+use App\Http\Controllers\Tenant\HRM\Employee\HrAnalyticsController;
+use App\Http\Controllers\Tenant\HRM\Employee\HrDocumentController;
+use App\Http\Controllers\Tenant\HRM\Employee\OnboardingController;
+use App\Http\Controllers\Tenant\HRM\Employee\PayrollController;
+use App\Http\Controllers\Tenant\HRM\Performance\PerformanceReviewController;
+use App\Http\Controllers\Tenant\HRM\Recruitment\RecruitmentController;
+use App\Http\Controllers\Tenant\HRM\Employee\SkillsController;
+use App\Http\Controllers\Tenant\HRM\Employee\TimeOffController;
+use App\Http\Controllers\Tenant\HRM\Employee\TimeOffManagementController;
+use App\Http\Controllers\Tenant\HRM\Employee\TrainingController;
+use App\Http\Controllers\Tenant\HRM\Employee\WorkplaceSafetyController;
 use Illuminate\Support\Facades\Route;
 
 // Human Resources Module Routes
@@ -346,65 +346,65 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
 
     // Employee Management - Core CRUD operations
     Route::middleware(['module:hrm,employees'])->group(function () {
-        Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('employees.index');
-        Route::get('/employees/paginate', [\App\Http\Controllers\EmployeeController::class, 'paginate'])->name('employees.paginate');
-        Route::get('/employees/stats', [\App\Http\Controllers\EmployeeController::class, 'stats'])->name('employees.stats');
-        Route::post('/employees', [\App\Http\Controllers\EmployeeController::class, 'store'])->name('employees.store');
-        Route::get('/employees/{id}', [\App\Http\Controllers\EmployeeController::class, 'show'])->name('employees.show');
-        Route::put('/employees/{id}', [\App\Http\Controllers\EmployeeController::class, 'update'])->name('employees.update');
-        Route::delete('/employees/{id}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])->name('employees.destroy');
-        Route::post('/employees/{id}/restore', [\App\Http\Controllers\EmployeeController::class, 'restore'])->name('employees.restore');
+        Route::get('/employees', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'index'])->name('employees.index');
+        Route::get('/employees/paginate', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
+        Route::get('/employees/stats', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
+        Route::post('/employees', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'store'])->name('employees.store');
+        Route::get('/employees/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'show'])->name('employees.show');
+        Route::put('/employees/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'update'])->name('employees.update');
+        Route::delete('/employees/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'destroy'])->name('employees.destroy');
+        Route::post('/employees/{id}/restore', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'restore'])->name('employees.restore');
     });
 
     // Employee Profile Management (Bank Details, Emergency Contacts)
     Route::middleware(['module:hrm,employees'])->prefix('employees/{user}')->name('employees.')->group(function () {
         // Profile Overview
-        Route::get('/profile', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'show'])->name('profile.show');
-        Route::get('/profile/edit', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'update'])->name('profile.update');
 
         // Bank Details
-        Route::get('/bank-details', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
-        Route::post('/bank-details/verify', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'verifyBankDetails'])
+        Route::get('/bank-details', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
+        Route::post('/bank-details/verify', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'verifyBankDetails'])
             ->middleware('module:hrm,employees,verify')
             ->name('bank-details.verify');
 
         // Emergency Contacts
-        Route::get('/emergency-contacts', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'getEmergencyContacts'])->name('emergency-contacts.index');
-        Route::post('/emergency-contacts', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'addEmergencyContact'])->name('emergency-contacts.store');
-        Route::delete('/emergency-contacts/{contact}', [\App\Http\Controllers\HR\EmployeeProfileController::class, 'deleteEmergencyContact'])->name('emergency-contacts.destroy');
+        Route::get('/emergency-contacts', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'getEmergencyContacts'])->name('emergency-contacts.index');
+        Route::post('/emergency-contacts', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'addEmergencyContact'])->name('emergency-contacts.store');
+        Route::delete('/emergency-contacts/{contact}', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeProfileController::class, 'deleteEmergencyContact'])->name('emergency-contacts.destroy');
 
         // Document Management
-        Route::get('/documents', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'index'])->name('documents.index');
-        Route::post('/documents', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'store'])->name('documents.store');
-        Route::get('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'show'])->name('documents.show');
-        Route::get('/documents/{document}/download', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'download'])->name('documents.download');
-        Route::put('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'update'])->name('documents.update');
-        Route::delete('/documents/{document}', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
-        Route::post('/documents/{document}/verify', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'verify'])
+        Route::get('/documents', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'index'])->name('documents.index');
+        Route::post('/documents', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'store'])->name('documents.store');
+        Route::get('/documents/{document}', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'show'])->name('documents.show');
+        Route::get('/documents/{document}/download', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'download'])->name('documents.download');
+        Route::put('/documents/{document}', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'update'])->name('documents.update');
+        Route::delete('/documents/{document}', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
+        Route::post('/documents/{document}/verify', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'verify'])
             ->middleware('module:hrm,documents,verify')
             ->name('documents.verify');
     });
 
     // Document Expiry Dashboard (HR Admin)
     Route::middleware(['module:hrm,documents'])->group(function () {
-        Route::get('/documents/expiring', [\App\Http\Controllers\HR\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
+        Route::get('/documents/expiring', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
     });
 
     // Salary Structure Management
     Route::middleware(['module:hrm,payroll'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\HR\SalaryStructureController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\HR\SalaryStructureController::class, 'store'])->name('store');
-        Route::put('/{id}', [\App\Http\Controllers\HR\SalaryStructureController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\HR\SalaryStructureController::class, 'destroy'])->name('destroy');
+        Route::get('/', [\App\Http\Controllers\Tenant\HRM\Employee\SalaryStructureController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Tenant\HRM\Employee\SalaryStructureController::class, 'store'])->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\SalaryStructureController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\SalaryStructureController::class, 'destroy'])->name('destroy');
 
         // Employee Salary Management
-        Route::get('/employee/{employeeId}', [\App\Http\Controllers\HR\SalaryStructureController::class, 'employeeSalary'])->name('employee.salary');
-        Route::post('/assign', [\App\Http\Controllers\HR\SalaryStructureController::class, 'assignToEmployee'])->name('assign');
-        Route::post('/calculate-preview', [\App\Http\Controllers\HR\SalaryStructureController::class, 'calculatePreview'])->name('calculate-preview');
+        Route::get('/employee/{employeeId}', [\App\Http\Controllers\Tenant\HRM\Employee\SalaryStructureController::class, 'employeeSalary'])->name('employee.salary');
+        Route::post('/assign', [\App\Http\Controllers\Tenant\HRM\Employee\SalaryStructureController::class, 'assignToEmployee'])->name('assign');
+        Route::post('/calculate-preview', [\App\Http\Controllers\Tenant\HRM\Employee\SalaryStructureController::class, 'calculatePreview'])->name('calculate-preview');
     });
 
     // Managers for dropdowns
-    Route::get('/managers', [\App\Http\Controllers\HR\ManagersController::class, 'index'])->name('managers.list');
+    Route::get('/managers', [\App\Http\Controllers\Tenant\HRM\Employee\ManagersController::class, 'index'])->name('managers.list');
 
 });

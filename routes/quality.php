@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Quality\CalibrationController;
-use App\Http\Controllers\Quality\InspectionController;
-use App\Http\Controllers\Quality\NCRController;
+use App\Http\Controllers\Tenant\Quality\CalibrationController;
+use App\Http\Controllers\Tenant\Quality\InspectionController;
+use App\Http\Controllers\Tenant\Quality\NCRController;
 use Illuminate\Support\Facades\Route;
 
 // Quality Routes
