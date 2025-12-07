@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import App from '@/Layouts/App';
+import App from '@/Shared/Layouts/App';
 import {
     Button,
     Card,

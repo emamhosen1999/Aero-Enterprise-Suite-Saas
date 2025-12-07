@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import App from '@/Layouts/App';
+import App from '@/Shared/Layouts/App';
 import {
     Card,
     CardBody,

@@ -27,7 +27,7 @@ import {
     DocumentArrowDownIcon,
     PlusIcon,
 } from '@heroicons/react/24/outline';
-import App from '@/Layouts/App';
+import App from '@/Shared/Layouts/App';
 // Permission checks removed - using role-based access via middleware
 
 const TaxReturns = () => {

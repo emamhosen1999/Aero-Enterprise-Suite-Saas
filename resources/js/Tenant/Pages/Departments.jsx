@@ -41,7 +41,7 @@ import App from '@/Layouts/App.jsx';
 import DepartmentTable from '@/Tables/DepartmentTable.jsx';
 import DepartmentForm from '@/Forms/DepartmentForm.jsx';
 import DeleteDepartmentForm from '@/Forms/DeleteDepartmentForm.jsx';
-import { useTheme } from '@/Contexts/ThemeContext';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import dayjs from 'dayjs';

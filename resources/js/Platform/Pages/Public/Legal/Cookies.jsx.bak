@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardBody, Chip } from '@heroui/react';
 import { cookieCategories } from '@/constants/marketing';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
+import PublicLayout from '@/Layouts/PublicLayout';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 
 const Cookies = () => {

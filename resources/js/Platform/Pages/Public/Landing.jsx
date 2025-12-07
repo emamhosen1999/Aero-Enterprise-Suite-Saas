@@ -20,7 +20,7 @@ import {
   testimonialSlides,
   demoStats,
 } from '@/constants/marketing';
-import PublicLayout from '@/Layouts/PublicLayout';
+import PublicLayout from '@/Shared/Layouts/PublicLayout';
 
 const iconMap = {
   people: (

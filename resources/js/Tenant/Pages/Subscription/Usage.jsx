@@ -32,7 +32,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import App from '@/Layouts/App';
+import App from '@/Shared/Layouts/App';
 
 // Register ChartJS components
 ChartJS.register(

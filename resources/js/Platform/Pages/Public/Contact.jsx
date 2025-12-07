@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link, Head } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip, Input, Select, SelectItem, Textarea } from '@heroui/react';
-import PublicLayout from '@/Layouts/PublicLayout';
+import PublicLayout from '@/Shared/Layouts/PublicLayout';
 import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { supportChannels } from '@/constants/marketing';
 import { useBranding } from '@/Hooks/useBranding';

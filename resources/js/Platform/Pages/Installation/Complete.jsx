@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import InstallationLayout from '@/Layouts/InstallationLayout';
+import InstallationLayout from '@/Shared/Layouts/InstallationLayout';
 import { Card, CardBody, Button } from '@heroui/react';
 import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 

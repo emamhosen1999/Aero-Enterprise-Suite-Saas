@@ -8,7 +8,7 @@ import {
     ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { Button, Card, Spinner } from '@heroui/react';
-import { useTheme } from '@/Contexts/ThemeContext';
+import { useTheme } from '@/Shared/Context/ThemeContext';
 import { useBranding } from '@/Hooks/useBranding';
 
 /**

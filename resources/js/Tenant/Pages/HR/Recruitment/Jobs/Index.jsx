@@ -34,7 +34,7 @@ import {
     XCircleIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App.jsx';
-import PageHeader from '@/Components/PageHeader';
+import PageHeader from '@/Shared/Components/Common/PageHeader';
 import { showToast } from '@/utils/toastUtils';
 
 /**
