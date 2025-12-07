@@ -3,9 +3,9 @@
 namespace AeroModules\Hrm\Services;
 
 use AeroModules\Hrm\Models\Leave;
-use App\Models\HRM\LeaveBalance;
-use App\Models\HRM\LeaveSetting;
-use App\Models\Shared\User;
+use AeroModules\Hrm\Models\LeaveBalance;
+use AeroModules\Hrm\Models\LeaveSetting;
+use AeroModules\Core\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

@@ -3,7 +3,7 @@
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
 use AeroModules\Hrm\Models\Letter;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

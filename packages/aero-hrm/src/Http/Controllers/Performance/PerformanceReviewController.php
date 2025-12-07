@@ -2,11 +2,11 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Performance;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Models\Department;
 use AeroModules\Hrm\Models\PerformanceReview;
-use App\Models\HRM\PerformanceReviewTemplate;
-use App\Models\Shared\User;
+use AeroModules\Hrm\Models\PerformanceReviewTemplate;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

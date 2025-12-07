@@ -4,8 +4,8 @@ namespace AeroModules\Hrm\Services;
 
 use AeroModules\Hrm\Models\Department;
 use AeroModules\Hrm\Models\Leave;
-use App\Models\HRM\LeaveSetting;
-use App\Models\Shared\User;
+use AeroModules\Hrm\Models\LeaveSetting;
+use AeroModules\Core\Models\User;
 use Carbon\Carbon;
 
 class LeaveSummaryService

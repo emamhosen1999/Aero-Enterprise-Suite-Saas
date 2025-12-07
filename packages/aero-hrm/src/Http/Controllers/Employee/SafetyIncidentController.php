@@ -2,11 +2,11 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Models\Department;
 use AeroModules\Hrm\Models\SafetyIncident;
 use AeroModules\Hrm\Models\SafetyIncidentParticipant;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

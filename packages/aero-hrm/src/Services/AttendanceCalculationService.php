@@ -4,7 +4,7 @@ namespace AeroModules\Hrm\Services;
 
 use AeroModules\Hrm\Models\Attendance;
 use AeroModules\Hrm\Models\AttendanceSetting;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use Carbon\Carbon;
 
 class AttendanceCalculationService

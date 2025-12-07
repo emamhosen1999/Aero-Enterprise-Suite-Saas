@@ -2,7 +2,7 @@
 
 namespace AeroModules\Hrm\Services;
 
-use App\Models\HRM\TaxSlab;
+use AeroModules\Hrm\Models\TaxSlab;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 

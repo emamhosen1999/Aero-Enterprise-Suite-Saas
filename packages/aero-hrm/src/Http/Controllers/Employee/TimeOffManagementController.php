@@ -2,10 +2,10 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Models\Holiday;
 use AeroModules\Hrm\Models\Leave;
-use App\Models\HRM\LeaveSetting;
+use AeroModules\Hrm\Models\LeaveSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

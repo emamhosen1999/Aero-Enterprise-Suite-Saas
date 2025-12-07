@@ -3,7 +3,7 @@
 namespace AeroModules\Hrm\Services;
 
 use AeroModules\Hrm\Models\Leave;
-use App\Models\HRM\LeaveSetting;
+use AeroModules\Hrm\Models\LeaveSetting;
 use Carbon\Carbon;
 
 class LeaveCrudService

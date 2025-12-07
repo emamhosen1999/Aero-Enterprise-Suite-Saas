@@ -6,7 +6,7 @@ use AeroModules\Hrm\Models\AttendanceType;
 use AeroModules\Hrm\Models\Department;
 use AeroModules\Hrm\Models\Designation;
 use AeroModules\Hrm\Models\Employee;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

@@ -2,13 +2,13 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Recruitment;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Models\Department;
 use AeroModules\Hrm\Models\Job;
 use AeroModules\Hrm\Models\JobApplication;
-use App\Models\HRM\JobHiringStage;
-use App\Models\HRM\JobInterview;
-use App\Models\Shared\User;
+use AeroModules\Hrm\Models\JobHiringStage;
+use AeroModules\Hrm\Models\JobInterview;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

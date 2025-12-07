@@ -3,7 +3,7 @@
 namespace AeroModules\Hrm\Policies;
 
 use AeroModules\Hrm\Models\Job;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 
 class RecruitmentPolicy

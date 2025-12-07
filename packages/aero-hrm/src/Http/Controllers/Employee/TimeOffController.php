@@ -2,7 +2,7 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

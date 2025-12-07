@@ -2,10 +2,10 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Http\Requests\StoreEmployeeDocumentRequest;
-use App\Models\HRM\EmployeePersonalDocument;
-use App\Models\Shared\User;
+use AeroModules\Hrm\Models\EmployeePersonalDocument;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

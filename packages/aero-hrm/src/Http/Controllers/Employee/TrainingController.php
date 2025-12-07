@@ -2,13 +2,13 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Models\Department;
 use AeroModules\Hrm\Models\Training;
-use App\Models\HRM\TrainingCategory;
-use App\Models\HRM\TrainingEnrollment;
-use App\Models\HRM\TrainingMaterial;
-use App\Models\Shared\User;
+use AeroModules\Hrm\Models\TrainingCategory;
+use AeroModules\Hrm\Models\TrainingEnrollment;
+use AeroModules\Hrm\Models\TrainingMaterial;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

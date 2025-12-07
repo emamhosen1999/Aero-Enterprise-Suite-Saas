@@ -6,7 +6,7 @@ use AeroModules\Hrm\Models\Attendance;
 use AeroModules\Hrm\Models\Job;
 use AeroModules\Hrm\Models\JobApplication;
 use AeroModules\Hrm\Models\Payroll;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class HRMetricsAggregatorService

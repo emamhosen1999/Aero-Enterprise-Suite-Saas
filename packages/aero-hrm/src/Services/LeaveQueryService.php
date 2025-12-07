@@ -4,7 +4,7 @@ namespace AeroModules\Hrm\Services;
 
 use AeroModules\Hrm\Models\Holiday;
 use AeroModules\Hrm\Models\Leave;
-use App\Models\HRM\LeaveSetting;
+use AeroModules\Hrm\Models\LeaveSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

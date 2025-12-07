@@ -2,12 +2,12 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Models\Payroll;
-use App\Models\HRM\PayrollAllowance;
-use App\Models\HRM\PayrollDeduction;
+use AeroModules\Hrm\Models\PayrollAllowance;
+use AeroModules\Hrm\Models\PayrollDeduction;
 use AeroModules\Hrm\Models\Payslip;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use AeroModules\Hrm\Services\PayrollCalculationService;
 use AeroModules\Hrm\Services\PayrollReportService;
 use AeroModules\Hrm\Services\PayslipService;

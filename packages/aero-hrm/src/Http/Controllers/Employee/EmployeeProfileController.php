@@ -2,11 +2,11 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Http\Requests\UpdateEmployeeProfileRequest;
-use App\Models\HRM\EmergencyContact;
-use App\Models\HRM\EmployeeBankDetail;
-use App\Models\Shared\User;
+use AeroModules\Hrm\Models\EmergencyContact;
+use AeroModules\Hrm\Models\EmployeeBankDetail;
+use AeroModules\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

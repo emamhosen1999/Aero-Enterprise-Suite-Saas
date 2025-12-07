@@ -2,19 +2,19 @@
 
 namespace AeroModules\Hrm\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
+use AeroModules\Core\Http\Controllers\Controller;
 use AeroModules\Hrm\Http\Requests\StoreOffboardingRequest;
 use AeroModules\Hrm\Http\Requests\StoreOnboardingRequest;
 use AeroModules\Hrm\Http\Requests\UpdateOffboardingRequest;
 use AeroModules\Hrm\Http\Requests\UpdateOnboardingRequest;
 use AeroModules\Hrm\Models\Checklist;
 use AeroModules\Hrm\Models\Offboarding;
-use App\Models\HRM\OffboardingTask;
+use AeroModules\Hrm\Models\OffboardingTask;
 use AeroModules\Hrm\Models\Onboarding;
-use App\Models\HRM\OnboardingTask;
+use AeroModules\Hrm\Models\OnboardingTask;
 use AeroModules\Hrm\Models\OffboardingStep;
 use AeroModules\Hrm\Models\OnboardingStep;
-use App\Models\Shared\User;
+use AeroModules\Core\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
