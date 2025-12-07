@@ -8,6 +8,7 @@ import { useTheme } from '@/Contexts/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils';
 import ProgressSteps from './components/ProgressSteps.jsx';
+import CancelRegistrationButton from './components/CancelRegistrationButton.jsx';
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 
 export default function VerifyEmail({ steps = [], currentStep, savedData = {}, email = '', companyName = '' }) {
@@ -288,13 +289,16 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
               {isVerifying ? 'Verifying...' : 'Verify Email'}
             </Button>
 
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <p className={`text-xs ${palette.copy}`}>
                 Didn't receive the code? Check your spam folder or{' '}
                 <button onClick={handleSendCode} disabled={countdown > 0 || isSending} className={palette.link}>
                   resend it
                 </button>
               </p>
+              <div className="pt-2 border-t border-divider">
+                <CancelRegistrationButton variant="light" size="sm" />
+              </div>
             </div>
           </div>
         </AuthCard>

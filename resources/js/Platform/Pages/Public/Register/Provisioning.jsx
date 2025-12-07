@@ -319,21 +319,36 @@ export default function Provisioning({
 
                 <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                   <Button
-                    as="a"
-                    href="mailto:support@eos365.com"
                     color="primary"
+                    onPress={() => {
+                      // Call retry endpoint
+                      fetch(route('platform.register.provisioning.retry', { tenant: tenant.id }), {
+                        method: 'POST',
+                        headers: {
+                          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                          'Accept': 'application/json',
+                        },
+                      })
+                      .then(() => {
+                        showToast.success('Retrying provisioning...');
+                        setStatus('provisioning');
+                        setError(null);
+                      })
+                      .catch((err) => {
+                        showToast.error('Failed to retry. Please contact support.');
+                      });
+                    }}
                     className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto"
                   >
-                    Contact Support
+                    Retry Provisioning
                   </Button>
                   <Button
-                    as={Link}
-                    href={route('platform.register')}
+                    as="a"
+                    href="mailto:support@eos365.com"
                     variant="bordered"
-                    color="secondary"
                     className="w-full sm:w-auto"
                   >
-                    Try Again
+                    Contact Support
                   </Button>
                 </div>
                 <p className="mt-3 sm:mt-4 text-center text-xs sm:text-sm text-default-500 px-2">
