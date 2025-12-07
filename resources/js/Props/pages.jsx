@@ -810,9 +810,9 @@ export const getPages = (roles, permissions, auth = null) => {
         {
           name: 'Dashboard',
           icon: <HomeIcon />,
-          access: 'finance.dashboard',
+          access: 'finance.accounting-dashboard',
           subMenu: [
-            { name: 'Accounting Dashboard', icon: <ChartBarSquareIcon />, route: 'finance.dashboard.index', access: 'finance.dashboard.accounting-dashboard.view' },
+            { name: 'Accounting Dashboard', icon: <ChartBarSquareIcon />, route: 'finance.dashboard.index', access: 'finance.accounting-dashboard.view' },
           ]
         },
 
@@ -1570,27 +1570,27 @@ export const getPages = (roles, permissions, auth = null) => {
         {
           name: 'Customer Analytics',
           icon: <UserGroupIcon />,
-          access: 'analytics.customer-analytics',
+          access: 'analytics.customers',
           subMenu: [
-            { name: 'Customer Segments', icon: <UsersIcon />, route: 'analytics.customer.segments', access: 'analytics.customer-analytics.segments.view' },
-            { name: 'Cohort Analysis', icon: <UserGroupIcon />, route: 'analytics.customer.cohorts', access: 'analytics.customer-analytics.cohorts.view' },
-            { name: 'RFM Analysis', icon: <ChartBarSquareIcon />, route: 'analytics.customer.rfm', access: 'analytics.customer-analytics.rfm-analysis.view' },
-            { name: 'User Journeys', icon: <ArrowPathIcon />, route: 'analytics.customer.journeys', access: 'analytics.customer-analytics.user-journeys.view' },
-            { name: 'Churn Prediction', icon: <ExclamationTriangleIcon />, route: 'analytics.customer.churn-prediction', access: 'analytics.customer-analytics.churn-prediction.view' },
-            { name: 'Inactive Users', icon: <UserIcon />, route: 'analytics.customer.inactive', access: 'analytics.customer-analytics.inactive-users.view' },
+            { name: 'Customer Segments', icon: <UsersIcon />, route: 'analytics.customer.segments', access: 'analytics.customers.segments.view' },
+            { name: 'Cohort Analysis', icon: <UserGroupIcon />, route: 'analytics.customer.cohorts', access: 'analytics.customers.cohorts.view' },
+            { name: 'RFM Analysis', icon: <ChartBarSquareIcon />, route: 'analytics.customer.rfm', access: 'analytics.customers.rfm-analysis.view' },
+            { name: 'User Journeys', icon: <ArrowPathIcon />, route: 'analytics.customer.journeys', access: 'analytics.customers.user-journeys.view' },
+            { name: 'Churn Prediction', icon: <ExclamationTriangleIcon />, route: 'analytics.customer.churn-prediction', access: 'analytics.customers.churn-prediction.view' },
+            { name: 'Inactive Users', icon: <UserIcon />, route: 'analytics.customer.inactive', access: 'analytics.customers.inactive-users.view' },
           ]
         },
         // 9.8 Operational Analytics
         {
           name: 'Operational',
           icon: <ClipboardDocumentCheckIcon />,
-          access: 'analytics.operational-analytics',
+          access: 'analytics.operations',
           subMenu: [
-            { name: 'SLA Compliance', icon: <ShieldCheckIcon />, route: 'analytics.operational.sla', access: 'analytics.operational-analytics.sla-compliance.view' },
-            { name: 'Support Performance', icon: <TicketIcon />, route: 'analytics.operational.support', access: 'analytics.operational-analytics.support-performance.view' },
-            { name: 'ERP KPIs', icon: <CalculatorIcon />, route: 'analytics.operational.erp-kpis', access: 'analytics.operational-analytics.erp-kpis.view' },
-            { name: 'Fulfillment Metrics', icon: <TruckIcon />, route: 'analytics.operational.fulfillment', access: 'analytics.operational-analytics.fulfillment-metrics.view' },
-            { name: 'HR Analytics', icon: <UserGroupIcon />, route: 'analytics.operational.hr', access: 'analytics.operational-analytics.hr-analytics.view' },
+            { name: 'SLA Compliance', icon: <ShieldCheckIcon />, route: 'analytics.operational.sla', access: 'analytics.operations.sla-compliance.view' },
+            { name: 'Support Performance', icon: <TicketIcon />, route: 'analytics.operational.support', access: 'analytics.operations.support-performance.view' },
+            { name: 'ERP KPIs', icon: <CalculatorIcon />, route: 'analytics.operational.erp-kpis', access: 'analytics.operations.erp-kpis.view' },
+            { name: 'Fulfillment Metrics', icon: <TruckIcon />, route: 'analytics.operational.fulfillment', access: 'analytics.operations.fulfillment-metrics.view' },
+            { name: 'HR Analytics', icon: <UserGroupIcon />, route: 'analytics.operational.hr', access: 'analytics.operations.hr-analytics.view' },
           ]
         },
         // 9.9 Custom Reports

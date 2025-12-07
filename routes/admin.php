@@ -584,6 +584,10 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Admin/Analytics/Performance');
         })->middleware(['module:platform-analytics,system-performance'])->name('performance');
 
+        Route::get('/reports', function () {
+            return Inertia::render('Admin/Analytics/Reports');
+        })->middleware(['module:platform-analytics,platform-reports'])->name('reports');
+
         // Module Analytics API
         Route::get('/modules', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'index'])
             ->middleware(['module:platform-analytics,usage-analytics'])
@@ -594,6 +598,47 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/modules-trends', [\App\Http\Controllers\Admin\ModuleAnalyticsController::class, 'trends'])
             ->middleware(['module:platform-analytics,usage-analytics,feature-usage,view'])
             ->name('modules.trends');
+    });
+
+    // =========================================================================
+    // 14. PLATFORM ONBOARDING MODULE (platform-onboarding)
+    // Access: platform-onboarding, platform-onboarding.registration-dashboard, etc.
+    // =========================================================================
+    Route::middleware(['module:platform-onboarding'])->prefix('onboarding')->name('admin.onboarding.')->group(function () {
+        // 14.1 Registration Dashboard
+        Route::get('/', function () {
+            return Inertia::render('Admin/Onboarding/Dashboard');
+        })->middleware(['module:platform-onboarding,registration-dashboard'])->name('dashboard');
+
+        // 14.2 Pending Registrations
+        Route::get('/pending', function () {
+            return Inertia::render('Admin/Onboarding/Pending');
+        })->middleware(['module:platform-onboarding,pending-registrations'])->name('pending');
+
+        // 14.3 Provisioning Queue
+        Route::get('/provisioning', function () {
+            return Inertia::render('Admin/Onboarding/Provisioning');
+        })->middleware(['module:platform-onboarding,provisioning-queue'])->name('provisioning');
+
+        // 14.4 Trial Management
+        Route::get('/trials', function () {
+            return Inertia::render('Admin/Onboarding/Trials');
+        })->middleware(['module:platform-onboarding,trial-management'])->name('trials');
+
+        // 14.5 Welcome Automation
+        Route::get('/automation', function () {
+            return Inertia::render('Admin/Onboarding/Automation');
+        })->middleware(['module:platform-onboarding,welcome-automation'])->name('automation');
+
+        // 14.6 Onboarding Analytics
+        Route::get('/analytics', function () {
+            return Inertia::render('Admin/Onboarding/Analytics');
+        })->middleware(['module:platform-onboarding,onboarding-analytics'])->name('analytics');
+
+        // 14.7 Settings
+        Route::get('/settings', function () {
+            return Inertia::render('Admin/Onboarding/Settings');
+        })->middleware(['module:platform-onboarding,onboarding-settings'])->name('settings');
     });
 
     // =========================================================================

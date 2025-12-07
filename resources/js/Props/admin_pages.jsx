@@ -487,6 +487,12 @@ export const getAdminPages = (auth = null) => {
           access: 'platform-analytics.system-performance',
           route: 'admin.analytics.performance',
         },
+        {
+          name: 'Platform Reports',
+          icon: <DocumentTextIcon className="" />,
+          access: 'platform-analytics.platform-reports',
+          route: 'admin.analytics.reports',
+        },
       ],
     },
 
@@ -531,6 +537,12 @@ export const getAdminPages = (auth = null) => {
           icon: <PuzzlePieceIcon className="" />,
           access: 'platform-integrations.third-party-apps',
           route: 'admin.integrations.apps',
+        },
+        {
+          name: 'Integration Logs',
+          icon: <ClipboardDocumentListIcon className="" />,
+          access: 'platform-integrations.integration-logs',
+          route: 'admin.integrations.logs',
         },
       ],
     },
