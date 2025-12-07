@@ -3,7 +3,7 @@
 namespace Tests\Feature\Platform;
 
 use App\Jobs\ProvisionTenant;
-use App\Models\Tenant;
+use App\Models\Platform\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Queue;

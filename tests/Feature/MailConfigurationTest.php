@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PlatformSetting;
-use App\Models\Tenant;
+use App\Models\Platform\Tenant;
 use App\Notifications\TenantProvisioningFailed;
 use App\Notifications\WelcomeToTenant;
 use App\Services\Mail\MailService;

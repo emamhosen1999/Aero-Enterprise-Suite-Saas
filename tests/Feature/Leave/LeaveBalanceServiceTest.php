@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Leave;
 
-use App\Models\HRM\LeaveBalance;
-use App\Models\HRM\LeaveSetting;
-use App\Models\User;
+use App\Models\Tenant\HRM$1
+use App\Models\Tenant\HRM$1
+use App\Models\Shared\User;
 use App\Services\Leave\LeaveBalanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
