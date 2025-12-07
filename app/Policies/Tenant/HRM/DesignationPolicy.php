@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\HRM;
 
-use App\Models\HRM\Department;
+use App\Models\HRM\Designation;
 use App\Models\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 
-class DepartmentPolicy
+class DesignationPolicy
 {
     use ChecksModuleAccess;
 
@@ -20,22 +20,22 @@ class DepartmentPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.departments.view
-        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'view');
+        // Check module access: hrm.employees.designations.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'designations', 'view');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Department $department): bool
+    public function view(User $user, Designation $designation): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Check module access: hrm.employees.departments.view
-        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'view');
+        // Check module access: hrm.employees.designations.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'designations', 'view');
     }
 
     /**
@@ -48,35 +48,35 @@ class DepartmentPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.departments.create
-        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'create');
+        // Check module access: hrm.employees.designations.create
+        return $this->canPerformAction($user, 'hrm', 'employees', 'designations', 'create');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Department $department): bool
+    public function update(User $user, Designation $designation): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Check module access: hrm.employees.departments.update
-        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'update');
+        // Check module access: hrm.employees.designations.update
+        return $this->canPerformAction($user, 'hrm', 'employees', 'designations', 'update');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Department $department): bool
+    public function delete(User $user, Designation $designation): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Check module access: hrm.employees.departments.delete
-        return $this->canPerformAction($user, 'hrm', 'employees', 'departments', 'delete');
+        // Check module access: hrm.employees.designations.delete
+        return $this->canPerformAction($user, 'hrm', 'employees', 'designations', 'delete');
     }
 }

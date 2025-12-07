@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\Document;
 
-use App\Models\Competency;
+use App\Models\DocumentCategory;
 use App\Models\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class CompetencyPolicy
+class DocumentCategoryPolicy
 {
     use ChecksModuleAccess, HandlesAuthorization;
 
@@ -21,22 +21,22 @@ class CompetencyPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.view
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
+        // Check module access: hrm.employees.employee-documents.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'view');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Competency $competency): bool
+    public function view(User $user, DocumentCategory $documentCategory): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.view
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
+        // Check module access: hrm.employees.employee-documents.view
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'view');
     }
 
     /**
@@ -49,50 +49,50 @@ class CompetencyPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.create
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
+        // Check module access: hrm.employees.employee-documents.manage
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'manage');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Competency $competency): bool
+    public function update(User $user, DocumentCategory $documentCategory): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
+        // Check module access: hrm.employees.employee-documents.manage
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'manage');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Competency $competency): bool
+    public function delete(User $user, DocumentCategory $documentCategory): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.delete
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'delete');
+        // Check module access: hrm.employees.employee-documents.manage
+        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-documents', 'manage');
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Competency $competency): bool
+    public function restore(User $user, DocumentCategory $documentCategory): bool
     {
-        return $this->delete($user, $competency);
+        return $this->delete($user, $documentCategory);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Competency $competency): bool
+    public function forceDelete(User $user, DocumentCategory $documentCategory): bool
     {
         return $this->isSuperAdmin($user);
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\HRM;
 
 use App\Models\HRM\Onboarding;
 use App\Models\User;

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\Safety;
 
-use App\Models\Benefit;
+use App\Models\SafetyTraining;
 use App\Models\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class BenefitPolicy
+class SafetyTrainingPolicy
 {
     use ChecksModuleAccess, HandlesAuthorization;
 
@@ -28,20 +28,21 @@ class BenefitPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Benefit $benefit): bool
+    public function view(User $user, SafetyTraining $safetyTraining): bool
     {
+        // Employees can view trainings they're enrolled in
+        if ($safetyTraining->participants()->where('user_id', $user->id)->exists() ||
+            $safetyTraining->trainer_id === $user->id) {
+            return true;
+        }
+
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
-        // Employees can only see their assigned benefits
-        if ($benefit->employees()->where('user_id', $user->id)->exists()) {
-            return true;
-        }
-
-        // Check module access: hrm.employees.employee-directory.view
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
+        // Check module access with scope
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $safetyTraining);
     }
 
     /**
@@ -61,7 +62,7 @@ class BenefitPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Benefit $benefit): bool
+    public function update(User $user, SafetyTraining $safetyTraining): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -69,13 +70,13 @@ class BenefitPolicy
         }
 
         // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $safetyTraining);
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Benefit $benefit): bool
+    public function delete(User $user, SafetyTraining $safetyTraining): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -83,21 +84,21 @@ class BenefitPolicy
         }
 
         // Check module access: hrm.employees.employee-directory.delete
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'delete');
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $safetyTraining);
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Benefit $benefit): bool
+    public function restore(User $user, SafetyTraining $safetyTraining): bool
     {
-        return $this->delete($user, $benefit);
+        return $this->delete($user, $safetyTraining);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Benefit $benefit): bool
+    public function forceDelete(User $user, SafetyTraining $safetyTraining): bool
     {
         return $this->isSuperAdmin($user);
     }

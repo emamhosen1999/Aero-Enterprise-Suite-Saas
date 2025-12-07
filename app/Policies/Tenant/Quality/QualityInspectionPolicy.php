@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\Quality;
 
-use App\Models\QualityCalibration;
+use App\Models\QualityInspection;
 use App\Models\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class QualityCalibrationPolicy
+class QualityInspectionPolicy
 {
     use ChecksModuleAccess, HandlesAuthorization;
 
@@ -21,14 +21,14 @@ class QualityCalibrationPolicy
             return true;
         }
 
-        // Check module access: quality.inspections.inspection-list.view (using inspection module for calibrations)
+        // Check module access: quality.inspections.inspection-list.view
         return $this->canPerformAction($user, 'quality', 'inspections', 'inspection-list', 'view');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, QualityCalibration $qualityCalibration): bool
+    public function view(User $user, QualityInspection $qualityInspection): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -56,7 +56,7 @@ class QualityCalibrationPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, QualityCalibration $qualityCalibration): bool
+    public function update(User $user, QualityInspection $qualityInspection): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -70,7 +70,7 @@ class QualityCalibrationPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, QualityCalibration $qualityCalibration): bool
+    public function delete(User $user, QualityInspection $qualityInspection): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -84,15 +84,15 @@ class QualityCalibrationPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, QualityCalibration $qualityCalibration): bool
+    public function restore(User $user, QualityInspection $qualityInspection): bool
     {
-        return $this->update($user, $qualityCalibration);
+        return $this->update($user, $qualityInspection);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, QualityCalibration $qualityCalibration): bool
+    public function forceDelete(User $user, QualityInspection $qualityInspection): bool
     {
         return $this->isSuperAdmin($user);
     }

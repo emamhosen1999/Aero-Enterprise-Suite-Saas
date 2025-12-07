@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\Document;
 
 use App\Models\HRM\HrDocument;
 use App\Models\User;

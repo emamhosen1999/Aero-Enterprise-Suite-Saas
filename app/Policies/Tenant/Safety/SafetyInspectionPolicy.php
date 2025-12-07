@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\Safety;
 
-use App\Models\SafetyIncident;
+use App\Models\SafetyInspection;
 use App\Models\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class SafetyIncidentPolicy
+class SafetyInspectionPolicy
 {
     use ChecksModuleAccess, HandlesAuthorization;
 
@@ -21,28 +21,22 @@ class SafetyIncidentPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.view
+        // Check module access: hrm.employees.employee-directory.view (safety is part of employee management)
         return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, SafetyIncident $safetyIncident): bool
+    public function view(User $user, SafetyInspection $safetyInspection): bool
     {
-        // Employees can view incidents they're involved in
-        if ($safetyIncident->participants()->where('user_id', $user->id)->exists() ||
-            $safetyIncident->reported_by === $user->id) {
-            return true;
-        }
-
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
             return true;
         }
 
         // Check module access with scope
-        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $safetyIncident);
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $safetyInspection);
     }
 
     /**
@@ -62,7 +56,7 @@ class SafetyIncidentPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, SafetyIncident $safetyIncident): bool
+    public function update(User $user, SafetyInspection $safetyInspection): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -70,13 +64,13 @@ class SafetyIncidentPolicy
         }
 
         // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $safetyIncident);
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $safetyInspection);
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, SafetyIncident $safetyIncident): bool
+    public function delete(User $user, SafetyInspection $safetyInspection): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -84,21 +78,21 @@ class SafetyIncidentPolicy
         }
 
         // Check module access: hrm.employees.employee-directory.delete
-        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $safetyIncident);
+        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $safetyInspection);
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, SafetyIncident $safetyIncident): bool
+    public function restore(User $user, SafetyInspection $safetyInspection): bool
     {
-        return $this->delete($user, $safetyIncident);
+        return $this->delete($user, $safetyInspection);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, SafetyIncident $safetyIncident): bool
+    public function forceDelete(User $user, SafetyInspection $safetyInspection): bool
     {
         return $this->isSuperAdmin($user);
     }

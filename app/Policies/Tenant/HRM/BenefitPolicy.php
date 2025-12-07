@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Policies;
+namespace App\Policies\Tenant\HRM;
 
-use App\Models\Skill;
+use App\Models\Benefit;
 use App\Models\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class SkillPolicy
+class BenefitPolicy
 {
     use ChecksModuleAccess, HandlesAuthorization;
 
@@ -28,10 +28,15 @@ class SkillPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Skill $skill): bool
+    public function view(User $user, Benefit $benefit): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Employees can only see their assigned benefits
+        if ($benefit->employees()->where('user_id', $user->id)->exists()) {
             return true;
         }
 
@@ -56,7 +61,7 @@ class SkillPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Skill $skill): bool
+    public function update(User $user, Benefit $benefit): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -70,7 +75,7 @@ class SkillPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Skill $skill): bool
+    public function delete(User $user, Benefit $benefit): bool
     {
         // Super Admin bypass
         if ($this->isSuperAdmin($user)) {
@@ -84,15 +89,15 @@ class SkillPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Skill $skill): bool
+    public function restore(User $user, Benefit $benefit): bool
     {
-        return $this->delete($user, $skill);
+        return $this->delete($user, $benefit);
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Skill $skill): bool
+    public function forceDelete(User $user, Benefit $benefit): bool
     {
         return $this->isSuperAdmin($user);
     }
