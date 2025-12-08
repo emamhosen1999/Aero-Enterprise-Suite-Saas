@@ -1,0 +1,35 @@
+{
+    "name": "aero/pos",
+    "description": "Aero POS Module - Point of Sale System",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Pos\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Pos\\Providers\\PosModuleProvider"
+            ]
+        },
+        "aero": {
+            "package": "pos",
+            "version": "1.0.0",
+            "category": "business",
+            "description": "Point of sale system with sales processing, inventory integration, and payment management"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
