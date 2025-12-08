@@ -1,0 +1,35 @@
+{
+    "name": "aero/project",
+    "description": "Aero Project Management Module",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Project\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Project\\Providers\\ProjectModuleProvider"
+            ]
+        },
+        "aero": {
+            "package": "project",
+            "version": "1.0.0",
+            "category": "business",
+            "description": "Project management with tasks, milestones, time tracking, and Gantt charts"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}

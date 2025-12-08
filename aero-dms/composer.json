@@ -1,0 +1,38 @@
+{
+    "name": "aero/dms",
+    "description": "Document Management System module for Aero Enterprise Suite",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Aero Team",
+            "email": "dev@aero.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Dms\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Dms\\Providers\\DmsModuleProvider"
+            ]
+        },
+        "aero": {
+            "module": {
+                "code": "dms",
+                "name": "Document Management",
+                "version": "1.0.0"
+            }
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
