@@ -47,6 +47,10 @@
       {
         "type": "path",
         "url": "./aero-compliance"
+      },
+      {
+        "type": "path",
+        "url": "./aero-dms"
       }
     ],
 
