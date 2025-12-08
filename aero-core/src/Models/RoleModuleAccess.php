@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Shared;
+namespace Aero\Core\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

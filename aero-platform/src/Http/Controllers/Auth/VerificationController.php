@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Platform\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;

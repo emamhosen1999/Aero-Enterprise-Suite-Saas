@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Aero\Platform\Console\Commands;
 
-use App\Models\User;
+use Aero\Platform\Models\User;
 use Illuminate\Console\Command;
 use Spatie\Permission\Models\Role;
 

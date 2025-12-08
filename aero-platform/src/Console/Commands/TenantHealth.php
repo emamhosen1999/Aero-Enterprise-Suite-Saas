@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Aero\Platform\Console\Commands;
 
-use App\Models\Tenant;
+use Aero\Platform\Models\Tenant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

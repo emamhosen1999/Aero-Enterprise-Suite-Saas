@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Models;
 
-use App\Models\Shared\User;
+use Aero\Platform\Models\Shared\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

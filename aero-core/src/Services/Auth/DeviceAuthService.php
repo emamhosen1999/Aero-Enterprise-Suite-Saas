@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\Shared\Auth;
+namespace Aero\Core\Services\Auth;
 
-use App\Models\Shared\User;
-use App\Models\Shared\UserDevice;
+use Aero\Core\Models\User;
+use Aero\Core\Models\UserDevice;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

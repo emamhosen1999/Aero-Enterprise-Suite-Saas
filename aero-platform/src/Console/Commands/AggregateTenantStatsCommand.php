@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Aero\Platform\Console\Commands;
 
 use Aero\Platform\Jobs\AggregateTenantStats;
 use Carbon\Carbon;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Api;
+namespace Aero\Platform\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetLocale;

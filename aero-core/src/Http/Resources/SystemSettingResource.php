@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Resources;
 
-use App\Models\SystemSetting;
+use Aero\Core\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

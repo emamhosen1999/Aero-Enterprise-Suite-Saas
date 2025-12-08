@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Actions\Fortify\Actions\Fortify;
 
-use App\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

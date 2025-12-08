@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\Shared;
+namespace Aero\Platform\Services;
 
 use Aero\Platform\Models\PlatformSetting;
-use App\Models\Shared\SystemSetting;
+use Aero\Platform\Models\Shared\SystemSetting;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;

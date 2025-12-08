@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Platform\Monitoring\Tenant;
+namespace Aero\Platform\Services\Monitoring\Tenant;
 
 use Aero\Platform\Models\Domain;
 use Aero\Platform\Models\Tenant;

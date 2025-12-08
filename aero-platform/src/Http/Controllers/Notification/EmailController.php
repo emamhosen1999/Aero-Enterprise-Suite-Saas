@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Notification;
+namespace Aero\Platform\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Settings;
+namespace Aero\Platform\Http\Controllers\Settings;
 
 use Aero\HRM\Models\Benefit;
 use Aero\HRM\Models\Checklist;
@@ -10,7 +10,7 @@ use Aero\HRM\Models\SafetyIncident;
 use Aero\HRM\Models\SafetyTraining;
 use Aero\HRM\Models\Skill;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\DMS\DocumentCategory;
+use Aero\Platform\Models\Tenant\DMS\DocumentCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

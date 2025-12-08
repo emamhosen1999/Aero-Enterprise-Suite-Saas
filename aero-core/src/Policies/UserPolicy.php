@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Policies\Shared;
+namespace Aero\Core\Policies;
 
-use App\Models\Shared\User;
-use App\Policies\Concerns\ChecksModuleAccess;
+use Aero\Core\Models\User;
+use Aero\Core\Policies\Concerns\ChecksModuleAccess;
 
 class UserPolicy
 {

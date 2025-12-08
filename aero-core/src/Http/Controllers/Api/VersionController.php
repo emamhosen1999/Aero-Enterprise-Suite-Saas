@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Api;
+namespace Aero\Core\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\Shared\VersionService;
+use Aero\Core\Services\VersionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

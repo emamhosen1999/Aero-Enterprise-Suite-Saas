@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Listeners;
 
-use App\Events\EmployeeCreated;
-use App\Notifications\WelcomeEmployeeNotification;
+use Aero\Platform\Events\EmployeeCreated;
+use Aero\Platform\Notifications\WelcomeEmployeeNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;

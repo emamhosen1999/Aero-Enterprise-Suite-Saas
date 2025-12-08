@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Requests\SendTeamInvitationRequest;
 use Aero\Core\Http\Requests\StoreUserRequest;
@@ -14,7 +14,7 @@ use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
 use Aero\Platform\Models\TenantInvitation;
 use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use App\Notifications\InviteTeamMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

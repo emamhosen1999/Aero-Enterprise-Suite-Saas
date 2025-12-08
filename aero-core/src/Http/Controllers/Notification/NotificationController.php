@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Notification;
+namespace Aero\Core\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

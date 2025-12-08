@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared\Profile;
+namespace Aero\Core\Services\Profile;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;

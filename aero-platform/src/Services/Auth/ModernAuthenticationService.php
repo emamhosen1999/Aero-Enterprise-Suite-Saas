@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Shared\Auth;
+namespace Aero\Platform\Services\Auth;
 
-use App\Models\Shared\User;
+use Aero\Platform\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

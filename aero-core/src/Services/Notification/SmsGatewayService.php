@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared\Notification;
+namespace Aero\Core\Services\Notification;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

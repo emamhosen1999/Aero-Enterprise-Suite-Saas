@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Shared;
+namespace Aero\Platform\Services;
 
-use App\Models\Shared\SystemSetting;
+use Aero\Platform\Models\Shared\SystemSetting;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Shared;
+namespace Aero\Core\Models;
 
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceType;

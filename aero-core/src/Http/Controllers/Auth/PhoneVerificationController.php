@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Core\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\Notifications\PhoneVerificationService;
+use Aero\Core\Services\Notifications\PhoneVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

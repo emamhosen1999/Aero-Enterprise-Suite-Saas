@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Api;
+namespace Aero\Core\Http\Controllers\Api;
 
 use Aero\Platform\Models\ErrorLog;
 use Aero\Platform\Services\Monitoring\Tenant\ErrorLogService;

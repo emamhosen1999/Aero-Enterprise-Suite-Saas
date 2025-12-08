@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared\Notification;
+namespace Aero\Platform\Services\Notification;
 
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Messaging\CloudMessage;

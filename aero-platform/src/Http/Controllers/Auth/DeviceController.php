@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Platform\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
-use App\Services\Shared\Auth\DeviceAuthService;
+use Aero\Platform\Models\Shared\User;
+use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

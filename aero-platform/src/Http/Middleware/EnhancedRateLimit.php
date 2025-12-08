@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
-use App\Services\Logging\ApplicationLogger;
+use Aero\Platform\Services\Logging\ApplicationLogger;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

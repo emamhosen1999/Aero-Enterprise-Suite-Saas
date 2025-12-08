@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Admin;
+namespace Aero\Core\Http\Controllers\Admin;
 
 use Aero\Platform\Models\LandlordUser;
 use App\Http\Controllers\Controller;
-use App\Models\Shared\Module;
-use App\Models\Shared\ModuleComponent;
-use App\Models\Shared\ModuleComponentAction;
-use App\Models\Shared\Role;
-use App\Models\Shared\RoleModuleAccess;
-use App\Models\Shared\SubModule;
-use App\Services\Module\RoleModuleAccessService;
+use Aero\Core\Models\Module;
+use Aero\Core\Models\ModuleComponent;
+use Aero\Core\Models\ModuleComponentAction;
+use Aero\Core\Models\Role;
+use Aero\Core\Models\RoleModuleAccess;
+use Aero\Core\Models\SubModule;
+use Aero\Core\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

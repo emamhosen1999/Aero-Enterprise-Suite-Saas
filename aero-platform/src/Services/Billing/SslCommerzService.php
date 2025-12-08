@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Platform\Billing;
+namespace Aero\Platform\Services\Billing;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;

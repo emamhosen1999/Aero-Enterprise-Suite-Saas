@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Admin;
+namespace Aero\Platform\Http\Controllers\Admin;
 
 use Aero\Platform\Models\LandlordUser;
 use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
+use Aero\Platform\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;

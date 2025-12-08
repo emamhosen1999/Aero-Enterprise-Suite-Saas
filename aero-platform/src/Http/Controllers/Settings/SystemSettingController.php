@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Settings;
+namespace Aero\Platform\Http\Controllers\Settings;
 
 use Aero\Core\Http\Requests\UpdateSystemSettingRequest;
 use Aero\Core\Http\Resources\SystemSettingResource;
 use App\Http\Controllers\Controller;
-use App\Models\Shared\SystemSetting;
-use App\Services\Notifications\RuntimeSmsConfigService;
-use App\Services\Settings\SystemSettingService;
-use App\Services\Shared\MailService;
+use Aero\Platform\Models\Shared\SystemSetting;
+use Aero\Platform\Services\Notifications\RuntimeSmsConfigService;
+use Aero\Platform\Services\Settings\SystemSettingService;
+use Aero\Platform\Services\Shared\MailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
-use App\Services\Billing\MeteredBillingService;
+use Aero\Platform\Services\Billing\MeteredBillingService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

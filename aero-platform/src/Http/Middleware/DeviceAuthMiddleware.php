@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
-use App\Services\Shared\Auth\DeviceAuthService;
+use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Upload;
+namespace Aero\Core\Http\Controllers\Upload;
 
 use App\Http\Controllers\Controller;
-use App\Services\Shared\Upload\ChunkedUploadService;
+use Aero\Core\Services\Upload\ChunkedUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

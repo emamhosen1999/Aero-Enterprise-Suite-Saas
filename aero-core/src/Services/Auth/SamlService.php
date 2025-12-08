@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\Shared\Auth;
+namespace Aero\Core\Services\Auth;
 
 use Aero\Platform\Models\Tenant;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;

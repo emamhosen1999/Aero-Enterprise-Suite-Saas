@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Policies\Concerns;
+namespace Aero\Core\Policies\Concerns;
 
-use App\Models\Shared\User;
-use App\Services\Shared\Module\ModuleAccessService;
+use Aero\Core\Models\User;
+use Aero\Core\Services\Module\ModuleAccessService;
 
 /**
  * Trait ChecksModuleAccess

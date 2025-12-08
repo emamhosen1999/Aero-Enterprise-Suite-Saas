@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Actions\Fortify;
 
-use App\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

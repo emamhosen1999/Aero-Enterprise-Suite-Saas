@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Models;
 
-use App\Models\Shared\Role;
+use Aero\Platform\Models\Shared\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
