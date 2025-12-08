@@ -1,0 +1,32 @@
+{
+    "name": "aero/quality",
+    "description": "Quality Management System module for Aero ERP",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Aero\\Quality\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "aero/core": "*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Quality\\Providers\\QualityModuleProvider"
+            ]
+        },
+        "aero": {
+            "module": "quality",
+            "name": "Quality Management",
+            "description": "Quality assurance, inspections, and non-conformance tracking"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

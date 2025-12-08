@@ -51,6 +51,10 @@
       {
         "type": "path",
         "url": "./aero-dms"
+      },
+      {
+        "type": "path",
+        "url": "./aero-quality"
       }
     ],
 
@@ -68,6 +72,8 @@
         "aero/scm": "*",
         "aero/ims": "*",
         "aero/compliance": "*",
+        "aero/dms": "*",
+        "aero/quality": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "doctrine/dbal": "^4.3",
         "guzzlehttp/guzzle": "^7.9",
