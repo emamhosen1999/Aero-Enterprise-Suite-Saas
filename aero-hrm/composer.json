@@ -15,6 +15,7 @@
   "require": {
     "php": "^8.2",
     "laravel/framework": "^11.0",
+    "aero/core": "*",
     "inertiajs/inertia-laravel": "2.x-dev",
     "stancl/tenancy": "^3.9",
     "spatie/laravel-permission": "^6.20",
@@ -44,12 +45,16 @@
       ]
     },
     "aero": {
-      "module-code": "hrm",
-      "module-name": "Human Resource Management",
-      "platform-compatibility": "^2.0",
-      "category": "human_resources"
+      "package": "hrm",
+      "version": "1.0.0",
+      "category": "business",
+      "description": "Complete HR management system with employee records, attendance, leave, payroll, performance reviews, and recruitment"
     }
   },
   "minimum-stability": "dev",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "config": {
+    "sort-packages": true,
+    "optimize-autoloader": true
+  }
 }

@@ -21,8 +21,8 @@
         "url": "./aero-crm"
       },
       {
-        "type": "vcs",
-        "url": "https://github.com/your-org/aero-hrm-module"
+        "type": "path",
+        "url": "./aero-hrm"
       }
     ],
 
@@ -33,7 +33,7 @@
         "aero/core": "*",
         "aero/platform": "*",
         "aero/crm": "*",
-        "aero/hrm": "^1.0",
+        "aero/hrm": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "doctrine/dbal": "^4.3",
         "guzzlehttp/guzzle": "^7.9",
@@ -110,6 +110,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }
