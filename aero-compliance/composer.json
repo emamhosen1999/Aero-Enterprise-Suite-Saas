@@ -1,0 +1,35 @@
+{
+    "name": "aero/compliance",
+    "description": "Aero Compliance Module - Compliance Management System",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Compliance\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Compliance\\Providers\\ComplianceModuleProvider"
+            ]
+        },
+        "aero": {
+            "package": "compliance",
+            "version": "1.0.0",
+            "category": "business",
+            "description": "Compliance management system with regulatory tracking, audit trails, and compliance reporting"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}

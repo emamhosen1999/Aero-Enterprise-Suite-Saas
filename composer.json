@@ -43,6 +43,10 @@
       {
         "type": "path",
         "url": "./aero-ims"
+      },
+      {
+        "type": "path",
+        "url": "./aero-compliance"
       }
     ],
 
@@ -59,6 +63,7 @@
         "aero/pos": "*",
         "aero/scm": "*",
         "aero/ims": "*",
+        "aero/compliance": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "doctrine/dbal": "^4.3",
         "guzzlehttp/guzzle": "^7.9",
