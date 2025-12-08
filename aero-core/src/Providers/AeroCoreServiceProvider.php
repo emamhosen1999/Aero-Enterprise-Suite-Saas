@@ -3,6 +3,7 @@
 namespace Aero\Core\Providers;
 
 use Aero\Core\Services\ModuleAccessService;
+use Aero\Core\Services\ModuleRegistry;
 use Aero\Core\Services\RoleModuleAccessService;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +22,9 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         // Merge core config
         $this->mergeConfigFrom(__DIR__.'/../../config/modules.php', 'aero-core.modules');
+
+        // Register ModuleRegistry as singleton
+        $this->app->singleton(ModuleRegistry::class);
 
         // Register services
         $this->app->singleton(ModuleAccessService::class);
@@ -43,6 +47,9 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         // Register views (if needed for email templates, etc.)
         $this->loadViewsFrom(__DIR__.'/../../resources/views', 'aero-core');
+
+        // Register commands
+        $this->registerCommands();
     }
 
     /**
@@ -97,11 +104,24 @@ class AeroCoreServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register console commands.
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Aero\Core\Console\Commands\ModuleListCommand::class,
+            ]);
+        }
+    }
+
+    /**
      * Get the services provided by the provider.
      */
     public function provides(): array
     {
         return [
+            ModuleRegistry::class,
             ModuleAccessService::class,
             RoleModuleAccessService::class,
         ];
