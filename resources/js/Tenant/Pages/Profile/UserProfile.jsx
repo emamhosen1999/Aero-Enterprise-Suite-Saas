@@ -56,7 +56,7 @@ import EnhancedProfileCard from "@/Components/EnhancedProfileCard.jsx";
 import ProfileSection from "@/Components/ProfileSection.jsx";
 import InfoRow from "@/Components/InfoRow.jsx";
 import EnhancedModal from "@/Components/EnhancedModal.jsx";
-import ProfileForm from '@/Tenant/Forms/HRM/ProfileForm';
+import ProfileForm from '../../../../../aero-hrm/resources/js/Forms/ProfileForm.jsx';
 import PersonalInformationForm from "@/Forms/PersonalInformationForm.jsx";
 import EmergencyContactForm from "@/Forms/EmergencyContactForm.jsx";
 import BankInformationForm from "@/Forms/BankInformationForm.jsx";

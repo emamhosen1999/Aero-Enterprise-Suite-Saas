@@ -2,7 +2,7 @@
 
 namespace App\Policies\Tenant\Safety;
 
-use App\Models\Tenant\HRM\SafetyInspection;
+use Aero\HRM\Models\SafetyInspection;
 use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;

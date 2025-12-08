@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Tenant\ProjectManagement;
 
+use Aero\HRM\Models\Department;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\HRM\Department;
-use App\Models\Tenant\ProjectManagement\Project;
 use App\Models\Shared\User;
+use App\Models\Tenant\ProjectManagement\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;

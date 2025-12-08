@@ -2,7 +2,7 @@
 
 namespace App\Policies\Tenant\Safety;
 
-use App\Models\Tenant\HRM\SafetyIncident;
+use Aero\HRM\Models\SafetyIncident;
 use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;

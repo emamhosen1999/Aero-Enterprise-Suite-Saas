@@ -2,7 +2,7 @@
 
 namespace App\Services\Tenant\FMS;
 
-use App\Models\Tenant\HRM\Department;
+use Aero\HRM\Models\Department;
 use App\Models\Shared\User;
 
 class FMSService

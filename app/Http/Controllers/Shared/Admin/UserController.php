@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Shared\Admin;
 
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserCollection;
-use App\Models\Tenant\HRM\Department;
-use App\Models\Tenant\HRM\Designation;
 use App\Models\Platform\LandlordUser;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;

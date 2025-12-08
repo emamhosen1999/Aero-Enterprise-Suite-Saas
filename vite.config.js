@@ -31,6 +31,7 @@ export default defineConfig({
     resolve: {
         alias: {
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
+            '@hrm': '/resources/js/Modules/HRM', // Add HRM alias
         },
     },
     server: { 

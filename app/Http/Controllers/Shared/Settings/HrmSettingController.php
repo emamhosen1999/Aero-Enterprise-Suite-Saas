@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Shared\Settings;
 
+use Aero\HRM\Models\Benefit;
+use Aero\HRM\Models\Checklist;
+use Aero\HRM\Models\Competency;
+use Aero\HRM\Models\OnboardingStep;
+use Aero\HRM\Models\SafetyIncident;
+use Aero\HRM\Models\SafetyTraining;
+use Aero\HRM\Models\Skill;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\HRM\Benefit;
-use App\Models\Tenant\HRM\Checklist;
-use App\Models\Tenant\HRM\Competency;
 use App\Models\Tenant\DMS\DocumentCategory;
-use App\Models\Tenant\HRM\OnboardingStep;
-use App\Models\Tenant\HRM\SafetyIncident;
-use App\Models\Tenant\HRM\SafetyTraining;
-use App\Models\Tenant\HRM\Skill;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

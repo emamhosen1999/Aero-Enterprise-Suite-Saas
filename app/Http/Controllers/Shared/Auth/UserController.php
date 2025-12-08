@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Shared\Auth;
 
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\Employee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SendTeamInvitationRequest;
 use App\Http\Requests\StoreUserRequest;
@@ -10,9 +13,6 @@ use App\Http\Requests\UpdateUserRoleRequest;
 use App\Http\Requests\UpdateUserStatusRequest;
 use App\Http\Resources\UserCollection;
 use App\Http\Resources\UserResource;
-use App\Models\Tenant\HRM\Department;
-use App\Models\Tenant\HRM\Designation;
-use App\Models\Tenant\HRM\Employee;
 use App\Models\Platform\TenantInvitation;
 use App\Models\Shared\User;
 use App\Notifications\InviteTeamMember;

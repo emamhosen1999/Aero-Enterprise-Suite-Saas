@@ -19,6 +19,17 @@ return [
     |
     */
 
+    'external_packages' => [
+        'hrm' => [
+            'package' => 'aero/hrm',
+            'enabled' => true,
+            'version' => '^1.0',
+            'provider' => 'Aero\\HRM\\Providers\\HRMServiceProvider',
+            'config_path' => 'hrm',
+            'category' => 'human_resources',
+        ],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Platform Admin Module Hierarchy (10 Core Platform Modules)

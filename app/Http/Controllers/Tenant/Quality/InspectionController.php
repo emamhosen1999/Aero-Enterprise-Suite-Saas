@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Tenant\Quality;
 
+use Aero\HRM\Models\Department;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\HRM\Department;
 use App\Models\QualityCheckpoint;
+use App\Models\Shared\User;
 use App\Models\Tenant\Quality\QualityInspection;
 use App\Models\Tenant\Quality\QualityNCR;
-use App\Models\Shared\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

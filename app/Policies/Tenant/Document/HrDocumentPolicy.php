@@ -2,7 +2,7 @@
 
 namespace App\Policies\Tenant\Document;
 
-use App\Models\Tenant\HRM\HrDocument;
+use Aero\HRM\Models\HrDocument;
 use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;

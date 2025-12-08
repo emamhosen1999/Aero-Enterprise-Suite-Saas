@@ -2,7 +2,7 @@
 
 namespace App\Models\Tenant\Compliance;
 
-use App\Models\Tenant\HRM\Department;
+use Aero\HRM\Models\Department;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

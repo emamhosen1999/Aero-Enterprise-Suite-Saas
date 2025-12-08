@@ -1,35 +1,35 @@
 <?php
 
-use App\Http\Controllers\Tenant\HRM\Attendance\AttendanceController;
-use App\Http\Controllers\Tenant\HRM\Leave\BulkLeaveController;
-use App\Http\Controllers\Tenant\Dashboard\DashboardController;
-use App\Http\Controllers\Tenant\HRM\Employee\DepartmentController;
-use App\Http\Controllers\Tenant\HRM\Employee\DesignationController;
-use App\Http\Controllers\Shared\Auth\DeviceController;
+use Aero\HRM\Controllers\Attendance\AttendanceController;
+use Aero\HRM\Controllers\Employee\DepartmentController;
+use Aero\HRM\Controllers\Employee\DesignationController;
+use Aero\HRM\Controllers\Employee\EmployeeController;
+use Aero\HRM\Controllers\Employee\LetterController;
+use Aero\HRM\Controllers\Employee\ProfileController;
+use Aero\HRM\Controllers\Leave\BulkLeaveController;
+use Aero\HRM\Controllers\Leave\LeaveController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\EmailController;
-use App\Http\Controllers\Tenant\HRM\Employee\EmployeeController;
 use App\Http\Controllers\ExperienceController;
-use App\Http\Controllers\Tenant\FMS\FMSController;
 use App\Http\Controllers\HolidayController;
-use App\Http\Controllers\Tenant\IMS\IMSController;
 use App\Http\Controllers\JurisdictionController;
-use App\Http\Controllers\Tenant\HRM\Leave\LeaveController;
 use App\Http\Controllers\LetterController;
-use App\Http\Controllers\Tenant\POS\POSController;
-use App\Http\Controllers\Shared\Profile\ProfileController;
-use App\Http\Controllers\Shared\Profile\ProfileImageController;
+use App\Http\Controllers\Platform\SystemMonitoring\SystemMonitoringController;
 use App\Http\Controllers\Settings\AttendanceSettingController;
 use App\Http\Controllers\Settings\CustomDomainController;
 use App\Http\Controllers\Settings\LeaveSettingController;
 use App\Http\Controllers\Settings\SystemSettingController;
+use App\Http\Controllers\Shared\Auth\DeviceController;
+use App\Http\Controllers\Shared\Auth\UserController;
+use App\Http\Controllers\Shared\Notification\EmailController;
 use App\Http\Controllers\Shared\Platform\ModuleController;
 use App\Http\Controllers\Shared\Platform\RoleController;
-use App\Http\Controllers\Platform\SystemMonitoring\SystemMonitoringController;
 use App\Http\Controllers\TaskController;
-use App\Http\Controllers\Shared\Auth\UserController;
+use App\Http\Controllers\Tenant\Dashboard\DashboardController;
+use App\Http\Controllers\Tenant\FMS\FMSController;
+use App\Http\Controllers\Tenant\IMS\IMSController;
+use App\Http\Controllers\Tenant\POS\POSController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // NOTE: Authentication routes are NOT included here.
 // - For central/platform domains: auth routes are loaded via routes/platform.php
@@ -140,75 +140,6 @@ Route::middleware($middlewareStack)->group(function () {
     // Updates route - require updates permission
     Route::middleware(['module:core,updates'])->get('/updates', [DashboardController::class, 'updates'])->name('updates');
 
-    // Employee self-service routes
-    Route::middleware(['module:hrm,time-off,own-leave'])->group(function () {
-        Route::get('/leaves-employee', [LeaveController::class, 'index1'])->name('leaves-employee');
-        Route::post('/leave-add', [LeaveController::class, 'create'])->name('leave-add');
-        Route::post('/leave-update', [LeaveController::class, 'update'])->name('leave-update');
-        Route::delete('/leave-delete', [LeaveController::class, 'delete'])->name('leave-delete');
-        Route::get('/leaves-paginate', [LeaveController::class, 'paginate'])->name('leaves.paginate');
-        Route::get('/leaves-stats', [LeaveController::class, 'stats'])->name('leaves.stats');
-        Route::get('/leaves/balances', [LeaveController::class, 'getBalances'])->name('leaves.balances');
-    });
-
-    // Attendance self-service routes
-    Route::middleware(['module:hrm,attendance,own-attendance'])->group(function () {
-        Route::get('/attendance-employee', [AttendanceController::class, 'index2'])->name('attendance-employee');
-        Route::get('/attendance/attendance-today', [AttendanceController::class, 'getCurrentUserPunch'])->name('attendance.current-user-punch');
-        Route::get('/get-current-user-attendance-for-date', [AttendanceController::class, 'getCurrentUserAttendanceForDate'])->name('getCurrentUserAttendanceForDate');
-        Route::get('/attendance/calendar-data', [AttendanceController::class, 'getCalendarData'])->name('attendance.calendar-data');
-    });
-
-    // Punch routes - require punch permission
-    Route::middleware(['module:hrm,attendance,own-attendance,punch'])->group(function () {
-        Route::post('/punchIn', [AttendanceController::class, 'punchIn'])->name('punchIn');
-        Route::post('/punchOut', [AttendanceController::class, 'punchOut'])->name('punchOut');
-        Route::post('/attendance/punch', [AttendanceController::class, 'punch'])->name('attendance.punch');
-    });
-
-    // General access routes (available to all authenticated users)
-    Route::get('/attendance/export/excel', [AttendanceController::class, 'exportExcel'])->name('attendance.exportExcel');
-    Route::get('/admin/attendance/export/excel', [AttendanceController::class, 'exportAdminExcel'])->name('attendance.exportAdminExcel');
-    Route::get('/admin/attendance/export/pdf', [AttendanceController::class, 'exportAdminPdf'])->name('attendance.exportAdminPdf');
-    Route::get('/attendance/export/pdf', [AttendanceController::class, 'exportPdf'])->name('attendance.exportPdf');
-    Route::get('/get-all-users-attendance-for-date', [AttendanceController::class, 'getAllUsersAttendanceForDate'])->name('getAllUsersAttendanceForDate');
-    Route::get('/get-present-users-for-date', [AttendanceController::class, 'getPresentUsersForDate'])->name('getPresentUsersForDate');
-    Route::get('/get-absent-users-for-date', [AttendanceController::class, 'getAbsentUsersForDate'])->name('getAbsentUsersForDate');
-    Route::get('/get-client-ip', [AttendanceController::class, 'getClientIp'])->name('getClientIp');
-
-    // Holiday routes (Legacy - redirects to Time Off Management)
-    Route::middleware(['module:hrm,time-off,holidays'])->group(function () {
-        Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays');
-        Route::post('/holidays-add', [HolidayController::class, 'create'])->name('holidays-add');
-        Route::delete('/holidays-delete', [HolidayController::class, 'delete'])->name('holidays-delete');
-
-        // Legacy redirect for old holiday routes
-        Route::get('/holidays-legacy', [HolidayController::class, 'index'])->name('holidays-legacy');
-    });
-
-    // Profile Routes - own profile access
-    Route::middleware(['module:core,my-profile'])->group(function () {
-        Route::get('/profile/{user}', [ProfileController::class, 'index'])->name('profile');
-        Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/profile/delete', [ProfileController::class, 'delete'])->name('profile.delete');
-
-        // Profile Image Routes - dedicated endpoints for profile image management
-        Route::post('/profile/image/upload', [ProfileImageController::class, 'upload'])->name('profile.image.upload');
-        Route::delete('/profile/image/remove', [ProfileImageController::class, 'remove'])->name('profile.image.remove');
-
-        // New API endpoints for enhanced profile functionality (consistent with other modules)
-        Route::get('/profile/{user}/stats', [ProfileController::class, 'stats'])->name('profile.stats');
-        Route::get('/profile/{user}/export', [ProfileController::class, 'export'])->name('profile.export');
-        Route::post('/profile/{user}/track-view', [ProfileController::class, 'trackView'])->name('profile.trackView');
-
-        // Education Routes:
-        Route::post('/education/update', [EducationController::class, 'update'])->name('education.update');
-        Route::delete('/education/delete', [EducationController::class, 'delete'])->name('education.delete');
-
-        // Experience Routes:
-        Route::post('/experience/update', [ExperienceController::class, 'update'])->name('experience.update');
-        Route::delete('/experience/delete', [ExperienceController::class, 'delete'])->name('experience.delete');
-    });
 
     // Communications routes
     Route::middleware(['module:core,communications'])->get('/emails', [EmailController::class, 'index'])->name('emails');
@@ -220,82 +151,6 @@ Route::middleware($middlewareStack)->group(function () {
 // Administrative routes - require specific permissions
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Document management routes
-    Route::middleware(['module:hrm,documents'])->group(function () {
-        Route::get('/letters', [LetterController::class, 'index'])->name('letters');
-        Route::get('/letters-paginate', [LetterController::class, 'paginate'])->name('letters.paginate');
-    });
-
-    Route::middleware(['module:hrm,documents,document-list,update'])->put('/letters-update', [LetterController::class, 'update'])->name('letters.update');    // Leave management routes
-    Route::middleware(['module:hrm,time-off'])->group(function () {
-        Route::get('/leaves', [LeaveController::class, 'index2'])->name('leaves');
-        Route::get('/leave-summary', [LeaveController::class, 'leaveSummary'])->name('leave-summary');
-        Route::post('/leave-update-status', [LeaveController::class, 'updateStatus'])->name('leave-update-status');
-
-        // Leave summary export routes
-        Route::get('/leave-summary/export/excel', [LeaveController::class, 'exportExcel'])->name('leave.summary.exportExcel');
-        Route::get('/leave-summary/export/pdf', [LeaveController::class, 'exportPdf'])->name('leave.summary.exportPdf');
-
-        // Leave analytics
-        Route::get('/leaves/analytics', [LeaveController::class, 'getAnalytics'])->name('leaves.analytics');
-
-        // Approval workflow
-        Route::get('/leaves/pending-approvals', [LeaveController::class, 'pendingApprovals'])->name('leaves.pending-approvals');
-    });
-
-    // Leave bulk operations (admin only)
-    Route::middleware(['module:hrm,time-off,leave-management,approve'])->group(function () {
-        Route::post('/leaves/bulk-approve', [LeaveController::class, 'bulkApprove'])->name('leaves.bulk-approve');
-        Route::post('/leaves/bulk-reject', [LeaveController::class, 'bulkReject'])->name('leaves.bulk-reject');
-
-        // Approval workflow actions
-        Route::post('/leaves/{id}/approve', [LeaveController::class, 'approveLeave'])->name('leaves.approve');
-        Route::post('/leaves/{id}/reject', [LeaveController::class, 'rejectLeave'])->name('leaves.reject');
-    });
-
-    // Bulk leave creation routes
-    Route::middleware(['module:hrm,time-off,leave-management,create'])->group(function () {
-        Route::post('/leaves/bulk/validate', [BulkLeaveController::class, 'validateDates'])->name('leaves.bulk.validate');
-        Route::post('/leaves/bulk', [BulkLeaveController::class, 'store'])->name('leaves.bulk.store');
-        Route::get('/leaves/bulk/leave-types', [BulkLeaveController::class, 'getLeaveTypes'])->name('leaves.bulk.leave-types');
-        Route::get('/leaves/bulk/calendar-data', [BulkLeaveController::class, 'getCalendarData'])->name('leaves.bulk.calendar-data');
-    });
-
-    // Bulk leave deletion route
-    Route::middleware(['module:hrm,time-off,leave-management,delete'])->group(function () {
-        Route::delete('/leaves/bulk', [BulkLeaveController::class, 'bulkDelete'])->name('leaves.bulk.delete');
-    });
-
-    // Leave settings routes
-    Route::middleware(['module:hrm,time-off,leave-settings'])->group(function () {
-        Route::get('/leave-settings', [LeaveSettingController::class, 'index'])->name('leave-settings');
-        Route::post('/add-leave-type', [LeaveSettingController::class, 'store'])->name('add-leave-type');
-        Route::put('/update-leave-type/{id}', [LeaveSettingController::class, 'update'])->name('update-leave-type');
-        Route::delete('/delete-leave-type/{id}', [LeaveSettingController::class, 'destroy'])->name('delete-leave-type');
-    });
-
-    // HR Management routes
-    Route::middleware(['module:hrm,employees'])->group(function () {
-        Route::get('/employees', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'index'])->name('employees');
-        Route::get('/employees/paginate', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
-        Route::get('/employees/stats', [\App\Http\Controllers\Tenant\HRM\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
-    });
-
-    // Department management routes
-    Route::middleware(['module:hrm,organization,departments'])->get('/departments', [DepartmentController::class, 'index'])->name('departments');
-    Route::middleware(['module:hrm,organization,departments'])->get('/api/departments', [DepartmentController::class, 'getDepartments'])->name('api.departments');
-    Route::middleware(['module:hrm,organization,departments'])->get('/departments/stats', [DepartmentController::class, 'getStats'])->name('departments.stats');
-    Route::middleware(['module:hrm,organization,departments,department-list,create'])->post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
-    Route::middleware(['module:hrm,organization,departments'])->get('/departments/{id}', [DepartmentController::class, 'show'])->name('departments.show');
-    Route::middleware(['module:hrm,organization,departments,department-list,update'])->put('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
-    Route::middleware(['module:hrm,organization,departments,department-list,delete'])->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.delete');
-    Route::middleware(['module:hrm,organization,departments,department-list,update'])->put('/users/{id}/department', [DepartmentController::class, 'updateUserDepartment'])->name('users.update-department');
-
-    Route::middleware(['module:hrm,organization'])->get('/jurisdiction', [JurisdictionController::class, 'index'])->name('jurisdiction');
-
-    // Holiday management routes
-    Route::middleware(['module:hrm,time-off,holidays,holiday-list,create'])->post('/holiday-add', [HolidayController::class, 'create'])->name('holiday-add');
-    Route::middleware(['module:hrm,time-off,holidays,holiday-list,delete'])->delete('/holiday-delete', [HolidayController::class, 'delete'])->name('holiday-delete');
 
     // User management routes - CONSOLIDATED & REFACTORED
     Route::middleware(['module:core,user-management'])->group(function () {
@@ -325,13 +180,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/users/{id}/attendance-type', [EmployeeController::class, 'updateAttendanceType'])->name('users.updateAttendanceType');
         Route::post('/users/{id}/report-to', [EmployeeController::class, 'updateReportTo'])->name('users.updateReportTo');
 
-        // Legacy routes for backward compatibility
-        Route::post('/user/{id}/update-department', [DepartmentController::class, 'updateUserDepartment'])->name('user.updateDepartment');
-        Route::post('/user/{id}/update-designation', [DesignationController::class, 'updateUserDesignation'])->name('user.updateDesignation');
-        Route::post('/user/{id}/update-role', [UserController::class, 'updateUserRole'])->name('user.updateRole');
-        Route::put('/user/toggle-status/{id}', [UserController::class, 'toggleStatus'])->name('user.toggleStatus');
-        Route::post('/user/{id}/update-attendance-type', [EmployeeController::class, 'updateAttendanceType'])->name('user.updateAttendanceType');
-        Route::post('/user/{id}/update-report-to', [EmployeeController::class, 'updateReportTo'])->name('user.updateReportTo');
     });
 
     Route::middleware(['module:core,user-management,user-list,delete'])->group(function () {
@@ -385,62 +233,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });    // Legacy role routes (maintained for backward compatibility)
     Route::middleware(['module:core,roles-permissions'])->get('/roles-permissions', [RoleController::class, 'getRolesAndPermissions'])->name('roles-settings');
 
-    // Document management routes
-    Route::middleware(['module:hrm,documents'])->get('/letters', [LetterController::class, 'index'])->name('letters');    // Attendance management routes
-    Route::middleware(['module:hrm,attendance'])->group(function () {
-        Route::get('/attendances', [AttendanceController::class, 'index1'])->name('attendances');
-        Route::get('/timesheet', [AttendanceController::class, 'index3'])->name('timesheet'); // New TimeSheet page route
-        Route::get('/attendances-admin-paginate', [AttendanceController::class, 'paginate'])->name('attendancesAdmin.paginate');
-        Route::get('/attendance/locations-today', [AttendanceController::class, 'getUserLocationsForDate'])->name('getUserLocationsForDate');
-        Route::get('/admin/get-present-users-for-date', [AttendanceController::class, 'getPresentUsersForDate'])->name('admin.getPresentUsersForDate');
-        Route::get('/admin/get-absent-users-for-date', [AttendanceController::class, 'getAbsentUsersForDate'])->name('admin.getAbsentUsersForDate');
-        Route::get('/attendance/monthly-stats', [AttendanceController::class, 'getMonthlyAttendanceStats'])->name('attendance.monthlyStats');
-        // Location and timesheet update check routes
-        Route::get('check-user-locations-updates/{date}', [AttendanceController::class, 'checkForLocationUpdates'])
-            ->name('check-user-locations-updates');
-        Route::get('check-timesheet-updates/{date}/{month?}', [AttendanceController::class, 'checkTimesheetUpdates'])
-            ->name('check-timesheet-updates');
-    });
-
-    // Attendance management routes (admin actions)
-    Route::middleware(['module:hrm,attendance,attendance-list,manage'])->group(function () {
-        Route::post('/attendance/mark-as-present', [AttendanceController::class, 'markAsPresent'])->name('attendance.mark-as-present');
-        Route::post('/attendance/bulk-mark-as-present', [AttendanceController::class, 'bulkMarkAsPresent'])->name('attendance.bulk-mark-as-present');
-    });
-
-    // Employee attendance stats route
-    Route::middleware(['module:hrm,attendance,own-attendance'])->group(function () {
-        Route::get('/attendance/my-monthly-stats', [AttendanceController::class, 'getMonthlyAttendanceStats'])->name('attendance.myMonthlyStats');
-    });
-
-    Route::middleware(['module:hrm,attendance,attendance-settings'])->group(function () {
-        Route::get('/settings/attendance', [AttendanceSettingController::class, 'index'])->name('attendance-settings.index');
-        Route::post('/settings/attendance', [AttendanceSettingController::class, 'updateSettings'])->name('attendance-settings.update');
-        Route::post('settings/attendance-type', [AttendanceSettingController::class, 'storeType'])->name('attendance-types.store');
-        Route::put('settings/attendance-type/{id}', [AttendanceSettingController::class, 'updateType'])->name('attendance-types.update');
-        Route::delete('settings/attendance-type/{id}', [AttendanceSettingController::class, 'destroyType'])->name('attendance-types.destroy');
-
-        // Multi-config management routes
-        Route::post('settings/attendance-type/{id}/add-item', [AttendanceSettingController::class, 'addConfigItem'])->name('attendance-types.addItem');
-        Route::delete('settings/attendance-type/{id}/remove-item', [AttendanceSettingController::class, 'removeConfigItem'])->name('attendance-types.removeItem');
-        Route::post('settings/attendance-type/{id}/generate-qr', [AttendanceSettingController::class, 'generateQrCode'])->name('attendance-types.generateQr');
-    });
-
-    // HR Module Settings
-    Route::prefix('settings/hr')->middleware(['auth', 'verified'])->group(function () {
-        Route::middleware(['module:hrm,settings,onboarding-settings'])->get('/onboarding', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.onboarding');
-        Route::middleware(['module:hrm,settings,skills-settings'])->get('/skills', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.skills');
-        Route::middleware(['module:hrm,settings,benefits-settings'])->get('/benefits', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.benefits');
-        Route::middleware(['module:hrm,settings,safety-settings'])->get('/safety', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.safety');
-        Route::middleware(['module:hrm,settings,documents-settings'])->get('/documents', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.documents');
-
-        // Update routes
-        Route::middleware(['module:hrm,settings,onboarding-settings,setting-list,update'])->post('/onboarding', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateOnboardingSettings'])->name('settings.hr.onboarding.update');
-        Route::middleware(['module:hrm,settings,skills-settings,setting-list,update'])->post('/skills', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateSkillsSettings'])->name('settings.hr.skills.update');
-        Route::middleware(['module:hrm,settings,benefits-settings,setting-list,update'])->post('/benefits', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
-        Route::middleware(['module:hrm,settings,safety-settings,setting-list,update'])->post('/safety', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
-        Route::middleware(['module:hrm,settings,documents-settings,setting-list,update'])->post('/documents', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
-    });
 
     // User Invitation Routes (integrated with User Management)
     Route::prefix('users')->group(function () {
@@ -458,11 +250,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['module:project-management,tasks,task-list,create'])->post('/task/add', [TaskController::class, 'addTask'])->name('addTask');
 
-    // Jurisdiction/Work location routes
-    Route::middleware(['module:hrm,organization'])->group(function () {
-        Route::get('/work-location', [JurisdictionController::class, 'showWorkLocations'])->name('showWorkLocations');
-        Route::get('/work-location_json', [JurisdictionController::class, 'allWorkLocations'])->name('allWorkLocations');
-    });
+
 
 });
 
@@ -650,32 +438,12 @@ Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(funct
         Route::put('/settings', [IMSController::class, 'updateSettings'])->name('ims.settings.update')->middleware('module:inventory,settings,setting-list,update');
     });
 
-    // Designation Management
-    Route::middleware(['module:hrm,organization,designations'])->group(function () {
-        // Initial page render (Inertia)
-        Route::get('/designations', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'index'])->name('designations.index');
-        // API data fetch (JSON)
-        Route::get('/designations/json', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'getDesignations'])->name('designations.json');
-        // Stats endpoint for frontend analytics
-        Route::get('/designations/stats', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'stats'])->name('designations.stats');
-        Route::post('/designations', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'store'])->name('designations.store');
-        Route::get('/designations/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'show'])->name('designations.show');
-        Route::put('/designations/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'update'])->name('designations.update');
-        Route::delete('/designations/{id}', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'destroy'])->name('designations.destroy');
-        // For dropdowns and API
-        Route::get('/designations/list', [\App\Http\Controllers\Tenant\HRM\Employee\DesignationController::class, 'list'])->name('designations.list');
-    });
+
 });
 
 // API routes for dropdown data
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/api/designations/list', function () {
-        return response()->json(\App\Models\HRM\Designation::select('id', 'title as name')->get());
-    })->name('api.designations.list');
 
-    Route::get('/api/departments/list', function () {
-        return response()->json(\App\Models\HRM\Department::select('id', 'name')->get());
-    })->name('departments.list');
 
     Route::get('/api/users/managers/list', function () {
         return response()->json(\App\Models\User::whereHas('roles', function ($query) {
@@ -716,7 +484,7 @@ Route::middleware(['auth', 'verified'])->get('/test-employee-auth', function () 
         return response()->json(['error' => 'No other employee found for testing']);
     }
 
-    $controller = new \App\Http\Controllers\Tenant\HRM\Employee\EmployeeController;
+    $controller = new \Aero\HRM\Controllers\Employee\EmployeeController;
     $reflection = new ReflectionClass($controller);
     $method = $reflection->getMethod('canDeleteEmployee');
     $method->setAccessible(true);
@@ -811,7 +579,7 @@ require __DIR__.'/compliance.php';
 require __DIR__.'/quality.php';
 require __DIR__.'/analytics.php';
 require __DIR__.'/project-management.php';
-require __DIR__.'/hr.php';
+
 require __DIR__.'/dms.php';
 require __DIR__.'/support.php';
 

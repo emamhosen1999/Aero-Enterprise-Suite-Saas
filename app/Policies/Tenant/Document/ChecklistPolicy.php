@@ -2,7 +2,7 @@
 
 namespace App\Policies\Tenant\Document;
 
-use App\Models\Tenant\HRM\Checklist;
+use Aero\HRM\Models\Checklist;
 use App\Models\Shared\User;
 use App\Policies\Concerns\ChecksModuleAccess;
 

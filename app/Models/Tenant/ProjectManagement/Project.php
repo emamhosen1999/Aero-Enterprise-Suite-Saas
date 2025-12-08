@@ -2,7 +2,7 @@
 
 namespace App\Models\Tenant\ProjectManagement;
 
-use App\Models\Tenant\HRM\Department;
+use Aero\HRM\Models\Department;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;

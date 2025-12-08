@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Tenant\Asset;
 
+use Aero\HRM\Models\Department;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\Asset\Asset;
 use App\Models\AssetCategory;
 use App\Models\AssetStatus;
-use App\Models\Tenant\HRM\Department;
 use App\Models\Location;
 use App\Models\Shared\User;
+use App\Models\Tenant\Asset\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

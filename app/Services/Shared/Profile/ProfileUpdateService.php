@@ -2,9 +2,9 @@
 
 namespace App\Services\Shared\Profile;
 
-use App\Models\Tenant\HRM\Department;
-use App\Models\Tenant\HRM\Designation;
-use App\Models\Tenant\HRM\Employee;
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\Employee;
 use App\Models\Shared\User;
 
 /**

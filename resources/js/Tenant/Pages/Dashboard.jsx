@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Direct imports - eager loading
-import TimeSheetTable from '@/Tenant/Tables/HRM/TimeSheetTable';
+import TimeSheetTable from '../../../../aero-hrm/resources/js/Tables/TimeSheetTable.jsx';
 import UserLocationsCard from '@/Components/UserLocationsCard.jsx';
 import UpdatesCards from '@/Components/UpdatesCards.jsx';
 import StatisticCard from '@/Components/StatisticCard.jsx';

@@ -7,9 +7,18 @@
         "framework"
     ],
     "license": "MIT",
+    "repositories": [
+      {
+        "type": "path",
+        "url": "./aero-hrm"
+      }
+    ],
+
+
     "require": {
         "php": "^8.2",
         "aacotroneo/laravel-saml2": "^2.1",
+        "aero/hrm": "^1.0",
         "barryvdh/laravel-dompdf": "^3.1",
         "doctrine/dbal": "^4.3",
         "guzzlehttp/guzzle": "^7.9",

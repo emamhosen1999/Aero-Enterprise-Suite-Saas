@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Tenant\Analytics;
 
+use Aero\HRM\Models\Attendance;
+use Aero\HRM\Models\Leave;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\HRM\Attendance;
-use App\Models\Tenant\HRM\Leave;
-use App\Models\Tenant\ProjectManagement\Project;
 use App\Models\Shared\User;
+use App\Models\Tenant\ProjectManagement\Project;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

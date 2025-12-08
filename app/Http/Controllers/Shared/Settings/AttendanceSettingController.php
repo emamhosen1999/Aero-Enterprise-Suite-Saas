@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Shared\Settings;
 
+use Aero\HRM\Models\AttendanceSetting;
+use Aero\HRM\Models\AttendanceType;
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\HRM\AttendanceSetting;
-use App\Models\Tenant\HRM\AttendanceType;
 use App\Services\Attendance\QrCodeValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
