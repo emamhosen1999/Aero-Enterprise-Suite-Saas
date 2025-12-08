@@ -71,10 +71,11 @@ All 4 modules follow the same pattern:
 ## Statistics
 
 ### Total Files Decoupled
-- **Controllers:** 58 (5 + 36 + 6 + 9 + 2)
-- **Models:** 115 (17 + 74 + 3 + 10 + 11)
-- **Services:** 23 (22 + 1)
-- **Total:** 196+ files decoupled
+- **Controllers:** 66 (5 + 36 + 6 + 9 + 2 + 8)
+- **Models:** 126 (17 + 74 + 3 + 10 + 11 + 11)
+- **Services:** 25 (22 + 1)
+- **Frontend Files:** 101+ (79 HRM + 10 Finance + 12 Project)
+- **Total:** 318+ files decoupled
 
 ### Module Metadata
 - **Navigation Items:** 25 total
