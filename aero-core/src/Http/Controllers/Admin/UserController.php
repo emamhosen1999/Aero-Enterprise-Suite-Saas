@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Admin;
+namespace Aero\Core\Http\Controllers\Admin;
 
 use Aero\Core\Http\Resources\UserCollection;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\Platform\Models\LandlordUser;
 use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

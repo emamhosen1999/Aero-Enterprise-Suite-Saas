@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Jobs;
 
-use App\Models\PlatformStatDaily;
-use App\Models\Tenant;
-use App\Models\TenantStat;
+use Aero\Platform\Models\PlatformStatDaily;
+use Aero\Platform\Models\Tenant;
+use Aero\Platform\Models\TenantStat;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

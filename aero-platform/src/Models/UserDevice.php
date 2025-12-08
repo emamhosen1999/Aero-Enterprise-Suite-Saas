@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Shared;
+namespace Aero\Platform\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

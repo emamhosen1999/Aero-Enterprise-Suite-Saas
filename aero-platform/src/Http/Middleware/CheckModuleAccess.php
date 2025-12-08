@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
 use Aero\Platform\Models\Tenant;
-use App\Services\Shared\Module\ModuleAccessService;
+use Aero\Platform\Services\Shared\Module\ModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

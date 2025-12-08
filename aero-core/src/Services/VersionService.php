@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared;
+namespace Aero\Core\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;

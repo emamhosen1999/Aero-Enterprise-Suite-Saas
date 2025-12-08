@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared;
+namespace Aero\Platform\Services;
 
 use Exception;
 use Illuminate\Support\Facades\Log;

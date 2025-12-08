@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services\Shared\Notification;
+namespace Aero\Platform\Services\Notification;
 
 use Aero\Platform\Models\PlatformSetting;
-use App\Models\Shared\SystemSetting;
+use Aero\Platform\Models\Shared\SystemSetting;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;

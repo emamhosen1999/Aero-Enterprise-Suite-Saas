@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Settings;
+namespace Aero\Platform\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Services\Billing\InvoiceBrandingService;
+use Aero\Platform\Services\Billing\InvoiceBrandingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;

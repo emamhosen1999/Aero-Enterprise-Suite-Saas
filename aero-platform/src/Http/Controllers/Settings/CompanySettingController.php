@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Settings;
+namespace Aero\Platform\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Models\Shared\CompanySetting;
+use Aero\Platform\Models\Shared\CompanySetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

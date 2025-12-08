@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared;
+namespace Aero\Platform\Services;
 
 use Aero\Platform\Models\PlatformSetting;
 use Illuminate\Http\UploadedFile;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
 use App\Http\Controllers\Tenant\TenantOnboardingController;
 use Closure;

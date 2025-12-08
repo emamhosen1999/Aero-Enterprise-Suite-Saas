@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Aero\Platform\Console\Commands;
 
-use App\Models\PlatformSetting;
-use App\Services\Shared\MailService;
+use Aero\Platform\Models\PlatformSetting;
+use Aero\Platform\Services\Shared\MailService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;

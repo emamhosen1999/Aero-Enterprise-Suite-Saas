@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Notifications;
+namespace Aero\Platform\Notifications;
 
-use App\Models\Tenant;
-use App\Services\Shared\MailService;
+use Aero\Platform\Models\Tenant;
+use Aero\Platform\Services\Shared\MailService;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 

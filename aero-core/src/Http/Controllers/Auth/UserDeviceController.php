@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Core\Http\Controllers\Auth;
 
 /**
  * Compatibility shim for legacy references to UserDeviceController.

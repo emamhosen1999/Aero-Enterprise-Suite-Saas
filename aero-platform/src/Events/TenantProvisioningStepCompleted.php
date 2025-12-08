@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Events;
+namespace Aero\Platform\Events;
 
-use App\Models\Tenant;
+use Aero\Platform\Models\Tenant;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;

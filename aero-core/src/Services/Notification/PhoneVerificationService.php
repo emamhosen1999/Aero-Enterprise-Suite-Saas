@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Shared\Notification;
+namespace Aero\Core\Services\Notification;
 
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 

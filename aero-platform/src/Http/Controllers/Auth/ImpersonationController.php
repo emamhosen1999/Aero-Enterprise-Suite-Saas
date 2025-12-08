@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Platform\Http\Controllers\Auth;
 
 use Aero\Platform\Models\TenantImpersonationToken;
 use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
+use Aero\Platform\Models\Shared\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

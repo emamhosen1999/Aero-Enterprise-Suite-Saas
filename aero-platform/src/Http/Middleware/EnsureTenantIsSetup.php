@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\Tenant;

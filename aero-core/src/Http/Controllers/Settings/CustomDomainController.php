@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Settings;
+namespace Aero\Core\Http\Controllers\Settings;
 
 use Aero\Platform\Models\Domain;
 use App\Http\Controllers\Controller;
-use App\Services\Platform\Monitoring\Tenant\CustomDomainService;
+use Aero\Core\Services\Platform\Monitoring\Tenant\CustomDomainService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

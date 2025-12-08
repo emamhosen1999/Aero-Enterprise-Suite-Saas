@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Aero\Platform\Console\Commands;
 
-use App\Models\UserDevice;
+use Aero\Platform\Models\UserDevice;
 use Illuminate\Console\Command;
 
 class ResetDevicesForSecurityUpdate extends Command

@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Models;
 
-use App\Models\Shared\Module;
+use Aero\Platform\Models\Shared\Module;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

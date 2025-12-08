@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Shared\Profile;
+namespace Aero\Platform\Services\Profile;
 
-use App\Models\Shared\User;
+use Aero\Platform\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 

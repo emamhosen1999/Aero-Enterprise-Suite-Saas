@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Core\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\Shared\Auth\ModernAuthenticationService;
+use Aero\Core\Services\Auth\ModernAuthenticationService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;

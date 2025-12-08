@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers\SystemMonitoring;
 
 use App\Http\Controllers\Controller;
-use App\Services\AuditExportService;
+use Aero\Platform\Services\AuditExportService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Jobs;
 
-use App\Events\TenantProvisioningStepCompleted;
-use App\Models\Tenant;
+use Aero\Platform\Events\TenantProvisioningStepCompleted;
+use Aero\Platform\Models\Tenant;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

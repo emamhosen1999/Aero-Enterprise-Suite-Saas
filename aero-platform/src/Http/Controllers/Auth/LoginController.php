@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Platform\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\IdentifyDomainContext;
-use App\Models\Shared\User;
-use App\Services\Shared\Auth\DeviceAuthService;
-use App\Services\Shared\Auth\ModernAuthenticationService;
+use Aero\Platform\Models\Shared\User;
+use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
+use Aero\Platform\Services\Shared\Auth\ModernAuthenticationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

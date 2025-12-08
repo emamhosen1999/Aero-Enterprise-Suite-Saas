@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Services\Shared\Module;
+namespace Aero\Core\Services\Module;
 
-use App\Models\Shared\Module;
-use App\Models\Shared\ModuleComponent;
-use App\Models\Shared\ModuleComponentAction;
-use App\Models\Shared\Role;
-use App\Models\Shared\SubModule;
-use App\Models\Shared\User;
+use Aero\Core\Models\Module;
+use Aero\Core\Models\ModuleComponent;
+use Aero\Core\Models\ModuleComponentAction;
+use Aero\Core\Models\Role;
+use Aero\Core\Models\SubModule;
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Cache;
 
 /**

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Aero\Platform\Http\Middleware;
 
 use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
 use Aero\Platform\Models\PlatformSetting;
-use App\Models\Shared\Module;
-use App\Models\Shared\SystemSetting;
-use App\Services\Module\RoleModuleAccessService;
+use Aero\Platform\Models\Shared\Module;
+use Aero\Platform\Models\Shared\SystemSetting;
+use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;

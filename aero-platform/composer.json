@@ -35,30 +35,30 @@
     },
     "autoload": {
         "psr-4": {
-            "Aero\\Core\\": "src/",
-            "Aero\\Core\\Database\\Factories\\": "database/factories/",
-            "Aero\\Core\\Database\\Seeders\\": "database/seeders/"
+            "Aero\\Platform\\": "src/",
+            "Aero\\Platform\\Database\\Factories\\": "database/factories/",
+            "Aero\\Platform\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Aero\\Core\\Tests\\": "tests/"
+            "Aero\\Platform\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Aero\\Core\\Providers\\AeroPlatformServiceProvider"
+                "Aero\\Platform\\Providers\\AeroPlatformServiceProvider"
             ],
             "aliases": {
-                "AeroCore": "Aero\\Core\\Facades\\Platform"
+                "AeroPlatform": "Aero\\Platform\\Facades\\Platform"
             }
         },
         "aero": {
-            "package": "core",
+            "package": "platform",
             "version": "1.0.0",
-            "category": "foundation",
-            "description": "Foundation package providing User, Auth, Roles, Permissions, Modules, and Multi-tenancy"
+            "category": "landlord",
+            "description": "Platform management package providing multi-tenancy orchestration, landlord authentication, and platform administration"
         }
     },
     "minimum-stability": "dev",

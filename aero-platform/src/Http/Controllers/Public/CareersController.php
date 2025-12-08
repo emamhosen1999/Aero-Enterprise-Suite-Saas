@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Public;
+namespace Aero\Platform\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tenant\HRM\Job;
-use App\Models\Tenant\HRM\JobApplication;
+use Aero\Platform\Models\Tenant\HRM\Job;
+use Aero\Platform\Models\Tenant\HRM\JobApplication;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

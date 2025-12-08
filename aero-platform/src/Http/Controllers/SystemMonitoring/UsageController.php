@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers\SystemMonitoring;
 
 use App\Http\Controllers\Controller;
-use App\Services\Billing\MeteredBillingService;
+use Aero\Platform\Services\Billing\MeteredBillingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Shared\Profile;
+namespace Aero\Platform\Services\Profile;
 
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
-use App\Models\Shared\User;
+use Aero\Platform\Models\Shared\User;
 
 /**
  * Profile Update Service

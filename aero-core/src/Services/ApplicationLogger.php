@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared;
+namespace Aero\Core\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;

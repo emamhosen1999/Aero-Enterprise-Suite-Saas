@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Shared\Upload;
+namespace Aero\Core\Services\Upload;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;

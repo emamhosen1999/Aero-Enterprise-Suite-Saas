@@ -3,7 +3,7 @@
 namespace Aero\Core\Actions\Fortify;
 
 use Aero\Core\Actions\Fortify\Actions\Fortify\PasswordValidationRules;
-use App\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;

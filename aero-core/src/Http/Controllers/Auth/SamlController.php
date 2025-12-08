@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Auth;
+namespace Aero\Core\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\Auth\SamlService;
+use Aero\Core\Services\Auth\SamlService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

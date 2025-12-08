@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Shared\Settings;
+namespace Aero\Platform\Http\Controllers\Settings;
 
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\AttendanceType;
 use App\Http\Controllers\Controller;
-use App\Services\Attendance\QrCodeValidator;
+use Aero\Platform\Services\Attendance\QrCodeValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
