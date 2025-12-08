@@ -17,6 +17,10 @@
         "url": "./aero-platform"
       },
       {
+        "type": "path",
+        "url": "./aero-crm"
+      },
+      {
         "type": "vcs",
         "url": "https://github.com/your-org/aero-hrm-module"
       }
@@ -28,6 +32,7 @@
         "aacotroneo/laravel-saml2": "^2.1",
         "aero/core": "*",
         "aero/platform": "*",
+        "aero/crm": "*",
         "aero/hrm": "^1.0",
         "barryvdh/laravel-dompdf": "^3.1",
         "doctrine/dbal": "^4.3",
