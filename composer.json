@@ -27,6 +27,10 @@
       {
         "type": "path",
         "url": "./aero-finance"
+      },
+      {
+        "type": "path",
+        "url": "./aero-project"
       }
     ],
 
@@ -39,6 +43,7 @@
         "aero/crm": "*",
         "aero/hrm": "*",
         "aero/finance": "*",
+        "aero/project": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "doctrine/dbal": "^4.3",
         "guzzlehttp/guzzle": "^7.9",
