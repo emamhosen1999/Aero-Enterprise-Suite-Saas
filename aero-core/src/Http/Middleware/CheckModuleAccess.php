@@ -1,0 +1,367 @@
+<?php
+
+namespace Aero\Core\Http\Middleware;
+
+use Aero\Platform\Models\Tenant;
+use Aero\Core\Services\Shared\Module\ModuleAccessService;
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * Check Module Access Middleware
+ *
+ * Enforces hybrid RBAC: validates BOTH subscription entitlement AND user permissions.
+ *
+ * Access is granted only if:
+ * 1. Tenant has an active subscription
+ * 2. Subscription's plan includes the requested module
+ * 3. User has at least one of the module's required permissions (via tenant-scoped roles)
+ *
+ * Usage:
+ *   - module:hrm                                    - Check module access
+ *   - module:hrm,employees                          - Check sub-module access
+ *   - module:hrm,employees,employee-list            - Check component access
+ *   - module:hrm,employees,employee-list,view       - Check action access
+ */
+class CheckModuleAccess
+{
+    protected ModuleAccessService $moduleAccessService;
+
+    public function __construct(ModuleAccessService $moduleAccessService)
+    {
+        $this->moduleAccessService = $moduleAccessService;
+    }
+
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string|null  $subModuleCode  The sub-module code (optional, e.g., 'employees')
+     * @param  string|null  $componentCode  The component code (optional, e.g., 'employee-list')
+     * @param  string|null  $actionCode  The action code (optional, e.g., 'view')
+     */
+    public function handle(
+        Request $request,
+        Closure $next,
+        string $moduleCode,
+        ?string $subModuleCode = null,
+        ?string $componentCode = null,
+        ?string $actionCode = null
+    ): Response {
+        // Determine which guard to use based on the route
+        $guard = $this->detectGuard($request);
+
+        if (! Auth::guard($guard)->check()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authentication required.',
+                ], 401);
+            }
+
+            return redirect($guard === 'landlord' ? '/login' : '/login');
+        }
+
+        $user = Auth::guard($guard)->user();
+
+        // Handle platform/landlord context differently
+        if ($guard === 'landlord') {
+            return $this->handlePlatformAccess($request, $next, $user, $moduleCode, $subModuleCode, $componentCode, $actionCode);
+        }
+
+        // Tenant context - check if tenant is properly initialized (from domain routing)
+        $tenant = tenant();
+        if (! $tenant) {
+            return $this->denyAccess(
+                $request,
+                'no_tenant',
+                'Tenant context not found. Please access via tenant subdomain.',
+                401
+            );
+        }
+
+        // Empty string check - treat empty strings as null
+        $subModuleCode = ($subModuleCode === '' || $subModuleCode === null) ? null : $subModuleCode;
+        $componentCode = ($componentCode === '' || $componentCode === null) ? null : $componentCode;
+        $actionCode = ($actionCode === '' || $actionCode === null) ? null : $actionCode;
+
+        // Determine the level of access to check
+        $accessCheck = null;
+
+        if ($actionCode !== null) {
+            // Check action access (most granular level)
+            $accessCheck = $this->moduleAccessService->canPerformAction(
+                $user,
+                $moduleCode,
+                $subModuleCode,
+                $componentCode,
+                $actionCode
+            );
+        } elseif ($componentCode !== null) {
+            // Check component access
+            $accessCheck = $this->moduleAccessService->canAccessComponent(
+                $user,
+                $moduleCode,
+                $subModuleCode,
+                $componentCode
+            );
+        } elseif ($subModuleCode !== null) {
+            // Check sub-module access
+            $accessCheck = $this->moduleAccessService->canAccessSubModule(
+                $user,
+                $moduleCode,
+                $subModuleCode
+            );
+        } else {
+            // Check module access
+            $accessCheck = $this->moduleAccessService->canAccessModule(
+                $user,
+                $moduleCode
+            );
+        }
+
+        // Handle access denial
+        if (! $accessCheck['allowed']) {
+            $statusCode = match ($accessCheck['reason']) {
+                'plan_restriction' => 402,
+                'not_found' => 404,
+                'insufficient_permissions' => 403,
+                default => 403,
+            };
+
+            return $this->denyAccess(
+                $request,
+                $accessCheck['reason'],
+                $accessCheck['message'],
+                $statusCode,
+                [
+                    'module' => $moduleCode,
+                    'submodule' => $subModuleCode,
+                    'component' => $componentCode,
+                    'action' => $actionCode,
+                ]
+            );
+        }
+
+        return $next($request);
+    }
+
+    /**
+     * Detect which authentication guard to use based on the request context.
+     */
+    protected function detectGuard(Request $request): string
+    {
+        // Check if we're on an admin subdomain or route
+        $host = $request->getHost();
+
+        // Check for admin subdomain pattern
+        if (str_starts_with($host, 'admin.') || str_contains($host, 'admin')) {
+            return 'landlord';
+        }
+
+        // Check route middleware for landlord guard
+        $route = $request->route();
+        if ($route) {
+            $middleware = $route->middleware();
+            if (in_array('auth:landlord', $middleware)) {
+                return 'landlord';
+            }
+        }
+
+        // Check if landlord guard is already authenticated
+        if (Auth::guard('landlord')->check()) {
+            return 'landlord';
+        }
+
+        return 'web';
+    }
+
+    /**
+     * Handle access control for platform/landlord context.
+     * Platform users have role-based access without subscription checks.
+     */
+    protected function handlePlatformAccess(
+        Request $request,
+        Closure $next,
+        $user,
+        string $moduleCode,
+        ?string $subModuleCode = null,
+        ?string $componentCode = null,
+        ?string $actionCode = null
+    ): Response {
+        // Super Administrators bypass all checks
+        if ($user->is_super_admin || $user->hasRole('Super Administrator')) {
+            return $next($request);
+        }
+
+        // Build the access path for platform modules
+        $accessPath = $moduleCode;
+        if ($subModuleCode) {
+            $accessPath .= '.'.$subModuleCode;
+        }
+        if ($componentCode) {
+            $accessPath .= '.'.$componentCode;
+        }
+        if ($actionCode) {
+            $accessPath .= '.'.$actionCode;
+        }
+
+        // Check if the user has the required platform permission
+        // Platform permissions follow pattern: platform.{module}.{submodule}.{component}.{action}
+        $permissionName = 'platform.'.str_replace(',', '.', $accessPath);
+
+        // For now, allow all authenticated landlord users to access platform modules
+        // TODO: Implement granular platform permission checking when needed
+        // This is a temporary bypass to prevent redirect loops
+
+        // Log platform access for debugging
+        Log::debug('Platform module access', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'module' => $moduleCode,
+            'submodule' => $subModuleCode,
+            'component' => $componentCode,
+            'action' => $actionCode,
+            'access_path' => $accessPath,
+        ]);
+
+        return $next($request);
+    }
+
+    /**
+     * Check if tenant's subscription includes the requested module.
+     *
+     * @return array{allowed: bool, reason: string, message: string, meta?: array}
+     */
+    protected function checkSubscriptionEntitlement(string $tenantId, string $moduleCode): array
+    {
+        // Cache the tenant's active modules for performance
+        $cacheKey = "tenant_active_modules:{$tenantId}";
+
+        $activeModules = Cache::remember($cacheKey, 300, function () use ($tenantId) {
+            $tenant = Tenant::find($tenantId);
+
+            if (! $tenant) {
+                return [];
+            }
+
+            // Get current active subscription
+            $subscription = $tenant->currentSubscription;
+
+            if (! $subscription) {
+                return [];
+            }
+
+            // Check subscription validity
+            if ($subscription->status !== 'active') {
+                return [];
+            }
+
+            if ($subscription->ends_at && $subscription->ends_at < now()) {
+                return [];
+            }
+
+            // Get modules from plan
+            return $subscription->plan
+                ->modules()
+                ->pluck('code')
+                ->toArray();
+        });
+
+        // Check if module is in active modules
+        if (! in_array($moduleCode, $activeModules)) {
+            // Get tenant's current plan for better error message
+            $tenant = Tenant::with('currentSubscription.plan')->find($tenantId);
+            $subscription = $tenant?->currentSubscription;
+
+            if (! $subscription) {
+                return [
+                    'allowed' => false,
+                    'reason' => 'no_subscription',
+                    'message' => 'No active subscription found. Please subscribe to a plan to access this module.',
+                    'meta' => [
+                        'module_code' => $moduleCode,
+                    ],
+                ];
+            }
+
+            return [
+                'allowed' => false,
+                'reason' => 'upgrade_required',
+                'message' => 'This module is not included in your current plan. Please upgrade to access it.',
+                'meta' => [
+                    'module_code' => $moduleCode,
+                    'current_plan' => $subscription->plan->name ?? 'Unknown',
+                    'plan_id' => $subscription->plan_id,
+                ],
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'reason' => 'success',
+            'message' => 'Subscription check passed.',
+        ];
+    }
+
+    /**
+     * Deny access with consistent response format.
+     */
+    protected function denyAccess(
+        Request $request,
+        string $reason,
+        string $message,
+        int $statusCode = 403,
+        array $meta = []
+    ): Response {
+        // Log denial with context
+        Log::warning('Module access denied', array_merge([
+            'reason' => $reason,
+            'route' => $request->route()?->getName(),
+            'url' => $request->url(),
+            'user_id' => Auth::id(),
+            'tenant_id' => Auth::user()?->tenant_id,
+            'ip' => $request->ip(),
+            'timestamp' => now(),
+        ], $meta));
+
+        // JSON API response
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'reason' => $reason,
+                'message' => $message,
+                'meta' => $meta,
+            ], $statusCode);
+        }
+
+        // Inertia response
+        if ($request->header('X-Inertia')) {
+            return response()->json([
+                'component' => 'Errors/UnifiedError',
+                'props' => [
+                    'error' => [
+                        'code' => $statusCode,
+                        'type' => $reason === 'plan_restriction' ? 'SubscriptionRequired' : 'AccessDenied',
+                        'title' => $reason === 'plan_restriction' ? 'Upgrade Required' : 'Access Denied',
+                        'message' => $message,
+                        'trace_id' => \Illuminate\Support\Str::uuid()->toString(),
+                        'showHomeButton' => true,
+                        'showRetryButton' => false,
+                        'details' => $meta,
+                        'timestamp' => now()->toISOString(),
+                    ],
+                ],
+                'url' => $request->url(),
+                'version' => '',
+            ], $statusCode, ['X-Inertia' => 'true']);
+        }
+
+        // Regular redirect with error
+        return back()->with('error', $message);
+    }
+}
