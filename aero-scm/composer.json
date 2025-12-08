@@ -1,0 +1,35 @@
+{
+    "name": "aero/scm",
+    "description": "Aero SCM Module - Supply Chain Management System",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Scm\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Scm\\Providers\\ScmModuleProvider"
+            ]
+        },
+        "aero": {
+            "package": "scm",
+            "version": "1.0.0",
+            "category": "business",
+            "description": "Supply chain management with procurement, logistics, production planning, and supplier management"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
