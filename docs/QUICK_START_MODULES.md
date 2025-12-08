@@ -4,6 +4,11 @@
 
 This quick start guide will help you create your first module and understand the modular architecture.
 
+> **📖 Related Guides:**
+> - **[Standalone Module Repository Setup](STANDALONE_MODULE_REPOSITORY.md)** - Move module to separate repository with own dependencies
+> - **[Module Implementation Guide](MODULE_IMPLEMENTATION_GUIDE.md)** - Detailed implementation guide
+> - **[Modular Architecture](MODULAR_ARCHITECTURE.md)** - Complete architecture overview
+
 ## Prerequisites
 
 - Aero Enterprise Suite installed

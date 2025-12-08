@@ -91,6 +91,7 @@ php artisan migrate --path=modules/MyModule/Database/Migrations
 
 - **Quick Start**: See `docs/QUICK_START_MODULES.md` for 5-minute tutorial
 - **Implementation Guide**: See `docs/MODULE_IMPLEMENTATION_GUIDE.md` for detailed instructions
+- **Standalone Repository**: See `docs/STANDALONE_MODULE_REPOSITORY.md` for moving modules to separate repos
 - **Architecture**: See `docs/MODULAR_ARCHITECTURE.md` for architecture overview
 - **Planning**: See `docs/MODULAR_ARCHITECTURE_PLAN.md` for roadmap
 

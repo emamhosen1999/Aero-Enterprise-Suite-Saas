@@ -4,6 +4,11 @@
 
 This guide will walk you through implementing the modular architecture in your Aero Enterprise Suite.
 
+> **📖 Related Guides:**
+> - **[Standalone Module Repository Setup](STANDALONE_MODULE_REPOSITORY.md)** - How to move a module to a separate repository with its own dependencies
+> - **[Quick Start](QUICK_START_MODULES.md)** - 5-minute getting started guide
+> - **[Modular Architecture](MODULAR_ARCHITECTURE.md)** - Complete architecture overview
+
 ## Step 1: Register Module Service Provider
 
 Add the `ModuleServiceProvider` to your `config/app.php`:
