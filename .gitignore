@@ -36,6 +36,11 @@ yarn-debug.log*
 yarn-error.log*
 storage/logs/*.log
 
+aero-hrm/vendor
+aero-hrm/node_modules
+aero-hrm/public/hot
+aero-hrm/node_modules/.bin/
+
 # Runtime data
 pids
 *.pid
