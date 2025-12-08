@@ -1,0 +1,35 @@
+{
+    "name": "aero/ims",
+    "description": "Aero IMS Module - Inventory Management System",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "aero/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\Ims\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\Ims\\Providers\\ImsModuleProvider"
+            ]
+        },
+        "aero": {
+            "package": "ims",
+            "version": "1.0.0",
+            "category": "business",
+            "description": "Inventory management system with stock tracking, item management, and warehouse operations"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
