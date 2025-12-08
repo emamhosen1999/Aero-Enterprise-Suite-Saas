@@ -17,6 +17,7 @@ This directory contains comprehensive documentation for extracting modules from 
 |----------|-------------|----------|-----------|
 | **[MODULE_EXTRACTION_GUIDE.md](./MODULE_EXTRACTION_GUIDE.md)** | Complete technical implementation guide | Developers, Architects | 45 min |
 | **[MODULE_EXTRACTION_EXAMPLE.md](./MODULE_EXTRACTION_EXAMPLE.md)** | Step-by-step Support module extraction | Developers | 60 min |
+| **[HRM_MODULE_EXTRACTION_STEP_BY_STEP.md](./HRM_MODULE_EXTRACTION_STEP_BY_STEP.md)** | ⭐ Complete HRM module extraction guide | Developers | 60 min |
 | **[MODULE_EXTRACTION_DIAGRAMS.md](./MODULE_EXTRACTION_DIAGRAMS.md)** | Visual architecture diagrams | All stakeholders | 15 min |
 
 ### Tools
@@ -54,8 +55,9 @@ This directory contains comprehensive documentation for extracting modules from 
 1. Quick read: [QUICK_START_MODULE_EXTRACTION.md](./QUICK_START_MODULE_EXTRACTION.md)
 2. Visual overview: [MODULE_EXTRACTION_DIAGRAMS.md](./MODULE_EXTRACTION_DIAGRAMS.md)
 3. Detailed guide: [MODULE_EXTRACTION_GUIDE.md](./MODULE_EXTRACTION_GUIDE.md)
-4. Follow example: [MODULE_EXTRACTION_EXAMPLE.md](./MODULE_EXTRACTION_EXAMPLE.md)
-5. Use tools: `../tools/extract-module.sh`
+4. **⭐ HRM Example:** [HRM_MODULE_EXTRACTION_STEP_BY_STEP.md](./HRM_MODULE_EXTRACTION_STEP_BY_STEP.md) (Real implementation)
+5. Support Example: [MODULE_EXTRACTION_EXAMPLE.md](./MODULE_EXTRACTION_EXAMPLE.md) (Theoretical)
+6. Use tools: `../tools/extract-module.sh`
 
 **Recommended Learning Path:**
 1. ⏱️ 5 min - Quick Start
@@ -170,6 +172,37 @@ Total: ~2.5 hours to full competency
 - Installation commands
 
 **Best for:** Hands-on learning, first module extraction, reference implementation
+
+---
+
+### HRM_MODULE_EXTRACTION_STEP_BY_STEP.md (46KB) ⭐ NEW
+
+**Real HRM Module Extraction Guide**
+
+**Complete 12-phase extraction covering:**
+1. Repository setup
+2. Backend files (100+ files: controllers, services, models)
+3. Frontend files (pages, components, tables, forms)
+4. Database migrations (20+ files)
+5. Namespace updates (automated script)
+6. Service provider (complete code)
+7. Configuration (200+ lines)
+8. Routes (410 lines, 50+ routes)
+9. Dependencies handling
+10. Testing setup
+11. Integration with platform
+12. Verification checklist
+
+**Real statistics:**
+- 22 service files listed by name
+- 20+ models documented
+- 15+ controllers with paths
+- Complete configuration file
+- Full routes file
+- 50+ checklist items
+- 6 troubleshooting scenarios
+
+**Best for:** Actual HRM extraction, production implementation, real-world example
 
 ---
 
