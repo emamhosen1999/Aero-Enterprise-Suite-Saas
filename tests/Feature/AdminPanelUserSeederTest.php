@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\Platform\LandlordUser;
+use Aero\Platform\Models\LandlordUser;
 use Database\Seeders\AdminPanelRoleSeeder;
 use Database\Seeders\AdminPanelUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

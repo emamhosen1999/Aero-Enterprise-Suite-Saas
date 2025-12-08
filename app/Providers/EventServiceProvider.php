@@ -2,11 +2,10 @@
 
 namespace App\Providers;
 
-use App\Listeners\AuthEventSubscriber;
+use Aero\Platform\Listeners\AuthEventSubscriber;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -20,31 +19,31 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         \App\Events\Leave\LeaveRequested::class => [
-            \App\Listeners\Leave\UpdateBalanceOnLeaveRequest::class,
+            \Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveRequest::class,
         ],
         \App\Events\Leave\LeaveApproved::class => [
-            \App\Listeners\Leave\UpdateBalanceOnLeaveApproval::class,
+            \Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveApproval::class,
         ],
         \App\Events\Leave\LeaveRejected::class => [
-            \App\Listeners\Leave\UpdateBalanceOnLeaveRejection::class,
+            \Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveRejection::class,
         ],
         \App\Events\Leave\LeaveCancelled::class => [
-            \App\Listeners\Leave\UpdateBalanceOnLeaveCancellation::class,
+            \Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveCancellation::class,
         ],
         \App\Events\EmployeeCreated::class => [
-            \App\Listeners\SendWelcomeEmail::class,
+            \Aero\Platform\Listeners\SendWelcomeEmail::class,
         ],
         \App\Events\LeaveRequested::class => [
-            \App\Listeners\NotifyManagerOfLeaveRequest::class,
+            \Aero\HRM\Listeners\NotifyManagerOfLeaveRequest::class,
         ],
         \App\Events\PayrollGenerated::class => [
-            \App\Listeners\SendPayslipNotification::class,
+            \Aero\HRM\Listeners\SendPayslipNotification::class,
         ],
         \App\Events\AttendanceLogged::class => [
-            \App\Listeners\LogAttendanceActivity::class,
+            \Aero\HRM\Listeners\LogAttendanceActivity::class,
         ],
         \App\Events\CandidateApplied::class => [
-            \App\Listeners\NotifyRecruiterOfApplication::class,
+            \Aero\HRM\Listeners\NotifyRecruiterOfApplication::class,
         ],
     ];
 

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\AggregateTenantStats;
+use Aero\Platform\Jobs\AggregateTenantStats;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;

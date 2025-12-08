@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Platform\RegistrationController;
-use App\Http\Controllers\Platform\RegistrationPageController;
+use Aero\Platform\Http\Controllers\RegistrationController;
+use Aero\Platform\Http\Controllers\RegistrationPageController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -90,7 +90,7 @@ Route::get('/privacy', fn () => redirect('/legal/privacy'));
 Route::get('/terms', fn () => redirect('/legal/terms'));
 
 // Stripe Webhook (must be outside any auth middleware)
-Route::post('/stripe/webhook', [\App\Http\Controllers\Platform\Webhooks\StripeWebhookController::class, 'handleWebhook'])
+Route::post('/stripe/webhook', [\Aero\Platform\Http\Controllers\Webhooks\StripeWebhookController::class, 'handleWebhook'])
     ->name('stripe.webhook');
 
 // SSLCOMMERZ Payment Gateway Routes (IPN callbacks - must be outside CSRF protection)
@@ -109,5 +109,5 @@ Route::prefix('sslcommerz')->name('sslcommerz.')->group(function () {
 });
 
 // Checkout routes (called from registration flow)
-Route::post('/checkout/{plan}', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'checkout'])
+Route::post('/checkout/{plan}', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'checkout'])
     ->name('platform.checkout');

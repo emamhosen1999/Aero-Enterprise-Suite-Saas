@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\ProvisionTenant;
-use App\Models\Platform\Tenant;
+use Aero\Platform\Jobs\ProvisionTenant;
+use Aero\Platform\Models\Tenant;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 

@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Actions\Fortify\CreateNewUser;
-use App\Actions\Fortify\ResetUserPassword;
-use App\Actions\Fortify\UpdateUserPassword;
-use App\Actions\Fortify\UpdateUserProfileInformation;
+use Aero\Core\Actions\Fortify\Actions\Fortify\CreateNewUser;
+use Aero\Core\Actions\Fortify\Actions\Fortify\ResetUserPassword;
+use Aero\Core\Actions\Fortify\Actions\Fortify\UpdateUserPassword;
+use Aero\Core\Actions\Fortify\Actions\Fortify\UpdateUserProfileInformation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;

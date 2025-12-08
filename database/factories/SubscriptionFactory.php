@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Platform\Plan;
-use App\Models\Platform\Tenant;
+use Aero\Platform\Models\Plan;
+use Aero\Platform\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

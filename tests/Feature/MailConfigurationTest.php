@@ -2,15 +2,14 @@
 
 namespace Tests\Feature;
 
+use Aero\Platform\Models\Tenant;
 use App\Models\PlatformSetting;
-use App\Models\Platform\Tenant;
 use App\Notifications\TenantProvisioningFailed;
 use App\Notifications\WelcomeToTenant;
-use App\Services\Shared\MailService;
 use App\Services\Platform\PlatformVerificationService;
+use App\Services\Shared\MailService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 /**

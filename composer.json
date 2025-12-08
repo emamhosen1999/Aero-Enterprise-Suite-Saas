@@ -9,8 +9,8 @@
     "license": "MIT",
     "repositories": [
       {
-        "type": "path",
-        "url": "./aero-hrm"
+        "type": "vcs",
+        "url": "https://github.com/your-org/aero-hrm-module"
       }
     ],
 

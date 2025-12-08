@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Platform;
 
-use App\Models\Platform\LandlordUser;
+use Aero\Platform\Models\LandlordUser;
 use App\Models\PlatformSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;

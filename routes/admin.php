@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Platform\MaintenanceController;
-use App\Http\Controllers\Platform\PlatformSettingController;
-use App\Http\Controllers\Platform\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Platform\Auth\ImpersonationController;
+use Aero\Platform\Http\Controllers\Auth\AuthenticatedSessionController;
+use Aero\Platform\Http\Controllers\Auth\ImpersonationController;
+use Aero\Platform\Http\Controllers\MaintenanceController;
+use Aero\Platform\Http\Controllers\PlatformSettingController;
 use App\Http\Controllers\Shared\Platform\ModuleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -262,7 +262,7 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/{moduleCode}/requirements', [\App\Http\Controllers\Shared\Platform\ModuleController::class, 'getModuleRequirements'])->name('requirements');
 
         // Module Catalog API (for plan configuration)
-        Route::get('/catalog', [\App\Http\Controllers\Platform\PlanModuleController::class, 'getModules'])
+        Route::get('/catalog', [\Aero\Platform\Http\Controllers\PlanModuleController::class, 'getModules'])
             ->middleware(['module:subscriptions,plans'])
             ->name('catalog');
 
@@ -303,25 +303,25 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->middleware(['module:subscriptions,plans,plan-list,create'])->name('create');
 
         // Plan-Module Management API
-        Route::get('/{plan}/modules', [\App\Http\Controllers\Platform\PlanModuleController::class, 'getPlanModules'])
+        Route::get('/{plan}/modules', [\Aero\Platform\Http\Controllers\PlanModuleController::class, 'getPlanModules'])
             ->middleware(['module:subscriptions,plans,plan-list,view'])
             ->name('modules.index');
-        Route::post('/{plan}/modules', [\App\Http\Controllers\Platform\PlanModuleController::class, 'attachModules'])
+        Route::post('/{plan}/modules', [\Aero\Platform\Http\Controllers\PlanModuleController::class, 'attachModules'])
             ->middleware(['module:subscriptions,plans,plan-list,update'])
             ->name('modules.attach');
-        Route::delete('/{plan}/modules', [\App\Http\Controllers\Platform\PlanModuleController::class, 'detachModules'])
+        Route::delete('/{plan}/modules', [\Aero\Platform\Http\Controllers\PlanModuleController::class, 'detachModules'])
             ->middleware(['module:subscriptions,plans,plan-list,update'])
             ->name('modules.detach');
-        Route::put('/{plan}/modules/sync', [\App\Http\Controllers\Platform\PlanModuleController::class, 'syncModules'])
+        Route::put('/{plan}/modules/sync', [\Aero\Platform\Http\Controllers\PlanModuleController::class, 'syncModules'])
             ->middleware(['module:subscriptions,plans,plan-list,update'])
             ->name('modules.sync');
-        Route::put('/{plan}/modules/{module}', [\App\Http\Controllers\Platform\PlanModuleController::class, 'updateModuleConfig'])
+        Route::put('/{plan}/modules/{module}', [\Aero\Platform\Http\Controllers\PlanModuleController::class, 'updateModuleConfig'])
             ->middleware(['module:subscriptions,plans,plan-list,update'])
             ->name('modules.update');
     });
 
     // Plans API
-    Route::get('/api/plans', [\App\Http\Controllers\Platform\PlanController::class, 'index'])
+    Route::get('/api/plans', [\Aero\Platform\Http\Controllers\PlanController::class, 'index'])
         ->middleware(['module:subscriptions,plans'])
         ->name('api.plans.index');
 
@@ -341,37 +341,37 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->middleware(['module:subscriptions,invoices'])->name('invoices');
 
         // Tenant-specific billing management
-        Route::get('/tenants/{tenant}', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'index'])
+        Route::get('/tenants/{tenant}', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'index'])
             ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,view'])
             ->name('tenant');
-        Route::post('/tenants/{tenant}/subscribe/{plan}', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'subscribe'])
+        Route::post('/tenants/{tenant}/subscribe/{plan}', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'subscribe'])
             ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,create'])
             ->name('tenant.subscribe');
-        Route::post('/tenants/{tenant}/change-plan', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'changePlan'])
+        Route::post('/tenants/{tenant}/change-plan', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'changePlan'])
             ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
             ->name('tenant.change-plan');
-        Route::post('/tenants/{tenant}/cancel', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'cancel'])
+        Route::post('/tenants/{tenant}/cancel', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'cancel'])
             ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
             ->name('tenant.cancel');
-        Route::post('/tenants/{tenant}/resume', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'resume'])
+        Route::post('/tenants/{tenant}/resume', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'resume'])
             ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
             ->name('tenant.resume');
-        Route::post('/tenants/{tenant}/portal', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'portal'])
+        Route::post('/tenants/{tenant}/portal', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'portal'])
             ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,view'])
             ->name('tenant.portal');
-        Route::get('/tenants/{tenant}/invoices', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'invoices'])
+        Route::get('/tenants/{tenant}/invoices', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'invoices'])
             ->middleware(['module:subscriptions,invoices,invoice-list,view'])
             ->name('tenant.invoices');
-        Route::get('/tenants/{tenant}/invoices/{invoice}', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'downloadInvoice'])
+        Route::get('/tenants/{tenant}/invoices/{invoice}', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'downloadInvoice'])
             ->middleware(['module:subscriptions,invoices,invoice-list,download'])
             ->name('tenant.invoice.download');
-        Route::put('/tenants/{tenant}/billing-address', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'updateBillingAddress'])
+        Route::put('/tenants/{tenant}/billing-address', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'updateBillingAddress'])
             ->middleware(['module:subscriptions,tenant-subscriptions,subscription-list,update'])
             ->name('tenant.billing-address');
     });
 
     // Stripe Checkout (for new subscriptions via registration flow)
-    Route::post('/checkout/{plan}', [\App\Http\Controllers\Platform\Billing\BillingController::class, 'checkout'])
+    Route::post('/checkout/{plan}', [\Aero\Platform\Http\Controllers\Billing\BillingController::class, 'checkout'])
         ->middleware(['module:subscriptions,payment-gateways'])
         ->name('admin.checkout');
 
@@ -440,23 +440,23 @@ Route::middleware(['auth:landlord'])->group(function () {
 
     // Legacy Audit Logs routes (for backward compatibility)
     Route::middleware(['module:audit-logs,activity-logs'])->prefix('audit-logs')->name('admin.audit-logs.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Platform\SystemMonitoring\AuditLogController::class, 'index'])->name('index');
-        Route::get('/export', [\App\Http\Controllers\Platform\SystemMonitoring\AuditLogController::class, 'export'])
+        Route::get('/', [\Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController::class, 'index'])->name('index');
+        Route::get('/export', [\Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController::class, 'export'])
             ->middleware(['module:audit-logs,activity-logs,log-list,export'])
             ->name('export');
-        Route::get('/statistics', [\App\Http\Controllers\Platform\SystemMonitoring\AuditLogController::class, 'statistics'])->name('statistics');
-        Route::get('/{activity}', [\App\Http\Controllers\Platform\SystemMonitoring\AuditLogController::class, 'show'])->name('show');
+        Route::get('/statistics', [\Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController::class, 'statistics'])->name('statistics');
+        Route::get('/{activity}', [\Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController::class, 'show'])->name('show');
     });
 
     // Error Logs routes (part of Audit Logs module)
     Route::middleware(['module:audit-logs'])->prefix('error-logs')->name('admin.error-logs.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Platform\ErrorLogController::class, 'index'])->name('index');
-        Route::get('/statistics', [\App\Http\Controllers\Platform\ErrorLogController::class, 'statistics'])->name('statistics');
-        Route::get('/{errorLog}', [\App\Http\Controllers\Platform\ErrorLogController::class, 'show'])->name('show');
-        Route::post('/{errorLog}/resolve', [\App\Http\Controllers\Platform\ErrorLogController::class, 'resolve'])->name('resolve');
-        Route::delete('/{errorLog}', [\App\Http\Controllers\Platform\ErrorLogController::class, 'destroy'])->name('destroy');
-        Route::post('/bulk-resolve', [\App\Http\Controllers\Platform\ErrorLogController::class, 'bulkResolve'])->name('bulk-resolve');
-        Route::post('/bulk-destroy', [\App\Http\Controllers\Platform\ErrorLogController::class, 'bulkDestroy'])->name('bulk-destroy');
+        Route::get('/', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'index'])->name('index');
+        Route::get('/statistics', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'statistics'])->name('statistics');
+        Route::get('/{errorLog}', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'show'])->name('show');
+        Route::post('/{errorLog}/resolve', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'resolve'])->name('resolve');
+        Route::delete('/{errorLog}', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-resolve', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'bulkResolve'])->name('bulk-resolve');
+        Route::post('/bulk-destroy', [\Aero\Platform\Http\Controllers\ErrorLogController::class, 'bulkDestroy'])->name('bulk-destroy');
     });
 
     // =========================================================================
@@ -595,13 +595,13 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->middleware(['module:platform-analytics,platform-reports'])->name('reports');
 
         // Module Analytics API
-        Route::get('/modules', [\App\Http\Controllers\Platform\ModuleAnalyticsController::class, 'index'])
+        Route::get('/modules', [\Aero\Platform\Http\Controllers\ModuleAnalyticsController::class, 'index'])
             ->middleware(['module:platform-analytics,usage-analytics'])
             ->name('modules.index');
-        Route::get('/modules/{module}', [\App\Http\Controllers\Platform\ModuleAnalyticsController::class, 'show'])
+        Route::get('/modules/{module}', [\Aero\Platform\Http\Controllers\ModuleAnalyticsController::class, 'show'])
             ->middleware(['module:platform-analytics,usage-analytics,api-usage,view'])
             ->name('modules.show');
-        Route::get('/modules-trends', [\App\Http\Controllers\Platform\ModuleAnalyticsController::class, 'trends'])
+        Route::get('/modules-trends', [\Aero\Platform\Http\Controllers\ModuleAnalyticsController::class, 'trends'])
             ->middleware(['module:platform-analytics,usage-analytics,feature-usage,view'])
             ->name('modules.trends');
     });

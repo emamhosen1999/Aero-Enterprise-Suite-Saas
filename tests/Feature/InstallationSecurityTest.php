@@ -90,7 +90,7 @@ class InstallationSecurityTest extends TestCase
     public function test_rate_limiter_constants(): void
     {
         // Use reflection to check constants
-        $reflection = new \ReflectionClass(\App\Http\Controllers\Platform\InstallationController::class);
+        $reflection = new \ReflectionClass(\Aero\Platform\Http\Controllers\InstallationController::class);
 
         $this->assertTrue($reflection->hasConstant('MAX_ATTEMPTS'));
         $this->assertTrue($reflection->hasConstant('LOCKOUT_DURATION'));

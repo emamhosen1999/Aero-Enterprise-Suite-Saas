@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Platform;
 
-use App\Models\Platform\Tenant;
+use Aero\Platform\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

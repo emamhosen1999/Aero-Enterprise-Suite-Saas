@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Platform\InstallationController;
+use Aero\Platform\Http\Controllers\InstallationController;
 use Illuminate\Support\Facades\Route;
 
 /*

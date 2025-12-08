@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Tenant;
 
+use Aero\Platform\Models\Tenant;
 use App\Http\Controllers\Controller;
-use App\Models\Platform\Tenant;
 use App\Models\Shared\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Platform\LandlordUser;
+use Aero\Platform\Models\LandlordUser;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;

@@ -8,13 +8,13 @@ use Aero\HRM\Controllers\Employee\LetterController;
 use Aero\HRM\Controllers\Employee\ProfileController;
 use Aero\HRM\Controllers\Leave\BulkLeaveController;
 use Aero\HRM\Controllers\Leave\LeaveController;
+use Aero\Platform\Http\Controllers\SystemMonitoring\SystemMonitoringController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\ExperienceController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\JurisdictionController;
 use App\Http\Controllers\LetterController;
-use App\Http\Controllers\Platform\SystemMonitoring\SystemMonitoringController;
 use App\Http\Controllers\Settings\AttendanceSettingController;
 use App\Http\Controllers\Settings\CustomDomainController;
 use App\Http\Controllers\Settings\LeaveSettingController;
@@ -224,11 +224,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Usage & Billing routes
         Route::prefix('settings/usage')->name('settings.usage.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'index'])->name('index');
-            Route::get('/summary', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'summary'])->name('summary');
-            Route::get('/trend/{metric}', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'trend'])->name('trend');
-            Route::get('/limits', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'limits'])->name('limits');
-            Route::get('/check/{metric}', [\App\Http\Controllers\Platform\SystemMonitoring\UsageController::class, 'checkLimit'])->name('check');
+            Route::get('/', [\Aero\Platform\Http\Controllers\SystemMonitoring\UsageController::class, 'index'])->name('index');
+            Route::get('/summary', [\Aero\Platform\Http\Controllers\SystemMonitoring\UsageController::class, 'summary'])->name('summary');
+            Route::get('/trend/{metric}', [\Aero\Platform\Http\Controllers\SystemMonitoring\UsageController::class, 'trend'])->name('trend');
+            Route::get('/limits', [\Aero\Platform\Http\Controllers\SystemMonitoring\UsageController::class, 'limits'])->name('limits');
+            Route::get('/check/{metric}', [\Aero\Platform\Http\Controllers\SystemMonitoring\UsageController::class, 'checkLimit'])->name('check');
         });
     });    // Legacy role routes (maintained for backward compatibility)
     Route::middleware(['module:core,roles-permissions'])->get('/roles-permissions', [RoleController::class, 'getRolesAndPermissions'])->name('roles-settings');

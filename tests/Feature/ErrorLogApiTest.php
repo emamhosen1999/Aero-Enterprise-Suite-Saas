@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
+use Aero\Platform\Models\LandlordUser;
 use App\Models\ErrorLog;
-use App\Models\Platform\LandlordUser;
 use Tests\TestCase;
 
 class ErrorLogApiTest extends TestCase
