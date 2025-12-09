@@ -68,6 +68,11 @@ const getRoutes = (context) => {
     toggleStatus: 'users.toggleStatus',
     updateRoles: 'users.updateRole',
     destroy: 'users.destroy',
+    restore: 'users.restore',
+    lock: 'users.lock',
+    unlock: 'users.unlock',
+    forcePasswordReset: 'users.forcePasswordReset',
+    resendVerification: 'users.resendVerification',
   };
 };
 
@@ -274,7 +279,7 @@ const UsersTable = ({
     setLoading(userId, 'delete', true);
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch(route(routes.profileDelete, { user: userId }), {
+        const response = await fetch(route(routes.destroy, { id: userId }), {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -299,6 +304,106 @@ const UsersTable = ({
     });
     showToast.promise(promise, {
       loading: 'Deleting user...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  };
+
+  // Restore soft-deleted user
+  const handleRestoreUser = async (user) => {
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.post(route('users.restore', { id: user.id }));
+        if (response.status === 200) {
+          // Refresh the users list
+          if (updateUserOptimized) {
+            updateUserOptimized(response.data.user);
+          }
+          resolve([response.data.message || 'User restored successfully']);
+        }
+      } catch (error) {
+        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to restore user']);
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: 'Restoring user...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  };
+
+  // Lock user account - call parent to show lock modal
+  const handleLockAccount = (user) => {
+    // This will trigger the parent component to show LockAccountModal
+    if (onEdit) {
+      // Use onEdit to pass the user and trigger the modal
+      // The parent will handle showing the LockAccountModal
+      onEdit(user, 'lock');
+    }
+  };
+
+  // Unlock user account
+  const handleUnlockAccount = async (user) => {
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.post(route('users.unlock', { id: user.id }));
+        if (response.status === 200) {
+          if (updateUserOptimized) {
+            updateUserOptimized(response.data.user);
+          }
+          resolve([response.data.message || 'Account unlocked successfully']);
+        }
+      } catch (error) {
+        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to unlock account']);
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: 'Unlocking account...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  };
+
+  // Force password reset
+  const handleForcePasswordReset = async (user) => {
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.post(route('users.forcePasswordReset', { id: user.id }));
+        if (response.status === 200) {
+          if (updateUserOptimized) {
+            updateUserOptimized(response.data.user);
+          }
+          resolve([response.data.message || 'Password reset forced successfully']);
+        }
+      } catch (error) {
+        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to force password reset']);
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: 'Setting password reset...',
+      success: (data) => data.join(', '),
+      error: (data) => Array.isArray(data) ? data.join(', ') : data,
+    });
+  };
+
+  // Resend email verification
+  const handleResendVerification = async (user) => {
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.post(route('users.resendVerification', { id: user.id }));
+        if (response.status === 200) {
+          resolve([response.data.message || 'Verification email sent successfully']);
+        }
+      } catch (error) {
+        reject(error.response?.data?.errors || [error.response?.data?.error || 'Failed to resend verification email']);
+      }
+    });
+    
+    showToast.promise(promise, {
+      loading: 'Sending verification email...',
       success: (data) => data.join(', '),
       error: (data) => Array.isArray(data) ? data.join(', ') : data,
     });
@@ -384,38 +489,47 @@ const UsersTable = ({
         
       case "user":
         return (
-          <User
-            className="w-fit max-w-full"
-            avatarProps={{
-              src: user?.profile_image_url || user?.profile_image,
-              name: user?.name || "Unnamed User",
-              size: "sm",
-              ...getProfileAvatarTokens({
+          <div className="flex items-center gap-2">
+            <User
+              className="w-fit max-w-full"
+              avatarProps={{
+                src: user?.profile_image_url || user?.profile_image,
                 name: user?.name || "Unnamed User",
-                size: 'sm',
-              }),
-            }}
-            name={
-              <span 
-                className="text-sm font-semibold whitespace-nowrap text-default-900"
-                style={{
-                  fontFamily: `var(--fontFamily, "Inter")`,
-                }}
-              >
-                {user?.name || "Unnamed User"}
-              </span>
-            }
-            description={
-              <span 
-                className="text-xs text-default-500"
-                style={{
-                  fontFamily: `var(--fontFamily, "Inter")`,
-                }}
-              >
-                ID: {user?.id}
-              </span>
-            }
-          />
+                size: "sm",
+                ...getProfileAvatarTokens({
+                  name: user?.name || "Unnamed User",
+                  size: 'sm',
+                }),
+              }}
+              name={
+                <div className="flex items-center gap-1.5">
+                  <span 
+                    className="text-sm font-semibold whitespace-nowrap text-default-900"
+                    style={{
+                      fontFamily: `var(--fontFamily, "Inter")`,
+                    }}
+                  >
+                    {user?.name || "Unnamed User"}
+                  </span>
+                  {user.account_locked_at && (
+                    <Tooltip content="Account Locked">
+                      <LockClosedIcon className="w-4 h-4 text-danger" />
+                    </Tooltip>
+                  )}
+                </div>
+              }
+              description={
+                <span 
+                  className="text-xs text-default-500"
+                  style={{
+                    fontFamily: `var(--fontFamily, "Inter")`,
+                  }}
+                >
+                  ID: {user?.id}
+                </span>
+              }
+            />
+          </div>
         );
         
       case "email":
@@ -430,14 +544,28 @@ const UsersTable = ({
             >
               <EnvelopeIcon className="w-3.5 h-3.5" />
             </div>
-            <span 
-              className="text-sm font-medium text-default-900"
-              style={{
-                fontFamily: `var(--fontFamily, "Inter")`,
-              }}
-            >
-              {user.email}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span 
+                className="text-sm font-medium text-default-900"
+                style={{
+                  fontFamily: `var(--fontFamily, "Inter")`,
+                }}
+              >
+                {user.email}
+              </span>
+              {!user.email_verified_at && (
+                <Tooltip content="Email not verified">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="warning"
+                    className="h-5 px-1.5"
+                  >
+                    <span className="text-xs font-medium">Unverified</span>
+                  </Chip>
+                </Tooltip>
+              )}
+            </div>
           </div>
         );
         
@@ -487,118 +615,25 @@ const UsersTable = ({
           </div>
         );
 
-      case "device_status":
-        const isToggling = isLoading(user.id, 'deviceToggle');
-        return (
-          <div className="flex items-center space-x-2">
-            {user.single_device_login ? (
-              <>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  color={user.active_device ? "warning" : "success"}
-                  startContent={
-                    isToggling ? (
-                      <div className="animate-spin">
-                        <ArrowPathIcon className="w-3 h-3" />
-                      </div>
-                    ) : user.active_device ? (
-                      <LockClosedIcon className="w-3 h-3" />
-                    ) : (
-                      <LockOpenIcon className="w-3 h-3" />
-                    )
-                  }
-                >
-                  {isToggling ? 'Loading...' : user.active_device ? 'Locked' : 'Free'}
-                </Chip>
-                {user.active_device && !isToggling && (
-                  <Tooltip 
-                    content={
-                      <div 
-                        className="backdrop-blur-md border rounded-lg p-4 shadow-2xl max-w-sm"
-                        style={{
-                          background: `color-mix(in srgb, var(--theme-content1) 20%, transparent)`,
-                          borderColor: `var(--theme-divider, #E4E4E7)`,
-                          borderRadius: `var(--borderRadius, 12px)`,
-                        }}
-                      >
-                        <div className="flex items-center gap-3 mb-3">
-                          {getDeviceIcon(user.active_device.user_agent, "w-5 h-5")}
-                          <div>
-                            <div 
-                              className="font-semibold text-foreground text-sm"
-                              style={{
-                                fontFamily: `var(--fontFamily, "Inter")`,
-                              }}
-                            >
-                              {user.active_device.device_name || 'Unknown Device'}
-                            </div>
-                            <div 
-                              className="text-xs text-default-500"
-                              style={{
-                                fontFamily: `var(--fontFamily, "Inter")`,
-                              }}
-                            >
-                              {getDeviceType(user.active_device.user_agent)}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2 text-xs">
-                          <div 
-                            className="pt-2 mt-2 border-t"
-                            style={{
-                              borderColor: `color-mix(in srgb, var(--theme-divider) 20%, transparent)`,
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              <ClockIcon className="w-3 h-3 text-success" />
-                              <span 
-                                className="text-success text-xs font-medium"
-                                style={{
-                                  fontFamily: `var(--fontFamily, "Inter")`,
-                                }}
-                              >
-                                {user.active_device.is_active ? 'Currently Active' : 'Inactive'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    }
-                    placement="top"
-                    classNames={{
-                      content: "p-0 bg-transparent shadow-none border-none"
-                    }}
-                  >
-                    <div className="flex items-center p-1 rounded-sm hover:bg-content1/10 transition-colors cursor-default">
-                      {getDeviceIcon(user.active_device.user_agent, "w-4 h-4")}
-                    </div>
-                  </Tooltip>
-                )}
-              </>
-            ) : (
+    
+        
+      case "status":
+        // Show deleted indicator if user is soft-deleted
+        if (user.deleted_at) {
+          return (
+            <div className="flex items-center justify-center">
               <Chip
                 size="sm"
                 variant="flat"
-                color="default"
-                startContent={
-                  isToggling ? (
-                    <div className="animate-spin">
-                      <ArrowPathIcon className="w-3 h-3" />
-                    </div>
-                  ) : (
-                    <ShieldCheckIcon className="w-3 h-3" />
-                  )
-                }
+                color="danger"
+                startContent={<TrashIcon className="w-3.5 h-3.5" />}
               >
-                {isToggling ? 'Loading...' : 'Disabled'}
+                Deleted
               </Chip>
-            )}
-          </div>
-        );
+            </div>
+          );
+        }
         
-      case "status":
         return (
           <div className="flex items-center justify-center gap-2">
             <label className="relative inline-flex items-center cursor-pointer">
@@ -684,6 +719,7 @@ const UsersTable = ({
             <Dropdown 
               isDisabled={isLoading(user.id, 'role')}
               className="max-w-[220px]"
+              aria-label={`Role selection for ${user.name || 'user'}`}
             >
               <DropdownTrigger>
                 <Button 
@@ -731,35 +767,99 @@ const UsersTable = ({
         // Build dropdown items dynamically to avoid fragment issues
         const actionItems = [];
         
-     
-          actionItems.push(
-            <DropdownItem 
-              key="edit"
-              textValue="Edit User"
-              onPress={() => {
-                if (onEdit) onEdit(user);
-              }}
-              className="text-amber-500"
-              startContent={<PencilIcon className="w-4 h-4" />}
-            >
-              Edit
-            </DropdownItem>
-          );
-       
+        // Edit User
+        actionItems.push(
+          <DropdownItem 
+            key="edit"
+            onPress={() => {
+              if (onEdit) onEdit(user);
+            }}
+            className="text-amber-500"
+            startContent={<PencilIcon className="w-4 h-4" />}
+          >
+            Edit
+          </DropdownItem>
+        );
         
+        // View Device History
+        actionItems.push(
+          <DropdownItem
+            key="view-devices"
+            href={route(routes.devices, { userId: user.id })}
+            as={Link}
+            startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
+            className="text-blue-500"
+          >
+            View Device History
+          </DropdownItem>
+        );
+        
+        // Lock/Unlock Account
+        if (user.account_locked_at) {
           actionItems.push(
             <DropdownItem
-              key="view-devices"
-              textValue="View Devices"
-              href={route(routes.devices, { userId: user.id })}
-              as={Link}
-              startContent={<DevicePhoneMobileIcon className="w-4 h-4" />}
-              className="text-blue-500"
+              key="unlock"
+              onPress={() => handleUnlockAccount(user)}
+              className="text-success"
+              startContent={<LockOpenIcon className="w-4 h-4" />}
             >
-              View Device History
+              Unlock Account
             </DropdownItem>
           );
-    
+        } else if (user.id !== auth?.user?.id) {
+          actionItems.push(
+            <DropdownItem
+              key="lock"
+              onPress={() => handleLockAccount(user)}
+              className="text-warning"
+              startContent={<LockClosedIcon className="w-4 h-4" />}
+            >
+              Lock Account
+            </DropdownItem>
+          );
+        }
+        
+        // Force Password Reset
+        if (user.id !== auth?.user?.id) {
+          actionItems.push(
+            <DropdownItem
+              key="force-password-reset"
+              onPress={() => handleForcePasswordReset(user)}
+              className="text-purple-500"
+              startContent={<ArrowPathIcon className="w-4 h-4" />}
+            >
+              Force Password Reset
+            </DropdownItem>
+          );
+        }
+        
+        // Resend Email Verification (only if not verified)
+        if (!user.email_verified_at) {
+          actionItems.push(
+            <DropdownItem
+              key="resend-verification"
+              onPress={() => handleResendVerification(user)}
+              className="text-cyan-500"
+              startContent={<EnvelopeIcon className="w-4 h-4" />}
+            >
+              Resend Verification
+            </DropdownItem>
+          );
+        }
+        
+        // Restore User (only if soft deleted)
+        if (user.deleted_at) {
+          actionItems.push(
+            <DropdownItem
+              key="restore"
+              onPress={() => handleRestoreUser(user)}
+              className="text-success"
+              startContent={<ArrowPathIcon className="w-4 h-4" />}
+            >
+              Restore User
+            </DropdownItem>
+          );
+        }
         
         // Delete User - Protected for Super Admins and last Super Admin check
         const isCurrentUserTarget = user.id === auth?.user?.id;
@@ -769,7 +869,6 @@ const UsersTable = ({
           actionItems.push(
             <DropdownItem 
               key="delete"
-              textValue="Delete User"
               onPress={() => handleDelete(user.id)}
               className="text-danger"
               color="danger"
@@ -799,7 +898,6 @@ const UsersTable = ({
           actionItems.push(
             <DropdownItem 
               key="delete-disabled"
-              textValue="Delete User (Restricted)"
               isDisabled
               className="text-default-400"
               startContent={<TrashIcon className="w-4 h-4" />}
@@ -811,7 +909,7 @@ const UsersTable = ({
         
         return (
           <div className="flex justify-center items-center">
-            <Dropdown>
+            <Dropdown aria-label={`Actions for ${user.name || 'user'}`}>
               <DropdownTrigger>
                 <Button 
                   isIconOnly

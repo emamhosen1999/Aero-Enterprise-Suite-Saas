@@ -55,6 +55,8 @@ class InstallCommand extends Command
             $this->runNpmInstall();
         }
 
+        $this->runNpmBuild();
+
         // Run migrations
         $this->runMigrations();
 
@@ -354,6 +356,27 @@ JS;
 
         $process = proc_open(
             'npm install',
+            [
+                0 => STDIN,
+                1 => STDOUT,
+                2 => STDERR,
+            ],
+            $pipes,
+            base_path()
+        );
+
+        if (is_resource($process)) {
+            proc_close($process);
+        }
+    }
+
+     protected function runNpmBuild(): void
+    {
+        $this->newLine();
+        $this->info('Running npm build...');
+
+        $process = proc_open(
+            'npm run build',
             [
                 0 => STDIN,
                 1 => STDOUT,

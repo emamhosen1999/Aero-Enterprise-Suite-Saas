@@ -70,6 +70,8 @@ import UsersTable from '@/Tables/UsersTable.jsx';
 import AddEditUserForm from "@/Forms/AddEditUserForm.jsx";
 import InviteUserForm from "@/Forms/InviteUserForm.jsx";
 import PendingInvitationsPanel from "@/Components/PendingInvitationsPanel.jsx";
+import ExportUsersModal from "@/Components/ExportUsersModal.jsx";
+import LockAccountModal from "@/Components/LockAccountModal.jsx";
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
@@ -89,6 +91,12 @@ const getRoutes = (context) => {
     toggleStatus: 'users.toggleStatus',
     updateRoles: 'users.updateRole',
     invite: 'users.invite',
+    export: 'users.export',
+    restore: 'users.restore',
+    lock: 'users.lock',
+    unlock: 'users.unlock',
+    forcePasswordReset: 'users.forcePasswordReset',
+    resendVerification: 'users.resendVerification',
     // Device routes
     devices: 'devices.admin.list',
     devicesToggle: 'devices.admin.toggle',
@@ -184,58 +192,20 @@ const UsersList = ({
 
   // Stats
   const [stats, setStats] = useState({
-    overview: {
-      total_users: 0,
-      active_users: 0,
-      inactive_users: 0,
-      deleted_users: 0,
-      total_roles: 0,
-      total_departments: 0
-    },
-    distribution: {
-      by_role: [],
-      by_department: [],
-      by_status: []
-    },
-    activity: {
-      recent_registrations: {
-        new_users_30_days: 0,
-        new_users_90_days: 0,
-        new_users_year: 0,
-        recently_active: 0
-      },
-      user_growth_rate: 0,
-      current_month_registrations: 0
-    },
-    security: {
-      access_metrics: {
-        users_with_roles: 0,
-        users_without_roles: 0,
-        admin_users: 0,
-        regular_users: 0
-      },
-      role_distribution: []
-    },
-    health: {
-      status_ratio: {
-        active_percentage: 0,
-        inactive_percentage: 0,
-        deleted_percentage: 0
-      },
-      system_metrics: {
-        user_activation_rate: 0,
-        role_coverage: 0,
-        department_coverage: 0
-      }
-    },
-    quick_metrics: {
-      total_users: 0,
-      active_ratio: 0,
-      role_diversity: 0,
-      department_diversity: 0,
-      recent_activity: 0,
-      system_health_score: 0
-    }
+    total_users: 0,
+    active_users: 0,
+    inactive_users: 0,
+    deleted_users: 0,
+    verified_users: 0,
+    unverified_users: 0,
+    locked_accounts: 0,
+    users_with_roles: 0,
+    users_without_roles: 0,
+    recent_users_30_days: 0,
+    active_percentage: 0,
+    verified_percentage: 0,
+    roles_coverage: 0,
+    total_roles: 0,
   });
 
   // Calculate paginated users
@@ -655,69 +625,69 @@ const UsersList = ({
   const statsCards = useMemo(() => [
     {
       title: 'Total Users',
-      value: stats?.overview?.total_users || 0,
+      value: stats?.total_users || 0,
       icon: <UsersIcon className="w-5 h-5" />,
       color: 'text-blue-400',
       iconBg: 'bg-blue-500/20',
-      description: 'All users'
+      description: 'All registered users'
     },
     {
       title: 'Active Users',
-      value: stats?.overview?.active_users || 0,
+      value: stats?.active_users || 0,
       icon: <CheckCircleIcon className="w-5 h-5" />,
       color: 'text-green-400',
       iconBg: 'bg-green-500/20',
-      description: `${stats?.health?.status_ratio?.active_percentage || 0}% Active`
+      description: `${stats?.active_percentage || 0}% of total`
     },
     {
       title: 'Inactive Users',
-      value: stats?.overview?.inactive_users || 0,
+      value: stats?.inactive_users || 0,
       icon: <XCircleIcon className="w-5 h-5" />,
-      color: 'text-red-400',
-      iconBg: 'bg-red-500/20',
-      description: `${stats?.health?.status_ratio?.inactive_percentage || 0}% Inactive`
+      color: 'text-orange-400',
+      iconBg: 'bg-orange-500/20',
+      description: 'Deactivated accounts'
     },
     {
-      title: 'Total Roles',
-      value: stats?.overview?.total_roles || 0,
+      title: 'Email Verified',
+      value: stats?.verified_users || 0,
       icon: <ShieldCheckIcon className="w-5 h-5" />,
-      color: 'text-purple-400',
-      iconBg: 'bg-purple-500/20',
-      description: 'Role diversity'
-    },
-    {
-      title: 'Role Coverage',
-      value: `${stats?.health?.system_metrics?.role_coverage || 0}%`,
-      icon: <TrophyIcon className="w-5 h-5" />,
       color: 'text-emerald-400',
       iconBg: 'bg-emerald-500/20',
-      description: 'Users with roles'
+      description: `${stats?.verified_percentage || 0}% verified`
     },
     {
-      title: 'Recent Activity',
-      value: stats?.activity?.recent_registrations?.recently_active || 0,
+      title: 'Unverified',
+      value: stats?.unverified_users || 0,
+      icon: <ExclamationTriangleIcon className="w-5 h-5" />,
+      color: 'text-yellow-400',
+      iconBg: 'bg-yellow-500/20',
+      description: 'Pending verification'
+    },
+    {
+      title: 'Locked Accounts',
+      value: stats?.locked_accounts || 0,
+      icon: <LockClosedIcon className="w-5 h-5" />,
+      color: 'text-red-400',
+      iconBg: 'bg-red-500/20',
+      description: 'Security locked'
+    },
+    {
+      title: 'With Roles',
+      value: stats?.users_with_roles || 0,
+      icon: <TrophyIcon className="w-5 h-5" />,
+      color: 'text-purple-400',
+      iconBg: 'bg-purple-500/20',
+      description: `${stats?.roles_coverage || 0}% coverage`
+    },
+    {
+      title: 'New Users (30d)',
+      value: stats?.recent_users_30_days || 0,
       icon: <ClockIcon className="w-5 h-5" />,
       color: 'text-cyan-400',
       iconBg: 'bg-cyan-500/20',
-      description: 'Active last 7 days'
-    },
-    {
-      title: 'System Health',
-      value: `${stats?.quick_metrics?.system_health_score || 0}%`,
-      icon: <SignalIcon className="w-5 h-5" />,
-      color: 'text-pink-400',
-      iconBg: 'bg-pink-500/20',
-      description: 'Overall health'
-    },
-    {
-      title: context === 'admin' ? 'Tenants' : 'Departments',
-      value: stats?.overview?.total_departments || 0,
-      icon: <BuildingOfficeIcon className="w-5 h-5" />,
-      color: 'text-indigo-400',
-      iconBg: 'bg-indigo-500/20',
-      description: context === 'admin' ? 'Platform tenants' : 'Department diversity'
+      description: 'Last 30 days'
     }
-  ], [stats, context]);
+  ], [stats]);
 
   // Page title based on context
   const pageTitle = context === 'admin' ? 'Platform Administrators' : 'Users Management';
@@ -764,6 +734,31 @@ const UsersList = ({
           onInviteSent={() => {
             fetchUsers();
           }}
+        />
+      )}
+
+      {/* Export Users Modal */}
+      {openModalType === 'export' && (
+        <ExportUsersModal
+          open={openModalType === 'export'}
+          onClose={closeModal}
+          roles={roles}
+          departments={departments}
+          themeRadius={themeRadius}
+        />
+      )}
+
+      {/* Lock Account Modal */}
+      {openModalType === 'lock' && selectedUser && (
+        <LockAccountModal
+          open={openModalType === 'lock'}
+          onClose={closeModal}
+          user={selectedUser}
+          onSuccess={(updatedUser) => {
+            handleUsersUpdate(updatedUser);
+            fetchUsers();
+          }}
+          themeRadius={themeRadius}
         />
       )}
 
@@ -910,6 +905,7 @@ const UsersList = ({
                               size={isMobile ? "sm" : "md"}
                               variant="bordered"
                               startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+                              onPress={() => openModal('export')}
                               radius={themeRadius}
                               style={{
                                 background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
@@ -956,7 +952,7 @@ const UsersList = ({
                           className="w-full md:w-48"
                         >
                           {roles?.map((role) => (
-                            <SelectItem key={role.name || role} textValue={role.name || role}>
+                            <SelectItem key={role.name || role}>
                               {role.name || role}
                             </SelectItem>
                           ))}
@@ -974,8 +970,8 @@ const UsersList = ({
                           }}
                           className="w-full md:w-40"
                         >
-                          <SelectItem key="active" textValue="Active">Active</SelectItem>
-                          <SelectItem key="inactive" textValue="Inactive">Inactive</SelectItem>
+                          <SelectItem key="active">Active</SelectItem>
+                          <SelectItem key="inactive">Inactive</SelectItem>
                         </Select>
                         
                         {/* Department Filter (Tenant only) */}
@@ -992,7 +988,7 @@ const UsersList = ({
                             className="w-full md:w-48"
                           >
                             {departments?.map((dept) => (
-                              <SelectItem key={String(dept.id)} textValue={dept.name}>
+                              <SelectItem key={String(dept.id)}>
                                 {dept.name}
                               </SelectItem>
                             ))}
@@ -1031,6 +1027,17 @@ const UsersList = ({
                     isLoading={loading}
                   />
 
+                  {/* Pending Invitations Panel (Tenant context only) */}
+                  {context === 'tenant' && (
+                    <PendingInvitationsPanel
+                      className="mb-6"
+                      onInvitationAction={() => {
+                        fetchUsers();
+                        fetchStats();
+                      }}
+                    />
+                  )}
+
                   {/* Users Content Section */}
                   <div className="overflow-hidden">
                     {loading ? (
@@ -1049,7 +1056,15 @@ const UsersList = ({
                         onRowsPerPageChange={handleRowsPerPageChange}
                         totalUsers={paginatedUsers.total}
                         loading={loading}
-                        onEdit={(user) => openModal('edit', user)}
+                        onEdit={(user, action) => {
+                          if (action === 'lock') {
+                            // Open lock modal
+                            openModal('lock', user);
+                          } else {
+                            // Regular edit
+                            openModal('edit', user);
+                          }
+                        }}
                         updateUserOptimized={updateUserOptimized}
                         deleteUserOptimized={deleteUserOptimized}
                         toggleUserStatusOptimized={toggleUserStatusOptimized}

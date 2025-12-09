@@ -204,6 +204,82 @@ class AuditService
     }
 
     /**
+     * Log user restored.
+     */
+    public function logUserRestored(Model $user): AuditLog
+    {
+        return $this->log(
+            'user_restored',
+            $user,
+            "Restored user: {$user->name}"
+        );
+    }
+
+    /**
+     * Log account locked.
+     */
+    public function logAccountLocked(Model $user, ?string $reason = null): AuditLog
+    {
+        return $this->log(
+            'account_locked',
+            $user,
+            "Locked account: {$user->name}",
+            null,
+            ['reason' => $reason]
+        );
+    }
+
+    /**
+     * Log account unlocked.
+     */
+    public function logAccountUnlocked(Model $user): AuditLog
+    {
+        return $this->log(
+            'account_unlocked',
+            $user,
+            "Unlocked account: {$user->name}"
+        );
+    }
+
+    /**
+     * Log password reset forced.
+     */
+    public function logPasswordResetForced(Model $user): AuditLog
+    {
+        return $this->log(
+            'password_reset_forced',
+            $user,
+            "Forced password reset for user: {$user->name}"
+        );
+    }
+
+    /**
+     * Log email verification resent.
+     */
+    public function logVerificationResent(Model $user): AuditLog
+    {
+        return $this->log(
+            'verification_resent',
+            $user,
+            "Resent email verification to: {$user->email}"
+        );
+    }
+
+    /**
+     * Log user export.
+     */
+    public function logUserExport(int $count, array $filters = []): AuditLog
+    {
+        return $this->log(
+            'users_exported',
+            null,
+            "Exported {$count} users",
+            null,
+            ['count' => $count, 'filters' => $filters]
+        );
+    }
+
+    /**
      * Get audit logs with filters.
      */
     public function getLogs(array $filters = [], int $perPage = 15)

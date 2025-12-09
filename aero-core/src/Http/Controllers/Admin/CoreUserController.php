@@ -4,11 +4,13 @@ namespace Aero\Core\Http\Controllers\Admin;
 
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
+use Aero\Core\Services\AuditService;
 use Aero\Core\Services\UserInvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
@@ -22,10 +24,12 @@ use Spatie\Permission\Models\Role;
 class CoreUserController extends Controller
 {
     protected UserInvitationService $invitationService;
+    protected AuditService $auditService;
 
-    public function __construct(UserInvitationService $invitationService)
+    public function __construct(UserInvitationService $invitationService, AuditService $auditService)
     {
         $this->invitationService = $invitationService;
+        $this->auditService = $auditService;
     }
 
     /**
@@ -127,6 +131,79 @@ class CoreUserController extends Controller
     }
 
     /**
+     * Get user statistics
+     */
+    public function stats(Request $request)
+    {
+        try {
+            $totalUsers = User::count();
+            $activeUsers = User::where('active', true)->count();
+            $inactiveUsers = User::where('active', false)->count();
+            $deletedUsers = User::onlyTrashed()->count();
+            
+            // Verified/Unverified users
+            $verifiedUsers = User::whereNotNull('email_verified_at')->count();
+            $unverifiedUsers = User::whereNull('email_verified_at')->count();
+            
+            // Locked accounts
+            $lockedAccounts = User::whereNotNull('account_locked_at')->count();
+            
+            // Users with/without roles
+            $usersWithRoles = User::has('roles')->count();
+            $usersWithoutRoles = User::doesntHave('roles')->count();
+            
+            // Recent registrations (last 30 days)
+            $recentUsers = User::where('created_at', '>=', now()->subDays(30))->count();
+            
+            // Calculate percentages
+            $activePercentage = $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0;
+            $verifiedPercentage = $totalUsers > 0 ? round(($verifiedUsers / $totalUsers) * 100, 1) : 0;
+            $rolesCoverage = $totalUsers > 0 ? round(($usersWithRoles / $totalUsers) * 100, 1) : 0;
+
+            return response()->json([
+                'stats' => [
+                    'total_users' => $totalUsers,
+                    'active_users' => $activeUsers,
+                    'inactive_users' => $inactiveUsers,
+                    'deleted_users' => $deletedUsers,
+                    'verified_users' => $verifiedUsers,
+                    'unverified_users' => $unverifiedUsers,
+                    'locked_accounts' => $lockedAccounts,
+                    'users_with_roles' => $usersWithRoles,
+                    'users_without_roles' => $usersWithoutRoles,
+                    'recent_users_30_days' => $recentUsers,
+                    'active_percentage' => $activePercentage,
+                    'verified_percentage' => $verifiedPercentage,
+                    'roles_coverage' => $rolesCoverage,
+                    'total_roles' => Role::count(),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to fetch user statistics.',
+                'stats' => [
+                    'total_users' => 0,
+                    'active_users' => 0,
+                    'inactive_users' => 0,
+                    'deleted_users' => 0,
+                    'verified_users' => 0,
+                    'unverified_users' => 0,
+                    'locked_accounts' => 0,
+                    'users_with_roles' => 0,
+                    'users_without_roles' => 0,
+                    'recent_users_30_days' => 0,
+                    'active_percentage' => 0,
+                    'verified_percentage' => 0,
+                    'roles_coverage' => 0,
+                    'total_roles' => 0,
+                ],
+            ], 500);
+        }
+    }
+
+    /**
      * Show the form for creating a new user.
      */
     public function create(): Response
@@ -147,7 +224,10 @@ class CoreUserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'user_name' => 'nullable|string|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::min(8)
+                ->mixedCase()
+                ->numbers()
+                ->symbols()],
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,name',
             'active' => 'boolean',
@@ -167,6 +247,9 @@ class CoreUserController extends Controller
             if (! empty($validated['roles'])) {
                 $user->syncRoles($validated['roles']);
             }
+
+            // Log the action
+            $this->auditService->logUserCreated($user, $validated);
 
             DB::commit();
 
@@ -227,12 +310,18 @@ class CoreUserController extends Controller
     {
         $user = User::findOrFail($id);
         
+        // Store old values for audit
+        $oldValues = $user->only(['name', 'email', 'user_name', 'phone', 'active']);
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($id)],
             'user_name' => ['nullable', 'string', 'max:255', Rule::unique('users')->ignore($id)],
             'phone' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => ['nullable', 'confirmed', Password::min(8)
+                ->mixedCase()
+                ->numbers()
+                ->symbols()],
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,name',
             'active' => 'boolean',
@@ -257,6 +346,9 @@ class CoreUserController extends Controller
             if (isset($validated['roles'])) {
                 $user->syncRoles($validated['roles']);
             }
+
+            // Log the action
+            $this->auditService->logUserUpdated($user, $oldValues, $user->only(['name', 'email', 'user_name', 'phone', 'active']));
 
             DB::commit();
 
@@ -294,6 +386,9 @@ class CoreUserController extends Controller
             $user->save();
             $user->delete(); // Soft delete
 
+            // Log the action
+            $this->auditService->logUserDeleted($user);
+
             return response()->json([
                 'message' => 'User deleted successfully.'
             ]);
@@ -327,6 +422,9 @@ class CoreUserController extends Controller
 
             $status = $user->active ? 'activated' : 'deactivated';
 
+            // Log the action
+            $this->auditService->logUserStatusChanged($user, $user->active);
+
             return response()->json([
                 'message' => "User {$status} successfully.",
                 'active' => $user->active,
@@ -342,133 +440,7 @@ class CoreUserController extends Controller
         }
     }
 
-    /**
-     * Get user statistics
-     */
-    public function stats(Request $request)
-    {
-        try {
-            // Basic user counts
-            $totalUsers = User::count();
-            $activeUsers = User::where('active', 1)->count();
-            $inactiveUsers = User::where('active', 0)->count();
-
-            // Role analytics - Use DB query instead of withCount
-            $roleCount = Role::count();
-            $roles = Role::all();
-            $rolesWithUsers = $roles->map(function ($role) use ($totalUsers) {
-                $userCount = \DB::table('model_has_roles')
-                    ->where('role_id', $role->id)
-                    ->where('model_type', User::class)
-                    ->count();
-                
-                return [
-                    'name' => $role->name,
-                    'count' => $userCount,
-                    'percentage' => $totalUsers > 0 ? round(($userCount / $totalUsers) * 100, 1) : 0,
-                ];
-            });
-
-            // Status distribution
-            $statusDistribution = [
-                ['name' => 'Active', 'count' => $activeUsers, 'percentage' => $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0],
-                ['name' => 'Inactive', 'count' => $inactiveUsers, 'percentage' => $totalUsers > 0 ? round(($inactiveUsers / $totalUsers) * 100, 1) : 0],
-            ];
-
-            // Recent activity metrics
-            $recentlyActive = User::where('last_login_at', '>=', now()->subDays(7))->count();
-            $newUsers30Days = User::where('created_at', '>=', now()->subDays(30))->count();
-            $newUsers90Days = User::where('created_at', '>=', now()->subDays(90))->count();
-            $newUsersYear = User::where('created_at', '>=', now()->subYear())->count();
-
-            // System health calculations
-            $activePercentage = $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0;
-            
-            // Count users with roles using direct DB query
-            $usersWithRolesCount = \DB::table('model_has_roles')
-                ->where('model_type', User::class)
-                ->distinct('model_id')
-                ->count('model_id');
-            
-            $roleCoverage = $totalUsers > 0
-                ? round(($usersWithRolesCount / $totalUsers) * 100, 1)
-                : 0;
-
-            // Calculate system health score
-            $healthScore = round(($activePercentage * 0.5) + ($roleCoverage * 0.5), 1);
-            
-            // Admin users count
-            $adminRoleNames = ['Super Administrator', 'Admin'];
-            $adminUsers = User::whereHas('roles', fn ($q) => $q->whereIn('name', $adminRoleNames))->count();
-            $regularUsers = $totalUsers - $adminUsers;
-            $usersWithoutRoles = $totalUsers - $usersWithRolesCount;
-
-            return response()->json([
-                'stats' => [
-                    'overview' => [
-                        'total_users' => $totalUsers,
-                        'active_users' => $activeUsers,
-                        'inactive_users' => $inactiveUsers,
-                        'deleted_users' => 0,
-                        'total_roles' => $roleCount,
-                        'total_departments' => 0,
-                    ],
-                    'distribution' => [
-                        'by_role' => $rolesWithUsers,
-                        'by_department' => [],
-                        'by_status' => $statusDistribution,
-                    ],
-                    'activity' => [
-                        'recent_registrations' => [
-                            'new_users_30_days' => $newUsers30Days,
-                            'new_users_90_days' => $newUsers90Days,
-                            'new_users_year' => $newUsersYear,
-                            'recently_active' => $recentlyActive,
-                        ],
-                        'user_growth_rate' => 0,
-                        'current_month_registrations' => $newUsers30Days,
-                    ],
-                    'security' => [
-                        'access_metrics' => [
-                            'users_with_roles' => $usersWithRolesCount,
-                            'users_without_roles' => $usersWithoutRoles,
-                            'admin_users' => $adminUsers,
-                            'regular_users' => $regularUsers,
-                        ],
-                        'role_distribution' => $rolesWithUsers,
-                    ],
-                    'health' => [
-                        'status_ratio' => [
-                            'active_percentage' => $activePercentage,
-                            'inactive_percentage' => $totalUsers > 0 ? round(($inactiveUsers / $totalUsers) * 100, 1) : 0,
-                            'deleted_percentage' => 0,
-                        ],
-                        'system_metrics' => [
-                            'user_activation_rate' => $activePercentage,
-                            'role_coverage' => $roleCoverage,
-                            'department_coverage' => 0,
-                        ],
-                    ],
-                    'quick_metrics' => [
-                        'total_users' => $totalUsers,
-                        'active_ratio' => $activePercentage,
-                        'role_diversity' => $roleCount,
-                        'department_diversity' => 0,
-                        'recent_activity' => $recentlyActive,
-                        'system_health_score' => $healthScore,
-                    ],
-                ],
-            ]);
-        } catch (\Throwable $e) {
-            report($e);
-
-            return response()->json([
-                'error' => 'An error occurred while retrieving user statistics.',
-                'details' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
+ 
     /**
      * Update user roles
      */
@@ -513,6 +485,9 @@ class CoreUserController extends Controller
         try {
             $invitation = $this->invitationService->sendInvitation($validated);
 
+            // Log the action
+            $this->auditService->logUserInvited($invitation);
+
             return response()->json([
                 'message' => 'Invitation sent successfully.',
                 'invitation' => $invitation,
@@ -552,6 +527,9 @@ class CoreUserController extends Controller
         try {
             $invitation = $this->invitationService->resendInvitation($invitationId);
 
+            // Log the action
+            $this->auditService->logInvitationResent($invitation);
+
             return response()->json([
                 'message' => 'Invitation resent successfully.',
                 'invitation' => $invitation,
@@ -570,7 +548,11 @@ class CoreUserController extends Controller
     public function cancelInvitation($invitationId)
     {
         try {
+            $invitation = \Aero\Core\Models\UserInvitation::findOrFail($invitationId);
             $this->invitationService->cancelInvitation($invitationId);
+
+            // Log the action
+            $this->auditService->logInvitationCancelled($invitation);
 
             return response()->json([
                 'message' => 'Invitation cancelled successfully.',
@@ -596,14 +578,18 @@ class CoreUserController extends Controller
 
         try {
             // Prevent bulk deactivation of current user
-            $userIds = array_filter($validated['user_ids'], function ($id) {
-                return $id != auth()->id();
-            });
+            $userIds = $validated['user_ids'];
+            if ($validated['active'] === false && in_array(auth()->id(), $userIds)) {
+                $userIds = array_diff($userIds, [auth()->id()]);
+            }
 
             $count = User::whereIn('id', $userIds)
                 ->update(['active' => $validated['active']]);
 
             $status = $validated['active'] ? 'activated' : 'deactivated';
+
+            // Log bulk action
+            $this->auditService->logBulkStatusChange($count, $validated['active']);
 
             return response()->json([
                 'message' => "{$count} users {$status} successfully.",
@@ -638,6 +624,9 @@ class CoreUserController extends Controller
                 $user->syncRoles($validated['roles']);
             }
 
+            // Log bulk action
+            $this->auditService->logBulkRoleAssignment($users->count(), $validated['roles']);
+
             return response()->json([
                 'message' => "Roles assigned to {$users->count()} users successfully.",
                 'count' => $users->count(),
@@ -663,16 +652,17 @@ class CoreUserController extends Controller
         ]);
 
         try {
-            // Prevent deletion of current user
-            $userIds = array_filter($validated['user_ids'], function ($id) {
-                return $id != auth()->id();
-            });
-
             DB::beginTransaction();
+
+            // Prevent deletion of current user
+            $userIds = array_diff($validated['user_ids'], [auth()->id()]);
 
             // Deactivate and soft delete
             User::whereIn('id', $userIds)->update(['active' => false]);
             $count = User::whereIn('id', $userIds)->delete();
+
+            // Log bulk action
+            $this->auditService->logBulkDeletion($count);
 
             DB::commit();
 
@@ -690,4 +680,284 @@ class CoreUserController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Export users to CSV
+     */
+    public function exportUsers(Request $request)
+    {
+        $validated = $request->validate([
+            'role_id' => 'nullable|exists:roles,id',
+            'active' => 'nullable|boolean',
+            'department_id' => 'nullable|integer',
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date|after_or_equal:from_date',
+        ]);
+
+        try {
+            $query = User::query()->with('roles');
+
+            // Apply filters
+            if (isset($validated['role_id'])) {
+                $query->role($validated['role_id']);
+            }
+
+            if (isset($validated['active'])) {
+                $query->where('active', $validated['active']);
+            }
+
+            if (isset($validated['department_id'])) {
+                // Check if department relationship exists dynamically
+                $registry = app(\Aero\Core\Services\UserRelationshipRegistry::class);
+                if ($registry->hasRelationship('employee')) {
+                    $query->whereHas('employee', function ($q) use ($validated) {
+                        $q->where('department_id', $validated['department_id']);
+                    });
+                }
+            }
+
+            if (isset($validated['from_date'])) {
+                $query->where('created_at', '>=', $validated['from_date']);
+            }
+
+            if (isset($validated['to_date'])) {
+                $query->where('created_at', '<=', $validated['to_date']);
+            }
+
+            $users = $query->get();
+
+            // Generate CSV
+            $filename = 'users_export_' . now()->format('Y-m-d_His') . '.csv';
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+
+            $callback = function () use ($users) {
+                $file = fopen('php://output', 'w');
+                
+                // CSV Headers
+                fputcsv($file, [
+                    'ID', 'Name', 'Username', 'Email', 'Phone', 
+                    'Active', 'Roles', 'Email Verified', 'Created At'
+                ]);
+
+                // CSV Data
+                foreach ($users as $user) {
+                    fputcsv($file, [
+                        $user->id,
+                        $user->name,
+                        $user->user_name,
+                        $user->email,
+                        $user->phone,
+                        $user->active ? 'Yes' : 'No',
+                        $user->roles->pluck('name')->join(', '),
+                        $user->email_verified_at ? 'Yes' : 'No',
+                        $user->created_at->format('Y-m-d H:i:s'),
+                    ]);
+                }
+
+                fclose($file);
+            };
+
+            // Log the export
+            $this->auditService->logUserExport($users->count(), $validated);
+
+            return response()->stream($callback, 200, $headers);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to export users.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore soft-deleted user
+     */
+    public function restoreUser($id)
+    {
+        try {
+            $user = User::withTrashed()->findOrFail($id);
+
+            if (! $user->trashed()) {
+                return response()->json([
+                    'error' => 'User is not deleted.',
+                ], 400);
+            }
+
+            $user->restore();
+            $user->active = true;
+            $user->save();
+
+            // Log the action
+            $this->auditService->logUserRestored($user);
+
+            return response()->json([
+                'message' => 'User restored successfully.',
+                'user' => $user->fresh(['roles']),
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to restore user.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Lock user account
+     */
+    public function lockAccount(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $user = User::findOrFail($id);
+
+            // Prevent locking current user
+            if ($user->id === auth()->id()) {
+                return response()->json([
+                    'error' => 'You cannot lock your own account.',
+                ], 400);
+            }
+
+            if ($user->account_locked_at) {
+                return response()->json([
+                    'error' => 'Account is already locked.',
+                ], 400);
+            }
+
+            $user->account_locked_at = now();
+            $user->locked_reason = $validated['reason'] ?? 'Account locked by administrator';
+            $user->active = false;
+            $user->save();
+
+            // Log the action
+            $this->auditService->logAccountLocked($user, $validated['reason'] ?? null);
+
+            return response()->json([
+                'message' => 'Account locked successfully.',
+                'user' => $user->fresh(['roles']),
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to lock account.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Unlock user account
+     */
+    public function unlockAccount($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if (! $user->account_locked_at) {
+                return response()->json([
+                    'error' => 'Account is not locked.',
+                ], 400);
+            }
+
+            $user->account_locked_at = null;
+            $user->locked_reason = null;
+            $user->active = true;
+            $user->save();
+
+            // Log the action
+            $this->auditService->logAccountUnlocked($user);
+
+            return response()->json([
+                'message' => 'Account unlocked successfully.',
+                'user' => $user->fresh(['roles']),
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to unlock account.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Force password reset on next login
+     */
+    public function forcePasswordReset($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            // Prevent forcing password reset for current user
+            if ($user->id === auth()->id()) {
+                return response()->json([
+                    'error' => 'You cannot force password reset for your own account.',
+                ], 400);
+            }
+
+            // Set a flag that will be checked on login
+            $user->force_password_reset = true;
+            $user->save();
+
+            // Log the action
+            $this->auditService->logPasswordResetForced($user);
+
+            return response()->json([
+                'message' => 'User will be required to reset password on next login.',
+                'user' => $user->fresh(['roles']),
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to force password reset.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Resend email verification
+     */
+    public function resendEmailVerification($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->hasVerifiedEmail()) {
+                return response()->json([
+                    'error' => 'Email is already verified.',
+                ], 400);
+            }
+
+            $user->sendEmailVerificationNotification();
+
+            // Log the action
+            $this->auditService->logVerificationResent($user);
+
+            return response()->json([
+                'message' => 'Verification email sent successfully.',
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to resend verification email.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
+

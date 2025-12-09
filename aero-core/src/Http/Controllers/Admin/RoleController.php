@@ -54,11 +54,17 @@ class RoleController extends Controller
      */
     public function index()
     {
+        // Disable caching for this endpoint
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
         try {
             $user = $this->getCurrentUser();
             $isSuperAdmin = $this->isSuperAdmin();
 
             // Get all roles (Super Admin can see all, others see limited)
+            // Always fetch fresh data from database
             $roles = Role::query()
                 ->when(! $isSuperAdmin, function ($query) {
                     return $query->whereNotIn('name', ['Super Administrator']);

@@ -129,6 +129,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/bulk/assign-roles', [CoreUserController::class, 'bulkAssignRoles'])->name('bulk.assignRoles');
         Route::post('/bulk/delete', [CoreUserController::class, 'bulkDelete'])->name('bulk.delete');
         
+        // Export
+        Route::post('/export', [CoreUserController::class, 'exportUsers'])->name('export');
+        
+        // Restore
+        Route::post('/{id}/restore', [CoreUserController::class, 'restoreUser'])->name('restore');
+        
+        // Account Security
+        Route::post('/{id}/lock', [CoreUserController::class, 'lockAccount'])->name('lock');
+        Route::post('/{id}/unlock', [CoreUserController::class, 'unlockAccount'])->name('unlock');
+        Route::post('/{id}/force-password-reset', [CoreUserController::class, 'forcePasswordReset'])->name('forcePasswordReset');
+        
+        // Email Verification
+        Route::post('/{id}/resend-verification', [CoreUserController::class, 'resendEmailVerification'])->name('resendVerification');
+        
         // Invitations
         Route::post('/invite', [CoreUserController::class, 'sendInvitation'])->name('invite');
         Route::get('/invitations/pending', [CoreUserController::class, 'pendingInvitations'])->name('invitations.pending');

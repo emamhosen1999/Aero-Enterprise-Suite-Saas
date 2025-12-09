@@ -75,8 +75,6 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
             password: '',
             password_confirmation: '',
             roles: user?.roles?.map(r => typeof r === 'object' ? r.name : r) || [],
-            // Single device login is only applicable for tenant context
-            ...(context === 'tenant' ? { single_device_login_enabled: user?.single_device_login_enabled || user?.single_device_login || false } : {}),
             profile_image: null,
         }
     );
@@ -109,10 +107,7 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
                     transform: (data) => {
                         // Only include single_device_login_enabled for tenant context
                         const transformedData = { ...data };
-                        if (context === 'tenant' && data.single_device_login_enabled !== undefined) {
-                            // Laravel expects 0/1 or "0"/"1" for boolean fields when using FormData
-                            transformedData.single_device_login_enabled = data.single_device_login_enabled ? 1 : 0;
-                        }
+                     
                         return transformedData;
                     },
                     onSuccess: (response) => {
@@ -441,7 +436,7 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
                                         {roles?.map((role) => {
                                             const roleName = typeof role === 'object' ? role.name : role;
                                             return (
-                                                <SelectItem key={roleName} value={roleName} textValue={roleName}>
+                                                <SelectItem key={roleName} value={roleName}>
                                                     {roleName}
                                                 </SelectItem>
                                             );
@@ -449,35 +444,7 @@ const AddEditUserForm = ({user, roles, setUsers, open, closeModal, editMode = fa
                                     </Select>
                                 </div>
 
-                                {/* Single Device Login Toggle - Only for Tenant Context */}
-                                {context === 'tenant' && (
-                                    <div className="col-span-full">
-                                        <div className="flex items-center justify-between p-4 rounded-lg border" style={{
-                                            borderColor: 'var(--theme-divider, #E4E4E7)',
-                                            background: 'color-mix(in srgb, var(--theme-content2) 30%, transparent)'
-                                        }}>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <Lock className="w-4 h-4" style={{ color: 'var(--theme-primary)' }} />
-                                                    <span className="text-sm font-semibold" style={{
-                                                        fontFamily: `var(--fontFamily, "Inter")`,
-                                                    }}>Single Device Login</span>
-                                                </div>
-                                                <p className="text-xs text-default-500 mt-1" style={{
-                                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                                }}>
-                                                    Restrict user to login from only one device at a time
-                                                </p>
-                                            </div>
-                                            <Switch
-                                                isSelected={form.data.single_device_login_enabled}
-                                                onValueChange={(checked) => handleChange('single_device_login_enabled', checked)}
-                                                color={form.data.single_device_login_enabled ? "warning" : "default"}
-                                                size="sm"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
+                              
 
                                 {/* Password fields (only for new users) */}
                                 {!editMode && (

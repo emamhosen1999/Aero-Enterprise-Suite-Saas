@@ -55,6 +55,11 @@ class User extends Authenticatable implements MustVerifyEmail
     use SoftDeletes;
 
     /**
+     * The guard name for Spatie Permission
+     */
+    protected $guard_name = 'web';
+
+    /**
      * The attributes that are mass assignable.
      *
      * Core authentication and profile fields only.
@@ -73,6 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_active',
         'account_locked_at',
         'locked_reason',
+        'force_password_reset',
 
         // Profile basics
         'profile_image',

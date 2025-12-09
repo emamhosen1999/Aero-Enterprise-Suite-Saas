@@ -29,6 +29,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Merge core config
         $this->mergeConfigFrom(__DIR__.'/../../config/modules.php', 'aero-core.modules');
         $this->mergeConfigFrom(__DIR__.'/../../config/core.php', 'aero.core');
+        $this->mergeConfigFrom(__DIR__.'/../../config/permission.php', 'permission');
 
         // Register Core Singletons
         $this->app->singleton(ModuleRegistry::class);
@@ -126,15 +127,24 @@ class AeroCoreServiceProvider extends ServiceProvider
     /**
      * Register package routes.
      * 
-     * All routes (auth, web, api) are now in a single web.php file.
+     * Loads both web and API routes.
      * Routes use standard names (no prefix) to match frontend expectations.
      */
     protected function registerRoutes(): void
     {
+        // Web routes
         Route::group([
             'middleware' => ['web'],
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+        });
+
+        // API routes
+        Route::group([
+            'middleware' => ['api'],
+            'prefix' => 'api',
+        ], function () {
+            $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
         });
     }
 

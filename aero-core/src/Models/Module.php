@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -18,15 +17,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class Module extends Model
 {
-    use HasFactory, SoftDeletes;
-
-    /**
-     * The connection name for the model.
-     * Modules are stored in the landlord database, not tenant databases.
-     *
-     * @var string
-     */
-    protected $connection = 'mysql';
+    use HasFactory;
 
     protected $fillable = [
         'code',
