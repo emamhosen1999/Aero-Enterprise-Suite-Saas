@@ -1,23 +1,8 @@
 <?php
 
-use Aero\HRM\Controllers\Attendance\AttendanceController;
-use Aero\HRM\Controllers\Employee\DepartmentController;
-use Aero\HRM\Controllers\Employee\DesignationController;
-use Aero\HRM\Controllers\Employee\EmployeeController;
-use Aero\HRM\Controllers\Employee\LetterController;
-use Aero\HRM\Controllers\Employee\ProfileController;
-use Aero\HRM\Controllers\Leave\BulkLeaveController;
-use Aero\HRM\Controllers\Leave\LeaveController;
 use Aero\Platform\Http\Controllers\SystemMonitoring\SystemMonitoringController;
-use App\Http\Controllers\EducationController;
 use App\Http\Controllers\EmailController;
-use App\Http\Controllers\ExperienceController;
-use App\Http\Controllers\HolidayController;
-use App\Http\Controllers\JurisdictionController;
-use App\Http\Controllers\LetterController;
-use App\Http\Controllers\Settings\AttendanceSettingController;
 use App\Http\Controllers\Settings\CustomDomainController;
-use App\Http\Controllers\Settings\LeaveSettingController;
 use App\Http\Controllers\Settings\SystemSettingController;
 use App\Http\Controllers\Shared\Auth\DeviceController;
 use App\Http\Controllers\Shared\Auth\UserController;
@@ -140,17 +125,14 @@ Route::middleware($middlewareStack)->group(function () {
     // Updates route - require updates permission
     Route::middleware(['module:core,updates'])->get('/updates', [DashboardController::class, 'updates'])->name('updates');
 
-
     // Communications routes
     Route::middleware(['module:core,communications'])->get('/emails', [EmailController::class, 'index'])->name('emails');
 
-    // Leave summary route
-    Route::middleware(['module:hrm,time-off'])->get('/leave-summary', [LeaveController::class, 'summary'])->name('leave.summary');
+    // NOTE: Leave summary route moved to HRM module (aero-hrm/routes/tenant.php)
 });
 
 // Administrative routes - require specific permissions
 Route::middleware(['auth', 'verified'])->group(function () {
-
 
     // User management routes - CONSOLIDATED & REFACTORED
     Route::middleware(['module:core,user-management'])->group(function () {
@@ -158,16 +140,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users/paginate', [UserController::class, 'paginate'])->name('users.paginate');
         Route::get('/users/stats', [UserController::class, 'stats'])->name('users.stats');
 
-        // Profile search for admin usage (consistent with other modules)
-        Route::get('/profiles/search', [ProfileController::class, 'search'])->name('profiles.search');
+        // Profile search for admin usage
+        // NOTE: ProfileController references moved to HRM module
     });
 
     Route::middleware(['module:core,user-management,user-list,create'])->group(function () {
         Route::post('/users', [UserController::class, 'store'])
             ->middleware(['precognitive'])
             ->name('users.store');
-        // Legacy route for backward compatibility
-        Route::post('/users/legacy', [ProfileController::class, 'store'])->name('addUser');
+        // NOTE: Legacy ProfileController route moved to HRM module
     });
 
     Route::middleware(['module:core,user-management,user-list,update'])->group(function () {
@@ -176,16 +157,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('users.update');
         Route::put('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggleStatus');
         Route::post('/users/{id}/roles', [UserController::class, 'updateUserRole'])->name('users.updateRole');
-        // Employee-specific routes - now handled by EmployeeController
-        Route::post('/users/{id}/attendance-type', [EmployeeController::class, 'updateAttendanceType'])->name('users.updateAttendanceType');
-        Route::post('/users/{id}/report-to', [EmployeeController::class, 'updateReportTo'])->name('users.updateReportTo');
-
+        // NOTE: Employee-specific routes (attendance-type, report-to) moved to HRM module
     });
 
     Route::middleware(['module:core,user-management,user-list,delete'])->group(function () {
         Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
-        // Legacy route for backward compatibility
-        Route::delete('/user/{id}', [EmployeeController::class, 'destroy'])->name('user.delete');
+        // NOTE: Legacy EmployeeController routes moved to HRM module
     });
 
     // SECURE DEVICE MANAGEMENT ROUTES (NEW SYSTEM)
@@ -233,7 +210,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });    // Legacy role routes (maintained for backward compatibility)
     Route::middleware(['module:core,roles-permissions'])->get('/roles-permissions', [RoleController::class, 'getRolesAndPermissions'])->name('roles-settings');
 
-
     // User Invitation Routes (integrated with User Management)
     Route::prefix('users')->group(function () {
         Route::post('/invite', [UserController::class, 'sendInvitation'])->name('users.invite');
@@ -249,8 +225,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware(['module:project-management,tasks,task-list,create'])->post('/task/add', [TaskController::class, 'addTask'])->name('addTask');
-
-
 
 });
 
@@ -303,8 +277,6 @@ Route::middleware(['auth', 'verified', 'tenant.super_admin'])->group(function ()
     Route::post('/admin/modules/sub-modules/{subModule}/sync-permissions', [ModuleController::class, 'syncSubModulePermissions'])->name('modules.sub-modules.sync-permissions');
     Route::post('/admin/modules/components/{component}/sync-permissions', [ModuleController::class, 'syncComponentPermissions'])->name('modules.components.sync-permissions');
 });
-
-
 
 // System Monitoring Routes (Super Administrator only)
 Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(function () {
@@ -438,12 +410,10 @@ Route::middleware(['auth', 'verified', 'role:Super Administrator'])->group(funct
         Route::put('/settings', [IMSController::class, 'updateSettings'])->name('ims.settings.update')->middleware('module:inventory,settings,setting-list,update');
     });
 
-
 });
 
 // API routes for dropdown data
 Route::middleware(['auth', 'verified'])->group(function () {
-
 
     Route::get('/api/users/managers/list', function () {
         return response()->json(\App\Models\User::whereHas('roles', function ($query) {
@@ -475,39 +445,7 @@ Route::get('/service-worker.js', function () {
     abort(404);
 })->name('service-worker');
 
-// Temporary test route for debugging employee deletion authorization
-Route::middleware(['auth', 'verified'])->get('/test-employee-auth', function () {
-    $currentUser = \Illuminate\Support\Facades\Auth::user();
-    $employee = \App\Models\User::where('id', '!=', $currentUser->id)->first();
-
-    if (! $employee) {
-        return response()->json(['error' => 'No other employee found for testing']);
-    }
-
-    $controller = new \Aero\HRM\Controllers\Employee\EmployeeController;
-    $reflection = new ReflectionClass($controller);
-    $method = $reflection->getMethod('canDeleteEmployee');
-    $method->setAccessible(true);
-    $canDelete = $method->invoke($controller, $currentUser, $employee);
-
-    return response()->json([
-        'current_user' => [
-            'id' => $currentUser->id,
-            'name' => $currentUser->name,
-            'roles' => $currentUser->roles->pluck('name'),
-            'has_users_delete_permission' => $currentUser->can('users.delete'),
-            'has_super_admin_role' => $currentUser->hasRole('Super Administrator'),
-            'has_hr_manager_role' => $currentUser->hasRole('HR Manager'),
-            'has_administrator_role' => $currentUser->hasRole('Administrator'),
-        ],
-        'target_employee' => [
-            'id' => $employee->id,
-            'name' => $employee->name,
-        ],
-        'can_delete' => $canDelete,
-        'authorization_result' => $canDelete ? 'AUTHORIZED' : 'UNAUTHORIZED',
-    ]);
-});
+// NOTE: Test route for employee deletion removed - HRM module handles its own testing
 
 // Event Management Public Routes (no authentication required)
 Route::prefix('events')->group(function () {

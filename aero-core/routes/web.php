@@ -1,10 +1,8 @@
 <?php
 
-use Aero\Core\Http\Controllers\Auth\AuthenticatedSessionController;
-use Aero\Core\Http\Controllers\Auth\RegisteredUserController;
-use Aero\Core\Http\Controllers\ProfileController;
-use Aero\Core\Http\Controllers\UserController;
-use Aero\Core\Http\Controllers\RoleController;
+use Aero\Core\Http\Controllers\Admin\CoreRoleController;
+use Aero\Core\Http\Controllers\Admin\CoreUserController;
+use Aero\Core\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,50 +10,108 @@ use Illuminate\Support\Facades\Route;
 | Aero Core Web Routes
 |--------------------------------------------------------------------------
 |
-| Core authentication and user management routes.
-| These routes are automatically registered with 'core' prefix.
+| Core user management, role management, and dashboard routes.
+| These routes are registered with the 'core.' prefix.
+|
+| Authentication routes (login, logout) are in auth.php without prefix.
 |
 */
 
-// Authentication Routes (public)
-Route::middleware('guest')->group(function () {
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+// Health Check / Info Route
+Route::get('/aero-core/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'package' => 'aero/core',
+        'services' => [
+            'UserRelationshipRegistry' => app()->bound('Aero\Core\Services\UserRelationshipRegistry'),
+            'NavigationRegistry' => app()->bound('Aero\Core\Services\NavigationRegistry'),
+            'ModuleRegistry' => app()->bound('Aero\Core\Services\ModuleRegistry'),
+            'ModuleAccessService' => app()->bound('Aero\Core\Services\ModuleAccessService'),
+        ],
+    ]);
+})->name('health')->withoutMiddleware(['auth']);
 
-    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('register', [RegisteredUserController::class, 'store']);
-});
-
-// Authenticated Routes
-Route::middleware(['auth', 'verified'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
     // Dashboard
-    Route::get('dashboard', function () {
-        return inertia('Dashboard/Index');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
 
-    // Logout
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    /*
+    |--------------------------------------------------------------------------
+    | User Management Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [CoreUserController::class, 'index'])->name('index');
+        Route::get('/create', [CoreUserController::class, 'create'])->name('create');
+        Route::post('/', [CoreUserController::class, 'store'])->name('store');
+        Route::get('/{user}', [CoreUserController::class, 'show'])->name('show');
+        Route::get('/{user}/edit', [CoreUserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [CoreUserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [CoreUserController::class, 'destroy'])->name('destroy');
+        Route::post('/{user}/toggle-status', [CoreUserController::class, 'toggleStatus'])->name('toggle-status');
+    });
 
-    // Profile Management
+    /*
+    |--------------------------------------------------------------------------
+    | Role Management Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [CoreRoleController::class, 'index'])->name('index');
+        Route::get('/create', [CoreRoleController::class, 'create'])->name('create');
+        Route::post('/', [CoreRoleController::class, 'store'])->name('store');
+        Route::get('/permissions', [CoreRoleController::class, 'permissions'])->name('permissions');
+        Route::get('/{role}', [CoreRoleController::class, 'show'])->name('show');
+        Route::get('/{role}/edit', [CoreRoleController::class, 'edit'])->name('edit');
+        Route::put('/{role}', [CoreRoleController::class, 'update'])->name('update');
+        Route::delete('/{role}', [CoreRoleController::class, 'destroy'])->name('destroy');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profile Routes
+    |--------------------------------------------------------------------------
+    */
     Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', [ProfileController::class, 'show'])->name('show');
-        Route::patch('/', [ProfileController::class, 'update'])->name('update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-        Route::post('avatar', [ProfileController::class, 'uploadAvatar'])->name('avatar.upload');
+        Route::get('/', function () {
+            return inertia('Profile/Index', [
+                'title' => 'My Profile',
+                'user' => auth()->user(),
+            ]);
+        })->name('index');
     });
 
-    // User Management (requires module access)
-    Route::middleware('module.access:user_management,users,user_list')->group(function () {
-        Route::resource('users', UserController::class);
-        Route::post('users/{user}/invite', [UserController::class, 'invite'])->name('users.invite');
-        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
-        Route::post('users/{user}/lock', [UserController::class, 'lock'])->name('users.lock');
-        Route::post('users/{user}/unlock', [UserController::class, 'unlock'])->name('users.unlock');
+    /*
+    |--------------------------------------------------------------------------
+    | Settings Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', function () {
+            return inertia('Settings/Index', [
+                'title' => 'Settings',
+            ]);
+        })->name('index');
     });
 
-    // Role Management (requires module access)
-    Route::middleware('module.access:roles_permissions,roles,role_list')->group(function () {
-        Route::resource('roles', RoleController::class);
-        Route::post('roles/{role}/sync-module-access', [RoleController::class, 'syncModuleAccess'])->name('roles.sync-module-access');
+    /*
+    |--------------------------------------------------------------------------
+    | Module Management Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('modules')->name('modules.')->group(function () {
+        Route::get('/', function () {
+            $moduleRegistry = app(\Aero\Core\Services\ModuleRegistry::class);
+            return inertia('Modules/Index', [
+                'title' => 'Modules',
+                'modules' => $moduleRegistry->all(),
+            ]);
+        })->name('index');
     });
 });

@@ -2,46 +2,42 @@
 
 namespace Aero\Core\Models;
 
-use Aero\HRM\Models\Attendance;
-use Aero\HRM\Models\AttendanceType;
-use Aero\HRM\Models\Department;
-use Aero\HRM\Models\Designation;
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Models\Leave;
+use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use NotificationChannels\WebPush\HasPushSubscriptions;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
- * User Model - Authentication & Account Only
+ * User Model - Core Authentication & Account Management
  *
- * This model handles ONLY authentication-related data:
+ * This model is FULLY INDEPENDENT and handles ONLY core functionality:
  * - Login credentials (email, password, OAuth)
- * - Two-factor authentication
+ * - Two-factor authentication (when Fortify installed)
  * - Device management
  * - Account status (active, locked)
  * - Roles & permissions
+ * - Basic profile
  *
- * Employment data is in the Employee model (App\Models\HRM\Employee):
- * - Department, Designation
- * - Salary, Employment type
- * - Joining date, Employee code
+ * Module-specific relationships (Employee, Attendance, Leaves, etc.) are
+ * registered dynamically by their respective module providers via
+ * UserRelationshipRegistry.
  *
- * Flow:
- * 1. User is created (can be invited or registered)
- * 2. User can be onboarded as Employee (creates Employee record)
- * 3. A User can exist without Employee (admin, external user)
- * 4. An Employee MUST have a User for authentication
+ * Modules can extend User with dynamic relationships:
+ *   $registry = app(UserRelationshipRegistry::class);
+ *   $registry->registerRelationship('employee', fn($user) => $user->hasOne(Employee::class));
+ *
+ * Then use as normal: $user->employee
+ *
+ * Optional features (auto-enabled when packages installed):
+ * - TwoFactorAuthenticatable: laravel/fortify
+ * - InteractsWithMedia: spatie/laravel-medialibrary
+ * - HasPushSubscriptions: laravel-notification-channels/webpush
  *
  * @property int $id
  * @property string $name
@@ -50,16 +46,19 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string|null $phone
  * @property string|null $password
  * @property bool $active
- * @property-read Employee|null $employee
  */
-class User extends Authenticatable implements HasMedia, MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, HasPushSubscriptions, InteractsWithMedia, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory;
+    use HasRoles;
+    use Notifiable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
      *
-     * Authentication-only fields. Employment data goes in Employee model.
+     * Core authentication and profile fields only.
+     * Module-specific fields should be on their respective module models.
      */
     protected $fillable = [
         // Core Identity
@@ -75,7 +74,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'account_locked_at',
         'locked_reason',
 
-        // Profile basics (kept on User for display)
+        // Profile basics
         'profile_image',
         'about',
         'locale',
@@ -105,10 +104,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         // Preferences
         'preferences',
         'notification_preferences',
-
-        // Attendance config (user-level setting for which type)
-        'attendance_type_id',
-        'attendance_config',
     ];
 
     /**
@@ -138,8 +133,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'single_device_login_enabled' => 'boolean',
         'device_reset_at' => 'datetime',
         'oauth_token_expires_at' => 'datetime',
-        'attendance_type_id' => 'integer',
-        'attendance_config' => 'array',
         'preferences' => 'array',
         'notification_preferences' => 'array',
     ];
@@ -152,85 +145,86 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     ];
 
     // =========================================================================
-    // EMPLOYEE RELATIONSHIP (Primary connection to employment data)
+    // DYNAMIC RELATIONSHIP RESOLUTION (Module Extension Point)
     // =========================================================================
 
     /**
-     * Get the employee record for this user.
+     * Handle dynamic method calls for module-registered relationships.
      *
-     * A user may or may not have an employee record.
-     * Employee record contains: department, designation, salary, dates, etc.
-     */
-    public function employee(): HasOne
-    {
-        return $this->hasOne(Employee::class);
-    }
-
-    /**
-     * Check if this user has an employee record.
-     */
-    public function isEmployee(): bool
-    {
-        return $this->employee()->exists();
-    }
-
-    /**
-     * Get the department through the employee relationship.
+     * Modules register relationships via UserRelationshipRegistry:
+     *   $registry->registerRelationship('employee', fn($user) => $user->hasOne(Employee::class));
      *
-     * Allows: User::with('department')->get()
-     */
-    public function department(): HasOneThrough
-    {
-        return $this->hasOneThrough(
-            Department::class,
-            Employee::class,
-            'user_id',        // FK on employees table
-            'id',             // FK on departments table
-            'id',             // Local key on users table
-            'department_id'   // Local key on employees table
-        );
-    }
-
-    /**
-     * Get the designation through the employee relationship.
+     * Then they can be used normally: $user->employee
      *
-     * Allows: User::with('designation')->get()
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
      */
-    public function designation(): HasOneThrough
+    public function __call($method, $parameters)
     {
-        return $this->hasOneThrough(
-            Designation::class,
-            Employee::class,
-            'user_id',         // FK on employees table
-            'id',              // FK on designations table
-            'id',              // Local key on users table
-            'designation_id'   // Local key on employees table
-        );
+        // Check if this is a dynamically registered relationship
+        $registry = app(UserRelationshipRegistry::class);
+
+        if ($registry->hasRelationship($method)) {
+            $callback = $registry->getRelationship($method);
+
+            return $callback($this);
+        }
+
+        // Fall back to parent (handles scopes, etc.)
+        return parent::__call($method, $parameters);
     }
 
     /**
-     * Get the roles for the user.
+     * Handle dynamic scope calls from modules.
+     *
+     * Usage: User::dynamic('withEmployeeRelations')->get()
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  mixed  ...$parameters
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function roles()
+    public function scopeDynamic($query, string $scopeName, ...$parameters)
     {
-        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id')
-            ->where('model_type', self::class);
+        $registry = app(UserRelationshipRegistry::class);
+
+        if ($registry->hasScope($scopeName)) {
+            $callback = $registry->getScope($scopeName);
+
+            return $callback($query, ...$parameters);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Check if a dynamic relationship is available.
+     */
+    public function hasDynamicRelationship(string $name): bool
+    {
+        return app(UserRelationshipRegistry::class)->hasRelationship($name);
+    }
+
+    /**
+     * Get available dynamic relationships.
+     */
+    public function getDynamicRelationships(): array
+    {
+        return app(UserRelationshipRegistry::class)->getRelationshipNames();
     }
 
     // =========================================================================
-    // QUERY SCOPES
+    // QUERY SCOPES (Core Only)
     // =========================================================================
 
     /**
-     * Load basic relations for user management.
+     * Load core relations for user management.
      */
-    public function scopeWithBasicRelations($query)
+    public function scopeWithCoreRelations($query)
     {
         return $query->with([
             'roles:id,name',
-            'employee:id,user_id,department_id,designation_id,status',
-            'employee.department:id,name',
-            'employee.designation:id,title',
+            'currentDevice:id,user_id,device_name,device_type,last_used_at,is_active',
         ]);
     }
 
@@ -241,21 +235,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     {
         return $query->with([
             'currentDevice:id,user_id,device_name,device_type,last_used_at,is_active',
-        ]);
-    }
-
-    /**
-     * Load full relations for detailed views.
-     */
-    public function scopeWithFullRelations($query)
-    {
-        return $query->with([
-            'roles',
-            'employee',
-            'employee.department',
-            'employee.designation',
-            'attendanceType',
-            'currentDevice',
         ]);
     }
 
@@ -273,22 +252,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function scopeInactive($query)
     {
         return $query->where('active', false);
-    }
-
-    /**
-     * Users who are employees.
-     */
-    public function scopeEmployees($query)
-    {
-        return $query->whereHas('employee');
-    }
-
-    /**
-     * Users who are not employees (admins, external users).
-     */
-    public function scopeNonEmployees($query)
-    {
-        return $query->whereDoesntHave('employee');
     }
 
     // =========================================================================
@@ -312,32 +275,34 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         $this->save();
     }
 
-    // =========================================================================
-    // HRM RELATIONSHIPS (linked via user_id for HRM operations)
-    // =========================================================================
-
     /**
-     * Get leave records for this user.
+     * Lock the user account.
      */
-    public function leaves(): HasMany
+    public function lockAccount(?string $reason = null): bool
     {
-        return $this->hasMany(Leave::class, 'user_id');
+        return $this->update([
+            'account_locked_at' => now(),
+            'locked_reason' => $reason,
+        ]);
     }
 
     /**
-     * Get attendance records for this user.
+     * Unlock the user account.
      */
-    public function attendances(): HasMany
+    public function unlockAccount(): bool
     {
-        return $this->hasMany(Attendance::class, 'user_id');
+        return $this->update([
+            'account_locked_at' => null,
+            'locked_reason' => null,
+        ]);
     }
 
     /**
-     * Get the attendance type assigned to this user.
+     * Check if account is locked.
      */
-    public function attendanceType()
+    public function isLocked(): bool
     {
-        return $this->belongsTo(AttendanceType::class, 'attendance_type_id');
+        return $this->account_locked_at !== null;
     }
 
     // =========================================================================
@@ -355,23 +320,25 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     /**
      * Get the user's active devices.
      */
-    public function activeDevices()
+    public function activeDevices(): HasMany
     {
-        return $this->hasMany(UserDevice::class)->active();
+        return $this->hasMany(UserDevice::class)->where('is_active', true);
     }
 
     /**
      * Get the current active device.
      */
-    public function currentDevice()
+    public function currentDevice(): HasOne
     {
-        return $this->hasOne(UserDevice::class)->active()->latest('last_used_at');
+        return $this->hasOne(UserDevice::class)
+            ->where('is_active', true)
+            ->latest('last_used_at');
     }
 
     /**
      * Alias for currentDevice (compatibility).
      */
-    public function activeDevice()
+    public function activeDevice(): HasOne
     {
         return $this->currentDevice();
     }
@@ -389,7 +356,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function getSingleDeviceLoginAttribute(): bool
     {
-        return $this->single_device_login_enabled;
+        return $this->single_device_login_enabled ?? false;
     }
 
     /**
@@ -438,7 +405,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
         $existingDevice = $this->devices()
             ->where('device_id', $deviceId)
-            ->active()
+            ->where('is_active', true)
             ->first();
 
         if ($existingDevice) {
@@ -466,20 +433,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     }
 
     // =========================================================================
-    // PROJECT RELATIONSHIPS (kept for project management module)
-    // =========================================================================
-
-    public function ledProjects()
-    {
-        return $this->hasMany(Project::class, 'project_leader_id');
-    }
-
-    public function projects()
-    {
-        return $this->belongsToMany(Project::class, 'project_user');
-    }
-
-    // =========================================================================
     // PROFILE & MEDIA
     // =========================================================================
 
@@ -499,8 +452,17 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         }
     }
 
+    /**
+     * Register media collections.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('profile_images')
+            ->singleFile();
+    }
+
     // =========================================================================
-    // MODULE ACCESS (for RBAC system)
+    // MODULE ACCESS (Core RBAC)
     // =========================================================================
 
     /**
@@ -508,10 +470,14 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function hasModuleAccess(string $moduleCode): bool
     {
-        $service = app(\App\Services\Module\ModuleAccessService::class);
+        if (! app()->bound('Aero\Core\Services\ModuleAccessService')) {
+            return false;
+        }
+
+        $service = app('Aero\Core\Services\ModuleAccessService');
         $result = $service->canAccessModule($this, $moduleCode);
 
-        return $result['allowed'];
+        return $result['allowed'] ?? false;
     }
 
     /**
@@ -519,10 +485,14 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function hasSubModuleAccess(string $moduleCode, string $subModuleCode): bool
     {
-        $service = app(\App\Services\Module\ModuleAccessService::class);
+        if (! app()->bound('Aero\Core\Services\ModuleAccessService')) {
+            return false;
+        }
+
+        $service = app('Aero\Core\Services\ModuleAccessService');
         $result = $service->canAccessSubModule($this, $moduleCode, $subModuleCode);
 
-        return $result['allowed'];
+        return $result['allowed'] ?? false;
     }
 
     /**
@@ -530,31 +500,19 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function hasComponentAccess(string $moduleCode, string $subModuleCode, string $componentCode): bool
     {
-        $service = app(\App\Services\Module\ModuleAccessService::class);
+        if (! app()->bound('Aero\Core\Services\ModuleAccessService')) {
+            return false;
+        }
+
+        $service = app('Aero\Core\Services\ModuleAccessService');
         $result = $service->canAccessComponent($this, $moduleCode, $subModuleCode, $componentCode);
 
-        return $result['allowed'];
+        return $result['allowed'] ?? false;
     }
 
     // =========================================================================
     // ROLE HELPER METHODS
     // =========================================================================
-
-    /**
-     * Check if the user has a specific role.
-     */
-    public function hasRole($role, $guard = null): bool
-    {
-        if (is_string($role)) {
-            return $this->roles()->where('name', $role)->exists();
-        }
-
-        if (is_array($role)) {
-            return $this->roles()->whereIn('name', $role)->exists();
-        }
-
-        return false;
-    }
 
     /**
      * Check if the user has any of the given roles.
@@ -564,8 +522,24 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         return $this->roles()->whereIn('name', (array) $roles)->exists();
     }
 
+    /**
+     * Check if user is a super admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('Super Admin');
+    }
+
+    /**
+     * Check if user is an admin (Super Admin or Admin).
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole(['Super Admin', 'Admin']);
+    }
+
     // =========================================================================
-    // MODULE ACCESS METHODS
+    // MODULE ACCESS METHODS (Core RBAC)
     // =========================================================================
 
     /**
@@ -573,10 +547,14 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function canPerformAction(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): bool
     {
-        $service = app(\App\Services\Module\ModuleAccessService::class);
+        if (! app()->bound('Aero\Core\Services\ModuleAccessService')) {
+            return false;
+        }
+
+        $service = app('Aero\Core\Services\ModuleAccessService');
         $result = $service->canPerformAction($this, $moduleCode, $subModuleCode, $componentCode, $actionCode);
 
-        return $result['allowed'];
+        return $result['allowed'] ?? false;
     }
 
     /**
@@ -584,7 +562,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function getActionAccessScope(int $actionId): ?string
     {
-        $service = app(\App\Services\Module\ModuleAccessService::class);
+        if (! app()->bound('Aero\Core\Services\ModuleAccessService')) {
+            return null;
+        }
+
+        $service = app('Aero\Core\Services\ModuleAccessService');
 
         return $service->getUserAccessScope($this, $actionId);
     }
@@ -594,7 +576,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function getAccessibleModules(): array
     {
-        $service = app(\App\Services\Module\ModuleAccessService::class);
+        if (! app()->bound('Aero\Core\Services\ModuleAccessService')) {
+            return [];
+        }
+
+        $service = app('Aero\Core\Services\ModuleAccessService');
 
         return $service->getAccessibleModules($this);
     }
@@ -604,7 +590,16 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      */
     public function getModuleAccessTree(): array
     {
-        $roleAccessService = app(\App\Services\Module\RoleModuleAccessService::class);
+        if (! app()->bound('Aero\Core\Services\RoleModuleAccessService')) {
+            return [
+                'modules' => [],
+                'sub_modules' => [],
+                'components' => [],
+                'actions' => [],
+            ];
+        }
+
+        $roleAccessService = app('Aero\Core\Services\RoleModuleAccessService');
         $role = $this->roles->first();
 
         if (! $role) {

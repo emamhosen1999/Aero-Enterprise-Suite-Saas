@@ -1,0 +1,226 @@
+import { useMemo, useCallback } from 'react';
+import { usePage } from '@inertiajs/react';
+import { navigationConfig, settingsNavigationConfig, MODULES } from '@/Configs/navigation';
+
+/**
+ * useNavigation Hook
+ * 
+ * Provides filtered navigation based on:
+ * 1. Enabled modules (from tenant subscription)
+ * 2. User permissions (from Spatie permissions)
+ * 3. User roles (for role-based filtering)
+ * 
+ * @example
+ * const { navigation, settingsNavigation, isModuleEnabled } = useNavigation();
+ * 
+ * @returns {Object} Navigation state and helpers
+ */
+export function useNavigation() {
+    const { auth, context, roles } = usePage().props;
+
+    // =========================================================================
+    // EXTRACT ENABLED MODULES
+    // =========================================================================
+    const enabledModules = useMemo(() => {
+        // For admin context, all modules are accessible
+        if (context === 'admin') {
+            return Object.values(MODULES);
+        }
+
+        // For tenant context, use accessibleModules from auth
+        if (context === 'tenant' && auth?.accessibleModules) {
+            const moduleCodes = auth.accessibleModules.map(m => 
+                (m.code?.toLowerCase() || m.code || '').toLowerCase()
+            );
+            // Core is always enabled
+            return ['core', 'self-service', ...moduleCodes];
+        }
+
+        // Fallback: check for enabled_modules prop
+        if (auth?.enabled_modules) {
+            return ['core', 'self-service', ...auth.enabled_modules.map(m => m.toLowerCase())];
+        }
+
+        // Default: only core modules
+        return ['core', 'self-service'];
+    }, [auth?.accessibleModules, auth?.enabled_modules, context]);
+
+    // =========================================================================
+    // EXTRACT USER PERMISSIONS
+    // =========================================================================
+    const permissions = useMemo(() => {
+        return auth?.permissions || [];
+    }, [auth?.permissions]);
+
+    // =========================================================================
+    // HELPER: CHECK IF MODULE IS ENABLED
+    // =========================================================================
+    const isModuleEnabled = useCallback((moduleCode) => {
+        if (!moduleCode) return true; // null module = always visible
+        return enabledModules.includes(moduleCode.toLowerCase());
+    }, [enabledModules]);
+
+    // =========================================================================
+    // HELPER: CHECK IF USER HAS PERMISSION
+    // =========================================================================
+    const hasPermission = useCallback((permission) => {
+        if (!permission) return true; // null permission = always visible
+        return permissions.includes(permission);
+    }, [permissions]);
+
+    // =========================================================================
+    // RECURSIVE FILTER FUNCTION
+    // =========================================================================
+    const filterNavigationItems = useCallback((items) => {
+        return items
+            .filter(item => {
+                // Check module access
+                if (!isModuleEnabled(item.module)) {
+                    return false;
+                }
+
+                // Check permission (if no children, must have permission)
+                if (!item.children && item.permission && !hasPermission(item.permission)) {
+                    return false;
+                }
+
+                return true;
+            })
+            .map(item => {
+                // If item has children, recursively filter them
+                if (item.children && item.children.length > 0) {
+                    const filteredChildren = filterNavigationItems(item.children);
+                    
+                    // Only include parent if it has visible children
+                    if (filteredChildren.length === 0) {
+                        return null;
+                    }
+
+                    return {
+                        ...item,
+                        children: filteredChildren,
+                    };
+                }
+
+                return item;
+            })
+            .filter(Boolean) // Remove null items
+            .sort((a, b) => (a.priority || 999) - (b.priority || 999));
+    }, [isModuleEnabled, hasPermission]);
+
+    // =========================================================================
+    // FILTERED NAVIGATION
+    // =========================================================================
+    const navigation = useMemo(() => {
+        return filterNavigationItems(navigationConfig);
+    }, [filterNavigationItems]);
+
+    // =========================================================================
+    // FILTERED SETTINGS NAVIGATION
+    // =========================================================================
+    const settingsNavigation = useMemo(() => {
+        return filterNavigationItems(settingsNavigationConfig);
+    }, [filterNavigationItems]);
+
+    // =========================================================================
+    // FLATTEN NAVIGATION FOR SEARCH
+    // =========================================================================
+    const flatNavigation = useMemo(() => {
+        const flatten = (items, parent = null) => {
+            return items.reduce((acc, item) => {
+                const flatItem = {
+                    ...item,
+                    parent,
+                    fullPath: parent ? `${parent.label} > ${item.label}` : item.label,
+                };
+
+                if (item.children) {
+                    return [...acc, flatItem, ...flatten(item.children, item)];
+                }
+
+                return [...acc, flatItem];
+            }, []);
+        };
+
+        return flatten(navigation);
+    }, [navigation]);
+
+    // =========================================================================
+    // SPECIAL HANDLING FOR EMPLOYEE-ONLY USERS
+    // =========================================================================
+    const isEmployeeOnly = useMemo(() => {
+        const userRoles = roles || auth?.roles || [];
+        return userRoles.length === 1 && userRoles[0] === 'Employee';
+    }, [roles, auth?.roles]);
+
+    // For employee-only users, flatten workspace items to top level
+    const processedNavigation = useMemo(() => {
+        if (!isEmployeeOnly) {
+            return navigation;
+        }
+
+        // Find workspace item and flatten its children
+        const workspaceItem = navigation.find(item => item.module === 'self-service');
+        if (workspaceItem?.children) {
+            // Replace workspace with its children as top-level items
+            return navigation.flatMap(item => {
+                if (item.module === 'self-service' && item.children) {
+                    return item.children;
+                }
+                return item;
+            });
+        }
+
+        return navigation;
+    }, [navigation, isEmployeeOnly]);
+
+    return {
+        // Main navigation (processed for user type)
+        navigation: processedNavigation,
+        
+        // Raw navigation (not flattened for employees)
+        rawNavigation: navigation,
+        
+        // Settings navigation
+        settingsNavigation,
+        
+        // Flat navigation for search
+        flatNavigation,
+        
+        // Helper functions
+        isModuleEnabled,
+        hasPermission,
+        
+        // State
+        enabledModules,
+        permissions,
+        isEmployeeOnly,
+        
+        // Loading state
+        isLoading: !auth,
+    };
+}
+
+/**
+ * Shorthand hook for checking module access
+ */
+export function useModuleAccess(moduleCode) {
+    const { isModuleEnabled } = useNavigation();
+    return isModuleEnabled(moduleCode);
+}
+
+/**
+ * Hook to get navigation items for a specific module
+ */
+export function useModuleNavigation(moduleCode) {
+    const { navigation, isModuleEnabled } = useNavigation();
+    
+    if (!isModuleEnabled(moduleCode)) {
+        return [];
+    }
+
+    const moduleNav = navigation.find(item => item.module === moduleCode);
+    return moduleNav?.children || [];
+}
+
+export default useNavigation;

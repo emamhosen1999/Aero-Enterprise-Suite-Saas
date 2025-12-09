@@ -3,6 +3,14 @@
 namespace Aero\HRM\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
+use Aero\Core\Services\NavigationRegistry;
+use Aero\Core\Services\UserRelationshipRegistry;
+use Aero\HRM\Models\Attendance;
+use Aero\HRM\Models\AttendanceType;
+use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Designation;
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Models\Leave;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -449,7 +457,8 @@ class HRMServiceProvider extends AbstractModuleProvider
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     /**
@@ -459,20 +468,20 @@ class HRMServiceProvider extends AbstractModuleProvider
     {
         // Register main HRM service
         $this->app->singleton('hrm', function ($app) {
-            return new \Aero\HRM\Services\HRMetricsAggregatorService();
+            return new \Aero\HRM\Services\HRMetricsAggregatorService;
         });
 
         // Register specific services
         $this->app->singleton('hrm.leave', function ($app) {
-            return new \Aero\HRM\Services\LeaveBalanceService();
+            return new \Aero\HRM\Services\LeaveBalanceService;
         });
 
         $this->app->singleton('hrm.attendance', function ($app) {
-            return new \Aero\HRM\Services\AttendanceCalculationService();
+            return new \Aero\HRM\Services\AttendanceCalculationService;
         });
 
         $this->app->singleton('hrm.payroll', function ($app) {
-            return new \Aero\HRM\Services\PayrollCalculationService();
+            return new \Aero\HRM\Services\PayrollCalculationService;
         });
 
         // Merge HRM-specific configuration
@@ -489,6 +498,178 @@ class HRMServiceProvider extends AbstractModuleProvider
     {
         // Register policies
         $this->registerPolicies();
+
+        // Register User model relationships dynamically
+        $this->registerUserRelationships();
+
+        // Register navigation items for auto-discovery
+        $this->registerNavigation();
+    }
+
+    /**
+     * Register User model relationships via UserRelationshipRegistry.
+     * This allows the core User model to be extended without hard dependencies.
+     */
+    protected function registerUserRelationships(): void
+    {
+        if (! $this->app->bound(UserRelationshipRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(UserRelationshipRegistry::class);
+
+        // Register employee relationship
+        $registry->registerRelationship('employee', function ($user) {
+            return $user->hasOne(Employee::class);
+        });
+
+        // Register department through employee
+        $registry->registerRelationship('department', function ($user) {
+            return $user->hasOneThrough(
+                Department::class,
+                Employee::class,
+                'user_id',
+                'id',
+                'id',
+                'department_id'
+            );
+        });
+
+        // Register designation through employee
+        $registry->registerRelationship('designation', function ($user) {
+            return $user->hasOneThrough(
+                Designation::class,
+                Employee::class,
+                'user_id',
+                'id',
+                'id',
+                'designation_id'
+            );
+        });
+
+        // Register leaves relationship
+        $registry->registerRelationship('leaves', function ($user) {
+            return $user->hasMany(Leave::class, 'user_id');
+        });
+
+        // Register attendances relationship
+        $registry->registerRelationship('attendances', function ($user) {
+            return $user->hasMany(Attendance::class, 'user_id');
+        });
+
+        // Register attendance type relationship
+        $registry->registerRelationship('attendanceType', function ($user) {
+            return $user->belongsTo(AttendanceType::class, 'attendance_type_id');
+        });
+
+        // Register scopes for user queries
+        $registry->registerScope('employees', function ($query) {
+            return $query->whereHas('employee');
+        });
+
+        $registry->registerScope('nonEmployees', function ($query) {
+            return $query->whereDoesntHave('employee');
+        });
+
+        $registry->registerScope('withBasicRelations', function ($query) {
+            return $query->with(['employee', 'employee.department', 'employee.designation']);
+        });
+
+        $registry->registerScope('withFullRelations', function ($query) {
+            return $query->with([
+                'employee',
+                'employee.department',
+                'employee.designation',
+                'leaves',
+                'attendances',
+            ]);
+        });
+
+        // Register computed accessors
+        $registry->registerAccessor('is_employee', function ($user) {
+            return $user->employee !== null;
+        });
+
+        $registry->registerAccessor('employee_id', function ($user) {
+            return $user->employee?->id;
+        });
+
+        $registry->registerAccessor('department_name', function ($user) {
+            return $user->employee?->department?->name;
+        });
+
+        $registry->registerAccessor('designation_name', function ($user) {
+            return $user->employee?->designation?->name;
+        });
+    }
+
+    /**
+     * Register HRM navigation items with NavigationRegistry.
+     * This enables auto-discovery of navigation by the core module.
+     */
+    protected function registerNavigation(): void
+    {
+        if (! $this->app->bound(NavigationRegistry::class)) {
+            return;
+        }
+
+        $navRegistry = $this->app->make(NavigationRegistry::class);
+
+        // Register main HRM navigation
+        $navRegistry->register('hrm', [
+            [
+                'name' => 'HRM',
+                'icon' => 'UsersIcon',
+                'access' => 'hrm',
+                'children' => [
+                    [
+                        'name' => 'Dashboard',
+                        'path' => '/hrm/dashboard',
+                        'access' => 'hrm.dashboard',
+                    ],
+                    [
+                        'name' => 'Employees',
+                        'path' => '/hrm/employees',
+                        'access' => 'hrm.employees',
+                    ],
+                    [
+                        'name' => 'Attendance',
+                        'path' => '/hrm/attendance',
+                        'access' => 'hrm.attendance',
+                    ],
+                    [
+                        'name' => 'Leaves',
+                        'path' => '/hrm/leaves',
+                        'access' => 'hrm.leave',
+                    ],
+                    [
+                        'name' => 'Payroll',
+                        'path' => '/hrm/payroll',
+                        'access' => 'hrm.payroll',
+                    ],
+                    [
+                        'name' => 'Recruitment',
+                        'path' => '/hrm/recruitment',
+                        'access' => 'hrm.recruitment',
+                    ],
+                    [
+                        'name' => 'Performance',
+                        'path' => '/hrm/performance',
+                        'access' => 'hrm.performance',
+                    ],
+                    [
+                        'name' => 'Training',
+                        'path' => '/hrm/training',
+                        'access' => 'hrm.training',
+                    ],
+                    [
+                        'name' => 'Settings',
+                        'path' => '/hrm/settings',
+                        'access' => 'hrm.settings',
+                    ],
+                ],
+            ],
+        ], $this->modulePriority ?? 20);
     }
 
     /**
@@ -516,7 +697,7 @@ class HRMServiceProvider extends AbstractModuleProvider
     public function register(): void
     {
         parent::register();
-        
+
         // Register this module with the registry
         $registry = $this->app->make(\Aero\Core\Services\ModuleRegistry::class);
         $registry->register($this);

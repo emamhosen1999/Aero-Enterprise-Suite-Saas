@@ -77,53 +77,6 @@ When creating new pages, **study and follow these existing patterns exactly:**
 | Modals | `resources/js/Components/EnhancedModal.jsx` |
 | Employee/Department Selector | `resources/js/Components/DepartmentEmployeeSelector.jsx` |
 
-### Card Pattern (CRITICAL - Use Theme Variables)
-Always use this Card styling pattern with CSS custom properties for consistent theming:
-```jsx
-<Card 
-    className="transition-all duration-200"
-    style={{
-        border: `var(--borderWidth, 2px) solid transparent`,
-        borderRadius: `var(--borderRadius, 12px)`,
-        fontFamily: `var(--fontFamily, "Inter")`,
-        transform: `scale(var(--scale, 1))`,
-        background: `linear-gradient(135deg, 
-            var(--theme-content1, #FAFAFA) 20%, 
-            var(--theme-content2, #F4F4F5) 10%, 
-            var(--theme-content3, #F1F3F4) 20%)`,
-    }}
->
-    <CardHeader 
-        style={{
-            borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
-        }}
-    >
-        {/* Header content */}
-    </CardHeader>
-    <CardBody>
-        {/* Body content */}
-    </CardBody>
-</Card>
-```
-
-**For smaller/nested Cards (e.g., module cards, feature cards):**
-```jsx
-<Card
-    className="transition-all duration-200"
-    style={{
-        border: `var(--borderWidth, 2px) solid transparent`,
-        borderRadius: `var(--borderRadius, 12px)`,
-        fontFamily: `var(--fontFamily, "Inter")`,
-        background: `linear-gradient(135deg, 
-            var(--theme-content1, #FAFAFA) 20%, 
-            var(--theme-content2, #F4F4F5) 10%, 
-            var(--theme-content3, #F1F3F4) 20%)`,
-    }}
->
-    <CardBody>{/* Content */}</CardBody>
-</Card>
-```
-
 ### Modal Pattern (CRITICAL)
 Always use HeroUI's Modal components with consistent structure:
 ```jsx
@@ -240,39 +193,17 @@ Always use HeroUI's Modal components with consistent structure:
 ```
 
 ### Theme System
-**Available CSS Custom Properties:**
-- `--borderWidth` - Default: `2px`
-- `--borderRadius` - Default: `12px`
-- `--fontFamily` - Default: `"Inter"`
-- `--scale` - Default: `1`
-- `--theme-content1` - Primary content background
-- `--theme-content2` - Secondary content background
-- `--theme-content3` - Tertiary content background
-- `--theme-divider` - Border/divider color
-- `--theme-primary` - Primary accent color
-- `--theme-success` - Success color
-- `--theme-warning` - Warning color
-- `--theme-danger` - Danger color
-
 ```javascript
-// Standard Card style object (use this for all Cards):
+// Always use theme-aware styling via CSS variables:
 const getCardStyle = () => ({
-  border: `var(--borderWidth, 2px) solid transparent`,
+  background: `var(--theme-content1, #FAFAFA)`,
+  borderColor: `var(--theme-divider, #E4E4E7)`,
+  borderWidth: `var(--borderWidth, 2px)`,
   borderRadius: `var(--borderRadius, 12px)`,
   fontFamily: `var(--fontFamily, "Inter")`,
-  transform: `scale(var(--scale, 1))`,
-  background: `linear-gradient(135deg, 
-    var(--theme-content1, #FAFAFA) 20%, 
-    var(--theme-content2, #F4F4F5) 10%, 
-    var(--theme-content3, #F1F3F4) 20%)`,
 });
 
-// CardHeader border style:
-const getCardHeaderStyle = () => ({
-  borderBottom: `1px solid var(--theme-divider, #E4E4E7)`,
-});
-
-// Border radius helper for HeroUI components (Input, Button, etc.):
+// Border radius helper (used throughout codebase):
 const getThemeRadius = () => {
   const rootStyles = getComputedStyle(document.documentElement);
   const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
@@ -281,7 +212,7 @@ const getThemeRadius = () => {
   if (radiusValue <= 4) return 'sm';
   if (radiusValue <= 8) return 'md';
   if (radiusValue <= 12) return 'lg';
-  return 'full';
+  return 'xl';
 };
 ```
 
@@ -518,48 +449,36 @@ php artisan tenant:migrate
 
 # Laravel Boost Guidelines
 
-The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to enhance the user's satisfaction building Laravel applications.
-
 ## Foundational Context
-This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
+This application uses Laravel 11 with these key packages:
 
 - php - 8.2.12
 - inertiajs/inertia-laravel (INERTIA) - v2
 - laravel/cashier (CASHIER) - v15
 - laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v11
-- laravel/mcp (MCP) - v0
-- laravel/prompts (PROMPTS) - v0
 - laravel/sanctum (SANCTUM) - v4
 - tightenco/ziggy (ZIGGY) - v2
-- laravel/breeze (BREEZE) - v2
-- laravel/pint (PINT) - v1
-- laravel/sail (SAIL) - v1
-- phpunit/phpunit (PHPUNIT) - v11
 - @inertiajs/react (INERTIA) - v2
 - react (REACT) - v18
 - tailwindcss (TAILWINDCSS) - v4
+- @heroui/react - UI Component Library
 
 ## Conventions
-- You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, naming.
-- Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
-- Check for existing components to reuse before writing a new one.
-
-## Verification Scripts
-- Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.
+- **Always check sibling files** for correct structure, approach, and naming before creating new files.
+- Use descriptive names: `isRegisteredForDiscounts`, not `discount()`.
+- **Reuse existing components** - check `resources/js/Components/` and `resources/js/Tables/` first.
+- When extending existing features, **merge into existing files** rather than creating duplicates.
 
 ## Application Structure & Architecture
 - Stick to existing directory structure - don't create new base folders without approval.
-- Do not change the application's dependencies without approval.
+- Do not change dependencies without approval.
 
 ## Frontend Bundling
-- If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
-
-## Replies
-- Be concise in your explanations - focus on what's important rather than explaining obvious details.
+- If frontend changes aren't reflected, run `npm run build` or `npm run dev`.
 
 ## Documentation Files
-- You must only create documentation files if explicitly requested by the user.
+- Only create documentation if explicitly requested.
 
 
 === boost rules ===

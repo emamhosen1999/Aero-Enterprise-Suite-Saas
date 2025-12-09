@@ -1,0 +1,47 @@
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
+import fs from 'fs';
+
+const host = 'aero-core-test.com';
+const certPath = 'D:/laragon/etc/ssl/laragon.crt';
+const keyPath = 'D:/laragon/etc/ssl/laragon.key';
+
+const allowedOrigins = [
+    'https://aero-core-test.com',
+];
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: [
+                'vendor/aero/core/resources/css/app.css',
+                'vendor/aero/core/resources/js/app.jsx'
+            ],
+            refresh: true,
+        }),
+        react(),
+        tailwindcss(),
+    ],
+    server: {
+        host,
+        hmr: { host },
+        https: {
+            key: fs.readFileSync(keyPath),
+            cert: fs.readFileSync(certPath),
+        },
+        cors: {
+            origin: allowedOrigins,
+            credentials: true,
+        },
+    },
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'vendor/aero/core/resources/js'),
+            '@core': path.resolve(__dirname, 'vendor/aero/core/resources/js'),
+            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
+        },
+    },
+});

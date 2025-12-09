@@ -8,6 +8,7 @@ use Aero\HRM\Http\Controllers\Employee\HrAnalyticsController;
 use Aero\HRM\Http\Controllers\Employee\HrDocumentController;
 use Aero\HRM\Http\Controllers\Employee\OnboardingController;
 use Aero\HRM\Http\Controllers\Employee\PayrollController;
+use Aero\HRM\Http\Controllers\Employee\ProfileController;
 use Aero\HRM\Http\Controllers\Employee\ProfileImageController;
 use Aero\HRM\Http\Controllers\Employee\SkillsController;
 use Aero\HRM\Http\Controllers\Employee\TimeOffController;
@@ -17,14 +18,23 @@ use Aero\HRM\Http\Controllers\Employee\WorkplaceSafetyController;
 use Aero\HRM\Http\Controllers\Leave\LeaveController;
 use Aero\HRM\Http\Controllers\Performance\PerformanceReviewController;
 use Aero\HRM\Http\Controllers\Recruitment\RecruitmentController;
-use Aero\HRM\Http\Controllers\Employee\ProfileController;
 use Illuminate\Support\Facades\Route;
+
+// =========================================================================
+// HRM MODULE ROUTES
+// =========================================================================
+// These routes are auto-loaded by HRMServiceProvider via AbstractModuleProvider
+
+// Leave Summary Route (previously in main app, now in HRM module)
+Route::middleware(['auth', 'verified', 'module:hrm,time-off'])->get('/leave-summary', [LeaveController::class, 'summary'])->name('leave.summary');
+
+// Profile search for admin usage (moved from main app)
+Route::middleware(['auth', 'verified', 'module:hrm,employees'])->get('/profiles/search', [ProfileController::class, 'search'])->name('profiles.search');
 
 // Human Resources Module Routes
 Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(function () {
     // HR Dashboard
     Route::middleware(['module:hrm,dashboard'])->get('/dashboard', [PerformanceReviewController::class, 'dashboard'])->name('dashboard');
-
 
     // Performance Management
     Route::middleware(['module:hrm,performance'])->group(function () {
@@ -424,8 +434,6 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
         Route::get('/leaves/balances', [LeaveController::class, 'getBalances'])->name('leaves.balances');
     });
 
-
-
     // Attendance self-service routes
     Route::middleware(['module:hrm,attendance,own-attendance'])->group(function () {
         Route::get('/attendance-employee', [AttendanceController::class, 'index2'])->name('attendance-employee');
@@ -561,7 +569,6 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     // Holiday management routes
     Route::middleware(['module:hrm,time-off,holidays,holiday-list,create'])->post('/holiday-add', [HolidayController::class, 'create'])->name('holiday-add');
     Route::middleware(['module:hrm,time-off,holidays,holiday-list,delete'])->delete('/holiday-delete', [HolidayController::class, 'delete'])->name('holiday-delete');
-
 
     // Legacy routes for backward compatibility
     Route::post('/user/{id}/update-department', [DepartmentController::class, 'updateUserDepartment'])->name('user.updateDepartment');
