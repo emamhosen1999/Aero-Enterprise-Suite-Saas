@@ -484,9 +484,10 @@
         </div>
     </div>
     <!-- Inertia & Vite Scripts -->
+   
     @routes
     @viteReactRefresh
-    @vite(['vendor/aero/core/resources/css/app.css', 'vendor/aero/core/resources/js/app.jsx'])
+    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 
     @inertiaHead
     @inertia
@@ -681,26 +682,6 @@
         });
     </script>
 
-    <!-- Structured Data for SEO -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "{{ config('app.name') }}",
-            "description": "Comprehensive Enterprise Resource Planning System",
-            "url": "{{ url('/') }}",
-            "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web Browser",
-            "offers": {
-                "@type": "Offer",
-                "category": "Enterprise Software"
-            },
-            "author": {
-                "@type": "Person",
-                "name": "Emam Hosen"
-            }
-        }
-    </script>
 </body>
 
 </html>

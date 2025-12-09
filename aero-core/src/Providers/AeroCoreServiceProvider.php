@@ -125,32 +125,16 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register package routes.
+     * 
+     * All routes (auth, web, api) are now in a single web.php file.
+     * Routes use standard names (no prefix) to match frontend expectations.
      */
     protected function registerRoutes(): void
     {
-        // Auth routes WITHOUT prefix (login, logout must be standard Laravel routes)
         Route::group([
             'middleware' => ['web'],
-        ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../../routes/auth.php');
-        });
-
-        // Web routes with core. prefix
-        Route::group([
-            'middleware' => ['web'],
-            'prefix' => config('aero.core.route_prefix', ''),
-            'as' => 'core.',
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
-        });
-
-        // API routes
-        Route::group([
-            'middleware' => ['api'],
-            'prefix' => 'api/core',
-            'as' => 'api.core.',
-        ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
         });
     }
 

@@ -3,15 +3,6 @@ import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
-import fs from 'fs';
-
-const host = 'aero-core-test.com';
-const certPath = 'D:/laragon/etc/ssl/laragon.crt';
-const keyPath = 'D:/laragon/etc/ssl/laragon.key';
-
-const allowedOrigins = [
-    'https://aero-core-test.com',
-];
 
 export default defineConfig({
     plugins: [
@@ -25,23 +16,40 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
-    server: {
-        host,
-        hmr: { host },
-        https: {
-            key: fs.readFileSync(keyPath),
-            cert: fs.readFileSync(certPath),
-        },
-        cors: {
-            origin: allowedOrigins,
-            credentials: true,
-        },
-    },
+
     resolve: {
+        // Prevent Vite from following symlinks to their real path
+        // This ensures vendor/aero/core files resolve modules from host app's node_modules
+        preserveSymlinks: true,
+        
         alias: {
             '@': path.resolve(__dirname, 'vendor/aero/core/resources/js'),
             '@core': path.resolve(__dirname, 'vendor/aero/core/resources/js'),
             'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
+            // Ensure packages resolve from host app's node_modules
+            '@heroui/react': path.resolve(__dirname, 'node_modules/@heroui/react'),
+            '@heroui/theme': path.resolve(__dirname, 'node_modules/@heroui/theme'),
+            'tailwindcss': path.resolve(__dirname, 'node_modules/tailwindcss'),
         },
+        // Allow modules in vendor to resolve from root node_modules
+        modules: [
+            path.resolve(__dirname, 'node_modules'),
+            'node_modules',
+        ],
+    },
+
+    // Optimize deps to include HeroUI packages
+    optimizeDeps: {
+        include: ['@heroui/react', '@heroui/theme'],
+    },
+
+    server: {
+        host: 'localhost',
+        port: 5173,
+        strictPort: true,
+        hmr: {
+            host: 'localhost',
+        },
+        cors: true,
     },
 });

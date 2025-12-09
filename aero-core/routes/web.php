@@ -2,116 +2,264 @@
 
 use Aero\Core\Http\Controllers\Admin\CoreRoleController;
 use Aero\Core\Http\Controllers\Admin\CoreUserController;
+use Aero\Core\Http\Controllers\Admin\ModuleController;
+use Aero\Core\Http\Controllers\Auth\DeviceController;
+use Aero\Core\Http\Controllers\Auth\SimpleLoginController;
 use Aero\Core\Http\Controllers\DashboardController;
+use Aero\Core\Http\Controllers\Settings\SystemSettingController;
+use Aero\Core\Http\Controllers\Settings\CustomDomainController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Aero Core Web Routes
+| Aero Core Routes
 |--------------------------------------------------------------------------
 |
-| Core user management, role management, and dashboard routes.
-| These routes are registered with the 'core.' prefix.
+| All routes for the Aero Core package including:
+| - Authentication (login, logout)
+| - Dashboard
+| - User Management
+| - Role Management
+| - Settings & Profile
 |
-| Authentication routes (login, logout) are in auth.php without prefix.
+| These routes are automatically registered by the AeroCoreServiceProvider.
 |
 */
 
-// Health Check / Info Route
+// ============================================================================
+// HEALTH CHECK & INFO
+// ============================================================================
 Route::get('/aero-core/health', function () {
     return response()->json([
         'status' => 'ok',
         'package' => 'aero/core',
+        'version' => '1.0.0',
         'services' => [
             'UserRelationshipRegistry' => app()->bound('Aero\Core\Services\UserRelationshipRegistry'),
             'NavigationRegistry' => app()->bound('Aero\Core\Services\NavigationRegistry'),
             'ModuleRegistry' => app()->bound('Aero\Core\Services\ModuleRegistry'),
             'ModuleAccessService' => app()->bound('Aero\Core\Services\ModuleAccessService'),
         ],
+        'timestamp' => now()->toIso8601String(),
     ]);
 })->name('health')->withoutMiddleware(['auth']);
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-*/
+// ============================================================================
+// ROOT ROUTE - Redirect to dashboard or login
+// ============================================================================
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
+})->name('root');
+
+// ============================================================================
+// AUTHENTICATION ROUTES (Guest)
+// ============================================================================
+Route::middleware('guest')->group(function () {
+    Route::get('login', [SimpleLoginController::class, 'create'])->name('login');
+    Route::post('login', [SimpleLoginController::class, 'store']);
+});
+
+// ============================================================================
+// AUTHENTICATION ROUTES (Authenticated)
+// ============================================================================
 Route::middleware('auth')->group(function () {
-    // Dashboard
+    Route::post('logout', [SimpleLoginController::class, 'destroy'])->name('logout');
+});
+
+// ============================================================================
+// AUTHENTICATED ROUTES - Core Features
+// ============================================================================
+Route::middleware('auth')->group(function () {
+    
+    // Dashboard Routes
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+    
+    // Session & Auth Check Routes
+    Route::get('/session-check', function () {
+        return response()->json(['authenticated' => auth()->check()]);
+    })->name('session-check');
 
-    /*
-    |--------------------------------------------------------------------------
-    | User Management Routes
-    |--------------------------------------------------------------------------
-    */
+    // Locale Switching
+    Route::post('/locale', function (\Illuminate\Http\Request $request) {
+        $locale = $request->input('locale', 'en');
+        $supportedLocales = ['en', 'bn', 'ar', 'es', 'fr', 'de', 'hi', 'zh-CN', 'zh-TW'];
+
+        if (in_array($locale, $supportedLocales)) {
+            session(['locale' => $locale]);
+            app()->setLocale($locale);
+
+            if (auth()->check()) {
+                auth()->user()->update(['locale' => $locale]);
+            }
+        }
+
+        return response()->noContent();
+    })->name('locale.update');
+    
+    // ========================================================================
+    // USER MANAGEMENT ROUTES
+    // ========================================================================
     Route::prefix('users')->name('users.')->group(function () {
+        // List & View
         Route::get('/', [CoreUserController::class, 'index'])->name('index');
-        Route::get('/create', [CoreUserController::class, 'create'])->name('create');
-        Route::post('/', [CoreUserController::class, 'store'])->name('store');
-        Route::get('/{user}', [CoreUserController::class, 'show'])->name('show');
-        Route::get('/{user}/edit', [CoreUserController::class, 'edit'])->name('edit');
-        Route::put('/{user}', [CoreUserController::class, 'update'])->name('update');
-        Route::delete('/{user}', [CoreUserController::class, 'destroy'])->name('destroy');
-        Route::post('/{user}/toggle-status', [CoreUserController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/paginate', [CoreUserController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [CoreUserController::class, 'stats'])->name('stats');
+        
+        // Create
+        Route::post('/', [CoreUserController::class, 'store'])
+            ->middleware(['precognitive'])
+            ->name('store');
+        
+        // Update
+        Route::put('/{id}', [CoreUserController::class, 'update'])
+            ->middleware(['precognitive'])
+            ->name('update');
+        Route::put('/{id}/toggle-status', [CoreUserController::class, 'toggleStatus'])->name('toggleStatus');
+        Route::post('/{id}/roles', [CoreUserController::class, 'updateUserRole'])->name('updateRole');
+        
+        // Delete
+        Route::delete('/{id}', [CoreUserController::class, 'destroy'])->name('destroy');
+        
+        // Invitations
+        Route::post('/invite', [CoreUserController::class, 'sendInvitation'])->name('invite');
+        Route::get('/invitations/pending', [CoreUserController::class, 'pendingInvitations'])->name('invitations.pending');
+        Route::post('/invitations/{invitation}/resend', [CoreUserController::class, 'resendInvitation'])->name('invitations.resend');
+        Route::delete('/invitations/{invitation}', [CoreUserController::class, 'cancelInvitation'])->name('invitations.cancel');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Role Management Routes
-    |--------------------------------------------------------------------------
-    */
+    // ========================================================================
+    // DEVICE MANAGEMENT ROUTES (Security)
+    // ========================================================================
+    // User's own devices
+    Route::get('/my-devices', [DeviceController::class, 'index'])->name('devices.index');
+    Route::delete('/my-devices/{deviceId}', [DeviceController::class, 'deactivateDevice'])->name('devices.deactivate');
+    
+    // Admin device management
+    Route::prefix('users/{userId}/devices')->name('devices.admin.')->group(function () {
+        Route::get('/', [DeviceController::class, 'getUserDevices'])->name('list');
+        Route::post('/reset', [DeviceController::class, 'resetDevices'])->name('reset');
+        Route::post('/toggle', [DeviceController::class, 'toggleSingleDeviceLogin'])->name('toggle');
+        Route::delete('/{deviceId}', [DeviceController::class, 'adminDeactivateDevice'])->name('deactivate');
+    });
+    
+    // ========================================================================
+    // ROLE & PERMISSIONS MANAGEMENT
+    // ========================================================================
     Route::prefix('roles')->name('roles.')->group(function () {
+        // View
         Route::get('/', [CoreRoleController::class, 'index'])->name('index');
-        Route::get('/create', [CoreRoleController::class, 'create'])->name('create');
-        Route::post('/', [CoreRoleController::class, 'store'])->name('store');
-        Route::get('/permissions', [CoreRoleController::class, 'permissions'])->name('permissions');
-        Route::get('/{role}', [CoreRoleController::class, 'show'])->name('show');
-        Route::get('/{role}/edit', [CoreRoleController::class, 'edit'])->name('edit');
-        Route::put('/{role}', [CoreRoleController::class, 'update'])->name('update');
-        Route::delete('/{role}', [CoreRoleController::class, 'destroy'])->name('destroy');
+        Route::get('/audit', [CoreRoleController::class, 'getEnhancedRoleAudit'])->name('audit');
+        Route::get('/export', [CoreRoleController::class, 'exportRoles'])->name('export');
+        Route::get('/metrics', [CoreRoleController::class, 'getRoleMetrics'])->name('metrics');
+        Route::get('/snapshot', [CoreRoleController::class, 'snapshot'])->name('snapshot');
+        Route::get('/permissions', [CoreRoleController::class, 'getRolesAndPermissions'])->name('permissions');
+        
+        // Create
+        Route::post('/', [CoreRoleController::class, 'storeRole'])->name('store');
+        Route::post('/clone', [CoreRoleController::class, 'cloneRole'])->name('clone');
+        
+        // Update
+        Route::put('/{id}', [CoreRoleController::class, 'updateRole'])->name('update');
+        Route::post('/update-permission', [CoreRoleController::class, 'updateRolePermission'])->name('update-permission');
+        Route::post('/toggle-permission', [CoreRoleController::class, 'togglePermission'])->name('toggle-permission');
+        Route::post('/update-module', [CoreRoleController::class, 'updateRoleModule'])->name('update-module');
+        Route::post('/bulk-operation', [CoreRoleController::class, 'bulkOperation'])->name('bulk-operation');
+        Route::patch('/{role}/permissions', [CoreRoleController::class, 'batchUpdatePermissions'])->name('batch-permissions');
+        
+        // Delete
+        Route::delete('/{id}', [CoreRoleController::class, 'deleteRole'])->name('delete');
+        
+        // Super Admin only
+        Route::post('/initialize-enterprise', [CoreRoleController::class, 'initializeEnterpriseSystem'])
+            ->middleware('role:Super Administrator')
+            ->name('initialize-enterprise');
     });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Profile Routes
-    |--------------------------------------------------------------------------
-    */
+    
+    // ========================================================================
+    // MODULE REGISTRY MANAGEMENT
+    // ========================================================================
+    Route::prefix('modules')->name('modules.')->group(function () {
+        // View
+        Route::get('/', [ModuleController::class, 'index'])->name('index');
+        Route::get('/api', [ModuleController::class, 'apiIndex'])->name('api.index');
+        Route::post('/check-access', [ModuleController::class, 'checkAccess'])->name('check-access');
+        Route::get('/{moduleCode}/requirements', [ModuleController::class, 'getModuleRequirements'])->name('requirements');
+        
+        // Permission Sync
+        Route::post('/{module}/sync-permissions', [ModuleController::class, 'syncModulePermissions'])->name('sync-permissions');
+        Route::post('/sub-modules/{subModule}/sync-permissions', [ModuleController::class, 'syncSubModulePermissions'])->name('sub-modules.sync-permissions');
+        Route::post('/components/{component}/sync-permissions', [ModuleController::class, 'syncComponentPermissions'])->name('components.sync-permissions');
+    });
+    
+    // ========================================================================
+    // SYSTEM SETTINGS
+    // ========================================================================
+    Route::prefix('settings')->name('settings.')->group(function () {
+        // System Settings
+        Route::get('/system', [SystemSettingController::class, 'index'])->name('system.index');
+        Route::put('/system', [SystemSettingController::class, 'update'])->name('system.update');
+        Route::post('/system/test-email', [SystemSettingController::class, 'sendTestEmail'])->name('system.test-email');
+        Route::post('/system/test-sms', [SystemSettingController::class, 'sendTestSms'])->name('system.test-sms');
+        
+        // Domain Management
+        Route::prefix('domains')->name('domains.')->group(function () {
+            Route::get('/', [CustomDomainController::class, 'index'])->name('index');
+            Route::post('/', [CustomDomainController::class, 'store'])->name('store');
+            Route::post('/{domain}/verify', [CustomDomainController::class, 'verify'])->name('verify');
+            Route::post('/{domain}/set-primary', [CustomDomainController::class, 'setPrimary'])->name('set-primary');
+            Route::delete('/{domain}', [CustomDomainController::class, 'destroy'])->name('destroy');
+        });
+        
+        // Usage & Billing (if Platform package installed)
+        Route::prefix('usage')->name('usage.')->group(function () {
+            Route::get('/', function () {
+                if (class_exists('Aero\Platform\Http\Controllers\SystemMonitoring\UsageController')) {
+                    return app('Aero\Platform\Http\Controllers\SystemMonitoring\UsageController')->index();
+                }
+                return response()->json(['message' => 'Usage tracking not available'], 404);
+            })->name('index');
+        });
+    });
+    
+    // ========================================================================
+    // PROFILE ROUTES
+    // ========================================================================
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', function () {
-            return inertia('Profile/Index', [
+            return inertia('Core/Profile/Index', [
                 'title' => 'My Profile',
                 'user' => auth()->user(),
             ]);
         })->name('index');
     });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Settings Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('settings')->name('settings.')->group(function () {
-        Route::get('/', function () {
-            return inertia('Settings/Index', [
-                'title' => 'Settings',
-            ]);
-        })->name('index');
+    
+    // ========================================================================
+    // API ROUTES (for dropdowns, lookups, etc.)
+    // ========================================================================
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('/users/managers/list', function () {
+            if (!class_exists('App\Models\User')) {
+                return response()->json([]);
+            }
+            return response()->json(\App\Models\User::whereHas('roles', function ($query) {
+                $query->whereIn('name', [
+                    'Super Administrator',
+                    'Administrator',
+                    'HR Manager',
+                    'Project Manager',
+                    'Department Manager',
+                    'Team Lead',
+                ]);
+            })
+                ->select('id', 'name')
+                ->get());
+        })->name('users.managers.list');
     });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Module Management Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('modules')->name('modules.')->group(function () {
-        Route::get('/', function () {
-            $moduleRegistry = app(\Aero\Core\Services\ModuleRegistry::class);
-            return inertia('Modules/Index', [
-                'title' => 'Modules',
-                'modules' => $moduleRegistry->all(),
-            ]);
-        })->name('index');
-    });
+    
+    // FCM Token Update
+    Route::post('/update-fcm-token', [CoreUserController::class, 'updateFcmToken'])->name('updateFcmToken');
 });

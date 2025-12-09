@@ -45,15 +45,15 @@ class CoreDatabaseSeeder extends Seeder
             return;
         }
 
-        // Create admin role if none exists
+        // Create Super Administrator role if none exists
         DB::table('roles')->insert([
-            'name' => 'Admin',
+            'name' => 'Super Administrator',
             'guard_name' => 'web',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        $this->command->info('Admin role created.');
+        $this->command->info('Super Administrator role created.');
     }
 
     /**
