@@ -2,7 +2,6 @@
 
 namespace Aero\Core\Http\Controllers\Admin;
 
-use Aero\Platform\Models\LandlordUser;
 use App\Http\Controllers\Controller;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\ModuleComponent;
@@ -18,14 +17,10 @@ use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
 /**
- * Shared Admin Module Controller
+ * Admin Module Controller
  *
- * Context-aware module management controller that works for both:
- * - Platform Admin (landlord guard) - manages platform-level modules and structure
- * - Tenant Admin (web guard) - manages tenant-level permission requirements
- *
- * Implements comprehensive module and permission management
- * Follows ISO 27001/27002 compliance standards
+ * Handles module management and role-module access assignment.
+ * Implements comprehensive module and permission management.
  */
 class ModuleController extends Controller
 {
@@ -37,44 +32,27 @@ class ModuleController extends Controller
     }
 
     /**
-     * Determine if current context is platform admin (landlord guard)
-     */
-    protected function isPlatformContext(): bool
-    {
-        return Auth::guard('landlord')->check();
-    }
-
-    /**
-     * Get the current authenticated user based on context
+     * Get the current authenticated user
      */
     protected function getCurrentUser()
     {
-        if ($this->isPlatformContext()) {
-            return Auth::guard('landlord')->user();
-        }
-
-        return Auth::guard('web')->user();
+        return auth()->user();
     }
 
     /**
-     * Determine the Inertia page path based on context
+     * Determine the Inertia page path
      */
     protected function getViewPath(): string
     {
-        return 'Shared/Pages/ModuleManagement';
+        return 'Modules/Index';
     }
 
     /**
-     * Check if user is a super administrator (context-aware)
+     * Check if user is a super administrator
      */
     protected function isSuperAdmin(): bool
     {
         $user = $this->getCurrentUser();
-
-        if ($this->isPlatformContext()) {
-            return $user instanceof LandlordUser && $user->isSuperAdmin();
-        }
-
         return $user?->hasRole('Super Administrator') ?? false;
     }
 
@@ -84,16 +62,14 @@ class ModuleController extends Controller
     public function index()
     {
         $user = $this->getCurrentUser();
-        $isPlatform = $this->isPlatformContext();
         $isSuperAdmin = $this->isSuperAdmin();
 
-        // Load modules from database based on context (platform or tenant scope)
-        $moduleScope = $isPlatform ? 'platform' : 'tenant';
+        // Load modules from database (tenant scope only for Core package)
+        $moduleScope = 'tenant';
         $modules = $this->getModulesFromDatabase($moduleScope);
 
-        // Get roles based on context
-        $guardName = $isPlatform ? 'landlord' : 'web';
-        $roles = Role::where('guard_name', $guardName)
+        // Get roles (web guard only)
+        $roles = Role::where('guard_name', 'web')
             ->orderBy('name')
             ->get(['id', 'name', 'guard_name', 'is_protected']);
 
@@ -103,14 +79,14 @@ class ModuleController extends Controller
         $accessScopes = RoleModuleAccess::ACCESS_SCOPES;
 
         return Inertia::render($this->getViewPath(), [
-            'title' => $isPlatform ? 'Platform Module Management' : 'Module Permission Management',
+            'title' => 'Module Permission Management',
             'modules' => $modules,
             'roles' => $roles,
             'statistics' => $statistics,
             'accessScopes' => $accessScopes,
             'categories' => config('modules.categories', []),
             'componentTypes' => config('modules.component_types', []),
-            'is_platform_context' => $isPlatform,
+            'is_platform_context' => false,
             'can_manage_structure' => false, // Modules are defined in config/modules.php - read-only
             'readonly' => false, // Permissions can still be assigned
         ]);
@@ -313,7 +289,7 @@ class ModuleController extends Controller
     public function apiIndex()
     {
         try {
-            $isPlatform = $this->isPlatformContext();
+            $isPlatform = false;
             $configKey = $isPlatform ? 'modules.platform_hierarchy' : 'modules.hierarchy';
             $modules = $this->getModulesFromConfig($configKey);
 
@@ -334,7 +310,7 @@ class ModuleController extends Controller
      */
     public function storeModule(Request $request)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -392,7 +368,7 @@ class ModuleController extends Controller
      */
     public function updateModule(Request $request, $moduleId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -445,7 +421,7 @@ class ModuleController extends Controller
      */
     public function destroyModule($moduleId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -489,7 +465,7 @@ class ModuleController extends Controller
      */
     public function storeSubModule(Request $request, $moduleId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -546,7 +522,7 @@ class ModuleController extends Controller
      */
     public function updateSubModule(Request $request, $subModuleId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -596,7 +572,7 @@ class ModuleController extends Controller
      */
     public function destroySubModule($subModuleId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -632,7 +608,7 @@ class ModuleController extends Controller
      */
     public function storeComponent(Request $request, $subModuleId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -692,7 +668,7 @@ class ModuleController extends Controller
      */
     public function updateComponent(Request $request, $componentId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -743,7 +719,7 @@ class ModuleController extends Controller
      */
     public function destroyComponent($componentId)
     {
-        if (! $this->isPlatformContext()) {
+        if (true) {
             return response()->json([
                 'error' => 'Module structure can only be managed from platform admin context.',
             ], 403);
@@ -793,8 +769,8 @@ class ModuleController extends Controller
             $role = Role::findOrFail($roleId);
 
             // Verify role belongs to correct guard
-            $isPlatform = $this->isPlatformContext();
-            $expectedGuard = $isPlatform ? 'landlord' : 'web';
+            $isPlatform = false;
+            $expectedGuard = 'web';
 
             if ($role->guard_name !== $expectedGuard) {
                 return response()->json(['error' => 'Role not found in current context'], 404);
@@ -858,8 +834,8 @@ class ModuleController extends Controller
             $role = Role::findOrFail($roleId);
 
             // Verify role belongs to correct guard
-            $isPlatform = $this->isPlatformContext();
-            $expectedGuard = $isPlatform ? 'landlord' : 'web';
+            $isPlatform = false;
+            $expectedGuard = 'web';
 
             if ($role->guard_name !== $expectedGuard) {
                 return response()->json(['error' => 'Role not found in current context'], 404);
@@ -980,8 +956,8 @@ class ModuleController extends Controller
     public function getRolesWithAccessCounts()
     {
         try {
-            $isPlatform = $this->isPlatformContext();
-            $guardName = $isPlatform ? 'landlord' : 'web';
+            $isPlatform = false;
+            $guardName = 'web';
 
             $roles = Role::where('guard_name', $guardName)
                 ->withCount([

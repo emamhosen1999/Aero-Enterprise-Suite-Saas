@@ -31,8 +31,9 @@ class DashboardController extends Controller
         $stats = [
             'totalUsers' => User::count(),
             'activeUsers' => User::where('active', true)->count(),
+            'inactiveUsers' => User::where('active', false)->count(),
             'totalRoles' => Role::count(),
-            'recentUsers' => User::latest()->take(5)->get(['id', 'name', 'email', 'created_at']),
+            'usersThisMonth' => User::whereMonth('created_at', now()->month)->count(),
         ];
 
         // Safely get user roles
@@ -49,12 +50,6 @@ class DashboardController extends Controller
             'title' => 'Dashboard',
             'stats' => $stats,
             'navigation' => $navigation,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'roles' => $userRoles,
-            ],
         ]);
     }
 

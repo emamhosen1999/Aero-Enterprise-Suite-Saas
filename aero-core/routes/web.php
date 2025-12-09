@@ -1,6 +1,6 @@
 <?php
 
-use Aero\Core\Http\Controllers\Admin\CoreRoleController;
+use Aero\Core\Http\Controllers\Admin\RoleController;
 use Aero\Core\Http\Controllers\Admin\CoreUserController;
 use Aero\Core\Http\Controllers\Admin\ModuleController;
 use Aero\Core\Http\Controllers\Auth\DeviceController;
@@ -124,6 +124,11 @@ Route::middleware('auth')->group(function () {
         // Delete
         Route::delete('/{id}', [CoreUserController::class, 'destroy'])->name('destroy');
         
+        // Bulk operations
+        Route::post('/bulk/toggle-status', [CoreUserController::class, 'bulkToggleStatus'])->name('bulk.toggleStatus');
+        Route::post('/bulk/assign-roles', [CoreUserController::class, 'bulkAssignRoles'])->name('bulk.assignRoles');
+        Route::post('/bulk/delete', [CoreUserController::class, 'bulkDelete'])->name('bulk.delete');
+        
         // Invitations
         Route::post('/invite', [CoreUserController::class, 'sendInvitation'])->name('invite');
         Route::get('/invitations/pending', [CoreUserController::class, 'pendingInvitations'])->name('invitations.pending');
@@ -151,32 +156,20 @@ Route::middleware('auth')->group(function () {
     // ========================================================================
     Route::prefix('roles')->name('roles.')->group(function () {
         // View
-        Route::get('/', [CoreRoleController::class, 'index'])->name('index');
-        Route::get('/audit', [CoreRoleController::class, 'getEnhancedRoleAudit'])->name('audit');
-        Route::get('/export', [CoreRoleController::class, 'exportRoles'])->name('export');
-        Route::get('/metrics', [CoreRoleController::class, 'getRoleMetrics'])->name('metrics');
-        Route::get('/snapshot', [CoreRoleController::class, 'snapshot'])->name('snapshot');
-        Route::get('/permissions', [CoreRoleController::class, 'getRolesAndPermissions'])->name('permissions');
+        Route::get('/', [RoleController::class, 'index'])->name('index');
+        Route::get('/export', [RoleController::class, 'exportRoles'])->name('export');
+        Route::get('/permissions', [RoleController::class, 'getRolesAndPermissions'])->name('permissions');
+        Route::get('/refresh', [RoleController::class, 'refreshData'])->name('refresh');
         
         // Create
-        Route::post('/', [CoreRoleController::class, 'storeRole'])->name('store');
-        Route::post('/clone', [CoreRoleController::class, 'cloneRole'])->name('clone');
+        Route::post('/', [RoleController::class, 'storeRole'])->name('store');
         
         // Update
-        Route::put('/{id}', [CoreRoleController::class, 'updateRole'])->name('update');
-        Route::post('/update-permission', [CoreRoleController::class, 'updateRolePermission'])->name('update-permission');
-        Route::post('/toggle-permission', [CoreRoleController::class, 'togglePermission'])->name('toggle-permission');
-        Route::post('/update-module', [CoreRoleController::class, 'updateRoleModule'])->name('update-module');
-        Route::post('/bulk-operation', [CoreRoleController::class, 'bulkOperation'])->name('bulk-operation');
-        Route::patch('/{role}/permissions', [CoreRoleController::class, 'batchUpdatePermissions'])->name('batch-permissions');
+        Route::put('/{id}', [RoleController::class, 'updateRole'])->name('update');
+        Route::post('/assign-user', [RoleController::class, 'assignRolesToUser'])->name('assign-user');
         
         // Delete
-        Route::delete('/{id}', [CoreRoleController::class, 'deleteRole'])->name('delete');
-        
-        // Super Admin only
-        Route::post('/initialize-enterprise', [CoreRoleController::class, 'initializeEnterpriseSystem'])
-            ->middleware('role:Super Administrator')
-            ->name('initialize-enterprise');
+        Route::delete('/{id}', [RoleController::class, 'deleteRole'])->name('delete');
     });
     
     // ========================================================================

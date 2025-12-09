@@ -2,7 +2,6 @@
 
 namespace Aero\Core\Http\Controllers\Admin;
 
-use Aero\Platform\Models\LandlordUser;
 use App\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
@@ -26,23 +25,11 @@ use Spatie\Permission\Models\Role;
 class RoleController extends Controller
 {
     /**
-     * Determine if current context is platform admin (landlord guard)
-     */
-    protected function isPlatformContext(): bool
-    {
-        return Auth::guard('landlord')->check();
-    }
-
-    /**
-     * Get the current authenticated user based on context
+     * Get the current authenticated user
      */
     protected function getCurrentUser()
     {
-        if ($this->isPlatformContext()) {
-            return Auth::guard('landlord')->user();
-        }
-
-        return Auth::guard('web')->user();
+        return auth()->user();
     }
 
     /**
@@ -50,20 +37,15 @@ class RoleController extends Controller
      */
     protected function getViewPath(): string
     {
-        return 'Shared/Pages/RoleManagement';
+        return 'Roles/Index';
     }
 
     /**
-     * Check if user is a super administrator (context-aware)
+     * Check if user is a super administrator
      */
     protected function isSuperAdmin(): bool
     {
         $user = $this->getCurrentUser();
-
-        if ($this->isPlatformContext()) {
-            return $user instanceof LandlordUser && $user->isSuperAdmin();
-        }
-
         return $user?->hasRole('Super Administrator') ?? false;
     }
 
@@ -75,7 +57,6 @@ class RoleController extends Controller
         try {
             $user = $this->getCurrentUser();
             $isSuperAdmin = $this->isSuperAdmin();
-            $isPlatform = $this->isPlatformContext();
 
             // Get all roles (Super Admin can see all, others see limited)
             $roles = Role::query()
@@ -99,50 +80,31 @@ class RoleController extends Controller
                 });
 
             // Get users with their roles
-            $users = collect([]);
-            if ($isPlatform) {
-                $users = LandlordUser::with('roles')
-                    ->select(['id', 'name', 'email'])
-                    ->orderBy('name')
-                    ->get()
-                    ->map(function ($u) {
-                        return [
-                            'id' => $u->id,
-                            'name' => $u->name,
-                            'email' => $u->email,
-                            'roles' => $u->roles->map(fn($role) => [
-                                'id' => $role->id,
-                                'name' => $role->name,
-                            ]),
-                        ];
-                    });
-            } else {
-                $users = User::with('roles')
-                    ->select(['id', 'name', 'email'])
-                    ->orderBy('name')
-                    ->get()
-                    ->map(function ($u) {
-                        return [
-                            'id' => $u->id,
-                            'name' => $u->name,
-                            'email' => $u->email,
-                            'roles' => $u->roles->map(fn($role) => [
-                                'id' => $role->id,
-                                'name' => $role->name,
-                            ]),
-                        ];
-                    });
-            }
+            $users = User::with('roles')
+                ->select(['id', 'name', 'email'])
+                ->orderBy('name')
+                ->get()
+                ->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->name,
+                        'email' => $u->email,
+                        'roles' => $u->roles->map(fn($role) => [
+                            'id' => $role->id,
+                            'name' => $role->name,
+                        ]),
+                    ];
+                });
 
             return Inertia::render($this->getViewPath(), [
-                'title' => $isPlatform ? 'Platform Role Management' : 'Enterprise Role Management',
+                'title' => 'Role Management',
                 'roles' => $roles->toArray(),
                 'permissions' => [], // Empty - not using permissions
                 'permissionsGrouped' => [], // Empty - not using permissions
                 'role_has_permissions' => [], // Empty - not using permissions
                 'enterprise_modules' => [], // Empty - not using permissions
                 'can_manage_super_admin' => $isSuperAdmin,
-                'is_platform_context' => $isPlatform,
+                'is_platform_context' => false,
                 'users' => $users,
                 'server_info' => [
                     'environment' => app()->environment(),
@@ -163,7 +125,7 @@ class RoleController extends Controller
                 'role_has_permissions' => [],
                 'enterprise_modules' => [],
                 'can_manage_super_admin' => false,
-                'is_platform_context' => $this->isPlatformContext(),
+                'is_platform_context' => false,
                 'users' => [],
                 'error' => [
                     'message' => 'Failed to load role management data',
@@ -206,20 +168,18 @@ class RoleController extends Controller
                 ], 403);
             }
 
-            $guardName = $this->isPlatformContext() ? 'landlord' : 'web';
-            $scope = $this->isPlatformContext() ? 'platform' : 'tenant';
-
             $role = Role::create([
                 'name' => $request->name,
-                'guard_name' => $guardName,
+                'guard_name' => 'web',
             ]);
 
-            // Update description and scope
-            DB::table('roles')->where('id', $role->id)->update([
-                'description' => $request->description ?? null,
-                'scope' => $scope,
-                'updated_at' => now(),
-            ]);
+            // Update description
+            if ($request->has('description')) {
+                DB::table('roles')->where('id', $role->id)->update([
+                    'description' => $request->description ?? null,
+                    'updated_at' => now(),
+                ]);
+            }
 
             Log::info('Role created', [
                 'role_id' => $role->id,
@@ -383,13 +343,7 @@ class RoleController extends Controller
         }
 
         try {
-            $isPlatform = $this->isPlatformContext();
-            
-            if ($isPlatform) {
-                $user = LandlordUser::findOrFail($request->user_id);
-            } else {
-                $user = User::findOrFail($request->user_id);
-            }
+            $user = User::findOrFail($request->user_id);
 
             // Sync roles
             $user->syncRoles($request->roles);

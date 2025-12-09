@@ -5,14 +5,15 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * DUPLICATE MIGRATION - Also exists in database/migrations/
+ * Create roles tables for Role-Module Access system
  * 
- * This migration creates the permission tables from Spatie Permission package.
- * It exists in BOTH root and tenant migrations because:
- * - Root (Central DB): Platform admin roles/permissions (super_admin, admin, support)
- * - Tenant (Tenant DB): Tenant user roles/permissions (admin, manager, employee)
+ * This creates ONLY the roles and model_has_roles tables.
+ * We use role_module_access (created in separate migration) instead of permissions.
  * 
- * Each context has independent RBAC system for its users.
+ * The system works as follows:
+ * - roles: Define user roles (Admin, Manager, Employee, etc.)
+ * - model_has_roles: Assign roles to users
+ * - role_module_access: Grant module/submodule/component/action access to roles
  */
 return new class extends Migration
 {
@@ -21,66 +22,33 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $teams = config('permission.teams');
-        $tableNames = config('permission.table_names');
-        $columnNames = config('permission.column_names');
-        $pivotRole = $columnNames['role_pivot_key'] ?? 'role_id';
-
-        if (empty($tableNames)) {
-            throw new \Exception('Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
-        }
-
-        if ($teams && empty($columnNames['team_foreign_key'] ?? null)) {
-            throw new \Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
-        }
-
-        Schema::create($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
-            $table->bigIncrements('id');
-            if ($teams || config('permission.testing')) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
-                $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
-            }
+        // Create roles table
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
             $table->string('name');
             $table->string('description')->nullable();
-            $table->string('guard_name');
+            $table->string('guard_name')->default('web');
+            $table->boolean('is_protected')->default(false)->comment('Protected roles cannot be deleted');
             $table->timestamps();
-            if ($teams || config('permission.testing')) {
-                $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
-            } else {
-                $table->unique(['name', 'guard_name']);
-            }
+
+            $table->unique(['name', 'guard_name']);
         });
 
-        Schema::create($tableNames['model_has_roles'], function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams) {
-            $table->unsignedBigInteger($pivotRole);
+        // Create model_has_roles pivot table (users <-> roles)
+        Schema::create('model_has_roles', function (Blueprint $table) {
+            $table->unsignedBigInteger('role_id');
             $table->string('model_type');
-            $table->unsignedBigInteger($columnNames['model_morph_key']);
-            $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_roles_model_id_model_type_index');
-
-            $table->foreign($pivotRole)
+            $table->unsignedBigInteger('model_id');
+            
+            $table->foreign('role_id')
                 ->references('id')
-                ->on($tableNames['roles'])
+                ->on('roles')
                 ->onDelete('cascade');
 
-            if ($teams) {
-                $table->unsignedBigInteger($columnNames['team_foreign_key']);
-                $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
+            $table->index(['model_id', 'model_type'], 'model_has_roles_model_id_model_type_index');
 
-                $table->primary([
-                    $columnNames['team_foreign_key'],
-                    $pivotRole,
-                    $columnNames['model_morph_key'],
-                    'model_type',
-                ], 'model_has_roles_role_model_type_primary');
-            } else {
-                $table->primary([
-                    $pivotRole,
-                    $columnNames['model_morph_key'],
-                    'model_type',
-                ], 'model_has_roles_role_model_type_primary');
-            }
+            $table->primary(['role_id', 'model_id', 'model_type'], 'model_has_roles_role_model_type_primary');
         });
-
     }
 
     /**
@@ -88,15 +56,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $tableNames = config('permission.table_names');
-
-        if (empty($tableNames)) {
-            throw new \Exception('Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.');
-        }
-
-        Schema::drop($tableNames['model_has_roles']);
-
-        Schema::drop($tableNames['roles']);
-
+        Schema::dropIfExists('model_has_roles');
+        Schema::dropIfExists('roles');
     }
 };

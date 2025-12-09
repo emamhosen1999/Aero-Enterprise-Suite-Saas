@@ -192,7 +192,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             [
                 'title' => 'Dashboard',
                 'icon' => 'HomeIcon',
-                'route' => 'core.dashboard',
+                'route' => 'dashboard',
                 'permission' => null, // Everyone can see dashboard
                 'order' => 1,
             ],
@@ -206,13 +206,13 @@ class AeroCoreServiceProvider extends ServiceProvider
                     [
                         'title' => 'Users',
                         'icon' => 'UserIcon',
-                        'route' => 'core.users.index',
+                        'route' => 'users.index',
                         'permission' => 'users.view',
                     ],
                     [
                         'title' => 'Roles',
                         'icon' => 'ShieldCheckIcon',
-                        'route' => 'core.roles.index',
+                        'route' => 'roles.index',
                         'permission' => 'roles.view',
                     ],
                 ],
@@ -220,7 +220,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             [
                 'title' => 'Settings',
                 'icon' => 'CogIcon',
-                'route' => 'core.settings.index',
+                'route' => 'settings.system.index',
                 'permission' => 'settings.view',
                 'order' => 100,
             ],
