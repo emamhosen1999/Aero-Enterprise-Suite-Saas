@@ -148,14 +148,12 @@ class ModuleRouteServiceProvider extends ServiceProvider
         // Register tenant routes (subdomain-based)
         if (File::exists($routesPath . '/tenant.php')) {
             Route::middleware(['web', 'tenant', 'auth', 'verified'])
-                ->namespace($namespace)
                 ->group($routesPath . '/tenant.php');
         }
 
         // Register web routes (for tenant routes without auth requirement)
         if (File::exists($routesPath . '/web.php')) {
             Route::middleware(['web', 'tenant'])
-                ->namespace($namespace)
                 ->group($routesPath . '/web.php');
         }
 
@@ -163,7 +161,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
         if (File::exists($routesPath . '/landlord.php')) {
             Route::middleware(['web', 'landlord'])
                 ->domain(config('tenancy.central_domains')[0] ?? null)
-                ->namespace($namespace)
                 ->group($routesPath . '/landlord.php');
         }
 
@@ -171,7 +168,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
         if (File::exists($routesPath . '/api.php')) {
             Route::middleware(['api', 'tenant', 'auth:sanctum'])
                 ->prefix('api')
-                ->namespace($namespace)
                 ->group($routesPath . '/api.php');
         }
     }
@@ -191,14 +187,12 @@ class ModuleRouteServiceProvider extends ServiceProvider
         // Register authenticated routes
         if (File::exists($routesPath . '/tenant.php')) {
             Route::middleware(['web', 'auth', 'verified'])
-                ->namespace($namespace)
                 ->group($routesPath . '/tenant.php');
         }
 
         // Register web routes
         if (File::exists($routesPath . '/web.php')) {
             Route::middleware(['web'])
-                ->namespace($namespace)
                 ->group($routesPath . '/web.php');
         }
 
@@ -206,7 +200,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
         // But if they exist, register them as regular web routes
         if (File::exists($routesPath . '/landlord.php')) {
             Route::middleware(['web', 'auth'])
-                ->namespace($namespace)
                 ->group($routesPath . '/landlord.php');
         }
 
@@ -214,7 +207,6 @@ class ModuleRouteServiceProvider extends ServiceProvider
         if (File::exists($routesPath . '/api.php')) {
             Route::middleware(['api', 'auth:sanctum'])
                 ->prefix('api')
-                ->namespace($namespace)
                 ->group($routesPath . '/api.php');
         }
     }

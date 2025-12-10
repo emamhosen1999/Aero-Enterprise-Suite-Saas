@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        if (!Schema::hasTable('users')) {
+            Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('user_name');
             $table->string('phone')->unique()->nullable();
@@ -84,13 +85,17 @@ return new class extends Migration
             // Indexes
             $table->index(['oauth_provider', 'oauth_provider_id']);
         });
+        }
 
+        if (!Schema::hasTable('password_reset_tokens')) {
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
+        }
 
+        if (!Schema::hasTable('sessions')) {
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();
@@ -99,8 +104,10 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+        }
 
         // User Sessions Tracking (enhanced session management)
+        if (!Schema::hasTable('user_sessions_tracking')) {
         Schema::create('user_sessions_tracking', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -124,8 +131,10 @@ return new class extends Migration
             $table->index(['user_id', 'is_active']);
             $table->index(['user_id', 'last_activity']);
         });
+        }
 
         // Authentication Events (security audit log)
+        if (!Schema::hasTable('authentication_events')) {
         Schema::create('authentication_events', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
@@ -142,6 +151,7 @@ return new class extends Migration
             $table->index(['ip_address', 'occurred_at']);
             $table->index(['event_type', 'status']);
         });
+        }
     }
 
     /**

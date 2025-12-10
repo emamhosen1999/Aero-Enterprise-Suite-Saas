@@ -1,6 +1,6 @@
 <?php
 
-namespace Aero\Hrm;
+namespace Aero\HRM;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
@@ -25,11 +25,6 @@ class AeroHrmServiceProvider extends ServiceProvider
             __DIR__ . '/../config/hrm.php',
             'hrm'
         );
-
-        // Register module services
-        $this->app->singleton('aero.hrm', function ($app) {
-            return new \Aero\Hrm\Services\HrmService();
-        });
     }
 
     /**

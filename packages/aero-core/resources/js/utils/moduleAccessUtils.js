@@ -278,6 +278,8 @@ export const checkAccess = hasAccess;
 
 /**
  * Filter navigation items based on user's module access
+ * Supports both legacy 'module' and 'access' properties, and new 'access_key' property
+ * 
  * @param {Array} navItems - Array of navigation items
  * @param {Object} auth - Auth object from Inertia usePage() props
  * @returns {Array} Filtered navigation items
@@ -290,12 +292,22 @@ export const filterNavigationByAccess = (navItems, auth = null) => {
     if (isSuperAdmin(user)) return navItems;
 
     return navItems.filter(item => {
-        // Check if item has module requirement
+        // No access requirement = visible to all (e.g., Dashboard)
+        if (!item.access_key && !item.module && !item.access) {
+            return true;
+        }
+
+        // Check new 'access_key' property (format: "module.submodule.component")
+        if (item.access_key) {
+            return hasAccess(item.access_key, auth);
+        }
+
+        // Check legacy 'module' property
         if (item.module) {
             return hasModuleAccess(item.module, auth);
         }
         
-        // Check if item has full access path
+        // Check legacy 'access' property (full path)
         if (item.access) {
             return hasAccess(item.access, auth);
         }
@@ -311,6 +323,12 @@ export const filterNavigationByAccess = (navItems, auth = null) => {
             };
         }
         return item;
+    }).filter(item => {
+        // Remove parent items that have no accessible children
+        if (item.children && item.children.length === 0 && !item.href) {
+            return false;
+        }
+        return true;
     });
 };
 

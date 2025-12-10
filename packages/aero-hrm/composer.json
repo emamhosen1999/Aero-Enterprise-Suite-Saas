@@ -40,7 +40,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Aero\\HRM\\Providers\\HRMServiceProvider"
+        "Aero\\HRM\\AeroHrmServiceProvider"
       ]
     },
     "aero": {

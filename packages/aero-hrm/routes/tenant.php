@@ -362,66 +362,66 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
 
     // Employee Management - Core CRUD operations
     Route::middleware(['module:hrm,employees'])->group(function () {
-        Route::get('/employees', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'index'])->name('employees.index');
-        Route::get('/employees/paginate', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
-        Route::get('/employees/stats', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
-        Route::post('/employees', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'store'])->name('employees.store');
-        Route::get('/employees/{id}', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'show'])->name('employees.show');
-        Route::put('/employees/{id}', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'update'])->name('employees.update');
-        Route::delete('/employees/{id}', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'destroy'])->name('employees.destroy');
-        Route::post('/employees/{id}/restore', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'restore'])->name('employees.restore');
+        Route::get('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'index'])->name('employees.index');
+        Route::get('/employees/paginate', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
+        Route::get('/employees/stats', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
+        Route::post('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'store'])->name('employees.store');
+        Route::get('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'show'])->name('employees.show');
+        Route::put('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'update'])->name('employees.update');
+        Route::delete('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'destroy'])->name('employees.destroy');
+        Route::post('/employees/{id}/restore', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'restore'])->name('employees.restore');
     });
 
     // Employee Profile Management (Bank Details, Emergency Contacts)
     Route::middleware(['module:hrm,employees'])->prefix('employees/{user}')->name('employees.')->group(function () {
         // Profile Overview
-        Route::get('/profile', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'show'])->name('profile.show');
-        Route::get('/profile/edit', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'update'])->name('profile.update');
 
         // Bank Details
-        Route::get('/bank-details', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
-        Route::post('/bank-details/verify', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'verifyBankDetails'])
+        Route::get('/bank-details', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'getBankDetails'])->name('bank-details.show');
+        Route::post('/bank-details/verify', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'verifyBankDetails'])
             ->middleware('module:hrm,employees,verify')
             ->name('bank-details.verify');
 
         // Emergency Contacts
-        Route::get('/emergency-contacts', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'getEmergencyContacts'])->name('emergency-contacts.index');
-        Route::post('/emergency-contacts', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'addEmergencyContact'])->name('emergency-contacts.store');
-        Route::delete('/emergency-contacts/{contact}', [\Aero\HRM\Controllers\Employee\EmployeeProfileController::class, 'deleteEmergencyContact'])->name('emergency-contacts.destroy');
+        Route::get('/emergency-contacts', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'getEmergencyContacts'])->name('emergency-contacts.index');
+        Route::post('/emergency-contacts', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'addEmergencyContact'])->name('emergency-contacts.store');
+        Route::delete('/emergency-contacts/{contact}', [\Aero\HRM\Http\Controllers\Employee\EmployeeProfileController::class, 'deleteEmergencyContact'])->name('emergency-contacts.destroy');
 
         // Document Management
-        Route::get('/documents', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'index'])->name('documents.index');
-        Route::post('/documents', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'store'])->name('documents.store');
-        Route::get('/documents/{document}', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'show'])->name('documents.show');
-        Route::get('/documents/{document}/download', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'download'])->name('documents.download');
-        Route::put('/documents/{document}', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'update'])->name('documents.update');
-        Route::delete('/documents/{document}', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
-        Route::post('/documents/{document}/verify', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'verify'])
+        Route::get('/documents', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'index'])->name('documents.index');
+        Route::post('/documents', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'store'])->name('documents.store');
+        Route::get('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'show'])->name('documents.show');
+        Route::get('/documents/{document}/download', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'download'])->name('documents.download');
+        Route::put('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'update'])->name('documents.update');
+        Route::delete('/documents/{document}', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'destroy'])->name('documents.destroy');
+        Route::post('/documents/{document}/verify', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'verify'])
             ->middleware('module:hrm,documents,verify')
             ->name('documents.verify');
     });
 
     // Document Expiry Dashboard (HR Admin)
     Route::middleware(['module:hrm,documents'])->group(function () {
-        Route::get('/documents/expiring', [\Aero\HRM\Controllers\Employee\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
+        Route::get('/documents/expiring', [\Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController::class, 'expiring'])->name('documents.expiring');
     });
 
     // Salary Structure Management
     Route::middleware(['module:hrm,payroll'])->prefix('salary-structure')->name('salary-structure.')->group(function () {
-        Route::get('/', [\Aero\HRM\Controllers\Employee\SalaryStructureController::class, 'index'])->name('index');
-        Route::post('/', [\Aero\HRM\Controllers\Employee\SalaryStructureController::class, 'store'])->name('store');
-        Route::put('/{id}', [\Aero\HRM\Controllers\Employee\SalaryStructureController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\Aero\HRM\Controllers\Employee\SalaryStructureController::class, 'destroy'])->name('destroy');
+        Route::get('/', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'index'])->name('index');
+        Route::post('/', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'store'])->name('store');
+        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'destroy'])->name('destroy');
 
         // Employee Salary Management
-        Route::get('/employee/{employeeId}', [\Aero\HRM\Controllers\Employee\SalaryStructureController::class, 'employeeSalary'])->name('employee.salary');
-        Route::post('/assign', [\Aero\HRM\Controllers\Employee\SalaryStructureController::class, 'assignToEmployee'])->name('assign');
-        Route::post('/calculate-preview', [\Aero\HRM\Controllers\Employee\SalaryStructureController::class, 'calculatePreview'])->name('calculate-preview');
+        Route::get('/employee/{employeeId}', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'employeeSalary'])->name('employee.salary');
+        Route::post('/assign', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'assignToEmployee'])->name('assign');
+        Route::post('/calculate-preview', [\Aero\HRM\Http\Controllers\Employee\SalaryStructureController::class, 'calculatePreview'])->name('calculate-preview');
     });
 
     // Managers for dropdowns
-    Route::get('/managers', [\Aero\HRM\Controllers\Employee\ManagersController::class, 'index'])->name('managers.list');
+    Route::get('/managers', [\Aero\HRM\Http\Controllers\Employee\ManagersController::class, 'index'])->name('managers.list');
 
     // Employee self-service routes
     Route::middleware(['module:hrm,time-off,own-leave'])->group(function () {
@@ -549,9 +549,9 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
 
     // HR Management routes
     Route::middleware(['module:hrm,employees'])->group(function () {
-        Route::get('/employees', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'index'])->name('employees');
-        Route::get('/employees/paginate', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
-        Route::get('/employees/stats', [\Aero\HRM\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
+        Route::get('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'index'])->name('employees');
+        Route::get('/employees/paginate', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'paginate'])->name('employees.paginate');
+        Route::get('/employees/stats', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
     });
 
     // Department management routes
@@ -638,17 +638,17 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
     // Designation Management
     Route::middleware(['module:hrm,organization,designations'])->group(function () {
         // Initial page render (Inertia)
-        Route::get('/designations', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'index'])->name('designations.index');
+        Route::get('/designations', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'index'])->name('designations.index');
         // API data fetch (JSON)
-        Route::get('/designations/json', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'getDesignations'])->name('designations.json');
+        Route::get('/designations/json', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'getDesignations'])->name('designations.json');
         // Stats endpoint for frontend analytics
-        Route::get('/designations/stats', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'stats'])->name('designations.stats');
-        Route::post('/designations', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'store'])->name('designations.store');
-        Route::get('/designations/{id}', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'show'])->name('designations.show');
-        Route::put('/designations/{id}', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'update'])->name('designations.update');
-        Route::delete('/designations/{id}', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'destroy'])->name('designations.destroy');
+        Route::get('/designations/stats', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'stats'])->name('designations.stats');
+        Route::post('/designations', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'store'])->name('designations.store');
+        Route::get('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'show'])->name('designations.show');
+        Route::put('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'update'])->name('designations.update');
+        Route::delete('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'destroy'])->name('designations.destroy');
         // For dropdowns and API
-        Route::get('/designations/list', [\Aero\HRM\Controllers\Employee\DesignationController::class, 'list'])->name('designations.list');
+        Route::get('/designations/list', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'list'])->name('designations.list');
     });
 
     Route::get('/api/designations/list', function () {

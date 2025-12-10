@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class SyncModuleHierarchy extends Command
 {
-    protected $signature = 'aero:sync-module-hierarchy
+    protected $signature = 'aero:sync-module
                           {--scope= : Sync only specific scope (platform or tenant)}
                           {--force : Force sync even if modules table does not exist}';
 

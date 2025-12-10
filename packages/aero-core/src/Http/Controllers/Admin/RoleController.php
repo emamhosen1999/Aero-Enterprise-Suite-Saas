@@ -4,12 +4,14 @@ namespace Aero\Core\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Aero\Core\Models\User;
+use Aero\Core\Models\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -102,6 +104,65 @@ class RoleController extends Controller
                     ];
                 });
 
+            // Get module hierarchy for permission assignment
+            // Only if the modules table exists (avoid crashes in Standalone mode)
+            $moduleHierarchy = [];
+            if (Schema::hasTable('modules')) {
+                try {
+                    $moduleHierarchy = Module::with([
+                        'subModules' => function ($query) {
+                            $query->where('is_active', true)->orderBy('priority');
+                        },
+                        'subModules.components' => function ($query) {
+                            $query->where('is_active', true)->orderBy('priority');
+                        },
+                        'subModules.components.actions' => function ($query) {
+                            $query->where('is_active', true)->orderBy('priority');
+                        }
+                    ])
+                    ->where('is_active', true)
+                    ->orderBy('priority')
+                    ->get()
+                    ->map(function ($module) {
+                        return [
+                            'id' => $module->id,
+                            'code' => $module->code,
+                            'name' => $module->name,
+                            'description' => $module->description,
+                            'icon' => $module->icon,
+                            'is_core' => $module->is_core,
+                            'sub_modules' => $module->subModules->map(function ($subModule) {
+                                return [
+                                    'id' => $subModule->id,
+                                    'code' => $subModule->code,
+                                    'name' => $subModule->name,
+                                    'description' => $subModule->description,
+                                    'components' => $subModule->components->map(function ($component) {
+                                        return [
+                                            'id' => $component->id,
+                                            'code' => $component->code,
+                                            'name' => $component->name,
+                                            'description' => $component->description,
+                                            'type' => $component->type,
+                                            'actions' => $component->actions->map(function ($action) {
+                                                return [
+                                                    'id' => $action->id,
+                                                    'code' => $action->code,
+                                                    'name' => $action->name,
+                                                    'description' => $action->description,
+                                                ];
+                                            })->values(),
+                                        ];
+                                    })->values(),
+                                ];
+                            })->values(),
+                        ];
+                    });
+                } catch (\Exception $e) {
+                    Log::warning('Could not load module hierarchy: ' . $e->getMessage());
+                }
+            }
+
             return Inertia::render($this->getViewPath(), [
                 'title' => 'Role Management',
                 'roles' => $roles->toArray(),
@@ -109,6 +170,7 @@ class RoleController extends Controller
                 'permissionsGrouped' => [], // Empty - not using permissions
                 'role_has_permissions' => [], // Empty - not using permissions
                 'enterprise_modules' => [], // Empty - not using permissions
+                'module_hierarchy' => $moduleHierarchy, // NEW: Module hierarchy for permission assignment
                 'can_manage_super_admin' => $isSuperAdmin,
                 'is_platform_context' => false,
                 'users' => $users,

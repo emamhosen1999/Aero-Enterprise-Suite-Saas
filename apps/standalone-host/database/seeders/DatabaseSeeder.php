@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Aero\Core\Database\Seeders\CoreDatabaseSeeder;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,11 +16,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Seed Core package data (Super Admin, roles, settings)
+        $this->call(CoreDatabaseSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Additional application-specific seeders can be added here
+        // $this->call(TenantSeeder::class);
     }
 }

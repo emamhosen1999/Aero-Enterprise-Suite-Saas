@@ -1,10 +1,17 @@
 /**
- * useNavigation Hook - DECENTRALIZED VERSION
+ * useNavigation Hook - DECENTRALIZED VERSION with Access Control
  * 
  * This hook merges Core's static navigation with dynamically registered
  * module navigation from window.Aero.navigation.
  * 
  * It replaces the old monolithic pages.jsx approach with a decentralized system.
+ * 
+ * Features:
+ * - Merges Core + Module navigation
+ * - Applies role-based access control filtering
+ * - Resolves icon strings to HeroIcon components
+ * - Sorts by order property
+ * - Super Admin bypass for full visibility
  * 
  * Each module registers its own navigation via:
  *   window.Aero.registerNavigation('moduleName', navigationArray)
@@ -17,6 +24,8 @@
 
 import { usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { navigationRegistry } from '../Services/NavigationRegistry';
+import { filterNavigationByAccess, isSuperAdmin } from '../utils/moduleAccessUtils';
 
 // Import Core Icons statically
 import { 
@@ -24,55 +33,59 @@ import {
     UsersIcon, 
     Cog6ToothIcon,
     ShieldCheckIcon,
-    UserIcon
+    UserIcon,
+    UserGroupIcon,
+    ClipboardDocumentListIcon,
+    ChartBarIcon,
+    BriefcaseIcon,
+    BuildingOfficeIcon,
+    CurrencyDollarIcon,
+    ShoppingCartIcon,
+    TruckIcon,
+    DocumentTextIcon
 } from '@heroicons/react/24/outline';
+
+// Icon name to component mapping
+const ICON_MAP = {
+    HomeIcon,
+    UsersIcon,
+    UserIcon,
+    Cog6ToothIcon,
+    ShieldCheckIcon,
+    UserGroupIcon,
+    ClipboardDocumentListIcon,
+    ChartBarIcon,
+    BriefcaseIcon,
+    BuildingOfficeIcon,
+    CurrencyDollarIcon,
+    ShoppingCartIcon,
+    TruckIcon,
+    DocumentTextIcon
+};
 
 export function useNavigation() {
     const { auth, url } = usePage().props;
 
-    // 1. Define Core Navigation (Static)
-    const coreNavigation = useMemo(() => [
-        {
-            name: 'Dashboard',
-            href: route('dashboard'),
-            icon: HomeIcon,
-            current: route().current('dashboard'),
-            order: 0
-        },
-        {
-            name: 'User Management',
-            icon: UsersIcon,
-            order: 900, // Near the bottom
-            children: [
-                { 
-                    name: 'Users', 
-                    href: route('admin.users.index'), 
-                    current: route().current('admin.users.*'),
-                    icon: UserIcon
-                },
-                { 
-                    name: 'Roles & Permissions', 
-                    href: route('admin.roles.index'), 
-                    current: route().current('admin.roles.*'),
-                    icon: ShieldCheckIcon
-                },
-            ]
-        },
-        {
-            name: 'Settings',
-            href: route('admin.settings.index'),
-            icon: Cog6ToothIcon,
-            current: route().current('admin.settings.*'),
-            order: 1000 // Last item
-        }
-    ], []);
+    // 1. Get Core Navigation from NavigationRegistry
+    const coreNavigation = useMemo(() => {
+        return navigationRegistry.get().map(item => ({
+            ...item,
+            // Resolve icon from string to component
+            icon: typeof item.icon === 'string' ? ICON_MAP[item.icon] : item.icon
+        }));
+    }, []);
 
     // 2. Merge with Module Navigation
     const mergedNavigation = useMemo(() => {
         // Get dynamic navigation from window.Aero
         const moduleNav = (window.Aero?.navigation || []).map(item => {
-            // Process each navigation item
+            // Process each navigation item recursively
             const processItem = (navItem) => {
+                // Resolve icon from string to component if needed
+                const icon = typeof navItem.icon === 'string' 
+                    ? ICON_MAP[navItem.icon] 
+                    : navItem.icon;
+
                 // Check if current route matches this item
                 let current = false;
                 if (navItem.href) {
@@ -86,6 +99,7 @@ export function useNavigation() {
 
                 return {
                     ...navItem,
+                    icon,
                     current,
                     children
                 };
@@ -101,13 +115,18 @@ export function useNavigation() {
         return allNav.sort((a, b) => (a.order || 500) - (b.order || 500));
     }, [coreNavigation, url]);
 
-    // 4. Filter based on user permissions (if needed)
+    // 4. Filter based on user permissions
     const filteredNavigation = useMemo(() => {
-        // TODO: Implement permission-based filtering
-        // For now, return all navigation items
-        // In the future: check auth.permissions against item.access property
-        return mergedNavigation;
-    }, [mergedNavigation]);
+        const user = auth?.user;
+        
+        // Super Admin sees all navigation
+        if (user && isSuperAdmin(user)) {
+            return mergedNavigation;
+        }
+
+        // Apply access control filtering
+        return filterNavigationByAccess(mergedNavigation, auth);
+    }, [mergedNavigation, auth]);
 
     return { 
         navigation: filteredNavigation,

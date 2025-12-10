@@ -18,9 +18,13 @@ class CoreDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->command->info('🌱 Seeding Core database...');
+        
         $this->seedDefaultRole();
         $this->seedDefaultUser();
         $this->seedSystemSettings();
+        
+        $this->command->info('✅ Core database seeding completed!');
     }
 
     /**
@@ -34,26 +38,43 @@ class CoreDatabaseSeeder extends Seeder
             return;
         }
 
-        // Check if any admin-type role exists
-        $existingAdminRole = DB::table('roles')
-            ->whereIn('name', ['admin', 'Admin', 'administrator', 'Administrator', 'Super Administrator'])
+        // Check if Super Administrator role exists
+        $superAdminRole = DB::table('roles')
+            ->where('name', 'Super Administrator')
             ->where('guard_name', 'web')
             ->first();
 
-        if ($existingAdminRole) {
-            $this->command->info("Admin role already exists: {$existingAdminRole->name}");
+        if ($superAdminRole) {
+            $this->command->info("✓ Super Administrator role already exists (ID: {$superAdminRole->id})");
             return;
         }
 
-        // Create Super Administrator role if none exists
-        DB::table('roles')->insert([
+        // Create Super Administrator role
+        $roleData = [
             'name' => 'Super Administrator',
             'guard_name' => 'web',
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
 
-        $this->command->info('Super Administrator role created.');
+        // Add optional columns if they exist
+        $columns = $this->getTableColumns('roles');
+        
+        if (in_array('description', $columns)) {
+            $roleData['description'] = 'Full system access with all privileges';
+        }
+        
+        if (in_array('is_protected', $columns)) {
+            $roleData['is_protected'] = true;
+        }
+        
+        if (in_array('scope', $columns)) {
+            $roleData['scope'] = 'platform';
+        }
+
+        DB::table('roles')->insert($roleData);
+
+        $this->command->info('✓ Super Administrator role created');
     }
 
     /**
@@ -68,14 +89,19 @@ class CoreDatabaseSeeder extends Seeder
         }
 
         // Check if user already exists
-        if (DB::table('users')->where('email', 'admin@example.com')->exists()) {
-            $this->command->info('Admin user already exists. Skipping.');
+        $existingUser = DB::table('users')->where('email', 'admin@example.com')->first();
+        
+        if ($existingUser) {
+            $this->command->info("✓ Admin user already exists (ID: {$existingUser->id})");
+            
+            // Ensure role is assigned
+            $this->assignSuperAdminRole($existingUser->id);
             return;
         }
 
         // Build user data with only columns that exist
         $userData = [
-            'name' => 'Admin User',
+            'name' => 'Super Admin',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
@@ -97,43 +123,66 @@ class CoreDatabaseSeeder extends Seeder
         if (in_array('user_name', $columns)) {
             $userData['user_name'] = 'admin';
         }
+        
+        if (in_array('is_super_admin', $columns)) {
+            $userData['is_super_admin'] = true;
+        }
+        
+        if (in_array('status', $columns)) {
+            $userData['status'] = 'active';
+        }
 
         $userId = DB::table('users')->insertGetId($userData);
 
-        // Assign admin role if role exists and model_has_roles table exists
-        if ($this->tableExists('roles') && $this->tableExists('model_has_roles')) {
-            // Find any admin-type role
-            $adminRole = DB::table('roles')
-                ->whereIn('name', ['Super Administrator'])
-                ->where('guard_name', 'web')
-                ->first();
-            
-            if ($adminRole) {
-                // Check if role assignment already exists
-                $exists = DB::table('model_has_roles')
-                    ->where('role_id', $adminRole->id)
-                    ->where('model_type', 'Aero\Core\Models\User')
-                    ->where('model_id', $userId)
-                    ->exists();
-                
-                if (!$exists) {
-                    DB::table('model_has_roles')->insert([
-                        'role_id' => $adminRole->id,
-                        'model_type' => 'Aero\Core\Models\User',
-                        'model_id' => $userId,
-                    ]);
-                    $this->command->info('Admin role assigned to user.');
-                } else {
-                    $this->command->info('Admin role already assigned.');
-                }
-            } else {
-                $this->command->warn('Admin role not found for assignment.');
-            }
-        } else {
-            $this->command->warn('Roles or model_has_roles table not found for role assignment.');
+        $this->command->info("✓ Admin user created (ID: {$userId})");
+        $this->command->info("  📧 Email: admin@example.com");
+        $this->command->info("  🔑 Password: password");
+
+        // Assign Super Administrator role
+        $this->assignSuperAdminRole($userId);
+    }
+
+    /**
+     * Assign Super Administrator role to user
+     */
+    protected function assignSuperAdminRole(int $userId): void
+    {
+        if (!$this->tableExists('roles') || !$this->tableExists('model_has_roles')) {
+            $this->command->warn('Roles or model_has_roles table not found. Skipping role assignment.');
+            return;
         }
 
-        $this->command->info('Admin user created: admin@example.com / password');
+        // Find Super Administrator role
+        $superAdminRole = DB::table('roles')
+            ->where('name', 'Super Administrator')
+            ->where('guard_name', 'web')
+            ->first();
+        
+        if (!$superAdminRole) {
+            $this->command->warn('Super Administrator role not found. Cannot assign role.');
+            return;
+        }
+
+        // Check if role assignment already exists
+        $exists = DB::table('model_has_roles')
+            ->where('role_id', $superAdminRole->id)
+            ->where('model_type', 'Aero\Core\Models\User')
+            ->where('model_id', $userId)
+            ->exists();
+        
+        if ($exists) {
+            $this->command->info('✓ Super Administrator role already assigned');
+            return;
+        }
+
+        // Assign role
+        DB::table('model_has_roles')->insert([
+            'role_id' => $superAdminRole->id,
+            'model_type' => 'Aero\Core\Models\User',
+            'model_id' => $userId,
+        ]);
+        
+        $this->command->info('✓ Super Administrator role assigned to user');
     }
 
     /**

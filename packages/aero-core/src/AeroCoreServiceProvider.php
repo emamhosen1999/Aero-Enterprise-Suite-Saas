@@ -3,6 +3,7 @@
 namespace Aero\Core;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Route;
 use Aero\Core\Services\RuntimeLoader;
 use Aero\Core\Services\ModuleManager;
 use Aero\Core\Providers\ModuleRouteServiceProvider;
@@ -23,6 +24,25 @@ class AeroCoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         try {
+            // Override the Migrator to exclude app's migration directory
+            // Core and module packages provide all necessary migrations
+            $this->app->extend('migrator', function ($migrator, $app) {
+                return new class($app['migration.repository'], $app['db'], $app['files'], $app['events']) extends \Illuminate\Database\Migrations\Migrator {
+                    public function getMigrationFiles($paths)
+                    {
+                        // Get all migration files from all paths
+                        $files = parent::getMigrationFiles($paths);
+                        
+                        // Filter out files from app's database/migrations directory
+                        $appMigrationPath = database_path('migrations');
+                        
+                        return collect($files)->reject(function ($path, $name) use ($appMigrationPath) {
+                            return str_starts_with($path, $appMigrationPath);
+                        })->all();
+                    }
+                };
+            });
+
             // Merge configuration
             $this->mergeConfigFrom(
                 __DIR__ . '/../config/aero.php',
@@ -72,6 +92,9 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Load migrations from Core package (takes priority)
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
         // Publish configuration
         $this->publishes([
             __DIR__ . '/../config/aero.php' => config_path('aero.php'),

@@ -1,6 +1,6 @@
 <?php
 
-namespace Aero\Core\Http\Controllers\Settings;
+namespace Aero\HRM\Http\Controllers\Settings;
 
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\AttendanceType;

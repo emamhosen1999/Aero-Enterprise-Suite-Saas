@@ -17,7 +17,7 @@ class ModuleListCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'module:list
+    protected $signature = 'aero:module-list
                             {--enabled : Only show enabled modules}
                             {--category= : Filter by category}';
 

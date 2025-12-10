@@ -1,9 +1,9 @@
 <?php
 
-namespace Aero\Core\Http\Controllers\Settings;
+namespace Aero\HRM\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use Aero\Core\Models\HRM\LeaveSetting;
+use Aero\HRM\Models\LeaveSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
