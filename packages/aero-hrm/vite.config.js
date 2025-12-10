@@ -36,11 +36,11 @@ export default defineConfig({
       // Module name - will be available as window.AeroHrm
       name: 'AeroHrm',
       
-      // Output formats - UMD for maximum compatibility
-      formats: ['umd', 'es'],
+      // Output formats - ES module for modern browsers
+      formats: ['es'],
       
       // Output file naming
-      fileName: (format) => `aero-hrm.${format}.js`,
+      fileName: () => 'aero-hrm.js',
     },
 
     rollupOptions: {

@@ -35,8 +35,7 @@ class ModuleRouteServiceProvider extends ServiceProvider
     {
         parent::__construct($app);
         
-        // Auto-discover modules
-        $this->discoverModules();
+        // Don't auto-discover in constructor - defer to boot()
     }
 
     /**
@@ -48,6 +47,9 @@ class ModuleRouteServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        // Auto-discover modules during boot (when app is fully initialized)
+        $this->discoverModules();
+        
         $this->registerModuleRoutes();
     }
 
@@ -58,27 +60,31 @@ class ModuleRouteServiceProvider extends ServiceProvider
      */
     protected function discoverModules(): void
     {
-        $packagesPath = base_path('packages');
-        
-        if (!File::isDirectory($packagesPath)) {
-            return;
-        }
-
-        $directories = File::directories($packagesPath);
-
-        foreach ($directories as $directory) {
-            $moduleName = basename($directory);
+        try {
+            $packagesPath = base_path('packages');
             
-            // Check if module has routes directory
-            $routesPath = $directory . '/routes';
-            
-            if (File::isDirectory($routesPath)) {
-                $this->modules[$moduleName] = [
-                    'path' => $directory,
-                    'routes_path' => $routesPath,
-                    'namespace' => $this->getModuleNamespace($moduleName),
-                ];
+            if (!File::isDirectory($packagesPath)) {
+                return;
             }
+
+            $directories = File::directories($packagesPath);
+
+            foreach ($directories as $directory) {
+                $moduleName = basename($directory);
+                
+                // Check if module has routes directory
+                $routesPath = $directory . '/routes';
+                
+                if (File::isDirectory($routesPath)) {
+                    $this->modules[$moduleName] = [
+                        'path' => $directory,
+                        'routes_path' => $routesPath,
+                        'namespace' => $this->getModuleNamespace($moduleName),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Ignore errors during package discovery - modules won't be auto-discovered
         }
     }
 

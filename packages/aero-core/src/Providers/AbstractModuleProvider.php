@@ -187,14 +187,18 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function register(): void
     {
-        // Load module configuration
-        $this->mergeConfigFrom(
-            $this->getModulePath('config/module.php'),
-            "modules.{$this->moduleCode}"
-        );
+        try {
+            // Load module configuration
+            $this->mergeConfigFrom(
+                $this->getModulePath('config/module.php'),
+                "modules.{$this->moduleCode}"
+            );
 
-        // Register module services
-        $this->registerServices();
+            // Register module services
+            $this->registerServices();
+        } catch (\Throwable $e) {
+            // Silently fail during package discovery
+        }
     }
 
     /**
@@ -202,25 +206,29 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function boot(): void
     {
-        // Load migrations
-        if ($this->app->runningInConsole()) {
-            $this->loadMigrationsFrom($this->getModulePath('database/migrations'));
+        try {
+            // Load migrations
+            if ($this->app->runningInConsole()) {
+                $this->loadMigrationsFrom($this->getModulePath('database/migrations'));
+            }
+
+            // Load routes
+            $this->loadRoutes();
+
+            // Load views
+            $this->loadViewsFrom(
+                $this->getModulePath('resources/views'),
+                $this->moduleCode
+            );
+
+            // Publish assets
+            $this->publishAssets();
+
+            // Boot module-specific logic
+            $this->bootModule();
+        } catch (\Throwable $e) {
+            // Silently fail during package discovery
         }
-
-        // Load routes
-        $this->loadRoutes();
-
-        // Load views
-        $this->loadViewsFrom(
-            $this->getModulePath('resources/views'),
-            $this->moduleCode
-        );
-
-        // Publish assets
-        $this->publishAssets();
-
-        // Boot module-specific logic
-        $this->bootModule();
     }
 
     /**

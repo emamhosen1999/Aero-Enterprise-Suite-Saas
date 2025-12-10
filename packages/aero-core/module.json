@@ -1,0 +1,11 @@
+{
+    "name": "aero-core",
+    "short_name": "core",
+    "namespace": "Aero\\Core",
+    "provider": "Aero\\Core\\AeroCoreServiceProvider",
+    "version": "1.0.0",
+    "description": "Aero Core Framework - Foundation for all modules",
+    "config": {
+        "enabled": true
+    }
+}

@@ -14,10 +14,9 @@
   ],
   "require": {
     "php": "^8.2",
-    "laravel/framework": "^11.0",
+    "laravel/framework": "^11.0|^12.0",
     "aero/core": "*",
     "inertiajs/inertia-laravel": "2.x-dev",
-    "stancl/tenancy": "^3.9",
     "spatie/laravel-permission": "^6.20",
     "spatie/laravel-activitylog": "^4.10",
     "maatwebsite/excel": "^3.1",

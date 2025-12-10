@@ -51,7 +51,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Aero\\Core\\Providers\\AeroCoreServiceProvider"
+                "Aero\\Core\\AeroCoreServiceProvider"
             ],
             "aliases": {
                 "AeroCore": "Aero\\Core\\Facades\\AeroCore"

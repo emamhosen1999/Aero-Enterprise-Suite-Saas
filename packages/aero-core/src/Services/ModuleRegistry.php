@@ -147,21 +147,34 @@ class ModuleRegistry
      */
     public function getNavigationItems(): array
     {
-        return Cache::remember(
-            self::CACHE_KEY . '.navigation',
-            self::CACHE_TTL,
-            function () {
-                return $this->enabled()
-                    ->sortBy(function (ModuleProviderInterface $provider) {
-                        return $provider->getModulePriority();
-                    })
-                    ->flatMap(function (ModuleProviderInterface $provider) {
-                        return $provider->getNavigationItems();
-                    })
-                    ->values()
-                    ->toArray();
-            }
-        );
+        try {
+            return Cache::remember(
+                self::CACHE_KEY . '.navigation',
+                self::CACHE_TTL,
+                function () {
+                    return $this->enabled()
+                        ->sortBy(function (ModuleProviderInterface $provider) {
+                            return $provider->getModulePriority();
+                        })
+                        ->flatMap(function (ModuleProviderInterface $provider) {
+                            return $provider->getNavigationItems();
+                        })
+                        ->values()
+                        ->toArray();
+                }
+            );
+        } catch (\Throwable $e) {
+            // Cache not available during early boot, compute without caching
+            return $this->enabled()
+                ->sortBy(function (ModuleProviderInterface $provider) {
+                    return $provider->getModulePriority();
+                })
+                ->flatMap(function (ModuleProviderInterface $provider) {
+                    return $provider->getNavigationItems();
+                })
+                ->values()
+                ->toArray();
+        }
     }
 
     /**
@@ -171,31 +184,54 @@ class ModuleRegistry
      */
     public function getModuleHierarchy(): array
     {
-        return Cache::remember(
-            self::CACHE_KEY . '.hierarchy',
-            self::CACHE_TTL,
-            function () {
-                return $this->enabled()
-                    ->sortBy(function (ModuleProviderInterface $provider) {
-                        return $provider->getModulePriority();
-                    })
-                    ->map(function (ModuleProviderInterface $provider) {
-                        return [
-                            'code' => $provider->getModuleCode(),
-                            'name' => $provider->getModuleName(),
-                            'description' => $provider->getModuleDescription(),
-                            'version' => $provider->getModuleVersion(),
-                            'category' => $provider->getModuleCategory(),
-                            'icon' => $provider->getModuleIcon(),
-                            'priority' => $provider->getModulePriority(),
-                            'hierarchy' => $provider->getModuleHierarchy(),
-                            'min_plan' => $provider->getMinimumPlan(),
-                        ];
-                    })
-                    ->values()
-                    ->toArray();
-            }
-        );
+        try {
+            return Cache::remember(
+                self::CACHE_KEY . '.hierarchy',
+                self::CACHE_TTL,
+                function () {
+                    return $this->enabled()
+                        ->sortBy(function (ModuleProviderInterface $provider) {
+                            return $provider->getModulePriority();
+                        })
+                        ->map(function (ModuleProviderInterface $provider) {
+                            return [
+                                'code' => $provider->getModuleCode(),
+                                'name' => $provider->getModuleName(),
+                                'description' => $provider->getModuleDescription(),
+                                'version' => $provider->getModuleVersion(),
+                                'category' => $provider->getModuleCategory(),
+                                'icon' => $provider->getModuleIcon(),
+                                'priority' => $provider->getModulePriority(),
+                                'hierarchy' => $provider->getModuleHierarchy(),
+                                'min_plan' => $provider->getMinimumPlan(),
+                            ];
+                        })
+                        ->values()
+                        ->toArray();
+                }
+            );
+        } catch (\Throwable $e) {
+            // Cache not available during early boot, compute without caching
+            return $this->enabled()
+                ->sortBy(function (ModuleProviderInterface $provider) {
+                    return $provider->getModulePriority();
+                })
+                ->map(function (ModuleProviderInterface $provider) {
+                    return [
+                        'code' => $provider->getModuleCode(),
+                        'name' => $provider->getModuleName(),
+                        'description' => $provider->getModuleDescription(),
+                        'version' => $provider->getModuleVersion(),
+                        'category' => $provider->getModuleCategory(),
+                        'icon' => $provider->getModuleIcon(),
+                        'priority' => $provider->getModulePriority(),
+                        'hierarchy' => $provider->getModuleHierarchy(),
+                        'min_plan' => $provider->getMinimumPlan(),
+                    ];
+                })
+                ->values()
+                ->toArray();
+        }
     }
 
     /**
@@ -296,8 +332,12 @@ class ModuleRegistry
      */
     public function clearCache(): void
     {
-        Cache::forget(self::CACHE_KEY . '.navigation');
-        Cache::forget(self::CACHE_KEY . '.hierarchy');
+        try {
+            Cache::forget(self::CACHE_KEY . '.navigation');
+            Cache::forget(self::CACHE_KEY . '.hierarchy');
+        } catch (\Throwable $e) {
+            // Cache not available during early boot, ignore
+        }
     }
 
     /**

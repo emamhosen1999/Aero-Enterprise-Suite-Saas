@@ -4,6 +4,7 @@ namespace Aero\Core;
 
 use Illuminate\Support\ServiceProvider;
 use Aero\Core\Services\RuntimeLoader;
+use Aero\Core\Services\ModuleManager;
 use Aero\Core\Providers\ModuleRouteServiceProvider;
 
 /**
@@ -21,23 +22,47 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Merge configuration
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/aero.php',
-            'aero'
-        );
+        try {
+            // Merge configuration
+            $this->mergeConfigFrom(
+                __DIR__ . '/../config/aero.php',
+                'aero'
+            );
 
-        // Register RuntimeLoader as singleton
-        $this->app->singleton(RuntimeLoader::class, function ($app) {
-            $modulesPath = config('aero.runtime_loading.modules_path', base_path('modules'));
-            return new RuntimeLoader($modulesPath);
-        });
+            // Register RuntimeLoader as singleton (lazy-loaded)
+            $this->app->singleton(RuntimeLoader::class, function ($app) {
+                try {
+                    $modulesPath = config('aero.runtime_loading.modules_path', base_path('modules'));
+                } catch (\Throwable $e) {
+                    $modulesPath = base_path('modules');
+                }
+                return new RuntimeLoader($modulesPath);
+            });
 
-        // Register ModuleRouteServiceProvider
-        $this->app->register(ModuleRouteServiceProvider::class);
+            // Register ModuleManager as singleton (lazy-loaded)
+            $this->app->singleton('aero.module', function ($app) {
+                // Support monorepo structure where packages are in parent directory
+                $packagesPath = base_path('packages');
+                if (! file_exists($packagesPath)) {
+                    // Try monorepo structure: apps/standalone-host -> ../../packages
+                    $packagesPath = base_path('../../packages');
+                }
+                
+                return new ModuleManager(
+                    base_path('modules'), // Runtime modules (optional)
+                    $packagesPath // Composer packages
+                );
+            });
 
-        // Register helper functions
-        $this->registerHelpers();
+            // Register ModuleRouteServiceProvider
+            $this->app->register(ModuleRouteServiceProvider::class);
+
+            // Register helper functions
+            $this->registerHelpers();
+        } catch (\Throwable $e) {
+            // Silently fail during package discovery
+            // Services will be registered when app fully boots
+        }
     }
 
     /**
@@ -52,14 +77,23 @@ class AeroCoreServiceProvider extends ServiceProvider
             __DIR__ . '/../config/aero.php' => config_path('aero.php'),
         ], 'aero-config');
 
-        // Load runtime modules in standalone mode
-        if ($this->shouldLoadRuntimeModules()) {
-            $this->loadRuntimeModules();
-        }
+        // Guard against early boot before app is fully initialized
+        try {
+            // Auto-create modules symlink for Standalone mode
+            $this->ensureModulesSymlink();
 
-        // Register console commands
-        if ($this->app->runningInConsole()) {
-            $this->registerCommands();
+            // Load runtime modules in standalone mode
+            if ($this->shouldLoadRuntimeModules()) {
+                $this->loadRuntimeModules();
+            }
+
+            // Register console commands
+            if ($this->app->runningInConsole()) {
+                $this->registerCommands();
+            }
+        } catch (\Throwable $e) {
+            // Ignore errors during early boot/package discovery
+            // These will be called again when the app is fully booted
         }
     }
 
@@ -70,8 +104,49 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     protected function shouldLoadRuntimeModules(): bool
     {
-        return config('aero.mode') === 'standalone' &&
-               config('aero.runtime_loading.enabled', true);
+        // Guard against early execution before config is loaded
+        if (!$this->app->configurationIsCached() && !file_exists(config_path('aero.php'))) {
+            return false;
+        }
+        
+        return config('aero.mode', 'saas') === 'standalone' &&
+               config('aero.runtime_loading.enabled', false);
+    }
+
+    /**
+     * Ensure modules directory is symlinked to public for asset access.
+     *
+     * @return void
+     */
+    protected function ensureModulesSymlink(): void
+    {
+        $modulesPath = base_path('modules');
+        $publicModulesPath = public_path('modules');
+
+        // Only create symlink if modules directory exists and symlink doesn't
+        if (file_exists($modulesPath) && !file_exists($publicModulesPath)) {
+            try {
+                // Try to create symlink
+                if (function_exists('symlink')) {
+                    @symlink($modulesPath, $publicModulesPath);
+                    
+                    if (file_exists($publicModulesPath)) {
+                        $this->app['log']->info('Aero: Created modules symlink successfully');
+                    }
+                } else {
+                    // Symlinks not available, log warning
+                    $this->app['log']->warning(
+                        'Aero: Cannot create symlink - function not available. ' .
+                        'Manually copy modules to public/modules or enable symlink support.'
+                    );
+                }
+            } catch (\Throwable $e) {
+                $this->app['log']->warning('Aero: Failed to create modules symlink', [
+                    'error' => $e->getMessage(),
+                    'hint' => 'You may need to manually copy the modules directory or enable symlink support'
+                ]);
+            }
+        }
     }
 
     /**

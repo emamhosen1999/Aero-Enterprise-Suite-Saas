@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Policies;
 
+use Aero\Core\Policies\Concerns\ChecksModuleAccess;
 use Aero\HRM\Models\Leave;
 use App\Models\Shared\User;
-use App\Policies\Concerns\ChecksModuleAccess;
 
 class LeavePolicy
 {

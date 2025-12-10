@@ -4,7 +4,7 @@ namespace Aero\HRM\Policies;
 
 use Aero\HRM\Models\Competency;
 use App\Models\Shared\User;
-use App\Policies\Concerns\ChecksModuleAccess;
+use Aero\Core\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class CompetencyPolicy

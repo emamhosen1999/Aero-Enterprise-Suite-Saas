@@ -60,5 +60,15 @@ export default {
 
 // Auto-register with Aero if in browser environment
 if (typeof window !== 'undefined' && window.Aero) {
-  window.Aero.registerModule('Hrm', { Pages, resolve });
+  console.log('[Aero HRM] Module loaded, registering with window.Aero');
+  
+  // Register using the new API
+  if (typeof window.Aero.register === 'function') {
+    window.Aero.register('Hrm', { Pages, resolve });
+  } else {
+    // Fallback for older API
+    window.Aero.modules.Hrm = { Pages, resolve };
+  }
+  
+  console.log('[Aero HRM] Module registered successfully');
 }
