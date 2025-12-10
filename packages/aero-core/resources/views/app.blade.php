@@ -688,26 +688,7 @@
         });
     </script>
 
-    <!-- Structured Data for SEO -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "{{ config('app.name') }}",
-            "description": "Comprehensive Enterprise Resource Planning System",
-            "url": "{{ url('/') }}",
-            "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web Browser",
-            "offers": {
-                "@type": "Offer",
-                "category": "Enterprise Software"
-            },
-            "author": {
-                "@type": "Person",
-                "name": "Emam Hosen"
-            }
-        }
-    </script>
+   
 </body>
 
 </html>
