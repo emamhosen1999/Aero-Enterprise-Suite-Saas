@@ -519,7 +519,6 @@
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/laravel/pint" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/laravel/prompts" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/laravel/sail" />
-      <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/laravel/sanctum" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/laravel/serializable-closure" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/laravel/tinker" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/league/commonmark" />
@@ -581,9 +580,13 @@
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/sebastian/recursion-context" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/sebastian/type" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/sebastian/version" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/spatie/image" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/spatie/image-optimizer" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/spatie/laravel-activitylog" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/spatie/laravel-medialibrary" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/spatie/laravel-package-tools" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/spatie/laravel-permission" />
+      <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/spatie/temporary-directory" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/staabm/side-effects-detector" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/symfony/clock" />
       <excludeFolder url="file://$MODULE_DIR$/apps/standalone-host/vendor/symfony/console" />

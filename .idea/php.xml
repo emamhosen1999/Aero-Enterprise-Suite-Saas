@@ -550,8 +550,6 @@
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/tightenco/ziggy" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sabberworm/php-css-parser" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/masterminds/html5" />
-      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/aero/core" />
-      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/aero/hrm" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/phpoption/phpoption" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/ralouphie/getallheaders" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/ramsey/collection" />
@@ -567,7 +565,6 @@
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/phar-io/version" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/object-enumerator" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/phar-io/manifest" />
-      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/comparator" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/code-unit" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/exporter" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/cli-parser" />
@@ -582,7 +579,6 @@
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/code-unit-reverse-lookup" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/laravel/pint" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/global-state" />
-      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/laravel/sanctum" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/environment" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/laravel/tinker" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/object-reflector" />
@@ -593,6 +589,13 @@
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/maatwebsite/excel" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/theseer/tokenizer" />
       <path value="$PROJECT_DIR$/apps/standalone-host/vendor/graham-campbell/result-type" />
+      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/spatie/image" />
+      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/spatie/temporary-directory" />
+      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/spatie/laravel-medialibrary" />
+      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/spatie/image-optimizer" />
+      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/aero/core" />
+      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/aero/hrm" />
+      <path value="$PROJECT_DIR$/apps/standalone-host/vendor/sebastian/comparator" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

@@ -488,11 +488,17 @@
 
     @if(config('aero.mode') === 'standalone')
         @foreach(\Aero\Core\Facades\Module::active() as $module)
-            @if(file_exists(public_path("modules/{$module->name}/dist/style.css")))
-                <link rel="stylesheet" href="{{ asset("modules/{$module->name}/dist/style.css") }}">
+            @php
+                $moduleName = is_array($module) ? ($module['name'] ?? '') : ($module->name ?? '');
+                $moduleShortName = is_array($module) ? ($module['short_name'] ?? '') : ($module->short_name ?? '');
+            @endphp
+            @if($moduleName && file_exists(public_path("modules/{$moduleName}/dist/style.css")))
+                <link rel="stylesheet" href="{{ asset("modules/{$moduleName}/dist/style.css") }}">
             @endif
 
-            <script type="module" src="{{ asset("modules/{$module->name}/dist/{$module->short_name}.js") }}"></script>
+            @if($moduleName && $moduleShortName)
+                <script type="module" src="{{ asset("modules/{$moduleName}/dist/{$moduleShortName}.js") }}"></script>
+            @endif
         @endforeach
     @endif
 
