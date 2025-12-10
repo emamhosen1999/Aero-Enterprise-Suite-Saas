@@ -51,17 +51,20 @@ class InstallCommand extends Command
         $this->publishPackageJson();
         $this->publishHeroTheme();
 
+        // Bootstrap configuration and routes
+        $this->newLine();
+        $this->info('Updating bootstrap configuration...');
+        $this->updateBootstrapApp();
+        $this->updateWebRoutes();
+
         if (! $this->option('no-npm')) {
             $this->runNpmInstall();
         }
 
         $this->runNpmBuild();
 
-        // Run migrations
+        // Run migrations with fresh database
         $this->runMigrations();
-
-        // Run seeders
-        $this->runSeeder();
 
         $this->newLine();
         $this->info('✅ Aero Core installed successfully!');
@@ -71,6 +74,7 @@ class InstallCommand extends Command
         $this->line('  • CSS files: <fg=cyan>resources/css/app.css</> (Tailwind + HeroUI)');
         $this->line('  • Views: <fg=cyan>resources/views/app.blade.php</> (Inertia root)');
         $this->line('  • Theme: <fg=cyan>hero.ts</> (HeroUI theme configuration)');
+        $this->line('  • Bootstrap: <fg=cyan>bootstrap/app.php</> (route registration)');
         $this->line('  • Backend: <fg=yellow>Routes, Controllers, Models in vendor package</>');
         $this->newLine();
         $this->line('<fg=green>Default credentials:</>');
@@ -375,6 +379,13 @@ JS;
         $this->newLine();
         $this->info('Running npm build...');
 
+        // Clean build directory first to ensure fresh build
+        $buildPath = public_path('build');
+        if ($this->files->isDirectory($buildPath)) {
+            $this->files->deleteDirectory($buildPath);
+            $this->line('  <fg=yellow>Cleaned</> existing build directory');
+        }
+
         $process = proc_open(
             'npm run build',
             [
@@ -397,29 +408,110 @@ JS;
         $this->info('Running migrations...');
 
         try {
-            $this->call('migrate', ['--force' => true]);
-            $this->line('  <fg=green>Migrated</> database tables');
+            // Use migrate:fresh with --seed to start with clean database and seed data
+            $this->call('migrate:fresh', [
+                '--force' => true,
+                '--seed' => true,
+                '--seeder' => 'Aero\\Core\\Database\\Seeders\\CoreDatabaseSeeder',
+            ]);
+            $this->line('  <fg=green>✓</> Database migrated and seeded successfully');
         } catch (\Throwable $e) {
-            if (str_contains($e->getMessage(), 'already exists')) {
-                $this->line('  <fg=yellow>Skipped</> migrations: Tables already exist');
-            } else {
-                $this->error('  <fg=red>Failed</> to run migrations: '.$e->getMessage());
-            }
+            $this->error('  <fg=red>Failed</> to run migrations: '.$e->getMessage());
         }
     }
 
-    protected function runSeeder(): void
+    /**
+     * Update bootstrap/app.php to register Aero Core routes.
+     * 
+     * The AeroCoreServiceProvider automatically loads all routes from the package.
+     * Remove any references to routes/api.php if present, as these don't exist in test app.
+     */
+    protected function updateBootstrapApp(): void
     {
-        $this->newLine();
-        $this->info('Seeding database...');
+        $bootstrapPath = base_path('bootstrap/app.php');
 
-        try {
-            $seeder = new \Aero\Core\Database\Seeders\CoreDatabaseSeeder();
-            $seeder->setCommand($this);
-            $seeder->run();
-            $this->line('  <fg=green>Seeded</> database');
-        } catch (\Throwable $e) {
-            $this->warn('  <fg=yellow>Skipped</> seeding: '.$e->getMessage());
+        if (! $this->files->exists($bootstrapPath)) {
+            $this->warn('  <fg=yellow>Warning:</> bootstrap/app.php not found');
+            return;
+        }
+
+        $content = $this->files->get($bootstrapPath);
+        $originalContent = $content;
+        
+        // Remove api: routes/api.php line if present (since test app doesn't have this file)
+        $content = preg_replace(
+            '/\s*api:\s*__DIR__\.\s*[\'"]\.\.\/routes\/api\.php[\'"],?\s*\n/',
+            '',
+            $content
+        );
+
+        if ($content !== $originalContent) {
+            $this->files->put($bootstrapPath, $content);
+            $this->line('  <fg=green>Updated</> bootstrap/app.php (removed api routes reference)');
+            $this->line('  <fg=cyan>Info:</> API routes will be loaded from vendor/aero/core package');
+        } else {
+            $this->line('  <fg=green>✓</> bootstrap/app.php is correctly configured');
+        }
+
+        // Inform about route registration
+        $this->line('  <fg=cyan>Info:</> Routes are automatically registered via AeroCoreServiceProvider');
+        $this->line('  <fg=cyan>Info:</> Web routes: vendor/aero/core/routes/web.php');
+        $this->line('  <fg=cyan>Info:</> API routes: vendor/aero/core/routes/api.php (with /api prefix)');
+    }
+
+    /**
+     * Update routes/web.php to remove default welcome route.
+     * 
+     * The package provides all necessary routes including the root route.
+     * We need to clear the default Laravel welcome route.
+     */
+    protected function updateWebRoutes(): void
+    {
+        $webRoutesPath = base_path('routes/web.php');
+
+        if (! $this->files->exists($webRoutesPath)) {
+            $this->warn('  <fg=yellow>Warning:</> routes/web.php not found');
+            return;
+        }
+
+        $content = $this->files->get($webRoutesPath);
+
+        // Check if it contains the default welcome route
+        if (str_contains($content, "return view('welcome')")) {
+            // Replace with a comment explaining routes come from package
+            $newContent = <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| All web routes are automatically loaded from the aero-core package.
+| The package routes are registered via AeroCoreServiceProvider.
+|
+| Package routes include:
+| - Authentication (login, register, forgot password, etc.)
+| - Dashboard
+| - User Management
+| - Role Management
+| - Settings
+|
+| You can add custom routes here if needed for your application.
+|
+*/
+
+// Custom application routes go here...
+
+PHP;
+
+            $this->files->put($webRoutesPath, $newContent);
+            $this->line('  <fg=green>Updated</> routes/web.php (removed welcome route)');
+            $this->line('  <fg=cyan>Info:</> Root route (/) now comes from aero-core package');
+        } else {
+            $this->line('  <fg=green>✓</> routes/web.php is correctly configured');
         }
     }
 }
