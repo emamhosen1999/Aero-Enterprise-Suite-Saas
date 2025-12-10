@@ -15,6 +15,8 @@ import LeaveIndex from './Pages/Leave/Index';
 import LeaveRequest from './Pages/Leave/Request';
 import PayrollIndex from './Pages/Payroll/Index';
 import PayrollProcess from './Pages/Payroll/Process';
+// Import navigation definition
+import {hrmNavigation} from './navigation';
 
 // Export pages structure
 export const Pages = {
@@ -36,9 +38,6 @@ export const Pages = {
     Process: PayrollProcess,
   },
 };
-
-// Import navigation definition
-import { hrmNavigation } from './navigation';
 
 // Register navigation with Core at module load time
 if (typeof window !== 'undefined' && window.Aero && window.Aero.registerNavigation) {

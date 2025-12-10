@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
+import React, {useState} from 'react';
+import {Head, Link, useForm} from '@inertiajs/react';
 
 export default function OffboardingCreate() {
   const { data, setData, post, processing, errors } = useForm({

@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Leave;
 
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\HRM\Models\Employee;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

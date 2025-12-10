@@ -1,17 +1,7 @@
-import {
-    Button,
-    Input,
-    Spinner,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Card
-} from "@heroui/react";
+import {Button, Card, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@heroui/react";
 import React, {useEffect, useState} from "react";
-import { X, Phone } from 'lucide-react';
-import { showToast } from "@/utils/toastUtils";
+import {Phone} from 'lucide-react';
+import {showToast} from "@/utils/toastUtils";
 
 const EmergencyContactForm = ({user,setUser, open, closeModal }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values

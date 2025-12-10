@@ -8,25 +8,25 @@
  */
 
 import {
-    UserGroupIcon,
-    UserIcon,
+    AcademicCapIcon,
+    ArrowRightOnRectangleIcon,
+    BanknotesIcon,
+    BriefcaseIcon,
+    BuildingOffice2Icon,
     CalendarDaysIcon,
     CalendarIcon,
-    ClockIcon,
-    ArrowRightOnRectangleIcon,
-    CurrencyDollarIcon,
-    BriefcaseIcon,
-    AcademicCapIcon,
     ChartBarSquareIcon,
-    BuildingOffice2Icon,
-    DocumentTextIcon,
     ChartPieIcon,
-    Cog6ToothIcon,
-    BanknotesIcon,
-    CubeIcon,
     ClipboardDocumentCheckIcon,
+    ClockIcon,
+    Cog6ToothIcon,
+    CubeIcon,
+    CurrencyDollarIcon,
     DocumentDuplicateIcon,
+    DocumentTextIcon,
     StarIcon,
+    UserGroupIcon,
+    UserIcon,
 } from '@heroicons/react/24/outline';
 
 /**

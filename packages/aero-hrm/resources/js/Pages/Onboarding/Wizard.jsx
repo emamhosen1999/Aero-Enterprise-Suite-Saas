@@ -1,37 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { Head, router, useForm } from '@inertiajs/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, {useState} from 'react';
+import {Head, router, useForm} from '@inertiajs/react';
+import {AnimatePresence, motion} from 'framer-motion';
 import {
     Button,
     Card,
     CardBody,
     CardHeader,
+    Divider,
     Input,
-    Textarea,
+    Progress,
     Select,
     SelectItem,
-    Progress,
-    Chip,
-    Divider,
-    Avatar,
+    Textarea,
 } from '@heroui/react';
 import {
-    UserIcon,
-    BriefcaseIcon,
-    DocumentIcon,
-    BanknotesIcon,
-    CheckCircleIcon,
-    ArrowRightIcon,
     ArrowLeftIcon,
-    ClockIcon,
+    ArrowRightIcon,
+    BanknotesIcon,
+    BriefcaseIcon,
     BuildingOfficeIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    DocumentIcon,
+    HomeIcon,
     IdentificationIcon,
     PhoneIcon,
-    HomeIcon,
-    AcademicCapIcon,
+    UserIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 export default function EmployeeOnboardingWizard({ 
     title, 

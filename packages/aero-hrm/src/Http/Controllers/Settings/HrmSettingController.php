@@ -2,6 +2,7 @@
 
 namespace Aero\HRM\Http\Controllers\Settings;
 
+use Aero\Core\Models\Tenant\DMS\DocumentCategory;
 use Aero\HRM\Models\Benefit;
 use Aero\HRM\Models\Checklist;
 use Aero\HRM\Models\Competency;
@@ -10,7 +11,6 @@ use Aero\HRM\Models\SafetyIncident;
 use Aero\HRM\Models\SafetyTraining;
 use Aero\HRM\Models\Skill;
 use App\Http\Controllers\Controller;
-use Aero\Core\Models\Tenant\DMS\DocumentCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

@@ -1,28 +1,22 @@
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
-import { 
-    Card, 
-    CardBody, 
-    Button, 
+import {Head, router} from '@inertiajs/react';
+import {useState} from 'react';
+import {
+    Button,
+    Card,
+    CardBody,
     Chip,
-    Table,
-    TableHeader,
-    TableColumn,
-    TableBody,
-    TableRow,
-    TableCell,
     Input,
+    Progress,
     Select,
     SelectItem,
-    Progress
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow
 } from '@heroui/react';
-import { 
-    MagnifyingGlassIcon, 
-    PlusIcon,
-    ChartBarIcon,
-    UserIcon,
-    CalendarIcon
-} from '@heroicons/react/24/outline';
+import {CalendarIcon, ChartBarIcon, MagnifyingGlassIcon, PlusIcon, UserIcon} from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
 

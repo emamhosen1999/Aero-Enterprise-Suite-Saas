@@ -1,60 +1,47 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
-import { Link, router } from '@inertiajs/react';
-import { showToast } from "@/utils/toastUtils";
+import React, {useCallback, useMemo, useRef, useState} from "react";
+import {Link} from '@inertiajs/react';
+import {showToast} from "@/utils/toastUtils";
 
 import axios from 'axios';
 
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableColumn, 
-  TableHeader, 
-  TableRow, 
-  User,
-  Chip,
-  Tooltip,
-  Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  DropdownSection,
-  Select,
-  SelectItem,
-  Spinner,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Input,
-  Switch,
-  Pagination
+import {
+    Button,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownSection,
+    DropdownTrigger,
+    Pagination,
+    Select,
+    SelectItem,
+    Spinner,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow,
+    User
 } from "@heroui/react";
 import {
-  PencilIcon,
-  TrashIcon,
-  EllipsisVerticalIcon,
-  UserIcon,
-  BuildingOfficeIcon,
-  BriefcaseIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  ClockIcon,
-  CogIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  HashtagIcon,
-  MapPinIcon,
-  WifiIcon,
-  MapIcon,
-  QrCodeIcon,
-  UsersIcon,
+    BriefcaseIcon,
+    BuildingOfficeIcon,
+    ClockIcon,
+    EllipsisVerticalIcon,
+    EnvelopeIcon,
+    HashtagIcon,
+    MapIcon,
+    MapPinIcon,
+    PencilIcon,
+    PhoneIcon,
+    QrCodeIcon,
+    TrashIcon,
+    UserIcon,
+    WifiIcon,
 } from "@heroicons/react/24/outline";
 import DeleteEmployeeModal from '@/Components/DeleteEmployeeModal';
 import ProfilePictureModal from '@/Components/ProfilePictureModal';
-import ProfileAvatar, { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
+import ProfileAvatar, {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 
 const EmployeeTable = ({ 
   allUsers, 

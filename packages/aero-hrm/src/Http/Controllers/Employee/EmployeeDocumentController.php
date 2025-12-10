@@ -3,8 +3,8 @@
 namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Http\Requests\HR\StoreEmployeeDocumentRequest;
-use App\Http\Controllers\Controller;
 use Aero\HRM\Models\EmployeePersonalDocument;
+use App\Http\Controllers\Controller;
 use App\Models\Shared\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

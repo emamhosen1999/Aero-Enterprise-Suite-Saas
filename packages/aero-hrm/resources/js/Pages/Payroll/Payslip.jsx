@@ -1,15 +1,15 @@
-import React, { useMemo } from 'react';
-import { Head } from '@inertiajs/react';
-import { Button, Divider, Chip } from '@heroui/react';
+import React, {useMemo} from 'react';
+import {Head} from '@inertiajs/react';
+import {Button, Chip, Divider} from '@heroui/react';
 import {
-    PrinterIcon,
     ArrowDownTrayIcon,
+    BanknotesIcon,
+    BriefcaseIcon,
     BuildingOfficeIcon,
     CalendarIcon,
-    BanknotesIcon,
     IdentificationIcon,
+    PrinterIcon,
     UserIcon,
-    BriefcaseIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 

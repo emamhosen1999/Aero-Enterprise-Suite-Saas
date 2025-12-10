@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, usePage, Link } from '@inertiajs/react';
+import {Head, Link, usePage} from '@inertiajs/react';
 
 export default function OnboardingShow() {
   const { props } = usePage();

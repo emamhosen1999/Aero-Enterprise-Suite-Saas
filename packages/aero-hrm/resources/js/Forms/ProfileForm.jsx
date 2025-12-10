@@ -2,21 +2,17 @@ import {
     Button,
     Input,
     Modal,
-    ModalContent,
-    ModalHeader,
     ModalBody,
+    ModalContent,
     ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
-    Spinner,
-    Card,
-    CardBody,
-    CardHeader,
-    Divider
+    Spinner
 } from "@heroui/react";
 import React, {useEffect, useState} from "react";
-import { X, Camera } from 'lucide-react';
-import { showToast } from "@/utils/toastUtils";
+import {Camera, X} from 'lucide-react';
+import {showToast} from "@/utils/toastUtils";
 import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const ProfileForm = ({user, allUsers, departments, designations,setUser, open, closeModal }) => {

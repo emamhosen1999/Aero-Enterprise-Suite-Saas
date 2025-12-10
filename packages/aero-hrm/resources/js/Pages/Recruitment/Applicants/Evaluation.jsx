@@ -1,23 +1,22 @@
-import React, { useState } from 'react';
-import { Head, router, useForm } from '@inertiajs/react';
+import React from 'react';
+import {Head, router, useForm} from '@inertiajs/react';
 import {
+    Avatar,
+    Button,
     Card,
     CardBody,
-    CardHeader,
-    Button,
+    Chip,
+    Divider,
     Input,
-    Textarea,
     Select,
     SelectItem,
     Slider,
-    Divider,
-    Chip,
-    Avatar,
+    Textarea,
 } from '@heroui/react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import {ArrowLeftIcon} from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 /**
  * Candidate Evaluation Form

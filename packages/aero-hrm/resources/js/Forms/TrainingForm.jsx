@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Button,
+    Chip,
     Input,
-    Textarea,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Chip
+    Textarea
 } from "@heroui/react";
-import { CalendarIcon, UserIcon, ClockIcon, MapPinIcon, UsersIcon } from 'lucide-react';
-import { showToast } from "@/utils/toastUtils";
-import { usePage } from "@inertiajs/react";
+import {CalendarIcon, MapPinIcon, UserIcon, UsersIcon} from 'lucide-react';
+import {showToast} from "@/utils/toastUtils";
+import {usePage} from "@inertiajs/react";
 import axios from 'axios';
 
 const TrainingForm = ({

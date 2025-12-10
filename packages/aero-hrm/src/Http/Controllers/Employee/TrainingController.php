@@ -4,10 +4,10 @@ namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Training;
-use App\Http\Controllers\Controller;
 use Aero\HRM\Models\TrainingCategory;
 use Aero\HRM\Models\TrainingEnrollment;
 use Aero\HRM\Models\TrainingMaterial;
+use App\Http\Controllers\Controller;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

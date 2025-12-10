@@ -1,47 +1,43 @@
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
-import { RefreshCcw } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
+import {motion} from 'framer-motion';
 import {
-    Table,
-    TableHeader,
-    TableColumn,
-    TableBody,
-    TableRow,
-    TableCell,
-    User,
-    ScrollShadow,
-    Pagination,
-    Skeleton,
-    Card as HeroCard,
+    Button as HeroButton,
     Card,
     CardBody,
     CardHeader,
     Divider,
-    Button,
-    Button as HeroButton,
+    Input,
     Link,
-    Input
+    Pagination,
+    ScrollShadow,
+    Skeleton,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow,
+    User
 } from "@heroui/react";
-import { usePage } from "@inertiajs/react";
+import {usePage} from "@inertiajs/react";
 import dayjs from "dayjs";
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import { 
-    MagnifyingGlassIcon,
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {
     CalendarDaysIcon,
-    ClockIcon,
-    UserIcon,
-    ExclamationTriangleIcon,
     CheckCircleIcon,
-    XCircleIcon,
-    UserGroupIcon,
+    ClockIcon,
     DocumentArrowDownIcon,
+    ExclamationTriangleIcon,
+    MagnifyingGlassIcon,
     PhoneIcon,
+    UserGroupIcon,
+    UserIcon,
+    XCircleIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 
-import { AbsentUsersInlineCard } from '@/Components/TimeSheet/AbsentUsersInlineCard';
+import {AbsentUsersInlineCard} from '@/Components/TimeSheet/AbsentUsersInlineCard';
 
 const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee, onMarkAsPresent }) => {
     const { auth } = usePage().props;

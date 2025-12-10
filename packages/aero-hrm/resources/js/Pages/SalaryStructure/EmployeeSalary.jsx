@@ -1,33 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
 import {
     Button,
     Card,
     CardBody,
     CardHeader,
-    Chip,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
+    Divider,
     Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
-    Switch,
-    Divider,
-    Spinner,
 } from '@heroui/react';
 import {
-    PlusIcon,
-    TrashIcon,
-    CurrencyDollarIcon,
-    UserIcon,
     BriefcaseIcon,
     CalculatorIcon,
+    CurrencyDollarIcon,
+    PlusIcon,
+    TrashIcon,
+    UserIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 import axios from 'axios';
 
 export default function EmployeeSalary({ title, employee, salaryStructures, allComponents, summary }) {

@@ -1,13 +1,6 @@
 import React from 'react';
-import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Button,
-} from "@heroui/react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@heroui/react";
+import {ExclamationTriangleIcon} from "@heroicons/react/24/outline";
 
 const DeleteWorkLocationForm = ({ open, handleClose, handleDelete }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values

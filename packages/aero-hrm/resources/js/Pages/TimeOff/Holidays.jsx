@@ -1,52 +1,49 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { 
-  Button, 
-  Chip, 
-  Card,
-  CardBody,
-  CardHeader,
-  Divider,
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Tooltip,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  DateInput,
-  Textarea,
-  useDisclosure,
-  Input,
-  Select,
-  SelectItem
+import React, {useCallback, useMemo, useState} from 'react';
+import {Head} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {
+    Button,
+    Card,
+    Chip,
+    DateInput,
+    Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    Select,
+    SelectItem,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow,
+    Textarea,
+    Tooltip,
+    useDisclosure
 } from "@heroui/react";
 
-import { 
-  CalendarDaysIcon,
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  GlobeAltIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  BuildingOfficeIcon
+import {
+    BuildingOfficeIcon,
+    CalendarDaysIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    ExclamationTriangleIcon,
+    FunnelIcon,
+    GlobeAltIcon,
+    MagnifyingGlassIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon
 } from "@heroicons/react/24/outline";
 
 import App from "@/Layouts/App.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
   const [isMobile] = useState(window.innerWidth < 640);

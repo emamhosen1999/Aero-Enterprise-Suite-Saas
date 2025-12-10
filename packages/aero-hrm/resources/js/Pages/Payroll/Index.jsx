@@ -1,46 +1,46 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
 import {
+    Button,
     Card,
     CardBody,
     CardHeader,
-    Button,
     Chip,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownTrigger,
     Input,
+    Pagination,
     Select,
     SelectItem,
     Table,
-    TableHeader,
-    TableColumn,
     TableBody,
-    TableRow,
     TableCell,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    Pagination,
+    TableColumn,
+    TableHeader,
+    TableRow,
 } from '@heroui/react';
 import {
-    MagnifyingGlassIcon,
-    PlusIcon,
-    FunnelIcon,
-    EllipsisVerticalIcon,
-    EyeIcon,
-    PencilIcon,
-    TrashIcon,
-    BanknotesIcon,
-    DocumentTextIcon,
-    EnvelopeIcon,
     ArrowDownTrayIcon,
+    BanknotesIcon,
     CheckCircleIcon,
     ClockIcon,
     CurrencyDollarIcon,
+    DocumentTextIcon,
+    EllipsisVerticalIcon,
+    EnvelopeIcon,
+    EyeIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
-import { showToast } from '@/utils/toastUtils';
-import { format } from 'date-fns';
+import {showToast} from '@/utils/toastUtils';
+import {format} from 'date-fns';
 
 /**
  * Payroll Management Index Page

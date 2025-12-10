@@ -1,46 +1,22 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Card, 
-    CardBody, 
-    CardHeader,
-    Divider,
-    Chip,
-    Button,
-    Tabs,
-    Tab,
-    Spacer,
-    ButtonGroup,
-    Input,
-    Select,
-    SelectItem,
-    Spinner,
-    Skeleton
-} from "@heroui/react";
-import { 
-    CalendarIcon, 
-    ChartBarIcon, 
-    ClockIcon,
-    UserIcon,
-    PlusIcon,
-    FunnelIcon,
-    DocumentArrowDownIcon,
-    Cog6ToothIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    ExclamationTriangleIcon,
-    PresentationChartLineIcon,
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Head, usePage} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {Button, ButtonGroup, Card, CardBody, CardHeader, Input, Select, SelectItem, Spinner} from "@heroui/react";
+import {
     AdjustmentsHorizontalIcon,
-    UserGroupIcon,
+    CalendarDaysIcon,
+    CalendarIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    DocumentArrowDownIcon,
     DocumentTextIcon,
-    CalendarDaysIcon
+    ExclamationTriangleIcon,
+    PlusIcon,
+    PresentationChartLineIcon,
+    XCircleIcon
 } from "@heroicons/react/24/outline";
-import { 
-    MagnifyingGlassIcon 
-} from '@heroicons/react/24/solid';
+import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
 import App from '@/Shared/Layouts/App.jsx';
-import PageHeader from '@/Shared/Components/Common/PageHeader.jsx';
 import StatsCards from '@/Shared/Components/Common/StatsCards.jsx';
 import LeaveEmployeeTable from '../Tables/LeaveEmployeeTable.jsx';
 import LeaveForm from '../Forms/LeaveForm.jsx';
@@ -49,7 +25,6 @@ import BulkLeaveModal from '@/Tenant/Components/HRM/BulkLeave/BulkLeaveModal.jsx
 import BulkDeleteModal from '@/Tenant/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
 
 
 const LeavesAdmin = ({ title, allUsers }) => {

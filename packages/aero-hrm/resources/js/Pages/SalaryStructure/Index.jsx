@@ -1,33 +1,33 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
 import {
     Button,
     Card,
     CardBody,
     CardHeader,
     Chip,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
+    Divider,
     Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
     Switch,
     Textarea,
-    Divider,
 } from '@heroui/react';
 import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    CurrencyDollarIcon,
     BanknotesIcon,
     ChartBarIcon,
+    CurrencyDollarIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 export default function SalaryStructureIndex({ title, components, stats }) {
     const [isModalOpen, setIsModalOpen] = useState(false);

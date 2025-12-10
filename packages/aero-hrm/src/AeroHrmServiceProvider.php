@@ -2,8 +2,8 @@
 
 namespace Aero\HRM;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * AeroHrmServiceProvider

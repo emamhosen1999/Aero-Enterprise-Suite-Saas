@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Policies;
 
+use Aero\Core\Policies\Concerns\ChecksModuleAccess;
 use Aero\HRM\Models\Onboarding;
 use App\Models\Shared\User;
-use Aero\Core\Policies\Concerns\ChecksModuleAccess;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class OnboardingPolicy

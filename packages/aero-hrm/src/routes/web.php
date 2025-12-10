@@ -24,9 +24,9 @@ use Aero\HRM\Http\Controllers\Employee\EmployeeController;
 use Aero\HRM\Http\Controllers\Employee\DepartmentController;
 use Aero\HRM\Http\Controllers\Employee\DesignationController;
 use Aero\HRM\Http\Controllers\Employee\UserController;
-use Aero\HRM\Http\Controllers\HolidayController;
+use Aero\HRM\Http\Controllers\Employee\HolidayController;
 use Aero\HRM\Http\Controllers\Employee\PerformanceController;
-use Aero\HRM\Http\Controllers\Employee\AttendanceController;
+use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
 use Aero\HRM\Http\Controllers\Employee\LetterController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeProfileController;
 use Aero\HRM\Http\Controllers\Settings\AttendanceSettingController;
@@ -621,18 +621,18 @@ Route::middleware(['auth', 'verified'])->prefix('hr')->name('hr.')->group(functi
 
     // HR Module Settings
     Route::prefix('settings/hr')->middleware(['auth', 'verified'])->group(function () {
-        Route::middleware(['module:hrm,settings,onboarding-settings'])->get('/onboarding', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.onboarding');
-        Route::middleware(['module:hrm,settings,skills-settings'])->get('/skills', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.skills');
-        Route::middleware(['module:hrm,settings,benefits-settings'])->get('/benefits', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.benefits');
-        Route::middleware(['module:hrm,settings,safety-settings'])->get('/safety', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.safety');
-        Route::middleware(['module:hrm,settings,documents-settings'])->get('/documents', [\App\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.documents');
+        Route::middleware(['module:hrm,settings,onboarding-settings'])->get('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.onboarding');
+        Route::middleware(['module:hrm,settings,skills-settings'])->get('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.skills');
+        Route::middleware(['module:hrm,settings,benefits-settings'])->get('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.benefits');
+        Route::middleware(['module:hrm,settings,safety-settings'])->get('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.safety');
+        Route::middleware(['module:hrm,settings,documents-settings'])->get('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'index'])->name('settings.hr.documents');
 
         // Update routes
-        Route::middleware(['module:hrm,settings,onboarding-settings,setting-list,update'])->post('/onboarding', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateOnboardingSettings'])->name('settings.hr.onboarding.update');
-        Route::middleware(['module:hrm,settings,skills-settings,setting-list,update'])->post('/skills', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateSkillsSettings'])->name('settings.hr.skills.update');
-        Route::middleware(['module:hrm,settings,benefits-settings,setting-list,update'])->post('/benefits', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
-        Route::middleware(['module:hrm,settings,safety-settings,setting-list,update'])->post('/safety', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
-        Route::middleware(['module:hrm,settings,documents-settings,setting-list,update'])->post('/documents', [\App\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
+        Route::middleware(['module:hrm,settings,onboarding-settings,setting-list,update'])->post('/onboarding', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateOnboardingSettings'])->name('settings.hr.onboarding.update');
+        Route::middleware(['module:hrm,settings,skills-settings,setting-list,update'])->post('/skills', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSkillsSettings'])->name('settings.hr.skills.update');
+        Route::middleware(['module:hrm,settings,benefits-settings,setting-list,update'])->post('/benefits', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateBenefitsSettings'])->name('settings.hr.benefits.update');
+        Route::middleware(['module:hrm,settings,safety-settings,setting-list,update'])->post('/safety', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateSafetySettings'])->name('settings.hr.safety.update');
+        Route::middleware(['module:hrm,settings,documents-settings,setting-list,update'])->post('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
     });
 
     // Designation Management

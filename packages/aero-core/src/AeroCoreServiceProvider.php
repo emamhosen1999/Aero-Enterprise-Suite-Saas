@@ -102,6 +102,12 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-core');
 
+        // Register routes
+        $this->registerRoutes();
+
+        // Register Inertia middleware - must be after routes
+        $this->registerMiddleware();
+
         // Guard against early boot before app is fully initialized
         try {
             // Auto-create modules symlink for Standalone mode
@@ -120,6 +126,63 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Ignore errors during early boot/package discovery
             // These will be called again when the app is fully booted
         }
+    }
+
+    /**
+     * Register Core routes.
+     *
+     * @return void
+     */
+    protected function registerRoutes(): void
+    {
+        $routesPath = __DIR__ . '/../routes';
+
+        // Check if aero-platform is active (SaaS mode)
+        if ($this->isPlatformActive()) {
+            // SaaS Mode: Routes with tenant middleware for authenticated routes
+            Route::middleware(['web', 'tenant', 'auth'])
+                ->group($routesPath . '/web.php');
+
+            // API routes
+            Route::middleware(['api', 'tenant', 'auth:sanctum'])
+                ->prefix('api')
+                ->group($routesPath . '/api.php');
+        } else {
+            // Standalone Mode: Routes with standard web middleware
+            Route::middleware(['web'])
+                ->group($routesPath . '/web.php');
+
+            // API routes
+            Route::middleware(['api', 'auth:sanctum'])
+                ->prefix('api')
+                ->group($routesPath . '/api.php');
+        }
+    }
+
+    /**
+     * Register Core middleware.
+     *
+     * @return void
+     */
+    protected function registerMiddleware(): void
+    {
+        // Use the booted callback to ensure app is fully initialized
+        $this->app->booted(function () {
+            $router = $this->app->make('router');
+            
+            // Register HandleInertiaRequests middleware to web middleware group
+            $router->pushMiddlewareToGroup('web', \Aero\Core\Http\Middleware\HandleInertiaRequests::class);
+        });
+    }
+
+    /**
+     * Check if aero-platform is active.
+     *
+     * @return bool
+     */
+    protected function isPlatformActive(): bool
+    {
+        return class_exists('\Aero\Platform\AeroPlatformServiceProvider');
     }
 
     /**

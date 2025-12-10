@@ -1,42 +1,40 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
 import {
+    Avatar,
+    Button,
     Card,
     CardBody,
-    Button,
+    Chip,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownTrigger,
     Input,
+    Pagination,
     Select,
     SelectItem,
     Table,
-    TableHeader,
-    TableColumn,
     TableBody,
-    TableRow,
     TableCell,
-    Chip,
-    Avatar,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    Pagination,
-    Tabs,
-    Tab,
+    TableColumn,
+    TableHeader,
+    TableRow,
 } from '@heroui/react';
 import {
-    MagnifyingGlassIcon,
-    FunnelIcon,
-    EyeIcon,
-    DocumentTextIcon,
     CheckCircleIcon,
-    XCircleIcon,
     ClockIcon,
+    DocumentTextIcon,
     EnvelopeIcon,
+    EyeIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
     PhoneIcon,
+    XCircleIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 /**
  * Applicant List - View and manage job applications

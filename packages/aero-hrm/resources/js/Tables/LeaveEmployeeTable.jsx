@@ -1,60 +1,53 @@
-import React, { useState, useCallback } from "react";
+import React, {useCallback, useState} from "react";
 import {
-    PencilIcon as EditIcon,
-    TrashIcon as DeleteIcon,
-    EllipsisVerticalIcon as MoreVertIcon
-} from '@heroicons/react/24/outline';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-
-import { usePage } from "@inertiajs/react";
-import { showToast } from '@/utils/toastUtils';
-import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
-import {
-    Table,
-    TableHeader,
-    TableColumn,
-    TableBody,
-    TableRow,
-    TableCell,
-    User,
-    Tooltip,
-    Pagination,
-    Chip,
-    Button,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    Card,
-    CardBody,
-    Divider,
-    ScrollShadow,
-    Link,
-} from "@heroui/react";
-import {
+    BriefcaseIcon,
     CalendarDaysIcon,
-    UserIcon,
     ClockIcon,
+    ClockIcon as ClockIconOutline,
     DocumentTextIcon,
     EllipsisVerticalIcon,
-    PencilIcon,
-    TrashIcon,
-    ClockIcon as ClockIconOutline,
-    SunIcon,
     HeartIcon,
-    BriefcaseIcon,
+    PencilIcon,
+    SunIcon,
+    TrashIcon,
+    UserIcon
 } from '@heroicons/react/24/outline';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+
+import {usePage} from "@inertiajs/react";
+import {showToast} from '@/utils/toastUtils';
+import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
+import {
+    Button,
+    Card,
+    CardBody,
+    Chip,
+    Divider,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownTrigger,
+    Link,
+    Pagination,
+    ScrollShadow,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow,
+    Tooltip,
+    User,
+} from "@heroui/react";
 import {
     CheckCircleIcon as CheckCircleSolid,
-    XCircleIcon as XCircleSolid,
     ClockIcon as ClockSolid,
-    ExclamationTriangleIcon as ExclamationTriangleSolid
+    ExclamationTriangleIcon as ExclamationTriangleSolid,
+    XCircleIcon as XCircleSolid
 } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import { PhoneOff } from "lucide-react";
+import {PhoneOff} from "lucide-react";
 import ApprovalActions from '@/Components/Leave/ApprovalActions.jsx';
-
-
 
 
 const LeaveEmployeeTable = React.forwardRef(({

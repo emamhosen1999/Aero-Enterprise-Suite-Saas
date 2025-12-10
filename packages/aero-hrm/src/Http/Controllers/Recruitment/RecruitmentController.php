@@ -3,11 +3,11 @@
 namespace Aero\HRM\Http\Controllers\Recruitment;
 
 use Aero\HRM\Models\Department;
+use Aero\HRM\Models\JobHiringStage;
+use Aero\HRM\Models\JobInterview;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Tenant\HRM\Recruitment\JobApplicationStageHistory;
 use App\Http\Controllers\Tenant\HRM\Recruitment\JobOffer;
-use Aero\HRM\Models\JobHiringStage;
-use Aero\HRM\Models\JobInterview;
 use App\Models\Shared\User;
 use App\Models\Tenant\HRM\Job;
 use App\Models\Tenant\HRM\JobApplication;

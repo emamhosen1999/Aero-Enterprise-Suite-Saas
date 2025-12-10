@@ -1,31 +1,20 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
-    Table,
-    TableHeader,
-    TableColumn,
-    TableBody,
-    TableRow,
-    TableCell,
-    User,
-    ScrollShadow,
-    Pagination,
-    Skeleton,
     Card,
-    Divider,
-    Link,
-    Input
+    Pagination,
+    ScrollShadow,
+    Skeleton,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow
 } from "@heroui/react";
-import { usePage } from "@inertiajs/react";
+import {usePage} from "@inertiajs/react";
 import dayjs from "dayjs";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import { 
-    MagnifyingGlassIcon,
-    CalendarDaysIcon,
-    ClockIcon,
-    ExclamationTriangleIcon,
-    CheckCircleIcon,
-    PhoneIcon,
-} from '@heroicons/react/24/outline';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {CalendarDaysIcon, ClockIcon, ExclamationTriangleIcon,} from '@heroicons/react/24/outline';
 import axios from 'axios';
 
 const AttendanceEmployeeTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee }) => {

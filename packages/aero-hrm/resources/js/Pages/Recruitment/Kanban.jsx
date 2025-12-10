@@ -1,47 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Head, router } from '@inertiajs/react';
-import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, {useEffect, useState} from 'react';
+import {Head, router} from '@inertiajs/react';
+import {closestCorners, DndContext, DragOverlay, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
+import {Button, Card, CardBody, Chip, Input, Select, SelectItem,} from '@heroui/react';
 import {
-    Card,
-    CardBody,
-    CardHeader,
-    Button,
-    Chip,
-    Avatar,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    Input,
-    Select,
-    SelectItem,
-    Badge,
-    Spinner,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-} from '@heroui/react';
-import {
-    MagnifyingGlassIcon,
-    FunnelIcon,
-    PlusIcon,
-    EllipsisVerticalIcon,
-    UserIcon,
-    EnvelopeIcon,
-    PhoneIcon,
-    BriefcaseIcon,
-    CurrencyDollarIcon,
-    ClockIcon,
-    CalendarIcon,
     ArrowPathIcon,
-    EyeIcon,
-    ChevronRightIcon,
+    BriefcaseIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
+    PlusIcon,
+    UserIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 import axios from 'axios';
 import KanbanColumn from '@/Components/Recruitment/KanbanColumn';
 import CandidateCard from '@/Components/Recruitment/CandidateCard';

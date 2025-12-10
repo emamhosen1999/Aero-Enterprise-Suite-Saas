@@ -1,36 +1,19 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { 
-  Button, 
-  Input, 
-  Chip, 
-  Card,
-  CardBody,
-  CardHeader,
-  Divider,
-  Progress,
-  Calendar,
-  Avatar,
-  User,
-  Tooltip
-} from "@heroui/react";
-import { useTheme } from '@/Shared/Context/ThemeContext';
+import React, {useMemo, useState} from 'react';
+import {Head, router} from '@inertiajs/react';
+import {Button, Card, CardBody, CardHeader, Chip, Divider, Progress} from "@heroui/react";
+import {useTheme} from '@/Shared/Context/ThemeContext';
 
-import { 
-  CalendarDaysIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  PlusIcon,
-  CalendarIcon,
-  ChartBarIcon,
-  UserGroupIcon,
-  DocumentTextIcon,
-  CogIcon,
-  BeakerIcon,
-  GlobeAltIcon
+import {
+    CalendarDaysIcon,
+    CalendarIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    CogIcon,
+    DocumentTextIcon,
+    GlobeAltIcon,
+    PlusIcon,
+    UserGroupIcon
 } from "@heroicons/react/24/outline";
 
 import App from "@/Layouts/App.jsx";

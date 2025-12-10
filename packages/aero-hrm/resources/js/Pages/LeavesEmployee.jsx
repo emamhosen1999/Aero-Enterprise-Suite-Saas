@@ -1,31 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Head, usePage} from '@inertiajs/react';
 import dayjs from 'dayjs';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import { Select, SelectItem, Input } from "@heroui/react";
-import { 
-  Card, 
-  CardBody, 
-  CardHeader,
-  Divider,
-  Chip,
-  Button,
-  Spacer
-} from "@heroui/react";
-import { 
-  CalendarIcon, 
-  ChartBarIcon, 
-  ClockIcon,
-  UserIcon,
-  PresentationChartLineIcon,
-  PlusIcon,
-  ArrowPathIcon
-} from "@heroicons/react/24/outline";
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {Button, Card, CardBody, CardHeader, Divider, Select, SelectItem} from "@heroui/react";
 import {
-  XCircleIcon as XCircleSolid
-} from '@heroicons/react/24/solid';
-import { motion } from "framer-motion";
+    ArrowPathIcon,
+    CalendarIcon,
+    ChartBarIcon,
+    PlusIcon,
+    PresentationChartLineIcon
+} from "@heroicons/react/24/outline";
+import {XCircleIcon as XCircleSolid} from '@heroicons/react/24/solid';
+import {motion} from "framer-motion";
 import App from '@/Shared/Layouts/App.jsx';
 
 import LeaveEmployeeTable from '../Tables/LeaveEmployeeTable.jsx';
@@ -33,7 +19,7 @@ import LeaveForm from '../Forms/LeaveForm.jsx';
 import DeleteLeaveForm from '../Forms/DeleteLeaveForm.jsx';
 import BulkLeaveModal from '@/Tenant/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Tenant/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
-import { showToast } from '@/utils/toastUtils.jsx';
+import {showToast} from '@/utils/toastUtils.jsx';
 import axios from 'axios';
 
 const LeavesEmployee = ({ title, allUsers }) => {

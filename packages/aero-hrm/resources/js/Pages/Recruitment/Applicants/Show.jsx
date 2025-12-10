@@ -1,32 +1,19 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
-import {
-    Card,
-    CardBody,
-    CardHeader,
-    Button,
-    Chip,
-    Avatar,
-    Tabs,
-    Tab,
-    Divider,
-    Progress,
-    Textarea,
-} from '@heroui/react';
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
+import {Avatar, Button, Card, CardBody, CardHeader, Chip, Divider, Tab, Tabs, Textarea,} from '@heroui/react';
 import {
     ArrowLeftIcon,
-    EnvelopeIcon,
-    PhoneIcon,
-    MapPinIcon,
     BriefcaseIcon,
-    AcademicCapIcon,
-    DocumentTextIcon,
     CheckCircleIcon,
+    DocumentTextIcon,
+    EnvelopeIcon,
+    MapPinIcon,
+    PhoneIcon,
     XCircleIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 /**
  * Applicant Detail View

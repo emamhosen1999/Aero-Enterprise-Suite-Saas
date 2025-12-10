@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
     Button,
+    Divider,
     Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
-    Divider,
 } from "@heroui/react";
-import { MapPinIcon, UserIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
-import { showToast } from "@/utils/toastUtils";
+import {DocumentTextIcon, MapPinIcon, UserIcon} from "@heroicons/react/24/outline";
+import {showToast} from "@/utils/toastUtils";
 
 const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, users }) => {
     const [formData, setFormData] = useState({

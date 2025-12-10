@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Commands\Leave;
 
-use Aero\HRM\Models\LeaveSetting;
 use Aero\HRM\Models\Employee;
+use Aero\HRM\Models\LeaveSetting;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;

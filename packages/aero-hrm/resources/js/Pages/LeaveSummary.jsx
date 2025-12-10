@@ -1,51 +1,45 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
-import { route } from 'ziggy-js';
-import { motion } from 'framer-motion';
-import { 
-    CalendarIcon, 
-    PlusIcon,
-    ChartBarIcon,
+import React, {useCallback, useMemo, useState} from 'react';
+import {Head, router} from '@inertiajs/react';
+import {route} from 'ziggy-js';
+import {motion} from 'framer-motion';
+import {
+    AdjustmentsHorizontalIcon,
+    BuildingOfficeIcon,
     CheckCircleIcon,
     ClockIcon,
-    XCircleIcon,
-    UserGroupIcon,
-    BuildingOfficeIcon,
     DocumentArrowDownIcon,
     FunnelIcon,
     MagnifyingGlassIcon,
-    AdjustmentsHorizontalIcon,
-    PresentationChartLineIcon
+    PresentationChartLineIcon,
+    UserGroupIcon,
+    XCircleIcon
 } from "@heroicons/react/24/outline";
 import {
-    Table,
-    TableHeader,
-    TableColumn,
-    TableBody,
-    TableRow,
-    TableCell,
-    Chip,
     Button,
-    Select,
-    SelectItem,
-    Pagination,
-    ButtonGroup,
     Card,
     CardBody,
     CardHeader,
-    Progress,
-    Tabs,
-    Tab,
+    Chip,
     Input,
+    Pagination,
+    Progress,
+    ScrollShadow,
+    Select,
+    SelectItem,
     Skeleton,
-    ScrollShadow
+    Tab,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow,
+    Tabs
 } from "@heroui/react";
-import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import LeaveAnalytics from "@/Components/Leave/LeaveAnalytics.jsx";
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import {useTheme} from '@/Shared/Context/ThemeContext.jsx';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import App from "@/Layouts/App.jsx";
 import axios from 'axios';
 

@@ -3,8 +3,12 @@
   <component name="PHPUnit">
     <option name="directories">
       <list>
-        <option value="$PROJECT_DIR$/tests/Unit" />
-        <option value="$PROJECT_DIR$/tests/Feature" />
+        <option value="$PROJECT_DIR$/_TODO_ (Missing Files in the modules can be copied from here)/tests/Unit" />
+        <option value="$PROJECT_DIR$/_TODO_ (Missing Files in the modules can be copied from here)/tests/Feature" />
+        <option value="$PROJECT_DIR$/apps/saas-host/tests/Unit" />
+        <option value="$PROJECT_DIR$/apps/saas-host/tests/Feature" />
+        <option value="$PROJECT_DIR$/apps/standalone-host/tests/Unit" />
+        <option value="$PROJECT_DIR$/apps/standalone-host/tests/Feature" />
       </list>
     </option>
   </component>

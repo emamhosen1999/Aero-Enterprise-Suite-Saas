@@ -1,25 +1,23 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-    Avatar,
     Button,
     Input,
-    Textarea,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
-    Spinner,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter
+    Textarea
 } from "@heroui/react";
-import { X, CalendarIcon, UserIcon, ClockIcon } from 'lucide-react';
+import {CalendarIcon, ClockIcon, UserIcon} from 'lucide-react';
 
-import { showToast } from "@/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 
 import DepartmentEmployeeSelector from "@/Components/DepartmentEmployeeSelector.jsx";
 import ApprovalChain from "@/Components/Leave/ApprovalChain.jsx";
-import {router, usePage} from "@inertiajs/react";
+import {usePage} from "@inertiajs/react";
 
 const LeaveForm = ({
                        open,

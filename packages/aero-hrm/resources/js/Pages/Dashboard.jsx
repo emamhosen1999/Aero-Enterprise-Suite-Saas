@@ -1,43 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import {
-  Button,
-  ButtonGroup,
-  Card,
-  CardBody,
-  CardHeader,
-  Chip,
-  Divider,
-  Progress,
-  Spinner,
-  Tabs,
-  Tab
-} from "@heroui/react";
+import React, {useEffect, useMemo, useState} from 'react';
+import {Head, router} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Tab, Tabs} from "@heroui/react";
 
 import {
-  UsersIcon,
-  ChartBarIcon,
-  CalendarDaysIcon,
-  BriefcaseIcon,
-  AcademicCapIcon,
-  ClockIcon,
-  TrophyIcon,
-  UserPlusIcon,
-  DocumentTextIcon,
-  CogIcon,
-  ShieldCheckIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  EyeIcon,
-  PlayIcon,
-  PlusIcon
+    AcademicCapIcon,
+    ArrowTrendingUpIcon,
+    CalendarDaysIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    ExclamationTriangleIcon,
+    TrophyIcon,
+    UserPlusIcon,
+    UsersIcon
 } from "@heroicons/react/24/outline";
-
-import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 
 const HRDashboard = ({ 

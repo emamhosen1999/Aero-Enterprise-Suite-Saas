@@ -1,6 +1,8 @@
 import React, {useMemo} from 'react';
-import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
+import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 import {
+    Card,
+    CardBody,
     Chip,
     Divider,
     ScrollShadow,
@@ -12,15 +14,11 @@ import {
     TableHeader,
     TableRow,
     Tooltip,
-    User,
-    Button,
-    Card,
-    CardBody,
-    CardHeader
+    User
 } from "@heroui/react";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 
-import {CalendarDaysIcon, DocumentChartBarIcon, UserIcon, ArrowPathIcon} from '@heroicons/react/24/outline';
+import {CalendarDaysIcon, DocumentChartBarIcon, UserIcon} from '@heroicons/react/24/outline';
 import {
     CheckCircleIcon as CheckSolid,
     ExclamationTriangleIcon as ExclamationSolid,

@@ -1,29 +1,22 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
     Button,
+    Chip,
+    Divider,
     Input,
-    Textarea,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
     Switch,
-    Chip,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Divider
+    Textarea
 } from "@heroui/react";
-import {
-    CalendarDaysIcon,
-    XMarkIcon,
-    InformationCircleIcon,
-    ClockIcon,
-    CheckIcon
-} from "@heroicons/react/24/outline";
-import { showToast } from "@/utils/toastUtils";
-import { format, differenceInDays, addDays } from 'date-fns';
+import {CalendarDaysIcon, CheckIcon, ClockIcon, InformationCircleIcon} from "@heroicons/react/24/outline";
+import {showToast} from "@/utils/toastUtils";
+import {differenceInDays, format} from 'date-fns';
 import axios from 'axios';
 
 const HolidayForm = ({ 

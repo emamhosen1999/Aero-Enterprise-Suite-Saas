@@ -1,16 +1,7 @@
 import React, {useState} from 'react';
-import {
-    Button,
-    Input,
-    Spinner,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter
-} from '@heroui/react';
-import { Plus, X, GraduationCap } from 'lucide-react';
-import { showToast } from '@/utils/toastUtils';
+import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner} from '@heroui/react';
+import {GraduationCap, Plus, X} from 'lucide-react';
+import {showToast} from '@/utils/toastUtils';
 
 const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values

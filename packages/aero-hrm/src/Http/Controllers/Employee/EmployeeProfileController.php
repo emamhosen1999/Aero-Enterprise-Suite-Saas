@@ -3,9 +3,9 @@
 namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Http\Requests\HR\UpdateEmployeeProfileRequest;
-use App\Http\Controllers\Controller;
 use Aero\HRM\Models\EmergencyContact;
 use Aero\HRM\Models\EmployeeBankDetail;
+use App\Http\Controllers\Controller;
 use App\Models\Shared\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

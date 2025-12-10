@@ -1,76 +1,51 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Card, 
-    CardBody, 
-    CardHeader,
-    Divider,
-    Chip,
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Head, router, usePage} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {
     Button,
-    Tabs,
-    Tab,
-    Spacer,
     ButtonGroup,
+    Card,
+    CardBody,
+    CardHeader,
+    Chip,
     Input,
+    Pagination,
     Select,
     SelectItem,
     Spinner,
-    Skeleton,
     Table,
-    TableHeader,
-    TableColumn,
     TableBody,
-    TableRow,
     TableCell,
-    Pagination,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    User,
-    Tooltip,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter
+    TableColumn,
+    TableHeader,
+    TableRow,
+    Tooltip
 } from "@heroui/react";
-import { 
+import {
     AcademicCapIcon,
-    ChartBarIcon, 
-    ClockIcon,
-    UserIcon,
-    PlusIcon,
-    FunnelIcon,
-    DocumentArrowDownIcon,
-    Cog6ToothIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    ExclamationTriangleIcon,
-    PresentationChartLineIcon,
     AdjustmentsHorizontalIcon,
-    UserGroupIcon,
-    DocumentTextIcon,
     CalendarDaysIcon,
-    EllipsisVerticalIcon,
-    PencilIcon,
-    TrashIcon,
-    EyeIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    ClockIcon,
     CurrencyDollarIcon,
-    MapPinIcon
+    DocumentArrowDownIcon,
+    DocumentTextIcon,
+    ExclamationTriangleIcon,
+    EyeIcon,
+    MapPinIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    UserGroupIcon,
+    XCircleIcon
 } from "@heroicons/react/24/outline";
-import { 
-    MagnifyingGlassIcon 
-} from '@heroicons/react/24/solid';
+import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
 import App from '@/Shared/Layouts/App';
 import StatsCards from '@/Shared/Components/Common/StatsCards';
 import TrainingForm from '../../Forms/TrainingForm';
 import DeleteTrainingForm from '../../Forms/DeleteTrainingForm';
 import ProfileAvatar from '@/Components/ProfileAvatar';
-import dayjs from 'dayjs';
-import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
 
 const Training = ({ 
     trainings = { data: [], current_page: 1, last_page: 1, total: 0 }, 

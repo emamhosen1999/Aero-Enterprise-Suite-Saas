@@ -1,39 +1,23 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Head, usePage} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {Button, ButtonGroup, Card, CardBody, Chip, Input, Pagination, Select, SelectItem, Spinner} from "@heroui/react";
 import {
-    Select,
-    SelectItem,
-    Card,
-    CardBody,
-    CardHeader,
-    Divider,
-    Chip,
-    Button,
-    ButtonGroup,
-    User,
-    Pagination,
-    Input,
-    Spinner
-} from "@heroui/react";
-import {
+    AdjustmentsHorizontalIcon,
     BuildingOffice2Icon,
-    PlusIcon,
-    FunnelIcon,
-    MagnifyingGlassIcon,
-    UserGroupIcon,
+    BuildingOfficeIcon,
+    CalendarIcon,
     CheckCircleIcon,
-    XCircleIcon,
     DocumentArrowDownIcon,
-    ChartBarIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    PencilIcon,
+    PlusIcon,
     Squares2X2Icon,
     TableCellsIcon,
-    AdjustmentsHorizontalIcon,
-    BuildingOfficeIcon,
+    UserGroupIcon,
     UsersIcon,
-    PencilIcon,
-    MapPinIcon,
-    CalendarIcon
+    XCircleIcon
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/Shared/Components/Common/PageHeader.jsx';
 import StatsCards from '@/Shared/Components/Common/StatsCards.jsx';
@@ -41,9 +25,9 @@ import App from '@/Shared/Layouts/App.jsx';
 import DepartmentTable from '../Tables/DepartmentTable.jsx';
 import DepartmentForm from '../Forms/DepartmentForm.jsx';
 import DeleteDepartmentForm from '../Forms/DeleteDepartmentForm.jsx';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import {useTheme} from '@/Shared/Context/ThemeContext.jsx';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import {showToast} from '@/utils/toastUtils.jsx';
 import dayjs from 'dayjs';
 
 const Departments = ({ title, departments: initialDepartments, managers, parentDepartments, stats: initialStats, filters: initialFilters }) => {

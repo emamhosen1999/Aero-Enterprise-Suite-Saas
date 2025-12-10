@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
-import {
-    Button,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter
-} from "@heroui/react";
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { showToast } from "@/utils/toastUtils";
+import React, {useState} from 'react';
+import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@heroui/react";
+import {ExclamationTriangleIcon} from '@heroicons/react/24/outline';
+import {showToast} from "@/utils/toastUtils";
 import axios from 'axios';
 
 const DeleteTrainingForm = ({

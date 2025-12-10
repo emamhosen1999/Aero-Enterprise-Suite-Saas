@@ -1,19 +1,7 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
-import { 
-    Card, 
-    CardBody, 
-    Button, 
-    Input,
-    Textarea,
-    Select,
-    SelectItem,
-    DatePicker,
-    Divider,
-    Tabs,
-    Tab
-} from '@heroui/react';
-import { ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
+import {Head, router, useForm} from '@inertiajs/react';
+import {useState} from 'react';
+import {Button, Card, CardBody, Divider, Input, Select, SelectItem, Tab, Tabs, Textarea} from '@heroui/react';
+import {ArrowLeftIcon, CheckIcon} from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
 import KPIBuilder from '@/Tenant/Components/HRM/HR/Performance/KPIBuilder';

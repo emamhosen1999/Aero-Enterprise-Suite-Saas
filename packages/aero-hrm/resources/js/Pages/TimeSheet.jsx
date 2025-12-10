@@ -1,23 +1,7 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { 
-    CalendarIcon, 
-    PlusIcon,
-    ChartBarIcon,
-    CheckCircleIcon,
-    UserPlusIcon,
-    ClockIcon
-} from "@heroicons/react/24/outline";
-import { 
-    Card, 
-    CardBody, 
-    CardHeader,
-    Button,
-    Divider
-} from "@heroui/react";
-import StatsCards from "@/Components/StatsCards.jsx";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import React, {useCallback, useMemo, useState} from 'react';
+import {Head, usePage} from '@inertiajs/react';
+import {CalendarIcon, ChartBarIcon, CheckCircleIcon, UserPlusIcon} from "@heroicons/react/24/outline";
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import App from "@/Layouts/App.jsx";
 import TimeSheetTable from '../Tables/TimeSheetTable.jsx';
 import MarkAsPresentForm from "@/Forms/MarkAsPresentForm.jsx";

@@ -1,23 +1,10 @@
-import React, { useState } from 'react';
-import { Head, router, useForm } from '@inertiajs/react';
-import {
-    Card,
-    CardBody,
-    CardHeader,
-    Button,
-    Input,
-    Textarea,
-    Select,
-    SelectItem,
-    Tabs,
-    Tab,
-    Chip,
-    Switch,
-} from '@heroui/react';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import React, {useState} from 'react';
+import {Head, router, useForm} from '@inertiajs/react';
+import {Button, Card, CardBody, Input, Select, SelectItem, Switch, Tab, Tabs, Textarea,} from '@heroui/react';
+import {ArrowLeftIcon} from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 /**
  * Create/Edit Job Posting Form

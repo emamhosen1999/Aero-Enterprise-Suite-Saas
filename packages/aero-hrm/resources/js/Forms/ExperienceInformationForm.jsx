@@ -1,17 +1,7 @@
 import React, {useState} from 'react';
-import {
-    Button,
-    Input,
-    Spinner,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Card
-} from '@heroui/react';
-import { Plus, X, Briefcase } from 'lucide-react';
-import { showToast } from '@/utils/toastUtils';
+import {Button, Card, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner} from '@heroui/react';
+import {Briefcase, Plus, X} from 'lucide-react';
+import {showToast} from '@/utils/toastUtils';
 
 const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values

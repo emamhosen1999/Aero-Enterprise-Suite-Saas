@@ -1,19 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {
-    Button,
-    Input,
-    Textarea,
-    Select,
-    SelectItem,
-    Card,
-    CardBody,
-    CardHeader,
-    CardFooter,
-} from '@heroui/react';
-import { motion } from 'framer-motion';
-import { showToast } from "@/utils/toastUtils";
+import {Card, CardHeader, Select,} from '@heroui/react';
+import {showToast} from "@/utils/toastUtils";
 
 import {getCountries} from '@/Props/countries.jsx'
+
 const CompanyInformationForm = ({settings, setSettings}) => {
 
     const [countries, setCountries] = useState(getCountries());

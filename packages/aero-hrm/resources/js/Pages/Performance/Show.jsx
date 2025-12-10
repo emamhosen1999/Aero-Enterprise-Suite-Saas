@@ -1,23 +1,6 @@
-import { Head, router } from '@inertiajs/react';
-import { 
-    Card, 
-    CardBody, 
-    Button, 
-    Chip,
-    Progress,
-    Divider,
-    Tabs,
-    Tab,
-    Avatar
-} from '@heroui/react';
-import { 
-    ArrowLeftIcon, 
-    PencilIcon,
-    ChartBarIcon,
-    UserIcon,
-    CalendarIcon,
-    CheckCircleIcon
-} from '@heroicons/react/24/outline';
+import {Head, router} from '@inertiajs/react';
+import {Avatar, Button, Card, CardBody, Chip, Divider, Progress, Tab, Tabs} from '@heroui/react';
+import {ArrowLeftIcon, CalendarIcon, ChartBarIcon, CheckCircleIcon, PencilIcon} from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
 

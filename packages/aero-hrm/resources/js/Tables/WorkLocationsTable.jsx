@@ -1,42 +1,40 @@
-import React, { useState, useCallback } from "react";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import { usePage, router } from "@inertiajs/react";
-import { showToast } from '@/utils/toastUtils';
+import React, {useCallback} from "react";
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {router, usePage} from "@inertiajs/react";
+import {showToast} from '@/utils/toastUtils';
 
 import {
-    Table,
-    TableHeader,
-    TableColumn,
-    TableBody,
-    TableRow,
-    TableCell,
-    User,
-    Tooltip,
-    Chip,
     Button,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
     Card,
-    CardHeader,
     CardBody,
-    Divider,
-    ScrollShadow,
+    CardHeader,
+    Chip,
     CircularProgress,
+    Divider,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownTrigger,
+    ScrollShadow,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow,
+    Tooltip,
+    User,
 } from "@heroui/react";
 import {
-    MapPinIcon,
-    UserIcon,
+    ArrowPathIcon,
+    CheckCircleIcon,
     ClockIcon,
     DocumentTextIcon,
     EllipsisVerticalIcon,
+    MapPinIcon,
     PencilIcon,
     TrashIcon,
-    BuildingOfficeIcon,
-    CheckCircleIcon,
-    ExclamationTriangleIcon,
-    ArrowPathIcon,
+    UserIcon,
 } from '@heroicons/react/24/outline';
 import {
     CheckCircleIcon as CheckCircleSolid,

@@ -4,8 +4,8 @@ namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Models\Holiday;
 use Aero\HRM\Models\Leave;
-use App\Http\Controllers\Controller;
 use Aero\HRM\Models\LeaveSetting;
+use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

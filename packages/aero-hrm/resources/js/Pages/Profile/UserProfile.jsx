@@ -1,52 +1,38 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import {
-    ButtonGroup,
-    Button,
-    Chip,
-    Tabs,
-    Tab,
-    Card,
-    CardBody,
-    Spinner,
-    Input,
-    Select,
-    SelectItem
-} from "@heroui/react";
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Button, ButtonGroup, Card, CardBody, Chip, Input, Select, Spinner, Tab, Tabs} from "@heroui/react";
 
 import {
-    UserIcon,
-    MagnifyingGlassIcon,
+    AcademicCapIcon,
     AdjustmentsHorizontalIcon,
-    DocumentArrowDownIcon,
-    UserPlusIcon,
+    ArrowDownTrayIcon,
+    ArrowPathIcon,
+    BanknotesIcon,
+    BriefcaseIcon,
+    BuildingOfficeIcon,
+    CalendarIcon,
+    ChartBarIcon,
     CheckCircleIcon,
     ClockIcon,
-    ChartBarIcon,
-    ExclamationTriangleIcon,
-    CalendarIcon,
-    AcademicCapIcon,
-    BriefcaseIcon,
-    BanknotesIcon,
-    HeartIcon,
-    ShieldCheckIcon,
-    CogIcon,
-    PhoneIcon,
-    MapPinIcon,
-    IdentificationIcon,
-    GlobeAltIcon,
-    HomeIcon,
-    BuildingOfficeIcon,
-    UsersIcon,
-    CurrencyDollarIcon,
-    EyeIcon,
-    EyeSlashIcon,
-    ArrowDownTrayIcon,
     CloudArrowUpIcon,
+    CurrencyDollarIcon,
+    DocumentArrowDownIcon,
     DocumentIcon,
     DocumentTextIcon,
+    ExclamationTriangleIcon,
+    EyeIcon,
+    EyeSlashIcon,
+    GlobeAltIcon,
+    HeartIcon,
+    HomeIcon,
+    IdentificationIcon,
+    MagnifyingGlassIcon,
+    PhoneIcon,
     PhotoIcon,
+    ShieldCheckIcon,
     TrashIcon,
-    ArrowPathIcon
+    UserIcon,
+    UserPlusIcon,
+    UsersIcon
 } from "@heroicons/react/24/outline";
 import {Head, usePage} from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
@@ -55,7 +41,6 @@ import StatsCards from "@/Components/StatsCards.jsx";
 import EnhancedProfileCard from "@/Components/EnhancedProfileCard.jsx";
 import ProfileSection from "@/Components/ProfileSection.jsx";
 import InfoRow from "@/Components/InfoRow.jsx";
-import EnhancedModal from "@/Components/EnhancedModal.jsx";
 import ProfileForm from '../../../../../aero-hrm/resources/js/Forms/ProfileForm.jsx';
 import PersonalInformationForm from "@/Forms/PersonalInformationForm.jsx";
 import EmergencyContactForm from "@/Forms/EmergencyContactForm.jsx";
@@ -64,11 +49,10 @@ import FamilyMemberForm from "@/Forms/FamilyMemberForm.jsx";
 import EducationInformationDialog from "@/Forms/EducationInformationForm.jsx";
 import ExperienceInformationForm from "@/Forms/ExperienceInformationForm.jsx";
 import SalaryInformationForm from "@/Forms/SalaryInformationForm.jsx";
-import ProjectCard from "@/Components/ProjectCard.jsx";
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 import dayjs from 'dayjs';
-import { motion, AnimatePresence } from 'framer-motion';
+import {AnimatePresence, motion} from 'framer-motion';
 
 const projects = [
     {

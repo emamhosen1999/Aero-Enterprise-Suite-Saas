@@ -1,18 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Head} from '@inertiajs/react';
-import { 
-    Button, 
-    Card, 
-    CardBody, 
-    CardHeader, 
-    Input, 
-    Pagination,
-    Skeleton
-} from "@heroui/react";
+import {Button, Card, CardBody, CardHeader, Input, Pagination, Skeleton} from "@heroui/react";
 import {
-    CalendarIcon,
     CalendarDaysIcon,
-    ChartBarIcon,
+    CalendarIcon,
     CheckCircleIcon,
     ClipboardDocumentListIcon,
     ClockIcon,
@@ -20,16 +11,15 @@ import {
     ExclamationTriangleIcon,
     PresentationChartLineIcon,
     UserGroupIcon,
-    UserIcon,
     XCircleIcon
 } from "@heroicons/react/24/outline";
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
 import StatsCards from '@/Shared/Components/Common/StatsCards.jsx';
 import App from "@/Layouts/App.jsx";
 import AttendanceAdminTable from '../Tables/AttendanceAdminTable.jsx';
-import { motion } from 'framer-motion';
+import {motion} from 'framer-motion';
 import axios from "axios";
-import { showToast } from "@/utils/toastUtils.jsx";
+import {showToast} from "@/utils/toastUtils.jsx";
 import dayjs from "dayjs";
 
 // Theme utility function

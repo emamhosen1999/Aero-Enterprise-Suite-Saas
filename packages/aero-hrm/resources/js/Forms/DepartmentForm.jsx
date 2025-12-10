@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
+    Button,
     Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Select,
     SelectItem,
-    Switch,
-    Button,
-    Spinner
+    Spinner,
+    Switch
 } from '@heroui/react';
-import { Building2, Briefcase } from 'lucide-react';
+import {Briefcase, Building2} from 'lucide-react';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers = [], parentDepartments = [] }) => {
     const [loading, setLoading] = useState(false);

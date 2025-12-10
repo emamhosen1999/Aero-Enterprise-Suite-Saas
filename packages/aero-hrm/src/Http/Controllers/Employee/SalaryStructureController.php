@@ -2,9 +2,9 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
 use Aero\HRM\Models\EmployeeSalaryStructure;
 use Aero\HRM\Models\SalaryComponent;
+use App\Http\Controllers\Controller;
 use App\Models\Shared\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

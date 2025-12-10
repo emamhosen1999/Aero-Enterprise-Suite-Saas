@@ -1,41 +1,40 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
 import {
+    Button,
     Card,
     CardBody,
-    CardHeader,
-    Button,
     Chip,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownTrigger,
     Input,
+    Pagination,
     Select,
     SelectItem,
     Table,
-    TableHeader,
-    TableColumn,
     TableBody,
-    TableRow,
     TableCell,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
-    Pagination,
+    TableColumn,
+    TableHeader,
+    TableRow,
 } from '@heroui/react';
 import {
-    MagnifyingGlassIcon,
-    PlusIcon,
-    FunnelIcon,
+    CheckCircleIcon,
+    DocumentDuplicateIcon,
     EllipsisVerticalIcon,
     EyeIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
     PencilIcon,
+    PlusIcon,
     TrashIcon,
-    DocumentDuplicateIcon,
-    CheckCircleIcon,
     XCircleIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Shared/Layouts/App';
 import PageHeader from '@/Shared/Components/Common/PageHeader';
-import { showToast } from '@/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 /**
  * Job Manager Index Page

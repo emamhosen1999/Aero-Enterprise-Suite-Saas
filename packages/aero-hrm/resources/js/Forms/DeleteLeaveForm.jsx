@@ -1,18 +1,7 @@
-import React, { useState } from "react";
-import {
-    Button,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Divider
-} from "@heroui/react";
-import { 
-    ExclamationTriangleIcon,
-    TrashIcon 
-} from "@heroicons/react/24/outline";
-import { showToast } from "@/utils/toastUtils";
+import React, {useState} from "react";
+import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@heroui/react";
+import {ExclamationTriangleIcon, TrashIcon} from "@heroicons/react/24/outline";
+import {showToast} from "@/utils/toastUtils";
 import axios from 'axios';
 
 const DeleteLeaveForm = ({ open, closeModal, leaveId, setLeavesData, setLeaves, setTotalRows, setLastPage, setError, deleteLeaveOptimized, fetchLeavesStats }) => {

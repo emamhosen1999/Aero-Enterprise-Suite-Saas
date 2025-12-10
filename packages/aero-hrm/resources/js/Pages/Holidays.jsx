@@ -1,21 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { 
-    CalendarIcon, 
-    PlusIcon,
-    ChartBarIcon,
-    CheckCircleIcon
-} from "@heroicons/react/24/outline";
-import { 
-    Card, 
-    CardBody, 
-    CardHeader,
-    Button,
-    Divider
-} from "@heroui/react";
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Head, usePage} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {CalendarIcon, ChartBarIcon, CheckCircleIcon, PlusIcon} from "@heroicons/react/24/outline";
+import {Button, Card, CardBody, CardHeader, Divider} from "@heroui/react";
 import StatsCards from "@/Components/StatsCards.jsx";
-import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import App from "@/Layouts/App.jsx";
 import HolidayTable from '../Tables/HolidayTable.jsx';
 import HolidayForm from "@/Forms/HolidayForm.jsx";

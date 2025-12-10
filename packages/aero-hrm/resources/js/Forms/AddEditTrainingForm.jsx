@@ -1,24 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { 
-    Dialog, 
-    DialogTitle, 
-    DialogContent, 
-    DialogActions, 
-    Box, 
-    Grid, 
-    Typography,
-    IconButton,
+import React, {useEffect, useState} from 'react';
+import {
+    Box,
     Button,
-    TextField,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Grid,
+    IconButton,
     Select,
-    MenuItem,
-    InputLabel,
-    FormControl,
-    FormHelperText,
-    InputAdornment
+    TextField,
+    Typography
 } from '@mui/material';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { showToast } from '@/utils/toastUtils';
+import {XMarkIcon} from '@heroicons/react/24/outline';
+import {showToast} from '@/utils/toastUtils';
 import axios from 'axios';
 
 const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, currentPage, perPage, filterData }) => {

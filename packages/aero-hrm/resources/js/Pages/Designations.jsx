@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Head, usePage} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {Card, Input, Select, SelectItem, Spinner} from "@heroui/react";
 import {
-    Select, SelectItem, Card, CardBody, Button, ButtonGroup, Chip, Pagination, Input, Spinner
-} from "@heroui/react";
-import {
-    BuildingOffice2Icon, PlusIcon, FunnelIcon, MagnifyingGlassIcon,
-    UserGroupIcon, CheckCircleIcon, XCircleIcon, DocumentArrowDownIcon,
-    ChartBarIcon, Squares2X2Icon, TableCellsIcon, AdjustmentsHorizontalIcon,
-    BuildingOfficeIcon, UsersIcon, PencilIcon
+    BuildingOffice2Icon,
+    CheckCircleIcon,
+    MagnifyingGlassIcon,
+    PlusIcon,
+    UserGroupIcon,
+    XCircleIcon
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/Shared/Components/Common/PageHeader.jsx';
 import StatsCards from '@/Shared/Components/Common/StatsCards.jsx';
@@ -17,7 +17,7 @@ import DesignationTable from '../Tables/DesignationTable.jsx';
 import DesignationForm from '../Forms/DesignationForm.jsx';
 import DeleteDesignationForm from '../Forms/DeleteDesignationForm.jsx';
 import axios from 'axios';
-import { showToast } from '@/utils/toastUtils.jsx';
+import {showToast} from '@/utils/toastUtils.jsx';
 
 const Designations = ({ title, initialDesignations, departments, managers, parentDesignations, allDesignations, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;

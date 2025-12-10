@@ -1,30 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Head, usePage} from '@inertiajs/react';
+import {motion} from 'framer-motion';
 import axios from 'axios';
-import { 
-  Card, 
-  CardBody, 
-  CardHeader,
-  Input,
-  Tabs,
-  Tab,
-} from "@heroui/react";
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import {Card, CardBody, CardHeader, Input, Tab, Tabs,} from "@heroui/react";
 import App from "@/Layouts/App.jsx";
 import StatsCards from '@/Shared/Components/Common/StatsCards.jsx';
 import AttendanceEmployeeTable from "@/Tables/AttendanceEmployeeTable.jsx";
 import AttendanceCalendar from "@/Components/Attendance/AttendanceCalendar.jsx";
-import { 
-  ClockIcon, 
-  CalendarDaysIcon,
-  ChartBarIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  PresentationChartLineIcon,
-  UserIcon,
-  TableCellsIcon
+import {
+    CalendarDaysIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    ExclamationTriangleIcon,
+    PresentationChartLineIcon,
+    TableCellsIcon,
+    UserIcon,
+    XCircleIcon
 } from '@heroicons/react/24/outline';
 
 const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, absentDays, lateArrivals }) => {

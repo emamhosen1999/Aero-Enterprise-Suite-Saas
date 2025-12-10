@@ -1,20 +1,12 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { 
-    CalendarIcon, 
-    ClockIcon,
-    ChartBarIcon,
-    UserGroupIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    ExclamationTriangleIcon
-} from "@heroicons/react/24/outline";
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {CalendarIcon, ChartBarIcon, CheckCircleIcon, ClockIcon, UserGroupIcon} from "@heroicons/react/24/outline";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 
 import App from "@/Layouts/App.jsx";
-import { Button, Card } from "@heroui/react";
+import {Button, Card} from "@heroui/react";
 
 const TimeOffIndex = ({ title, timeOffRequests = [] }) => {
     const [isMobile] = useState(window.innerWidth < 640);

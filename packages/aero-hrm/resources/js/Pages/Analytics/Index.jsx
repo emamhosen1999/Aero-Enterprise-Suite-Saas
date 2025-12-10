@@ -1,24 +1,8 @@
-import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import {
-    Card,
-    CardHeader,
-    CardBody,
-    Button,
-    Select,
-    SelectItem,
-    Input,
-    Tabs,
-    Tab,
-    Spinner,
-} from "@heroui/react";
-import {
-    ChartBarIcon,
-    ArrowDownTrayIcon,
-    FunnelIcon,
-    CalendarIcon,
-} from "@heroicons/react/24/outline";
+import React, {useState} from 'react';
+import {Head, router} from '@inertiajs/react';
+import {motion} from 'framer-motion';
+import {Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Spinner,} from "@heroui/react";
+import {ArrowDownTrayIcon, CalendarIcon, ChartBarIcon, FunnelIcon,} from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import HeadcountWidget from "@/Components/Analytics/HeadcountWidget.jsx";
 import TurnoverWidget from "@/Components/Analytics/TurnoverWidget.jsx";
