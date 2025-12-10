@@ -1,0 +1,232 @@
+<?php
+
+namespace Aero\Core\Services\Module;
+
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
+
+/**
+ * Module Discovery Service
+ * 
+ * Scans all active packages and merges their config/module.php files
+ * into a single unified structure for permission syncing.
+ * 
+ * This replaces the monolithic config/modules.php with a decentralized approach.
+ */
+class ModuleDiscoveryService
+{
+    /**
+     * Package directories to scan for modules
+     */
+    protected array $packagePaths = [
+        'packages/aero-core',
+        'packages/aero-hrm',
+        'packages/aero-crm',
+        'packages/aero-finance',
+        'packages/aero-project',
+        'packages/aero-pos',
+        'packages/aero-ims',
+        'packages/aero-scm',
+        'packages/aero-dms',
+        'packages/aero-quality',
+        'packages/aero-compliance',
+    ];
+
+    /**
+     * Get all module definitions from active packages
+     * 
+     * @return Collection
+     */
+    public function getModuleDefinitions(): Collection
+    {
+        $definitions = collect();
+
+        foreach ($this->packagePaths as $packagePath) {
+            $fullPath = base_path($packagePath);
+            $configPath = $fullPath . '/config/module.php';
+
+            // Skip if package or config doesn't exist
+            if (!File::exists($fullPath) || !File::exists($configPath)) {
+                continue;
+            }
+
+            try {
+                $moduleConfig = require $configPath;
+                
+                if (is_array($moduleConfig)) {
+                    $definitions->push($moduleConfig);
+                }
+            } catch (\Exception $e) {
+                // Log error but continue processing other modules
+                \Log::warning("Failed to load module config from {$packagePath}: " . $e->getMessage());
+            }
+        }
+
+        return $definitions;
+    }
+
+    /**
+     * Get flat list of all permissions across all modules
+     * 
+     * @return Collection
+     */
+    public function getAllPermissions(): Collection
+    {
+        $permissions = collect();
+
+        foreach ($this->getModuleDefinitions() as $moduleConfig) {
+            $permissions = $permissions->merge(
+                $this->extractPermissionsFromModule($moduleConfig)
+            );
+        }
+
+        return $permissions->unique('name');
+    }
+
+    /**
+     * Extract permissions from module config recursively
+     * 
+     * @param array $moduleConfig
+     * @return Collection
+     */
+    protected function extractPermissionsFromModule(array $moduleConfig): Collection
+    {
+        $permissions = collect();
+
+        // Module-level permission
+        if (isset($moduleConfig['code'])) {
+            $permissions->push([
+                'name' => $moduleConfig['code'],
+                'display_name' => $moduleConfig['name'] ?? ucfirst($moduleConfig['code']),
+                'description' => $moduleConfig['description'] ?? null,
+                'module_code' => $moduleConfig['code'],
+            ]);
+        }
+
+        // Process submodules
+        if (isset($moduleConfig['submodules']) && is_array($moduleConfig['submodules'])) {
+            foreach ($moduleConfig['submodules'] as $submodule) {
+                $permissions = $permissions->merge(
+                    $this->extractPermissionsFromSubmodule($submodule, $moduleConfig['code'])
+                );
+            }
+        }
+
+        return $permissions;
+    }
+
+    /**
+     * Extract permissions from submodule
+     * 
+     * @param array $submodule
+     * @param string $moduleCode
+     * @return Collection
+     */
+    protected function extractPermissionsFromSubmodule(array $submodule, string $moduleCode): Collection
+    {
+        $permissions = collect();
+
+        // Submodule-level permission
+        if (isset($submodule['code'])) {
+            $permissions->push([
+                'name' => "{$moduleCode}.{$submodule['code']}",
+                'display_name' => $submodule['name'] ?? ucfirst($submodule['code']),
+                'description' => $submodule['description'] ?? null,
+                'module_code' => $moduleCode,
+                'submodule_code' => $submodule['code'],
+            ]);
+        }
+
+        // Process components
+        if (isset($submodule['components']) && is_array($submodule['components'])) {
+            foreach ($submodule['components'] as $component) {
+                $permissions = $permissions->merge(
+                    $this->extractPermissionsFromComponent($component, $moduleCode, $submodule['code'])
+                );
+            }
+        }
+
+        return $permissions;
+    }
+
+    /**
+     * Extract permissions from component (includes actions)
+     * 
+     * @param array $component
+     * @param string $moduleCode
+     * @param string $submoduleCode
+     * @return Collection
+     */
+    protected function extractPermissionsFromComponent(array $component, string $moduleCode, string $submoduleCode): Collection
+    {
+        $permissions = collect();
+
+        // Component-level permission
+        if (isset($component['code'])) {
+            $permissions->push([
+                'name' => "{$moduleCode}.{$submoduleCode}.{$component['code']}",
+                'display_name' => $component['name'] ?? ucfirst($component['code']),
+                'description' => $component['description'] ?? null,
+                'module_code' => $moduleCode,
+                'submodule_code' => $submoduleCode,
+                'component_code' => $component['code'],
+            ]);
+        }
+
+        // Process actions
+        if (isset($component['actions']) && is_array($component['actions'])) {
+            foreach ($component['actions'] as $action) {
+                if (isset($action['code'])) {
+                    $permissions->push([
+                        'name' => "{$moduleCode}.{$submoduleCode}.{$component['code']}.{$action['code']}",
+                        'display_name' => $action['name'] ?? ucfirst($action['code']),
+                        'description' => $action['description'] ?? null,
+                        'module_code' => $moduleCode,
+                        'submodule_code' => $submoduleCode,
+                        'component_code' => $component['code'],
+                        'action_code' => $action['code'],
+                    ]);
+                }
+            }
+        }
+
+        return $permissions;
+    }
+
+    /**
+     * Get module structure as nested array (for admin UI)
+     * 
+     * @return array
+     */
+    public function getModuleTree(): array
+    {
+        return $this->getModuleDefinitions()->toArray();
+    }
+
+    /**
+     * Check if a package exists
+     * 
+     * @param string $packagePath
+     * @return bool
+     */
+    public function packageExists(string $packagePath): bool
+    {
+        return File::exists(base_path($packagePath));
+    }
+
+    /**
+     * Get list of available packages
+     * 
+     * @return Collection
+     */
+    public function getAvailablePackages(): Collection
+    {
+        return collect($this->packagePaths)
+            ->filter(fn($path) => $this->packageExists($path))
+            ->map(fn($path) => [
+                'path' => $path,
+                'name' => basename($path),
+                'has_config' => File::exists(base_path($path . '/config/module.php')),
+            ]);
+    }
+}

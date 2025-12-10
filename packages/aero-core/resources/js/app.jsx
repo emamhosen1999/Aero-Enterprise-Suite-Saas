@@ -18,6 +18,20 @@ import { Toaster } from 'react-hot-toast';
 // Initialize global Aero namespace
 window.Aero = window.Aero || {};
 window.Aero.modules = window.Aero.modules || {};
+window.Aero.navigation = window.Aero.navigation || [];
+
+/**
+ * Register navigation items from modules
+ * 
+ * @param {string} moduleName - Module identifier (e.g., 'hrm', 'crm')
+ * @param {Array} items - Array of navigation menu objects
+ */
+window.Aero.registerNavigation = (moduleName, items) => {
+  // Add module identifier to each item for tracking
+  const itemsWithModule = items.map(item => ({ ...item, module: moduleName }));
+  window.Aero.navigation.push(...itemsWithModule);
+  console.log(`[Aero] Navigation registered for module: ${moduleName}`, items);
+};
 
 /**
  * Module Resolver

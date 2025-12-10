@@ -37,6 +37,14 @@ export const Pages = {
   },
 };
 
+// Import navigation definition
+import { hrmNavigation } from './navigation';
+
+// Register navigation with Core at module load time
+if (typeof window !== 'undefined' && window.Aero && window.Aero.registerNavigation) {
+  window.Aero.registerNavigation('hrm', hrmNavigation);
+}
+
 // Resolver function for dynamic component loading
 export function resolve(path) {
   const parts = path.split('/');

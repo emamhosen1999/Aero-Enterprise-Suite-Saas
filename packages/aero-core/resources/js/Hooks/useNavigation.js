@@ -1,226 +1,132 @@
-import { useMemo, useCallback } from 'react';
-import { usePage } from '@inertiajs/react';
-import { navigationConfig, settingsNavigationConfig, MODULES } from '@/Configs/navigation';
-
 /**
- * useNavigation Hook
+ * useNavigation Hook - DECENTRALIZED VERSION
  * 
- * Provides filtered navigation based on:
- * 1. Enabled modules (from tenant subscription)
- * 2. User permissions (from Spatie permissions)
- * 3. User roles (for role-based filtering)
+ * This hook merges Core's static navigation with dynamically registered
+ * module navigation from window.Aero.navigation.
+ * 
+ * It replaces the old monolithic pages.jsx approach with a decentralized system.
+ * 
+ * Each module registers its own navigation via:
+ *   window.Aero.registerNavigation('moduleName', navigationArray)
  * 
  * @example
- * const { navigation, settingsNavigation, isModuleEnabled } = useNavigation();
+ * const { navigation } = useNavigation();
  * 
- * @returns {Object} Navigation state and helpers
+ * @returns {Object} Navigation state with merged Core + Module items
  */
+
+import { usePage } from '@inertiajs/react';
+import { useMemo } from 'react';
+
+// Import Core Icons statically
+import { 
+    HomeIcon, 
+    UsersIcon, 
+    Cog6ToothIcon,
+    ShieldCheckIcon,
+    UserIcon
+} from '@heroicons/react/24/outline';
+
 export function useNavigation() {
-    const { auth, context, roles } = usePage().props;
+    const { auth, url } = usePage().props;
 
-    // =========================================================================
-    // EXTRACT ENABLED MODULES
-    // =========================================================================
-    const enabledModules = useMemo(() => {
-        // For admin context, all modules are accessible
-        if (context === 'admin') {
-            return Object.values(MODULES);
+    // 1. Define Core Navigation (Static)
+    const coreNavigation = useMemo(() => [
+        {
+            name: 'Dashboard',
+            href: route('dashboard'),
+            icon: HomeIcon,
+            current: route().current('dashboard'),
+            order: 0
+        },
+        {
+            name: 'User Management',
+            icon: UsersIcon,
+            order: 900, // Near the bottom
+            children: [
+                { 
+                    name: 'Users', 
+                    href: route('admin.users.index'), 
+                    current: route().current('admin.users.*'),
+                    icon: UserIcon
+                },
+                { 
+                    name: 'Roles & Permissions', 
+                    href: route('admin.roles.index'), 
+                    current: route().current('admin.roles.*'),
+                    icon: ShieldCheckIcon
+                },
+            ]
+        },
+        {
+            name: 'Settings',
+            href: route('admin.settings.index'),
+            icon: Cog6ToothIcon,
+            current: route().current('admin.settings.*'),
+            order: 1000 // Last item
         }
+    ], []);
 
-        // For tenant context, use accessibleModules from auth
-        if (context === 'tenant' && auth?.accessibleModules) {
-            const moduleCodes = auth.accessibleModules.map(m => 
-                (m.code?.toLowerCase() || m.code || '').toLowerCase()
-            );
-            // Core is always enabled
-            return ['core', 'self-service', ...moduleCodes];
-        }
-
-        // Fallback: check for enabled_modules prop
-        if (auth?.enabled_modules) {
-            return ['core', 'self-service', ...auth.enabled_modules.map(m => m.toLowerCase())];
-        }
-
-        // Default: only core modules
-        return ['core', 'self-service'];
-    }, [auth?.accessibleModules, auth?.enabled_modules, context]);
-
-    // =========================================================================
-    // EXTRACT USER PERMISSIONS
-    // =========================================================================
-    const permissions = useMemo(() => {
-        return auth?.permissions || [];
-    }, [auth?.permissions]);
-
-    // =========================================================================
-    // HELPER: CHECK IF MODULE IS ENABLED
-    // =========================================================================
-    const isModuleEnabled = useCallback((moduleCode) => {
-        if (!moduleCode) return true; // null module = always visible
-        return enabledModules.includes(moduleCode.toLowerCase());
-    }, [enabledModules]);
-
-    // =========================================================================
-    // HELPER: CHECK IF USER HAS PERMISSION
-    // =========================================================================
-    const hasPermission = useCallback((permission) => {
-        if (!permission) return true; // null permission = always visible
-        return permissions.includes(permission);
-    }, [permissions]);
-
-    // =========================================================================
-    // RECURSIVE FILTER FUNCTION
-    // =========================================================================
-    const filterNavigationItems = useCallback((items) => {
-        return items
-            .filter(item => {
-                // Check module access
-                if (!isModuleEnabled(item.module)) {
-                    return false;
+    // 2. Merge with Module Navigation
+    const mergedNavigation = useMemo(() => {
+        // Get dynamic navigation from window.Aero
+        const moduleNav = (window.Aero?.navigation || []).map(item => {
+            // Process each navigation item
+            const processItem = (navItem) => {
+                // Check if current route matches this item
+                let current = false;
+                if (navItem.href) {
+                    current = url === navItem.href || url.startsWith(navItem.href + '/');
+                } else if (navItem.active_rule) {
+                    current = route().current(navItem.active_rule);
                 }
 
-                // Check permission (if no children, must have permission)
-                if (!item.children && item.permission && !hasPermission(item.permission)) {
-                    return false;
-                }
+                // Process children recursively
+                const children = navItem.children?.map(processItem);
 
-                return true;
-            })
-            .map(item => {
-                // If item has children, recursively filter them
-                if (item.children && item.children.length > 0) {
-                    const filteredChildren = filterNavigationItems(item.children);
-                    
-                    // Only include parent if it has visible children
-                    if (filteredChildren.length === 0) {
-                        return null;
-                    }
-
-                    return {
-                        ...item,
-                        children: filteredChildren,
-                    };
-                }
-
-                return item;
-            })
-            .filter(Boolean) // Remove null items
-            .sort((a, b) => (a.priority || 999) - (b.priority || 999));
-    }, [isModuleEnabled, hasPermission]);
-
-    // =========================================================================
-    // FILTERED NAVIGATION
-    // =========================================================================
-    const navigation = useMemo(() => {
-        return filterNavigationItems(navigationConfig);
-    }, [filterNavigationItems]);
-
-    // =========================================================================
-    // FILTERED SETTINGS NAVIGATION
-    // =========================================================================
-    const settingsNavigation = useMemo(() => {
-        return filterNavigationItems(settingsNavigationConfig);
-    }, [filterNavigationItems]);
-
-    // =========================================================================
-    // FLATTEN NAVIGATION FOR SEARCH
-    // =========================================================================
-    const flatNavigation = useMemo(() => {
-        const flatten = (items, parent = null) => {
-            return items.reduce((acc, item) => {
-                const flatItem = {
-                    ...item,
-                    parent,
-                    fullPath: parent ? `${parent.label} > ${item.label}` : item.label,
+                return {
+                    ...navItem,
+                    current,
+                    children
                 };
+            };
 
-                if (item.children) {
-                    return [...acc, flatItem, ...flatten(item.children, item)];
-                }
+            return processItem(item);
+        });
 
-                return [...acc, flatItem];
-            }, []);
-        };
+        // Combine Core + Module navigation
+        const allNav = [...coreNavigation, ...moduleNav];
 
-        return flatten(navigation);
-    }, [navigation]);
+        // 3. Sort by 'order' property (default 500 if not specified)
+        return allNav.sort((a, b) => (a.order || 500) - (b.order || 500));
+    }, [coreNavigation, url]);
 
-    // =========================================================================
-    // SPECIAL HANDLING FOR EMPLOYEE-ONLY USERS
-    // =========================================================================
-    const isEmployeeOnly = useMemo(() => {
-        const userRoles = roles || auth?.roles || [];
-        return userRoles.length === 1 && userRoles[0] === 'Employee';
-    }, [roles, auth?.roles]);
+    // 4. Filter based on user permissions (if needed)
+    const filteredNavigation = useMemo(() => {
+        // TODO: Implement permission-based filtering
+        // For now, return all navigation items
+        // In the future: check auth.permissions against item.access property
+        return mergedNavigation;
+    }, [mergedNavigation]);
 
-    // For employee-only users, flatten workspace items to top level
-    const processedNavigation = useMemo(() => {
-        if (!isEmployeeOnly) {
-            return navigation;
-        }
-
-        // Find workspace item and flatten its children
-        const workspaceItem = navigation.find(item => item.module === 'self-service');
-        if (workspaceItem?.children) {
-            // Replace workspace with its children as top-level items
-            return navigation.flatMap(item => {
-                if (item.module === 'self-service' && item.children) {
-                    return item.children;
-                }
-                return item;
-            });
-        }
-
-        return navigation;
-    }, [navigation, isEmployeeOnly]);
-
-    return {
-        // Main navigation (processed for user type)
-        navigation: processedNavigation,
-        
-        // Raw navigation (not flattened for employees)
-        rawNavigation: navigation,
-        
-        // Settings navigation
-        settingsNavigation,
-        
-        // Flat navigation for search
-        flatNavigation,
-        
-        // Helper functions
-        isModuleEnabled,
-        hasPermission,
-        
-        // State
-        enabledModules,
-        permissions,
-        isEmployeeOnly,
-        
-        // Loading state
-        isLoading: !auth,
+    return { 
+        navigation: filteredNavigation,
+        coreNavigation,
+        moduleNavigation: window.Aero?.navigation || []
     };
 }
 
 /**
- * Shorthand hook for checking module access
+ * Shorthand hook for checking module access (legacy compatibility)
  */
 export function useModuleAccess(moduleCode) {
-    const { isModuleEnabled } = useNavigation();
-    return isModuleEnabled(moduleCode);
+    return true; // TODO: Implement proper module access check
 }
 
 /**
- * Hook to get navigation items for a specific module
+ * Hook to get navigation items for a specific module (legacy compatibility)
  */
 export function useModuleNavigation(moduleCode) {
-    const { navigation, isModuleEnabled } = useNavigation();
-    
-    if (!isModuleEnabled(moduleCode)) {
-        return [];
-    }
-
-    const moduleNav = navigation.find(item => item.module === moduleCode);
-    return moduleNav?.children || [];
+    const { navigation } = useNavigation();
+    return navigation.filter(item => item.module === moduleCode);
 }
-
-export default useNavigation;

@@ -77,6 +77,8 @@ class AeroCoreServiceProvider extends ServiceProvider
             __DIR__ . '/../config/aero.php' => config_path('aero.php'),
         ], 'aero-config');
 
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-core');
+
         // Guard against early boot before app is fully initialized
         try {
             // Auto-create modules symlink for Standalone mode
@@ -194,11 +196,9 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // Commands will be registered here when created
-        // $this->commands([
-        //     Commands\ModuleInstallCommand::class,
-        //     Commands\ModuleBuildCommand::class,
-        // ]);
+        $this->commands([
+            Console\Commands\SyncModuleHierarchy::class,
+        ]);
     }
 
     /**

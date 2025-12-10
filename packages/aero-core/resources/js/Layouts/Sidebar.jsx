@@ -15,6 +15,7 @@ import {
   Tooltip,
   Card
 } from "@heroui/react";
+import * as OutlineIcons from "@heroicons/react/24/outline";
 import {
   ChevronRightIcon,
   ChevronDownIcon,
@@ -22,10 +23,36 @@ import {
   MagnifyingGlassIcon,
   HomeIcon,
   StarIcon,
-  ClockIcon
+  ClockIcon,
+  Squares2X2Icon
 } from "@heroicons/react/24/outline"; 
   
 import { motion, AnimatePresence } from 'framer-motion';
+
+/**
+ * Icon Resolver Helper
+ * 
+ * Converts string icon names (from modules) to React components (for rendering).
+ * Modules pass icon names as strings (e.g., 'UserGroupIcon') to keep bundles small.
+ * Core resolves these to actual HeroIcon components at render time.
+ * 
+ * @param {string|React.Component} icon - Icon identifier or React component
+ * @returns {React.Component} Icon component ready for rendering
+ */
+const getIcon = (icon) => {
+  // If already a React Component (Core navigation), return it
+  if (typeof icon === 'function' || typeof icon === 'object') {
+    return icon;
+  }
+  
+  // If it's a string from a module, look it up in HeroIcons
+  if (typeof icon === 'string' && OutlineIcons[icon]) {
+    return OutlineIcons[icon];
+  }
+  
+  // Fallback icon if not found
+  return OutlineIcons.Squares2X2Icon || Squares2X2Icon;
+};
 
 // Helper function to highlight search matches
 const highlightSearchMatch = (text, searchTerm) => {
@@ -250,7 +277,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             color={hasActiveSubPage ? "primary" : "default"}
             startContent={
               <div style={{ color: hasActiveSubPage ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}>
-                {React.cloneElement(page.icon, { className: iconSize })}
+                {React.createElement(getIcon(page.icon), { className: iconSize })}
               </div>
             }
             endContent={
@@ -333,7 +360,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             variant="light"
             startContent={
               <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-                {React.cloneElement(page.icon, { className: iconSize })}
+                {React.createElement(getIcon(page.icon), { className: iconSize })}
               </div>
             }
             className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
@@ -381,7 +408,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           color={hasActiveSubPage ? "primary" : "default"}
           startContent={
             <div style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-              {React.cloneElement(page.icon, { className: iconSize })}
+              {React.createElement(getIcon(page.icon), { className: iconSize })}
             </div>
           }
           endContent={
@@ -472,7 +499,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             color={hasActiveSubPage ? "primary" : "default"}
             startContent={
               <div style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-                {page.icon}
+                {React.createElement(getIcon(page.icon), { className: 'w-5 h-5' })}
               </div>
             }
             endContent={
@@ -564,7 +591,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           preserveScroll
           startContent={
             <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-              {page.icon}
+              {React.createElement(getIcon(page.icon), { className: 'w-5 h-5' })}
             </div>
           }
           color={isActive ? "primary" : "default"}
@@ -604,7 +631,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         <div className={`${paddingLeft} pr-4 py-2`}>
           <div className="flex items-center gap-2">
             <div>
-              {page.icon}
+              {React.createElement(getIcon(page.icon), { className: 'w-5 h-5 text-foreground/80' })}
             </div>
             <span className="text-sm font-semibold text-foreground/80">
               {highlightSearchMatch(page.name, searchTerm)}

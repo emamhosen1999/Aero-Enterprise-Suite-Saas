@@ -483,20 +483,13 @@
             <span class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">Loading {{ $siteName ?? 'aeos365' }}, please wait...</span>
         </div>
     </div>
+    <!-- Inertia & Vite Scripts -->
+    @routes
     @viteReactRefresh
-    @vite(['packages/aero-core/resources/css/app.css', 'packages/aero-core/resources/js/app.jsx'])
-
-    @if(config('aero.mode') === 'standalone')
-        @foreach(\Aero\Core\Facades\Module::active() as $module)
-            @if(file_exists(public_path("modules/{$module->name}/dist/style.css")))
-                <link rel="stylesheet" href="{{ asset("modules/{$module->name}/dist/style.css") }}">
-            @endif
-
-            <script type="module" src="{{ asset("modules/{$module->name}/dist/{$module->short_name}.js") }}"></script>
-        @endforeach
-    @endif
+    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 
     @inertiaHead
+    @inertia
 
     <!-- Enhanced Loading Management -->
     <script>
