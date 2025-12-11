@@ -44,7 +44,7 @@ const AuthGuard = ({ children, auth, url }) => {
                 // Do NOT render until we confirm authentication
                 
                 // Check server-provided auth status first - this is most reliable
-                if (auth?.isAuthenticated && auth?.sessionValid && auth?.user?.id) {
+                if (auth?.isAuthenticated && auth?.user?.id) {
                     // Server says user is authenticated, trust it immediately
                     setIsAuthenticated(true);
                     setIsCheckingAuth(false);

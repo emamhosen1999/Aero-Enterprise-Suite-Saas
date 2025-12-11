@@ -49,6 +49,14 @@ class AeroCoreServiceProvider extends ServiceProvider
                 'aero'
             );
 
+            $this->mergeConfigFrom(
+                __DIR__ . '/../config/marketplace.php',
+                'marketplace'
+            );
+
+            // Configure auth to use Core's User model
+            config(['auth.providers.users.model' => \Aero\Core\Models\User::class]);
+
             // Register RuntimeLoader as singleton (lazy-loaded)
             $this->app->singleton(RuntimeLoader::class, function ($app) {
                 try {
@@ -92,13 +100,40 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Configure Vite to use Core package's build directory
+        $this->app->booted(function () {
+            \Illuminate\Support\Facades\Vite::useBuildDirectory('build');
+            \Illuminate\Support\Facades\Vite::useManifestFilename('manifest.json');
+        });
+
         // Load migrations from Core package (takes priority)
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        // Load seeders from Core package
+        $this->publishes([
+            __DIR__ . '/../database/seeders' => database_path('seeders/Aero/Core'),
+        ], 'aero-seeders');
 
         // Publish configuration
         $this->publishes([
             __DIR__ . '/../config/aero.php' => config_path('aero.php'),
         ], 'aero-config');
+
+        $this->publishes([
+            __DIR__ . '/../config/marketplace.php' => config_path('marketplace.php'),
+        ], 'marketplace-config');
+
+        // Publish frontend assets
+        $this->publishes([
+            __DIR__ . '/../resources/js' => resource_path('js'),
+            __DIR__ . '/../resources/css' => resource_path('css'),
+            __DIR__ . '/../resources/stubs/vite.config.js.stub' => base_path('vite.config.js'),
+            __DIR__ . '/../resources/stubs/package.json.stub' => base_path('package.json'),
+            __DIR__ . '/../resources/stubs/User.php.stub' => app_path('Models/User.php'),
+            __DIR__ . '/../resources/stubs/DatabaseSeeder.php.stub' => database_path('seeders/DatabaseSeeder.php'),
+            __DIR__ . '/../stubs/web.php.stub' => base_path('routes/web.php'),
+            __DIR__ . '/../hero.ts' => base_path('hero.ts'),
+        ], 'aero-core-assets');
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-core');
 
@@ -140,22 +175,12 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
             // SaaS Mode: Routes with tenant middleware for authenticated routes
-            Route::middleware(['web', 'tenant', 'auth'])
+            Route::middleware(['web', 'tenant'])
                 ->group($routesPath . '/web.php');
-
-            // API routes
-            Route::middleware(['api', 'tenant', 'auth:sanctum'])
-                ->prefix('api')
-                ->group($routesPath . '/api.php');
         } else {
             // Standalone Mode: Routes with standard web middleware
             Route::middleware(['web'])
                 ->group($routesPath . '/web.php');
-
-            // API routes
-            Route::middleware(['api', 'auth:sanctum'])
-                ->prefix('api')
-                ->group($routesPath . '/api.php');
         }
     }
 
@@ -283,8 +308,67 @@ class AeroCoreServiceProvider extends ServiceProvider
     protected function registerCommands(): void
     {
         $this->commands([
+            Console\Commands\InstallCommand::class,
             Console\Commands\SyncModuleHierarchy::class,
         ]);
+    }
+
+    /**
+     * Register hook to automatically call Core seeders when db:seed runs.
+     *
+     * @return void
+     */
+    protected function registerSeederHook(): void
+    {
+        // Hook into the command starting event to inject our seeders
+        $this->app['events']->listen('Illuminate\Console\Events\CommandStarting', function ($event) {
+            if ($event->command === 'db:seed') {
+                // Get the DatabaseSeeder class from the application
+                $seederClass = $event->input->getOption('class') ?: 'Database\\Seeders\\DatabaseSeeder';
+                
+                // If it's the default DatabaseSeeder and no specific class is requested,
+                // we'll call our Core seeder first
+                if ($seederClass === 'Database\\Seeders\\DatabaseSeeder') {
+                    // Schedule Core seeder to run before the app's seeder
+                    $this->app['events']->listen('Illuminate\Database\Events\SeedingDatabase', function () use ($event) {
+                        static $coreSeederExecuted = false;
+                        
+                        // Only execute once per db:seed command
+                        if (!$coreSeederExecuted) {
+                            $this->callCoreSeeder($event);
+                            $coreSeederExecuted = true;
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * Call the Core database seeder.
+     *
+     * @param mixed $event Command event
+     * @return void
+     */
+    protected function callCoreSeeder($event): void
+    {
+        try {
+            $seeder = new \Aero\Core\Database\Seeders\CoreDatabaseSeeder();
+            $seeder->setContainer($this->app);
+            $seeder->setCommand($event->output);
+            $seeder->run();
+            
+            if ($this->app->runningInConsole()) {
+                $event->output->info('Aero Core seeders executed successfully');
+            }
+        } catch (\Throwable $e) {
+            if ($this->app->runningInConsole()) {
+                $event->output->error('Failed to run Aero Core seeders: ' . $e->getMessage());
+                $this->app['log']->error('Aero Core Seeder Error: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
     }
 
     /**

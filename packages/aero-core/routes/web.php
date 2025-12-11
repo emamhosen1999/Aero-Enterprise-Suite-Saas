@@ -3,11 +3,13 @@
 use Aero\Core\Http\Controllers\Admin\RoleController;
 use Aero\Core\Http\Controllers\Admin\CoreUserController;
 use Aero\Core\Http\Controllers\Admin\ModuleController;
+use Aero\Core\Http\Controllers\Admin\ExtensionsController;
 use Aero\Core\Http\Controllers\Auth\DeviceController;
 use Aero\Core\Http\Controllers\Auth\SimpleLoginController;
 use Aero\Core\Http\Controllers\DashboardController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
 use Aero\Core\Http\Controllers\Settings\CustomDomainController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,13 +23,18 @@ use Illuminate\Support\Facades\Route;
 | - User Management
 | - Role Management
 | - Settings & Profile
+| - API endpoints
+|
+| Route Naming Convention:
+| - All route names MUST have 'core.' prefix (e.g., core.dashboard, core.users.index)
+| - Paths do NOT have /core prefix (e.g., /dashboard not /core/dashboard)
 |
 | These routes are automatically registered by the AeroCoreServiceProvider.
 |
 */
 
 // ============================================================================
-// HEALTH CHECK & INFO
+// HEALTH CHECK & INFO (Public - No Auth Required)
 // ============================================================================
 Route::get('/aero-core/health', function () {
     return response()->json([
@@ -42,23 +49,23 @@ Route::get('/aero-core/health', function () {
         ],
         'timestamp' => now()->toIso8601String(),
     ]);
-})->name('health')->withoutMiddleware(['auth']);
+})->name('core.health')->withoutMiddleware(['auth']);
 
 // ============================================================================
 // ROOT ROUTE - Redirect to dashboard or login
 // ============================================================================
 Route::get('/', function () {
     if (auth()->check()) {
-        return redirect()->route('dashboard');
+        return redirect('/dashboard');
     }
-    return redirect()->route('login');
-})->name('root');
+    return redirect('/login');
+})->name('core.root');
 
 // ============================================================================
 // AUTHENTICATION ROUTES (Guest)
 // ============================================================================
 Route::middleware('guest')->group(function () {
-    Route::get('login', [SimpleLoginController::class, 'create'])->name('login');
+    Route::get('login', [SimpleLoginController::class, 'create'])->name('core.login');
     Route::post('login', [SimpleLoginController::class, 'store']);
 });
 
@@ -66,8 +73,9 @@ Route::middleware('guest')->group(function () {
 // AUTHENTICATION ROUTES (Authenticated)
 // ============================================================================
 Route::middleware('auth')->group(function () {
-    Route::post('logout', [SimpleLoginController::class, 'destroy'])->name('logout');
+    Route::post('logout', [SimpleLoginController::class, 'destroy'])->name('core.logout');
 });
+
 
 // ============================================================================
 // AUTHENTICATED ROUTES - Core Features
@@ -75,13 +83,13 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     
     // Dashboard Routes
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
+    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
     
     // Session & Auth Check Routes
     Route::get('/session-check', function () {
         return response()->json(['authenticated' => auth()->check()]);
-    })->name('session-check');
+    })->name('core.session-check');
 
     // Locale Switching
     Route::post('/locale', function (\Illuminate\Http\Request $request) {
@@ -98,12 +106,12 @@ Route::middleware('auth')->group(function () {
         }
 
         return response()->noContent();
-    })->name('locale.update');
+    })->name('core.locale.update');
     
     // ========================================================================
     // USER MANAGEMENT ROUTES
     // ========================================================================
-    Route::prefix('users')->name('users.')->group(function () {
+    Route::prefix('users')->name('core.users.')->group(function () {
         // List & View
         Route::get('/', [CoreUserController::class, 'index'])->name('index');
         Route::get('/paginate', [CoreUserController::class, 'paginate'])->name('paginate');
@@ -154,11 +162,11 @@ Route::middleware('auth')->group(function () {
     // DEVICE MANAGEMENT ROUTES (Security)
     // ========================================================================
     // User's own devices
-    Route::get('/my-devices', [DeviceController::class, 'index'])->name('devices.index');
-    Route::delete('/my-devices/{deviceId}', [DeviceController::class, 'deactivateDevice'])->name('devices.deactivate');
+    Route::get('/my-devices', [DeviceController::class, 'index'])->name('core.devices.index');
+    Route::delete('/my-devices/{deviceId}', [DeviceController::class, 'deactivateDevice'])->name('core.devices.deactivate');
     
     // Admin device management
-    Route::prefix('users/{userId}/devices')->name('devices.admin.')->group(function () {
+    Route::prefix('users/{userId}/devices')->name('core.devices.admin.')->group(function () {
         Route::get('/', [DeviceController::class, 'getUserDevices'])->name('list');
         Route::post('/reset', [DeviceController::class, 'resetDevices'])->name('reset');
         Route::post('/toggle', [DeviceController::class, 'toggleSingleDeviceLogin'])->name('toggle');
@@ -168,7 +176,7 @@ Route::middleware('auth')->group(function () {
     // ========================================================================
     // ROLE & PERMISSIONS MANAGEMENT
     // ========================================================================
-    Route::prefix('roles')->name('roles.')->group(function () {
+    Route::prefix('roles')->name('core.roles.')->group(function () {
         // View
         Route::get('/', [RoleController::class, 'index'])->name('index');
         Route::get('/export', [RoleController::class, 'exportRoles'])->name('export');
@@ -189,7 +197,7 @@ Route::middleware('auth')->group(function () {
     // ========================================================================
     // MODULE REGISTRY MANAGEMENT
     // ========================================================================
-    Route::prefix('modules')->name('modules.')->group(function () {
+    Route::prefix('modules')->name('core.modules.')->group(function () {
         // View
         Route::get('/', [ModuleController::class, 'index'])->name('index');
         Route::get('/api', [ModuleController::class, 'apiIndex'])->name('api.index');
@@ -205,7 +213,7 @@ Route::middleware('auth')->group(function () {
     // ========================================================================
     // SYSTEM SETTINGS
     // ========================================================================
-    Route::prefix('settings')->name('settings.')->group(function () {
+    Route::prefix('settings')->name('core.settings.')->group(function () {
         // System Settings
         Route::get('/system', [SystemSettingController::class, 'index'])->name('system.index');
         Route::put('/system', [SystemSettingController::class, 'update'])->name('system.update');
@@ -235,7 +243,7 @@ Route::middleware('auth')->group(function () {
     // ========================================================================
     // PROFILE ROUTES
     // ========================================================================
-    Route::prefix('profile')->name('profile.')->group(function () {
+    Route::prefix('profile')->name('core.profile.')->group(function () {
         Route::get('/', function () {
             return inertia('Core/Profile/Index', [
                 'title' => 'My Profile',
@@ -247,7 +255,8 @@ Route::middleware('auth')->group(function () {
     // ========================================================================
     // API ROUTES (for dropdowns, lookups, etc.)
     // ========================================================================
-    Route::prefix('api')->name('api.')->group(function () {
+    Route::prefix('api')->name('core.api.')->group(function () {
+        // User Managers List
         Route::get('/users/managers/list', function () {
             if (!class_exists('App\Models\User')) {
                 return response()->json([]);
@@ -265,8 +274,47 @@ Route::middleware('auth')->group(function () {
                 ->select('id', 'name')
                 ->get());
         })->name('users.managers.list');
+        
+        // Role Management API (Merged from api.php)
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('/', [RoleController::class, 'index'])->name('index');
+            Route::post('/', [RoleController::class, 'storeRole'])->name('store');
+            Route::put('/{id}', [RoleController::class, 'updateRole'])->name('update');
+            Route::delete('/{id}', [RoleController::class, 'deleteRole'])->name('delete');
+            Route::get('/permissions', [RoleController::class, 'getRolesAndPermissions'])->name('permissions');
+            Route::post('/assign-user', [RoleController::class, 'assignRolesToUser'])->name('assign-user');
+            Route::get('/refresh', [RoleController::class, 'refreshData'])->name('refresh');
+            Route::get('/export', [RoleController::class, 'exportRoles'])->name('export');
+        });
+        
+        // Version Check API (Public - merged from api.php)
+        Route::post('/version/check', function (Request $request) {
+            $clientVersion = $request->input('version', '1.0.0');
+            $serverVersion = config('app.version', '1.0.0');
+            
+            return response()->json([
+                'version_match' => $clientVersion === $serverVersion,
+                'client_version' => $clientVersion,
+                'server_version' => $serverVersion,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        })->name('version.check')->withoutMiddleware(['auth']);
     });
     
+    // ========================================================================
+    // EXTENSIONS MARKETPLACE
+    // ========================================================================
+    Route::prefix('extensions')->name('core.extensions.')->group(function () {
+        Route::get('/', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'index'])->name('index');
+        Route::post('/{moduleCode}/toggle', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'toggle'])->name('toggle');
+        Route::post('/upload', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'upload'])->name('upload');
+        Route::get('/check-updates', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'checkUpdates'])->name('checkUpdates');
+        Route::get('/{moduleCode}/settings', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'settings'])->name('settings');
+    });
+    
+    
     // FCM Token Update
-    Route::post('/update-fcm-token', [CoreUserController::class, 'updateFcmToken'])->name('updateFcmToken');
+    Route::post('/update-fcm-token', [CoreUserController::class, 'updateFcmToken'])->name('core.updateFcmToken');
 });
+
+

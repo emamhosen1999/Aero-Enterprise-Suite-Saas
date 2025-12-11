@@ -44,7 +44,7 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
             label: 'Dashboard',
             icon: HomeIcon,
             href: '/dashboard',
-            route: 'dashboard',
+            route: 'core.dashboard',
             tooltip: 'Go to main dashboard',
             priority: 'high',
             category: 'main'

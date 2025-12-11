@@ -42,7 +42,14 @@ class ModuleDiscoveryService
         $definitions = collect();
 
         foreach ($this->packagePaths as $packagePath) {
+            // Support both monorepo and standalone structures
             $fullPath = base_path($packagePath);
+            
+            // If packages dir doesn't exist at base_path, try two levels up (monorepo)
+            if (!File::exists($fullPath)) {
+                $fullPath = base_path('../../' . $packagePath);
+            }
+            
             $configPath = $fullPath . '/config/module.php';
 
             // Skip if package or config doesn't exist
@@ -53,8 +60,11 @@ class ModuleDiscoveryService
             try {
                 $moduleConfig = require $configPath;
                 
-                if (is_array($moduleConfig)) {
+                // Validate module config has required fields
+                if (is_array($moduleConfig) && $this->isValidModuleConfig($moduleConfig)) {
                     $definitions->push($moduleConfig);
+                } else {
+                    \Log::debug("Skipping incomplete module config from {$packagePath}");
                 }
             } catch (\Exception $e) {
                 // Log error but continue processing other modules
@@ -228,5 +238,25 @@ class ModuleDiscoveryService
                 'name' => basename($path),
                 'has_config' => File::exists(base_path($path . '/config/module.php')),
             ]);
+    }
+
+    /**
+     * Validate if a module config has all required fields
+     * 
+     * @param array $config
+     * @return bool
+     */
+    protected function isValidModuleConfig(array $config): bool
+    {
+        // Required fields for a valid module config
+        $requiredFields = ['code', 'name', 'scope'];
+        
+        foreach ($requiredFields as $field) {
+            if (!isset($config[$field]) || empty($config[$field])) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }

@@ -33,10 +33,12 @@
         "js-cookie": "^3.0.5",
         "laravel-precognition-react": "^0.7.3",
         "lodash": "^4.17.21",
+        "lucide-react": "^0.560.0",
         "react-hot-toast": "^2.5.2",
         "react-toastify": "^10.0.5",
         "tailwind-merge": "^3.3.1",
         "uuid": "^13.0.0",
+        "ziggy-js": "github:tightenco/ziggy",
         "zod": "^4.0.17"
     }
 }

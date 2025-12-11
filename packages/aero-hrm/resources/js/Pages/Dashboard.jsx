@@ -133,7 +133,7 @@ const HRDashboard = ({
       description: "Schedule evaluation",
       icon: <TrophyIcon className="w-4 h-4" />,
       color: "secondary",
-      onClick: () => router.visit(route('hr.performance.create')),
+      onClick: () => router.visit(route('hrm.performance.create')),
       permission: "hr.performance.create"
     },
     {
@@ -141,7 +141,7 @@ const HRDashboard = ({
       description: "Review time-off requests",
       icon: <CalendarDaysIcon className="w-4 h-4" />,
       color: "success",
-      onClick: () => router.visit(route('hr.timeoff.index')),
+      onClick: () => router.visit(route('hrm.timeoff.index')),
       permission: "hr.timeoff.view"
     },
     {
@@ -149,7 +149,7 @@ const HRDashboard = ({
       description: "Manage development",
       icon: <AcademicCapIcon className="w-4 h-4" />,
       color: "warning",
-      onClick: () => router.visit(route('hr.training.index')),
+      onClick: () => router.visit(route('hrm.training.index')),
       permission: "hr.training.view"
     },
     {
@@ -157,7 +157,7 @@ const HRDashboard = ({
       description: "HR reports & insights",
       icon: <ChartBarIcon className="w-4 h-4" />,
       color: "danger",
-      onClick: () => router.visit(route('hr.analytics.index')),
+      onClick: () => router.visit(route('hrm.analytics.index')),
       permission: "hr.analytics.view"
     },
     {
@@ -165,7 +165,7 @@ const HRDashboard = ({
       description: "Process salaries",
       icon: <ClockIcon className="w-4 h-4" />,
       color: "secondary",
-      onClick: () => router.visit(route('hr.payroll.index')),
+      onClick: () => router.visit(route('hrm.payroll.index')),
       permission: "hr.payroll.view"
     }
   ];
@@ -204,7 +204,7 @@ const HRDashboard = ({
       icon: <TrophyIcon className="w-6 h-6" />,
       color: "text-orange-500",
       bgColor: "bg-orange-500/10",
-      route: route('hr.performance.index'),
+      route: route('hrm.performance.index'),
       permission: "hr.performance.view",
       stats: [
         { label: "Completed", value: 89 },
@@ -217,7 +217,7 @@ const HRDashboard = ({
       icon: <AcademicCapIcon className="w-6 h-6" />,
       color: "text-indigo-500",
       bgColor: "bg-indigo-500/10",
-      route: route('hr.training.index'),
+      route: route('hrm.training.index'),
       permission: "hr.training.view",
       stats: [
         { label: "Active", value: trainingProgress?.activePrograms || 12 },
@@ -230,7 +230,7 @@ const HRDashboard = ({
       icon: <ChartBarIcon className="w-6 h-6" />,
       color: "text-pink-500",
       bgColor: "bg-pink-500/10",
-      route: route('hr.analytics.index'),
+      route: route('hrm.analytics.index'),
       permission: "hr.analytics.view",
       stats: [
         { label: "Reports", value: 24 },
@@ -243,7 +243,7 @@ const HRDashboard = ({
       icon: <ClockIcon className="w-6 h-6" />,
       color: "text-red-500",
       bgColor: "bg-red-500/10",
-      route: route('hr.payroll.index'),
+      route: route('hrm.payroll.index'),
       permission: "hr.payroll.view",
       stats: [
         { label: "Processed", value: 142 },
@@ -642,7 +642,7 @@ const HRDashboard = ({
                               <Button 
                                 variant="ghost" 
                                 className="w-full" 
-                                onPress={() => router.visit(route('hr.performance.index'))}
+                                onPress={() => router.visit(route('hrm.performance.index'))}
                               >
                                 View All Reviews
                               </Button>
@@ -823,3 +823,4 @@ const HRDashboard = ({
     </>
   );
 };
+

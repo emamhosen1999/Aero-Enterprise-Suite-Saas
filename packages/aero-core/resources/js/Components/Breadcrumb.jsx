@@ -65,7 +65,7 @@ const Breadcrumb = () => {
             icon: <HomeIcon className="w-4 h-4" />,
             href: (() => {
                 try {
-                    return route('dashboard');
+                    return route('core.dashboard');
                 } catch {
                     return '/';
                 }

@@ -19,6 +19,7 @@ import {
     SwatchIcon,
     GlobeAltIcon,
     CubeIcon,
+    PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 
 /**
@@ -33,7 +34,7 @@ export const coreNavigation = {
         {
             name: 'Dashboard',
             icon: 'HomeIcon',
-            route: 'dashboard',
+            route: 'core.dashboard',
             access: 'core.dashboard',
             priority: 1,
         },
@@ -48,7 +49,7 @@ export const coreNavigation = {
                 {
                     name: 'User Management',
                     icon: 'UserGroupIcon',
-                    route: 'users.index',
+                    route: 'core.users.index',
                     access: 'core.users.user-list.view',
                 },
             ],
@@ -64,16 +65,25 @@ export const coreNavigation = {
                 {
                     name: 'Role Management',
                     icon: 'ShieldCheckIcon',
-                    route: 'roles.index',
+                    route: 'core.roles.index',
                     access: 'core.roles.role-list.view',
                 },
                 {
                     name: 'Feature Access',
                     icon: 'CubeIcon',
-                    route: 'modules.index',
+                    route: 'core.modules.index',
                     access: 'core.module-access.module-list.view',
                 },
             ],
+        },
+
+        // Extensions Marketplace
+        {
+            name: 'Extensions',
+            icon: 'PuzzlePieceIcon',
+            route: 'core.extensions.index',
+            access: 'core.extensions',
+            priority: 4,
         },
 
         // Settings
@@ -86,7 +96,7 @@ export const coreNavigation = {
                 {
                     name: 'General Settings',
                     icon: 'Cog6ToothIcon',
-                    route: 'settings.system.index',
+                    route: 'core.settings.system.index',
                     access: 'core.settings.general.view',
                 },
             ],
@@ -109,6 +119,7 @@ export const iconMap = {
     SwatchIcon,
     GlobeAltIcon,
     CubeIcon,
+    PuzzlePieceIcon,
 };
 
 /**

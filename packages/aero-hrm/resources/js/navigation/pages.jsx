@@ -48,7 +48,7 @@ export const hrmNavigation = {
                 {
                     name: 'HR Dashboard',
                     icon: 'ChartBarSquareIcon',
-                    route: 'hr.dashboard',
+                    route: 'hrm.dashboard',
                     access: 'hrm.dashboard',
                 },
 
@@ -61,31 +61,31 @@ export const hrmNavigation = {
                         {
                             name: 'Employee Directory',
                             icon: 'UserGroupIcon',
-                            route: 'employees.index',
+                            route: 'hrm.employees',
                             access: 'hrm.employees.employee-directory.view',
                         },
                         {
                             name: 'Departments',
                             icon: 'BuildingOffice2Icon',
-                            route: 'departments.index',
+                            route: 'hrm.departments',
                             access: 'hrm.employees.departments.view',
                         },
                         {
                             name: 'Designations',
                             icon: 'BriefcaseIcon',
-                            route: 'designations.index',
+                            route: 'hrm.designations.index',
                             access: 'hrm.employees.designations.view',
                         },
                         {
                             name: 'Onboarding',
                             icon: 'UserIcon',
-                            route: 'hr.onboarding.index',
+                            route: 'hrm.onboarding.index',
                             access: 'hrm.employees.onboarding-wizard.view',
                         },
                         {
                             name: 'Exit/Termination',
                             icon: 'ArrowRightOnRectangleIcon',
-                            route: 'hr.offboarding.index',
+                            route: 'hrm.offboarding.index',
                             access: 'hrm.employees.exit-termination.view',
                         },
                     ],
@@ -100,37 +100,37 @@ export const hrmNavigation = {
                         {
                             name: 'Daily Attendance',
                             icon: 'CalendarDaysIcon',
-                            route: 'attendance.index',
+                            route: 'hrm.attendances',
                             access: 'hrm.attendance.daily-attendance.view',
                         },
                         {
                             name: 'Monthly Calendar',
                             icon: 'CalendarIcon',
-                            route: 'attendance.calendar',
+                            route: 'hrm.attendances',
                             access: 'hrm.attendance.monthly-calendar.view',
                         },
                         {
                             name: 'Attendance Logs',
                             icon: 'ClipboardDocumentCheckIcon',
-                            route: 'attendance.logs',
+                            route: 'hrm.attendances',
                             access: 'hrm.attendance.attendance-logs.view',
                         },
                         {
                             name: 'Shift Scheduling',
                             icon: 'ClockIcon',
-                            route: 'shifts.index',
+                            route: 'hrm.attendances',
                             access: 'hrm.attendance.shift-scheduling.view',
                         },
                         {
                             name: 'My Attendance',
                             icon: 'UserIcon',
-                            route: 'attendance.my',
+                            route: 'hrm.attendance-employee',
                             access: 'hrm.attendance.my-attendance.view',
                         },
                         {
                             name: 'Holidays',
                             icon: 'CalendarIcon',
-                            route: 'holidays.index',
+                            route: 'hrm.holidays',
                             access: 'hrm.leaves.holiday-calendar.view',
                         },
                     ],
@@ -145,31 +145,31 @@ export const hrmNavigation = {
                         {
                             name: 'Leave Requests',
                             icon: 'ArrowRightOnRectangleIcon',
-                            route: 'leaves.index',
+                            route: 'hrm.leaves',
                             access: 'hrm.leaves.leave-requests.view',
                         },
                         {
                             name: 'My Leaves',
                             icon: 'UserIcon',
-                            route: 'leaves.my',
+                            route: 'hrm.leaves-employee',
                             access: 'hrm.leaves.leave-requests.create',
                         },
                         {
                             name: 'Leave Types',
                             icon: 'DocumentTextIcon',
-                            route: 'leave-types.index',
+                            route: 'hrm.leaves',
                             access: 'hrm.leaves.leave-types.view',
                         },
                         {
                             name: 'Leave Balances',
                             icon: 'ChartPieIcon',
-                            route: 'leave-balances.index',
+                            route: 'hrm.leaves',
                             access: 'hrm.leaves.leave-balances.view',
                         },
                         {
                             name: 'Leave Policies',
                             icon: 'Cog6ToothIcon',
-                            route: 'leave-settings.index',
+                            route: 'hrm.leaves',
                             access: 'hrm.leaves.leave-policies.manage',
                         },
                     ],
@@ -184,25 +184,25 @@ export const hrmNavigation = {
                         {
                             name: 'Payroll Run',
                             icon: 'CurrencyDollarIcon',
-                            route: 'hr.payroll.index',
+                            route: 'hrm.payroll.index',
                             access: 'hrm.payroll.payroll-run.view',
                         },
                         {
                             name: 'Payslips',
                             icon: 'DocumentDuplicateIcon',
-                            route: 'hr.payroll.payslips',
+                            route: 'hrm.payroll.index',
                             access: 'hrm.payroll.payslips.view',
                         },
                         {
                             name: 'Salary Structures',
-                            icon: 'CubeIcon',
-                            route: 'hr.payroll.structures',
-                            access: 'hrm.payroll.salary-structures.view',
+                            icon: 'BuildingOfficeIcon',
+                            route: 'hrm.salary-structure.index',
+                            access: 'hrm.payroll.salary-structures.manage',
                         },
                         {
                             name: 'Loans & Advances',
                             icon: 'BanknotesIcon',
-                            route: 'hr.payroll.loans',
+                            route: 'hrm.payroll.index',
                             access: 'hrm.payroll.loans.view',
                         },
                     ],
@@ -217,19 +217,19 @@ export const hrmNavigation = {
                         {
                             name: 'Job Openings',
                             icon: 'BriefcaseIcon',
-                            route: 'hr.recruitment.index',
+                            route: 'hrm.recruitment.index',
                             access: 'hrm.recruitment.job-openings.view',
                         },
                         {
                             name: 'Applicants',
                             icon: 'UserGroupIcon',
-                            route: 'hr.recruitment.applicants',
+                            route: 'hrm.recruitment.index',
                             access: 'hrm.recruitment.applicants.view',
                         },
                         {
                             name: 'Interview Schedule',
                             icon: 'CalendarIcon',
-                            route: 'hr.recruitment.interviews',
+                            route: 'hrm.recruitment.index',
                             access: 'hrm.recruitment.interview-scheduling.view',
                         },
                     ],
@@ -244,13 +244,13 @@ export const hrmNavigation = {
                         {
                             name: 'Performance Reviews',
                             icon: 'StarIcon',
-                            route: 'hr.performance.index',
+                            route: 'hrm.performance.index',
                             access: 'hrm.performance.performance-reviews.view',
                         },
                         {
                             name: 'Goals',
                             icon: 'ChartBarSquareIcon',
-                            route: 'hr.performance.goals',
+                            route: 'hrm.performance.index',
                             access: 'hrm.performance.goal-setting.view',
                         },
                     ],
@@ -265,13 +265,13 @@ export const hrmNavigation = {
                         {
                             name: 'Training Sessions',
                             icon: 'AcademicCapIcon',
-                            route: 'hr.training.index',
+                            route: 'hrm.training.index',
                             access: 'hrm.training.training-sessions.view',
                         },
                         {
                             name: 'My Training',
                             icon: 'UserIcon',
-                            route: 'hr.training.my',
+                            route: 'hrm.training.index',
                             access: 'hrm.training.training-sessions.view',
                         },
                     ],
@@ -281,7 +281,7 @@ export const hrmNavigation = {
                 {
                     name: 'HR Analytics',
                     icon: 'ChartBarSquareIcon',
-                    route: 'hr.analytics.index',
+                    route: 'hrm.analytics.index',
                     access: 'hrm.analytics',
                 },
             ],
@@ -301,7 +301,7 @@ export const employeeSelfServiceNavigation = {
         {
             name: 'My Attendance',
             icon: 'CalendarDaysIcon',
-            route: 'attendance.my',
+            route: 'hrm.attendance-employee',
             access: 'hrm.attendance.my-attendance.view',
             priority: 10,
             selfService: true,
@@ -309,7 +309,7 @@ export const employeeSelfServiceNavigation = {
         {
             name: 'My Leaves',
             icon: 'ArrowRightOnRectangleIcon',
-            route: 'leaves.my',
+            route: 'hrm.leaves-employee',
             access: 'hrm.leaves.leave-requests.create',
             priority: 11,
             selfService: true,
@@ -361,3 +361,5 @@ export function getEmployeeSelfServiceNavigation() {
 }
 
 export default hrmNavigation;
+
+

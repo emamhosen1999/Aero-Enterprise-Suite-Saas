@@ -43,10 +43,14 @@ const PageHeader = ({
                         <div className="flex items-center gap-4">
                             {icon && (
                                 <div className="p-3 rounded-xl bg-primary/10 backdrop-blur-sm">
-                                    {React.cloneElement(icon, {
-                                        className: `${icon.props.className || ''} text-primary`,
-                                        ...icon.props
-                                    })}
+                                    {React.isValidElement(icon) ? (
+                                        React.cloneElement(icon, {
+                                            className: `${icon.props?.className || ''} w-6 h-6 text-primary`,
+                                            ...icon.props
+                                        })
+                                    ) : (
+                                        React.createElement(icon, { className: "w-6 h-6 text-primary" })
+                                    )}
                                 </div>
                             )}
                             <div>

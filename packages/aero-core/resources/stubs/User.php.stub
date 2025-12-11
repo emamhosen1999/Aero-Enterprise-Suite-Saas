@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Models;
+
+use Aero\Core\Models\User as CoreUser;
+
+/**
+ * App User Model
+ * 
+ * Extends the Core User model.
+ * Add any application-specific customizations here.
+ */
+class User extends CoreUser
+{
+    //
+}

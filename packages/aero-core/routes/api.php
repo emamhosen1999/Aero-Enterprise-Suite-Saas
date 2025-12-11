@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ============================================================================
-// VERSION CHECK
+// PUBLIC API ROUTES (No Authentication Required)
 // ============================================================================
+
+// VERSION CHECK - Public endpoint for client version checking
 Route::post('/version/check', function (Request $request) {
     $clientVersion = $request->input('version', '1.0.0');
     $serverVersion = config('app.version', '1.0.0');
@@ -29,9 +31,11 @@ Route::post('/version/check', function (Request $request) {
 })->name('api.version.check');
 
 // ============================================================================
-// ROLE MANAGEMENT API
+// AUTHENTICATED API ROUTES
 // ============================================================================
-Route::middleware(['web', 'auth'])->prefix('roles')->group(function () {
+
+// ROLE MANAGEMENT API - Requires authentication
+Route::middleware(['auth:sanctum'])->prefix('roles')->group(function () {
     Route::get('/', [\Aero\Core\Http\Controllers\Admin\RoleController::class, 'index'])->name('api.roles.index');
     Route::post('/', [\Aero\Core\Http\Controllers\Admin\RoleController::class, 'storeRole'])->name('api.roles.store');
     Route::put('/{id}', [\Aero\Core\Http\Controllers\Admin\RoleController::class, 'updateRole'])->name('api.roles.update');

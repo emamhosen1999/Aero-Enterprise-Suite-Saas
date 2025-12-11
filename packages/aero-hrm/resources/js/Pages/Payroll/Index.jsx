@@ -52,7 +52,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
     const [selectedPayrolls, setSelectedPayrolls] = useState([]);
 
     const handleSearch = () => {
-        router.get(route('hr.payroll.index'), {
+        router.get(route('hrm.payroll.index'), {
             search,
             status: statusFilter !== 'all' ? statusFilter : undefined,
         }, {
@@ -63,7 +63,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this payroll record?')) {
-            router.delete(route('hr.payroll.destroy', id), {
+            router.delete(route('hrm.payroll.destroy', id), {
                 onSuccess: () => showToast('success', 'Payroll deleted successfully'),
                 onError: () => showToast('error', 'Failed to delete payroll'),
             });
@@ -72,7 +72,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
 
     const handleProcess = (id) => {
         if (confirm('Are you sure you want to process this payroll? This action cannot be undone.')) {
-            router.post(route('hr.payroll.process', id), {}, {
+            router.post(route('hrm.payroll.process', id), {}, {
                 onSuccess: () => showToast('success', 'Payroll processed successfully'),
                 onError: () => showToast('error', 'Failed to process payroll'),
             });
@@ -86,7 +86,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
         }
 
         if (confirm(`Process ${selectedPayrolls.length} selected payroll(s)?`)) {
-            router.post(route('hr.payroll.bulk.process'), {
+            router.post(route('hrm.payroll.bulk.process'), {
                 payroll_ids: selectedPayrolls,
             }, {
                 onSuccess: () => {
@@ -99,14 +99,14 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
     };
 
     const handleGeneratePayslip = (id) => {
-        router.post(route('hr.payroll.payslip.generate', id), {}, {
+        router.post(route('hrm.payroll.payslip.generate', id), {}, {
             onSuccess: () => showToast('success', 'Payslip generated successfully'),
             onError: () => showToast('error', 'Failed to generate payslip'),
         });
     };
 
     const handleSendPayslipEmail = (id) => {
-        router.post(route('hr.payroll.payslip.email', id), {}, {
+        router.post(route('hrm.payroll.payslip.email', id), {}, {
             onSuccess: () => showToast('success', 'Payslip email sent successfully'),
             onError: () => showToast('error', 'Failed to send payslip email'),
         });
@@ -147,7 +147,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
                     <Button
                         color="primary"
                         startContent={<PlusIcon className="w-4 h-4" />}
-                        onPress={() => router.visit(route('hr.payroll.create'))}
+                        onPress={() => router.visit(route('hrm.payroll.create'))}
                     >
                         Generate Payroll
                     </Button>
@@ -328,14 +328,14 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
                                                         <DropdownItem
                                                             key="view"
                                                             startContent={<EyeIcon className="w-4 h-4" />}
-                                                            onPress={() => router.visit(route('hr.payroll.show', payroll.id))}
+                                                            onPress={() => router.visit(route('hrm.payroll.show', payroll.id))}
                                                         >
                                                             View Details
                                                         </DropdownItem>
                                                         <DropdownItem
                                                             key="payslip"
                                                             startContent={<DocumentTextIcon className="w-4 h-4" />}
-                                                            onPress={() => router.visit(route('hr.payroll.payslip.view', payroll.id))}
+                                                            onPress={() => router.visit(route('hrm.payroll.payslip.view', payroll.id))}
                                                         >
                                                             View Payslip
                                                         </DropdownItem>
@@ -344,7 +344,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
                                                                 <DropdownItem
                                                                     key="edit"
                                                                     startContent={<PencilIcon className="w-4 h-4" />}
-                                                                    onPress={() => router.visit(route('hr.payroll.edit', payroll.id))}
+                                                                    onPress={() => router.visit(route('hrm.payroll.edit', payroll.id))}
                                                                 >
                                                                     Edit
                                                                 </DropdownItem>
@@ -377,7 +377,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
                                                                 <DropdownItem
                                                                     key="download"
                                                                     startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                                                                    onPress={() => window.open(route('hr.payroll.payslip.download', payroll.id))}
+                                                                    onPress={() => window.open(route('hrm.payroll.payslip.download', payroll.id))}
                                                                 >
                                                                     Download Payslip
                                                                 </DropdownItem>
@@ -408,7 +408,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
                                                     color="primary"
                                                     variant="flat"
                                                     className="mt-4"
-                                                    onPress={() => router.visit(route('hr.payroll.create'))}
+                                                    onPress={() => router.visit(route('hrm.payroll.create'))}
                                                 >
                                                     Generate First Payroll
                                                 </Button>
@@ -426,7 +426,7 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
                                     total={payrolls.last_page}
                                     initialPage={payrolls.current_page}
                                     onChange={(page) => {
-                                        router.get(route('hr.payroll.index'), {
+                                        router.get(route('hrm.payroll.index'), {
                                             page,
                                             search,
                                             status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -444,3 +444,4 @@ export default function PayrollIndex({ auth, title, payrolls, stats }) {
         </App>
     );
 }
+

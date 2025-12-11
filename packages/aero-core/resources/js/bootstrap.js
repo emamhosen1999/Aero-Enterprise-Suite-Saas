@@ -3,6 +3,9 @@ import { attachDeviceId, handleDeviceMismatch } from './utils/deviceAuth';
 
 window.axios = axios;
 
+// Note: route() helper is provided by @routes directive in app.blade.php
+// It's injected globally by Ziggy via the Blade directive
+
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 window.axios.defaults.withCredentials = true; // Ensure cookies are sent with requests
 window.axios.defaults.withXSRFToken = true;

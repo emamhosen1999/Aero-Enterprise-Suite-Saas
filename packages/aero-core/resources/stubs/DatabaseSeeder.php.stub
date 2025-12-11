@@ -1,0 +1,26 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+/**
+ * Database Seeder
+ * 
+ * Calls Core and module package seeders.
+ */
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        // Call Core seeder
+        $this->call(\Aero\Core\Database\Seeders\CoreDatabaseSeeder::class);
+        
+        // Module seeders (add as needed)
+        // $this->call(\Aero\HRM\Database\Seeders\HRMDatabaseSeeder::class);
+        // No manual seeder calls needed here
+    }
+}

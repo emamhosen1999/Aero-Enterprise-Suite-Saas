@@ -483,10 +483,12 @@
             <span class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">Loading {{ $siteName ?? 'aeos365' }}, please wait...</span>
         </div>
     </div>
+    @routes
     @viteReactRefresh
-    @vite(['packages/aero-core/resources/css/app.css', 'packages/aero-core/resources/js/app.jsx'])
+    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 
-    @if(config('aero.mode') === 'standalone')
+    @if(config('aero.mode') === 'standalone' && !app()->environment('local') || (app()->environment('local') && !file_exists(public_path('hot'))))
+        {{-- Only load module bundles in production OR when Vite dev server is not running --}}
         @foreach(\Aero\Core\Facades\Module::active() as $module)
             @php
                 $moduleName = is_array($module) ? ($module['name'] ?? '') : ($module->name ?? '');
@@ -496,13 +498,16 @@
                 <link rel="stylesheet" href="{{ asset("modules/{$moduleName}/dist/style.css") }}">
             @endif
 
-            @if($moduleName && $moduleShortName)
+            @if($moduleName && $moduleShortName && file_exists(public_path("modules/{$moduleName}/dist/{$moduleShortName}.js")))
                 <script type="module" src="{{ asset("modules/{$moduleName}/dist/{$moduleShortName}.js") }}"></script>
             @endif
         @endforeach
     @endif
 
     @inertiaHead
+    
+    <!-- Main Inertia App Container -->
+    @inertia
 
     <!-- Enhanced Loading Management -->
     <script>

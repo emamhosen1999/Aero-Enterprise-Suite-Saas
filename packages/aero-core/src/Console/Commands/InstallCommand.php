@@ -421,42 +421,35 @@ JS;
     }
 
     /**
-     * Update bootstrap/app.php to register Aero Core routes.
+     * Update bootstrap/app.php to configure Aero Core middleware.
      * 
-     * The AeroCoreServiceProvider automatically loads all routes from the package.
-     * Remove any references to routes/api.php if present, as these don't exist in test app.
+     * Publishes the bootstrap/app.php stub which:
+     * - Registers Core routes (handled by AeroCoreServiceProvider)
+     * - Aliases 'auth' middleware to use Core's Authenticate middleware
+     * - Ensures proper login redirects (/login instead of route('login'))
      */
     protected function updateBootstrapApp(): void
     {
-        $bootstrapPath = base_path('bootstrap/app.php');
+        $stub = __DIR__.'/../../../stubs/app.php.stub';
+        $target = base_path('bootstrap/app.php');
 
-        if (! $this->files->exists($bootstrapPath)) {
-            $this->warn('  <fg=yellow>Warning:</> bootstrap/app.php not found');
+        if (! $this->files->exists($stub)) {
+            $this->warn('  <fg=yellow>Warning:</> bootstrap/app.php stub not found');
             return;
         }
 
-        $content = $this->files->get($bootstrapPath);
-        $originalContent = $content;
-        
-        // Remove api: routes/api.php line if present (since test app doesn't have this file)
-        $content = preg_replace(
-            '/\s*api:\s*__DIR__\.\s*[\'"]\.\.\/routes\/api\.php[\'"],?\s*\n/',
-            '',
-            $content
-        );
-
-        if ($content !== $originalContent) {
-            $this->files->put($bootstrapPath, $content);
-            $this->line('  <fg=green>Updated</> bootstrap/app.php (removed api routes reference)');
-            $this->line('  <fg=cyan>Info:</> API routes will be loaded from vendor/aero/core package');
-        } else {
-            $this->line('  <fg=green>✓</> bootstrap/app.php is correctly configured');
+        if ($this->files->exists($target) && ! $this->option('force')) {
+            // Check if it already has Core middleware configured
+            $content = $this->files->get($target);
+            if (str_contains($content, 'Aero\Core\Http\Middleware\Authenticate')) {
+                $this->line('  <fg=green>✓</> bootstrap/app.php already configured');
+                return;
+            }
         }
 
-        // Inform about route registration
+        $this->files->copy($stub, $target);
+        $this->line('  <fg=green>Published</> bootstrap/app.php (configured Core middleware)');
         $this->line('  <fg=cyan>Info:</> Routes are automatically registered via AeroCoreServiceProvider');
-        $this->line('  <fg=cyan>Info:</> Web routes: vendor/aero/core/routes/web.php');
-        $this->line('  <fg=cyan>Info:</> API routes: vendor/aero/core/routes/api.php (with /api prefix)');
     }
 
     /**

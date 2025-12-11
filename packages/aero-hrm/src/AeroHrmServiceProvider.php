@@ -2,14 +2,15 @@
 
 namespace Aero\HRM;
 
+use Aero\HRM\Providers\HRMServiceProvider as ModuleServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 /**
  * AeroHrmServiceProvider
  * 
- * Example service provider demonstrating how to build a module
- * that works in both SaaS and Standalone modes using the 4 Integration Pillars.
+ * Main service provider for the HRM package.
+ * Registers the module service provider which handles navigation, policies, etc.
  */
 class AeroHrmServiceProvider extends ServiceProvider
 {
@@ -20,10 +21,19 @@ class AeroHrmServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Register the HRM module service provider
+        $this->app->register(ModuleServiceProvider::class);
+        
         // Register module configuration
         $this->mergeConfigFrom(
             __DIR__ . '/../config/hrm.php',
             'hrm'
+        );
+        
+        // Register module definitions
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/modules.php',
+            'modules'
         );
     }
 
@@ -59,8 +69,9 @@ class AeroHrmServiceProvider extends ServiceProvider
     /**
      * Register module routes.
      * 
-     * Note: The ModuleRouteServiceProvider will handle this automatically,
-     * but you can also register routes manually if needed.
+     * Note: All routes are consolidated in web.php. The service provider applies:
+     * - Route prefix: 'hrm' (paths: /hrm/*)
+     * - Route name prefix: 'hrm.' (names: hrm.*)
      *
      * @return void
      */
@@ -75,28 +86,14 @@ class AeroHrmServiceProvider extends ServiceProvider
                 ->namespace('Aero\Hrm\Http\Controllers')
                 ->prefix('hrm')
                 ->name('hrm.')
-                ->group($routesPath . '/tenant.php');
-
-            // API routes
-            Route::middleware(['api', 'tenant', 'auth:sanctum'])
-                ->prefix('api/hrm')
-                ->name('api.hrm.')
-                ->namespace('Aero\Hrm\Http\Controllers\Api')
-                ->group($routesPath . '/api.php');
+                ->group($routesPath . '/web.php');
         } else {
             // Standalone Mode: Routes with standard web middleware
             Route::middleware(['web', 'auth'])
                 ->namespace('Aero\Hrm\Http\Controllers')
                 ->prefix('hrm')
                 ->name('hrm.')
-                ->group($routesPath . '/tenant.php');
-
-            // API routes
-            Route::middleware(['api', 'auth:sanctum'])
-                ->prefix('api/hrm')
-                ->name('api.hrm.')
-                ->namespace('Aero\Hrm\Http\Controllers\Api')
-                ->group($routesPath . '/api.php');
+                ->group($routesPath . '/web.php');
         }
     }
 

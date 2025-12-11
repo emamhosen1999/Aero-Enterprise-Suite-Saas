@@ -67,9 +67,10 @@ class HandleInertiaRequests extends Middleware
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar_url' => $user->avatar_url ?? null,
-                    'roles' => $user->roles->pluck('name')->toArray(),
+                    'roles' => $user->roles?->pluck('name')->toArray() ?? [],
                 ] : null,
                 'isAuthenticated' => (bool) $user,
+                'sessionValid' => (bool) $user,
             ],
             'app' => [
                 'name' => $companyName,
