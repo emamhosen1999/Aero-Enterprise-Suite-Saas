@@ -758,31 +758,31 @@ const DesktopHeader = React.memo(({
    * Handles module navigation with proper error handling and state management
    * Implements enterprise-grade navigation patterns with fallback mechanisms
    * 
-   * @param {string} pageRoute - The route to navigate to
+   * @param {string} pagePath - The path to navigate to (e.g., '/tenant/dashboard')
    * @param {string} method - HTTP method for navigation (default: 'get')
    */
-  const handleModuleNavigation = useCallback((pageRoute, method = 'get') => {
-    if (!pageRoute) {
-      console.warn('Navigation attempted without valid route');
+  const handleModuleNavigation = useCallback((pagePath, method = 'get') => {
+    if (!pagePath) {
+      console.warn('Navigation attempted without valid path');
       return;
     }
     
     try {
       // Using Inertia.js for SPA navigation with proper state management
-      router.visit(route(pageRoute), {
+      router.visit(pagePath, {
         method: method,
         preserveState: false, // Ensure fresh state for each module
         preserveScroll: false, // Reset scroll position for better UX
         replace: false, // Maintain browser history
         onStart: () => {
-          console.log(`[Navigation] Starting navigation to: ${pageRoute}`);
+          console.log(`[Navigation] Starting navigation to: ${pagePath}`);
           // Optional: Add loading state for better UX
         },
         onProgress: (progress) => {
           console.log(`[Navigation] Progress: ${progress.percentage}%`);
         },
         onSuccess: (page) => {
-          console.log(`[Navigation] Successfully navigated to: ${pageRoute}`);
+          console.log(`[Navigation] Successfully navigated to: ${pagePath}`);
           // Update any necessary application state
         },
         onError: (errors) => {
@@ -791,7 +791,7 @@ const DesktopHeader = React.memo(({
           showToast.error('Navigation failed. Please try again.');
         },
         onFinish: () => {
-          console.log(`[Navigation] Navigation completed for: ${pageRoute}`);
+          console.log(`[Navigation] Navigation completed for: ${pagePath}`);
         }
       });
     } catch (error) {
@@ -995,8 +995,8 @@ const DesktopHeader = React.memo(({
   const checkActiveRecursive = useCallback((menuItem) => {
     if (!menuItem) return false;
     
-    // Direct route match
-    if (menuItem.route && currentUrl === "/" + menuItem.route) {
+    // Direct path match
+    if (menuItem.path && currentUrl === menuItem.path) {
       return true;
     }
     
@@ -1254,14 +1254,14 @@ const DesktopHeader = React.memo(({
                                           }}
                                         >
                                           {subPage.subMenu.map((nestedPage) => {
-                                            const isNestedActive = currentUrl === "/" + nestedPage.route;
+                                            const isNestedActive = currentUrl === nestedPage.path;
                                             return (
                                               <DropdownItem
                                                 key={nestedPage.name}
                                                 textValue={nestedPage.name}
                                                 startContent={<span className="w-4 h-4 opacity-70">{nestedPage.icon}</span>}
                                                 className={isNestedActive ? "bg-primary/10 text-primary font-medium" : ""}
-                                                onPress={() => handleModuleNavigation(nestedPage.route, nestedPage.method)}
+                                                onPress={() => handleModuleNavigation(nestedPage.path, nestedPage.method)}
                                               >
                                                 {nestedPage.name}
                                               </DropdownItem>
@@ -1279,7 +1279,7 @@ const DesktopHeader = React.memo(({
                                     textValue={subPage.name}
                                     startContent={<span className="w-4 h-4 opacity-70">{subPage.icon}</span>}
                                     className={isSubActive ? "bg-primary/10 text-primary font-medium" : ""}
-                                    onPress={() => handleModuleNavigation(subPage.route, subPage.method)}
+                                    onPress={() => handleModuleNavigation(subPage.path, subPage.method)}
                                   >
                                     {subPage.name}
                                   </DropdownItem>
@@ -1302,7 +1302,7 @@ const DesktopHeader = React.memo(({
                               color: `var(--theme-foreground, #11181C)`,
                               borderRadius: `var(--borderRadius, 8px)`
                             }}
-                            onPress={() => page.route && handleModuleNavigation(page.route, page.method)}
+                            onPress={() => page.path && handleModuleNavigation(page.path, page.method)}
                           >
                             {page.name}
                           </Button>

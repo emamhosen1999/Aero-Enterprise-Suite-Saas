@@ -98,8 +98,8 @@ Route::middleware('auth:web')->group(function () {
         ->name('core.verification.send');
     
     // Dashboard Routes
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
+    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
     
     // Session & Auth Check Routes
     Route::get('/session-check', function () {
@@ -219,10 +219,48 @@ Route::middleware('auth:web')->group(function () {
         Route::post('/check-access', [ModuleController::class, 'checkAccess'])->name('check-access');
         Route::get('/{moduleCode}/requirements', [ModuleController::class, 'getModuleRequirements'])->name('requirements');
         
+        // Role Access Management
+        Route::get('/role-access/{roleId}', [ModuleController::class, 'getRoleAccess'])->name('role-access.show');
+        Route::post('/role-access/{roleId}', [ModuleController::class, 'syncRoleAccess'])->name('role-access.sync');
+        
         // Permission Sync
         Route::post('/{module}/sync-permissions', [ModuleController::class, 'syncModulePermissions'])->name('sync-permissions');
         Route::post('/sub-modules/{subModule}/sync-permissions', [ModuleController::class, 'syncSubModulePermissions'])->name('sub-modules.sync-permissions');
         Route::post('/components/{component}/sync-permissions', [ModuleController::class, 'syncComponentPermissions'])->name('components.sync-permissions');
+    });
+    
+    // ========================================================================
+    // AUDIT LOGS
+    // ========================================================================
+    Route::prefix('audit-logs')->name('core.audit-logs.')->group(function () {
+        Route::get('/', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('index');
+        Route::get('/activity', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'activityLogs'])->name('activity');
+        Route::get('/security', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'securityLogs'])->name('security');
+        Route::get('/stats', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'stats'])->name('stats');
+        Route::post('/activity/export', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'exportActivityLogs'])->name('activity.export');
+        Route::post('/security/export', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'exportSecurityLogs'])->name('security.export');
+    });
+    
+    // ========================================================================
+    // NOTIFICATIONS MANAGEMENT
+    // ========================================================================
+    Route::prefix('notifications')->name('core.notifications.')->group(function () {
+        Route::get('/', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'index'])->name('index');
+        Route::get('/list', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'list'])->name('list');
+        Route::post('/{id}/read', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::delete('/{id}', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'destroy'])->name('destroy');
+    });
+    
+    // ========================================================================
+    // FILE MANAGER
+    // ========================================================================
+    Route::prefix('files')->name('core.files.')->group(function () {
+        Route::get('/', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'index'])->name('index');
+        Route::get('/browse', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'browse'])->name('browse');
+        Route::post('/upload', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'upload'])->name('upload');
+        Route::delete('/{id}', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'destroy'])->name('destroy');
+        Route::get('/stats', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'stats'])->name('stats');
     });
     
     // ========================================================================

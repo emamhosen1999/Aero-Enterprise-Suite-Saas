@@ -3,12 +3,14 @@
 namespace Aero\Core;
 
 use Aero\Core\Providers\ModuleRouteServiceProvider;
+use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Services\ModuleManager;
+use Aero\Core\Services\ModuleRegistry;
+use Aero\Core\Services\NavigationRegistry;
+use Aero\Core\Services\RoleModuleAccessService;
 use Aero\Core\Services\RuntimeLoader;
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -46,18 +48,48 @@ class AeroCoreServiceProvider extends ServiceProvider
             });
 
             // Merge configuration
-            $this->mergeConfigFrom(
-                __DIR__.'/../config/aero.php',
-                'aero'
-            );
-
-            $this->mergeConfigFrom(
-                __DIR__.'/../config/marketplace.php',
-                'marketplace'
-            );
+            $this->mergeConfigFrom(__DIR__.'/../config/aero.php', 'aero');
+            $this->mergeConfigFrom(__DIR__.'/../config/marketplace.php', 'marketplace');
+            $this->mergeConfigFrom(__DIR__.'/../config/modules.php', 'aero-core.modules');
+            $this->mergeConfigFrom(__DIR__.'/../config/core.php', 'aero.core');
+            $this->mergeConfigFrom(__DIR__.'/../config/permission.php', 'permission');
 
             // Configure auth to use Core's User model
             config(['auth.providers.users.model' => \Aero\Core\Models\User::class]);
+
+            // Register Core Singletons
+            $this->app->singleton(ModuleRegistry::class);
+            $this->app->singleton(NavigationRegistry::class);
+            $this->app->singleton(UserRelationshipRegistry::class);
+
+            // Register Module Access Services (with error handling for missing tables)
+            $this->app->singleton(ModuleAccessService::class, function ($app) {
+                try {
+                    return new ModuleAccessService;
+                } catch (\Throwable $e) {
+                    return new class
+                    {
+                        public function __call($method, $args)
+                        {
+                            return [];
+                        }
+                    };
+                }
+            });
+
+            $this->app->singleton(RoleModuleAccessService::class, function ($app) {
+                try {
+                    return new RoleModuleAccessService;
+                } catch (\Throwable $e) {
+                    return new class
+                    {
+                        public function __call($method, $args)
+                        {
+                            return [];
+                        }
+                    };
+                }
+            });
 
             // Register RuntimeLoader as singleton (lazy-loaded)
             $this->app->singleton(RuntimeLoader::class, function ($app) {
@@ -87,8 +119,6 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             // Register ModuleRouteServiceProvider
             $this->app->register(ModuleRouteServiceProvider::class);
-
-            // Use Laravel's default authentication middleware bindings
 
             // Register helper functions
             $this->registerHelpers();
@@ -162,6 +192,9 @@ class AeroCoreServiceProvider extends ServiceProvider
             if ($this->app->runningInConsole()) {
                 $this->registerCommands();
             }
+
+            // Register core navigation from config/module.php
+            $this->registerCoreNavigation();
         } catch (\Throwable $e) {
             // Ignore errors during early boot/package discovery
             // These will be called again when the app is fully booted
@@ -302,6 +335,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         $this->commands([
             Console\Commands\InstallCommand::class,
             Console\Commands\SyncModuleHierarchy::class,
+            Console\Commands\SeedCommand::class,
         ]);
     }
 
@@ -367,6 +401,81 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         return [
             RuntimeLoader::class,
+            ModuleRegistry::class,
+            NavigationRegistry::class,
+            UserRelationshipRegistry::class,
+            ModuleAccessService::class,
+            RoleModuleAccessService::class,
         ];
+    }
+
+    /**
+     * Register core navigation items from config/module.php.
+     */
+    protected function registerCoreNavigation(): void
+    {
+        /** @var NavigationRegistry $registry */
+        $registry = $this->app->make(NavigationRegistry::class);
+
+        // Load core module config
+        $configPath = __DIR__.'/../config/module.php';
+        $config = file_exists($configPath) ? require $configPath : [];
+
+        // Build navigation children from config submodules
+        $children = [];
+        foreach ($config['submodules'] ?? [] as $submodule) {
+            // Skip authentication submodule from navigation
+            if (($submodule['code'] ?? '') === 'authentication') {
+                continue;
+            }
+
+            // Get submodule icon for fallback
+            $submoduleIcon = $submodule['icon'] ?? 'FolderIcon';
+
+            // Build component children for this submodule
+            $componentChildren = [];
+            foreach ($submodule['components'] ?? [] as $component) {
+                // Only include components with routes
+                if (!empty($component['route'])) {
+                    $componentChildren[] = [
+                        'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
+                        'icon' => $component['icon'] ?? $submoduleIcon, // Inherit parent icon as fallback
+                        'path' => $component['route'],
+                        'access' => 'core.'.($submodule['code'] ?? '').'.'.($component['code'] ?? ''),
+                        'type' => $component['type'] ?? 'page',
+                    ];
+                }
+            }
+
+            // Create submodule navigation item
+            $submoduleItem = [
+                'name' => $submodule['name'] ?? ucfirst($submodule['code'] ?? ''),
+                'icon' => $submodule['icon'] ?? 'FolderIcon',
+                'path' => $submodule['route'] ?? null,
+                'access' => 'core.'.($submodule['code'] ?? ''),
+                'priority' => $submodule['priority'] ?? 100,
+            ];
+
+            // Add component children if there are multiple with routes
+            // If only one component or submodule has same route as first component, don't nest
+            if (count($componentChildren) > 1) {
+                $submoduleItem['children'] = $componentChildren;
+            }
+
+            $children[] = $submoduleItem;
+        }
+
+        // Sort children by priority
+        usort($children, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+
+        // Register core navigation with highest priority (1)
+        $registry->register('core', [
+            [
+                'name' => $config['name'] ?? 'Core',
+                'icon' => $config['icon'] ?? 'CubeIcon',
+                'access' => 'core',
+                'children' => $children,
+            ],
+        ], $config['priority'] ?? 1);
     }
 }

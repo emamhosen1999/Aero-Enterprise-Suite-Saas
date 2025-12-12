@@ -242,9 +242,8 @@ const ModuleManagement = (props) => {
     const canManageStructure = can_manage_structure;
 
     // Helper to get correct API base URL based on context
-    // Platform context (admin subdomain) uses /modules directly (domain-based routing)
-    // Tenant context uses /admin/modules (web guard)
-    const getModulesApiBase = () => isPlatformContext ? '/modules' : '/admin/modules';
+    // All module routes are now at /modules (not /admin/modules)
+    const getModulesApiBase = () => '/modules';
 
     // Route helper for context-aware routes
     const getRoute = (routeName, params = null) => {

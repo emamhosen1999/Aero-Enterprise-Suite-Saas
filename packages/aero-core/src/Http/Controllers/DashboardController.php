@@ -3,7 +3,6 @@
 namespace Aero\Core\Http\Controllers;
 
 use Aero\Core\Models\User;
-use Aero\Core\Services\NavigationRegistry;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,10 +21,6 @@ class DashboardController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
-
-        // Get navigation from registry
-        $navigationRegistry = app(NavigationRegistry::class);
-        $navigation = $navigationRegistry->all();
 
         // Basic stats with null safety
         $stats = [
@@ -46,10 +41,11 @@ class DashboardController extends Controller
             }
         }
 
+        // Note: Navigation is provided by HandleInertiaRequests middleware
+        // Do NOT pass 'navigation' here as it would override the middleware's prop
         return Inertia::render('Core/Dashboard', [
             'title' => 'Dashboard',
             'stats' => $stats,
-            'navigation' => $navigation,
         ]);
     }
 

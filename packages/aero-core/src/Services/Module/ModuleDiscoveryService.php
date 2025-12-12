@@ -8,32 +8,22 @@ use Illuminate\Support\Facades\File;
 /**
  * Module Discovery Service
  * 
- * Scans all active packages and merges their config/module.php files
+ * Scans installed Aero packages and loads their config/module.php files
  * into a single unified structure for permission syncing.
  * 
- * This replaces the monolithic config/modules.php with a decentralized approach.
+ * Only discovers modules that are:
+ * 1. Installed via Composer (in vendor/aero/)
+ * 2. Or loaded as runtime modules (in modules/)
  */
 class ModuleDiscoveryService
 {
     /**
-     * Package directories to scan for modules
+     * Aero package vendor prefix
      */
-    protected array $packagePaths = [
-        'packages/aero-core',
-        'packages/aero-hrm',
-        'packages/aero-crm',
-        'packages/aero-finance',
-        'packages/aero-project',
-        'packages/aero-pos',
-        'packages/aero-ims',
-        'packages/aero-scm',
-        'packages/aero-dms',
-        'packages/aero-quality',
-        'packages/aero-compliance',
-    ];
+    protected string $vendorPrefix = 'aero';
 
     /**
-     * Get all module definitions from active packages
+     * Get all module definitions from installed packages
      * 
      * @return Collection
      */
@@ -41,38 +31,58 @@ class ModuleDiscoveryService
     {
         $definitions = collect();
 
-        foreach ($this->packagePaths as $packagePath) {
-            // Support both monorepo and standalone structures
-            $fullPath = base_path($packagePath);
-            
-            // If packages dir doesn't exist at base_path, try two levels up (monorepo)
-            if (!File::exists($fullPath)) {
-                $fullPath = base_path('../../' . $packagePath);
-            }
-            
-            $configPath = $fullPath . '/config/module.php';
-
-            // Skip if package or config doesn't exist
-            if (!File::exists($fullPath) || !File::exists($configPath)) {
-                continue;
-            }
-
-            try {
-                $moduleConfig = require $configPath;
-                
-                // Validate module config has required fields
-                if (is_array($moduleConfig) && $this->isValidModuleConfig($moduleConfig)) {
+        // 1. Discover packages installed via Composer (vendor/aero/*)
+        $vendorPath = base_path('vendor/' . $this->vendorPrefix);
+        if (File::exists($vendorPath)) {
+            foreach (File::directories($vendorPath) as $packagePath) {
+                $moduleConfig = $this->loadModuleConfig($packagePath);
+                if ($moduleConfig) {
                     $definitions->push($moduleConfig);
-                } else {
-                    \Log::debug("Skipping incomplete module config from {$packagePath}");
                 }
-            } catch (\Exception $e) {
-                // Log error but continue processing other modules
-                \Log::warning("Failed to load module config from {$packagePath}: " . $e->getMessage());
+            }
+        }
+
+        // 2. Discover runtime modules (modules/*)
+        $runtimePath = base_path('modules');
+        if (File::exists($runtimePath)) {
+            foreach (File::directories($runtimePath) as $modulePath) {
+                $moduleConfig = $this->loadModuleConfig($modulePath);
+                if ($moduleConfig) {
+                    $definitions->push($moduleConfig);
+                }
             }
         }
 
         return $definitions;
+    }
+
+    /**
+     * Load module config from a package path
+     * 
+     * @param string $packagePath
+     * @return array|null
+     */
+    protected function loadModuleConfig(string $packagePath): ?array
+    {
+        $configPath = $packagePath . '/config/module.php';
+
+        if (!File::exists($configPath)) {
+            return null;
+        }
+
+        try {
+            $moduleConfig = require $configPath;
+            
+            if (is_array($moduleConfig) && $this->isValidModuleConfig($moduleConfig)) {
+                return $moduleConfig;
+            }
+            
+            \Log::debug("Skipping incomplete module config from {$packagePath}");
+        } catch (\Exception $e) {
+            \Log::warning("Failed to load module config from {$packagePath}: " . $e->getMessage());
+        }
+
+        return null;
     }
 
     /**

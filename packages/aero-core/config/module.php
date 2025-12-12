@@ -66,7 +66,7 @@ return [
             'name' => 'Dashboard',
             'description' => 'Main dashboard and overview',
             'icon' => 'HomeIcon',
-            'route' => '/tenant/dashboard',
+            'route' => '/dashboard',
             'priority' => 1,
 
             'components' => [
@@ -74,7 +74,7 @@ return [
                     'code' => 'overview',
                     'name' => 'Dashboard Overview',
                     'type' => 'page',
-                    'route' => '/tenant/dashboard',
+                    'route' => '/dashboard',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Dashboard'],
                     ],
@@ -100,7 +100,7 @@ return [
             'name' => 'User Management',
             'description' => 'User accounts, authentication, and invitations',
             'icon' => 'UserGroupIcon',
-            'route' => '/tenant/users',
+            'route' => '/users',
             'priority' => 2,
 
             'components' => [
@@ -108,7 +108,7 @@ return [
                     'code' => 'users',
                     'name' => 'Users',
                     'type' => 'page',
-                    'route' => '/tenant/users',
+                    'route' => '/users',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Users'],
                         ['code' => 'create', 'name' => 'Create User'],
@@ -130,7 +130,7 @@ return [
                     'code' => 'user_invitations',
                     'name' => 'User Invitations',
                     'type' => 'page',
-                    'route' => '/tenant/users/invitations',
+                    'route' => '/users/invitations',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Invitations'],
                         ['code' => 'invite', 'name' => 'Invite User'],
@@ -142,7 +142,7 @@ return [
                     'code' => 'user_profile',
                     'name' => 'User Profile',
                     'type' => 'page',
-                    'route' => '/tenant/profile',
+                    'route' => '/profile',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Profile'],
                         ['code' => 'edit', 'name' => 'Edit Profile'],
@@ -163,7 +163,7 @@ return [
             'name' => 'Authentication',
             'description' => 'Authentication and security settings',
             'icon' => 'KeyIcon',
-            'route' => '/tenant/auth',
+            'route' => null,
             'priority' => 3,
 
             'components' => [
@@ -171,7 +171,7 @@ return [
                     'code' => 'devices',
                     'name' => 'Device Management',
                     'type' => 'page',
-                    'route' => '/tenant/devices',
+                    'route' => '/my-devices',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Devices'],
                         ['code' => 'toggle', 'name' => 'Toggle Device Trust'],
@@ -194,7 +194,7 @@ return [
                     'code' => 'sessions',
                     'name' => 'Session Management',
                     'type' => 'page',
-                    'route' => '/tenant/sessions',
+                    'route' => null,
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Sessions'],
                         ['code' => 'terminate', 'name' => 'Terminate Session'],
@@ -214,7 +214,7 @@ return [
             'name' => 'Roles & Module Access',
             'description' => 'Role-based access control and module permissions',
             'icon' => 'ShieldCheckIcon',
-            'route' => '/tenant/roles',
+            'route' => '/roles',
             'priority' => 4,
 
             'components' => [
@@ -222,7 +222,7 @@ return [
                     'code' => 'roles',
                     'name' => 'Roles',
                     'type' => 'page',
-                    'route' => '/tenant/roles',
+                    'route' => '/roles',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Roles'],
                         ['code' => 'create', 'name' => 'Create Role'],
@@ -235,7 +235,7 @@ return [
                     'code' => 'module_access',
                     'name' => 'Module Access',
                     'type' => 'page',
-                    'route' => '/tenant/modules',
+                    'route' => '/modules',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Modules'],
                         ['code' => 'configure', 'name' => 'Configure Module Access'],
@@ -255,7 +255,7 @@ return [
             'name' => 'Audit & Activity Logs',
             'description' => 'View system activity, user actions, and security events',
             'icon' => 'ClipboardDocumentListIcon',
-            'route' => '/tenant/audit',
+            'route' => '/audit-logs',
             'priority' => 5,
 
             'components' => [
@@ -263,7 +263,7 @@ return [
                     'code' => 'activity_logs',
                     'name' => 'Activity Logs',
                     'type' => 'page',
-                    'route' => '/tenant/audit/activity',
+                    'route' => '/audit-logs',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Activity Logs'],
                         ['code' => 'export', 'name' => 'Export Activity Logs'],
@@ -274,7 +274,7 @@ return [
                     'code' => 'security_logs',
                     'name' => 'Security Logs',
                     'type' => 'page',
-                    'route' => '/tenant/audit/security',
+                    'route' => '/audit-logs/security',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Security Logs'],
                         ['code' => 'export', 'name' => 'Export Security Logs'],
@@ -294,7 +294,7 @@ return [
             'name' => 'Notifications',
             'description' => 'Manage notification channels, templates, and broadcasts',
             'icon' => 'BellIcon',
-            'route' => '/tenant/notifications',
+            'route' => '/notifications',
             'priority' => 6,
 
             'components' => [
@@ -302,7 +302,7 @@ return [
                     'code' => 'channels',
                     'name' => 'Notification Channels',
                     'type' => 'page',
-                    'route' => '/tenant/notifications/channels',
+                    'route' => null,
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Channels'],
                         ['code' => 'configure', 'name' => 'Configure Channel'],
@@ -313,7 +313,7 @@ return [
                     'code' => 'templates',
                     'name' => 'Notification Templates',
                     'type' => 'page',
-                    'route' => '/tenant/notifications/templates',
+                    'route' => null,
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Templates'],
                         ['code' => 'create', 'name' => 'Create Template'],
@@ -334,7 +334,7 @@ return [
             'name' => 'File Manager',
             'description' => 'Manage file storage and media library',
             'icon' => 'FolderOpenIcon',
-            'route' => '/tenant/files',
+            'route' => '/files',
             'priority' => 7,
 
             'components' => [
@@ -342,7 +342,7 @@ return [
                     'code' => 'storage',
                     'name' => 'Storage Management',
                     'type' => 'page',
-                    'route' => '/tenant/files/storage',
+                    'route' => null,
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Storage'],
                         ['code' => 'configure', 'name' => 'Configure Storage'],
@@ -353,7 +353,7 @@ return [
                     'code' => 'media_library',
                     'name' => 'Media Library',
                     'type' => 'page',
-                    'route' => '/tenant/files/media',
+                    'route' => null,
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Media'],
                         ['code' => 'upload', 'name' => 'Upload Media'],
@@ -373,7 +373,7 @@ return [
             'name' => 'Settings',
             'description' => 'Application settings and preferences',
             'icon' => 'Cog8ToothIcon',
-            'route' => '/tenant/settings',
+            'route' => '/settings/system',
             'priority' => 99,
 
             'components' => [
@@ -381,7 +381,7 @@ return [
                     'code' => 'general',
                     'name' => 'General Settings',
                     'type' => 'page',
-                    'route' => '/tenant/settings/general',
+                    'route' => '/settings/system',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Settings'],
                         ['code' => 'edit', 'name' => 'Edit Settings'],
@@ -391,7 +391,7 @@ return [
                     'code' => 'security',
                     'name' => 'Security Settings',
                     'type' => 'page',
-                    'route' => '/tenant/settings/security',
+                    'route' => null,
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Settings'],
                         ['code' => 'edit', 'name' => 'Edit Settings'],
@@ -403,7 +403,7 @@ return [
                     'code' => 'localization',
                     'name' => 'Localization',
                     'type' => 'page',
-                    'route' => '/tenant/settings/localization',
+                    'route' => null,
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Settings'],
                         ['code' => 'edit', 'name' => 'Edit Settings'],

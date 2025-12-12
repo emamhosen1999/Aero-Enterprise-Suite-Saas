@@ -203,6 +203,7 @@ class HRMServiceProvider extends AbstractModuleProvider
 
         $navRegistry = $this->app->make(NavigationRegistry::class);
         $config = $this->getModuleConfig();
+        $modulePriority = $this->getModulePriority();
 
         // Build navigation children from config submodules
         $children = [];
@@ -219,15 +220,16 @@ class HRMServiceProvider extends AbstractModuleProvider
         // Sort children by priority
         usort($children, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
 
-        // Register main HRM navigation
+        // Register main HRM navigation with module as parent wrapper
         $navRegistry->register($this->moduleCode, [
             [
-                'name' => $config['name'] ?? 'HRM',
+                'name' => $config['name'] ?? 'Human Resources',
                 'icon' => $config['icon'] ?? 'UserGroupIcon',
                 'access' => $this->moduleCode,
+                'priority' => $modulePriority, // Add priority to the parent item
                 'children' => $children,
             ],
-        ], $this->getModulePriority());
+        ], $modulePriority);
     }
 
     /**

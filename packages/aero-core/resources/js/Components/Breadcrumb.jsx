@@ -1,43 +1,51 @@
 import React from 'react';
 import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
 import { HomeIcon } from '@heroicons/react/24/outline';
+import * as OutlineIcons from '@heroicons/react/24/outline';
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { getPages } from '@/Props/pages.jsx';
-import { getSettingsPages } from '@/Props/settings.jsx';
 
+/**
+ * Icon Resolver - converts string icon names to React components
+ */
+const getIcon = (icon) => {
+    if (typeof icon === 'function' || typeof icon === 'object') {
+        return icon;
+    }
+    if (typeof icon === 'string' && OutlineIcons[icon]) {
+        return OutlineIcons[icon];
+    }
+    return null;
+};
+
+/**
+ * Breadcrumb Component
+ * Uses navigation from backend props (via Inertia shared props)
+ */
 const Breadcrumb = () => {
     const { props, url } = usePage();
-    const { title, auth } = props;
+    const { title, navigation } = props;
     
-    // Get permissions and determine if we're on a settings page
-    const permissions = auth?.permissions || [];
-    const roles = auth?.roles || [];
-    const isSettingsPage = url.startsWith('/settings') || url.includes('settings');
+    // Navigation is a flat array of items from backend
+    const pages = Array.isArray(navigation) ? navigation : [];
     
-    // Get the appropriate pages data
-    const pages = isSettingsPage 
-        ? getSettingsPages(permissions, auth) 
-        : getPages(roles, permissions, auth);
-    
-    // Function to find a page by route name in nested structure
-    const findPageByRoute = (pages, routeName) => {
+    // Function to find a page by path in flat structure
+    const findPageByPath = (pages, currentPath) => {
         for (const page of pages) {
-            // Check if this page matches
-            if (page.route === routeName) {
+            if (page.path === currentPath) {
                 return page;
             }
-            // Check subMenu if it exists
-            if (page.subMenu) {
-                for (const subPage of page.subMenu) {
-                    if (subPage.route === routeName) {
-                        return { parent: page, page: subPage };
+            // Check children if they exist
+            if (page.children) {
+                for (const child of page.children) {
+                    if (child.path === currentPath) {
+                        return { parent: page, page: child };
                     }
-                    // Check nested subMenu
-                    if (subPage.subMenu) {
-                        for (const nestedPage of subPage.subMenu) {
-                            if (nestedPage.route === routeName) {
-                                return { parent: page, subParent: subPage, page: nestedPage };
+                    // Check nested children
+                    if (child.children) {
+                        for (const nested of child.children) {
+                            if (nested.path === currentPath) {
+                                return { parent: page, subParent: child, page: nested };
                             }
                         }
                     }
@@ -47,110 +55,76 @@ const Breadcrumb = () => {
         return null;
     };
     
-    // Generate breadcrumb items based on current route
+    // Generate breadcrumb items based on current path
     const generateBreadcrumbs = () => {
         const breadcrumbs = [];
-        let currentRoute;
-        
-        try {
-            currentRoute = route().current();
-        } catch (error) {
-            console.warn('Route function not available:', error);
-            currentRoute = null;
-        }
         
         // Always add Home breadcrumb first
         breadcrumbs.push({
             label: "Home",
             icon: <HomeIcon className="w-4 h-4" />,
-            href: (() => {
-                try {
-                    return route('core.dashboard');
-                } catch {
-                    return '/';
-                }
-            })(),
+            href: '/dashboard',
             key: 'home'
         });
         
-        if (!currentRoute) {
-            // Fallback if no route found
-            breadcrumbs.push({
-                label: title || 'Current Page',
-                icon: null,
-                href: null,
-                key: 'current'
-            });
-            return breadcrumbs;
-        }
-        
-        // Find the current page in the pages data
-        const pageData = findPageByRoute(pages, currentRoute);
+        // Find the current page in navigation
+        const pageData = findPageByPath(pages, url);
         
         if (pageData) {
             if (pageData.parent && pageData.subParent) {
                 // Three-level deep: Parent > SubParent > Current
+                const ParentIcon = getIcon(pageData.parent.icon);
+                const SubParentIcon = getIcon(pageData.subParent.icon);
+                const PageIcon = getIcon(pageData.page.icon);
+                
                 breadcrumbs.push({
                     label: pageData.parent.name,
-                    icon: React.cloneElement(pageData.parent.icon, { className: "w-4 h-4" }),
-                    href: pageData.parent.route ? (() => {
-                        try {
-                            return route(pageData.parent.route);
-                        } catch {
-                            return null;
-                        }
-                    })() : null,
+                    icon: ParentIcon ? <ParentIcon className="w-4 h-4" /> : null,
+                    href: pageData.parent.path || null,
                     key: 'parent'
                 });
                 breadcrumbs.push({
                     label: pageData.subParent.name,
-                    icon: React.cloneElement(pageData.subParent.icon, { className: "w-4 h-4" }),
-                    href: pageData.subParent.route ? (() => {
-                        try {
-                            return route(pageData.subParent.route);
-                        } catch {
-                            return null;
-                        }
-                    })() : null,
+                    icon: SubParentIcon ? <SubParentIcon className="w-4 h-4" /> : null,
+                    href: pageData.subParent.path || null,
                     key: 'subparent'
                 });
                 breadcrumbs.push({
                     label: pageData.page.name,
-                    icon: React.cloneElement(pageData.page.icon, { className: "w-4 h-4" }),
+                    icon: PageIcon ? <PageIcon className="w-4 h-4" /> : null,
                     href: null, // Current page
                     key: 'current'
                 });
             } else if (pageData.parent) {
                 // Two-level deep: Parent > Current
+                const ParentIcon = getIcon(pageData.parent.icon);
+                const PageIcon = getIcon(pageData.page.icon);
+                
                 breadcrumbs.push({
                     label: pageData.parent.name,
-                    icon: React.cloneElement(pageData.parent.icon, { className: "w-4 h-4" }),
-                    href: pageData.parent.route ? (() => {
-                        try {
-                            return route(pageData.parent.route);
-                        } catch {
-                            return null;
-                        }
-                    })() : null,
+                    icon: ParentIcon ? <ParentIcon className="w-4 h-4" /> : null,
+                    href: pageData.parent.path || null,
                     key: 'parent'
                 });
                 breadcrumbs.push({
                     label: pageData.page.name,
-                    icon: React.cloneElement(pageData.page.icon, { className: "w-4 h-4" }),
+                    icon: PageIcon ? <PageIcon className="w-4 h-4" /> : null,
                     href: null, // Current page
                     key: 'current'
                 });
             } else {
                 // Top-level page
+                const PageIcon = getIcon(pageData.icon);
+                
                 breadcrumbs.push({
                     label: pageData.name,
-                    icon: React.cloneElement(pageData.icon, { className: "w-4 h-4" }),
+                    icon: PageIcon ? <PageIcon className="w-4 h-4" /> : null,
                     href: null, // Current page
                     key: 'current'
                 });
             }
         } else {
-            // Fallback if page not found in data
+            // Fallback: use page title from props
             breadcrumbs.push({
                 label: title || 'Current Page',
                 icon: null,
@@ -170,7 +144,7 @@ const Breadcrumb = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-7xl "
+                className="w-full max-w-7xl"
             >
                 <Breadcrumbs
                     separator="/"

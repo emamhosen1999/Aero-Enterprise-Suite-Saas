@@ -16,7 +16,8 @@
     ],
     "require": {
         "php": "^8.2",
-         "aero/core": "@dev",
+        "aero/core": "@dev",
+        "aero/hrm": "^1.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1"
     },

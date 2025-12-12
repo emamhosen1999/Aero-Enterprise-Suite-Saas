@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Link, usePage } from "@inertiajs/react";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { useBranding } from '@/Hooks/useBranding';
@@ -40,18 +40,43 @@ import { motion, AnimatePresence } from 'framer-motion';
  * @returns {React.Component} Icon component ready for rendering
  */
 const getIcon = (icon) => {
+  // Fallback icon - always guaranteed to exist
+  const FallbackIcon = OutlineIcons.Squares2X2Icon || Squares2X2Icon;
+  
+  // Handle null/undefined
+  if (!icon) {
+    return FallbackIcon;
+  }
+  
   // If already a React Component (Core navigation), return it
-  if (typeof icon === 'function' || typeof icon === 'object') {
+  if (typeof icon === 'function') {
+    return icon;
+  }
+  
+  // If it's a React element (object with $$typeof), return fallback since we can't use it with createElement
+  if (typeof icon === 'object' && icon !== null) {
+    // Check if it's a valid React component type
+    if (icon.$$typeof) {
+      return FallbackIcon;
+    }
     return icon;
   }
   
   // If it's a string from a module, look it up in HeroIcons
-  if (typeof icon === 'string' && OutlineIcons[icon]) {
-    return OutlineIcons[icon];
+  if (typeof icon === 'string') {
+    const IconComponent = OutlineIcons[icon];
+    if (IconComponent) {
+      return IconComponent;
+    }
+    // Try with 'Icon' suffix if not found
+    const IconWithSuffix = OutlineIcons[icon + 'Icon'];
+    if (IconWithSuffix) {
+      return IconWithSuffix;
+    }
   }
   
   // Fallback icon if not found
-  return OutlineIcons.Squares2X2Icon || Squares2X2Icon;
+  return FallbackIcon;
 };
 
 // Helper function to highlight search matches
@@ -137,11 +162,30 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   const [activePage, setActivePage] = useState(url);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Normalize navigation data - convert 'children' to 'subMenu' for consistency
+  const normalizePages = useCallback((pagesList) => {
+    if (!Array.isArray(pagesList)) return [];
+    return pagesList.map(page => {
+      const normalized = { ...page };
+      // Support both 'children' (from backend) and 'subMenu' (legacy)
+      if (page.children && !page.subMenu) {
+        normalized.subMenu = normalizePages(page.children);
+        delete normalized.children;
+      } else if (page.subMenu) {
+        normalized.subMenu = normalizePages(page.subMenu);
+      }
+      return normalized;
+    });
+  }, []);
+  
+  // Memoize normalized pages to prevent infinite re-renders
+  const normalizedPages = useMemo(() => normalizePages(pages), [pages, normalizePages]);
+  
   // HeroUI will handle theming automatically through semantic colors
   
-  // Fresh grouped pages - always recalculate for latest data
-  const groupedPages = (() => {
-    let allPages = pages;
+  // Memoized grouped pages - recalculate only when dependencies change
+  const groupedPages = useMemo(() => {
+    let allPages = normalizedPages;
     
     // Filter pages based on search term
     if (searchTerm.trim()) {
@@ -164,14 +208,14 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         });
       };
       
-      allPages = filterPagesRecursively(pages);
+      allPages = filterPagesRecursively(normalizedPages);
     }
     
     const mainPages = allPages.filter(page => !page.category || page.category === 'main');
     const settingsPages = allPages.filter(page => page.category === 'settings');
     
     return { mainPages, settingsPages };
-  })();
+  }, [normalizedPages, searchTerm]);
 
   // Auto-expand menus when searching
   useEffect(() => {
@@ -197,10 +241,11 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         return expandedSet;
       };
       
-      const newExpandedMenus = expandAllWithMatches(pages);
+      const newExpandedMenus = expandAllWithMatches(normalizedPages);
       updateOpenSubMenus(newExpandedMenus);
     }
-  }, [searchTerm, pages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]); // Only trigger on searchTerm change, normalizedPages is stable
 
   // Update active page when URL changes
   useEffect(() => {
@@ -211,7 +256,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       for (const page of menuItems) {
         const currentParents = [...parentNames, page.name];
         
-        if (page.route && "/" + page.route === targetUrl) {
+        if (page.path && page.path === targetUrl) {
           const newSet = new Set([...openSubMenus, ...currentParents.slice(0, -1)]);
           updateOpenSubMenus(newSet);
           return true;
@@ -226,8 +271,9 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       return false;
     };
     
-    expandParentMenus(pages, url);
-  }, [url, pages]);
+    expandParentMenus(normalizedPages, url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]); // Only trigger on URL change
 
   // Simple callback handlers - no useCallback for fresh execution
   const handleSubMenuToggle = (pageName) => {
@@ -240,8 +286,8 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     updateOpenSubMenus(newSet);
   };
 
-  const handlePageClick = (pageRoute) => {
-    setActivePage("/" + pageRoute);
+  const handlePageClick = (pagePath) => {
+    setActivePage(pagePath);
     // Clear search when navigating to a page
     setSearchTerm('');
     if (isMobile) {
@@ -250,11 +296,11 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   };
 
   const renderCompactMenuItem = (page, isSubMenu = false, level = 0) => {
-    const isActive = activePage === "/" + page.route;
+    const isActive = page.path && activePage === page.path;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
-        if (subPage.route) return "/" + subPage.route === activePage;
-        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => "/" + nestedPage.route === activePage);
+        if (subPage.path) return subPage.path === activePage;
+        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => nestedPage.path === activePage);
         return false;
       }
     );
@@ -347,13 +393,13 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
     
-    // No submenu - leaf item
-    if (page.route) {
+    // No submenu - leaf item (uses direct path from backend)
+    if (page.path) {
       return (
         <div key={`route-item-${page.name}-${level}`}>
           <Button
             as={Link}
-            href={route(page.route)}
+            href={page.path}
             method={page.method}
             preserveState
             preserveScroll
@@ -383,7 +429,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
               }
             }}
-            onPress={() => handlePageClick(page.route)}
+            onPress={() => handlePageClick(page.path)}
             size="sm"
           >
             <span 
@@ -397,7 +443,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
     
-    // Category header without route
+    // Category header without path
     return (
       <div 
         key={`category-item-${page.name}-${level}`} 
@@ -479,11 +525,11 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   };
 
   const renderMenuItem = (page, isSubMenu = false, level = 0) => {
-    const isActive = page.route && activePage === "/" + page.route;
+    const isActive = page.path && activePage === page.path;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
-        if (subPage.route) return "/" + subPage.route === activePage;
-        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => "/" + nestedPage.route === activePage);
+        if (subPage.path) return subPage.path === activePage;
+        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => nestedPage.path === activePage);
         return false;
       }
     );
@@ -579,13 +625,13 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
 
-    // No submenu - either a route or category
-    if (page.route) {
+    // No submenu - either a path or category
+    if (page.path) {
       return (
         <Button
           key={`full-route-item-${page.name}-${level}`}
           as={Link}
-          href={route(page.route)}
+          href={page.path}
           method={page.method}
           preserveState
           preserveScroll
@@ -615,7 +661,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
             }
           }}
-          onPress={() => handlePageClick(page.route)}
+          onPress={() => handlePageClick(page.path)}
           size="sm"
         >
           <span className="text-sm font-medium" style={{ color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}>
@@ -625,7 +671,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
 
-    // Category without route - just display as header
+    // Category without path - just display as header
     return (
       <div key={`full-category-item-${page.name}-${level}`} className="w-full">
         <div className={`${paddingLeft} pr-4 py-2`}>

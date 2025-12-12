@@ -2,13 +2,110 @@
 
 namespace Aero\Core\Http\Controllers\Notification;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class NotificationController extends Controller
 {
+    /**
+     * Display the notifications management page.
+     */
+    public function index(): Response
+    {
+        return Inertia::render('Notifications/Index', [
+            'title' => 'Notifications',
+        ]);
+    }
+
+    /**
+     * Get paginated notifications for the current user.
+     */
+    public function list(Request $request)
+    {
+        $user = Auth::user();
+        $perPage = $request->get('per_page', 15);
+        $filter = $request->get('filter', 'all');
+
+        $query = $user->notifications();
+
+        if ($filter === 'unread') {
+            $query->whereNull('read_at');
+        } elseif ($filter === 'read') {
+            $query->whereNotNull('read_at');
+        }
+
+        $notifications = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        return response()->json([
+            'data' => $notifications->items(),
+            'meta' => [
+                'current_page' => $notifications->currentPage(),
+                'last_page' => $notifications->lastPage(),
+                'per_page' => $notifications->perPage(),
+                'total' => $notifications->total(),
+            ],
+            'unread_count' => $user->unreadNotifications()->count(),
+        ]);
+    }
+
+    /**
+     * Mark a notification as read.
+     */
+    public function markAsRead(string $id)
+    {
+        $notification = Auth::user()
+            ->notifications()
+            ->where('id', $id)
+            ->first();
+
+        if ($notification) {
+            $notification->markAsRead();
+        }
+
+        return response()->json([
+            'message' => 'Notification marked as read',
+            'unread_count' => Auth::user()->unreadNotifications()->count(),
+        ]);
+    }
+
+    /**
+     * Mark all notifications as read.
+     */
+    public function markAllAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+
+        return response()->json([
+            'message' => 'All notifications marked as read',
+            'unread_count' => 0,
+        ]);
+    }
+
+    /**
+     * Delete a notification.
+     */
+    public function destroy(string $id)
+    {
+        $notification = Auth::user()
+            ->notifications()
+            ->where('id', $id)
+            ->first();
+
+        if ($notification) {
+            $notification->delete();
+        }
+
+        return response()->json([
+            'message' => 'Notification deleted',
+        ]);
+    }
+
     public function sendPushNotification($token, $title, $body): \Illuminate\Http\JsonResponse
     {
 

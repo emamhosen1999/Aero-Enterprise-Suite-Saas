@@ -3,7 +3,6 @@ import { usePage } from "@inertiajs/react";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Inertia } from '@inertiajs/inertia';
-import { getPages, getSettingsPages, getAdminPages } from '@/utils/navigationProvider.js';
 import { ScrollShadow, Divider } from "@heroui/react";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -133,7 +132,8 @@ const App = React.memo(({ children }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Get global page props
-  const { auth, app, url, roles, context: domainContext = 'tenant' } = usePage().props;
+  // Navigation is a flat array of items from backend (only installed modules)
+  const { auth, app, url, roles, navigation } = usePage().props;
   
   // Get domain-aware branding
   const { favicon, siteName } = useBranding();
@@ -148,35 +148,36 @@ const App = React.memo(({ children }) => {
   } = useVersionManager();
 
   // ===== NAVIGATION DATA =====
-  // Recalculates when auth changes to ensure navigation reflects user permissions
+  // Navigation comes directly from backend via Inertia props
+  // Backend only registers navigation for installed modules
   const staticLayoutData = useMemo(() => {
+    // DEBUG: Log navigation data from backend
+    console.log('[App.jsx] Navigation from backend:', navigation);
+    console.log('[App.jsx] Navigation type:', typeof navigation);
+    console.log('[App.jsx] Is array:', Array.isArray(navigation));
+    
     const currentAuth = {
       user: auth?.user,
       permissions: auth?.permissions,
       roles: auth?.roles,
       id: auth?.user?.id,
       permissionCount: auth?.permissions?.length,
-      // Include super admin flags for navigation filtering
       isPlatformSuperAdmin: auth?.isPlatformSuperAdmin ?? false,
       isTenantSuperAdmin: auth?.isTenantSuperAdmin ?? false,
       isSuperAdmin: auth?.isSuperAdmin ?? false,
       isAdmin: auth?.isAdmin ?? false,
     };
 
-    const permissions = currentAuth?.permissions || [];
-    const derivedRoles = roles?.length ? roles : (currentAuth?.roles || []);
-    const isAdminContext = domainContext === 'admin';
-    const isSettingsPage = !isAdminContext && (url.startsWith('/settings') || url.includes('settings'));
-    const pages = isAdminContext
-      ? getAdminPages(currentAuth)
-      : isSettingsPage
-        ? getSettingsPages(permissions, currentAuth)
-        : getPages(derivedRoles, permissions, currentAuth);
+    // Navigation is a flat array of items from backend
+    // Each item has: name, icon (string), path, access, priority, children
+    const pages = Array.isArray(navigation) ? navigation : [];
+    
+    console.log('[App.jsx] Pages to render:', pages);
 
     return {
       currentAuth,
-      permissions,
-      roles: derivedRoles,
+      permissions: currentAuth?.permissions || [],
+      roles: roles?.length ? roles : (currentAuth?.roles || []),
       pages,
       app,
       url
@@ -190,10 +191,10 @@ const App = React.memo(({ children }) => {
     auth?.permissions,
     auth?.roles,
     roles,
-    domainContext,
     url,
-    app
-  ]); // Recalculate when auth or context changes
+    app,
+    navigation
+  ]); // Recalculate when auth or navigation changes
 
   // Responsive breakpoints
   const isMobile = useMediaQuery('(max-width: 768px)');

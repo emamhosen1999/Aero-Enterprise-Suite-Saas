@@ -91,20 +91,42 @@ class NavigationRegistry
     }
 
     /**
-     * Get navigation data for frontend (JSON serializable).
+     * Get navigation items ready for frontend.
+     * 
+     * Core module: submodules are promoted to top level (Dashboard, Users, Roles, Settings)
+     * Other modules: wrapped under module name (Human Resources → Employees, Attendance, etc.)
+     * 
+     * Structure for non-core: [{ name: "Human Resources", children: [submodules...] }]
      */
     public function toFrontend(): array
     {
-        return [
-            'modules' => $this->getModuleCodes(),
-            'items' => $this->all(),
-            'byModule' => collect($this->navigationItems)
-                ->sortBy('priority')
-                ->mapWithKeys(function ($data, $code) {
-                    return [$code => $data['items']];
-                })
-                ->toArray(),
-        ];
+        $navigationItems = [];
+        
+        $sortedModules = collect($this->navigationItems)->sortBy('priority');
+        
+        foreach ($sortedModules as $moduleCode => $moduleData) {
+            foreach ($moduleData['items'] as $item) {
+                // Core module: flatten children (submodules) to top level
+                if ($moduleCode === 'core') {
+                    if (!empty($item['children'])) {
+                        foreach ($item['children'] as $child) {
+                            $navigationItems[] = $child;
+                        }
+                    } else {
+                        $navigationItems[] = $item;
+                    }
+                } else {
+                    // Non-core modules: keep as parent with children (submodules)
+                    // This creates "Human Resources" with Employees, Attendance, etc. as children
+                    $navigationItems[] = $item;
+                }
+            }
+        }
+        
+        // Sort by priority
+        usort($navigationItems, fn ($a, $b) => ($a['priority'] ?? 999) <=> ($b['priority'] ?? 999));
+        
+        return $navigationItems;
     }
 
     /**

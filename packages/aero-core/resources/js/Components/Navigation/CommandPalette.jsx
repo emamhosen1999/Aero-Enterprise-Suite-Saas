@@ -61,7 +61,7 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
   // Save to recent pages
   const addToRecent = useCallback((item) => {
     setRecentPages(prev => {
-      const filtered = prev.filter(p => p.route !== item.route);
+      const filtered = prev.filter(p => p.path !== item.path);
       const updated = [item, ...filtered].slice(0, 10); // Keep last 10
       try {
         localStorage.setItem('command_palette_recent', JSON.stringify(updated));
@@ -77,8 +77,8 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
     const flattened = [];
     
     pagesList.forEach(page => {
-      // Add parent page
-      if (page.route) {
+      // Add parent page if it has a path
+      if (page.path) {
         flattened.push({
           ...page,
           category: page.category || category,
@@ -154,24 +154,14 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
 
   // Handle item selection
   const handleSelect = useCallback((item) => {
-    if (item.route) {
+    if (item.path) {
       addToRecent(item);
-      // Use Inertia router with route helper (provided by Ziggy globally)
-      try {
-        router.visit(route(item.route), {
-          method: item.method || 'get',
-          preserveState: false,
-          preserveScroll: false
-        });
-      } catch (error) {
-        // Fallback to direct href if route helper fails
-        console.warn(`Route navigation failed for "${item.route}":`, error);
-        router.visit(`/${item.route}`, {
-          method: item.method || 'get',
-          preserveState: false,
-          preserveScroll: false
-        });
-      }
+      // Use Inertia router with direct path
+      router.visit(item.path, {
+        method: item.method || 'get',
+        preserveState: false,
+        preserveScroll: false
+      });
       onClose();
       setQuery('');
     }
@@ -370,7 +360,7 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
                 <div ref={resultsRef} className="space-y-1">
                   {results.map((item, index) => (
                     <motion.div
-                      key={`${item.route}-${index}`}
+                      key={`${item.path || item.name}-${index}`}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: index * 0.03 }}

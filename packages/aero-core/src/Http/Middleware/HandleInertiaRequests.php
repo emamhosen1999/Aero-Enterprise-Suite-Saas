@@ -151,6 +151,17 @@ class HandleInertiaRequests extends Middleware
         $roles = $user->roles?->pluck('name')->toArray() ?? [];
         $isSuperAdmin = in_array('Super Administrator', $roles) || in_array('tenant_super_administrator', $roles);
 
+        // Get permissions safely - may fail if permissions table doesn't exist
+        $permissions = [];
+        try {
+            if (method_exists($user, 'getAllPermissions')) {
+                $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+            }
+        } catch (\Throwable $e) {
+            // Permissions table may not exist - using module access instead
+            $permissions = [];
+        }
+
         return [
             'user' => [
                 'id' => $user->id,
@@ -158,9 +169,7 @@ class HandleInertiaRequests extends Middleware
                 'email' => $user->email,
                 'avatar_url' => $user->avatar_url ?? null,
                 'roles' => $roles,
-                'permissions' => method_exists($user, 'getAllPermissions') 
-                    ? $user->getAllPermissions()->pluck('name')->toArray() 
-                    : [],
+                'permissions' => $permissions,
                 'is_super_admin' => $isSuperAdmin,
             ],
             'isAuthenticated' => true,
@@ -170,32 +179,35 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Get navigation props from NavigationRegistry.
+     * Get navigation items from NavigationRegistry.
+     * Returns a flat array of navigation items ready for frontend.
      *
-     * @return array<string, mixed>
+     * @return array
      */
     protected function getNavigationProps($user): array
     {
         if (!$user) {
-            return [
-                'modules' => [],
-                'items' => [],
-            ];
+            return [];
         }
 
         try {
             if (app()->bound(NavigationRegistry::class)) {
                 $registry = app(NavigationRegistry::class);
-                return $registry->toFrontend();
+                $navigation = $registry->toFrontend();
+                
+                // Debug: Log navigation data
+                \Log::debug('Navigation data:', [
+                    'count' => count($navigation),
+                    'items' => $navigation
+                ]);
+                
+                return $navigation;
             }
         } catch (Throwable $e) {
-            // Silently fail
+            \Log::error('Navigation error: ' . $e->getMessage());
         }
 
-        return [
-            'modules' => [],
-            'items' => [],
-        ];
+        return [];
     }
 
     /**
