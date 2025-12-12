@@ -245,20 +245,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Time Off Management (Industry Standard)
     Route::middleware(['module:hrm,time-off'])->group(function () {
         // Time Off Dashboard
-        Route::get('/time-off', [TimeOffManagementController::class, 'index'])->name('hr.timeoff.index');
-        Route::get('/time-off/dashboard', [TimeOffManagementController::class, 'index'])->name('hr.timeoff.dashboard');
+        Route::get('/time-off', [TimeOffManagementController::class, 'index'])->name('timeoff.index');
+        Route::get('/time-off/dashboard', [TimeOffManagementController::class, 'index'])->name('timeoff.dashboard');
 
         // Company Holidays Management
-        Route::get('/time-off/holidays', [TimeOffManagementController::class, 'holidays'])->name('hr.timeoff.holidays');
+        Route::get('/time-off/holidays', [TimeOffManagementController::class, 'holidays'])->name('timeoff.holidays');
 
         // Leave Requests Management
-        Route::get('/time-off/leave-requests', [TimeOffManagementController::class, 'leaveRequests'])->name('hr.timeoff.leave-requests');
+        Route::get('/time-off/leave-requests', [TimeOffManagementController::class, 'leaveRequests'])->name('timeoff.leave-requests');
 
         // Time Off Calendar
-        Route::get('/time-off/calendar', [TimeOffManagementController::class, 'calendar'])->name('hr.timeoff.calendar');
+        Route::get('/time-off/calendar', [TimeOffManagementController::class, 'calendar'])->name('timeoff.calendar');
 
         // Leave Balances
-        Route::get('/time-off/balances', [TimeOffManagementController::class, 'balances'])->name('hr.timeoff.balances');
+        Route::get('/time-off/balances', [TimeOffManagementController::class, 'balances'])->name('timeoff.balances');
 
         // Time Off Reports
         Route::get('/time-off/reports', [TimeOffManagementController::class, 'reports'])->name('timeoff.reports');

@@ -4,8 +4,11 @@ use Aero\Core\Http\Controllers\Admin\RoleController;
 use Aero\Core\Http\Controllers\Admin\CoreUserController;
 use Aero\Core\Http\Controllers\Admin\ModuleController;
 use Aero\Core\Http\Controllers\Admin\ExtensionsController;
+use Aero\Core\Http\Controllers\Auth\AuthenticatedSessionController;
 use Aero\Core\Http\Controllers\Auth\DeviceController;
-use Aero\Core\Http\Controllers\Auth\SimpleLoginController;
+use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
+use Aero\Core\Http\Controllers\Auth\NewPasswordController;
+use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
 use Aero\Core\Http\Controllers\Settings\CustomDomainController;
@@ -54,37 +57,49 @@ Route::get('/aero-core/health', function () {
 // ============================================================================
 // ROOT ROUTE - Redirect to dashboard or login
 // ============================================================================
-Route::get('/', function () {
-    if (auth()->check()) {
+  // Root redirects to dashboard
+    Route::get('/', function () {
         return redirect('/dashboard');
-    }
-    return redirect('/login');
-})->name('core.root');
+    })->middleware(['auth:web']);
 
 // ============================================================================
 // AUTHENTICATION ROUTES (Guest)
 // ============================================================================
-Route::middleware('guest')->group(function () {
-    Route::get('login', [SimpleLoginController::class, 'create'])->name('core.login');
-    Route::post('login', [SimpleLoginController::class, 'store']);
+Route::middleware('guest:web')->group(function () {
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
 
 // ============================================================================
 // AUTHENTICATION ROUTES (Authenticated)
 // ============================================================================
-Route::middleware('auth')->group(function () {
-    Route::post('logout', [SimpleLoginController::class, 'destroy'])->name('core.logout');
-});
-
-
 // ============================================================================
 // AUTHENTICATED ROUTES - Core Features
 // ============================================================================
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:web')->group(function () {
+
+    // Logout
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    // Email Verification
+    Route::get('verify-email', [EmailVerificationController::class, 'prompt'])
+        ->name('core.verification.notice');
+    Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('core.verification.verify');
+    Route::post('email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware(['throttle:6,1'])
+        ->name('core.verification.send');
     
     // Dashboard Routes
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
-    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
     
     // Session & Auth Check Routes
     Route::get('/session-check', function () {

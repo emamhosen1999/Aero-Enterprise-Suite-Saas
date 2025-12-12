@@ -26,6 +26,27 @@ class CoreInertiaMiddleware extends Middleware
     protected $rootView = 'app';
 
     /**
+     * Handle the incoming request.
+     * Intercepts root route to redirect to dashboard or login.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle(Request $request, \Closure $next)
+    {
+        // Intercept root route "/" and redirect appropriately
+        if ($request->is('/') || $request->path() === '/') {
+            if (Auth::check()) {
+                return redirect('/dashboard');
+            }
+            return redirect('/login');
+        }
+
+        return parent::handle($request, $next);
+    }
+
+    /**
      * Get the root view.
      */
     public function rootView(Request $request): string

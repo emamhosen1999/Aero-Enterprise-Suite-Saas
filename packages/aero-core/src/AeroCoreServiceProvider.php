@@ -2,15 +2,18 @@
 
 namespace Aero\Core;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Route;
-use Aero\Core\Services\RuntimeLoader;
-use Aero\Core\Services\ModuleManager;
 use Aero\Core\Providers\ModuleRouteServiceProvider;
+use Aero\Core\Services\ModuleManager;
+use Aero\Core\Services\RuntimeLoader;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * AeroCoreServiceProvider
- * 
+ *
  * Main service provider for the Aero Core package.
  * Handles initialization, configuration, and service registration.
  */
@@ -18,8 +21,6 @@ class AeroCoreServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -27,15 +28,16 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Override the Migrator to exclude app's migration directory
             // Core and module packages provide all necessary migrations
             $this->app->extend('migrator', function ($migrator, $app) {
-                return new class($app['migration.repository'], $app['db'], $app['files'], $app['events']) extends \Illuminate\Database\Migrations\Migrator {
+                return new class($app['migration.repository'], $app['db'], $app['files'], $app['events']) extends \Illuminate\Database\Migrations\Migrator
+                {
                     public function getMigrationFiles($paths)
                     {
                         // Get all migration files from all paths
                         $files = parent::getMigrationFiles($paths);
-                        
+
                         // Filter out files from app's database/migrations directory
                         $appMigrationPath = database_path('migrations');
-                        
+
                         return collect($files)->reject(function ($path, $name) use ($appMigrationPath) {
                             return str_starts_with($path, $appMigrationPath);
                         })->all();
@@ -45,12 +47,12 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             // Merge configuration
             $this->mergeConfigFrom(
-                __DIR__ . '/../config/aero.php',
+                __DIR__.'/../config/aero.php',
                 'aero'
             );
 
             $this->mergeConfigFrom(
-                __DIR__ . '/../config/marketplace.php',
+                __DIR__.'/../config/marketplace.php',
                 'marketplace'
             );
 
@@ -64,6 +66,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                 } catch (\Throwable $e) {
                     $modulesPath = base_path('modules');
                 }
+
                 return new RuntimeLoader($modulesPath);
             });
 
@@ -75,7 +78,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                     // Try monorepo structure: apps/standalone-host -> ../../packages
                     $packagesPath = base_path('../../packages');
                 }
-                
+
                 return new ModuleManager(
                     base_path('modules'), // Runtime modules (optional)
                     $packagesPath // Composer packages
@@ -84,6 +87,8 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             // Register ModuleRouteServiceProvider
             $this->app->register(ModuleRouteServiceProvider::class);
+
+            // Use Laravel's default authentication middleware bindings
 
             // Register helper functions
             $this->registerHelpers();
@@ -95,8 +100,6 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap services.
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -104,35 +107,37 @@ class AeroCoreServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             \Illuminate\Support\Facades\Vite::useBuildDirectory('build');
             \Illuminate\Support\Facades\Vite::useManifestFilename('manifest.json');
+
+            // Use Laravel defaults for auth redirects and notification URLs
         });
 
         // Load migrations from Core package (takes priority)
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Load seeders from Core package
         $this->publishes([
-            __DIR__ . '/../database/seeders' => database_path('seeders/Aero/Core'),
+            __DIR__.'/../database/seeders' => database_path('seeders/Aero/Core'),
         ], 'aero-seeders');
 
         // Publish configuration
         $this->publishes([
-            __DIR__ . '/../config/aero.php' => config_path('aero.php'),
+            __DIR__.'/../config/aero.php' => config_path('aero.php'),
         ], 'aero-config');
 
         $this->publishes([
-            __DIR__ . '/../config/marketplace.php' => config_path('marketplace.php'),
+            __DIR__.'/../config/marketplace.php' => config_path('marketplace.php'),
         ], 'marketplace-config');
 
         // Publish frontend assets
         $this->publishes([
-            __DIR__ . '/../resources/js' => resource_path('js'),
-            __DIR__ . '/../resources/css' => resource_path('css'),
-            __DIR__ . '/../resources/stubs/vite.config.js.stub' => base_path('vite.config.js'),
-            __DIR__ . '/../resources/stubs/package.json.stub' => base_path('package.json'),
-            __DIR__ . '/../resources/stubs/User.php.stub' => app_path('Models/User.php'),
-            __DIR__ . '/../resources/stubs/DatabaseSeeder.php.stub' => database_path('seeders/DatabaseSeeder.php'),
-            __DIR__ . '/../stubs/web.php.stub' => base_path('routes/web.php'),
-            __DIR__ . '/../hero.ts' => base_path('hero.ts'),
+            __DIR__.'/../resources/js' => resource_path('js'),
+            __DIR__.'/../resources/css' => resource_path('css'),
+            __DIR__.'/../resources/stubs/vite.config.js.stub' => base_path('vite.config.js'),
+            __DIR__.'/../resources/stubs/package.json.stub' => base_path('package.json'),
+            __DIR__.'/../resources/stubs/User.php.stub' => app_path('Models/User.php'),
+            __DIR__.'/../resources/stubs/DatabaseSeeder.php.stub' => database_path('seeders/DatabaseSeeder.php'),
+            __DIR__.'/../stubs/web.php.stub' => base_path('routes/web.php'),
+            __DIR__.'/../hero.ts' => base_path('hero.ts'),
         ], 'aero-core-assets');
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-core');
@@ -165,45 +170,42 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register Core routes.
-     *
-     * @return void
      */
     protected function registerRoutes(): void
     {
-        $routesPath = __DIR__ . '/../routes';
+        $routesPath = __DIR__.'/../routes';
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
             // SaaS Mode: Routes with tenant middleware for authenticated routes
             Route::middleware(['web', 'tenant'])
-                ->group($routesPath . '/web.php');
+                ->group($routesPath.'/web.php');
         } else {
             // Standalone Mode: Routes with standard web middleware
             Route::middleware(['web'])
-                ->group($routesPath . '/web.php');
+                ->group($routesPath.'/web.php');
         }
     }
 
     /**
      * Register Core middleware.
-     *
-     * @return void
      */
     protected function registerMiddleware(): void
     {
         // Use the booted callback to ensure app is fully initialized
         $this->app->booted(function () {
             $router = $this->app->make('router');
-            
+
             // Register HandleInertiaRequests middleware to web middleware group
             $router->pushMiddlewareToGroup('web', \Aero\Core\Http\Middleware\HandleInertiaRequests::class);
+
+            // Register middleware aliases
+            $router->aliasMiddleware('module', \Aero\Core\Http\Middleware\CheckModuleAccess::class);
         });
     }
 
     /**
      * Check if aero-platform is active.
-     *
-     * @return bool
      */
     protected function isPlatformActive(): bool
     {
@@ -212,24 +214,20 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Determine if runtime modules should be loaded.
-     *
-     * @return bool
      */
     protected function shouldLoadRuntimeModules(): bool
     {
         // Guard against early execution before config is loaded
-        if (!$this->app->configurationIsCached() && !file_exists(config_path('aero.php'))) {
+        if (! $this->app->configurationIsCached() && ! file_exists(config_path('aero.php'))) {
             return false;
         }
-        
+
         return config('aero.mode', 'saas') === 'standalone' &&
                config('aero.runtime_loading.enabled', false);
     }
 
     /**
      * Ensure modules directory is symlinked to public for asset access.
-     *
-     * @return void
      */
     protected function ensureModulesSymlink(): void
     {
@@ -237,26 +235,26 @@ class AeroCoreServiceProvider extends ServiceProvider
         $publicModulesPath = public_path('modules');
 
         // Only create symlink if modules directory exists and symlink doesn't
-        if (file_exists($modulesPath) && !file_exists($publicModulesPath)) {
+        if (file_exists($modulesPath) && ! file_exists($publicModulesPath)) {
             try {
                 // Try to create symlink
                 if (function_exists('symlink')) {
                     @symlink($modulesPath, $publicModulesPath);
-                    
+
                     if (file_exists($publicModulesPath)) {
                         $this->app['log']->info('Aero: Created modules symlink successfully');
                     }
                 } else {
                     // Symlinks not available, log warning
                     $this->app['log']->warning(
-                        'Aero: Cannot create symlink - function not available. ' .
+                        'Aero: Cannot create symlink - function not available. '.
                         'Manually copy modules to public/modules or enable symlink support.'
                     );
                 }
             } catch (\Throwable $e) {
                 $this->app['log']->warning('Aero: Failed to create modules symlink', [
                     'error' => $e->getMessage(),
-                    'hint' => 'You may need to manually copy the modules directory or enable symlink support'
+                    'hint' => 'You may need to manually copy the modules directory or enable symlink support',
                 ]);
             }
         }
@@ -264,8 +262,6 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Load runtime modules.
-     *
-     * @return void
      */
     protected function loadRuntimeModules(): void
     {
@@ -274,7 +270,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             $modules = $loader->loadModules();
 
             if (count($modules) > 0) {
-                $this->app['log']->info('Aero: Loaded ' . count($modules) . ' runtime modules', [
+                $this->app['log']->info('Aero: Loaded '.count($modules).' runtime modules', [
                     'modules' => array_keys($modules),
                 ]);
             }
@@ -288,13 +284,11 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register helper functions.
-     *
-     * @return void
      */
     protected function registerHelpers(): void
     {
-        $helpersPath = __DIR__ . '/helpers.php';
-        
+        $helpersPath = __DIR__.'/helpers.php';
+
         if (file_exists($helpersPath)) {
             require_once $helpersPath;
         }
@@ -302,8 +296,6 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register console commands.
-     *
-     * @return void
      */
     protected function registerCommands(): void
     {
@@ -315,8 +307,6 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register hook to automatically call Core seeders when db:seed runs.
-     *
-     * @return void
      */
     protected function registerSeederHook(): void
     {
@@ -325,16 +315,16 @@ class AeroCoreServiceProvider extends ServiceProvider
             if ($event->command === 'db:seed') {
                 // Get the DatabaseSeeder class from the application
                 $seederClass = $event->input->getOption('class') ?: 'Database\\Seeders\\DatabaseSeeder';
-                
+
                 // If it's the default DatabaseSeeder and no specific class is requested,
                 // we'll call our Core seeder first
                 if ($seederClass === 'Database\\Seeders\\DatabaseSeeder') {
                     // Schedule Core seeder to run before the app's seeder
                     $this->app['events']->listen('Illuminate\Database\Events\SeedingDatabase', function () use ($event) {
                         static $coreSeederExecuted = false;
-                        
+
                         // Only execute once per db:seed command
-                        if (!$coreSeederExecuted) {
+                        if (! $coreSeederExecuted) {
                             $this->callCoreSeeder($event);
                             $coreSeederExecuted = true;
                         }
@@ -347,25 +337,24 @@ class AeroCoreServiceProvider extends ServiceProvider
     /**
      * Call the Core database seeder.
      *
-     * @param mixed $event Command event
-     * @return void
+     * @param  mixed  $event  Command event
      */
     protected function callCoreSeeder($event): void
     {
         try {
-            $seeder = new \Aero\Core\Database\Seeders\CoreDatabaseSeeder();
+            $seeder = new \Aero\Core\Database\Seeders\CoreDatabaseSeeder;
             $seeder->setContainer($this->app);
             $seeder->setCommand($event->output);
             $seeder->run();
-            
+
             if ($this->app->runningInConsole()) {
                 $event->output->info('Aero Core seeders executed successfully');
             }
         } catch (\Throwable $e) {
             if ($this->app->runningInConsole()) {
-                $event->output->error('Failed to run Aero Core seeders: ' . $e->getMessage());
-                $this->app['log']->error('Aero Core Seeder Error: ' . $e->getMessage(), [
-                    'trace' => $e->getTraceAsString()
+                $event->output->error('Failed to run Aero Core seeders: '.$e->getMessage());
+                $this->app['log']->error('Aero Core Seeder Error: '.$e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
         }
@@ -373,8 +362,6 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Get the services provided by the provider.
-     *
-     * @return array
      */
     public function provides(): array
     {

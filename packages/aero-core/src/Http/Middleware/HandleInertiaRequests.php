@@ -4,17 +4,25 @@ namespace Aero\Core\Http\Middleware;
 
 use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Models\SystemSetting;
+use Aero\Core\Services\NavigationRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
 use Throwable;
 
+/**
+ * Handle Inertia Requests - Core Package Middleware
+ *
+ * This is the primary Inertia middleware for aero-core package.
+ * It provides all shared props, handles root route redirection,
+ * and integrates with NavigationRegistry.
+ */
 class HandleInertiaRequests extends Middleware
 {
     /**
      * The root template that is loaded on the first page visit.
-     * Uses the 'aero-core' namespace to load from package, not host app.
      *
      * @var string
      */
@@ -23,6 +31,43 @@ class HandleInertiaRequests extends Middleware
     protected bool $resolvedSystemSetting = false;
 
     protected ?SystemSetting $cachedSystemSetting = null;
+
+    /**
+     * Handle the incoming request.
+     * Intercepts root route to redirect to dashboard or login.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle(Request $request, \Closure $next)
+    {
+        // Intercept root route "/" and redirect appropriately
+        // This ensures the package works without modifying host app routes
+        if ($request->is('/') || $request->path() === '/') {
+            if (Auth::check()) {
+                return redirect('/dashboard');
+            }
+            return redirect('/login');
+        }
+
+        return parent::handle($request, $next);
+    }
+
+    /**
+     * Get the root view.
+     * Uses host app's view if available, otherwise package view.
+     */
+    public function rootView(Request $request): string
+    {
+        // Use host app's app.blade.php if it exists
+        if (view()->exists('app')) {
+            return 'app';
+        }
+
+        // Fall back to package's view
+        return 'aero-core::app';
+    }
 
     /**
      * Determine the current asset version.
@@ -61,17 +106,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'auth' => [
-                'user' => $user ? [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'avatar_url' => $user->avatar_url ?? null,
-                    'roles' => $user->roles?->pluck('name')->toArray() ?? [],
-                ] : null,
-                'isAuthenticated' => (bool) $user,
-                'sessionValid' => (bool) $user,
-            ],
+            'auth' => $this->getAuthProps($user),
             'app' => [
                 'name' => $companyName,
                 'version' => config('app.version', '1.0.0'),
@@ -89,12 +124,77 @@ class HandleInertiaRequests extends Middleware
             'csrfToken' => csrf_token(),
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
+            'navigation' => fn () => $this->getNavigationProps($user),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
                 'warning' => $request->session()->get('warning'),
                 'info' => $request->session()->get('info'),
             ],
+        ];
+    }
+
+    /**
+     * Get authentication props.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getAuthProps($user): array
+    {
+        if (!$user) {
+            return [
+                'user' => null,
+                'isAuthenticated' => false,
+            ];
+        }
+
+        $roles = $user->roles?->pluck('name')->toArray() ?? [];
+        $isSuperAdmin = in_array('Super Administrator', $roles) || in_array('tenant_super_administrator', $roles);
+
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar_url' => $user->avatar_url ?? null,
+                'roles' => $roles,
+                'permissions' => method_exists($user, 'getAllPermissions') 
+                    ? $user->getAllPermissions()->pluck('name')->toArray() 
+                    : [],
+                'is_super_admin' => $isSuperAdmin,
+            ],
+            'isAuthenticated' => true,
+            'sessionValid' => true,
+            'isSuperAdmin' => $isSuperAdmin,
+        ];
+    }
+
+    /**
+     * Get navigation props from NavigationRegistry.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getNavigationProps($user): array
+    {
+        if (!$user) {
+            return [
+                'modules' => [],
+                'items' => [],
+            ];
+        }
+
+        try {
+            if (app()->bound(NavigationRegistry::class)) {
+                $registry = app(NavigationRegistry::class);
+                return $registry->toFrontend();
+            }
+        } catch (Throwable $e) {
+            // Silently fail
+        }
+
+        return [
+            'modules' => [],
+            'items' => [],
         ];
     }
 

@@ -72,6 +72,18 @@ class ModuleRouteServiceProvider extends ServiceProvider
             foreach ($directories as $directory) {
                 $moduleName = basename($directory);
                 
+                // Check if module is installed via Composer
+                if (class_exists(\Composer\InstalledVersions::class)) {
+                    // Convert folder name to package name (e.g. aero-hrm -> aero/hrm)
+                    $packageName = 'aero/' . str_replace('aero-', '', $moduleName);
+                    
+                    // Skip if package is not installed
+                    if (!\Composer\InstalledVersions::isInstalled($packageName) && 
+                        !\Composer\InstalledVersions::isInstalled($moduleName)) {
+                        continue;
+                    }
+                }
+
                 // Check if module has routes directory
                 $routesPath = $directory . '/routes';
                 
@@ -124,6 +136,19 @@ class ModuleRouteServiceProvider extends ServiceProvider
      */
     protected function registerRoutesForModule(string $moduleName, array $moduleData): void
     {
+        // Skip HRM module auto-registration to prevent duplicate /dashboard without web middleware;
+        // HRM handles its own routing via AeroHrmServiceProvider.
+        if ($moduleName === 'aero-hrm') {
+            return;
+        }
+
+        // If the module already registers its own routes via a dedicated provider,
+        // skip auto-registration to avoid duplicate/unprefixed routes that miss the
+        // expected middleware (e.g., /dashboard without the web group).
+        if ($this->isModuleProviderRegistered($moduleName)) {
+            return;
+        }
+
         $routesPath = $moduleData['routes_path'];
         $namespace = $moduleData['namespace'];
 
@@ -279,6 +304,36 @@ class ModuleRouteServiceProvider extends ServiceProvider
     public function getRegisteredModules(): array
     {
         return $this->modules;
+    }
+
+    /**
+     * Determine if a module already registers its own routes via a provider.
+     *
+     * This prevents duplicate routes (e.g., /dashboard without the web middleware)
+     * when a module-specific service provider handles prefixes and middleware.
+     */
+    protected function isModuleProviderRegistered(string $moduleName): bool
+    {
+        $moduleCode = str_replace('aero-', '', $moduleName);
+        $studly = str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $moduleCode)));
+        $upper = strtoupper($moduleCode);
+
+        $candidateProviders = [
+            "Aero\\{$studly}\\Aero{$studly}ServiceProvider",
+            "Aero\\{$studly}\\Providers\\{$studly}ServiceProvider",
+            "Aero\\{$upper}\\Aero{$upper}ServiceProvider",
+            "Aero\\{$upper}\\Providers\\{$upper}ServiceProvider",
+            "Aero\\{$upper}\\Aero{$studly}ServiceProvider", // e.g. Aero\\HRM\\AeroHrmServiceProvider
+            "Aero\\{$upper}\\Providers\\{$upper}ServiceProvider", // e.g. Aero\\HRM\\Providers\\HRMServiceProvider
+        ];
+
+        foreach ($candidateProviders as $providerClass) {
+            if (class_exists($providerClass) && ($this->app->getProvider($providerClass) || true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -3,7 +3,7 @@
 namespace Aero\Core\Policies\Concerns;
 
 use Aero\Core\Models\User;
-use Aero\Core\Services\Module\ModuleAccessService;
+use Aero\Core\Services\ModuleAccessService;
 
 /**
  * Trait ChecksModuleAccess

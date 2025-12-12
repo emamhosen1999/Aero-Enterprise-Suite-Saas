@@ -18,438 +18,17 @@ use Illuminate\Support\Facades\Gate;
  *
  * Provides Human Resources Management functionality including employee management,
  * attendance tracking, leave management, payroll, performance reviews, and recruitment.
+ *
+ * All module metadata is read from config/module.php (single source of truth).
+ * This provider only contains module-specific services, policies, and relationships.
  */
 class HRMServiceProvider extends AbstractModuleProvider
 {
     /**
-     * Module code.
+     * Module code - the only required property.
+     * All other metadata is read from config/module.php.
      */
     protected string $moduleCode = 'hrm';
-
-    /**
-     * Module display name.
-     */
-    protected string $moduleName = 'Human Resources';
-
-    /**
-     * Module description.
-     */
-    protected string $moduleDescription = 'Complete HR management system with employee records, attendance, leave, payroll, performance reviews, and recruitment';
-
-    /**
-     * Module version.
-     */
-    protected string $moduleVersion = '1.0.0';
-
-    /**
-     * Module category.
-     */
-    protected string $moduleCategory = 'business';
-
-    /**
-     * Module icon.
-     */
-    protected string $moduleIcon = 'UserGroupIcon';
-
-    /**
-     * Module priority.
-     */
-    protected int $modulePriority = 10;
-
-    /**
-     * Module is enabled by default.
-     */
-    protected bool $enabled = true;
-
-    /**
-     * Minimum plan required.
-     */
-    protected ?string $minimumPlan = 'professional';
-
-    /**
-     * Module dependencies.
-     */
-    protected array $dependencies = ['core'];
-
-    /**
-     * Navigation items for HRM module.
-     */
-    protected array $navigationItems = [
-        [
-            'code' => 'hrm_dashboard',
-            'name' => 'HR Dashboard',
-            'icon' => 'ChartBarIcon',
-            'route' => 'hr.dashboard',
-            'priority' => 1,
-        ],
-        [
-            'code' => 'hrm_employees',
-            'name' => 'Employees',
-            'icon' => 'UserIcon',
-            'route' => 'employees.index',
-            'priority' => 2,
-        ],
-        [
-            'code' => 'hrm_attendance',
-            'name' => 'Attendance',
-            'icon' => 'ClockIcon',
-            'route' => 'attendance.index',
-            'priority' => 3,
-        ],
-        [
-            'code' => 'hrm_leaves',
-            'name' => 'Leave Management',
-            'icon' => 'CalendarIcon',
-            'route' => 'leaves.index',
-            'priority' => 4,
-        ],
-        [
-            'code' => 'hrm_payroll',
-            'name' => 'Payroll',
-            'icon' => 'CurrencyDollarIcon',
-            'route' => 'hr.payroll.index',
-            'priority' => 5,
-        ],
-        [
-            'code' => 'hrm_performance',
-            'name' => 'Performance',
-            'icon' => 'StarIcon',
-            'route' => 'hr.performance.index',
-            'priority' => 6,
-        ],
-        [
-            'code' => 'hrm_recruitment',
-            'name' => 'Recruitment',
-            'icon' => 'BriefcaseIcon',
-            'route' => 'hr.recruitment.index',
-            'priority' => 7,
-        ],
-    ];
-
-    /**
-     * Module hierarchy.
-     */
-    protected array $moduleHierarchy = [
-        'code' => 'hrm',
-        'name' => 'Human Resources',
-        'description' => 'Complete HR management system',
-        'icon' => 'UserGroupIcon',
-        'priority' => 10,
-        'is_active' => true,
-        'requires_subscription' => true,
-        'route_prefix' => 'hr',
-        'sub_modules' => [
-            [
-                'code' => 'employees',
-                'name' => 'Employee Management',
-                'description' => 'Manage employee information and records',
-                'icon' => 'UserIcon',
-                'priority' => 1,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'employee_list',
-                        'name' => 'Employee List',
-                        'description' => 'View and manage employees',
-                        'route_name' => 'employees.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Employees', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Employee', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Employee', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Employee', 'is_active' => true],
-                        ],
-                    ],
-                    [
-                        'code' => 'employee_profile',
-                        'name' => 'Employee Profile',
-                        'description' => 'View employee profile details',
-                        'route_name' => 'hr.profile.show',
-                        'priority' => 2,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Profile', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Profile', 'is_active' => true],
-                        ],
-                    ],
-                    [
-                        'code' => 'departments',
-                        'name' => 'Departments',
-                        'description' => 'Manage departments',
-                        'route_name' => 'departments.index',
-                        'priority' => 3,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Departments', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Department', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Department', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Department', 'is_active' => true],
-                        ],
-                    ],
-                    [
-                        'code' => 'designations',
-                        'name' => 'Designations',
-                        'description' => 'Manage job designations',
-                        'route_name' => 'designations.index',
-                        'priority' => 4,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Designations', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Designation', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Designation', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Designation', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'attendance',
-                'name' => 'Attendance Management',
-                'description' => 'Track employee attendance and work hours',
-                'icon' => 'ClockIcon',
-                'priority' => 2,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'attendance_list',
-                        'name' => 'Attendance Records',
-                        'description' => 'View attendance records',
-                        'route_name' => 'attendance.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Attendance', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Mark Attendance', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Attendance', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Attendance', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'leaves',
-                'name' => 'Leave Management',
-                'description' => 'Manage employee leave requests and balances',
-                'icon' => 'CalendarIcon',
-                'priority' => 3,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'leave_list',
-                        'name' => 'Leave Requests',
-                        'description' => 'View and manage leave requests',
-                        'route_name' => 'leaves.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Leaves', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Apply Leave', 'is_active' => true],
-                            ['code' => 'approve', 'name' => 'Approve Leave', 'is_active' => true],
-                            ['code' => 'reject', 'name' => 'Reject Leave', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Leave', 'is_active' => true],
-                        ],
-                    ],
-                    [
-                        'code' => 'bulk_leave',
-                        'name' => 'Bulk Leave',
-                        'description' => 'Apply leave for multiple employees',
-                        'route_name' => 'hr.bulkleave.index',
-                        'priority' => 2,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Bulk Leave', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Bulk Leave', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'payroll',
-                'name' => 'Payroll Management',
-                'description' => 'Process employee payroll and salaries',
-                'icon' => 'CurrencyDollarIcon',
-                'priority' => 4,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'payroll_list',
-                        'name' => 'Payroll Records',
-                        'description' => 'View and manage payroll',
-                        'route_name' => 'hr.payroll.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Payroll', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Payroll', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Payroll', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Payroll', 'is_active' => true],
-                            ['code' => 'process', 'name' => 'Process Payroll', 'is_active' => true],
-                        ],
-                    ],
-                    [
-                        'code' => 'salary_structures',
-                        'name' => 'Salary Structures',
-                        'description' => 'Define salary structures',
-                        'route_name' => 'hr.salarystructure.index',
-                        'priority' => 2,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Salary Structures', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Salary Structure', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Salary Structure', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Salary Structure', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'performance',
-                'name' => 'Performance Management',
-                'description' => 'Manage employee performance reviews and KPIs',
-                'icon' => 'StarIcon',
-                'priority' => 5,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'performance_reviews',
-                        'name' => 'Performance Reviews',
-                        'description' => 'Conduct performance reviews',
-                        'route_name' => 'hr.performance.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Reviews', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Review', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Review', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Review', 'is_active' => true],
-                            ['code' => 'submit', 'name' => 'Submit Review', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'recruitment',
-                'name' => 'Recruitment',
-                'description' => 'Manage job postings and applicants',
-                'icon' => 'BriefcaseIcon',
-                'priority' => 6,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'job_postings',
-                        'name' => 'Job Postings',
-                        'description' => 'Manage job postings',
-                        'route_name' => 'hr.recruitment.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Jobs', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Job', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Job', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Job', 'is_active' => true],
-                            ['code' => 'publish', 'name' => 'Publish Job', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'onboarding',
-                'name' => 'Onboarding',
-                'description' => 'Manage employee onboarding process',
-                'icon' => 'AcademicCapIcon',
-                'priority' => 7,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'onboarding_list',
-                        'name' => 'Onboarding Tasks',
-                        'description' => 'Manage onboarding tasks',
-                        'route_name' => 'hr.onboarding.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Onboarding', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Onboarding', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Onboarding', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Onboarding', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'training',
-                'name' => 'Training & Development',
-                'description' => 'Manage employee training programs',
-                'icon' => 'BookOpenIcon',
-                'priority' => 8,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'training_programs',
-                        'name' => 'Training Programs',
-                        'description' => 'Manage training programs',
-                        'route_name' => 'hr.training.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Training', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Training', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Training', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Training', 'is_active' => true],
-                            ['code' => 'enroll', 'name' => 'Enroll Employee', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'documents',
-                'name' => 'Document Management',
-                'description' => 'Manage HR documents',
-                'icon' => 'DocumentTextIcon',
-                'priority' => 9,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'hr_documents',
-                        'name' => 'HR Documents',
-                        'description' => 'Manage HR documents',
-                        'route_name' => 'hr.documents.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Documents', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Upload Document', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Document', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Document', 'is_active' => true],
-                            ['code' => 'download', 'name' => 'Download Document', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'analytics',
-                'name' => 'HR Analytics',
-                'description' => 'HR metrics and reporting',
-                'icon' => 'ChartBarIcon',
-                'priority' => 10,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'hr_analytics',
-                        'name' => 'HR Analytics',
-                        'description' => 'View HR metrics and analytics',
-                        'route_name' => 'hr.analytics.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Analytics', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-        ],
-    ];
 
     /**
      * Get the module path.
@@ -458,7 +37,16 @@ class HRMServiceProvider extends AbstractModuleProvider
     {
         $basePath = dirname(__DIR__, 2);
 
-        return $path ? $basePath.'/'.$path : $basePath;
+        return $path ? $basePath . '/' . $path : $basePath;
+    }
+
+    /**
+     * Override parent loadRoutes to prevent duplicate route registration.
+     * Routes are registered by AeroHrmServiceProvider with proper middleware.
+     */
+    protected function loadRoutes(): void
+    {
+        // Do nothing - routes handled by AeroHrmServiceProvider
     }
 
     /**
@@ -485,10 +73,10 @@ class HRMServiceProvider extends AbstractModuleProvider
         });
 
         // Merge HRM-specific configuration
-        $this->mergeConfigFrom(
-            $this->getModulePath('config/hrm.php'),
-            'hrm'
-        );
+        $hrmConfigPath = $this->getModulePath('config/hrm.php');
+        if (file_exists($hrmConfigPath)) {
+            $this->mergeConfigFrom($hrmConfigPath, 'hrm');
+        }
     }
 
     /**
@@ -605,7 +193,7 @@ class HRMServiceProvider extends AbstractModuleProvider
 
     /**
      * Register HRM navigation items with NavigationRegistry.
-     * This enables auto-discovery of navigation by the core module.
+     * Navigation is derived from config/module.php submodules for consistency.
      */
     protected function registerNavigation(): void
     {
@@ -614,62 +202,32 @@ class HRMServiceProvider extends AbstractModuleProvider
         }
 
         $navRegistry = $this->app->make(NavigationRegistry::class);
+        $config = $this->getModuleConfig();
+
+        // Build navigation children from config submodules
+        $children = [];
+        foreach ($config['submodules'] ?? [] as $submodule) {
+            $children[] = [
+                'name' => $submodule['name'] ?? ucfirst($submodule['code'] ?? ''),
+                'path' => $submodule['route'] ?? '',
+                'icon' => $submodule['icon'] ?? null,
+                'access' => $this->moduleCode . '.' . ($submodule['code'] ?? ''),
+                'priority' => $submodule['priority'] ?? 100,
+            ];
+        }
+
+        // Sort children by priority
+        usort($children, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
 
         // Register main HRM navigation
-        $navRegistry->register('hrm', [
+        $navRegistry->register($this->moduleCode, [
             [
-                'name' => 'HRM',
-                'icon' => 'UsersIcon',
-                'access' => 'hrm',
-                'children' => [
-                    [
-                        'name' => 'Dashboard',
-                        'path' => '/hrm/dashboard',
-                        'access' => 'hrm.dashboard',
-                    ],
-                    [
-                        'name' => 'Employees',
-                        'path' => '/hrm/employees',
-                        'access' => 'hrm.employees',
-                    ],
-                    [
-                        'name' => 'Attendance',
-                        'path' => '/hrm/attendance',
-                        'access' => 'hrm.attendance',
-                    ],
-                    [
-                        'name' => 'Leaves',
-                        'path' => '/hrm/leaves',
-                        'access' => 'hrm.leave',
-                    ],
-                    [
-                        'name' => 'Payroll',
-                        'path' => '/hrm/payroll',
-                        'access' => 'hrm.payroll',
-                    ],
-                    [
-                        'name' => 'Recruitment',
-                        'path' => '/hrm/recruitment',
-                        'access' => 'hrm.recruitment',
-                    ],
-                    [
-                        'name' => 'Performance',
-                        'path' => '/hrm/performance',
-                        'access' => 'hrm.performance',
-                    ],
-                    [
-                        'name' => 'Training',
-                        'path' => '/hrm/training',
-                        'access' => 'hrm.training',
-                    ],
-                    [
-                        'name' => 'Settings',
-                        'path' => '/hrm/settings',
-                        'access' => 'hrm.settings',
-                    ],
-                ],
+                'name' => $config['name'] ?? 'HRM',
+                'icon' => $config['icon'] ?? 'UserGroupIcon',
+                'access' => $this->moduleCode,
+                'children' => $children,
             ],
-        ], $this->modulePriority ?? 20);
+        ], $this->getModulePriority());
     }
 
     /**

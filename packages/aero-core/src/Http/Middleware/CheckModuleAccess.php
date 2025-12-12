@@ -3,7 +3,7 @@
 namespace Aero\Core\Http\Middleware;
 
 use Aero\Platform\Models\Tenant;
-use Aero\Core\Services\Shared\Module\ModuleAccessService;
+use Aero\Core\Services\ModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

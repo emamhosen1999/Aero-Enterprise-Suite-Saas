@@ -8,75 +8,70 @@ use Illuminate\Support\ServiceProvider;
 /**
  * Abstract Module Provider
  *
- * Base class for all module providers. Provides common functionality
- * and sensible defaults for module registration.
+ * Base class for all module providers. Reads module configuration from
+ * config/module.php which serves as the single source of truth.
+ * 
+ * Child classes only need to:
+ * 1. Set $moduleCode property
+ * 2. Implement getModulePath() method
+ * 3. Override bootModule() for module-specific logic
+ * 4. Override registerServices() for module-specific services
  */
 abstract class AbstractModuleProvider extends ServiceProvider implements ModuleProviderInterface
 {
     /**
-     * Module code (unique identifier).
+     * Module code (unique identifier) - REQUIRED in child class.
      */
     protected string $moduleCode;
 
     /**
-     * Module display name.
+     * Cached module configuration from config/module.php.
      */
-    protected string $moduleName;
+    protected ?array $moduleConfig = null;
 
     /**
-     * Module description.
+     * Get the module configuration from config/module.php.
+     * This is the single source of truth for module metadata.
      */
-    protected string $moduleDescription;
+    protected function getModuleConfig(): array
+    {
+        if ($this->moduleConfig !== null) {
+            return $this->moduleConfig;
+        }
 
-    /**
-     * Module version.
-     */
-    protected string $moduleVersion = '1.0.0';
+        // First try to load from merged config
+        $configKey = "modules.{$this->moduleCode}";
+        $config = config($configKey);
+        
+        if (is_array($config) && !empty($config)) {
+            $this->moduleConfig = $config;
+            return $this->moduleConfig;
+        }
 
-    /**
-     * Module category.
-     */
-    protected string $moduleCategory;
+        // Fallback: load directly from file
+        $configPath = $this->getModulePath('config/module.php');
+        if (file_exists($configPath)) {
+            $this->moduleConfig = require $configPath;
+            return $this->moduleConfig;
+        }
 
-    /**
-     * Module icon (HeroIcon name).
-     */
-    protected string $moduleIcon;
+        // Return empty defaults if no config found
+        $this->moduleConfig = [
+            'code' => $this->moduleCode,
+            'name' => ucfirst($this->moduleCode),
+            'description' => '',
+            'icon' => 'CubeIcon',
+            'category' => 'general',
+            'priority' => 100,
+            'version' => '1.0.0',
+            'dependencies' => [],
+            'is_active' => true,
+            'min_plan' => null,
+            'submodules' => [],
+        ];
 
-    /**
-     * Module priority for navigation ordering.
-     */
-    protected int $modulePriority = 100;
-
-    /**
-     * Module hierarchy (submodules, components, actions).
-     */
-    protected array $moduleHierarchy = [];
-
-    /**
-     * Module navigation items.
-     */
-    protected array $navigationItems = [];
-
-    /**
-     * Module route definitions.
-     */
-    protected array $routes = [];
-
-    /**
-     * Module dependencies.
-     */
-    protected array $dependencies = [];
-
-    /**
-     * Whether the module is enabled.
-     */
-    protected bool $enabled = true;
-
-    /**
-     * Minimum plan required for this module.
-     */
-    protected ?string $minimumPlan = null;
+        return $this->moduleConfig;
+    }
 
     /**
      * {@inheritDoc}
@@ -91,7 +86,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getModuleName(): string
     {
-        return $this->moduleName;
+        return $this->getModuleConfig()['name'] ?? ucfirst($this->moduleCode);
     }
 
     /**
@@ -99,7 +94,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getModuleDescription(): string
     {
-        return $this->moduleDescription;
+        return $this->getModuleConfig()['description'] ?? '';
     }
 
     /**
@@ -107,7 +102,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getModuleVersion(): string
     {
-        return $this->moduleVersion;
+        return $this->getModuleConfig()['version'] ?? '1.0.0';
     }
 
     /**
@@ -115,7 +110,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getModuleCategory(): string
     {
-        return $this->moduleCategory;
+        return $this->getModuleConfig()['category'] ?? 'general';
     }
 
     /**
@@ -123,7 +118,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getModuleIcon(): string
     {
-        return $this->moduleIcon;
+        return $this->getModuleConfig()['icon'] ?? 'CubeIcon';
     }
 
     /**
@@ -131,23 +126,52 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getModulePriority(): int
     {
-        return $this->modulePriority;
+        return $this->getModuleConfig()['priority'] ?? 100;
     }
 
     /**
      * {@inheritDoc}
+     * Returns the module hierarchy from config/module.php submodules structure.
      */
     public function getModuleHierarchy(): array
     {
-        return $this->moduleHierarchy;
+        $config = $this->getModuleConfig();
+        
+        return [
+            'code' => $config['code'] ?? $this->moduleCode,
+            'name' => $config['name'] ?? ucfirst($this->moduleCode),
+            'description' => $config['description'] ?? '',
+            'icon' => $config['icon'] ?? 'CubeIcon',
+            'priority' => $config['priority'] ?? 100,
+            'is_active' => $config['is_active'] ?? true,
+            'requires_subscription' => ($config['min_plan'] ?? null) !== null,
+            'route_prefix' => $config['route_prefix'] ?? $this->moduleCode,
+            'sub_modules' => $config['submodules'] ?? [],
+        ];
     }
 
     /**
      * {@inheritDoc}
+     * Derives navigation items from config/module.php submodules.
      */
     public function getNavigationItems(): array
     {
-        return $this->navigationItems;
+        $config = $this->getModuleConfig();
+        $items = [];
+
+        // Build navigation from submodules in config
+        foreach ($config['submodules'] ?? [] as $submodule) {
+            $items[] = [
+                'code' => $this->moduleCode . '_' . ($submodule['code'] ?? ''),
+                'name' => $submodule['name'] ?? '',
+                'icon' => $submodule['icon'] ?? 'FolderIcon',
+                'route' => $submodule['route'] ?? null,
+                'access' => $this->moduleCode . '.' . ($submodule['code'] ?? ''),
+                'priority' => $submodule['priority'] ?? 100,
+            ];
+        }
+
+        return $items;
     }
 
     /**
@@ -155,7 +179,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getRoutes(): array
     {
-        return $this->routes;
+        return [];
     }
 
     /**
@@ -163,7 +187,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getDependencies(): array
     {
-        return $this->dependencies;
+        return $this->getModuleConfig()['dependencies'] ?? [];
     }
 
     /**
@@ -171,7 +195,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function isEnabled(): bool
     {
-        return $this->enabled;
+        return $this->getModuleConfig()['is_active'] ?? true;
     }
 
     /**
@@ -179,7 +203,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
      */
     public function getMinimumPlan(): ?string
     {
-        return $this->minimumPlan;
+        return $this->getModuleConfig()['min_plan'] ?? null;
     }
 
     /**
@@ -188,11 +212,11 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
     public function register(): void
     {
         try {
-            // Load module configuration
-            $this->mergeConfigFrom(
-                $this->getModulePath('config/module.php'),
-                "modules.{$this->moduleCode}"
-            );
+            // Merge module configuration into app config
+            $configPath = $this->getModulePath('config/module.php');
+            if (file_exists($configPath)) {
+                $this->mergeConfigFrom($configPath, "modules.{$this->moduleCode}");
+            }
 
             // Register module services
             $this->registerServices();
@@ -209,17 +233,20 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         try {
             // Load migrations
             if ($this->app->runningInConsole()) {
-                $this->loadMigrationsFrom($this->getModulePath('database/migrations'));
+                $migrationsPath = $this->getModulePath('database/migrations');
+                if (is_dir($migrationsPath)) {
+                    $this->loadMigrationsFrom($migrationsPath);
+                }
             }
 
-            // Load routes
+            // Load routes (override in child class if custom handling needed)
             $this->loadRoutes();
 
             // Load views
-            $this->loadViewsFrom(
-                $this->getModulePath('resources/views'),
-                $this->moduleCode
-            );
+            $viewsPath = $this->getModulePath('resources/views');
+            if (is_dir($viewsPath)) {
+                $this->loadViewsFrom($viewsPath, $this->moduleCode);
+            }
 
             // Publish assets
             $this->publishAssets();
@@ -233,10 +260,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
 
     /**
      * Register module services.
-     *
      * Override this method to register module-specific services.
-     *
-     * @return void
      */
     protected function registerServices(): void
     {
@@ -245,10 +269,7 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
 
     /**
      * Boot module-specific logic.
-     *
      * Override this method for module-specific boot logic.
-     *
-     * @return void
      */
     protected function bootModule(): void
     {
@@ -257,36 +278,30 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
 
     /**
      * Load module routes.
-     *
-     * @return void
+     * Override in child class if custom route handling is needed.
      */
     protected function loadRoutes(): void
     {
-        // Load admin routes
-        if (file_exists($this->getModulePath('routes/admin.php'))) {
-            $this->loadRoutesFrom($this->getModulePath('routes/admin.php'));
-        }
+        $routesPath = $this->getModulePath('routes');
 
-        // Load tenant routes
-        if (file_exists($this->getModulePath('routes/tenant.php'))) {
-            $this->loadRoutesFrom($this->getModulePath('routes/tenant.php'));
+        // Load admin routes
+        if (file_exists($routesPath . '/admin.php')) {
+            $this->loadRoutesFrom($routesPath . '/admin.php');
         }
 
         // Load web routes
-        if (file_exists($this->getModulePath('routes/web.php'))) {
-            $this->loadRoutesFrom($this->getModulePath('routes/web.php'));
+        if (file_exists($routesPath . '/web.php')) {
+            $this->loadRoutesFrom($routesPath . '/web.php');
         }
 
         // Load API routes
-        if (file_exists($this->getModulePath('routes/api.php'))) {
-            $this->loadRoutesFrom($this->getModulePath('routes/api.php'));
+        if (file_exists($routesPath . '/api.php')) {
+            $this->loadRoutesFrom($routesPath . '/api.php');
         }
     }
 
     /**
      * Publish module assets.
-     *
-     * @return void
      */
     protected function publishAssets(): void
     {
@@ -297,33 +312,41 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
         $moduleCode = $this->moduleCode;
 
         // Publish configuration
-        $this->publishes([
-            $this->getModulePath('config/module.php') => config_path("modules/{$moduleCode}.php"),
-        ], "{$moduleCode}-config");
+        $configPath = $this->getModulePath('config/module.php');
+        if (file_exists($configPath)) {
+            $this->publishes([
+                $configPath => config_path("modules/{$moduleCode}.php"),
+            ], "{$moduleCode}-config");
+        }
 
         // Publish migrations
-        $this->publishes([
-            $this->getModulePath('database/migrations') => database_path('migrations'),
-        ], "{$moduleCode}-migrations");
+        $migrationsPath = $this->getModulePath('database/migrations');
+        if (is_dir($migrationsPath)) {
+            $this->publishes([
+                $migrationsPath => database_path('migrations'),
+            ], "{$moduleCode}-migrations");
+        }
 
         // Publish views
-        $this->publishes([
-            $this->getModulePath('resources/views') => resource_path("views/vendor/{$moduleCode}"),
-        ], "{$moduleCode}-views");
+        $viewsPath = $this->getModulePath('resources/views');
+        if (is_dir($viewsPath)) {
+            $this->publishes([
+                $viewsPath => resource_path("views/vendor/{$moduleCode}"),
+            ], "{$moduleCode}-views");
+        }
 
         // Publish frontend assets
-        if (is_dir($this->getModulePath('resources/js'))) {
+        $jsPath = $this->getModulePath('resources/js');
+        if (is_dir($jsPath)) {
             $this->publishes([
-                $this->getModulePath('resources/js') => resource_path("js/modules/{$moduleCode}"),
+                $jsPath => resource_path("js/modules/{$moduleCode}"),
             ], "{$moduleCode}-assets");
         }
     }
 
     /**
      * Get the full path to a module file or directory.
-     *
-     * @param string $path
-     * @return string
+     * Child classes must implement this to resolve paths correctly.
      */
     abstract protected function getModulePath(string $path = ''): string;
 }

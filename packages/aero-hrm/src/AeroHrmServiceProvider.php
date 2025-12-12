@@ -82,15 +82,13 @@ class AeroHrmServiceProvider extends ServiceProvider
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
             // SaaS Mode: Routes with tenant middleware
-            Route::middleware(['web', 'tenant', 'auth'])
-                ->namespace('Aero\Hrm\Http\Controllers')
+            Route::middleware(['web', 'tenant'])
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath . '/web.php');
         } else {
             // Standalone Mode: Routes with standard web middleware
-            Route::middleware(['web', 'auth'])
-                ->namespace('Aero\Hrm\Http\Controllers')
+            Route::middleware(['web'])
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath . '/web.php');

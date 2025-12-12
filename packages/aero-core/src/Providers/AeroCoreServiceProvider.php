@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Providers;
 
-use Aero\Core\Http\Middleware\CoreInertiaMiddleware;
+use Aero\Core\Http\Middleware\HandleInertiaRequests;
 use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Services\ModuleRegistry;
 use Aero\Core\Services\NavigationRegistry;
@@ -96,7 +96,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         $router = $this->app->make(Router::class);
 
         // Register middleware aliases
-        $router->aliasMiddleware('aero.inertia', CoreInertiaMiddleware::class);
+        $router->aliasMiddleware('aero.inertia', HandleInertiaRequests::class);
 
         // Push to web middleware group if Inertia is installed
         if (class_exists(\Inertia\Inertia::class)) {
@@ -104,8 +104,8 @@ class AeroCoreServiceProvider extends ServiceProvider
             $kernel = $this->app->make(Kernel::class);
 
             // Only add if not already added by the host app
-            if (! $this->hasMiddleware($kernel, CoreInertiaMiddleware::class)) {
-                $kernel->appendMiddlewareToGroup('web', CoreInertiaMiddleware::class);
+            if (! $this->hasMiddleware($kernel, HandleInertiaRequests::class)) {
+                $kernel->appendMiddlewareToGroup('web', HandleInertiaRequests::class);
             }
         }
     }
@@ -191,50 +191,46 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register core navigation items.
+     * Navigation is derived from config/module.php submodules for consistency.
      */
     protected function registerCoreNavigation(): void
     {
         /** @var NavigationRegistry $registry */
         $registry = $this->app->make(NavigationRegistry::class);
 
-        // Core navigation items with highest priority (10)
+        // Load core module config
+        $configPath = __DIR__ . '/../../config/module.php';
+        $config = file_exists($configPath) ? require $configPath : [];
+
+        // Build navigation children from config submodules
+        $children = [];
+        foreach ($config['submodules'] ?? [] as $submodule) {
+            // Skip authentication submodule from navigation (it's not a navigable section)
+            if (($submodule['code'] ?? '') === 'authentication') {
+                continue;
+            }
+
+            $children[] = [
+                'name' => $submodule['name'] ?? ucfirst($submodule['code'] ?? ''),
+                'icon' => $submodule['icon'] ?? 'FolderIcon',
+                'path' => $submodule['route'] ?? null,
+                'access' => 'core.' . ($submodule['code'] ?? ''),
+                'priority' => $submodule['priority'] ?? 100,
+            ];
+        }
+
+        // Sort children by priority
+        usort($children, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+
+        // Register core navigation with highest priority (1)
         $registry->register('core', [
             [
-                'title' => 'Dashboard',
-                'icon' => 'HomeIcon',
-                'route' => 'dashboard',
-                'permission' => null, // Everyone can see dashboard
-                'order' => 1,
+                'name' => $config['name'] ?? 'Core',
+                'icon' => $config['icon'] ?? 'CubeIcon',
+                'access' => 'core',
+                'children' => $children,
             ],
-            [
-                'title' => 'User Management',
-                'icon' => 'UsersIcon',
-                'route' => null,
-                'permission' => 'users.view',
-                'order' => 90,
-                'children' => [
-                    [
-                        'title' => 'Users',
-                        'icon' => 'UserIcon',
-                        'route' => 'users.index',
-                        'permission' => 'users.view',
-                    ],
-                    [
-                        'title' => 'Roles',
-                        'icon' => 'ShieldCheckIcon',
-                        'route' => 'roles.index',
-                        'permission' => 'roles.view',
-                    ],
-                ],
-            ],
-            [
-                'title' => 'Settings',
-                'icon' => 'CogIcon',
-                'route' => 'settings.system.index',
-                'permission' => 'settings.view',
-                'order' => 100,
-            ],
-        ], 10); // Priority 10 = Core items appear first
+        ], $config['priority'] ?? 1);
     }
 
     /**
