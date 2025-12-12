@@ -411,6 +411,9 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register core navigation items from config/module.php.
+     * 
+     * Structure: Module → Submodules → Components (3 levels, matching HRM pattern)
+     * All items are included regardless of whether routes exist (for debugging).
      */
     protected function registerCoreNavigation(): void
     {
@@ -421,11 +424,13 @@ class AeroCoreServiceProvider extends ServiceProvider
         $configPath = __DIR__.'/../config/module.php';
         $config = file_exists($configPath) ? require $configPath : [];
 
-        // Build navigation children from config submodules
-        $children = [];
+        // Build navigation from config submodules
+        $submoduleNav = [];
         foreach ($config['submodules'] ?? [] as $submodule) {
-            // Skip authentication submodule from navigation
-            if (($submodule['code'] ?? '') === 'authentication') {
+            $submoduleCode = $submodule['code'] ?? '';
+            
+            // Skip authentication submodule from navigation (it's internal)
+            if ($submoduleCode === 'authentication') {
                 continue;
             }
 
@@ -433,48 +438,40 @@ class AeroCoreServiceProvider extends ServiceProvider
             $submoduleIcon = $submodule['icon'] ?? 'FolderIcon';
 
             // Build component children for this submodule
-            $componentChildren = [];
+            $componentNav = [];
             foreach ($submodule['components'] ?? [] as $component) {
-                // Only include components with routes
-                if (!empty($component['route'])) {
-                    $componentChildren[] = [
-                        'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
-                        'icon' => $component['icon'] ?? $submoduleIcon, // Inherit parent icon as fallback
-                        'path' => $component['route'],
-                        'access' => 'core.'.($submodule['code'] ?? '').'.'.($component['code'] ?? ''),
-                        'type' => $component['type'] ?? 'page',
-                    ];
-                }
+                $componentNav[] = [
+                    'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
+                    'path' => $component['route'] ?? null,
+                    'icon' => $component['icon'] ?? $submoduleIcon, // Inherit parent icon
+                    'access' => 'core.' . $submoduleCode . '.' . ($component['code'] ?? ''),
+                    'type' => $component['type'] ?? 'page',
+                ];
             }
 
-            // Create submodule navigation item
-            $submoduleItem = [
-                'name' => $submodule['name'] ?? ucfirst($submodule['code'] ?? ''),
-                'icon' => $submodule['icon'] ?? 'FolderIcon',
+            // Create submodule navigation item with all component children
+            $submoduleNav[] = [
+                'name' => $submodule['name'] ?? ucfirst($submoduleCode),
                 'path' => $submodule['route'] ?? null,
-                'access' => 'core.'.($submodule['code'] ?? ''),
+                'icon' => $submoduleIcon,
+                'access' => 'core.' . $submoduleCode,
                 'priority' => $submodule['priority'] ?? 100,
+                'children' => $componentNav, // Always include children
             ];
-
-            // Add component children if there are multiple with routes
-            // If only one component or submodule has same route as first component, don't nest
-            if (count($componentChildren) > 1) {
-                $submoduleItem['children'] = $componentChildren;
-            }
-
-            $children[] = $submoduleItem;
         }
 
-        // Sort children by priority
-        usort($children, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+        // Sort submodules by priority
+        usort($submoduleNav, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
 
         // Register core navigation with highest priority (1)
+        // Core uses is_core=true so its children flatten to top level
         $registry->register('core', [
             [
                 'name' => $config['name'] ?? 'Core',
                 'icon' => $config['icon'] ?? 'CubeIcon',
                 'access' => 'core',
-                'children' => $children,
+                'priority' => $config['priority'] ?? 1,
+                'children' => $submoduleNav,
             ],
         ], $config['priority'] ?? 1);
     }

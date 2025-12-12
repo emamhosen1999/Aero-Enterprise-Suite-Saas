@@ -11,9 +11,12 @@ use Illuminate\Support\Str;
  *
  * Unified error logging for both backend (Laravel) and frontend (React/Inertia) errors.
  * Stored in central database for platform-wide visibility.
+ * Receives errors from all installations (SaaS tenants and standalone).
  *
  * @property int $id
  * @property string $trace_id
+ * @property string|null $source_domain - The domain where the error originated
+ * @property string|null $license_key - The installation's license key
  * @property string|null $tenant_id
  * @property int|null $user_id
  * @property string $error_type
@@ -49,6 +52,8 @@ class ErrorLog extends Model
 
     protected $fillable = [
         'trace_id',
+        'source_domain',
+        'license_key',
         'tenant_id',
         'user_id',
         'error_type',
@@ -108,6 +113,22 @@ class ErrorLog extends Model
     public function scopeUnresolved($query)
     {
         return $query->where('is_resolved', false);
+    }
+
+    /**
+     * Scope for specific source domain (installation)
+     */
+    public function scopeFromDomain($query, string $domain)
+    {
+        return $query->where('source_domain', $domain);
+    }
+
+    /**
+     * Scope for specific license key
+     */
+    public function scopeForLicense($query, string $licenseKey)
+    {
+        return $query->where('license_key', $licenseKey);
     }
 
     /**

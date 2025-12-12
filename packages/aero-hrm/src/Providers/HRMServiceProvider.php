@@ -194,6 +194,8 @@ class HRMServiceProvider extends AbstractModuleProvider
     /**
      * Register HRM navigation items with NavigationRegistry.
      * Navigation is derived from config/module.php submodules for consistency.
+     * 
+     * Structure: Module → Submodules → Components (3 levels)
      */
     protected function registerNavigation(): void
     {
@@ -206,19 +208,35 @@ class HRMServiceProvider extends AbstractModuleProvider
         $modulePriority = $this->getModulePriority();
 
         // Build navigation children from config submodules
-        $children = [];
+        $submoduleNav = [];
         foreach ($config['submodules'] ?? [] as $submodule) {
-            $children[] = [
-                'name' => $submodule['name'] ?? ucfirst($submodule['code'] ?? ''),
+            $submoduleCode = $submodule['code'] ?? '';
+            $submoduleIcon = $submodule['icon'] ?? null;
+            
+            // Build component children for this submodule
+            $componentNav = [];
+            foreach ($submodule['components'] ?? [] as $component) {
+                $componentNav[] = [
+                    'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
+                    'path' => $component['route'] ?? '',
+                    'icon' => $component['icon'] ?? $submoduleIcon, // Inherit submodule icon if not set
+                    'access' => $this->moduleCode . '.' . $submoduleCode . '.' . ($component['code'] ?? ''),
+                    'type' => $component['type'] ?? 'page',
+                ];
+            }
+            
+            $submoduleNav[] = [
+                'name' => $submodule['name'] ?? ucfirst($submoduleCode),
                 'path' => $submodule['route'] ?? '',
-                'icon' => $submodule['icon'] ?? null,
-                'access' => $this->moduleCode . '.' . ($submodule['code'] ?? ''),
+                'icon' => $submoduleIcon,
+                'access' => $this->moduleCode . '.' . $submoduleCode,
                 'priority' => $submodule['priority'] ?? 100,
+                'children' => $componentNav,
             ];
         }
 
-        // Sort children by priority
-        usort($children, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+        // Sort submodules by priority
+        usort($submoduleNav, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
 
         // Register main HRM navigation with module as parent wrapper
         $navRegistry->register($this->moduleCode, [
@@ -226,8 +244,8 @@ class HRMServiceProvider extends AbstractModuleProvider
                 'name' => $config['name'] ?? 'Human Resources',
                 'icon' => $config['icon'] ?? 'UserGroupIcon',
                 'access' => $this->moduleCode,
-                'priority' => $modulePriority, // Add priority to the parent item
-                'children' => $children,
+                'priority' => $modulePriority,
+                'children' => $submoduleNav,
             ],
         ], $modulePriority);
     }

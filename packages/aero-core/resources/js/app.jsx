@@ -6,6 +6,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
 import LoadingIndicator from '@/Components/LoadingIndicator';
+import ErrorBoundary from '@/Components/ErrorBoundary';
 import { ThemeProvider } from '@/Context/ThemeContext';
 import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';
@@ -95,12 +96,14 @@ createInertiaApp({
   resolve: resolvePage,
   setup({ el, App, props }) {
     createRoot(el).render(
-      <ThemeProvider>
-        <HeroUIProvider>
-          <LoadingIndicator />
-          <App {...props} />
-        </HeroUIProvider>
-      </ThemeProvider>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <HeroUIProvider>
+            <LoadingIndicator />
+            <App {...props} />
+          </HeroUIProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
     );
   },
 });

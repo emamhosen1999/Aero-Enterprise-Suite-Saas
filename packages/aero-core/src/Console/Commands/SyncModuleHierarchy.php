@@ -29,7 +29,8 @@ class SyncModuleHierarchy extends Command
 {
     protected $signature = 'aero:sync-module
                           {--scope= : Sync only specific scope (platform or tenant)}
-                          {--force : Force sync even if modules table does not exist}';
+                          {--force : Force sync even if modules table does not exist}
+                          {--prune : Remove modules that are no longer installed}';
 
     protected $description = 'Sync module hierarchy from package configs to database (modules, sub_modules, components, actions)';
 
@@ -38,12 +39,16 @@ class SyncModuleHierarchy extends Command
     protected array $stats = [
         'modules_created' => 0,
         'modules_updated' => 0,
+        'modules_removed' => 0,
         'submodules_created' => 0,
         'submodules_updated' => 0,
+        'submodules_removed' => 0,
         'components_created' => 0,
         'components_updated' => 0,
+        'components_removed' => 0,
         'actions_created' => 0,
         'actions_updated' => 0,
+        'actions_removed' => 0,
     ];
 
     public function __construct(ModuleDiscoveryService $moduleDiscovery)
@@ -63,6 +68,7 @@ class SyncModuleHierarchy extends Command
         }
 
         $scope = $this->option('scope');
+        $prune = $this->option('prune');
 
         try {
             DB::beginTransaction();
@@ -71,8 +77,17 @@ class SyncModuleHierarchy extends Command
 
             if ($modules->isEmpty()) {
                 $this->warn('⚠️  No module definitions found in packages.');
+                
+                // If pruning is enabled, remove all non-core modules
+                if ($prune) {
+                    $this->warn('🗑️  Pruning enabled - removing all non-core modules from database...');
+                    $this->pruneRemovedModules(collect([]));
+                    DB::commit();
+                    $this->displayStats();
+                    return self::SUCCESS;
+                }
+                
                 DB::rollBack();
-
                 return self::SUCCESS;
             }
 
@@ -81,6 +96,8 @@ class SyncModuleHierarchy extends Command
 
             $progressBar = $this->output->createProgressBar($modules->count());
             $progressBar->setFormat('verbose');
+
+            $syncedModuleCodes = [];
 
             foreach ($modules as $moduleDef) {
                 // Filter by scope if specified
@@ -91,11 +108,15 @@ class SyncModuleHierarchy extends Command
                 }
 
                 $this->syncModule($moduleDef);
+                $syncedModuleCodes[] = $moduleDef['code'];
                 $progressBar->advance();
             }
 
             $progressBar->finish();
             $this->newLine(2);
+
+            // Prune removed modules (always prune to keep DB in sync)
+            $this->pruneRemovedModules(collect($modules));
 
             DB::commit();
 
@@ -111,6 +132,54 @@ class SyncModuleHierarchy extends Command
             $this->error('Stack trace: '.$e->getTraceAsString());
 
             return self::FAILURE;
+        }
+    }
+
+    /**
+     * Prune modules that are no longer installed.
+     * Only removes non-core modules to protect essential system modules.
+     */
+    protected function pruneRemovedModules($installedModules): void
+    {
+        $installedCodes = $installedModules->pluck('code')->toArray();
+        
+        // Find modules in DB that are not in installed packages (exclude core modules)
+        $removedModules = Module::whereNotIn('code', $installedCodes)
+            ->where('is_core', false)
+            ->get();
+
+        if ($removedModules->isEmpty()) {
+            return;
+        }
+
+        $this->warn("🗑️  Removing {$removedModules->count()} uninstalled module(s)...");
+
+        foreach ($removedModules as $module) {
+            $this->line("   - Removing: {$module->name} ({$module->code})");
+            
+            // Count items being removed for stats
+            $submoduleCount = $module->subModules()->count();
+            $componentCount = ModuleComponent::where('module_id', $module->id)->count();
+            $actionCount = ModuleComponentAction::whereIn(
+                'module_component_id', 
+                ModuleComponent::where('module_id', $module->id)->pluck('id')
+            )->count();
+
+            // Delete in reverse order (actions -> components -> submodules -> module)
+            // Due to foreign key constraints
+            ModuleComponentAction::whereIn(
+                'module_component_id', 
+                ModuleComponent::where('module_id', $module->id)->pluck('id')
+            )->delete();
+            
+            ModuleComponent::where('module_id', $module->id)->delete();
+            $module->subModules()->delete();
+            $module->delete();
+
+            $this->stats['modules_removed']++;
+            $this->stats['submodules_removed'] += $submoduleCount;
+            $this->stats['components_removed'] += $componentCount;
+            $this->stats['actions_removed'] += $actionCount;
         }
     }
 
@@ -291,19 +360,23 @@ class SyncModuleHierarchy extends Command
     {
         $this->info('📊 Sync Statistics:');
         $this->table(
-            ['Entity', 'Created', 'Updated'],
+            ['Entity', 'Created', 'Updated', 'Removed'],
             [
-                ['Modules', $this->stats['modules_created'], $this->stats['modules_updated']],
-                ['Sub-Modules', $this->stats['submodules_created'], $this->stats['submodules_updated']],
-                ['Components', $this->stats['components_created'], $this->stats['components_updated']],
-                ['Actions', $this->stats['actions_created'], $this->stats['actions_updated']],
+                ['Modules', $this->stats['modules_created'], $this->stats['modules_updated'], $this->stats['modules_removed']],
+                ['Sub-Modules', $this->stats['submodules_created'], $this->stats['submodules_updated'], $this->stats['submodules_removed']],
+                ['Components', $this->stats['components_created'], $this->stats['components_updated'], $this->stats['components_removed']],
+                ['Actions', $this->stats['actions_created'], $this->stats['actions_updated'], $this->stats['actions_removed']],
             ]
         );
 
-        $totalCreated = array_sum(array_filter($this->stats, fn ($key) => str_ends_with($key, '_created'), ARRAY_FILTER_USE_KEY));
-        $totalUpdated = array_sum(array_filter($this->stats, fn ($key) => str_ends_with($key, '_updated'), ARRAY_FILTER_USE_KEY));
+        $totalCreated = $this->stats['modules_created'] + $this->stats['submodules_created'] + 
+                       $this->stats['components_created'] + $this->stats['actions_created'];
+        $totalUpdated = $this->stats['modules_updated'] + $this->stats['submodules_updated'] + 
+                       $this->stats['components_updated'] + $this->stats['actions_updated'];
+        $totalRemoved = $this->stats['modules_removed'] + $this->stats['submodules_removed'] + 
+                       $this->stats['components_removed'] + $this->stats['actions_removed'];
 
         $this->newLine();
-        $this->info("📈 Total: {$totalCreated} created, {$totalUpdated} updated");
+        $this->info("📈 Total: {$totalCreated} created, {$totalUpdated} updated, {$totalRemoved} removed");
     }
 }

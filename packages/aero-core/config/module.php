@@ -3,12 +3,8 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Core Module Configuration
+    | Core Module Configuration (Merged & Expanded)
     |--------------------------------------------------------------------------
-    |
-    | This file contains configuration specific to the Core module that will
-    | be merged into the main application's modules configuration.
-    |
     */
 
     'code' => 'core',
@@ -21,7 +17,7 @@ return [
     'priority' => 1,
     'is_core' => true,
     'is_active' => true,
-    'version' => '1.0.0',
+    'version' => '1.1.0',
     'min_plan' => null,
     'license_type' => 'standard',
     'dependencies' => [],
@@ -29,11 +25,6 @@ return [
     'enabled' => true,
     'minimum_plan' => null,
 
-    /*
-    |--------------------------------------------------------------------------
-    | Core Features
-    |--------------------------------------------------------------------------
-    */
     'features' => [
         'dashboard' => true,
         'user_management' => true,
@@ -45,16 +36,6 @@ return [
         'settings' => true,
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Module Permission Structure
-    |--------------------------------------------------------------------------
-    |
-    | Defines the hierarchical permission structure for the Core module.
-    | Used by aero:sync-module command to populate the database.
-    | Structure: Module → Submodules → Components → Actions
-    |
-    */
     'submodules' => [
         /*
         |--------------------------------------------------------------------------
@@ -85,6 +66,7 @@ return [
                     'type' => 'widget',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Statistics'],
+                        ['code' => 'configure', 'name' => 'Configure Widgets'], // Added
                     ],
                 ],
             ],
@@ -122,6 +104,7 @@ return [
                         ['code' => 'reset_password', 'name' => 'Reset Password'],
                         ['code' => 'lock_account', 'name' => 'Lock Account'],
                         ['code' => 'unlock_account', 'name' => 'Unlock Account'],
+                        ['code' => 'impersonate', 'name' => 'Impersonate User'], // Added: High value feature
                         ['code' => 'export', 'name' => 'Export Users'],
                         ['code' => 'import', 'name' => 'Import Users'],
                     ],
@@ -163,7 +146,7 @@ return [
             'name' => 'Authentication',
             'description' => 'Authentication and security settings',
             'icon' => 'KeyIcon',
-            'route' => null,
+            'route' => '/security', // Filled route
             'priority' => 3,
 
             'components' => [
@@ -171,7 +154,7 @@ return [
                     'code' => 'devices',
                     'name' => 'Device Management',
                     'type' => 'page',
-                    'route' => '/my-devices',
+                    'route' => '/security/devices', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Devices'],
                         ['code' => 'toggle', 'name' => 'Toggle Device Trust'],
@@ -183,6 +166,7 @@ return [
                     'code' => 'two_factor',
                     'name' => 'Two-Factor Authentication',
                     'type' => 'feature',
+                    'route' => '/security/2fa', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View 2FA Settings'],
                         ['code' => 'enable', 'name' => 'Enable 2FA'],
@@ -194,7 +178,7 @@ return [
                     'code' => 'sessions',
                     'name' => 'Session Management',
                     'type' => 'page',
-                    'route' => null,
+                    'route' => '/security/sessions', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Sessions'],
                         ['code' => 'terminate', 'name' => 'Terminate Session'],
@@ -229,6 +213,7 @@ return [
                         ['code' => 'edit', 'name' => 'Edit Role'],
                         ['code' => 'delete', 'name' => 'Delete Role'],
                         ['code' => 'assign', 'name' => 'Assign Role to Users'],
+                        ['code' => 'permissions', 'name' => 'Manage Permissions'], // Added explicit permission management
                     ],
                 ],
                 [
@@ -263,7 +248,7 @@ return [
                     'code' => 'activity_logs',
                     'name' => 'Activity Logs',
                     'type' => 'page',
-                    'route' => '/audit-logs',
+                    'route' => '/audit-logs/activity',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Activity Logs'],
                         ['code' => 'export', 'name' => 'Export Activity Logs'],
@@ -279,6 +264,19 @@ return [
                         ['code' => 'view', 'name' => 'View Security Logs'],
                         ['code' => 'export', 'name' => 'Export Security Logs'],
                         ['code' => 'investigate', 'name' => 'Investigate Event'],
+                    ],
+                ],
+                /* * NEW: Added Queue Monitor for System Health
+                 */
+                [
+                    'code' => 'queue_monitor',
+                    'name' => 'Queue/Job Monitor',
+                    'type' => 'page',
+                    'route' => '/audit-logs/queues',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Job Queues'],
+                        ['code' => 'retry', 'name' => 'Retry Failed Jobs'],
+                        ['code' => 'flush', 'name' => 'Flush Queue'],
                     ],
                 ],
             ],
@@ -302,7 +300,7 @@ return [
                     'code' => 'channels',
                     'name' => 'Notification Channels',
                     'type' => 'page',
-                    'route' => null,
+                    'route' => '/notifications/channels', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Channels'],
                         ['code' => 'configure', 'name' => 'Configure Channel'],
@@ -313,12 +311,13 @@ return [
                     'code' => 'templates',
                     'name' => 'Notification Templates',
                     'type' => 'page',
-                    'route' => null,
+                    'route' => '/notifications/templates', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Templates'],
                         ['code' => 'create', 'name' => 'Create Template'],
                         ['code' => 'edit', 'name' => 'Edit Template'],
                         ['code' => 'delete', 'name' => 'Delete Template'],
+                        ['code' => 'preview', 'name' => 'Preview Template'], // Added
                     ],
                 ],
             ],
@@ -342,7 +341,7 @@ return [
                     'code' => 'storage',
                     'name' => 'Storage Management',
                     'type' => 'page',
-                    'route' => null,
+                    'route' => '/files/storage', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Storage'],
                         ['code' => 'configure', 'name' => 'Configure Storage'],
@@ -353,11 +352,12 @@ return [
                     'code' => 'media_library',
                     'name' => 'Media Library',
                     'type' => 'page',
-                    'route' => null,
+                    'route' => '/files/media', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Media'],
                         ['code' => 'upload', 'name' => 'Upload Media'],
                         ['code' => 'delete', 'name' => 'Delete Media'],
+                        ['code' => 'organize', 'name' => 'Organize Folders'], // Added
                     ],
                 ],
             ],
@@ -391,7 +391,7 @@ return [
                     'code' => 'security',
                     'name' => 'Security Settings',
                     'type' => 'page',
-                    'route' => null,
+                    'route' => '/settings/security', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Settings'],
                         ['code' => 'edit', 'name' => 'Edit Settings'],
@@ -403,21 +403,54 @@ return [
                     'code' => 'localization',
                     'name' => 'Localization',
                     'type' => 'page',
-                    'route' => null,
+                    'route' => '/settings/localization', // Filled route
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Settings'],
                         ['code' => 'edit', 'name' => 'Edit Settings'],
+                    ],
+                ],
+                /* * NEW: Branding Settings (Logo, Colors, White-labeling)
+                 */
+                [
+                    'code' => 'branding',
+                    'name' => 'Branding & Appearance',
+                    'type' => 'page',
+                    'route' => '/settings/branding',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Branding'],
+                        ['code' => 'update', 'name' => 'Update Branding'],
+                    ],
+                ],
+                /* * NEW: Mail/SMTP Configuration
+                 */
+                [
+                    'code' => 'mail_settings',
+                    'name' => 'Email (SMTP) Settings',
+                    'type' => 'page',
+                    'route' => '/settings/mail',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Mail Settings'],
+                        ['code' => 'update', 'name' => 'Update Mail Configuration'],
+                        ['code' => 'test', 'name' => 'Send Test Email'],
+                    ],
+                ],
+                /* * NEW: API & Integrations
+                 */
+                [
+                    'code' => 'integrations',
+                    'name' => 'API & Integrations',
+                    'type' => 'page',
+                    'route' => '/settings/integrations',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Integrations'],
+                        ['code' => 'configure', 'name' => 'Configure Integration'],
+                        ['code' => 'manage_keys', 'name' => 'Manage API Keys'],
                     ],
                 ],
             ],
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Module Access Control Settings
-    |--------------------------------------------------------------------------
-    */
     'access_control' => [
         'super_admin_role' => 'super-admin',
         'cache_ttl' => 3600,

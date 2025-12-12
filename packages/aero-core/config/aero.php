@@ -215,4 +215,60 @@ return [
         'lazy_load_modules' => env('AERO_LAZY_LOAD', true),
         'preload_modules' => env('AERO_PRELOAD_MODULES', ''),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Platform Error Reporting
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for reporting errors to the central Aero platform.
+    | All installations (SaaS tenants and standalone) report errors to the
+    | platform for centralized monitoring, analytics, and product improvement.
+    |
+    | In standalone mode, errors are sent to platform.aerosuite.com
+    | In SaaS mode, errors are stored directly in the central database
+    |
+    */
+
+    'error_reporting' => [
+        // Enable/disable remote error reporting
+        'enabled' => env('AERO_ERROR_REPORTING', true),
+
+        // Platform API endpoint for error reporting
+        'api_url' => env('AERO_PLATFORM_API_URL', 'https://platform.aerosuite.com/api/v1'),
+
+        // License key for authentication (validates the installation)
+        'license_key' => env('AERO_LICENSE_KEY', ''),
+
+        // Error severity levels to report (all, critical, server_only)
+        // 'all' = 4xx and 5xx errors
+        // 'server_only' = only 5xx errors
+        // 'critical' = only 500, 502, 503 errors
+        'level' => env('AERO_ERROR_LEVEL', 'all'),
+
+        // Send errors asynchronously (queued) - recommended for production
+        'async' => env('AERO_ERROR_ASYNC', true),
+
+        // Retry failed reports
+        'retry_attempts' => env('AERO_ERROR_RETRY', 3),
+
+        // Timeout for API calls (seconds)
+        'timeout' => env('AERO_ERROR_TIMEOUT', 5),
+
+        // Fields to always redact from payloads
+        'redact_fields' => [
+            'password', 'password_confirmation', 'current_password',
+            'token', 'api_token', 'access_token', 'refresh_token',
+            'secret', 'api_secret', 'client_secret', 'bearer',
+            'credit_card', 'card_number', 'cvv', 'cvc', 'card_cvc',
+            'ssn', 'social_security', 'pin',
+            'authorization', 'cookie', 'session',
+        ],
+
+        // Admin email for critical error notifications (used by MailService)
+        'admin_email' => env('AERO_ADMIN_EMAIL', ''),
+
+        // Notify admin on these error types
+        'notify_on' => ['ServerException', 'DatabaseException', 'TenantNotFoundException'],
+    ],
 ];

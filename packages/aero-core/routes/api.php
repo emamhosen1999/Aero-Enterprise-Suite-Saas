@@ -1,5 +1,6 @@
 <?php
 
+use Aero\Core\Services\PlatformErrorReporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,19 @@ Route::post('/version/check', function (Request $request) {
         'timestamp' => now()->toIso8601String(),
     ]);
 })->name('api.version.check');
+
+// ERROR LOGGING - Receives frontend errors and forwards to platform
+Route::post('/error-log', function (Request $request) {
+    $reporter = app(PlatformErrorReporter::class);
+    
+    $traceId = $reporter->reportFrontendError($request->all());
+    
+    return response()->json([
+        'success' => true,
+        'trace_id' => $traceId,
+        'message' => 'Error reported successfully',
+    ]);
+})->name('api.error-log')->middleware('throttle:30,1');
 
 // ============================================================================
 // AUTHENTICATED API ROUTES
