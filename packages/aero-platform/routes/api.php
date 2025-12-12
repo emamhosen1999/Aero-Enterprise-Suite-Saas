@@ -1,18 +1,19 @@
 <?php
 
-use Aero\Core\Http\Controllers\Api\UserApiController;
-use Aero\Core\Http\Controllers\Api\RoleApiController;
-use Aero\Core\Http\Controllers\Api\ModuleApiController;
+declare(strict_types=1);
+
 use Aero\Platform\Http\Controllers\ErrorLogController;
+use Aero\Platform\Http\Controllers\PlanController;
+use Aero\Platform\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Aero Core API Routes
+| Aero Platform API Routes
 |--------------------------------------------------------------------------
 |
-| API routes for Aero Core functionality.
-| Requires Sanctum authentication.
+| API routes for Aero Platform functionality.
+| These routes handle error reporting, tenant management, and platform status.
 |
 */
 
@@ -26,46 +27,70 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Error Reporting API - receives errors from standalone installations
-Route::prefix('v1')->name('api.v1.')->group(function () {
-    // POST /api/v1/error-logs - Receive error from remote installation
+Route::prefix('v1')->name('v1.')->group(function () {
+
+    // Error Reporting API - receives errors from standalone installations
     Route::post('/error-logs', [ErrorLogController::class, 'receiveRemoteError'])
         ->name('error-logs.receive')
-        ->middleware('throttle:60,1'); // Rate limit: 60 requests per minute
+        ->middleware('throttle:60,1');
+
+    // Platform health check
+    Route::get('/health', function () {
+        return response()->json([
+            'status' => 'ok',
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    })->name('health');
+
+    // Public plans list (for registration page)
+    Route::get('/plans', [PlanController::class, 'publicIndex'])
+        ->name('plans.public');
+
+    // Check subdomain availability
+    Route::post('/check-subdomain', [TenantController::class, 'checkSubdomain'])
+        ->middleware('throttle:30,1')
+        ->name('check-subdomain');
+
 });
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated API Routes
+| Authenticated API Routes (Landlord Guard)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:sanctum'])->group(function () {
-    // User API
-    Route::prefix('users')->name('users.')->group(function () {
-        Route::get('/', [UserApiController::class, 'index'])->name('index');
-        Route::get('/{user}', [UserApiController::class, 'show'])->name('show');
-        Route::post('/', [UserApiController::class, 'store'])->name('store');
-        Route::patch('/{user}', [UserApiController::class, 'update'])->name('update');
-        Route::delete('/{user}', [UserApiController::class, 'destroy'])->name('destroy');
+Route::middleware(['auth:landlord'])->prefix('v1')->name('v1.')->group(function () {
+
+    // Tenant Management API
+    Route::prefix('tenants')->name('tenants.')->group(function () {
+        Route::get('/', [TenantController::class, 'index'])->name('index');
+        Route::get('/stats', [TenantController::class, 'stats'])->name('stats');
+        Route::get('/{tenant}', [TenantController::class, 'show'])->name('show');
+        Route::post('/', [TenantController::class, 'store'])->name('store');
+        Route::put('/{tenant}', [TenantController::class, 'update'])->name('update');
+        Route::delete('/{tenant}', [TenantController::class, 'destroy'])->name('destroy');
+        Route::post('/{tenant}/suspend', [TenantController::class, 'suspend'])->name('suspend');
+        Route::post('/{tenant}/activate', [TenantController::class, 'activate'])->name('activate');
+        Route::post('/{tenant}/archive', [TenantController::class, 'archive'])->name('archive');
     });
 
-    // Role API
-    Route::prefix('roles')->name('roles.')->group(function () {
-        Route::get('/', [RoleApiController::class, 'index'])->name('index');
-        Route::get('/{role}', [RoleApiController::class, 'show'])->name('show');
-        Route::get('/{role}/access-tree', [RoleApiController::class, 'getAccessTree'])->name('access-tree');
+    // Plans Management API
+    Route::prefix('plans')->name('plans.')->group(function () {
+        Route::get('/', [PlanController::class, 'index'])->name('index');
+        Route::get('/{plan}', [PlanController::class, 'show'])->name('show');
+        Route::post('/', [PlanController::class, 'store'])->name('store');
+        Route::put('/{plan}', [PlanController::class, 'update'])->name('update');
+        Route::delete('/{plan}', [PlanController::class, 'destroy'])->name('destroy');
     });
 
-    // Module Access API
-    Route::prefix('modules')->name('modules.')->group(function () {
-        Route::get('/', [ModuleApiController::class, 'index'])->name('index');
-        Route::get('/accessible', [ModuleApiController::class, 'accessible'])->name('accessible');
-        Route::get('/{module}', [ModuleApiController::class, 'show'])->name('show');
-    });
-
-    // Error Logs Admin API (authenticated)
-    Route::prefix('v1/error-logs')->name('api.v1.error-logs.')->group(function () {
+    // Error Logs API
+    Route::prefix('error-logs')->name('error-logs.')->group(function () {
+        Route::get('/', [ErrorLogController::class, 'index'])->name('index');
         Route::get('/statistics', [ErrorLogController::class, 'statistics'])->name('statistics');
         Route::get('/domain-statistics', [ErrorLogController::class, 'domainStatistics'])->name('domain-statistics');
+        Route::get('/{errorLog}', [ErrorLogController::class, 'show'])->name('show');
+        Route::post('/{errorLog}/resolve', [ErrorLogController::class, 'resolve'])->name('resolve');
+        Route::delete('/{errorLog}', [ErrorLogController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-resolve', [ErrorLogController::class, 'bulkResolve'])->name('bulk-resolve');
+        Route::post('/bulk-destroy', [ErrorLogController::class, 'bulkDestroy'])->name('bulk-destroy');
     });
 });

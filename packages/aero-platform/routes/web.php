@@ -1,61 +1,27 @@
 <?php
 
-use Aero\Core\Http\Controllers\Auth\AuthenticatedSessionController;
-use Aero\Core\Http\Controllers\Auth\RegisteredUserController;
-use Aero\Core\Http\Controllers\ProfileController;
-use Aero\Core\Http\Controllers\UserController;
-use Aero\Core\Http\Controllers\RoleController;
-use Illuminate\Support\Facades\Route;
+declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| Aero Core Web Routes
+| Aero Platform Web Routes
 |--------------------------------------------------------------------------
 |
-| Core authentication and user management routes.
-| These routes are automatically registered with 'core' prefix.
+| This file serves as the main route loader for the aero-platform module.
+| It intelligently loads the appropriate routes based on domain context:
+|
+| - admin.* domain → admin.php (landlord authentication, platform management)
+| - Main domain → platform.php (public landing, registration, pricing)
+|
+| The actual routes are defined in:
+| - routes/admin.php: Platform admin routes (landlord guard)
+| - routes/platform.php: Public platform routes (registration, landing)
+| - routes/api.php: API endpoints
 |
 */
 
-// Authentication Routes (public)
-Route::middleware('guest')->group(function () {
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+// Routes are loaded by the service provider based on domain detection.
+// See AeroPlatformServiceProvider for the domain-based route registration.
 
-    Route::get('register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('register', [RegisteredUserController::class, 'store']);
-});
-
-// Authenticated Routes
-Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard
-    Route::get('dashboard', function () {
-        return inertia('Dashboard/Index');
-    })->name('dashboard');
-
-    // Logout
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
-    // Profile Management
-    Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', [ProfileController::class, 'show'])->name('show');
-        Route::patch('/', [ProfileController::class, 'update'])->name('update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-        Route::post('avatar', [ProfileController::class, 'uploadAvatar'])->name('avatar.upload');
-    });
-
-    // User Management (requires module access)
-    Route::middleware('module.access:user_management,users,user_list')->group(function () {
-        Route::resource('users', UserController::class);
-        Route::post('users/{user}/invite', [UserController::class, 'invite'])->name('users.invite');
-        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
-        Route::post('users/{user}/lock', [UserController::class, 'lock'])->name('users.lock');
-        Route::post('users/{user}/unlock', [UserController::class, 'unlock'])->name('users.unlock');
-    });
-
-    // Role Management (requires module access)
-    Route::middleware('module.access:roles_permissions,roles,role_list')->group(function () {
-        Route::resource('roles', RoleController::class);
-        Route::post('roles/{role}/sync-module-access', [RoleController::class, 'syncModuleAccess'])->name('roles.sync-module-access');
-    });
-});
+// This file is kept for compatibility but routes are primarily
+// in admin.php and platform.php which are conditionally loaded.

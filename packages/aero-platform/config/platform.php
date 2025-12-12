@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Platform Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for the Aero Platform multi-tenant SaaS system.
+    |
+    */
+
+    // Platform name
+    'name' => env('PLATFORM_NAME', 'Aero Enterprise Suite'),
+
+    // Platform domain (without subdomain)
+    'domain' => env('PLATFORM_DOMAIN', 'localhost'),
+
+    // Admin subdomain
+    'admin_subdomain' => env('PLATFORM_ADMIN_SUBDOMAIN', 'admin'),
+
+    // Trial configuration
+    'trial' => [
+        'enabled' => env('PLATFORM_TRIAL_ENABLED', true),
+        'days' => env('PLATFORM_TRIAL_DAYS', 14),
+    ],
+
+    // Registration settings
+    'registration' => [
+        'enabled' => env('PLATFORM_REGISTRATION_ENABLED', true),
+        'require_email_verification' => env('PLATFORM_REQUIRE_EMAIL_VERIFICATION', true),
+        'require_phone_verification' => env('PLATFORM_REQUIRE_PHONE_VERIFICATION', false),
+    ],
+
+    // Billing settings
+    'billing' => [
+        'provider' => env('BILLING_PROVIDER', 'stripe'), // stripe, sslcommerz
+        'currency' => env('BILLING_CURRENCY', 'USD'),
+    ],
+
+    // Provisioning settings
+    'provisioning' => [
+        'async' => env('PLATFORM_ASYNC_PROVISIONING', true),
+        'timeout' => env('PLATFORM_PROVISIONING_TIMEOUT', 300), // 5 minutes
+    ],
+
+];
