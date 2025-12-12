@@ -3,7 +3,6 @@
 namespace Aero\Platform\Http\Controllers\Admin;
 
 use Aero\Platform\Models\LandlordUser;
-use App\Http\Controllers\Controller;
 use Aero\Platform\Models\Shared\Module;
 use Aero\Platform\Models\Shared\ModuleComponent;
 use Aero\Platform\Models\Shared\ModuleComponentAction;
@@ -11,6 +10,7 @@ use Aero\Platform\Models\Shared\Role;
 use Aero\Platform\Models\Shared\RoleModuleAccess;
 use Aero\Platform\Models\Shared\SubModule;
 use Aero\Platform\Services\Module\RoleModuleAccessService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -172,7 +172,7 @@ class ModuleController extends Controller
                             $componentData['actions'][] = [
                                 'code' => $action['code'],
                                 'name' => $action['name'],
-                            ]
+                            ],
                         ];
                     }
 

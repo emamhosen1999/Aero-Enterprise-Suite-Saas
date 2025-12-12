@@ -2,6 +2,7 @@
 
 namespace Aero\Core;
 
+use Aero\Core\Contracts\TenantScopeInterface;
 use Aero\Core\Providers\ModuleRouteServiceProvider;
 use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Services\ModuleManager;
@@ -9,6 +10,7 @@ use Aero\Core\Services\ModuleRegistry;
 use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Services\RoleModuleAccessService;
 use Aero\Core\Services\RuntimeLoader;
+use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -90,6 +92,10 @@ class AeroCoreServiceProvider extends ServiceProvider
                     };
                 }
             });
+
+            // Bind TenantScopeInterface to StandaloneTenantScope as default
+            // This can be overridden by aero-platform for SaaS mode
+            $this->app->singleton(TenantScopeInterface::class, StandaloneTenantScope::class);
 
             // Register RuntimeLoader as singleton (lazy-loaded)
             $this->app->singleton(RuntimeLoader::class, function ($app) {

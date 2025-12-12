@@ -1,6 +1,6 @@
 <?php
 
-namespace Aero\Core\Traits;
+namespace Aero\Platform\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Stancl\Tenancy\Contracts\Tenant;

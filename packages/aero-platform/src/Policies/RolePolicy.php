@@ -95,13 +95,11 @@ class RolePolicy
             return Response::deny('This role is protected and cannot be modified. Super Administrator roles are permanent.');
         }
 
-    
         // Super Administrator can update non-protected roles
         if ($user->hasRole('Super Administrator')) {
             return Response::allow();
         }
 
-      
         if ($user->can('tenant.manage_roles') || $user->can('platform.manage_roles')) {
             return Response::allow();
         }
@@ -121,13 +119,10 @@ class RolePolicy
             return Response::deny('This role is protected and cannot be deleted. Super Administrator roles are permanent.');
         }
 
-       
         // Super Administrator can delete non-protected roles
         if ($user->hasRole('Super Administrator')) {
             return Response::allow();
         }
-
-    
 
         if ($user->can('tenant.manage_roles') || $user->can('platform.manage_roles')) {
             return Response::allow();

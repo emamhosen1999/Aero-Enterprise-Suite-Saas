@@ -7,7 +7,7 @@ use Inertia\Inertia;
 
 /**
  * Integration Dashboard Controller
- * 
+ *
  * Handles the integrations dashboard displaying connected services and status
  */
 class IntegrationDashboardController extends Controller
@@ -25,7 +25,7 @@ class IntegrationDashboardController extends Controller
             'failed_syncs' => 0,
             'last_sync' => null,
         ];
-        
+
         return Inertia::render('Tenant/Pages/Integrations/Dashboard', [
             'title' => 'Integrations Dashboard',
             'integrations' => $integrations,

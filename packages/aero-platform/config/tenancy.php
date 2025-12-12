@@ -29,7 +29,7 @@ return [
 
     'central_domains' => [
         env('PLATFORM_DOMAIN', 'localhost'),
-        'admin.' . env('PLATFORM_DOMAIN', 'localhost'),
+        'admin.'.env('PLATFORM_DOMAIN', 'localhost'),
     ],
 
     /*

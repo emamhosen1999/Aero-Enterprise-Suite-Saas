@@ -50,6 +50,7 @@ class CleanupFailedTenants extends Command
 
         if ($failedTenants->isEmpty()) {
             $this->info('✅ No failed tenants found for cleanup.');
+
             return self::SUCCESS;
         }
 
@@ -60,15 +61,16 @@ class CleanupFailedTenants extends Command
         $errors = 0;
 
         foreach ($failedTenants as $tenant) {
-            $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             $this->info("Tenant: {$tenant->name} (ID: {$tenant->id})");
             $this->line("  Subdomain: {$tenant->subdomain}");
             $this->line("  Email: {$tenant->email}");
             $this->line("  Failed at: {$tenant->created_at->diffForHumans()}");
-            $this->line("  Error: ".($tenant->data['provisioning_error'] ?? 'Unknown'));
+            $this->line('  Error: '.($tenant->data['provisioning_error'] ?? 'Unknown'));
 
             if ($dryRun) {
                 $this->comment('  [DRY RUN] Would delete this tenant and its database');
+
                 continue;
             }
 
@@ -78,7 +80,7 @@ class CleanupFailedTenants extends Command
                 if ($databaseName) {
                     $this->line("  → Dropping database: {$databaseName}");
                     DB::statement("DROP DATABASE IF EXISTS `{$databaseName}`");
-                    $this->comment("  ✓ Database dropped");
+                    $this->comment('  ✓ Database dropped');
                 }
 
                 // Step 2: Delete domains
@@ -86,13 +88,13 @@ class CleanupFailedTenants extends Command
                 if ($domainCount > 0) {
                     $this->line("  → Deleting {$domainCount} domain(s)");
                     $tenant->domains()->delete();
-                    $this->comment("  ✓ Domains deleted");
+                    $this->comment('  ✓ Domains deleted');
                 }
 
                 // Step 3: Delete tenant record
-                $this->line("  → Deleting tenant record");
+                $this->line('  → Deleting tenant record');
                 $tenant->forceDelete();
-                $this->comment("  ✓ Tenant record deleted");
+                $this->comment('  ✓ Tenant record deleted');
 
                 $this->info("✅ Successfully cleaned up tenant: {$tenant->name}");
                 $deleted++;
@@ -116,13 +118,13 @@ class CleanupFailedTenants extends Command
             $this->newLine();
         }
 
-        $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         $this->newLine();
 
         if ($dryRun) {
             $this->warn("DRY RUN: Would have deleted {$failedTenants->count()} tenant(s)");
         } else {
-            $this->info("Summary:");
+            $this->info('Summary:');
             $this->line("  ✅ Deleted: {$deleted}");
             if ($errors > 0) {
                 $this->line("  ❌ Errors: {$errors}");

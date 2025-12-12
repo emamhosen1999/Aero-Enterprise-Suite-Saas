@@ -56,7 +56,6 @@ class UserPolicy
         return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
     }
 
-
     /**
      * Determine whether the user can update the model.
      */
@@ -153,7 +152,6 @@ class UserPolicy
 
         return false;
     }
-
 
     /**
      * Determine whether the user can restore the model.

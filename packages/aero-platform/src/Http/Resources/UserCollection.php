@@ -1,6 +1,6 @@
 <?php
 
-namespace Aero\Core\Http\Resources;
+namespace Aero\Platform\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;

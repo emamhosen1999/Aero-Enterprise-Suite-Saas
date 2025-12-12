@@ -1,12 +1,12 @@
 <?php
 
-namespace Aero\Core\Services;
+namespace Aero\Platform\Services;
 
-use Aero\Core\Models\Action;
-use Aero\Core\Models\Component;
-use Aero\Core\Models\Module;
-use Aero\Core\Models\SubModule;
+use Aero\Platform\Models\Action;
+use Aero\Platform\Models\Component;
 use Aero\Core\Models\User;
+use Aero\Platform\Models\Module;
+use Aero\Platform\Models\SubModule;
 use Illuminate\Support\Facades\Cache;
 
 /**

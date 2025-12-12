@@ -29,7 +29,6 @@ return new class extends Migration
             $table->index('module_component_id');
         });
 
-        
     }
 
     /**
@@ -37,7 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        
 
         Schema::dropIfExists('module_component_actions');
 

@@ -42,7 +42,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class LandlordUser extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable, HasRoles;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * CRITICAL: Force this model to ALWAYS use the central database connection.
@@ -68,6 +68,14 @@ class LandlordUser extends Authenticatable
      * @var string
      */
     protected $guard_name = 'landlord';
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): \Aero\Platform\Database\Factories\LandlordUserFactory
+    {
+        return \Aero\Platform\Database\Factories\LandlordUserFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.

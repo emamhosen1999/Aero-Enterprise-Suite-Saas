@@ -3,8 +3,8 @@
 namespace Aero\Platform\Http\Controllers\Admin;
 
 use Aero\Platform\Models\LandlordUser;
-use App\Http\Controllers\Controller;
 use Aero\Platform\Models\Shared\User;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -110,7 +110,7 @@ class RoleController extends Controller
                             'id' => $u->id,
                             'name' => $u->name,
                             'email' => $u->email,
-                            'roles' => $u->roles->map(fn($role) => [
+                            'roles' => $u->roles->map(fn ($role) => [
                                 'id' => $role->id,
                                 'name' => $role->name,
                             ]),
@@ -126,7 +126,7 @@ class RoleController extends Controller
                             'id' => $u->id,
                             'name' => $u->name,
                             'email' => $u->email,
-                            'roles' => $u->roles->map(fn($role) => [
+                            'roles' => $u->roles->map(fn ($role) => [
                                 'id' => $role->id,
                                 'name' => $role->name,
                             ]),
@@ -151,7 +151,7 @@ class RoleController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Failed to load role management interface: ' . $e->getMessage(), [
+            Log::error('Failed to load role management interface: '.$e->getMessage(), [
                 'stack_trace' => $e->getTraceAsString(),
             ]);
 
@@ -237,7 +237,7 @@ class RoleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role creation failed: ' . $e->getMessage());
+            Log::error('Role creation failed: '.$e->getMessage());
 
             return response()->json([
                 'error' => 'Failed to create role',
@@ -252,7 +252,7 @@ class RoleController extends Controller
     public function updateRole(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:roles,name,' . $id,
+            'name' => 'required|string|max:255|unique:roles,name,'.$id,
             'description' => 'nullable|string|max:500',
         ]);
 
@@ -303,7 +303,7 @@ class RoleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role update failed: ' . $e->getMessage());
+            Log::error('Role update failed: '.$e->getMessage());
 
             return response()->json([
                 'error' => 'Failed to update role',
@@ -356,7 +356,7 @@ class RoleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Role deletion failed: ' . $e->getMessage());
+            Log::error('Role deletion failed: '.$e->getMessage());
 
             return response()->json([
                 'error' => 'Failed to delete role',
@@ -384,7 +384,7 @@ class RoleController extends Controller
 
         try {
             $isPlatform = $this->isPlatformContext();
-            
+
             if ($isPlatform) {
                 $user = LandlordUser::findOrFail($request->user_id);
             } else {
@@ -412,7 +412,7 @@ class RoleController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Role assignment failed: ' . $e->getMessage());
+            Log::error('Role assignment failed: '.$e->getMessage());
 
             return response()->json([
                 'error' => 'Failed to assign roles',
@@ -439,7 +439,7 @@ class RoleController extends Controller
             Cache::forget('roles_with_users');
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         } catch (\Exception $e) {
-            Log::warning('Cache clear failed: ' . $e->getMessage());
+            Log::warning('Cache clear failed: '.$e->getMessage());
         }
     }
 
@@ -478,7 +478,7 @@ class RoleController extends Controller
     public function refreshData()
     {
         $this->clearCache();
-        
+
         return response()->json([
             'message' => 'Data refreshed successfully',
             'timestamp' => now()->toISOString(),

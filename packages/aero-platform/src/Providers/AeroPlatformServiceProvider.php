@@ -2,15 +2,20 @@
 
 namespace Aero\Platform\Providers;
 
+use Aero\Core\Contracts\TenantScopeInterface;
+use Aero\Platform\Listeners\TenantCreatedListener;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Services\Billing\SslCommerzService;
 use Aero\Platform\Services\ModuleAccessService;
 use Aero\Platform\Services\Monitoring\Tenant\ErrorLogService;
 use Aero\Platform\Services\PlatformSettingService;
 use Aero\Platform\Services\RoleModuleAccessService;
+use Aero\Platform\Services\SaaSTenantScope;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Stancl\Tenancy\Events\TenantCreated;
 
 /**
  * Aero Platform Service Provider
@@ -20,8 +25,6 @@ use Illuminate\Support\ServiceProvider;
  * billing/subscriptions, and platform administration.
  *
  * All configuration is handled programmatically - the host app remains clean.
- *
- * @package Aero\Platform
  */
 class AeroPlatformServiceProvider extends ServiceProvider
 {
@@ -30,10 +33,18 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Set aero.mode to 'saas' - Platform is the SaaS orchestrator
+        // This MUST be set before any module checks for mode
+        Config::set('aero.mode', 'saas');
+
         // Merge platform configs
         $this->mergeConfigFrom(__DIR__.'/../../config/modules.php', 'aero-platform.modules');
         $this->mergeConfigFrom(__DIR__.'/../../config/tenancy.php', 'tenancy');
         $this->mergeConfigFrom(__DIR__.'/../../config/platform.php', 'platform');
+
+        // Override TenantScopeInterface binding (Core binds StandaloneTenantScope by default)
+        // Platform provides the SaaS implementation using stancl/tenancy
+        $this->app->singleton(TenantScopeInterface::class, SaaSTenantScope::class);
 
         // Register services as singletons
         $this->app->singleton(ModuleAccessService::class);
@@ -47,6 +58,9 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Configure database connections programmatically
         $this->configureDatabase();
+
+        // Register event listeners for tenant lifecycle
+        $this->registerEventListeners();
     }
 
     /**
@@ -60,11 +74,17 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Register routes
         $this->registerRoutes();
 
+        // Register middleware (including HandleInertiaRequests which intercepts "/")
+        $this->registerMiddleware();
+
         // Publish assets
         $this->registerPublishing();
 
         // Register views (for email templates, etc.)
         $this->loadViewsFrom(__DIR__.'/../../resources/views', 'aero-platform');
+
+        // Also add views to the main view paths so 'app' view works for Inertia
+        $this->app['view']->addLocation(__DIR__.'/../../resources/views');
 
         // Register commands
         if ($this->app->runningInConsole()) {
@@ -72,6 +92,45 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 // Add console commands here
             ]);
         }
+    }
+
+    /**
+     * Register middleware aliases for the platform package.
+     * Follows same pattern as Core - push HandleInertiaRequests to web group.
+     */
+    protected function registerMiddleware(): void
+    {
+        // Use the booted callback to ensure app is fully initialized (same as Core)
+        $this->app->booted(function () {
+            $router = $this->app->make('router');
+
+            // Register HandleInertiaRequests middleware to web middleware group
+            // This middleware intercepts "/" and renders the proper page
+            $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
+        });
+
+        $router = $this->app['router'];
+
+        // Core platform middleware aliases
+        $router->aliasMiddleware('module', \Aero\Platform\Http\Middleware\ModuleAccessMiddleware::class);
+        $router->aliasMiddleware('check.module', \Aero\Platform\Http\Middleware\CheckModuleAccess::class);
+        $router->aliasMiddleware('platform.domain', \Aero\Platform\Http\Middleware\EnsurePlatformDomain::class);
+        $router->aliasMiddleware('enforce.subscription', \Aero\Platform\Http\Middleware\EnforceSubscription::class);
+        $router->aliasMiddleware('check.installation', \Aero\Platform\Http\Middleware\CheckInstallation::class);
+        $router->aliasMiddleware('maintenance', \Aero\Platform\Http\Middleware\CheckMaintenanceMode::class);
+        $router->aliasMiddleware('permission', \Aero\Platform\Http\Middleware\PermissionMiddleware::class);
+        $router->aliasMiddleware('role', \Aero\Platform\Http\Middleware\EnsureUserHasRole::class);
+        $router->aliasMiddleware('platform.super.admin', \Aero\Platform\Http\Middleware\PlatformSuperAdmin::class);
+        $router->aliasMiddleware('tenant.super.admin', \Aero\Platform\Http\Middleware\TenantSuperAdmin::class);
+        $router->aliasMiddleware('tenant.setup', \Aero\Platform\Http\Middleware\EnsureTenantIsSetup::class);
+        $router->aliasMiddleware('tenant.onboarding', \Aero\Platform\Http\Middleware\RequireTenantOnboarding::class);
+        $router->aliasMiddleware('set.locale', \Aero\Platform\Http\Middleware\SetLocale::class);
+        $router->aliasMiddleware('check.subscription', \Aero\Platform\Http\Middleware\CheckModuleSubscription::class);
+
+        // Optionally push CheckModuleSubscription to 'tenant' middleware group
+        // This provides automatic route-based module gating for all tenant routes
+        // Uncomment if using stancl/tenancy's 'tenant' middleware group:
+        // $router->pushMiddlewareToGroup('tenant', \Aero\Platform\Http\Middleware\CheckModuleSubscription::class);
     }
 
     /**
@@ -166,12 +225,14 @@ class AeroPlatformServiceProvider extends ServiceProvider
         if (count($parts) >= 2) {
             // Take the last two parts as the base domain
             $basePart = implode('.', array_slice($parts, -2));
-            return 'admin.' . $basePart;
+
+            return 'admin.'.$basePart;
         }
 
-        return 'admin.' . $host;
+        return 'admin.'.$host;
     }
 
+    /**
     /**
      * Register package's publishable assets.
      */
@@ -216,6 +277,19 @@ class AeroPlatformServiceProvider extends ServiceProvider
             PlatformSettingService::class,
             ErrorLogService::class,
             SslCommerzService::class,
+            TenantScopeInterface::class,
         ];
+    }
+
+    /**
+     * Register event listeners for tenant lifecycle.
+     *
+     * - TenantCreated: Runs module migrations on newly created tenant databases
+     */
+    protected function registerEventListeners(): void
+    {
+        // Listen for TenantCreated event to run module migrations
+        // This ensures all installed modules (HRM, CRM, etc.) are migrated
+        Event::listen(TenantCreated::class, TenantCreatedListener::class);
     }
 }

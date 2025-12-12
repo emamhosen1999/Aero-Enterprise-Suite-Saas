@@ -2,12 +2,12 @@
 
 namespace Aero\Platform\Http\Controllers\Admin;
 
-use Aero\Core\Http\Resources\UserCollection;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
+use Aero\Platform\Http\Resources\UserCollection;
 use Aero\Platform\Models\LandlordUser;
-use App\Http\Controllers\Controller;
 use Aero\Platform\Models\Shared\User;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -291,7 +291,7 @@ class UserController extends Controller
     {
         $modelClass = $this->getUserModel($context);
         $guardName = $this->getGuard($context);
-        
+
         // Determine the connection and table for unique validation
         $connection = $context === 'admin' ? 'central' : config('database.default');
         $table = (new $modelClass)->getTable();
@@ -324,7 +324,7 @@ class UserController extends Controller
             ], 201);
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'error' => 'A user with this email already exists.',
                 'message' => 'The email address is already in use.',
@@ -347,7 +347,7 @@ class UserController extends Controller
     {
         $modelClass = $this->getUserModel($context);
         $user = $modelClass::findOrFail($id);
-        
+
         // Determine the connection and table for unique validation
         $connection = $context === 'admin' ? 'central' : config('database.default');
         $table = $user->getTable();

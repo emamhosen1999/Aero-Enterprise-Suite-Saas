@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use Aero\Platform\Models\Shared\User;
 use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

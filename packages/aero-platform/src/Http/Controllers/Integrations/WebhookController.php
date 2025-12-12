@@ -8,7 +8,7 @@ use Inertia\Inertia;
 
 /**
  * Webhook Controller
- * 
+ *
  * Manages webhooks for incoming and outgoing events
  */
 class WebhookController extends Controller
@@ -20,7 +20,7 @@ class WebhookController extends Controller
     {
         // TODO: Fetch webhooks from database
         $webhooks = [];
-        
+
         return Inertia::render('Tenant/Pages/Integrations/Webhooks', [
             'title' => 'Webhooks',
             'webhooks' => $webhooks,
@@ -43,7 +43,7 @@ class WebhookController extends Controller
         ]);
 
         // TODO: Create webhook in database
-        
+
         return redirect()->back()->with('success', 'Webhook created successfully');
     }
 
@@ -63,7 +63,7 @@ class WebhookController extends Controller
         ]);
 
         // TODO: Update webhook in database
-        
+
         return redirect()->back()->with('success', 'Webhook updated successfully');
     }
 
@@ -73,7 +73,7 @@ class WebhookController extends Controller
     public function destroy($id)
     {
         // TODO: Delete webhook
-        
+
         return redirect()->back()->with('success', 'Webhook deleted successfully');
     }
 
@@ -83,7 +83,7 @@ class WebhookController extends Controller
     public function test($id)
     {
         // TODO: Send test payload to webhook
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Test webhook sent successfully',
@@ -97,7 +97,7 @@ class WebhookController extends Controller
     {
         // TODO: Fetch webhook execution logs
         $logs = [];
-        
+
         return response()->json([
             'logs' => $logs,
         ]);

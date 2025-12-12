@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Aero\Platform\Http\Controllers\Admin\ModuleController;
+use Aero\Platform\Http\Controllers\Admin\RoleController;
+use Aero\Platform\Http\Controllers\Admin\UserController;
 use Aero\Platform\Http\Controllers\Auth\AuthenticatedSessionController;
 use Aero\Platform\Http\Controllers\Auth\ImpersonationController;
 use Aero\Platform\Http\Controllers\Billing\BillingController;
@@ -12,9 +15,6 @@ use Aero\Platform\Http\Controllers\PlanController;
 use Aero\Platform\Http\Controllers\PlanModuleController;
 use Aero\Platform\Http\Controllers\PlatformSettingController;
 use Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController;
-use Aero\Platform\Http\Controllers\Admin\ModuleController;
-use Aero\Platform\Http\Controllers\Admin\RoleController;
-use Aero\Platform\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

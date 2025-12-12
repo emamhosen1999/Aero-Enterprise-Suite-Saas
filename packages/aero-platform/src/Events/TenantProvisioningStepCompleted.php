@@ -20,7 +20,9 @@ class TenantProvisioningStepCompleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Tenant $tenant;
+
     public string $step;
+
     public string $message;
 
     /**

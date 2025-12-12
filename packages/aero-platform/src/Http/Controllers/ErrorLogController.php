@@ -342,7 +342,7 @@ class ErrorLogController extends Controller
         if ($validator->fails()) {
             Log::warning('Invalid error report received', [
                 'errors' => $validator->errors()->toArray(),
-                'license_key' => substr($licenseKey, 0, 10) . '...',
+                'license_key' => substr($licenseKey, 0, 10).'...',
             ]);
 
             return response()->json([

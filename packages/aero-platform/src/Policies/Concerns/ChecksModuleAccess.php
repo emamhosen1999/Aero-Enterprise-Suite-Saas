@@ -49,9 +49,8 @@ trait ChecksModuleAccess
     /**
      * Check if user can access a module.
      *
-     * @param User $user The user to check
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @return bool
+     * @param  User  $user  The user to check
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
      */
     protected function canAccessModule(User $user, string $moduleCode): bool
     {
@@ -68,10 +67,9 @@ trait ChecksModuleAccess
     /**
      * Check if user can access a submodule.
      *
-     * @param User $user The user to check
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The submodule code (e.g., 'employees')
-     * @return bool
+     * @param  User  $user  The user to check
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The submodule code (e.g., 'employees')
      */
     protected function canAccessSubModule(User $user, string $moduleCode, string $subModuleCode): bool
     {
@@ -88,11 +86,10 @@ trait ChecksModuleAccess
     /**
      * Check if user can access a component.
      *
-     * @param User $user The user to check
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The submodule code (e.g., 'employees')
-     * @param string $componentCode The component code (e.g., 'employee-list')
-     * @return bool
+     * @param  User  $user  The user to check
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The submodule code (e.g., 'employees')
+     * @param  string  $componentCode  The component code (e.g., 'employee-list')
      */
     protected function canAccessComponent(User $user, string $moduleCode, string $subModuleCode, string $componentCode): bool
     {
@@ -109,12 +106,11 @@ trait ChecksModuleAccess
     /**
      * Check if user can perform an action.
      *
-     * @param User $user The user to check
-     * @param string $moduleCode The module code (e.g., 'hrm')
-     * @param string $subModuleCode The submodule code (e.g., 'employees')
-     * @param string $componentCode The component code (e.g., 'employee-list')
-     * @param string $actionCode The action code (e.g., 'create', 'view', 'update', 'delete')
-     * @return bool
+     * @param  User  $user  The user to check
+     * @param  string  $moduleCode  The module code (e.g., 'hrm')
+     * @param  string  $subModuleCode  The submodule code (e.g., 'employees')
+     * @param  string  $componentCode  The component code (e.g., 'employee-list')
+     * @param  string  $actionCode  The action code (e.g., 'create', 'view', 'update', 'delete')
      */
     protected function canPerformAction(
         User $user,
@@ -142,10 +138,9 @@ trait ChecksModuleAccess
     /**
      * Check if user can access their own resources (for own-scope access).
      *
-     * @param User $user The authenticated user
-     * @param User|object $model The model being accessed (should have user_id or similar)
-     * @param string $ownerField The field that identifies ownership (default: 'user_id')
-     * @return bool
+     * @param  User  $user  The authenticated user
+     * @param  User|object  $model  The model being accessed (should have user_id or similar)
+     * @param  string  $ownerField  The field that identifies ownership (default: 'user_id')
      */
     protected function isOwner(User $user, $model, string $ownerField = 'user_id'): bool
     {
@@ -159,9 +154,8 @@ trait ChecksModuleAccess
     /**
      * Check if user is in the same department as the model.
      *
-     * @param User $user The authenticated user
-     * @param object $model The model being accessed (should have department_id or employee.department_id)
-     * @return bool
+     * @param  User  $user  The authenticated user
+     * @param  object  $model  The model being accessed (should have department_id or employee.department_id)
      */
     protected function isSameDepartment(User $user, $model): bool
     {
@@ -190,13 +184,12 @@ trait ChecksModuleAccess
      * This method checks both module access AND scope-based restrictions.
      * Useful for policies that need to respect data access scopes (own, department, team, all).
      *
-     * @param User $user The user to check
-     * @param string $moduleCode Module code
-     * @param string $subModuleCode Submodule code
-     * @param string $componentCode Component code
-     * @param string $actionCode Action code
-     * @param object|null $model The model being accessed (for scope checking)
-     * @return bool
+     * @param  User  $user  The user to check
+     * @param  string  $moduleCode  Module code
+     * @param  string  $subModuleCode  Submodule code
+     * @param  string  $componentCode  Component code
+     * @param  string  $actionCode  Action code
+     * @param  object|null  $model  The model being accessed (for scope checking)
      */
     protected function canPerformActionWithScope(
         User $user,

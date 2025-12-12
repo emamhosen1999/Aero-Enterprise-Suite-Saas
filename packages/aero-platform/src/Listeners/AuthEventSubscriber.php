@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Listeners;
 
-use Aero\Platform\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Auth\Events\Attempting;
 use Illuminate\Auth\Events\Authenticated;
 use Illuminate\Auth\Events\CurrentDeviceLogout;

@@ -95,7 +95,7 @@ class RegistrationPageController extends Controller
         }
 
         // Fetch plans with their modules
-        $plans = \App\Models\Plan::with(['modules' => function ($query) {
+        $plans = \Aero\Platform\Models\Plan::with(['modules' => function ($query) {
             $query->select('modules.id', 'modules.code', 'modules.name', 'modules.is_core')
                 ->where('is_active', true);
         }])
@@ -126,7 +126,7 @@ class RegistrationPageController extends Controller
             });
 
         // Fetch all modules (excluding core) for individual selection
-        $modules = \App\Models\Shared\Module::where('is_active', true)
+        $modules = \Aero\Platform\Models\Shared\Module::where('is_active', true)
             ->where('is_core', false) // Core is always included
             ->select('id', 'code', 'name', 'description', 'category')
             ->orderBy('priority')
@@ -165,7 +165,7 @@ class RegistrationPageController extends Controller
         }
 
         // Fetch plans to display selected plan details
-        $plans = \App\Models\Plan::with(['modules' => function ($query) {
+        $plans = \Aero\Platform\Models\Plan::with(['modules' => function ($query) {
             $query->select('modules.id', 'modules.code', 'modules.name')
                 ->where('is_active', true);
         }])
@@ -187,7 +187,7 @@ class RegistrationPageController extends Controller
             });
 
         // Fetch modules for display
-        $modules = \App\Models\Shared\Module::where('is_active', true)
+        $modules = \Aero\Platform\Models\Shared\Module::where('is_active', true)
             ->where('is_core', false)
             ->select('id', 'code', 'name')
             ->get();

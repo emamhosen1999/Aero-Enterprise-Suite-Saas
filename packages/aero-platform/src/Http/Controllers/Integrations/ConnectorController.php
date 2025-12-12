@@ -8,7 +8,7 @@ use Inertia\Inertia;
 
 /**
  * Connector Controller
- * 
+ *
  * Manages third-party service connectors and their configurations
  */
 class ConnectorController extends Controller
@@ -20,7 +20,7 @@ class ConnectorController extends Controller
     {
         // TODO: Fetch connectors from database
         $connectors = [];
-        
+
         return Inertia::render('Tenant/Pages/Integrations/Connectors', [
             'title' => 'Integration Connectors',
             'connectors' => $connectors,
@@ -41,7 +41,7 @@ class ConnectorController extends Controller
         ]);
 
         // TODO: Create connector in database
-        
+
         return redirect()->back()->with('success', 'Connector configured successfully');
     }
 
@@ -59,7 +59,7 @@ class ConnectorController extends Controller
         ]);
 
         // TODO: Update connector in database
-        
+
         return redirect()->back()->with('success', 'Connector updated successfully');
     }
 
@@ -69,7 +69,7 @@ class ConnectorController extends Controller
     public function destroy($id)
     {
         // TODO: Delete connector
-        
+
         return redirect()->back()->with('success', 'Connector removed successfully');
     }
 
@@ -79,7 +79,7 @@ class ConnectorController extends Controller
     public function test($id)
     {
         // TODO: Test connector connection
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Connection test successful',

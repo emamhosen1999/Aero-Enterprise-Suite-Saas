@@ -3,10 +3,10 @@
 namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Models\Plan;
+use Aero\Platform\Models\Shared\Module;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
 use App\Http\Controllers\Controller;
-use Aero\Platform\Models\Shared\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

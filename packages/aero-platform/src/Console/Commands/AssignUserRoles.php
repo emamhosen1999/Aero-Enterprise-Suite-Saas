@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Console\Commands;
 
-use Aero\Platform\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Console\Command;
 use Spatie\Permission\Models\Role;
 

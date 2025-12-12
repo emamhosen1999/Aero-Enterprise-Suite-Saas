@@ -3,8 +3,8 @@
 namespace Aero\Platform\Http\Controllers\Settings;
 
 use Aero\Platform\Models\Domain;
-use App\Http\Controllers\Controller;
 use Aero\Platform\Services\Monitoring\Tenant\CustomDomainService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

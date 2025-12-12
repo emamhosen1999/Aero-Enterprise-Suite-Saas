@@ -13,7 +13,7 @@ class Webhook extends Model
     protected $table = 'integrations_webhooks';
 
     protected $fillable = [
-        'connector_id', 'name', 'url', 'event', 'method', 'headers', 'secret', 
+        'connector_id', 'name', 'url', 'event', 'method', 'headers', 'secret',
         'is_active', 'last_triggered_at', 'success_count', 'failure_count',
     ];
 

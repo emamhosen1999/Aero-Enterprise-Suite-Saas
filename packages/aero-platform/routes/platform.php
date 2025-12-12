@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Aero\Platform\Http\Controllers\Billing\BillingController;
 use Aero\Platform\Http\Controllers\RegistrationController;
 use Aero\Platform\Http\Controllers\RegistrationPageController;
-use Aero\Platform\Http\Controllers\Webhooks\StripeWebhookController;
 use Aero\Platform\Http\Controllers\Webhooks\SslCommerzWebhookController;
+use Aero\Platform\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

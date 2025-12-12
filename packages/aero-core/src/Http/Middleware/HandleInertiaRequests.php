@@ -44,10 +44,18 @@ class HandleInertiaRequests extends Middleware
     {
         // Intercept root route "/" and redirect appropriately
         // This ensures the package works without modifying host app routes
+        // SKIP this in SaaS mode - Platform's HandleInertiaRequests handles "/" with a landing page
         if ($request->is('/') || $request->path() === '/') {
+            // In SaaS mode, let Platform's middleware handle root route
+            if (config('aero.mode') === 'saas') {
+                return parent::handle($request, $next);
+            }
+
+            // In standalone mode, redirect to dashboard or login
             if (Auth::check()) {
                 return redirect('/dashboard');
             }
+
             return redirect('/login');
         }
 

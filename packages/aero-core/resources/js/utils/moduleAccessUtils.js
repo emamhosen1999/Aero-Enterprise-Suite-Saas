@@ -7,7 +7,51 @@
  * Access is determined by checking the role_module_access table:
  * - User's role(s) are checked for access at module/submodule/component/action level
  * - Parent access grants access to all children (module access = all submodules, etc.)
+ * 
+ * SaaS Mode Integration:
+ * - In SaaS mode, subscription checking is layered on top of RBAC
+ * - Module must be subscribed (aero.subscriptions) AND user must have RBAC access
+ * - Use useSaaSAccess hook for combined subscription + RBAC checking
  */
+
+/**
+ * Get aero config from global page props
+ * @returns {Object} Aero configuration { mode, subscriptions }
+ */
+const getAeroConfig = () => {
+    // Try to get from window (set by Inertia)
+    if (typeof window !== 'undefined' && window.__page?.props?.aero) {
+        return window.__page.props.aero;
+    }
+    return { mode: 'standalone', subscriptions: [] };
+};
+
+/**
+ * Check if running in SaaS mode
+ * @returns {boolean} True if SaaS mode
+ */
+export const isSaaSMode = () => {
+    return getAeroConfig().mode === 'saas';
+};
+
+/**
+ * Check if tenant has subscription for a module
+ * @param {string} moduleCode - Module code (e.g., 'hrm', 'crm')
+ * @returns {boolean} True if subscribed (or in standalone mode)
+ */
+export const hasSubscription = (moduleCode) => {
+    const aero = getAeroConfig();
+    
+    // Standalone mode: all modules are "subscribed"
+    if (aero.mode !== 'saas') return true;
+    
+    if (!moduleCode) return false;
+    
+    const subscriptions = Array.isArray(aero.subscriptions) ? aero.subscriptions : [];
+    const normalizedCode = moduleCode.toLowerCase();
+    
+    return subscriptions.some(sub => sub.toLowerCase() === normalizedCode);
+};
 
 /**
  * Check if the current user has access to a specific module
@@ -334,6 +378,10 @@ export const filterNavigationByAccess = (navItems, auth = null) => {
 
 // Default export for convenience
 export default {
+    // SaaS mode helpers
+    isSaaSMode,
+    hasSubscription,
+    // RBAC access helpers
     hasModuleAccess,
     hasSubModuleAccess,
     hasComponentAccess,

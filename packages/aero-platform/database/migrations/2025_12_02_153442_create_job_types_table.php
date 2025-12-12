@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * DUPLICATE MIGRATION - Also exists in database/migrations/tenant/
- * 
+ *
  * This migration creates the job_types lookup table.
  * It exists in BOTH root and tenant migrations because:
  * - Root (Central DB): Platform-level job type definitions (shared/standardized)
  * - Tenant (Tenant DB): Tenant-specific job type usage (isolated data)
- * 
+ *
  * This allows tenants to have their own job type data while maintaining
  * platform-level definitions if needed.
  */

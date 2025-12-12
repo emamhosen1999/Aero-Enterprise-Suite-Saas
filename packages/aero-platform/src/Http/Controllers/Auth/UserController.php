@@ -2,20 +2,20 @@
 
 namespace Aero\Platform\Http\Controllers\Auth;
 
-use Aero\Core\Http\Requests\SendTeamInvitationRequest;
-use Aero\Core\Http\Requests\StoreUserRequest;
-use Aero\Core\Http\Requests\UpdateUserRequest;
-use Aero\Core\Http\Requests\UpdateUserRoleRequest;
-use Aero\Core\Http\Requests\UpdateUserStatusRequest;
-use Aero\Core\Http\Resources\UserCollection;
-use Aero\Core\Http\Resources\UserResource;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
-use Aero\Platform\Models\TenantInvitation;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Requests\SendTeamInvitationRequest;
+use Aero\Platform\Http\Requests\StoreUserRequest;
+use Aero\Platform\Http\Requests\UpdateUserRequest;
+use Aero\Platform\Http\Requests\UpdateUserRoleRequest;
+use Aero\Platform\Http\Requests\UpdateUserStatusRequest;
+use Aero\Platform\Http\Resources\UserCollection;
+use Aero\Platform\Http\Resources\UserResource;
 use Aero\Platform\Models\Shared\User;
+use Aero\Platform\Models\TenantInvitation;
 use Aero\Platform\Notifications\InviteTeamMember;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

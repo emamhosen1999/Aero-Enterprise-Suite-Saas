@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('license_type')->nullable()->after('min_plan')->comment('License classification: core, standard, addon');
             $table->json('dependencies')->nullable()->after('license_type')->comment('Array of required module codes');
             $table->date('release_date')->nullable()->after('dependencies')->comment('Initial release date');
-            
+
             // Add indexes for common queries
             $table->index('min_plan');
             $table->index('license_type');

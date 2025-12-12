@@ -3,8 +3,8 @@
 namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Models\Plan;
-use App\Http\Controllers\Controller;
 use Aero\Platform\Models\Shared\Module;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

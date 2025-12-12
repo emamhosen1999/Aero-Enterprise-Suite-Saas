@@ -397,6 +397,54 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
+     * Check if the tenant has an active subscription that includes a specific module.
+     *
+     * This is the core gating method used by CheckModuleAccess middleware.
+     * Returns true if:
+     * 1. Tenant has an active subscription (within date range)
+     * 2. The subscription's plan includes the specified module
+     *
+     * @param  string  $moduleName  Module code e.g., 'hrm', 'crm'
+     */
+    public function hasActiveSubscription(string $moduleName): bool
+    {
+        // Check 1: Look for active subscriptions with plans that include this module
+        $hasSubscription = $this->subscriptions()
+            ->where('status', Subscription::STATUS_ACTIVE)
+            ->where('starts_at', '<=', now())
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                      ->orWhere('ends_at', '>=', now());
+            })
+            ->whereHas('plan.modules', function ($query) use ($moduleName) {
+                $query->where('code', $moduleName)
+                      ->where('is_active', true);
+            })
+            ->exists();
+
+        if ($hasSubscription) {
+            return true;
+        }
+
+        // Check 2: Also check direct plan relationship (legacy/simple setup)
+        if ($this->plan_id && $this->plan) {
+            return $this->plan->modules()
+                ->where('code', $moduleName)
+                ->where('is_active', true)
+                ->exists();
+        }
+
+        // Check 3: Check tenant's custom modules array (for manual module grants)
+        if (! empty($this->modules) && is_array($this->modules)) {
+            if (in_array($moduleName, $this->modules)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Suspend the tenant.
      */
     public function suspend(?string $reason = null): bool

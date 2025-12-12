@@ -1,8 +1,8 @@
 <?php
 
-namespace Aero\Core\Models;
+namespace Aero\Platform\Models;
 
-use Aero\Core\Traits\TenantScoped;
+use Aero\Platform\Traits\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

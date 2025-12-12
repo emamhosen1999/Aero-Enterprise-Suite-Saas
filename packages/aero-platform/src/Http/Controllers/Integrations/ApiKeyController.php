@@ -8,7 +8,7 @@ use Inertia\Inertia;
 
 /**
  * API Key Controller
- * 
+ *
  * Manages API keys for external access to the system
  */
 class ApiKeyController extends Controller
@@ -20,7 +20,7 @@ class ApiKeyController extends Controller
     {
         // TODO: Fetch API keys from database
         $apiKeys = [];
-        
+
         return Inertia::render('Tenant/Pages/Integrations/ApiKeys', [
             'title' => 'API Keys',
             'apiKeys' => $apiKeys,
@@ -40,8 +40,8 @@ class ApiKeyController extends Controller
         ]);
 
         // TODO: Generate and store API key
-        $apiKey = 'sk_' . bin2hex(random_bytes(32));
-        
+        $apiKey = 'sk_'.bin2hex(random_bytes(32));
+
         return redirect()->back()->with([
             'success' => 'API key generated successfully',
             'api_key' => $apiKey, // Show once, then hash
@@ -54,7 +54,7 @@ class ApiKeyController extends Controller
     public function destroy($id)
     {
         // TODO: Revoke API key
-        
+
         return redirect()->back()->with('success', 'API key revoked successfully');
     }
 
@@ -69,7 +69,7 @@ class ApiKeyController extends Controller
         ]);
 
         // TODO: Update API key scopes
-        
+
         return redirect()->back()->with('success', 'API key scopes updated successfully');
     }
 }

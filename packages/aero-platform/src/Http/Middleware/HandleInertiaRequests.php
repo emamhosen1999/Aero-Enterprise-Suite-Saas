@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Http\Middleware;
 
-use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
+use Aero\Platform\Http\Resources\SystemSettingResource;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\Shared\Module;
 use Aero\Platform\Models\Shared\SystemSetting;
@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
+use Inertia\Inertia;
 use Inertia\Middleware;
 use Throwable;
 
@@ -33,18 +34,37 @@ class HandleInertiaRequests extends Middleware
     protected ?PlatformSetting $cachedPlatformSetting = null;
 
     /**
+     * Handle the incoming request.
+     * Intercepts root route "/" to render the Platform landing page.
+     * This allows the package to work without modifying host app routes.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function handle(Request $request, \Closure $next)
+    {
+        // Intercept root route "/" and render Platform landing page
+        // This ensures the package works without modifying host app routes
+        if ($request->is('/') || $request->path() === '/') {
+            return Inertia::render('Public/Landing')->toResponse($request);
+        }
+
+        return parent::handle($request, $next);
+    }
+
+    /**
      * Determine the root template based on domain context.
      */
     public function rootView(Request $request): string
     {
-        $context = $this->getDomainContext($request);
+        // Use host app's app.blade.php if it exists
+        if (view()->exists('app')) {
+            return 'app';
+        }
 
-        return match ($context) {
-            IdentifyDomainContext::CONTEXT_ADMIN => 'admin',
-            IdentifyDomainContext::CONTEXT_PLATFORM => 'platform',
-            IdentifyDomainContext::CONTEXT_TENANT => 'app',
-            default => 'app',
-        };
+        // Fall back to package's view
+        return 'aero-platform::app';
     }
 
     /**
@@ -205,6 +225,11 @@ class HandleInertiaRequests extends Middleware
             'csrfToken' => csrf_token(),
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
+            // SaaS Frontend Data - admin context always has full access
+            'aero' => [
+                'mode' => config('aero.mode', 'saas'),
+                'subscriptions' => [], // Admin has access to all modules by default
+            ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -295,6 +320,11 @@ class HandleInertiaRequests extends Middleware
             'csrfToken' => session('csrfToken'),
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
+            // SaaS Frontend Data - platform context for public site
+            'aero' => [
+                'mode' => config('aero.mode', 'saas'),
+                'subscriptions' => [], // Public pages don't need subscriptions
+            ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -368,7 +398,7 @@ class HandleInertiaRequests extends Middleware
                 'sessionValid' => $user && $request->session()->isStarted(),
                 'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
                 'designation' => $userWithRelations?->designation?->title,
-               
+
                 // Compliance: Section 10 - Frontend Super Admin flags
                 'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
                 'isTenantSuperAdmin' => $isTenantSuperAdmin,
@@ -413,6 +443,11 @@ class HandleInertiaRequests extends Middleware
             'fallbackLocale' => config('app.fallback_locale', 'en'),
             'supportedLocales' => SetLocale::getSupportedLocales(),
             'translations' => fn () => $this->getTranslations(),
+            // SaaS Frontend Data - enables React to show/hide module links
+            'aero' => [
+                'mode' => config('aero.mode', 'saas'),
+                'subscriptions' => fn () => $this->getTenantSubscribedModules(),
+            ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -710,6 +745,65 @@ class HandleInertiaRequests extends Middleware
                     'limits' => $module->pivot->limits ?? null,
                 ])
                 ->toArray();
+        });
+    }
+
+    /**
+     * Get a simple array of module codes the tenant is subscribed to.
+     *
+     * This is used by the frontend to determine which module links to show.
+     * Returns module codes like: ['hrm', 'crm', 'core']
+     *
+     * @return array<string>
+     */
+    protected function getTenantSubscribedModules(): array
+    {
+        $tenant = tenant();
+
+        if (! $tenant) {
+            return [];
+        }
+
+        // Cache for 5 minutes
+        $cacheKey = "tenant_subscribed_modules:{$tenant->id}";
+
+        return Cache::remember($cacheKey, 300, function () use ($tenant) {
+            $moduleCodes = [];
+
+            // Always include core modules
+            $coreModules = Module::where('is_core', true)
+                ->where('is_active', true)
+                ->pluck('code')
+                ->toArray();
+            $moduleCodes = array_merge($moduleCodes, $coreModules);
+
+            // Get modules from subscription plan
+            $subscription = $tenant->currentSubscription;
+            if ($subscription && $subscription->plan) {
+                $planModules = $subscription->plan
+                    ->modules()
+                    ->where('is_active', true)
+                    ->pluck('modules.code')
+                    ->toArray();
+                $moduleCodes = array_merge($moduleCodes, $planModules);
+            }
+
+            // Also check direct plan relationship (legacy)
+            if ($tenant->plan) {
+                $directPlanModules = $tenant->plan
+                    ->modules()
+                    ->where('is_active', true)
+                    ->pluck('modules.code')
+                    ->toArray();
+                $moduleCodes = array_merge($moduleCodes, $directPlanModules);
+            }
+
+            // Check tenant's custom modules array (manual grants)
+            if (! empty($tenant->modules) && is_array($tenant->modules)) {
+                $moduleCodes = array_merge($moduleCodes, $tenant->modules);
+            }
+
+            return array_unique($moduleCodes);
         });
     }
 
