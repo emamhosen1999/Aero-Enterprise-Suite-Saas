@@ -59,9 +59,10 @@ use Inertia\Inertia;
 
 Route::middleware('guest:landlord')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-        ->name('login');
+        ->name('admin.login');
 
-    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+        ->name('admin.login.store');
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
@@ -70,7 +71,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 
 // Root redirects to dashboard (or login if not authenticated)
 Route::get('/', function () {
-    return redirect('/dashboard');
+    return redirect()->route('admin.dashboard');
 })->middleware('auth:landlord');
 
 // =========================================================================

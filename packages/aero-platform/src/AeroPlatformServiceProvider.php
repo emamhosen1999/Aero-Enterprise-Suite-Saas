@@ -1,6 +1,6 @@
 <?php
 
-namespace Aero\Platform\Providers;
+namespace Aero\Platform;
 
 use Aero\Core\Contracts\TenantScopeInterface;
 use Aero\Platform\Listeners\TenantCreatedListener;
@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Fortify;
 use Stancl\Tenancy\Events\TenantCreated;
 
 /**
@@ -33,6 +34,11 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Disable Fortify's default routes - we define auth routes with proper domain restrictions
+        // Admin subdomain uses Platform's AuthenticatedSessionController
+        // Tenant subdomains use Core's AuthenticatedSessionController
+        Fortify::ignoreRoutes();
+
         // Set aero.mode to 'saas' - Platform is the SaaS orchestrator
         // This MUST be set before any module checks for mode
         Config::set('aero.mode', 'saas');
@@ -184,7 +190,8 @@ class AeroPlatformServiceProvider extends ServiceProvider
      *
      * Routes are loaded based on domain context:
      * - admin.* subdomain → admin.php (landlord routes)
-     * - Main domain → platform.php (public registration, landing)
+     * - Main platform domain → platform.php (public registration, landing)
+     * - Tenant subdomains → handled by aero-core (NOT loaded here)
      */
     protected function registerRoutes(): void
     {
@@ -196,9 +203,11 @@ class AeroPlatformServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__.'/../../routes/admin.php');
         });
 
-        // Public platform routes (main domain - registration, landing)
+        // Public platform routes (MAIN DOMAIN ONLY - registration, landing)
+        // CRITICAL: Must restrict to central domain to avoid conflicts with tenant routes
         Route::group([
             'middleware' => ['web'],
+            'domain' => $this->getPlatformDomain(),
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../../routes/platform.php');
         });
@@ -211,6 +220,20 @@ class AeroPlatformServiceProvider extends ServiceProvider
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
         });
+    }
+
+    /**
+     * Get the main platform domain (e.g., platform.com).
+     * Used to restrict platform.php routes to central domain only.
+     */
+    protected function getPlatformDomain(): string
+    {
+        $baseDomain = config('tenancy.central_domains.0', config('app.url', 'localhost'));
+
+        // Parse the base domain to get just the host
+        $parsed = parse_url($baseDomain);
+
+        return $parsed['host'] ?? $baseDomain;
     }
 
     /**

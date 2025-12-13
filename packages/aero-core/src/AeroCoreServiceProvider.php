@@ -216,9 +216,16 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
-            // SaaS Mode: Routes with tenant middleware for authenticated routes
-            Route::middleware(['web', 'tenant'])
-                ->group($routesPath.'/web.php');
+            // SaaS Mode: Routes for TENANT SUBDOMAINS ONLY
+            // Use PreventAccessFromCentralDomains to block Core routes on:
+            // - aeos365.test (platform - handled by Platform's platform.php)
+            // - admin.aeos365.test (admin - handled by Platform's admin.php)
+            // Core routes only run on: {tenant}.aeos365.test
+            Route::middleware([
+                'web',
+                \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+                \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+            ])->group($routesPath.'/web.php');
         } else {
             // Standalone Mode: Routes with standard web middleware
             Route::middleware(['web'])
@@ -248,7 +255,7 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     protected function isPlatformActive(): bool
     {
-        return class_exists('\Aero\Platform\AeroPlatformServiceProvider');
+        return class_exists('Aero\Platform\AeroPlatformServiceProvider');
     }
 
     /**

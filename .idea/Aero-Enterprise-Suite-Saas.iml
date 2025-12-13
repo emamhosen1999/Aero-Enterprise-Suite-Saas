@@ -45,6 +45,8 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/aero-project/src" isTestSource="false" packagePrefix="Aero\Project\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/aero-quality/src" isTestSource="false" packagePrefix="Aero\Quality\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/aero-scm/src" isTestSource="false" packagePrefix="Aero\Scm\" />
+      <sourceFolder url="file://$MODULE_DIR$/tests/Feature" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/tests/Unit" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/aacotroneo/laravel-saml2" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/aero/hrm" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/bacon/bacon-qr-code" />
