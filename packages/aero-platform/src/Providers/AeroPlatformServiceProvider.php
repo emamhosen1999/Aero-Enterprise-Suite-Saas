@@ -37,6 +37,10 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // This MUST be set before any module checks for mode
         Config::set('aero.mode', 'saas');
 
+        // Override Core's migrator to ONLY use platform migrations on landlord database
+        // Core, HRM, CRM and other module migrations are for TENANT databases only
+        $this->overrideMigratorForLandlord();
+
         // Merge platform configs
         $this->mergeConfigFrom(__DIR__.'/../../config/modules.php', 'aero-platform.modules');
         $this->mergeConfigFrom(__DIR__.'/../../config/tenancy.php', 'tenancy');
@@ -68,7 +72,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Load migrations
+        // Load platform migrations for landlord database
         $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
 
         // Register routes
@@ -291,5 +295,49 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Listen for TenantCreated event to run module migrations
         // This ensures all installed modules (HRM, CRM, etc.) are migrated
         Event::listen(TenantCreated::class, TenantCreatedListener::class);
+    }
+
+    /**
+     * Override the migrator to ONLY use aero-platform migrations on the landlord database.
+     *
+     * In SaaS mode:
+     * - Landlord database: ONLY aero-platform migrations (tenants, domains, plans, etc.)
+     * - Tenant databases: aero-core + module migrations (users, employees, etc.)
+     *
+     * This overrides Core's migrator override which excludes app migrations.
+     * Platform further restricts to ONLY platform migrations for landlord.
+     */
+    protected function overrideMigratorForLandlord(): void
+    {
+        $platformMigrationsPath = realpath(__DIR__.'/../../database/migrations');
+
+        $this->app->extend('migrator', function ($migrator, $app) use ($platformMigrationsPath) {
+            return new class($app['migration.repository'], $app['db'], $app['files'], $app['events'], $platformMigrationsPath) extends \Illuminate\Database\Migrations\Migrator
+            {
+                protected string $platformMigrationsPath;
+
+                public function __construct($repository, $resolver, $files, $dispatcher, string $platformMigrationsPath)
+                {
+                    parent::__construct($repository, $resolver, $files, $dispatcher);
+                    $this->platformMigrationsPath = $platformMigrationsPath;
+                }
+
+                public function getMigrationFiles($paths)
+                {
+                    // Get all migration files from all paths
+                    $files = parent::getMigrationFiles($paths);
+
+                    // ONLY allow migrations from aero-platform package
+                    // All other packages (core, hrm, crm, etc.) are for tenant databases
+                    return collect($files)->filter(function ($path, $name) {
+                        // Normalize path for comparison (resolve ../ and convert slashes)
+                        $normalizedPath = realpath($path) ?: $path;
+                        
+                        // Allow ONLY platform migrations
+                        return str_starts_with($normalizedPath, $this->platformMigrationsPath);
+                    })->all();
+                }
+            };
+        });
     }
 }

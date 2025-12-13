@@ -1,0 +1,33 @@
+<?php
+
+namespace Aero\Platform\Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+/**
+ * Main database seeder for the Aero Platform package.
+ *
+ * This seeder is responsible for seeding landlord-only data:
+ * - LandlordUsers (platform admins)
+ * - Plans (subscription plans)
+ *
+ * Tenant-specific data (Users, Employees, etc.) should NOT be seeded here.
+ * Tenant data is seeded via tenant-aware seeders when a tenant is created.
+ */
+class PlatformDatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the landlord database.
+     */
+    public function run(): void
+    {
+        $this->command->info('🚀 Seeding Platform (Landlord) database...');
+
+        $this->call([
+            LandlordUserSeeder::class,
+            PlanSeeder::class,
+        ]);
+
+        $this->command->info('✅ Platform seeding complete!');
+    }
+}

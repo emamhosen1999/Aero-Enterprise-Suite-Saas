@@ -28,7 +28,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Plan extends Model
 {
-    /** @use HasFactory<\Database\Factories\PlanFactory> */
+    /** @use HasFactory<\Aero\Platform\Database\Factories\PlanFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
     /**
@@ -38,6 +38,14 @@ class Plan extends Model
      * @var string
      */
     protected $connection = 'mysql';
+
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): \Aero\Platform\Database\Factories\PlanFactory
+    {
+        return \Aero\Platform\Database\Factories\PlanFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.
