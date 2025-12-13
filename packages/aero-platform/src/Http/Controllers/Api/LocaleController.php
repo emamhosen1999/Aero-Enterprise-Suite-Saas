@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

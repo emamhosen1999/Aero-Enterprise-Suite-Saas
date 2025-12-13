@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Http\Requests;
 
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

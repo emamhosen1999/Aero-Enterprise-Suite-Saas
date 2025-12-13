@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Aero\Dms\Http\Controllers\DMSController;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
 
 /*
 |--------------------------------------------------------------------------
@@ -9,10 +10,12 @@ use Aero\Dms\Http\Controllers\DMSController;
 |--------------------------------------------------------------------------
 |
 | Here are the tenant-scoped routes for the Document Management System module.
+| NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+| to gracefully return 404 on central domains instead of crashing.
 |
 */
 
-Route::middleware(['web', 'tenant', 'auth'])->group(function () {
+Route::middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
     Route::prefix('dms')->name('tenant.dms.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [DMSController::class, 'index'])->name('dashboard');

@@ -2,13 +2,19 @@
 
 namespace Aero\Core\Services\Auth;
 
-use Aero\Platform\Models\Tenant;
 use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use OneLogin\Saml2\Auth as Saml2Auth;
 
+/**
+ * SamlService - SAML 2.0 Single Sign-On Service
+ *
+ * Provides SAML authentication support for both standalone and SaaS modes.
+ * In SaaS mode, can use tenant-specific IdP configurations.
+ * In standalone mode, uses global IdP configuration only.
+ */
 class SamlService
 {
     protected ?Saml2Auth $auth = null;
@@ -32,8 +38,11 @@ class SamlService
 
     /**
      * Initialize SAML auth for a specific IdP.
+     *
+     * @param  string  $idpName  The IdP name to use
+     * @param  mixed  $tenant  Optional tenant model for tenant-specific IdP config (SaaS mode)
      */
-    public function initAuth(string $idpName = 'default', ?Tenant $tenant = null): Saml2Auth
+    public function initAuth(string $idpName = 'default', mixed $tenant = null): Saml2Auth
     {
         $this->idpName = $idpName;
 
@@ -45,8 +54,10 @@ class SamlService
 
     /**
      * Build SAML settings array for OneLogin library.
+     *
+     * @param  mixed  $tenant  Optional tenant model for tenant-specific IdP config
      */
-    protected function buildSettings(string $idpName, ?Tenant $tenant = null): array
+    protected function buildSettings(string $idpName, mixed $tenant = null): array
     {
         // Check for tenant-specific IdP configuration
         $idpConfig = $this->getIdpConfig($idpName, $tenant);
@@ -84,8 +95,10 @@ class SamlService
 
     /**
      * Get IdP configuration, checking tenant overrides first.
+     *
+     * @param  mixed  $tenant  Optional tenant model for tenant-specific config
      */
-    protected function getIdpConfig(string $idpName, ?Tenant $tenant = null): ?array
+    protected function getIdpConfig(string $idpName, mixed $tenant = null): ?array
     {
         // Check tenant-specific configuration
         if ($tenant) {
@@ -101,8 +114,10 @@ class SamlService
 
     /**
      * Initiate SSO login redirect.
+     *
+     * @param  mixed  $tenant  Optional tenant model for tenant-specific IdP config
      */
-    public function login(string $idpName = 'default', ?string $returnTo = null, ?Tenant $tenant = null): string
+    public function login(string $idpName = 'default', ?string $returnTo = null, mixed $tenant = null): string
     {
         $this->initAuth($idpName, $tenant);
 
@@ -112,9 +127,10 @@ class SamlService
     /**
      * Process the SAML response after IdP authentication.
      *
+     * @param  mixed  $tenant  Optional tenant model for tenant-specific config
      * @return array{user: User, created: bool}|null
      */
-    public function processResponse(string $idpName = 'default', ?Tenant $tenant = null): ?array
+    public function processResponse(string $idpName = 'default', mixed $tenant = null): ?array
     {
         $this->initAuth($idpName, $tenant);
 
@@ -186,9 +202,10 @@ class SamlService
     /**
      * Find or create user from SAML data.
      *
+     * @param  mixed  $tenant  Optional tenant model
      * @return array{user: User, created: bool}
      */
-    protected function findOrCreateUser(array $userData, ?Tenant $tenant = null): array
+    protected function findOrCreateUser(array $userData, mixed $tenant = null): array
     {
         if (empty($userData['email'])) {
             throw new \Exception('Email is required for SAML authentication');
@@ -217,8 +234,10 @@ class SamlService
 
     /**
      * Create a new user from SAML data.
+     *
+     * @param  mixed  $tenant  Optional tenant model for tenant_id assignment
      */
-    protected function createUser(array $userData, ?Tenant $tenant = null): User
+    protected function createUser(array $userData, mixed $tenant = null): User
     {
         $user = new User;
         $user->email = $userData['email'];
@@ -292,13 +311,15 @@ class SamlService
 
     /**
      * Initiate single logout.
+     *
+     * @param  mixed  $tenant  Optional tenant model for tenant-specific config
      */
     public function logout(
         string $idpName = 'default',
         ?string $returnTo = null,
         ?string $nameId = null,
         ?string $sessionIndex = null,
-        ?Tenant $tenant = null
+        mixed $tenant = null
     ): ?string {
         $this->initAuth($idpName, $tenant);
 
@@ -307,8 +328,10 @@ class SamlService
 
     /**
      * Process single logout response.
+     *
+     * @param  mixed  $tenant  Optional tenant model
      */
-    public function processSlo(string $idpName = 'default', ?Tenant $tenant = null): bool
+    public function processSlo(string $idpName = 'default', mixed $tenant = null): bool
     {
         $this->initAuth($idpName, $tenant);
 
@@ -326,8 +349,10 @@ class SamlService
 
     /**
      * Get SP metadata XML.
+     *
+     * @param  mixed  $tenant  Optional tenant model
      */
-    public function getMetadata(string $idpName = 'default', ?Tenant $tenant = null): string
+    public function getMetadata(string $idpName = 'default', mixed $tenant = null): string
     {
         $this->initAuth($idpName, $tenant);
         $settings = $this->auth->getSettings();
@@ -337,8 +362,10 @@ class SamlService
 
     /**
      * Get available IdPs for a tenant.
+     *
+     * @param  mixed  $tenant  Optional tenant model
      */
-    public function getAvailableIdps(?Tenant $tenant = null): array
+    public function getAvailableIdps(mixed $tenant = null): array
     {
         $idps = [];
 

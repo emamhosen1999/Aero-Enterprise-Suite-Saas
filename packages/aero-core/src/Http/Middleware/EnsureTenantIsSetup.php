@@ -2,8 +2,6 @@
 
 namespace Aero\Core\Http\Middleware;
 
-use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Models\Tenant;
 use App\Http\Controllers\Tenant\TenantOnboardingController;
 use Closure;
 use Illuminate\Http\Request;
@@ -19,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
  * 3. If everything is complete → allow normal access
  *
  * Note: Skips verification when in maintenance mode to prevent redirect loops.
+ * Note: In standalone mode (without aero-platform), maintenance mode checks are skipped.
  */
 class EnsureTenantIsSetup
 {
@@ -127,8 +126,10 @@ class EnsureTenantIsSetup
 
     /**
      * Check if tenant has completed onboarding.
+     *
+     * @param  mixed  $tenant  The tenant model (type varies based on mode)
      */
-    protected function isOnboardingCompleted(Tenant $tenant): bool
+    protected function isOnboardingCompleted(mixed $tenant): bool
     {
         // Use the TenantOnboardingController's static method
         return TenantOnboardingController::isOnboardingCompleted();
@@ -138,23 +139,32 @@ class EnsureTenantIsSetup
      * Check if the system is in maintenance mode (platform or tenant level).
      *
      * Returns true if either:
-     * - Platform-wide maintenance is enabled
+     * - Platform-wide maintenance is enabled (SaaS mode only)
      * - Current tenant is in maintenance mode
+     *
+     * In standalone mode, only tenant-level maintenance is checked.
      */
     protected function isInMaintenanceMode(): bool
     {
-        // Check platform-level maintenance mode (use central database)
-        $platformMaintenance = tenancy()->central(function () {
-            return PlatformSetting::isMaintenanceModeEnabled();
-        });
+        // Check platform-level maintenance mode only if aero-platform is installed
+        if (class_exists('Aero\Platform\Models\PlatformSetting') && function_exists('tenancy')) {
+            try {
+                $platformSettingClass = 'Aero\Platform\Models\PlatformSetting';
+                $platformMaintenance = tenancy()->central(function () use ($platformSettingClass) {
+                    return $platformSettingClass::isMaintenanceModeEnabled();
+                });
 
-        if ($platformMaintenance) {
-            return true;
+                if ($platformMaintenance) {
+                    return true;
+                }
+            } catch (\Throwable $e) {
+                // Silently continue if tenancy functions aren't available
+            }
         }
 
         // Check tenant-level maintenance mode
-        $tenant = tenant();
-        if ($tenant && $tenant->isInMaintenanceMode()) {
+        $tenant = function_exists('tenant') ? tenant() : null;
+        if ($tenant && method_exists($tenant, 'isInMaintenanceMode') && $tenant->isInMaintenanceMode()) {
             return true;
         }
 

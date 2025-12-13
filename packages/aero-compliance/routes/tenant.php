@@ -7,14 +7,17 @@ use Aero\Compliance\Http\Controllers\AuditController;
 use Aero\Compliance\Http\Controllers\CompliancePolicyController;
 use Aero\Compliance\Http\Controllers\JurisdictionController;
 use Aero\Compliance\Http\Controllers\DocumentController;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
 
 /*
 |--------------------------------------------------------------------------
 | Compliance Tenant Routes
 |--------------------------------------------------------------------------
+| NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+| to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('compliance')->name('compliance.')->middleware(['auth', 'tenant'])->group(function () {
+Route::prefix('compliance')->name('compliance.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
     // Compliance Dashboard
     Route::get('/', [ComplianceController::class, 'index'])->name('dashboard');
     

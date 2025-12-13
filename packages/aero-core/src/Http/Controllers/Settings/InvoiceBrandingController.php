@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Settings;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Services\Billing\InvoiceBrandingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

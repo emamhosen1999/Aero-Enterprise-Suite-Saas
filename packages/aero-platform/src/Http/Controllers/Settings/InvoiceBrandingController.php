@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers\Settings;
 
 use Aero\Platform\Services\Billing\InvoiceBrandingService;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;

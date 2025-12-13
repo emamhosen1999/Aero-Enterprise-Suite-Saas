@@ -6,7 +6,7 @@ namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

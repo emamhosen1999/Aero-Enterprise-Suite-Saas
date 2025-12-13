@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Services\Auth\ModernAuthenticationService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;

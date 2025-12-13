@@ -4,7 +4,7 @@ namespace Aero\Platform\Http\Controllers\Billing;
 
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

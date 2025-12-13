@@ -2,11 +2,11 @@
 
 namespace Aero\Core\Http\Middleware;
 
-use Aero\Platform\Models\Tenant;
 use Aero\Core\Services\ModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -239,11 +239,23 @@ class CheckModuleAccess
      */
     protected function checkSubscriptionEntitlement(string $tenantId, string $moduleCode): array
     {
+        // In standalone mode (no Platform), skip subscription checks - all modules are available
+        if (! class_exists('Aero\Platform\Models\Tenant')) {
+            return [
+                'allowed' => true,
+                'reason' => 'standalone_mode',
+                'message' => 'Subscription check skipped in standalone mode.',
+            ];
+        }
+
+        // Dynamically resolve Tenant class to avoid hard dependency
+        $tenantClass = 'Aero\Platform\Models\Tenant';
+
         // Cache the tenant's active modules for performance
         $cacheKey = "tenant_active_modules:{$tenantId}";
 
-        $activeModules = Cache::remember($cacheKey, 300, function () use ($tenantId) {
-            $tenant = Tenant::find($tenantId);
+        $activeModules = Cache::remember($cacheKey, 300, function () use ($tenantId, $tenantClass) {
+            $tenant = $tenantClass::find($tenantId);
 
             if (! $tenant) {
                 return [];
@@ -275,7 +287,7 @@ class CheckModuleAccess
         // Check if module is in active modules
         if (! in_array($moduleCode, $activeModules)) {
             // Get tenant's current plan for better error message
-            $tenant = Tenant::with('currentSubscription.plan')->find($tenantId);
+            $tenant = $tenantClass::with('currentSubscription.plan')->find($tenantId);
             $subscription = $tenant?->currentSubscription;
 
             if (! $subscription) {

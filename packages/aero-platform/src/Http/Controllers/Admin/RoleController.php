@@ -4,7 +4,7 @@ namespace Aero\Platform\Http\Controllers\Admin;
 
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Shared\User;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;

@@ -68,12 +68,6 @@ class HandleInertiaRequests extends Middleware
      */
     public function rootView(Request $request): string
     {
-        // Use host app's app.blade.php if it exists
-        if (view()->exists('app')) {
-            return 'app';
-        }
-
-        // Fall back to package's view
         return 'aero-core::app';
     }
 

@@ -14,7 +14,7 @@ use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\PlatformVerificationService;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
 use Aero\Platform\Services\Monitoring\Tenant\TenantRegistrationSession;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

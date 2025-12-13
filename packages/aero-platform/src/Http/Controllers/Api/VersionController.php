@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers\Api;
 
 use Aero\Platform\Services\Shared\VersionService;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

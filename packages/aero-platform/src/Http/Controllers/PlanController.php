@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Models\Plan;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

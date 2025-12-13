@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use App\Http\Middleware\IdentifyDomainContext;
 use Aero\Core\Models\User;
 use Aero\Core\Services\Auth\DeviceAuthService;

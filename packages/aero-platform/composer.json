@@ -47,6 +47,11 @@
             "Aero\\Platform\\Tests\\": "tests/"
         }
     },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php -r \"if (file_exists('artisan')) { echo '\\nℹ️  Publish platform assets: php artisan vendor:publish --tag=aero-platform-assets --force' . PHP_EOL; }\""
+        ]
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -60,7 +65,9 @@
             "package": "platform",
             "version": "1.0.0",
             "category": "landlord",
-            "description": "Platform management package providing multi-tenancy orchestration, landlord authentication, and platform administration"
+            "description": "Platform management package providing multi-tenancy orchestration, landlord authentication, and platform administration",
+            "has-assets": true,
+            "build-command": "php artisan aero:build-assets"
         }
     },
     "minimum-stability": "dev",

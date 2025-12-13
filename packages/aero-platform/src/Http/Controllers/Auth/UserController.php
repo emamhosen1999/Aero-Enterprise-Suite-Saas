@@ -2,6 +2,8 @@
 
 namespace Aero\Platform\Http\Controllers\Auth;
 
+use Aero\Core\Models\TenantInvitation;
+use Aero\Core\Notifications\InviteTeamMember;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
@@ -13,9 +15,7 @@ use Aero\Platform\Http\Requests\UpdateUserStatusRequest;
 use Aero\Platform\Http\Resources\UserCollection;
 use Aero\Platform\Http\Resources\UserResource;
 use Aero\Platform\Models\Shared\User;
-use Aero\Platform\Models\TenantInvitation;
-use Aero\Platform\Notifications\InviteTeamMember;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

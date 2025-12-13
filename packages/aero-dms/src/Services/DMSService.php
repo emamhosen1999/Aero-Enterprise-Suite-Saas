@@ -7,7 +7,7 @@ use App\Models\Tenant\DMS$1
 use App\Models\Tenant\DMS$1
 use App\Models\Tenant\DMS$1
 use App\Models\Tenant\DMS$1
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

@@ -3,8 +3,8 @@
 namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Models\Department;
-use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
+use Aero\HRM\Http\Controllers\Controller;
+use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;

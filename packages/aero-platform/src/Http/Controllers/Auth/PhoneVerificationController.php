@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers\Auth;
 
 use Aero\Platform\Services\Notifications\PhoneVerificationService;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

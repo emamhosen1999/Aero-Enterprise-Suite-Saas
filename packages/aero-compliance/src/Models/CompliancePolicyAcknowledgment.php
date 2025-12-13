@@ -2,7 +2,7 @@
 
 namespace Aero\Compliance\Models;
 
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

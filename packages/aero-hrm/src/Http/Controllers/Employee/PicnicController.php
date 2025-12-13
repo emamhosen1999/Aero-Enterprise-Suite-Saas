@@ -3,7 +3,7 @@
 namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Models\PicnicParticipant;
-use App\Http\Controllers\Controller;
+use Aero\HRM\Http\Controllers\Controller;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;

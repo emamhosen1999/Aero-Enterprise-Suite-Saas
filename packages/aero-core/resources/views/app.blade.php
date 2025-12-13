@@ -484,8 +484,7 @@
         </div>
     </div>
     @routes
-    @viteReactRefresh
-    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
+    @vite(['vendor/aero/core/resources/css/app.css', 'vendor/aero/core/resources/js/app.jsx'])
 
     @if(config('aero.mode') === 'standalone' && !app()->environment('local') || (app()->environment('local') && !file_exists(public_path('hot'))))
         {{-- Only load module bundles in production OR when Vite dev server is not running --}}

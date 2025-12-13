@@ -3,7 +3,7 @@
 namespace Aero\HRM\Http\Controllers\Settings;
 
 use Aero\HRM\Models\LeaveSetting;
-use App\Http\Controllers\Controller;
+use Aero\HRM\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

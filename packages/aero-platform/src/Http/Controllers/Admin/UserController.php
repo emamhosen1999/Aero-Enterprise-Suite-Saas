@@ -7,7 +7,7 @@ use Aero\HRM\Models\Designation;
 use Aero\Platform\Http\Resources\UserCollection;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Shared\User;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;

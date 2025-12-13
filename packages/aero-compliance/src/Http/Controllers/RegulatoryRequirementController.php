@@ -4,7 +4,7 @@ namespace Aero\Compliance\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use App\Models\Tenant\Compliance\RegulatoryRequirement;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

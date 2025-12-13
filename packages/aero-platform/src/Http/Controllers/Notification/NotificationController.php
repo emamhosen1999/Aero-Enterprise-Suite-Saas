@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Http\Controllers\Notification;
 
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

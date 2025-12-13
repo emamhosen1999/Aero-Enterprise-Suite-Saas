@@ -4,7 +4,7 @@ namespace Aero\Platform\Http\Controllers\Public;
 
 use Aero\Platform\Models\Tenant\HRM\Job;
 use Aero\Platform\Models\Tenant\HRM\JobApplication;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

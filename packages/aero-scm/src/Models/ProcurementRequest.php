@@ -3,7 +3,7 @@
 namespace Aero\Scm\Models;
 
 use Aero\HRM\Models\Department;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

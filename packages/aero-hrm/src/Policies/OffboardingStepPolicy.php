@@ -4,7 +4,7 @@ namespace Aero\HRM\Policies;
 
 use Aero\Core\Policies\Concerns\ChecksModuleAccess;
 use Aero\HRM\Models\OffboardingStep;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 
 class OffboardingStepPolicy
 {

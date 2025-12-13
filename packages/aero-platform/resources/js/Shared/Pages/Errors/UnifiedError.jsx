@@ -1,4 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import React from 'react';
+import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
     ExclamationTriangleIcon,
@@ -15,17 +16,186 @@ import {
 import { Button, Card, CardBody, Chip } from '@heroui/react';
 import { useState } from 'react';
 
-export default function UnifiedError({ 
-    error = {}
-}) {
-    const [copied, setCopied] = useState(false);
-    const { props } = usePage();
+/**
+ * UnifiedError Component (Context-Aware Error Handler & Boundary)
+ */
+class UnifiedError extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            hasError: false,
+            error: null,
+            errorInfo: null,
+            copied: false,
+            traceId: null,
+            reported: false,
+        };
+    }
 
-    // Detect context from shared props
-    const context = props?.context || 'tenant';
-    const dashboardUrl = context === 'admin' ? '/admin/dashboard' : 
-                        context === 'platform' ? '/platform/dashboard' : 
-                        '/dashboard';
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        this.reportErrorToPlatform(error, errorInfo);
+        this.setState({ errorInfo });
+        console.error('UnifiedError caught an error:', error, errorInfo);
+    }
+
+    async reportErrorToPlatform(error, errorInfo) {
+        if (this.state.reported) return;
+        const traceId = this.generateTraceId();
+        this.setState({ traceId, reported: true });
+
+        try {
+            const context = this.detectContext();
+            const payload = {
+                trace_id: traceId,
+                origin: 'frontend',
+                error_type: 'ReactError',
+                http_code: 0,
+                message: error?.message || 'Unknown React error',
+                stack: error?.stack || null,
+                component_stack: errorInfo?.componentStack || null,
+                url: window.location.href,
+                referrer: document.referrer,
+                viewport: { width: window.innerWidth, height: window.innerHeight },
+                module: this.detectModule(),
+                component: this.getComponentName(errorInfo),
+                context: {
+                    installation_type: context.type,
+                    source_domain: window.location.hostname,
+                    user_agent: navigator.userAgent,
+                    timestamp: new Date().toISOString(),
+                },
+            };
+
+            await fetch('/api/error-log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                body: JSON.stringify(payload),
+            });
+        } catch (e) {
+            console.error('Failed to report error:', e);
+        }
+    }
+
+    generateTraceId() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = Math.random() * 16 | 0;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    }
+
+    detectModule() {
+        const path = window.location.pathname;
+        const segments = path.split('/').filter(Boolean);
+        while (segments.length && ['tenant', 'admin', 'platform'].includes(segments[0])) {
+            segments.shift();
+        }
+        return segments[0] || null;
+    }
+
+    getComponentName(errorInfo) {
+        const match = errorInfo?.componentStack?.match(/^\s*at\s+(\w+)/);
+        return match ? match[1] : null;
+    }
+
+    detectContext() {
+        const hostname = window.location.hostname;
+        const dotCount = hostname.split('.').length - 1;
+        
+        if (hostname.startsWith('admin.') || dotCount <= 1) {
+            return {
+                type: 'platform',
+                notificationTitle: 'Error Logged and Team Notified',
+                notificationMessage: 'Your platform admin team can review this error in the Error Logs section.',
+                dashboardUrl: '/admin/dashboard',
+            };
+        }
+        
+        if (dotCount === 2) {
+            return {
+                type: 'tenant',
+                notificationTitle: 'Platform Has Been Informed',
+                notificationMessage: 'The Aero platform team has received this error report and will investigate.',
+                dashboardUrl: '/dashboard',
+            };
+        }
+        
+        return {
+            type: 'standalone',
+            notificationTitle: 'Error Reported for Analysis',
+            notificationMessage: 'Error details have been sent to Aero to help improve the product.',
+            dashboardUrl: '/dashboard',
+        };
+    }
+
+    render() {
+        if (this.state.hasError) {
+            const reactError = {
+                code: 500,
+                type: 'ReactError',
+                title: 'Something Went Wrong',
+                message: 'An unexpected error occurred while rendering this page.',
+                trace_id: this.state.traceId,
+                showHomeButton: true,
+                showRetryButton: true,
+            };
+            
+            return <UnifiedErrorDisplay error={reactError} />;
+        }
+
+        return <UnifiedErrorDisplay error={this.props.error} />;
+    }
+}
+
+function UnifiedErrorDisplay({ error = {} }) {
+    const [copied, setCopied] = useState(false);
+
+    /**
+     * Detect runtime context (tenant/standalone/platform)
+     * Same logic as ErrorBoundary for consistency
+     */
+    const detectContext = () => {
+        const hostname = window.location.hostname;
+        const dotCount = hostname.split('.').length - 1;
+        
+        // Platform/Admin domain (admin.domain.com or domain.com)
+        if (hostname.startsWith('admin.') || dotCount <= 1) {
+            return {
+                type: 'platform',
+                notificationTitle: 'Error Logged and Team Notified',
+                notificationMessage: 'Your platform admin team can review this error in the Error Logs section.',
+                dashboardUrl: '/admin/dashboard',
+            };
+        }
+        
+        // Tenant subdomain (tenant.domain.com)
+        if (dotCount === 2) {
+            return {
+                type: 'tenant',
+                notificationTitle: 'Platform Has Been Informed',
+                notificationMessage: 'The Aero platform team has received this error report and will investigate.',
+                dashboardUrl: '/dashboard',
+            };
+        }
+        
+        // Standalone installation (custom domain)
+        return {
+            type: 'standalone',
+            notificationTitle: 'Error Reported for Analysis',
+            notificationMessage: 'Error details have been sent to Aero to help improve the product.',
+            dashboardUrl: '/dashboard',
+        };
+    };
+
+    const context = detectContext();
+    const dashboardUrl = context.dashboardUrl;
 
     // Extract error properties with defaults
     const {
@@ -314,14 +484,22 @@ export default function UnifiedError({
                         </Link>
                     </motion.div>
 
-                    {/* Support Information */}
+                    {/* Context-Aware Support Information */}
                     {trace_id && (
                         <motion.div variants={itemVariants} className="mt-8">
-                            <Card className="bg-default-50 dark:bg-default-900/50">
+                            <Card className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
                                 <CardBody className="text-center">
-                                    <h3 className="font-semibold mb-2 text-foreground">Need Help?</h3>
-                                    <p className="text-sm text-default-600">
-                                        If this problem persists, please contact our support team with the error ID provided above.
+                                    <div className="flex items-center justify-center gap-2 mb-2">
+                                        <CheckIcon className="w-5 h-5 text-success-600" />
+                                        <h3 className="font-semibold text-success-700 dark:text-success-400">
+                                            {context.notificationTitle}
+                                        </h3>
+                                    </div>
+                                    <p className="text-sm text-success-600 dark:text-success-500">
+                                        {context.notificationMessage}
+                                    </p>
+                                    <p className="text-xs text-default-500 mt-2">
+                                        Reference: <code className="bg-default-100 dark:bg-default-800 px-1 rounded">{trace_id}</code>
                                     </p>
                                 </CardBody>
                             </Card>
@@ -332,3 +510,5 @@ export default function UnifiedError({
         </>
     );
 }
+
+export default UnifiedError;

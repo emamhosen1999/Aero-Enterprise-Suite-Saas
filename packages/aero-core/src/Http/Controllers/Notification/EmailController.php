@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Notification;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Inertia\Inertia;
 
 class EmailController extends Controller

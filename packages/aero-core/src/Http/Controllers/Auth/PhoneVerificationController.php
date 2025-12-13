@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Services\Notifications\PhoneVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

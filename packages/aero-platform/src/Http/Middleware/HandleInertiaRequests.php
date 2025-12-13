@@ -5,8 +5,8 @@ namespace Aero\Platform\Http\Middleware;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
 use Aero\Platform\Http\Resources\SystemSettingResource;
 use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Models\Shared\Module;
-use Aero\Platform\Models\Shared\SystemSetting;
+use Aero\Platform\Models\Module;
+use Aero\Platform\Models\SystemSetting;
 use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -23,7 +23,7 @@ class HandleInertiaRequests extends Middleware
      *
      * @var string
      */
-    protected $rootView = 'app';
+    protected $rootView = 'aero-platform::app';
 
     protected bool $resolvedSystemSetting = false;
 
@@ -58,12 +58,12 @@ class HandleInertiaRequests extends Middleware
      */
     public function rootView(Request $request): string
     {
-        // Use host app's app.blade.php if it exists
-        if (view()->exists('app')) {
-            return 'app';
+        $context = $this->getDomainContext($request);
+
+        if ($context === IdentifyDomainContext::CONTEXT_TENANT) {
+            return 'aero-core::app';
         }
 
-        // Fall back to package's view
         return 'aero-platform::app';
     }
 

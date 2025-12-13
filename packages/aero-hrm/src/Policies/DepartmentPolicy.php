@@ -4,7 +4,7 @@ namespace Aero\HRM\Policies;
 
 use Aero\Core\Policies\Concerns\ChecksModuleAccess;
 use Aero\HRM\Models\Department;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 
 class DepartmentPolicy
 {

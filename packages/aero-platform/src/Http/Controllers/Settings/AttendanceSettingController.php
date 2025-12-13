@@ -5,7 +5,7 @@ namespace Aero\Platform\Http\Controllers\Settings;
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\AttendanceType;
 use Aero\Platform\Services\Attendance\QrCodeValidator;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;

@@ -2,7 +2,7 @@
 
 namespace Aero\Crm\Models;
 
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class PipelineAutomation extends Model

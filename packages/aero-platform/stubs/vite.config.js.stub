@@ -1,0 +1,97 @@
+import react from '@vitejs/plugin-react';
+import laravel from 'laravel-vite-plugin';
+import { resolve } from 'node:path';
+import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
+
+/**
+ * Aero Platform SaaS Host Application - Vite Configuration
+ * 
+ * This configuration builds assets from the aero-platform package as the entry point,
+ * with aliases to aero-core and aero-hrm packages for module resolution.
+ * 
+ * Entry: vendor/aero/platform/resources/js/app.jsx
+ * Aliases:
+ *   @ -> vendor/aero/platform/resources/js (platform components)
+ *   @core -> vendor/aero/core/resources/js (core tenant components)  
+ *   @hrm -> vendor/aero/hrm/resources/js (HRM module components)
+ */
+
+// Package paths (kept as symlink paths so manifest keys match Blade references)
+const platformPath = 'vendor/aero/platform';
+const corePath = 'vendor/aero/core';
+const hrmPath = 'vendor/aero/hrm';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: [
+                `${platformPath}/resources/css/app.css`,
+                `${platformPath}/resources/js/app.jsx`,
+                `${corePath}/resources/css/app.css`,
+                `${corePath}/resources/js/app.jsx`
+            ],
+            refresh: true,
+        }),
+        react(),
+        tailwindcss(),
+    ],
+
+    esbuild: {
+        jsx: 'automatic',
+    },
+
+    resolve: {
+        // Preserve symlink paths so generated manifest keys stay on vendor/* paths
+        preserveSymlinks: true,
+        
+        alias: {
+            // @ resolves to platform's resources (primary entry point)
+            '@': resolve(__dirname, `${platformPath}/resources/js`),
+            
+            // @core resolves to core's resources (tenant shared components)
+            '@core': resolve(__dirname, `${corePath}/resources/js`),
+            
+            // @hrm resolves to HRM module's resources
+            '@hrm': resolve(__dirname, `${hrmPath}/resources/js`),
+            
+            // Ziggy for route generation
+            'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
+            
+            // Ensure packages resolve HeroUI from host app's node_modules
+            '@heroui/react': resolve(__dirname, 'node_modules/@heroui/react'),
+            '@heroui/theme': resolve(__dirname, 'node_modules/@heroui/theme'),
+            'tailwindcss': resolve(__dirname, 'node_modules/tailwindcss'),
+        },
+        
+        // Allow modules in vendor to resolve from root node_modules
+        modules: [
+            resolve(__dirname, 'node_modules'),
+            'node_modules',
+        ],
+    },
+
+    // Optimize deps to include HeroUI packages
+    optimizeDeps: {
+        include: ['@heroui/react', '@heroui/theme'],
+    },
+
+    server: {
+        host: 'localhost',
+        port: 5173,
+        strictPort: true,
+        hmr: {
+            host: 'localhost',
+        },
+        cors: true,
+    },
+
+    build: {
+        manifest: 'manifest.json',
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            },
+        },
+    },
+});

@@ -3,9 +3,9 @@
 namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Models\Letter;
-use App\Http\Controllers\Controller;
+use Aero\HRM\Http\Controllers\Controller;
 use App\Http\Controllers\Tenant\HRM\Employee\ValidationException;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

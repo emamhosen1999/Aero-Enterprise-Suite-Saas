@@ -170,19 +170,23 @@ class ModuleRouteServiceProvider extends ServiceProvider
      */
     protected function registerSaaSRoutes(string $moduleName, string $routesPath, string $namespace): void
     {
-        // Register tenant routes (subdomain-based)
+        // CRITICAL: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+        // to gracefully return 404 on central domains instead of throwing exceptions.
+        $tenancyMiddleware = \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class;
+
+        // Register tenant routes (subdomain-based, requires auth)
         if (File::exists($routesPath . '/tenant.php')) {
-            Route::middleware(['web', 'tenant', 'auth', 'verified'])
+            Route::middleware(['web', $tenancyMiddleware, 'tenant', 'auth', 'verified'])
                 ->group($routesPath . '/tenant.php');
         }
 
         // Register web routes (for tenant routes without auth requirement)
         if (File::exists($routesPath . '/web.php')) {
-            Route::middleware(['web', 'tenant'])
+            Route::middleware(['web', $tenancyMiddleware, 'tenant'])
                 ->group($routesPath . '/web.php');
         }
 
-        // Register landlord routes (central domain routes)
+        // Register landlord routes (central domain routes - NO tenancy middleware)
         if (File::exists($routesPath . '/landlord.php')) {
             Route::middleware(['web', 'landlord'])
                 ->domain(config('tenancy.central_domains')[0] ?? null)
@@ -191,7 +195,7 @@ class ModuleRouteServiceProvider extends ServiceProvider
 
         // Register API routes (tenant-scoped)
         if (File::exists($routesPath . '/api.php')) {
-            Route::middleware(['api', 'tenant', 'auth:sanctum'])
+            Route::middleware(['api', $tenancyMiddleware, 'tenant', 'auth:sanctum'])
                 ->prefix('api')
                 ->group($routesPath . '/api.php');
         }

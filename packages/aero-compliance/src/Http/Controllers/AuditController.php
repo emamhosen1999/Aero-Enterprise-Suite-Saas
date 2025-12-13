@@ -5,7 +5,7 @@ namespace Aero\Compliance\Http\Controllers;
 use Aero\HRM\Models\Department;
 use Illuminate\Routing\Controller;
 use App\Models\ComplianceAuditFinding;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use App\Models\Tenant\Compliance\ComplianceAudit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -7,14 +7,17 @@ use Aero\Finance\Http\Controllers\JournalEntryController;
 use Aero\Finance\Http\Controllers\AccountsPayableController;
 use Aero\Finance\Http\Controllers\AccountsReceivableController;
 use Aero\Finance\Http\Controllers\FinanceDashboardController;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
 
 /*
 |--------------------------------------------------------------------------
 | Finance Tenant Routes
 |--------------------------------------------------------------------------
+| NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+| to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('finance')->name('finance.')->middleware(['auth', 'tenant'])->group(function () {
+Route::prefix('finance')->name('finance.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [FinanceDashboardController::class, 'index'])->name('dashboard');
     

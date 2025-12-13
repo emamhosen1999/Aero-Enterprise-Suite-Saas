@@ -2,7 +2,6 @@
 
 namespace Aero\Core\Services;
 
-use Aero\Platform\Models\PlatformSetting;
 use Aero\Core\Models\SystemSetting;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Mailer;
@@ -24,6 +23,9 @@ use Symfony\Component\Mime\Email;
  * - CC, BCC, Reply-To, and attachments support
  * - Fallback to platform settings when tenant has no custom config
  * - Backward compatibility with RuntimeMailConfigService methods
+ *
+ * Note: Platform settings are only used when aero-platform is installed.
+ * In standalone mode, .env or SystemSetting configuration is used.
  *
  * Usage:
  *   // Fluent API (new style):
@@ -350,12 +352,22 @@ class MailService
      *
      * Note: When in tenant context, we need to explicitly query the central database
      * since PlatformSetting is stored in the central/landlord database.
+     *
+     * In standalone mode (without aero-platform), falls back to .env configuration.
      */
     public function getPlatformConfig(): array
     {
+        // In standalone mode (no Platform), use .env config
+        if (! class_exists('Aero\Platform\Models\PlatformSetting')) {
+            return $this->getEnvConfig();
+        }
+
         try {
+            // Dynamically resolve PlatformSetting to avoid hard dependency
+            $platformSettingClass = 'Aero\Platform\Models\PlatformSetting';
+
             // Query central database for platform settings (works in both contexts)
-            $settings = PlatformSetting::on('mysql')->where('slug', 'platform')->first();
+            $settings = $platformSettingClass::on('mysql')->where('slug', 'platform')->first();
             $emailSettings = $settings ? ($settings->email_settings ?? []) : [];
 
             if (empty($emailSettings) || empty($emailSettings['driver'])) {

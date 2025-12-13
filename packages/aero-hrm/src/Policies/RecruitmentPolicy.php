@@ -3,7 +3,7 @@
 namespace Aero\HRM\Policies;
 
 use Aero\Core\Policies\Concerns\ChecksModuleAccess;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use App\Models\Tenant\HRM\Job;
 
 class RecruitmentPolicy

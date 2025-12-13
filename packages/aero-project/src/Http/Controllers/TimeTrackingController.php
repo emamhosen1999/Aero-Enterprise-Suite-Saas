@@ -5,7 +5,7 @@ namespace Aero\Project\Http\Controllers;
 use Illuminate\Routing\Controller;
 use App\Models\Tenant\ProjectManagement\Project;
 use App\Models\ProjectTimeEntry;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

@@ -2,7 +2,7 @@
 
 namespace Aero\Dms\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Aero\Dms\Http\Controllers\Controller;
 use Aero\Dms\Models\Category;
 use Aero\Dms\Models\Document;
 use Aero\Dms\Models\DocumentVersion;

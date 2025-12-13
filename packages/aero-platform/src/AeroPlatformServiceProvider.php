@@ -93,15 +93,71 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Register views (for email templates, etc.)
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-platform');
 
-        // Also add views to the main view paths so 'app' view works for Inertia
-        $this->app['view']->addLocation(__DIR__.'/../resources/views');
+        // Ensure Vite build configuration exists in host app
+        $this->ensureViteConfiguration();
 
         // Register commands
         if ($this->app->runningInConsole()) {
             $this->commands([
-                // Add console commands here
+                \Aero\Platform\Console\Commands\PublishAssets::class, // Asset building (npm run build wrapper)
+                \Aero\Platform\Console\Commands\TenantCreate::class,
+                \Aero\Platform\Console\Commands\TenantMigrate::class,
+                \Aero\Platform\Console\Commands\TenantFlush::class,
+                \Aero\Platform\Console\Commands\TenantHealth::class,
+                \Aero\Platform\Console\Commands\EnsureSuperAdmin::class,
+                \Aero\Platform\Console\Commands\SetupApplication::class,
             ]);
         }
+    }
+
+    /**
+     * Ensure Vite configuration files exist in the host app.
+     * Automatically installs vite.config.js and package.json from stubs if missing or outdated.
+     */
+    protected function ensureViteConfiguration(): void
+    {
+        $viteConfigPath = base_path('vite.config.js');
+        $packageJsonPath = base_path('package.json');
+        $stubsPath = __DIR__.'/../stubs';
+
+        // Check if vite.config.js needs to be installed
+        if (!file_exists($viteConfigPath) || !$this->isAeroPlatformViteConfig($viteConfigPath)) {
+            $stubFile = $stubsPath.'/vite.config.js.stub';
+            if (file_exists($stubFile)) {
+                copy($stubFile, $viteConfigPath);
+            }
+        }
+
+        // Check if package.json needs to be installed/updated
+        if (!file_exists($packageJsonPath) || !$this->hasAeroPlatformDependencies($packageJsonPath)) {
+            $stubFile = $stubsPath.'/package.json.stub';
+            if (file_exists($stubFile)) {
+                copy($stubFile, $packageJsonPath);
+            }
+        }
+    }
+
+    /**
+     * Check if vite.config.js is configured for Aero Platform.
+     */
+    protected function isAeroPlatformViteConfig(string $path): bool
+    {
+        $content = file_get_contents($path);
+
+        return str_contains($content, 'vendor/aero/platform') && str_contains($content, 'vendor/aero/core');
+    }
+
+    /**
+     * Check if package.json has Aero Platform dependencies.
+     */
+    protected function hasAeroPlatformDependencies(string $path): bool
+    {
+        $content = file_get_contents($path);
+        $json = json_decode($content, true);
+
+        // Check for key dependencies that indicate Aero Platform setup
+        return isset($json['dependencies']['@heroui/react'])
+            && isset($json['dependencies']['framer-motion']);
     }
 
     /**
@@ -235,11 +291,31 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
     /**
      * Get the main platform domain (e.g., aeos365.test).
+     * AUTO-DETECTS from the current browser request.
      * Used to restrict platform.php routes to central domain only.
      */
     protected function getPlatformDomain(): string
     {
-        // PLATFORM_DOMAIN is already a plain domain like 'aeos365.test'
+        // Runtime detection from browser request
+        if (request() && request()->getHost()) {
+            $currentHost = request()->getHost();
+            $hostWithoutPort = preg_replace('/:\d+$/', '', $currentHost);
+            
+            // Extract root domain (remove subdomain if present)
+            $parts = explode('.', $hostWithoutPort);
+            
+            // If it's a subdomain (e.g., tenant.aeos365.test or admin.aeos365.test)
+            // Extract the root domain (aeos365.test)
+            if (count($parts) > 2) {
+                // Remove first part (subdomain), keep domain.tld
+                return implode('.', array_slice($parts, 1));
+            }
+            
+            // Already a root domain (e.g., aeos365.test)
+            return $hostWithoutPort;
+        }
+
+        // Fallback for console commands
         return env('PLATFORM_DOMAIN', 'localhost');
     }
 
@@ -248,11 +324,16 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     protected function getAdminDomain(): string
     {
-        // ADMIN_DOMAIN is already defined in .env as 'admin.aeos365.test'
-        return env('ADMIN_DOMAIN', 'admin.'.env('PLATFORM_DOMAIN', 'localhost'));
+        // Try ADMIN_DOMAIN first (explicit configuration)
+        $adminDomain = env('ADMIN_DOMAIN');
+        if ($adminDomain) {
+            return $adminDomain;
+        }
+
+        // Fallback: admin. + platform domain
+        return 'admin.' . $this->getPlatformDomain();
     }
 
-    /**
     /**
      * Register package's publishable assets.
      */
@@ -269,10 +350,14 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 __DIR__.'/../config/modules.php' => config_path('aero-platform-modules.php'),
             ], 'aero-platform-config');
 
-            // Publish JS assets (Inertia components)
-            $this->publishes([
-                __DIR__.'/../resources/js' => resource_path('js/vendor/aero-platform'),
-            ], 'aero-platform-assets');
+            // Publish compiled assets (pre-built in package's public directory)
+            // Host app doesn't need to build anything - just uses pre-built assets
+            $prebuiltAssets = __DIR__.'/../public/build';
+            if (is_dir($prebuiltAssets)) {
+                $this->publishes([
+                    $prebuiltAssets => public_path('vendor/aero-platform'),
+                ], 'aero-platform-assets');
+            }
 
             // Publish views
             $this->publishes([

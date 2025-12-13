@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
-use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
+use Aero\HRM\Http\Controllers\Controller;
+use Aero\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

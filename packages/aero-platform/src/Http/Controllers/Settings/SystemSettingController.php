@@ -8,7 +8,7 @@ use Aero\Platform\Models\Shared\SystemSetting;
 use Aero\Platform\Services\Notifications\RuntimeSmsConfigService;
 use Aero\Platform\Services\Settings\SystemSettingService;
 use Aero\Platform\Services\Shared\MailService;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -13,6 +13,7 @@
         "@headlessui/react": "^2.2.7",
         "@inertiajs/react": "^2.0.0",
         "@tailwindcss/vite": "^4.1.13",
+        "@vitejs/plugin-basic-ssl": "^2.1.0",
         "@vitejs/plugin-react": "^4.2.0",
         "axios": "^1.6.4",
         "laravel-vite-plugin": "^1.0",

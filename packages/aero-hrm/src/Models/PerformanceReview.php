@@ -4,7 +4,7 @@ namespace Aero\HRM\Models;
 
 use App\Models\PerformanceCompetencyScore;
 use App\Models\PerformanceGoal;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;

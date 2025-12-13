@@ -6,7 +6,7 @@ use Illuminate\Routing\Controller;
 use App\Models\Tenant\IMS\InventoryItem;
 use App\Models\Tenant\SCM$1
 use App\Models\Tenant\SCM$1
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;

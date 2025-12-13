@@ -5,7 +5,7 @@ namespace Aero\Platform\Http\Controllers\Auth;
 use Aero\Platform\Models\Shared\User;
 use Aero\Platform\Services\Shared\Auth\DeviceAuthService;
 use Aero\Platform\Services\Shared\Auth\ModernAuthenticationService;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use App\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

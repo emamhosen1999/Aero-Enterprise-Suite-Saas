@@ -2,7 +2,7 @@
 
 namespace Aero\Crm\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Aero\Crm\Http\Controllers\Controller;
 use Aero\Crm\Models\Customer;
 use App\Models\HRM\Opportunity;
 use Illuminate\Http\Request;

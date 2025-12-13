@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Http\Controllers\Integrations;
 
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

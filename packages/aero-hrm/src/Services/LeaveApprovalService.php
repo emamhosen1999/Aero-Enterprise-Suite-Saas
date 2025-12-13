@@ -4,7 +4,7 @@ namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use App\Notifications\LeaveApprovalNotification;
 use App\Notifications\LeaveApprovedNotification;
 use App\Notifications\LeaveRejectedNotification;

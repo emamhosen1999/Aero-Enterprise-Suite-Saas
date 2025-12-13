@@ -11,7 +11,6 @@ use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
-use Aero\Core\Http\Controllers\Settings\CustomDomainController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -273,13 +272,22 @@ Route::middleware('auth:web')->group(function () {
         Route::post('/system/test-email', [SystemSettingController::class, 'sendTestEmail'])->name('system.test-email');
         Route::post('/system/test-sms', [SystemSettingController::class, 'sendTestSms'])->name('system.test-sms');
         
-        // Domain Management
+        // Domain Management (SaaS mode only - requires aero-platform)
         Route::prefix('domains')->name('domains.')->group(function () {
-            Route::get('/', [CustomDomainController::class, 'index'])->name('index');
-            Route::post('/', [CustomDomainController::class, 'store'])->name('store');
-            Route::post('/{domain}/verify', [CustomDomainController::class, 'verify'])->name('verify');
-            Route::post('/{domain}/set-primary', [CustomDomainController::class, 'setPrimary'])->name('set-primary');
-            Route::delete('/{domain}', [CustomDomainController::class, 'destroy'])->name('destroy');
+            // Only register domain routes if Platform is installed
+            if (class_exists('Aero\Platform\Http\Controllers\Settings\CustomDomainController')) {
+                $controller = 'Aero\Platform\Http\Controllers\Settings\CustomDomainController';
+                Route::get('/', [$controller, 'index'])->name('index');
+                Route::post('/', [$controller, 'store'])->name('store');
+                Route::post('/{domain}/verify', [$controller, 'verify'])->name('verify');
+                Route::post('/{domain}/set-primary', [$controller, 'setPrimary'])->name('set-primary');
+                Route::delete('/{domain}', [$controller, 'destroy'])->name('destroy');
+            } else {
+                // In standalone mode, domain management is not available
+                Route::get('/', function () {
+                    return response()->json(['message' => 'Domain management is only available in SaaS mode'], 404);
+                })->name('index');
+            }
         });
         
         // Usage & Billing (if Platform package installed)

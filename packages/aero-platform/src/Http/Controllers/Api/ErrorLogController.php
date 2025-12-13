@@ -4,7 +4,7 @@ namespace Aero\Platform\Http\Controllers\Api;
 
 use Aero\Platform\Models\ErrorLog;
 use Aero\Platform\Services\Monitoring\Tenant\ErrorLogService;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

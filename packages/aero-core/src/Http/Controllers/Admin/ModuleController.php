@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\ModuleComponent;
 use Aero\Core\Models\ModuleComponentAction;

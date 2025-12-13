@@ -4,8 +4,8 @@ namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
-use App\Http\Controllers\Controller;
-use App\Models\Shared\User;
+use Aero\HRM\Http\Controllers\Controller;
+use Aero\Core\Models\User;
 use App\Services\Profile\ProfileCrudService;
 use App\Services\Profile\ProfileUpdateService;
 use App\Services\Profile\ProfileValidationService;

@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Public;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\Tenant\HRM\Job;
 use Aero\Core\Models\Tenant\HRM\JobApplication;
 use Illuminate\Http\Request;

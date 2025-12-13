@@ -4,7 +4,7 @@ namespace Aero\Project\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use App\Models\Tenant\Analytics\Report;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use App\Services\Task\TaskCrudService;
 use App\Services\Task\TaskImportService;
 use App\Services\Task\TaskNotificationService;

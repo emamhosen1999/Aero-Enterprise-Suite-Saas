@@ -5,7 +5,7 @@ namespace Aero\HRM\Services;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveBalance;
 use Aero\HRM\Models\LeaveSetting;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

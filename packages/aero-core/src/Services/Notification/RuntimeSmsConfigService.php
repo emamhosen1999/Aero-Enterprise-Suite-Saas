@@ -2,14 +2,20 @@
 
 namespace Aero\Core\Services\Notification;
 
-use Aero\Platform\Models\PlatformSetting;
 use Aero\Core\Models\SystemSetting;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
-use Stancl\Tenancy\Facades\Tenancy;
 use Throwable;
 
+/**
+ * RuntimeSmsConfigService - SMS Configuration Service
+ *
+ * Applies SMS settings from database configuration at runtime.
+ * Works in both SaaS mode (with aero-platform) and standalone mode.
+ *
+ * In standalone mode, only SystemSetting (tenant-level) configuration is used.
+ */
 class RuntimeSmsConfigService
 {
     /**
@@ -18,20 +24,35 @@ class RuntimeSmsConfigService
      */
     public function applySmsSettings(): void
     {
-        if (Tenancy::initialized()) {
-            $this->applyTenantSmsSettings();
-        } else {
-            $this->applyPlatformSmsSettings();
+        // Check if Tenancy is available and initialized
+        if (class_exists('Stancl\Tenancy\Facades\Tenancy')) {
+            $tenancy = app('Stancl\Tenancy\Facades\Tenancy');
+            if ($tenancy::initialized()) {
+                $this->applyTenantSmsSettings();
+                return;
+            }
         }
+
+        // Platform or standalone context
+        $this->applyPlatformSmsSettings();
     }
 
     /**
      * Apply platform SMS settings.
+     *
+     * In standalone mode (without aero-platform), this method does nothing.
      */
     protected function applyPlatformSmsSettings(): void
     {
+        // In standalone mode (no Platform), skip platform settings
+        if (! class_exists('Aero\Platform\Models\PlatformSetting')) {
+            Log::debug('RuntimeSmsConfigService: Platform not installed, skipping platform SMS settings');
+            return;
+        }
+
         try {
-            $settings = PlatformSetting::current();
+            $platformSettingClass = 'Aero\Platform\Models\PlatformSetting';
+            $settings = $platformSettingClass::current();
             $smsSettings = $settings->sms_settings ?? [];
 
             if (empty($smsSettings)) {
@@ -66,12 +87,12 @@ class RuntimeSmsConfigService
             $this->applyConfiguration($smsSettings);
 
             Log::info('Applied tenant SMS settings', [
-                'tenant' => tenant('id'),
+                'tenant' => function_exists('tenant') ? tenant('id') : 'standalone',
                 'provider' => $smsSettings['provider'] ?? 'not_set',
             ]);
         } catch (Throwable $e) {
             Log::error('Failed to apply tenant SMS settings', [
-                'tenant' => tenant('id') ?? 'unknown',
+                'tenant' => function_exists('tenant') ? (tenant('id') ?? 'unknown') : 'standalone',
                 'error' => $e->getMessage(),
             ]);
         }

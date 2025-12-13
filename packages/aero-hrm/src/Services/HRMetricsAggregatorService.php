@@ -4,7 +4,7 @@ namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\Payroll;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use App\Models\Tenant\HRM\Job;
 use App\Models\Tenant\HRM\JobApplication;
 use Illuminate\Support\Facades\DB;

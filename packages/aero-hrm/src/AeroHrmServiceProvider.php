@@ -53,10 +53,12 @@ class AeroHrmServiceProvider extends ServiceProvider
         // Register routes
         $this->registerRoutes();
 
-        // Publish assets in SaaS mode
-        if ($this->isSaaSMode()) {
+        // Publish compiled module library (ES module for runtime loading)
+        // Built to dist/ directory via npm run build
+        $moduleLibrary = __DIR__ . '/../dist';
+        if (is_dir($moduleLibrary)) {
             $this->publishes([
-                __DIR__ . '/../public' => public_path('vendor/aero-hrm'),
+                $moduleLibrary => public_path('modules/aero-hrm'),
             ], 'aero-hrm-assets');
         }
 
@@ -88,21 +90,42 @@ class AeroHrmServiceProvider extends ServiceProvider
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
-            // SaaS Mode: Use InitializeTenancyIfNotCentral which handles
-            // the check internally and returns 404 on central domains
+            // SaaS Mode: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
+            // to gracefully return 404 on central domains instead of crashing
             Route::middleware([
                 'web',
                 \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                'tenant',
             ])
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath . '/web.php');
+
+            // API routes for SaaS mode
+            if (file_exists($routesPath . '/api.php')) {
+                Route::middleware([
+                    'api',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])
+                    ->prefix('api/hrm')
+                    ->name('api.hrm.')
+                    ->group($routesPath . '/api.php');
+            }
         } else {
             // Standalone Mode: Routes with standard web middleware
             Route::middleware(['web'])
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath . '/web.php');
+
+            // API routes for Standalone mode
+            if (file_exists($routesPath . '/api.php')) {
+                Route::middleware(['api'])
+                    ->prefix('api/hrm')
+                    ->name('api.hrm.')
+                    ->group($routesPath . '/api.php');
+            }
         }
     }
 

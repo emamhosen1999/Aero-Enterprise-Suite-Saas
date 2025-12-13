@@ -7,6 +7,48 @@ This is a **multi-tenant, multi-module SaaS ERP system** built with Laravel 11 +
 
 ---
 
+## CRITICAL: Monorepo Development Rules
+
+### All Code Changes MUST Be in Packages
+This is a **monorepo architecture**. The host applications (`apps/saas-host`, `apps/standalone-host`, or external apps like `aeos365`) are thin wrappers that consume packages via Composer symlinks.
+
+**DO:**
+- ✅ Make ALL code changes in `packages/aero-*` directories
+- ✅ Update migrations, models, controllers, views in packages
+- ✅ Add new features to the appropriate package
+
+**DO NOT:**
+- ❌ Never modify code in `app/`, `resources/`, `routes/` of host apps
+- ❌ Never create new files in host app directories
+- ❌ Never copy package code into host apps
+
+### Package Structure
+```
+packages/
+├── aero-core/          # Core functionality (auth, users, base models, middleware)
+├── aero-platform/      # SaaS platform (tenancy, billing, subscriptions)
+├── aero-hrm/           # Human Resource Management module
+├── aero-crm/           # Customer Relationship Management module
+├── aero-finance/       # Finance & Accounting module
+├── aero-project/       # Project Management module
+├── aero-ims/           # Inventory Management module
+├── aero-pos/           # Point of Sale module
+├── aero-scm/           # Supply Chain Management module
+├── aero-quality/       # Quality Management module
+├── aero-dms/           # Document Management module
+└── aero-compliance/    # Compliance Management module
+```
+
+### Host App Configuration Only
+Host apps should ONLY contain:
+- `.env` file (environment-specific configuration)
+- `composer.json` (package dependencies with path repositories)
+- `vite.config.js` / build configuration
+- `public/` directory for compiled assets
+- Database files if using SQLite for testing
+
+---
+
 ## Architecture Overview
 
 ### Multi-Tenancy Structure
@@ -15,38 +57,37 @@ This is a **multi-tenant, multi-module SaaS ERP system** built with Laravel 11 +
 - **Domain Resolution:** Uses `stancl/tenancy` with subdomain identification (`{tenant}.domain.com`)
 - **Two Auth Guards:** `landlord` (platform admin) and `web` (tenant users)
 
-### Directory Structure
+### Package Directory Structure
+Each package follows this structure:
 ```
-app/
-├── Http/Controllers/
-│   ├── Admin/          # Platform admin controllers
-│   ├── Landlord/       # Landlord/billing controllers
-│   ├── Tenant/         # Tenant-scoped controllers
-│   ├── Platform/       # Public registration/onboarding
-│   └── Api/            # API endpoints
-├── Models/             # Eloquent models (tenant-aware via traits)
-├── Services/           # Business logic services
-│   ├── Module/         # Module access control
-│   ├── Platform/       # Platform-level services
-│   └── Billing/        # Subscription/payment services
-├── Policies/           # Authorization policies
-
-resources/js/
-├── Admin/Pages/        # Platform admin pages
-├── Tenant/Pages/       # Tenant user pages
-├── Platform/Pages/     # Public pages (registration, pricing)
-├── Components/         # Reusable React components
-├── Tables/             # Data table components (UsersTable, EmployeeTable, etc.)
-├── Forms/              # Form components
-├── Layouts/            # App.jsx, Sidebar, Header layouts
-├── theme/              # HeroUI theme configuration
-└── Hooks/              # Custom React hooks
-
-routes/
-├── admin.php           # Platform admin routes (admin.* prefix)
-├── tenant.php          # Tenant-scoped routes
-├── platform.php        # Public registration/onboarding
-└── api.php             # API routes
+packages/aero-{module}/
+├── composer.json           # Package metadata & dependencies
+├── config/                 # Package configuration files
+├── database/
+│   ├── migrations/         # Database migrations
+│   ├── factories/          # Model factories
+│   └── seeders/            # Database seeders
+├── resources/
+│   ├── js/                 # React components & pages
+│   │   ├── Pages/          # Inertia pages
+│   │   ├── Components/     # Reusable components
+│   │   └── Forms/          # Form components
+│   └── views/              # Blade templates (if needed)
+├── routes/
+│   ├── web.php             # Web routes
+│   ├── api.php             # API routes
+│   ├── tenant.php          # Tenant-scoped routes (SaaS mode)
+│   └── admin.php           # Admin routes (landlord)
+├── src/
+│   ├── Http/
+│   │   ├── Controllers/    # Controllers
+│   │   ├── Middleware/     # Middleware
+│   │   └── Requests/       # Form requests
+│   ├── Models/             # Eloquent models
+│   ├── Providers/          # Service providers
+│   ├── Services/           # Business logic services
+│   └── Policies/           # Authorization policies
+└── tests/                  # Package tests
 ```
 
 ### Module System
@@ -421,16 +462,37 @@ Always create Form Request classes for validation. Check `app/Http/Requests/` fo
 
 ## Development Workflow
 
+### Host App Required Environment Variables
+When setting up a host application (like `aeos365`), these environment variables MUST be configured in `.env`:
+
+```env
+# Application URL (must match actual domain)
+APP_URL=http://aeos365.test
+
+# Platform domain configuration (REQUIRED for SaaS mode)
+PLATFORM_DOMAIN=aeos365.test
+ADMIN_DOMAIN=admin.aeos365.test
+
+# Database configuration
+DB_CONNECTION=mysql
+DB_DATABASE=eos365
+```
+
 ### Commands
 ```bash
-# Run tests
+# Run tests (from host app directory)
 php artisan test --filter=testName
 
-# Format code
-vendor/bin/pint --dirty
+# Format code (run from package directory or use full path)
+php vendor/bin/pint --dirty "packages/aero-core/src/File.php"
 
-# Build frontend
+# Build frontend (from host app directory)
 npm run build  # or npm run dev for watch mode
+
+# Clear caches after package changes
+php artisan config:clear
+php artisan route:clear  
+php artisan cache:clear
 
 # Tenant management
 php artisan tenant:create

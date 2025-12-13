@@ -2,9 +2,9 @@
 
 namespace Aero\Project\Http\Controllers;
 
-use Aero\Platform\Models\TenantInvitation;
+use Aero\Core\Models\TenantInvitation;
 use Illuminate\Routing\Controller;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

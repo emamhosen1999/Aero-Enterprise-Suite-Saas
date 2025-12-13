@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Models\PlatformSetting;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

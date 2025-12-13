@@ -7,7 +7,7 @@ use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Services\InstallationService;
 use Aero\Platform\Services\Shared\MailService;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;

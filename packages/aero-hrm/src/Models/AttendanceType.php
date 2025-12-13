@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Models;
 
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Database\Factories\AttendanceTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

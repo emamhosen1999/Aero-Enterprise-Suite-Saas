@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Http\Controllers\Performance;
 
-use App\Http\Controllers\Controller;
+use Aero\HRM\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;

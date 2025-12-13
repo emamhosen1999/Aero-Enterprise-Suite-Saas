@@ -2,7 +2,7 @@
 
 namespace Aero\Quality\Providers;
 
-use Aero\Core\Abstracts\AbstractModuleProvider;
+use Aero\Core\Providers\AbstractModuleProvider;
 use Aero\Core\Services\ModuleRegistry;
 
 class QualityModuleProvider extends AbstractModuleProvider
@@ -37,11 +37,8 @@ class QualityModuleProvider extends AbstractModuleProvider
     {
         parent::boot();
         
-        // Load routes
-        $this->loadRoutesFrom(__DIR__.'/../../routes/tenant.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/admin.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+        // Routes are loaded by parent::boot() via AbstractModuleProvider::loadRoutes()
+        // which applies proper domain isolation middleware.
         
         // Publish configuration
         if ($this->app->runningInConsole()) {

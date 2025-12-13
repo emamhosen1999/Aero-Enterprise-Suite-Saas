@@ -9,14 +9,17 @@ use Aero\Scm\Http\Controllers\PurchaseController;
 use Aero\Scm\Http\Controllers\DemandForecastController;
 use Aero\Scm\Http\Controllers\ImportExportController;
 use Aero\Scm\Http\Controllers\ReturnManagementController;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
 
 /*
 |--------------------------------------------------------------------------
 | SCM Tenant Routes
 |--------------------------------------------------------------------------
+| NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+| to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('scm')->name('scm.')->middleware(['auth', 'tenant'])->group(function () {
+Route::prefix('scm')->name('scm.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
     // Procurement
     Route::resource('procurement', ProcurementController::class);
     Route::post('procurement/{id}/approve', [ProcurementController::class, 'approve'])->name('procurement.approve');

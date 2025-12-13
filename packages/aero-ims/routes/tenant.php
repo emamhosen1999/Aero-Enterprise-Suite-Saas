@@ -3,14 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use Aero\Ims\Http\Controllers\IMSController;
 use Aero\Ims\Http\Controllers\InventoryItemController;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
 
 /*
 |--------------------------------------------------------------------------
 | IMS Tenant Routes
 |--------------------------------------------------------------------------
+| NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+| to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('ims')->name('ims.')->middleware(['auth', 'tenant'])->group(function () {
+Route::prefix('ims')->name('ims.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
     // Main IMS Dashboard
     Route::get('/', [IMSController::class, 'index'])->name('index');
     

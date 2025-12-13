@@ -5,7 +5,7 @@ namespace Aero\HRM\Services;
 use Aero\HRM\Models\Payroll;
 use Aero\HRM\Models\PayrollAllowance;
 use Aero\HRM\Models\PayrollDeduction;
-use App\Models\Shared\User;
+use Aero\Core\Models\User;
 use Carbon\Carbon;
 
 class PayrollCalculationService

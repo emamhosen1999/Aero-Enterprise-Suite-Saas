@@ -2,7 +2,7 @@
 
 namespace Aero\Crm\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Aero\Crm\Http\Controllers\Controller;
 
 class OpportunityController extends Controller
 {

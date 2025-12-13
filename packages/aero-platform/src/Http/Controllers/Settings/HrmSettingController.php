@@ -10,7 +10,7 @@ use Aero\HRM\Models\SafetyIncident;
 use Aero\HRM\Models\SafetyTraining;
 use Aero\HRM\Models\Skill;
 use Aero\Platform\Models\Tenant\DMS\DocumentCategory;
-use App\Http\Controllers\Controller;
+use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

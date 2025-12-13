@@ -5,6 +5,7 @@ use Aero\Crm\Http\Controllers\CustomerController;
 use Aero\Crm\Http\Controllers\DealController;
 use Aero\Crm\Http\Controllers\OpportunityController;
 use Aero\Crm\Http\Controllers\PipelineController;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
 
 /*
 |--------------------------------------------------------------------------
@@ -12,10 +13,12 @@ use Aero\Crm\Http\Controllers\PipelineController;
 |--------------------------------------------------------------------------
 |
 | These routes are loaded for tenant users within the CRM module.
+| NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+| to gracefully return 404 on central domains instead of crashing.
 |
 */
 
-Route::prefix('crm')->name('crm.')->middleware(['auth', 'tenant'])->group(function () {
+Route::prefix('crm')->name('crm.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
     // Customer routes
     Route::resource('customers', CustomerController::class);
     

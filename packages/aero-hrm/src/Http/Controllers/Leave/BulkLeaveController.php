@@ -5,7 +5,7 @@ namespace Aero\HRM\Http\Controllers\Leave;
 use Aero\HRM\Http\Requests\BulkLeaveRequest;
 use Aero\HRM\Http\Resources\LeaveResource;
 use Aero\HRM\Models\Department;
-use App\Http\Controllers\Controller;
+use Aero\HRM\Http\Controllers\Controller;
 use App\Services\Leave\BulkLeaveService;
 use App\Services\Leave\LeaveQueryService;
 use Illuminate\Http\JsonResponse;

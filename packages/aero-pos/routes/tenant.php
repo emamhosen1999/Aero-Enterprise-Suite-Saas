@@ -3,14 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use Aero\Pos\Http\Controllers\POSController;
 use Aero\Pos\Http\Controllers\SaleController;
+use Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral;
 
 /*
 |--------------------------------------------------------------------------
 | POS Tenant Routes
 |--------------------------------------------------------------------------
+| NOTE: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
+| to gracefully return 404 on central domains instead of crashing.
 */
 
-Route::prefix('pos')->name('pos.')->middleware(['auth', 'tenant'])->group(function () {
+Route::prefix('pos')->name('pos.')->middleware(['web', InitializeTenancyIfNotCentral::class, 'tenant', 'auth'])->group(function () {
     // POS Terminal
     Route::get('/', [POSController::class, 'index'])->name('index');
     Route::post('/process-sale', [POSController::class, 'processSale'])->name('process-sale');

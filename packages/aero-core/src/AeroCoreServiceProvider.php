@@ -164,17 +164,21 @@ class AeroCoreServiceProvider extends ServiceProvider
             __DIR__.'/../config/marketplace.php' => config_path('marketplace.php'),
         ], 'marketplace-config');
 
-        // Publish frontend assets
+        // Publish compiled assets (pre-built in package's public directory)
+        // Host app doesn't need to build anything - just uses pre-built assets
+        $prebuiltAssets = __DIR__.'/../public/build';
+        if (is_dir($prebuiltAssets)) {
+            $this->publishes([
+                $prebuiltAssets => public_path('vendor/aero-core'),
+            ], 'aero-core-assets');
+        }
+
+        // Publish stubs for new installations (optional)
         $this->publishes([
-            __DIR__.'/../resources/js' => resource_path('js'),
-            __DIR__.'/../resources/css' => resource_path('css'),
-            __DIR__.'/../resources/stubs/vite.config.js.stub' => base_path('vite.config.js'),
-            __DIR__.'/../resources/stubs/package.json.stub' => base_path('package.json'),
             __DIR__.'/../resources/stubs/User.php.stub' => app_path('Models/User.php'),
             __DIR__.'/../resources/stubs/DatabaseSeeder.php.stub' => database_path('seeders/DatabaseSeeder.php'),
             __DIR__.'/../stubs/web.php.stub' => base_path('routes/web.php'),
-            __DIR__.'/../hero.ts' => base_path('hero.ts'),
-        ], 'aero-core-assets');
+        ], 'aero-core-stubs');
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-core');
 
@@ -183,6 +187,9 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         // Register Inertia middleware - must be after routes
         $this->registerMiddleware();
+
+        // Register exception handler for unified error reporting
+        $this->registerExceptionHandler();
 
         // Guard against early boot before app is fully initialized
         try {
@@ -213,10 +220,10 @@ class AeroCoreServiceProvider extends ServiceProvider
      * Routing Strategy:
      * -----------------
      * In SaaS mode (aero-platform active):
-     * - Core routes use InitializeTenancyIfNotCentral middleware which:
-     *   1. Checks if request is on a central domain (platform, admin)
-     *   2. Returns 404 on central domains (routes don't exist there)
-     *   3. Initializes tenancy on tenant subdomains
+     * - Core routes are ONLY registered on TENANT domains (AUTO-DETECTED from browser)
+     * - On central/admin domains: NO core routes (platform handles those)
+     * - Domain-aware route registration prevents route collision
+     * - Runtime detection - NO manual configuration needed
      *
      * In Standalone mode:
      * - Core routes run on all domains with standard web middleware
@@ -228,17 +235,74 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
-            // SaaS Mode: Use InitializeTenancyIfNotCentral which handles
-            // the check internally and returns 404 on central domains
-            Route::middleware([
-                'web',
-                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-            ])->group($routesPath.'/web.php');
+            // SaaS Mode: Core routes ONLY on tenant domains (NOT on central/admin domains)
+            // AUTO-DETECT from browser request - no .env configuration needed
+            
+            if (!request()) {
+                // In console, load routes without domain restriction
+                Route::middleware(['web'])->group($routesPath.'/web.php');
+                return;
+            }
+
+            $currentHost = request()->getHost();
+            
+            // Check if we're on a central domain (auto-detected)
+            $isCentralDomain = $this->isOnCentralDomain($currentHost);
+            
+            if (!$isCentralDomain) {
+                // ONLY load core routes on tenant subdomains
+                Route::middleware([
+                    'web',
+                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                    'tenant',
+                ])->group($routesPath.'/web.php');
+            }
+            // On central domains: do NOT register core routes (platform owns those)
         } else {
             // Standalone Mode: Routes with standard web middleware
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
+    }
+
+    /**
+     * Check if current domain is a central domain.
+     * AUTO-DETECTS from browser request - no configuration needed.
+     * 
+     * Logic:
+     * - admin.domain.com → Central (admin subdomain)
+     * - domain.com → Central (root domain)
+     * - tenant.domain.com → Tenant (has subdomain that's not 'admin')
+     */
+    protected function isOnCentralDomain(string $host): bool
+    {
+        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
+        
+        // Check for admin subdomain (always central)
+        if (str_starts_with($hostWithoutPort, 'admin.')) {
+            return true;
+        }
+
+        // Check for localhost/127.0.0.1 (always central for local dev)
+        if (in_array($hostWithoutPort, ['localhost', '127.0.0.1'], true)) {
+            return true;
+        }
+
+        // Count dots to determine if it's a subdomain
+        $parts = explode('.', $hostWithoutPort);
+        $dotCount = count($parts) - 1;
+
+        // For .test, .local, .localhost TLDs:
+        // - 1 dot (domain.test) → Central (root domain)
+        // - 2+ dots (tenant.domain.test) → Tenant (subdomain)
+        if (preg_match('/\.(test|local|localhost)$/i', $hostWithoutPort)) {
+            return $dotCount === 1; // Only 1 dot means root domain = central
+        }
+
+        // For production domains (e.g., .com, .net, .org):
+        // - 1 dot (domain.com) → Central (root domain)
+        // - 2+ dots (tenant.domain.com) → Tenant (subdomain)
+        return $dotCount === 1; // Only 1 dot means root domain = central
     }
 
     /**
@@ -495,5 +559,23 @@ class AeroCoreServiceProvider extends ServiceProvider
                 'children' => $submoduleNav,
             ],
         ], $config['priority'] ?? 1);
+    }
+
+    /**
+     * Register unified exception handler for error reporting to platform
+     */
+    protected function registerExceptionHandler(): void
+    {
+        $this->app->singleton(\Aero\Core\Services\PlatformErrorReporter::class);
+
+        // Use Laravel 11's exception handler registration
+        if (method_exists($this->app, 'terminating')) {
+            // Register a reportable callback for all exceptions
+            // This captures backend errors and reports them to the platform
+            $this->app->singleton(
+                \Illuminate\Contracts\Debug\ExceptionHandler::class,
+                \Aero\Core\Exceptions\Handler::class
+            );
+        }
     }
 }

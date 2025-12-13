@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Http\Controllers\Upload;
 
-use App\Http\Controllers\Controller;
+use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Services\Upload\ChunkedUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
