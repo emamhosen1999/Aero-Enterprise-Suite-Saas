@@ -48,9 +48,9 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->overrideMigratorForLandlord();
 
         // Merge platform configs
-        $this->mergeConfigFrom(__DIR__.'/../../config/modules.php', 'aero-platform.modules');
-        $this->mergeConfigFrom(__DIR__.'/../../config/tenancy.php', 'tenancy');
-        $this->mergeConfigFrom(__DIR__.'/../../config/platform.php', 'platform');
+        $this->mergeConfigFrom(__DIR__.'/../config/modules.php', 'aero-platform.modules');
+        $this->mergeConfigFrom(__DIR__.'/../config/tenancy.php', 'tenancy');
+        $this->mergeConfigFrom(__DIR__.'/../config/platform.php', 'platform');
 
         // Override TenantScopeInterface binding (Core binds StandaloneTenantScope by default)
         // Platform provides the SaaS implementation using stancl/tenancy
@@ -79,7 +79,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Load platform migrations for landlord database
-        $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Register routes
         $this->registerRoutes();
@@ -91,10 +91,10 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->registerPublishing();
 
         // Register views (for email templates, etc.)
-        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'aero-platform');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-platform');
 
         // Also add views to the main view paths so 'app' view works for Inertia
-        $this->app['view']->addLocation(__DIR__.'/../../resources/views');
+        $this->app['view']->addLocation(__DIR__.'/../resources/views');
 
         // Register commands
         if ($this->app->runningInConsole()) {
@@ -114,12 +114,23 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $router = $this->app->make('router');
 
+            // CRITICAL: Register Database Firewall middleware FIRST (before sessions)
+            // This ensures correct database connection for session storage on central domains
+            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\SetDatabaseConnectionFromDomain::class);
+
+            // Register IdentifyDomainContext to set context for the request
+            $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
+
             // Register HandleInertiaRequests middleware to web middleware group
             // This middleware intercepts "/" and renders the proper page
             $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
         });
 
         $router = $this->app['router'];
+
+        // Register domain middleware aliases for manual use in routes
+        $router->aliasMiddleware('identify.domain', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
+        $router->aliasMiddleware('set.database.from.domain', \Aero\Platform\Http\Middleware\SetDatabaseConnectionFromDomain::class);
 
         // Core platform middleware aliases
         $router->aliasMiddleware('module', \Aero\Platform\Http\Middleware\ModuleAccessMiddleware::class);
@@ -200,7 +211,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
             'middleware' => ['web'],
             'domain' => $this->getAdminDomain(),
         ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../../routes/admin.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/admin.php');
         });
 
         // Public platform routes (MAIN DOMAIN ONLY - registration, landing)
@@ -209,7 +220,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
             'middleware' => ['web'],
             'domain' => $this->getPlatformDomain(),
         ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../../routes/platform.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/platform.php');
         });
 
         // API routes (public + authenticated)
@@ -218,45 +229,27 @@ class AeroPlatformServiceProvider extends ServiceProvider
             'prefix' => 'api/platform',
             'as' => 'api.platform.',
         ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         });
     }
 
     /**
-     * Get the main platform domain (e.g., platform.com).
+     * Get the main platform domain (e.g., aeos365.test).
      * Used to restrict platform.php routes to central domain only.
      */
     protected function getPlatformDomain(): string
     {
-        $baseDomain = config('tenancy.central_domains.0', config('app.url', 'localhost'));
-
-        // Parse the base domain to get just the host
-        $parsed = parse_url($baseDomain);
-
-        return $parsed['host'] ?? $baseDomain;
+        // PLATFORM_DOMAIN is already a plain domain like 'aeos365.test'
+        return env('PLATFORM_DOMAIN', 'localhost');
     }
 
     /**
-     * Get the admin subdomain for routing.
+     * Get the admin subdomain for routing (e.g., admin.aeos365.test).
      */
     protected function getAdminDomain(): string
     {
-        $baseDomain = config('tenancy.central_domains.0', config('app.url'));
-
-        // Parse the base domain to get just the domain part
-        $parsed = parse_url($baseDomain);
-        $host = $parsed['host'] ?? $baseDomain;
-
-        // Remove any existing subdomain and add 'admin'
-        $parts = explode('.', $host);
-        if (count($parts) >= 2) {
-            // Take the last two parts as the base domain
-            $basePart = implode('.', array_slice($parts, -2));
-
-            return 'admin.'.$basePart;
-        }
-
-        return 'admin.'.$host;
+        // ADMIN_DOMAIN is already defined in .env as 'admin.aeos365.test'
+        return env('ADMIN_DOMAIN', 'admin.'.env('PLATFORM_DOMAIN', 'localhost'));
     }
 
     /**
@@ -268,27 +261,27 @@ class AeroPlatformServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             // Publish migrations
             $this->publishes([
-                __DIR__.'/../../database/migrations' => database_path('migrations'),
+                __DIR__.'/../database/migrations' => database_path('migrations'),
             ], 'aero-platform-migrations');
 
             // Publish config
             $this->publishes([
-                __DIR__.'/../../config/modules.php' => config_path('aero-platform-modules.php'),
+                __DIR__.'/../config/modules.php' => config_path('aero-platform-modules.php'),
             ], 'aero-platform-config');
 
             // Publish JS assets (Inertia components)
             $this->publishes([
-                __DIR__.'/../../resources/js' => resource_path('js/vendor/aero-platform'),
+                __DIR__.'/../resources/js' => resource_path('js/vendor/aero-platform'),
             ], 'aero-platform-assets');
 
             // Publish views
             $this->publishes([
-                __DIR__.'/../../resources/views' => resource_path('views/vendor/aero-platform'),
+                __DIR__.'/../resources/views' => resource_path('views/vendor/aero-platform'),
             ], 'aero-platform-views');
 
             // Publish Mail templates
             $this->publishes([
-                __DIR__.'/../../Mail' => app_path('Mail/Platform'),
+                __DIR__.'/../Mail' => app_path('Mail/Platform'),
             ], 'aero-platform-mail');
         }
     }
@@ -332,7 +325,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     protected function overrideMigratorForLandlord(): void
     {
-        $platformMigrationsPath = realpath(__DIR__.'/../../database/migrations');
+        $platformMigrationsPath = realpath(__DIR__.'/../database/migrations');
 
         $this->app->extend('migrator', function ($migrator, $app) use ($platformMigrationsPath) {
             return new class($app['migration.repository'], $app['db'], $app['files'], $app['events'], $platformMigrationsPath) extends \Illuminate\Database\Migrations\Migrator

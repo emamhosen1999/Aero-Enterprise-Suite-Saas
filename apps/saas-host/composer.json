@@ -20,8 +20,8 @@
     "require": {
         "php": "^8.2",
         "aero/core": "*",
-    "aero/platform": "*", 
-    "aero/hrm": "*",
+        "aero/platform": "*", 
+        "aero/hrm": "*",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1"
     },

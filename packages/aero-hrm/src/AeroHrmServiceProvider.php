@@ -68,10 +68,17 @@ class AeroHrmServiceProvider extends ServiceProvider
 
     /**
      * Register module routes.
-     * 
-     * Note: All routes are consolidated in web.php. The service provider applies:
-     * - Route prefix: 'hrm' (paths: /hrm/*)
-     * - Route name prefix: 'hrm.' (names: hrm.*)
+     *
+     * Routing Strategy (same as Core):
+     * --------------------------------
+     * In SaaS mode (aero-platform active):
+     * - HRM routes use InitializeTenancyIfNotCentral middleware which:
+     *   1. Checks if request is on a central domain (platform, admin)
+     *   2. Returns 404 on central domains (routes don't exist there)
+     *   3. Initializes tenancy on tenant subdomains
+     *
+     * In Standalone mode:
+     * - HRM routes run on all domains with standard web middleware
      *
      * @return void
      */
@@ -81,8 +88,12 @@ class AeroHrmServiceProvider extends ServiceProvider
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
-            // SaaS Mode: Routes with tenant middleware
-            Route::middleware(['web', 'tenant'])
+            // SaaS Mode: Use InitializeTenancyIfNotCentral which handles
+            // the check internally and returns 404 on central domains
+            Route::middleware([
+                'web',
+                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+            ])
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath . '/web.php');
@@ -102,7 +113,7 @@ class AeroHrmServiceProvider extends ServiceProvider
      */
     protected function isPlatformActive(): bool
     {
-        return function_exists('isPlatformActive') && isPlatformActive();
+        return class_exists(\Aero\Platform\AeroPlatformServiceProvider::class);
     }
 
     /**

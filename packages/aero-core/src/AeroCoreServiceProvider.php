@@ -209,6 +209,18 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register Core routes.
+     *
+     * Routing Strategy:
+     * -----------------
+     * In SaaS mode (aero-platform active):
+     * - Core routes use InitializeTenancyIfNotCentral middleware which:
+     *   1. Checks if request is on a central domain (platform, admin)
+     *   2. Returns 404 on central domains (routes don't exist there)
+     *   3. Initializes tenancy on tenant subdomains
+     *
+     * In Standalone mode:
+     * - Core routes run on all domains with standard web middleware
+     * - No tenancy middleware is applied
      */
     protected function registerRoutes(): void
     {
@@ -216,15 +228,11 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
-            // SaaS Mode: Routes for TENANT SUBDOMAINS ONLY
-            // Use PreventAccessFromCentralDomains to block Core routes on:
-            // - aeos365.test (platform - handled by Platform's platform.php)
-            // - admin.aeos365.test (admin - handled by Platform's admin.php)
-            // Core routes only run on: {tenant}.aeos365.test
+            // SaaS Mode: Use InitializeTenancyIfNotCentral which handles
+            // the check internally and returns 404 on central domains
             Route::middleware([
                 'web',
-                \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
-                \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
             ])->group($routesPath.'/web.php');
         } else {
             // Standalone Mode: Routes with standard web middleware

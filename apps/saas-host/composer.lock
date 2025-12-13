@@ -161,7 +161,7 @@
             "dist": {
                 "type": "path",
                 "url": "../../packages/aero-platform",
-                "reference": "e38279fa8ba7eb8897b408389ab23d0e1019d357"
+                "reference": "cae0fb96f966c048665b3d68d4786684450e2fde"
             },
             "require": {
                 "aero/core": "*",
@@ -183,7 +183,7 @@
             "extra": {
                 "laravel": {
                     "providers": [
-                        "Aero\\Platform\\Providers\\AeroPlatformServiceProvider"
+                        "Aero\\Platform\\AeroPlatformServiceProvider"
                     ],
                     "aliases": {
                         "AeroPlatform": "Aero\\Platform\\Facades\\Platform"
