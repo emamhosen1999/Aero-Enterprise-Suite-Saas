@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace Aero\HRM\Events;
 
 use Aero\HRM\Models\Payroll;
 use Illuminate\Broadcasting\InteractsWithSockets;

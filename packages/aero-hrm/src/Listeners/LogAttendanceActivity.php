@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Listeners;
 
-use App\Events\AttendanceLogged;
+use Aero\HRM\Events\AttendanceLogged;
 use App\Notifications\LateArrivalNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;

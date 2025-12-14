@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Listeners;
 
-use App\Events\PayrollGenerated;
+use Aero\HRM\Events\PayrollGenerated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;

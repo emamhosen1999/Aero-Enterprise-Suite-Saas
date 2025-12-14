@@ -58,54 +58,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Font Loading with Display Swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fredoka:wght@300..700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Loading -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-
-
-    <!-- Critical CSS Inline (Optimized) -->
+    <!-- Critical Theming CSS -->
     <style>
-        /* Critical CSS for immediate rendering */
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            line-height: 1.15;
-            -webkit-text-size-adjust: 100%;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-primary, 'Inter', sans-serif);
-            font-size: 16px;
-            line-height: 1.6;
-            color: var(--text-color, #333);
-            background-color: var(--bg-color, #ffffff);
-            min-height: 100vh;
-            overflow-x: hidden;
-            transition: color 0.3s ease, background-color 0.3s ease;
-        }
-
-        /* Essential CSS Custom Properties */
+        /* Theme CSS Variables */
         :root {
             --primary-color: #134e9d;
             --secondary-color: #f5841f;
-            --text-color: #333;
-            --bg-color: #ffffff;
-            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            --border-radius: 8px;
-            --transition: all 0.3s ease;
-            --font-primary: 'Inter', 'Segoe UI', sans-serif;
-        }
-
-        /* Dark mode variables */
-        [data-theme-mode="dark"] {
-            --text-color: #ffffff;
-            --bg-color: #0f1419;
-            --shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         }
 
         /* Screen Reader Only */
@@ -121,333 +82,120 @@
             border: 0 !important;
         }
 
-        /* Enhanced Background System - Theme-based patterns load immediately */
-        body {
-            /* Base background - will be overridden by dynamic theme system */
-            background: var(--background, #ffffff);
-            min-height: 100vh;
-            transition: background 0.3s ease, background-color 0.3s ease;
-            /* Remove any fixed background patterns to allow theme system control */
-        }
-
-        /* Dark mode fallback - also will be overridden by theme system */
-        [data-theme-mode="dark"] body {
-            background: var(--background, #0a0a0a);
-        }
-
-        /* Enhanced Loading Screen - Theme-Aware with Smooth Transitions */
+        /* Loading Screen */
         #app-loading {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Light mode gradient */
-            background: 
-                linear-gradient(135deg, 
-                    rgba(248, 250, 252, 0.98) 0%, 
-                    rgba(241, 245, 249, 0.95) 50%, 
-                    rgba(226, 232, 240, 0.92) 100%
-                );
+            inset: 0;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.92));
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            opacity: 1;
-            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        background 0.3s ease;
-            overflow: hidden;
-            will-change: opacity, transform;
+            transition: opacity 0.4s ease;
         }
 
-        /* Dark mode loading screen */
-        [data-theme-mode="dark"] #app-loading,
-        .dark #app-loading {
-            background: 
-                linear-gradient(135deg, 
-                    rgba(15, 23, 42, 0.98) 0%, 
-                    rgba(30, 41, 59, 0.95) 50%, 
-                    rgba(51, 65, 85, 0.92) 100%
-                );
+        .dark #app-loading,
+        [data-theme-mode="dark"] #app-loading {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(51, 65, 85, 0.92));
         }
 
         #app-loading.hidden {
             opacity: 0;
             pointer-events: none;
-            transform: scale(1.02);
         }
 
         .loading-content {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 2.5rem 3rem;
-            /* Light mode glassmorphism */
+            padding: 2rem;
             background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-radius: var(--borderRadius, 20px);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.08),
-                0 16px 48px rgba(0, 0, 0, 0.04),
-                inset 0 1px 1px rgba(255, 255, 255, 0.8);
-            max-width: 320px;
-            text-align: center;
-            will-change: transform;
-            transition: all 0.3s ease;
-        }
-
-        /* Dark mode glassmorphism */
-        [data-theme-mode="dark"] .loading-content,
-        .dark .loading-content {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                0 16px 48px rgba(0, 0, 0, 0.2),
-                inset 0 1px 1px rgba(255, 255, 255, 0.05);
-        }
-
-        /* Squared Logo Container - Medium Size */
-        .loading-logo {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 1.5rem;
-            position: relative;
+            backdrop-filter: blur(16px);
             border-radius: var(--borderRadius, 16px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            max-width: 280px;
+        }
+
+        .dark .loading-content,
+        [data-theme-mode="dark"] .loading-content {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            border-radius: var(--borderRadius, 12px);
             overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .loading-logo:hover {
-            transform: scale(1.05);
-        }
-
-        [data-theme-mode="dark"] .loading-logo,
-        .dark .loading-logo {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
 
         .loading-logo img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            border-radius: var(--borderRadius, 16px);
             background: white;
         }
 
-        [data-theme-mode="dark"] .loading-logo img,
-        .dark .loading-logo img {
-            background: rgba(30, 41, 59, 0.5);
-        }
-
-        /* Fallback logo letter */
         .loading-logo-fallback {
             display: none;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, var(--theme-primary, #3b82f6) 0%, #8b5cf6 100%);
-            border-radius: var(--borderRadius, 16px);
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             align-items: center;
             justify-content: center;
-            font-size: 42px;
+            font-size: 36px;
             font-weight: 700;
             color: white;
-            text-transform: uppercase;
         }
 
-        /* Loading Spinner - Positioned below logo */
         .loading-spinner {
-            width: 48px;
-            height: 48px;
-            position: relative;
-            margin-bottom: 1.25rem;
-            will-change: transform;
-        }
-
-        .loading-spinner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1rem;
             border: 3px solid rgba(0, 0, 0, 0.08);
-            border-top: 3px solid var(--theme-primary, #3b82f6);
-            border-right: 3px solid var(--theme-success, #22c55e);
+            border-top-color: var(--theme-primary, #3b82f6);
             border-radius: 50%;
-            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            animation: spin 0.8s linear infinite;
         }
 
-        [data-theme-mode="dark"] .loading-spinner::before,
-        .dark .loading-spinner::before {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid var(--theme-primary, #60a5fa);
-            border-right: 3px solid var(--theme-success, #4ade80);
-        }
-
-        .loading-spinner::after {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            width: calc(100% - 16px);
-            height: calc(100% - 16px);
-            border: 2px solid transparent;
-            border-bottom: 2px solid var(--theme-warning, #f59e0b);
-            border-left: 2px solid var(--theme-secondary, #a855f7);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite reverse;
+        .dark .loading-spinner,
+        [data-theme-mode="dark"] .loading-spinner {
+            border-color: rgba(255, 255, 255, 0.1);
+            border-top-color: var(--theme-primary, #60a5fa);
         }
 
         .loading-text {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            text-align: center;
-            margin-bottom: 0.5rem;
-            letter-spacing: 0.02em;
             color: var(--theme-foreground, #1e293b);
             font-family: var(--fontFamily, 'Inter', sans-serif);
-            transition: color 0.3s ease;
         }
 
-        [data-theme-mode="dark"] .loading-text,
-        .dark .loading-text {
+        .dark .loading-text,
+        [data-theme-mode="dark"] .loading-text {
             color: var(--theme-foreground, #f1f5f9);
         }
 
         .loading-subtitle {
-            font-size: 0.875rem;
-            font-weight: 400;
-            text-align: center;
+            font-size: 0.8rem;
             color: var(--theme-default-500, #64748b);
             font-family: var(--fontFamily, 'Inter', sans-serif);
-            transition: color 0.3s ease;
         }
 
-        [data-theme-mode="dark"] .loading-subtitle,
-        .dark .loading-subtitle {
-            color: var(--theme-default-400, #94a3b8);
-        }
-
-        /* Animations */
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        @keyframes fadeInUp {
-            0% { 
-                opacity: 0; 
-                transform: translateY(15px);
-            }
-            100% { 
-                opacity: 1; 
-                transform: translateY(0);
-            }
-        }
-
-        .loading-content {
-            animation: fadeInUp 0.5s ease-out;
-        }
-
-        /* App container optimization */
         #app {
             opacity: 0;
-            transition: opacity 0.25s ease-in;
-            will-change: opacity;
+            transition: opacity 0.2s ease;
         }
 
         #app.loaded {
             opacity: 1;
         }
 
-        /* Performance optimizations */
-        .persistent-layout {
-            contain: layout style paint;
-            will-change: contents;
-        }
-
-        .content-area {
-            contain: layout;
-            isolation: isolate;
-        }
-
-        /* Accessibility & Mobile optimizations */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .loading-content {
-                padding: 1.5rem 1rem;
-                margin: 1rem;
-                border-radius: 16px;
-                max-width: 90vw;
-            }
-
-            .loading-logo {
-                width: 80px;
-                height: 80px;
-                margin-bottom: 1rem;
-            }
-
-            .loading-logo-fallback {
-                font-size: 36px;
-            }
-
-            .loading-spinner {
-                width: 40px;
-                height: 40px;
-                margin-bottom: 1rem;
-            }
-
-            .loading-text {
-                font-size: 1.1rem;
-            }
-
-            .loading-subtitle {
-                font-size: 0.8rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .loading-content {
-                padding: 1.5rem 1rem;
-                margin: 0.5rem;
-            }
-
-            .loading-logo {
-                width: 70px;
-                height: 70px;
-            }
-
-            .loading-logo-fallback {
-                font-size: 32px;
-            }
-
-            .loading-spinner {
-                width: 36px;
-                height: 36px;
-            }
-
-            .loading-text {
-                font-size: 1rem;
-            }
-        }
-
-        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -455,15 +203,13 @@
             }
         }
 
-        /* Print styles */
         @media print {
-            body { background: white !important; color: black !important; }
             #app-loading { display: none !important; }
         }
     </style>
 </head>
 
-<body>
+<body class="light text-foreground bg-background">
     <!-- Skip Navigation Link for Accessibility -->
     <a href="#main-content" class="sr-only sr-only-focusable" style="position: absolute; top: -40px; left: 6px; z-index: 10001; color: white; background: var(--primary-color); padding: 8px 16px; text-decoration: none; border-radius: 4px; font-weight: bold;">
         Skip to main content

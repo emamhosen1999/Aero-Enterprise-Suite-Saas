@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Listeners\Leave;
 
-use App\Events\Leave\LeaveRejected;
-use App\Services\Leave\LeaveBalanceService;
+use Aero\HRM\Events\Leave\LeaveRejected;
+use Aero\HRM\Services\LeaveBalanceService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class UpdateBalanceOnLeaveRejection implements ShouldQueue

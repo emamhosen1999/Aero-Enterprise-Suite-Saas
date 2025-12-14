@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events\Leave;
+namespace Aero\HRM\Events\Leave;
 
 use Aero\HRM\Models\Leave;
 use Illuminate\Foundation\Events\Dispatchable;

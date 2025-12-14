@@ -334,7 +334,7 @@
     </style>
 </head>
 
-<body>
+<body class="light text-foreground bg-background">
     <!-- Loading Screen -->
     <div id="app-loading" role="status" aria-live="polite" aria-label="Loading admin dashboard">
         <div class="loading-content" role="presentation">

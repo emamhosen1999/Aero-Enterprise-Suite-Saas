@@ -3,7 +3,7 @@
 namespace Aero\Platform\Console\Commands;
 
 use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Services\Shared\MailService;
+use Aero\Platform\Services\MailService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;

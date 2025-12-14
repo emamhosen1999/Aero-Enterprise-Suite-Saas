@@ -2,8 +2,8 @@
 
 namespace Aero\HRM\Listeners\Leave;
 
-use App\Events\Leave\LeaveApproved;
-use App\Services\Leave\LeaveBalanceService;
+use Aero\HRM\Events\Leave\LeaveApproved;
+use Aero\HRM\Services\LeaveBalanceService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class UpdateBalanceOnLeaveApproval implements ShouldQueue

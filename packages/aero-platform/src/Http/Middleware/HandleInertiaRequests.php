@@ -35,7 +35,7 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Handle the incoming request.
-     * Intercepts root route "/" to render the Platform landing page.
+     * Intercepts root route "/" to render the appropriate page based on domain context.
      * This allows the package to work without modifying host app routes.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -44,9 +44,20 @@ class HandleInertiaRequests extends Middleware
      */
     public function handle(Request $request, \Closure $next)
     {
-        // Intercept root route "/" and render Platform landing page
-        // This ensures the package works without modifying host app routes
+        // Intercept root route "/" and render appropriate page based on domain
         if ($request->is('/') || $request->path() === '/') {
+            $context = $this->getDomainContext($request);
+
+            // Admin domain: redirect to dashboard if authenticated, login if not
+            if ($context === IdentifyDomainContext::CONTEXT_ADMIN) {
+                if (auth()->guard('landlord')->check()) {
+                    return redirect()->route('admin.dashboard');
+                }
+
+                return redirect('/login');
+            }
+
+            // Platform domain: render landing page
             return Inertia::render('Platform/Public/Landing')->toResponse($request);
         }
 

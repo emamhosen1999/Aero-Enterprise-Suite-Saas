@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers\Webhooks;
 
 use Aero\Platform\Models\Subscription;
-use Aero\Platform\Services\Payment\SslCommerzService;
+use Aero\Platform\Services\Billing\SslCommerzService;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;

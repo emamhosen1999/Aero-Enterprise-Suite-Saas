@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Listeners;
 
-use App\Events\LeaveRequested;
+use Aero\HRM\Events\LeaveRequested;
 use App\Notifications\LeaveRequestNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;

@@ -4,7 +4,7 @@ namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\Payroll;
 use Aero\HRM\Models\Payslip;
-use App\Services\Shared\MailService;
+use Aero\Core\Services\MailService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 

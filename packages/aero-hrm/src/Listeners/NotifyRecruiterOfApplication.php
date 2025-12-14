@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Listeners;
 
-use App\Events\CandidateApplied;
+use Aero\HRM\Events\CandidateApplied;
 use App\Notifications\NewApplicationNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Exports;
+namespace Aero\HRM\Exports;
 
-use App\Services\Leave\LeaveSummaryService;
+use Aero\HRM\Services\LeaveSummaryService;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;

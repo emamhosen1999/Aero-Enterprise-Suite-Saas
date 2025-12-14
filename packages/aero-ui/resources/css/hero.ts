@@ -1,6 +1,20 @@
-// hero.ts
-// Use relative path to host app's node_modules (from packages/aero-ui -> apps/saas-host)
-import { heroui } from "../../apps/saas-host/node_modules/@heroui/react";
+/**
+ * HeroUI Tailwind CSS v4 Plugin Configuration
+ * 
+ * This file configures the HeroUI theme plugin for Tailwind CSS.
+ * 
+ * IMPORTANT: This file is loaded by Tailwind CSS via the @plugin directive.
+ * We use createRequire to resolve @heroui/react from the host app's
+ * node_modules directory (which is the CWD when Vite runs).
+ * 
+ * @see https://www.heroui.com/docs/customization/theme
+ */
+import { createRequire } from "module";
+
+// Create a require function that resolves from the current working directory
+// This allows finding @heroui/react in the host app's node_modules
+const require = createRequire(process.cwd() + "/");
+const { heroui } = require("@heroui/react");
 
 export default heroui({
   addCommonColors: true,

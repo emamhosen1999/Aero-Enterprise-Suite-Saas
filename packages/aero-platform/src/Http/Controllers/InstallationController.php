@@ -6,7 +6,7 @@ use Aero\Platform\Http\Requests\InstallationRequest;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Services\InstallationService;
-use Aero\Platform\Services\Shared\MailService;
+use Aero\Platform\Services\MailService;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;

@@ -1,29 +1,51 @@
-import React, {createContext, useContext, useRef, useState} from 'react';
-import {Toast} from 'primereact/toast';
+/**
+ * Toast Context - Using react-toastify instead of PrimeReact
+ * 
+ * NOTE: This is a legacy context for backward compatibility.
+ * Prefer using showToast from '@/utils/toastUtils' directly.
+ */
+import React, { createContext, useContext } from 'react';
+import { toast } from 'react-toastify';
 
 const ToastContext = createContext();
 
 export const ToastProvider = ({ children }) => {
-    const [toasts, setToasts] = useState([]);
-    let toast = useRef(null);
-
     const showToast = (message, severity = 'info', life = 3000) => {
-        setToasts([...toasts, { id: Date.now(), message, severity, life }]);
+        const options = { autoClose: life };
+        
+        switch (severity) {
+            case 'success':
+                toast.success(message, options);
+                break;
+            case 'error':
+            case 'danger':
+                toast.error(message, options);
+                break;
+            case 'warn':
+            case 'warning':
+                toast.warning(message, options);
+                break;
+            default:
+                toast.info(message, options);
+        }
     };
 
     const hideToast = (id) => {
-        setToasts(toasts.filter((toast) => toast.id !== id));
+        if (id) {
+            toast.dismiss(id);
+        } else {
+            toast.dismiss();
+        }
     };
 
     return (
         <ToastContext.Provider value={{ showToast, hideToast }}>
-            <Toast ref={(el) => (toast.current = el)} position="top-center" />
             {children}
         </ToastContext.Provider>
     );
 };
 
- const useToast = () => {
+const useToast = () => {
     return useContext(ToastContext);
 };
 

@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Http\Controllers\SystemMonitoring;
 
-use Aero\Platform\Services\AuditExportService;
+use Aero\Platform\Services\Monitoring\Tenant\AuditExportService;
 use Aero\Platform\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
