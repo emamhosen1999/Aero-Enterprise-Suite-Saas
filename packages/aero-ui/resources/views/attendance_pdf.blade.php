@@ -54,7 +54,7 @@
         </thead>
         <tbody>
             @foreach($rows as $row)
-            <tr style=`background: {{ stripos($row['Status'],'Absent')!==false || stripos($row['Status'],'Leave')!==false ? '#FFEBEE':'transparent' }}; color: {{ stripos($row['Status'],'Absent')!==false||stripos($row['Status'],'Leave')!==false? '#D32F2F':'#000' }};`>
+            <tr style="background: {{ stripos($row['Status'],'Absent')!==false || stripos($row['Status'],'Leave')!==false ? '#FFEBEE':'transparent' }}; color: {{ stripos($row['Status'],'Absent')!==false||stripos($row['Status'],'Leave')!==false? '#D32F2F':'#000' }};"
                 @foreach($row as $cell)
                 <td>{{ $cell }}</td>
                 @endforeach
