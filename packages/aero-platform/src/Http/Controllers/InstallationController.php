@@ -45,10 +45,10 @@ class InstallationController extends Controller
     {
         // Check if already installed
         if ($this->isInstalled()) {
-            return Inertia::render('Installation/AlreadyInstalled');
+            return Inertia::render('Pages/Platform/Admin/Installation/AlreadyInstalled');
         }
 
-        return Inertia::render('Installation/Welcome', [
+        return Inertia::render('Pages/Platform/Admin/Installation/Welcome', [
             'title' => 'Welcome to Aero Enterprise Suite',
             'version' => config('app.version', '1.0.0'),
         ]);
@@ -63,7 +63,7 @@ class InstallationController extends Controller
             return redirect()->route('login');
         }
 
-        return Inertia::render('Installation/SecretVerification', [
+        return Inertia::render('Pages/Platform/Admin/Installation/SecretVerification', [
             'title' => 'Installation Security',
         ]);
     }
@@ -146,7 +146,7 @@ class InstallationController extends Controller
             return collect($group)->every(fn ($item) => $item['satisfied']);
         });
 
-        return Inertia::render('Installation/Requirements', [
+        return Inertia::render('Pages/Platform/Admin/Installation/Requirements', [
             'title' => 'System Requirements',
             'requirements' => $requirements,
             'canProceed' => $canProceed,
@@ -162,7 +162,7 @@ class InstallationController extends Controller
             return redirect()->route('installation.secret');
         }
 
-        return Inertia::render('Installation/Database', [
+        return Inertia::render('Pages/Platform/Admin/Installation/Database', [
             'title' => 'Database Configuration',
             'currentConfig' => [
                 'host' => config('database.connections.mysql.host'),
@@ -278,7 +278,7 @@ class InstallationController extends Controller
             'sms_nexmo_from' => config('services.nexmo.from', ''),
         ]);
 
-        return Inertia::render('Installation/PlatformSettings', [
+        return Inertia::render('Pages/Platform/Admin/Installation/PlatformSettings', [
             'title' => 'Platform Settings',
             'platformConfig' => $platformConfig,
         ]);
@@ -488,7 +488,7 @@ class InstallationController extends Controller
             return redirect()->route('installation.database');
         }
 
-        return Inertia::render('Installation/AdminAccount', [
+        return Inertia::render('Pages/Platform/Admin/Installation/AdminAccount', [
             'title' => 'Create Admin Account',
         ]);
     }
@@ -526,7 +526,7 @@ class InstallationController extends Controller
             return redirect()->route('installation.database');
         }
 
-        return Inertia::render('Installation/Review', [
+        return Inertia::render('Pages/Platform/Admin/Installation/Review', [
             'title' => 'Review & Install',
             'dbConfig' => array_merge(session('db_config', []), ['db_password' => '***']),
             'platformConfig' => session('platform_config'),
@@ -788,7 +788,7 @@ class InstallationController extends Controller
      */
     public function complete(): \Inertia\Response
     {
-        return Inertia::render('Installation/Complete', [
+        return Inertia::render('Pages/Platform/Admin/Installation/Complete', [
             'title' => 'Installation Complete',
             'loginUrl' => route('login'),
         ]);

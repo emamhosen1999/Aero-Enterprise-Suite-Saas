@@ -24,7 +24,7 @@ class BillingController extends Controller
      */
     public function index(Tenant $tenant): InertiaResponse
     {
-        return Inertia::render('Admin/Billing/TenantBilling', [
+        return Inertia::render('Pages/Platform/Admin/Billing/TenantBilling', [
             'tenant' => $tenant->load('plan', 'billingAddress'),
             'subscription' => $tenant->subscription('default'),
             'invoices' => $tenant->invoices()->take(10),

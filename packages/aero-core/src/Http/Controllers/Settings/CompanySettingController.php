@@ -13,7 +13,7 @@ class CompanySettingController extends Controller
     {
         $companySettings = CompanySetting::first() ? CompanySetting::first() : [];
 
-        return Inertia::render('Settings/CompanySettings', [
+        return Inertia::render('Pages/Core/Settings/CompanySettings', [
             'title' => 'Company Settings',
             'companySettings' => $companySettings,
         ]);

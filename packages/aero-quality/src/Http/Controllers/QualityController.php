@@ -11,14 +11,14 @@ class QualityController extends Controller
 {
     public function dashboard()
     {
-        return Inertia::render('Quality/Dashboard', [
+        return Inertia::render('Pages/Quality/Dashboard', [
             'title' => 'Quality Dashboard',
         ]);
     }
 
     public function index()
     {
-        return Inertia::render('Quality/Index', [
+        return Inertia::render('Pages/Quality/Index', [
             'title' => 'Quality Management',
         ]);
     }

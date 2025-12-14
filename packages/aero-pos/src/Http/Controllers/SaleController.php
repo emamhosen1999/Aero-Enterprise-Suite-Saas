@@ -11,7 +11,7 @@ class SaleController extends Controller
 {
     public function index()
     {
-        return Inertia::render('POS/Sales/Index', [
+        return Inertia::render('Pages/POS/Sales/Index', [
             'sales' => Sale::with(['user', 'customer'])
                 ->latest()
                 ->paginate(10),
@@ -21,7 +21,7 @@ class SaleController extends Controller
 
     public function create()
     {
-        return Inertia::render('POS/Sales/Create');
+        return Inertia::render('Pages/POS/Sales/Create');
     }
 
     public function store(Request $request)
@@ -50,14 +50,14 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
-        return Inertia::render('POS/Sales/Show', [
+        return Inertia::render('Pages/POS/Sales/Show', [
             'sale' => $sale->load(['customer', 'items.product', 'user']),
         ]);
     }
 
     public function edit(Sale $sale)
     {
-        return Inertia::render('POS/Sales/Edit', [
+        return Inertia::render('Pages/POS/Sales/Edit', [
             'sale' => $sale->load(['customer', 'items.product']),
         ]);
     }

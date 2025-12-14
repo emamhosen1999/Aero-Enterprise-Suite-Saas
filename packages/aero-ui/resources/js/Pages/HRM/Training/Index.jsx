@@ -43,8 +43,8 @@ import {
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
 import App from '@ui/Layouts/App';
 import StatsCards from '@ui/Components/StatsCards';
-import TrainingForm from '../../../Forms/HRM/TrainingForm';
-import DeleteTrainingForm from '../../../Forms/HRM/DeleteTrainingForm';
+import TrainingForm from '@/Forms/HRM/TrainingForm';
+import DeleteTrainingForm from '@/Forms/HRM/DeleteTrainingForm';
 import ProfileAvatar from '@ui/Components/ProfileAvatar';
 
 const Training = ({ 

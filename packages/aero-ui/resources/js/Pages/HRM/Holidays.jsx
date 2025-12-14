@@ -6,7 +6,7 @@ import {Button, Card, CardBody, CardHeader, Divider} from "@heroui/react";
 import StatsCards from "@ui/Components/StatsCards.jsx";
 import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
 import App from "@ui/Layouts/App.jsx";
-import HolidayTable from '../../Tables/HRM/HolidayTable.jsx';
+import HolidayTable from '@/Tables/HRM/HolidayTable.jsx';
 import HolidayForm from "@/Forms/HRM/HolidayForm.jsx";
 import DeleteHolidayForm from "@/Forms/HRM/DeleteHolidayForm.jsx";
 

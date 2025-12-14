@@ -34,7 +34,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
-        return Inertia::render('Admin/Auth/Login', [
+        return Inertia::render('Pages/Platform/Admin/Auth/Login', [
             'canResetPassword' => true,
             'status' => session('status'),
         ]);

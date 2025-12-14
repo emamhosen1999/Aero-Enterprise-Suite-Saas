@@ -30,7 +30,7 @@ class PipelineController extends Controller
             : Pipeline::where('is_default', true)->first() ?? Pipeline::first();
 
         if (! $pipeline) {
-            return Inertia::render('CRM/Pipeline/Index', [
+            return Inertia::render('Pages/CRM/Pipeline/Index', [
                 'pipeline' => null,
                 'columns' => [],
                 'summary' => [],
@@ -57,7 +57,7 @@ class PipelineController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('CRM/Pipeline/Index', [
+        return Inertia::render('Pages/CRM/Pipeline/Index', [
             'pipeline' => $kanbanData['pipeline'],
             'columns' => $kanbanData['columns'],
             'summary' => $kanbanData['summary'],

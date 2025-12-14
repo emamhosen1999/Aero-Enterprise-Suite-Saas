@@ -29,7 +29,7 @@ class SystemMonitoringController extends Controller
             Log::info('System Monitoring Dashboard Accessed');
         }
 
-        return Inertia::render('Administration/SystemMonitoringEnhanced', [
+        return Inertia::render('Pages/Platform/Admin/SystemMonitoring/Enhanced', [
             'title' => 'Enterprise System Monitoring',
             'initialData' => $this->getSystemOverview(),
         ]);

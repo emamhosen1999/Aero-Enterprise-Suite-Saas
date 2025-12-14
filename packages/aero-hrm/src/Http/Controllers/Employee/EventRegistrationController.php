@@ -25,7 +25,7 @@ class EventRegistrationController extends Controller
             ->latest()
             ->paginate(20);
 
-        return Inertia::render('Events/Registrations/Index', [
+        return Inertia::render('Pages/HRM/Events/Registrations/Index', [
             'event' => $event,
             'registrations' => $registrations,
         ]);
@@ -39,7 +39,7 @@ class EventRegistrationController extends Controller
 
         $registration->load('subEvents');
 
-        return Inertia::render('Events/Registrations/Show', [
+        return Inertia::render('Pages/HRM/Events/Registrations/Show', [
             'event' => $event,
             'registration' => $registration,
         ]);
@@ -303,7 +303,7 @@ class EventRegistrationController extends Controller
 
         $registration->load(['subEvents', 'event']);
 
-        return Inertia::render('Events/Registrations/PrintToken', [
+        return Inertia::render('Pages/HRM/Events/Registrations/PrintToken', [
             'event' => $event,
             'registration' => $registration,
         ]);

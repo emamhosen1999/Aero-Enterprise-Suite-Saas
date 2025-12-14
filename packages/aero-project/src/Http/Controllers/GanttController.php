@@ -18,7 +18,7 @@ class GanttController extends Controller
         $projectId = $request->input('project_id');
 
         if (! $projectId) {
-            return Inertia::render('ProjectManagement/Gantt/Index', [
+            return Inertia::render('Pages/Project/Gantt/Index', [
                 'projects' => Project::select('id', 'project_name')->get(),
                 'ganttData' => null,
                 'selectedProject' => null,
@@ -37,7 +37,7 @@ class GanttController extends Controller
 
         $ganttData = $this->prepareGanttData($project);
 
-        return Inertia::render('ProjectManagement/Gantt/Index', [
+        return Inertia::render('Pages/Project/Gantt/Index', [
             'projects' => Project::select('id', 'project_name')->get(),
             'ganttData' => $ganttData,
             'selectedProject' => $project,

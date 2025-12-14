@@ -43,7 +43,7 @@ class DashboardController extends Controller
 
         // Note: Navigation is provided by HandleInertiaRequests middleware
         // Do NOT pass 'navigation' here as it would override the middleware's prop
-        return Inertia::render('Core/Dashboard', [
+        return Inertia::render('Pages/Core/Core/Dashboard', [
             'title' => 'Dashboard',
             'stats' => $stats,
         ]);

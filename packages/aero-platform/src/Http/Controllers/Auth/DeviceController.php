@@ -50,7 +50,7 @@ class DeviceController extends Controller
         }
 
         // Otherwise return Inertia page for browser navigation
-        return Inertia::render('UserDevices', [
+        return Inertia::render('Pages/Core/UserDevices/Index', [
             'user' => $user,
             'devices' => $devices,
         ]);

@@ -48,7 +48,7 @@ class WorkplaceSafetyController extends Controller
             ->limit(5)
             ->get();
 
-        return Inertia::render('HR/Safety/Index', [
+        return Inertia::render('Pages/HRM/Safety/Index', [
             'title' => 'Workplace Safety',
             'summary' => [
                 'inspections' => $inspectionCount,
@@ -72,7 +72,7 @@ class WorkplaceSafetyController extends Controller
             ->orderBy('inspection_date', 'desc')
             ->paginate(10);
 
-        return Inertia::render('HR/Safety/Inspections/Index', [
+        return Inertia::render('Pages/HRM/Safety/Inspections/Index', [
             'title' => 'Safety Inspections',
             'inspections' => $inspections,
         ]);
@@ -94,7 +94,7 @@ class WorkplaceSafetyController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HR/Safety/Inspections/Create', [
+        return Inertia::render('Pages/HRM/Safety/Inspections/Create', [
             'title' => 'Create Safety Inspection',
             'departments' => $departments,
             'inspectors' => $inspectors,
@@ -157,7 +157,7 @@ class WorkplaceSafetyController extends Controller
 
         $this->authorize('view', $inspection);
 
-        return Inertia::render('HR/Safety/Inspections/Show', [
+        return Inertia::render('Pages/HRM/Safety/Inspections/Show', [
             'title' => 'Safety Inspection Details',
             'inspection' => $inspection,
         ]);
@@ -181,7 +181,7 @@ class WorkplaceSafetyController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HR/Safety/Inspections/Edit', [
+        return Inertia::render('Pages/HRM/Safety/Inspections/Edit', [
             'title' => 'Edit Safety Inspection',
             'inspection' => $inspection,
             'departments' => $departments,
@@ -248,7 +248,7 @@ class WorkplaceSafetyController extends Controller
             ->orderBy('training_date', 'desc')
             ->paginate(10);
 
-        return Inertia::render('HR/Safety/Training/Index', [
+        return Inertia::render('Pages/HRM/Safety/Training/Index', [
             'title' => 'Safety Training',
             'trainings' => $trainings,
         ]);
@@ -270,7 +270,7 @@ class WorkplaceSafetyController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HR/Safety/Training/Create', [
+        return Inertia::render('Pages/HRM/Safety/Training/Create', [
             'title' => 'Schedule Safety Training',
             'departments' => $departments,
             'trainers' => $trainers,
@@ -335,7 +335,7 @@ class WorkplaceSafetyController extends Controller
 
         $this->authorize('view', $training);
 
-        return Inertia::render('HR/Safety/Training/Show', [
+        return Inertia::render('Pages/HRM/Safety/Training/Show', [
             'title' => 'Safety Training Details',
             'training' => $training,
         ]);

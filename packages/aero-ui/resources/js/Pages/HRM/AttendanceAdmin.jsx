@@ -16,7 +16,7 @@ import {
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
 import StatsCards from '@ui/Components/StatsCards.jsx';
 import App from "@ui/Layouts/App.jsx";
-import AttendanceAdminTable from '../../Tables/HRM/AttendanceAdminTable.jsx';
+import AttendanceAdminTable from '@/Tables/HRM/AttendanceAdminTable.jsx';
 import {motion} from 'framer-motion';
 import axios from "axios";
 import {showToast} from "@ui/utils/toastUtils.jsx";

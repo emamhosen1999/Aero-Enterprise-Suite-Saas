@@ -34,7 +34,7 @@ class BudgetController extends Controller
 
         $budgets = $query->paginate(15);
 
-        return Inertia::render('ProjectManagement/Budget/Index', [
+        return Inertia::render('Pages/Project/Budget/Index', [
             'budgets' => $budgets,
             'projects' => Project::select('id', 'project_name')->get(),
             'filters' => $request->only(['project_id', 'status', 'budget_type']),
@@ -55,7 +55,7 @@ class BudgetController extends Controller
 
     public function create()
     {
-        return Inertia::render('ProjectManagement/Budget/Create', [
+        return Inertia::render('Pages/Project/Budget/Create', [
             'projects' => Project::select('id', 'project_name')->get(),
             'categoryOptions' => [
                 'labor' => 'Labor',
@@ -105,7 +105,7 @@ class BudgetController extends Controller
     {
         $projectBudget->load(['project', 'expenses']);
 
-        return Inertia::render('ProjectManagement/Budget/Show', [
+        return Inertia::render('Pages/Project/Budget/Show', [
             'budget' => $projectBudget,
             'expenses' => $projectBudget->expenses()
                 ->orderBy('expense_date', 'desc')
@@ -115,7 +115,7 @@ class BudgetController extends Controller
 
     public function edit(ProjectBudget $projectBudget)
     {
-        return Inertia::render('ProjectManagement/Budget/Edit', [
+        return Inertia::render('Pages/Project/Budget/Edit', [
             'budget' => $projectBudget,
             'projects' => Project::select('id', 'project_name')->get(),
             'categoryOptions' => [
@@ -176,7 +176,7 @@ class BudgetController extends Controller
             ->orderBy('expense_date', 'desc')
             ->paginate(15);
 
-        return Inertia::render('ProjectManagement/Budget/Expenses', [
+        return Inertia::render('Pages/Project/Budget/Expenses', [
             'budget' => $projectBudget,
             'expenses' => $expenses,
         ]);
@@ -269,7 +269,7 @@ class BudgetController extends Controller
             ->groupBy('category')
             ->get();
 
-        return Inertia::render('ProjectManagement/Budget/Reports', [
+        return Inertia::render('Pages/Project/Budget/Reports', [
             'budgetOverview' => $budgetOverview,
             'projectBudgets' => $projectBudgets,
             'categoryBreakdown' => $categoryBreakdown,

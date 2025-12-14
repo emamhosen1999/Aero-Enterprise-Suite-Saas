@@ -13,9 +13,9 @@ import {
 import PageHeader from '@ui/Components/PageHeader.jsx';
 import StatsCards from '@ui/Components/StatsCards.jsx';
 import App from '@ui/Layouts/App.jsx';
-import DesignationTable from '../../Tables/HRM/DesignationTable.jsx';
-import DesignationForm from '../../Forms/HRM/DesignationForm.jsx';
-import DeleteDesignationForm from '../../Forms/HRM/DeleteDesignationForm.jsx';
+import DesignationTable from '@/Tables/HRM/DesignationTable.jsx';
+import DesignationForm from '@/Forms/HRM/DesignationForm.jsx';
+import DeleteDesignationForm from '@/Forms/HRM/DeleteDesignationForm.jsx';
 import axios from 'axios';
 import {showToast} from '@ui/utils/toastUtils.jsx';
 

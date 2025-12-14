@@ -26,7 +26,7 @@ class POSController extends Controller
         $customers = $this->posService->getCustomers();
         $recentSales = $this->posService->getRecentSales();
 
-        return Inertia::render('POS/Index', [
+        return Inertia::render('Pages/POS/Index', [
             'products' => $products,
             'categories' => $categories,
             'customers' => $customers,
@@ -44,7 +44,7 @@ class POSController extends Controller
         $topProducts = $this->posService->getTopSellingProducts();
         $chartData = $this->posService->getChartData();
 
-        return Inertia::render('POS/Dashboard', [
+        return Inertia::render('Pages/POS/Dashboard', [
             'stats' => $stats,
             'recentTransactions' => $recentTransactions,
             'topProducts' => $topProducts,
@@ -87,7 +87,7 @@ class POSController extends Controller
     {
         $reportData = $this->posService->getSalesReports();
 
-        return Inertia::render('POS/Reports/Index', [
+        return Inertia::render('Pages/POS/Reports/Index', [
             'reportData' => $reportData,
         ]);
     }
@@ -123,7 +123,7 @@ class POSController extends Controller
         $transactions = $this->posService->getTransactions();
         $paymentMethods = $this->posService->getPaymentMethods();
 
-        return Inertia::render('POS/Transactions/Index', [
+        return Inertia::render('Pages/POS/Transactions/Index', [
             'transactions' => $transactions,
             'paymentMethods' => $paymentMethods,
         ]);
@@ -174,7 +174,7 @@ class POSController extends Controller
         $products = $this->posService->getAllProducts();
         $categories = $this->posService->getCategories();
 
-        return Inertia::render('POS/Products/Index', [
+        return Inertia::render('Pages/POS/Products/Index', [
             'products' => $products,
             'categories' => $categories,
         ]);
@@ -233,7 +233,7 @@ class POSController extends Controller
     {
         $customers = $this->posService->getAllCustomers();
 
-        return Inertia::render('POS/Customers/Index', [
+        return Inertia::render('Pages/POS/Customers/Index', [
             'customers' => $customers,
         ]);
     }
@@ -264,7 +264,7 @@ class POSController extends Controller
         $settings = $this->posService->getSettings();
         $taxRates = $this->posService->getTaxRates();
 
-        return Inertia::render('POS/Settings/Index', [
+        return Inertia::render('Pages/POS/Settings/Index', [
             'settings' => $settings,
             'taxRates' => $taxRates,
         ]);

@@ -38,7 +38,7 @@ class CareersController extends Controller
             ->latest('posted_at')
             ->get();
 
-        return Inertia::render('Public/Pages/Careers/Index', [
+        return Inertia::render('Pages/Shared/Public/Careers/Index', [
             'jobs' => $jobs,
             'filters' => [
                 'search' => $request->search,
@@ -57,7 +57,7 @@ class CareersController extends Controller
             ->where('status', 'published')
             ->findOrFail($id);
 
-        return Inertia::render('Public/Pages/Careers/Show', [
+        return Inertia::render('Pages/Shared/Public/Careers/Show', [
             'job' => $job,
         ]);
     }
@@ -76,7 +76,7 @@ class CareersController extends Controller
                 ->with('error', 'Application deadline has passed for this position.');
         }
 
-        return Inertia::render('Public/Pages/Careers/Apply', [
+        return Inertia::render('Pages/Shared/Public/Careers/Apply', [
             'job' => $job,
         ]);
     }

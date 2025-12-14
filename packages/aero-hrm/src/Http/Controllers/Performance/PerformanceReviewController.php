@@ -37,7 +37,7 @@ class PerformanceReviewController extends Controller
             ->take(5)
             ->get();
 
-        return Inertia::render('HR/Dashboard', [
+        return Inertia::render('Pages/HRM/Dashboard', [
             'stats' => [
                 'totalReviews' => $totalReviews,
                 'pendingReviews' => $pendingReviews,
@@ -72,7 +72,7 @@ class PerformanceReviewController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('HR/Performance/Index', [
+        return Inertia::render('Pages/HRM/Performance/Index', [
             'reviews' => $reviews,
             'filters' => $request->only(['search', 'status', 'department_id', 'sort_by', 'sort_order']),
             'departments' => Department::select('id', 'name')->get(),
@@ -91,7 +91,7 @@ class PerformanceReviewController extends Controller
      */
     public function create()
     {
-        return Inertia::render('HR/Performance/Create', [
+        return Inertia::render('Pages/HRM/Performance/Create', [
             'employees' => User::role('Employee')->get(['id', 'name']),
             'reviewers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
             'departments' => Department::all(['id', 'name']),
@@ -134,7 +134,7 @@ class PerformanceReviewController extends Controller
             'competencyRatings.competency.category',
         ])->findOrFail($id);
 
-        return Inertia::render('HR/Performance/Show', [
+        return Inertia::render('Pages/HRM/Performance/Show', [
             'review' => $review,
         ]);
     }
@@ -152,7 +152,7 @@ class PerformanceReviewController extends Controller
             'competencyRatings.competency.category',
         ])->findOrFail($id);
 
-        return Inertia::render('HR/Performance/Edit', [
+        return Inertia::render('Pages/HRM/Performance/Edit', [
             'review' => $review,
             'employees' => User::role('Employee')->get(['id', 'name']),
             'reviewers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
@@ -213,7 +213,7 @@ class PerformanceReviewController extends Controller
             ->orderBy('name')
             ->paginate(10);
 
-        return Inertia::render('HR/Performance/Templates/Index', [
+        return Inertia::render('Pages/HRM/Performance/Templates/Index', [
             'templates' => $templates,
         ]);
     }
@@ -223,7 +223,7 @@ class PerformanceReviewController extends Controller
      */
     public function createTemplate()
     {
-        return Inertia::render('HR/Performance/Templates/Create', [
+        return Inertia::render('Pages/HRM/Performance/Templates/Create', [
             'departments' => Department::all(['id', 'name']),
         ]);
     }
@@ -260,7 +260,7 @@ class PerformanceReviewController extends Controller
             'competencyCategories.competencies',
         ])->findOrFail($id);
 
-        return Inertia::render('HR/Performance/Templates/Show', [
+        return Inertia::render('Pages/HRM/Performance/Templates/Show', [
             'template' => $template,
         ]);
     }
@@ -276,7 +276,7 @@ class PerformanceReviewController extends Controller
             'competencyCategories.competencies',
         ])->findOrFail($id);
 
-        return Inertia::render('HR/Performance/Templates/Edit', [
+        return Inertia::render('Pages/HRM/Performance/Templates/Edit', [
             'template' => $template,
             'departments' => Department::all(['id', 'name']),
         ]);

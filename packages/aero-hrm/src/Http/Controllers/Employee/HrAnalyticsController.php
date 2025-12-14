@@ -26,7 +26,7 @@ class HrAnalyticsController extends Controller
 
         $departments = Department::select('id', 'name')->orderBy('name')->get();
 
-        return Inertia::render('HR/Analytics/Index', [
+        return Inertia::render('Pages/HRM/Analytics/Index', [
             'title' => 'HR Analytics Dashboard',
             'metrics' => $metrics,
             'departments' => $departments,
@@ -45,7 +45,7 @@ class HrAnalyticsController extends Controller
         $metrics = $this->metricsService->getAttendanceMetrics($filters);
         $departments = Department::select('id', 'name')->orderBy('name')->get();
 
-        return Inertia::render('HR/Analytics/Attendance', [
+        return Inertia::render('Pages/HRM/Analytics/Attendance', [
             'title' => 'Attendance Analytics',
             'data' => $metrics,
             'departments' => $departments,
@@ -55,7 +55,7 @@ class HrAnalyticsController extends Controller
 
     public function performanceAnalytics()
     {
-        return Inertia::render('HR/Analytics/Performance', [
+        return Inertia::render('Pages/HRM/Analytics/Performance', [
             'title' => 'Performance Analytics',
             'data' => [],
         ]);
@@ -70,7 +70,7 @@ class HrAnalyticsController extends Controller
 
         $metrics = $this->metricsService->getRecruitmentMetrics($filters);
 
-        return Inertia::render('HR/Analytics/Recruitment', [
+        return Inertia::render('Pages/HRM/Analytics/Recruitment', [
             'title' => 'Recruitment Analytics',
             'data' => $metrics,
             'filters' => $filters,
@@ -86,7 +86,7 @@ class HrAnalyticsController extends Controller
 
         $metrics = $this->metricsService->getTurnoverMetrics($filters);
 
-        return Inertia::render('HR/Analytics/Turnover', [
+        return Inertia::render('Pages/HRM/Analytics/Turnover', [
             'title' => 'Turnover Analytics',
             'data' => $metrics,
             'filters' => $filters,
@@ -95,7 +95,7 @@ class HrAnalyticsController extends Controller
 
     public function trainingAnalytics()
     {
-        return Inertia::render('HR/Analytics/Training', [
+        return Inertia::render('Pages/HRM/Analytics/Training', [
             'title' => 'Training Analytics',
             'data' => [],
         ]);
@@ -103,7 +103,7 @@ class HrAnalyticsController extends Controller
 
     public function reports()
     {
-        return Inertia::render('HR/Analytics/Reports', [
+        return Inertia::render('Pages/HRM/Analytics/Reports', [
             'title' => 'HR Reports',
             'reports' => [],
         ]);

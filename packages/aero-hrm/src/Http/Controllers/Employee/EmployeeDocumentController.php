@@ -35,7 +35,7 @@ class EmployeeDocumentController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return Inertia::render('HR/Documents/EmployeeDocuments', [
+        return Inertia::render('Pages/HRM/Documents/EmployeeDocuments', [
             'title' => 'Employee Documents',
             'employee' => $user->only(['id', 'name', 'email', 'employee_id', 'profile_image_url']),
             'documents' => $documents,

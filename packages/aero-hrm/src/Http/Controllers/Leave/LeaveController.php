@@ -64,7 +64,7 @@ class LeaveController extends Controller
 
     public function index1(): \Inertia\Response
     {
-        return Inertia::render('LeavesEmployee', [
+        return Inertia::render('Pages/HRM/TimeOff/EmployeeLeaves', [
             'title' => 'Leaves',
             'allUsers' => User::all(),
 
@@ -73,7 +73,7 @@ class LeaveController extends Controller
 
     public function index2(): \Inertia\Response
     {
-        return Inertia::render('LeavesAdmin', [
+        return Inertia::render('Pages/HRM/TimeOff/AdminLeaves', [
             'title' => 'Leaves',
             'allUsers' => User::all(),
         ]);
@@ -330,7 +330,7 @@ class LeaveController extends Controller
 
         $summaryData = $this->summaryService->generateLeaveSummary($filters);
 
-        return Inertia::render('LeaveSummary', [
+        return Inertia::render('Pages/HRM/TimeOff/Summary', [
             'title' => 'Leave Summary',
             'summaryData' => $summaryData,
         ]);
