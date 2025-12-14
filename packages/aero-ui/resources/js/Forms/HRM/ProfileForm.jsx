@@ -12,8 +12,8 @@ import {
 } from "@heroui/react";
 import React, {useEffect, useState} from "react";
 import {Camera, X} from 'lucide-react';
-import {showToast} from "@ui/utils/toastUtils";
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
+import {showToast} from "@/utils/toastUtils";
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const ProfileForm = ({user, allUsers, departments, designations,setUser, open, closeModal }) => {
 

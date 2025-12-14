@@ -5,9 +5,9 @@
  * hooks, contexts, and utilities used across Aero modules.
  * 
  * Usage in any Aero module:
- *   import { StatsCards, PageHeader } from '@ui/Components';
- *   import { useTheme } from '@ui/Hooks';
- *   import { ThemeProvider } from '@ui/Context';
+ *   import { StatsCards, PageHeader } from '@/Components';
+ *   import { useTheme } from '@/Hooks';
+ *   import { ThemeProvider } from '@/Context';
  */
 
 // Re-export all components

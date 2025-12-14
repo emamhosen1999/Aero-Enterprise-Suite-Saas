@@ -20,10 +20,10 @@ import {
     MapPinIcon,
     UserPlusIcon
 } from "@heroicons/react/24/outline";
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 import axios from 'axios';
 import dayjs from 'dayjs';
-import LocationPickerMap from '@ui/Components/LocationPickerMap';
+import LocationPickerMap from '@/Components/LocationPickerMap';
 
 
 const MarkAsPresentForm = ({ 

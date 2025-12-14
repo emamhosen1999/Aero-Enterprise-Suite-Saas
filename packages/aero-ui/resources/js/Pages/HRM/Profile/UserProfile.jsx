@@ -35,12 +35,12 @@ import {
     UsersIcon
 } from "@heroicons/react/24/outline";
 import {Head, usePage} from "@inertiajs/react";
-import App from "@ui/Layouts/App.jsx";
-import PageHeader from "@ui/Components/PageHeader.jsx";
-import StatsCards from "@ui/Components/StatsCards.jsx";
-import EnhancedProfileCard from "@ui/Components/EnhancedProfileCard.jsx";
-import ProfileSection from "@ui/Components/ProfileSection.jsx";
-import InfoRow from "@ui/Components/InfoRow.jsx";
+import App from "@/Layouts/App.jsx";
+import PageHeader from "@/Components/PageHeader.jsx";
+import StatsCards from "@/Components/StatsCards.jsx";
+import EnhancedProfileCard from "@/Components/EnhancedProfileCard.jsx";
+import ProfileSection from "@/Components/ProfileSection.jsx";
+import InfoRow from "@/Components/InfoRow.jsx";
 import ProfileForm from "@/Forms/HRM/ProfileForm.jsx";
 import PersonalInformationForm from "@/Forms/HRM/PersonalInformationForm.jsx";
 import EmergencyContactForm from "@/Forms/HRM/EmergencyContactForm.jsx";
@@ -50,7 +50,7 @@ import EducationInformationDialog from "@/Forms/HRM/EducationInformationForm.jsx
 import ExperienceInformationForm from "@/Forms/HRM/ExperienceInformationForm.jsx";
 import SalaryInformationForm from "@/Forms/HRM/SalaryInformationForm.jsx";
 import axios from 'axios';
-import {showToast} from '@ui/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 import dayjs from 'dayjs';
 import {AnimatePresence, motion} from 'framer-motion';
 

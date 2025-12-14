@@ -17,8 +17,8 @@ import {
     XCircleIcon
 } from "@heroicons/react/24/outline";
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
-import App from '@ui/Layouts/App.jsx';
-import StatsCards from '@ui/Components/StatsCards.jsx';
+import App from '@/Layouts/App.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import LeaveEmployeeTable from '@/Tables/HRM/LeaveEmployeeTable.jsx';
 import LeaveForm from '@/Forms/HRM/LeaveForm.jsx';
 import DeleteLeaveForm from '@/Forms/HRM/DeleteLeaveForm.jsx';
@@ -26,7 +26,7 @@ import BulkLeaveModal from '@/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import {showToast} from '@ui/utils/toastUtils.jsx';
+import {showToast} from '@/utils/toastUtils.jsx';
 
 
 const LeavesAdmin = ({ title, allUsers }) => {

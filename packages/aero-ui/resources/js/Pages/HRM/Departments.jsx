@@ -19,15 +19,15 @@ import {
     UsersIcon,
     XCircleIcon
 } from '@heroicons/react/24/outline';
-import PageHeader from '@ui/Components/PageHeader.jsx';
-import StatsCards from '@ui/Components/StatsCards.jsx';
-import App from '@ui/Layouts/App.jsx';
+import PageHeader from '@/Components/PageHeader.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
+import App from '@/Layouts/App.jsx';
 import DepartmentTable from '@/Tables/HRM/DepartmentTable.jsx';
 import DepartmentForm from '@/Forms/HRM/DepartmentForm.jsx';
 import DeleteDepartmentForm from '@/Forms/HRM/DeleteDepartmentForm.jsx';
-import {useTheme} from '@ui/Context/ThemeContext.jsx';
+import {useTheme} from '@/Context/ThemeContext.jsx';
 import axios from 'axios';
-import {showToast} from '@ui/utils/toastUtils.jsx';
+import {showToast} from '@/utils/toastUtils.jsx';
 import dayjs from 'dayjs';
 
 const Departments = ({ title, departments: initialDepartments, managers, parentDepartments, stats: initialStats, filters: initialFilters }) => {

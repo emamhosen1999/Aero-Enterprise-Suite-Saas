@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import dayjs from 'dayjs';
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {Button, Card, CardBody, CardHeader, Divider, Select, SelectItem} from "@heroui/react";
 import {
     ArrowPathIcon,
@@ -12,14 +12,14 @@ import {
 } from "@heroicons/react/24/outline";
 import {XCircleIcon as XCircleSolid} from '@heroicons/react/24/solid';
 import {motion} from "framer-motion";
-import App from '@ui/Layouts/App.jsx';
+import App from '@/Layouts/App.jsx';
 
 import LeaveEmployeeTable from '@/Tables/HRM/LeaveEmployeeTable.jsx';
 import LeaveForm from '@/Forms/HRM/LeaveForm.jsx';
 import DeleteLeaveForm from '@/Forms/HRM/DeleteLeaveForm.jsx';
 import BulkLeaveModal from '@/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
-import {showToast} from '@ui/utils/toastUtils.jsx';
+import {showToast} from '@/utils/toastUtils.jsx';
 import axios from 'axios';
 
 const LeavesEmployee = ({ title, allUsers }) => {

@@ -15,7 +15,7 @@ import {
     Textarea
 } from "@heroui/react";
 import {CalendarDaysIcon, CheckIcon, ClockIcon, InformationCircleIcon} from "@heroicons/react/24/outline";
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 import {differenceInDays, format} from 'date-fns';
 import axios from 'axios';
 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, memo } from 'react';
-import { useTranslation } from '@ui/Context/TranslationContext';
+import { useTranslation } from '@/Context/TranslationContext';
 import {
     Popover,
     PopoverTrigger,

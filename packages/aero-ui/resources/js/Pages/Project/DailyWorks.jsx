@@ -36,10 +36,10 @@ import {
 } from "@heroui/react";
 import StatsCards from "@/Components/StatsCards.jsx";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import DailyWorkForm from "@/Forms/DailyWorkForm.jsx";
-import DeleteDailyWorkForm from "@/Forms/DeleteDailyWorkForm.jsx";
-import EnhancedDailyWorksExportForm from "@/Forms/EnhancedDailyWorksExportForm.jsx";
-import DailyWorksUploadForm from "@/Forms/DailyWorksUploadForm.jsx";
+import DailyWorkForm from "@/Forms/HRM/DailyWorkForm.jsx";
+import DeleteDailyWorkForm from "@/Forms/HRM/DeleteDailyWorkForm.jsx";
+import EnhancedDailyWorksExportForm from "@/Forms/HRM/EnhancedDailyWorksExportForm.jsx";
+import DailyWorksUploadForm from "@/Forms/HRM/DailyWorksUploadForm.jsx";
 
 
 

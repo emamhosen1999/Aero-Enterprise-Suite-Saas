@@ -5,7 +5,7 @@
  * with proper loading → success/error state transitions.
  * 
  * Usage:
- *   import { showToast, toastStyles } from '@ui/utils/toastUtils';
+ *   import { showToast, toastStyles } from '@/utils/toastUtils';
  *   
  *   // Simple promise-based toast
  *   showToast.promise(apiCall(), {

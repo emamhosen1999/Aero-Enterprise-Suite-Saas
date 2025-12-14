@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {getProfileAvatarTokens} from '@ui/Components/ProfileAvatar';
+import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 import {motion} from 'framer-motion';
 import {
     Button as HeroButton,
@@ -22,7 +22,7 @@ import {
 } from "@heroui/react";
 import {usePage} from "@inertiajs/react";
 import dayjs from "dayjs";
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {
     CalendarDaysIcon,
     CheckCircleIcon,
@@ -37,7 +37,7 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 
-import {AbsentUsersInlineCard} from '@ui/Components/TimeSheet/AbsentUsersInlineCard';
+import {AbsentUsersInlineCard} from '@/Components/TimeSheet/AbsentUsersInlineCard';
 
 const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, externalFilterData, externalEmployee, onMarkAsPresent }) => {
     const { auth } = usePage().props;

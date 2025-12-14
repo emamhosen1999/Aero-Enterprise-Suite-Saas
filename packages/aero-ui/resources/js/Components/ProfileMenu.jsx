@@ -13,7 +13,7 @@ import {
   ChatBubbleLeftRightIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 // Simple Profile Menu with HeroUI Dropdown
 const ProfileMenu = ({ children }) => {

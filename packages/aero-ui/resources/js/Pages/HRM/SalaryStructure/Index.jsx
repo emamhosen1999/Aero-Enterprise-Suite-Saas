@@ -26,8 +26,8 @@ import {
     PlusIcon,
     TrashIcon,
 } from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import {showToast} from '@ui/utils/toastUtils';
+import App from '@/Layouts/App';
+import {showToast} from '@/utils/toastUtils';
 
 export default function SalaryStructureIndex({ title, components, stats }) {
     const [isModalOpen, setIsModalOpen] = useState(false);

@@ -12,11 +12,11 @@ import {
     TrashIcon,
     UserIcon
 } from '@heroicons/react/24/outline';
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 
 import {usePage} from "@inertiajs/react";
-import {showToast} from '@ui/utils/toastUtils';
-import {getProfileAvatarTokens} from '@ui/Components/ProfileAvatar';
+import {showToast} from '@/utils/toastUtils';
+import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 import {
     Button,
     Card,
@@ -47,7 +47,7 @@ import {
 } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import {PhoneOff} from "lucide-react";
-import ApprovalActions from '@ui/Components/Leave/ApprovalActions.jsx';
+import ApprovalActions from '@/Components/Leave/ApprovalActions.jsx';
 
 
 const LeaveEmployeeTable = React.forwardRef(({

@@ -48,7 +48,7 @@ import {
     InformationCircleIcon,
     CameraIcon,
 } from '@heroicons/react/24/outline';
-import { showToast } from '@ui/utils/toastUtils';
+import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import { usePage } from '@inertiajs/react';
 import ProfileAvatar from './ProfileAvatar';

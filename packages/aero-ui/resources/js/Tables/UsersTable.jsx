@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link, usePage } from '@inertiajs/react';
-import { showToast } from '@ui/utils/toastUtils';
-import { getProfileAvatarTokens } from '@ui/Components/ProfileAvatar';
+import { showToast } from '@/utils/toastUtils';
+import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 import { 
   Table, 
   TableBody, 

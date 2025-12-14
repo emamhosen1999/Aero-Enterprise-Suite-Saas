@@ -13,10 +13,10 @@ import {
 } from "@heroui/react";
 import {CalendarIcon, ClockIcon, UserIcon} from 'lucide-react';
 
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 
-import DepartmentEmployeeSelector from "@ui/Components/DepartmentEmployeeSelector.jsx";
-import ApprovalChain from "@ui/Components/Leave/ApprovalChain.jsx";
+import DepartmentEmployeeSelector from "@/Components/DepartmentEmployeeSelector.jsx";
+import ApprovalChain from "@/Components/Leave/ApprovalChain.jsx";
 import {usePage} from "@inertiajs/react";
 
 const LeaveForm = ({

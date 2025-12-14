@@ -9,7 +9,7 @@ import {
   Textarea,
 } from "@heroui/react";
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { showToast } from '@ui/utils/toastUtils';
+import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
 const LockAccountModal = ({ open, onClose, user, onSuccess, themeRadius = 'lg' }) => {

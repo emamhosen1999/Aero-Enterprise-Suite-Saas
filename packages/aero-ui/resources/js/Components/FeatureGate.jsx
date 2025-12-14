@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Link, usePage } from '@inertiajs/react';
-import { useModule } from '@ui/Hooks/useModule';
+import { useModule } from '@/Hooks/useModule';
 import { Button, Card, CardBody, Chip } from '@heroui/react';
 import { LockClosedIcon, SparklesIcon, ArrowUpCircleIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';

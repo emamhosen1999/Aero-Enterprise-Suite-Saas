@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useRef, useState} from "react";
 import {Link} from '@inertiajs/react';
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 
 import axios from 'axios';
 
@@ -39,9 +39,9 @@ import {
     UserIcon,
     WifiIcon,
 } from "@heroicons/react/24/outline";
-import DeleteEmployeeModal from '@ui/Components/DeleteEmployeeModal';
-import ProfilePictureModal from '@ui/Components/ProfilePictureModal';
-import ProfileAvatar, {getProfileAvatarTokens} from '@ui/Components/ProfileAvatar';
+import DeleteEmployeeModal from '@/Components/DeleteEmployeeModal';
+import ProfilePictureModal from '@/Components/ProfilePictureModal';
+import ProfileAvatar, {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 
 const EmployeeTable = ({ 
   allUsers, 

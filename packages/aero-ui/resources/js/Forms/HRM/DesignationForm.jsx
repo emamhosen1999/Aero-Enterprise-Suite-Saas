@@ -13,7 +13,7 @@ import {
 } from '@heroui/react';
 import {Briefcase, Building2} from 'lucide-react';
 import axios from 'axios';
-import {showToast} from '@ui/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 const DesignationForm = ({ 
     open, 

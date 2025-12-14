@@ -64,11 +64,11 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Get the root view.
-     * Uses host app's view if available, otherwise package view.
+     * Uses aero-ui package's app.blade.php view.
      */
     public function rootView(Request $request): string
     {
-        return 'aero-core::app';
+        return 'aero-ui::app';
     }
 
     /**

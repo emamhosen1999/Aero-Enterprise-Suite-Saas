@@ -49,18 +49,7 @@ export default defineConfig({
         alias: {
             // Primary alias - all imports use @/ prefix
             '@': resolve(__dirname, `${uiPath}/resources/js`),
-            '@ui': resolve(__dirname, `${uiPath}/resources/js`),
             
-            // Ziggy for route generation
-            'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
-            
-            // Ensure all packages use host app's node_modules (single React instance)
-            'react': resolve(__dirname, 'node_modules/react'),
-            'react-dom': resolve(__dirname, 'node_modules/react-dom'),
-            '@heroui/react': resolve(__dirname, 'node_modules/@heroui/react'),
-            '@heroui/theme': resolve(__dirname, 'node_modules/@heroui/theme'),
-            'framer-motion': resolve(__dirname, 'node_modules/framer-motion'),
-            '@inertiajs/react': resolve(__dirname, 'node_modules/@inertiajs/react'),
         },
         
         // Module resolution order
@@ -70,17 +59,7 @@ export default defineConfig({
         ],
     },
 
-    // Pre-bundle these to avoid duplicates
-    optimizeDeps: {
-        include: [
-            'react',
-            'react-dom',
-            '@heroui/react',
-            '@heroui/theme',
-            'framer-motion',
-            '@inertiajs/react',
-        ],
-    },
+ 
 
     server: {
         host: 'localhost',
@@ -96,20 +75,5 @@ export default defineConfig({
         },
     },
 
-    build: {
-        manifest: true,
-        outDir: 'public/build',
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    // Core vendor chunks
-                    'react-vendor': ['react', 'react-dom'],
-                    'heroui-vendor': ['@heroui/react', '@heroui/theme'],
-                    'inertia-vendor': ['@inertiajs/react'],
-                    'motion-vendor': ['framer-motion'],
-                },
-            },
-        },
-        chunkSizeWarningLimit: 1000,
-    },
+    
 });

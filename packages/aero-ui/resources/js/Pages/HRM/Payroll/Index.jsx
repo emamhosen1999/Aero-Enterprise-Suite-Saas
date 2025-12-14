@@ -37,9 +37,9 @@ import {
     PlusIcon,
     TrashIcon,
 } from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import PageHeader from '@ui/Components/PageHeader';
-import {showToast} from '@ui/utils/toastUtils';
+import App from '@/Layouts/App';
+import PageHeader from '@/Components/PageHeader';
+import {showToast} from '@/utils/toastUtils';
 import {format} from 'date-fns';
 
 /**

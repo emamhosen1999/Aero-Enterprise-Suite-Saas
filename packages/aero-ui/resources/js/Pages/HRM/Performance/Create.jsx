@@ -2,8 +2,8 @@ import {Head, router, useForm} from '@inertiajs/react';
 import {useState} from 'react';
 import {Button, Card, CardBody, Divider, Input, Select, SelectItem, Tab, Tabs, Textarea} from '@heroui/react';
 import {ArrowLeftIcon, CheckIcon} from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import PageHeader from '@ui/Components/PageHeader';
+import App from '@/Layouts/App';
+import PageHeader from '@/Components/PageHeader';
 import KPIBuilder from '@/Components/HRM/HR/Performance/KPIBuilder';
 
 export default function PerformanceCreate({ auth, employees, templates, reviewTypes, review = null }) {

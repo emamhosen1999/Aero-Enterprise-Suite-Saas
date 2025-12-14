@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {getProfileAvatarTokens} from '@ui/Components/ProfileAvatar';
+import {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 import {
     Card,
     CardBody,
@@ -16,7 +16,7 @@ import {
     Tooltip,
     User
 } from "@heroui/react";
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 
 import {CalendarDaysIcon, DocumentChartBarIcon, UserIcon} from '@heroicons/react/24/outline';
 import {

@@ -12,7 +12,7 @@ import {
     SelectItem,
 } from "@heroui/react";
 import {DocumentTextIcon, MapPinIcon, UserIcon} from "@heroicons/react/24/outline";
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 
 const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, users }) => {
     const [formData, setFormData] = useState({

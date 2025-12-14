@@ -18,7 +18,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { Modal, ModalContent } from "@heroui/react";
 import {PhotoCamera} from "@mui/icons-material";
 
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 import LoadingButton from "@mui/lab/LoadingButton";
 import { showToast } from "@/utils/toastUtils";

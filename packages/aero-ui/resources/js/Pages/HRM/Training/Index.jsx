@@ -41,11 +41,11 @@ import {
     XCircleIcon
 } from "@heroicons/react/24/outline";
 import {MagnifyingGlassIcon} from '@heroicons/react/24/solid';
-import App from '@ui/Layouts/App';
-import StatsCards from '@ui/Components/StatsCards';
+import App from '@/Layouts/App';
+import StatsCards from '@/Components/StatsCards';
 import TrainingForm from '@/Forms/HRM/TrainingForm';
 import DeleteTrainingForm from '@/Forms/HRM/DeleteTrainingForm';
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 const Training = ({ 
     trainings = { data: [], current_page: 1, last_page: 1, total: 0 }, 

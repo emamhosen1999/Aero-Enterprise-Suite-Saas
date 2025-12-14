@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AvatarGroup, Skeleton, Card, Chip, Popover, PopoverContent, PopoverTrigger, CardHeader, CardBody, Divider } from "@heroui/react";
 import { motion } from 'framer-motion';
-import { useMediaQuery } from '@ui/Hooks/useMediaQuery.js';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { usePage } from "@inertiajs/react";
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
@@ -19,7 +19,7 @@ import {
     UserIcon,
     Bars3BottomLeftIcon
 } from '@heroicons/react/24/outline';
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 dayjs.extend(isBetween);
 

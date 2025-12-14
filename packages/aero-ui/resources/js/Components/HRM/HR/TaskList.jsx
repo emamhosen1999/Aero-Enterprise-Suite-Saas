@@ -5,7 +5,7 @@ import {
   Checkbox,
   Chip,
   Divider
-} from '@nextui-org/react';
+} from '@heroui/react';
 import {
   UserIcon,
   CalendarDaysIcon,

@@ -22,8 +22,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 
-import PageHeader from '@ui/Components/PageHeader';
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
+import PageHeader from '@/Components/PageHeader';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 
 // Inline AbsentUsersCard component for the combined layout

@@ -24,8 +24,8 @@ import {
 } from "@heroui/react";
 import StatsCards from "@/Components/StatsCards.jsx";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import WorkLocationForm from "@/Forms/WorkLocationForm.jsx";
-import DeleteWorkLocationForm from "@/Forms/DeleteWorkLocationForm.jsx";
+import WorkLocationForm from "@/Forms/HRM/WorkLocationForm.jsx";
+import DeleteWorkLocationForm from "@/Forms/HRM/DeleteWorkLocationForm.jsx";
 import axios from "axios";
 import { showToast } from "@/utils/toastUtils";
 

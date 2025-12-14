@@ -32,7 +32,7 @@ import {
     SparklesIcon,
     ArrowUpCircleIcon 
 } from '@heroicons/react/24/outline';
-import useSaaSAccess from '@ui/Hooks/useSaaSAccess';
+import useSaaSAccess from '@/Hooks/useSaaSAccess';
 
 /**
  * Default locked content component

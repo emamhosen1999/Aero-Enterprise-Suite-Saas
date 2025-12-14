@@ -34,7 +34,7 @@ import {
 import App from "@/Layouts/App.jsx";
 import DailyWorkSummaryTable from '@/Tables/HRM/DailyWorkSummaryTable';
 import StatsCards from "@/Components/StatsCards.jsx";
-import EnhancedDailyWorkSummaryExportForm from "@/Forms/EnhancedDailyWorkSummaryExportForm.jsx";
+import EnhancedDailyWorkSummaryExportForm from "@/Forms/HRM/EnhancedDailyWorkSummaryExportForm.jsx";
 
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import dayjs from 'dayjs';

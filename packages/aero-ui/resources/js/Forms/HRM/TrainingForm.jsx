@@ -13,7 +13,7 @@ import {
     Textarea
 } from "@heroui/react";
 import {CalendarIcon, MapPinIcon, UserIcon, UsersIcon} from 'lucide-react';
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 import {usePage} from "@inertiajs/react";
 import axios from 'axios';
 

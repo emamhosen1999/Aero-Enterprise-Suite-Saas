@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { showToast } from '@ui/utils/toastUtils';
+import { showToast } from '@/utils/toastUtils';
 import {
   Navbar,
   NavbarBrand,
@@ -23,11 +23,11 @@ import {
 } from "@heroui/react";
 
 
-import ProfileMenu from '@ui/Components/ProfileMenu';
-import LanguageSwitcher from '@ui/Components/LanguageSwitcher';
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
-import { useScrollTrigger } from '@ui/Hooks/useScrollTrigger.js';
-import { useBranding } from '@ui/Hooks/useBranding';
+import ProfileMenu from '@/Components/ProfileMenu';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import ProfileAvatar from '@/Components/ProfileAvatar';
+import { useScrollTrigger } from '@/Hooks/useScrollTrigger.js';
+import { useBranding } from '@/Hooks/useBranding';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bars3Icon,

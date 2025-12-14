@@ -11,7 +11,7 @@ import {
   Input,
 } from "@heroui/react";
 import { DocumentArrowDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { showToast } from '@ui/utils/toastUtils';
+import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
 
 const ExportUsersModal = ({ open, onClose, roles, departments, themeRadius = 'lg' }) => {

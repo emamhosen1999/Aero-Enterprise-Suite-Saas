@@ -40,7 +40,7 @@ import {
 import App from "@/Layouts/App.jsx";
 
 import StatsCards from "@/Components/StatsCards.jsx";
-import EmployeeTable from "@/Tables/EmployeeTable.jsx";
+import EmployeeTable from "@/Tables/HRM/EmployeeTable.jsx";
 import ProfileAvatar from "@/Components/ProfileAvatar.jsx";
 
 import axios from 'axios';

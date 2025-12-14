@@ -23,7 +23,7 @@ import {
     isSuperAdmin,
     isAuthSuperAdmin,
     filterNavigationByAccess 
-} from '@ui/utils/moduleAccessUtils';
+} from '@/utils/moduleAccessUtils';
 
 /**
  * Extract the module code from a path like 'hrm.employees.list.view' => 'hrm'

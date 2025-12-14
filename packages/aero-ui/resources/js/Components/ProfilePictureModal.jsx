@@ -15,7 +15,7 @@ import {
     Modal,
     ModalContent
 } from '@heroui/react';
-import { showToast } from '@ui/utils/toastUtils';
+import { showToast } from '@/utils/toastUtils';
 import ProfileAvatar from './ProfileAvatar';
 
 // Use the global axios instance which has CSRF configuration

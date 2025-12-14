@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip } from "@heroui/react";
 import { motion } from 'framer-motion';
 import { useState } from 'react';
@@ -190,8 +190,13 @@ class UnifiedError extends React.Component {
             return <UnifiedErrorDisplay error={reactError} />;
         }
 
-        // Otherwise render HTTP error from props
-        return <UnifiedErrorDisplay error={this.props.error} />;
+        // If error prop is passed (HTTP error from server), show error UI
+        if (this.props.error) {
+            return <UnifiedErrorDisplay error={this.props.error} />;
+        }
+
+        // Otherwise render children normally
+        return this.props.children;
     }
 }
 
@@ -200,6 +205,16 @@ class UnifiedError extends React.Component {
  */
 function UnifiedErrorDisplay({ error = {} }) {
     const [copied, setCopied] = useState(false);
+    
+    // Check if we're inside Inertia context (for safe Head usage)
+    let hasInertiaContext = false;
+    try {
+        // usePage will throw if we're outside Inertia context
+        usePage();
+        hasInertiaContext = true;
+    } catch {
+        hasInertiaContext = false;
+    }
 
     // Extract error properties with defaults
     const {
@@ -438,7 +453,7 @@ function UnifiedErrorDisplay({ error = {} }) {
 
     return (
         <>
-            <Head title={title} />
+            {hasInertiaContext && <Head title={title} />}
             
             <div className="min-h-screen flex items-center justify-center bg-background p-6">
                 <motion.div

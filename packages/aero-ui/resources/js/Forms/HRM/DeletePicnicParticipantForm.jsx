@@ -1,6 +1,6 @@
 import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@heroui/react";
 import React from "react";
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 
 
 const DeleteLeaveForm = ({ open, handleClose, leaveIdToDelete, setLeavesData }) => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Link, usePage } from "@inertiajs/react";
-import { useMediaQuery } from '@ui/Hooks/useMediaQuery.js';
-import { useBranding } from '@ui/Hooks/useBranding';
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
+import { useBranding } from '@/Hooks/useBranding';
 import {
   Button,
   Accordion,

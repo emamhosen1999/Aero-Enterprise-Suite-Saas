@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import {CalendarIcon, ChartBarIcon, CheckCircleIcon, UserPlusIcon} from "@heroicons/react/24/outline";
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
-import App from "@ui/Layouts/App.jsx";
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import App from "@/Layouts/App.jsx";
 import TimeSheetTable from '@/Tables/HRM/TimeSheetTable.jsx';
 import MarkAsPresentForm from "@/Forms/HRM/MarkAsPresentForm.jsx";
 import BulkMarkAsPresentForm from "@/Forms/HRM/BulkMarkAsPresentForm.jsx";

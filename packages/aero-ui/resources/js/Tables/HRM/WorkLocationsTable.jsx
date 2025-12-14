@@ -1,7 +1,7 @@
 import React, {useCallback} from "react";
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {router, usePage} from "@inertiajs/react";
-import {showToast} from '@ui/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 
 import {
     Button,

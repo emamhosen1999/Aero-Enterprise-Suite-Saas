@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@heroui/react";
 import {Users} from "lucide-react";
-import {showToast} from "@ui/utils/toastUtils";
+import {showToast} from "@/utils/toastUtils";
 
 const FamilyMemberForm = ({ user, open, closeModal, handleDelete, setUser }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values

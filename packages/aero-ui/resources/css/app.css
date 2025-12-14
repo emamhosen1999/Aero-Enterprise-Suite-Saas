@@ -7,7 +7,13 @@ layer(base);
 
 @import "tailwindcss";
 @plugin '../../hero.ts';
+
+/* Source paths for Tailwind CSS 4 content scanning */
+/* HeroUI theme components */
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+/* Project JavaScript files */
+@source '../js/**/*.{js,jsx,ts,tsx}';
+
 @custom-variant dark (&:is(.dark *));
 
 

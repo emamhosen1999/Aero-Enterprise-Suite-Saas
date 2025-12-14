@@ -17,8 +17,8 @@ import {
     TableRow
 } from '@heroui/react';
 import {CalendarIcon, ChartBarIcon, MagnifyingGlassIcon, PlusIcon, UserIcon} from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import PageHeader from '@ui/Components/PageHeader';
+import App from '@/Layouts/App';
+import PageHeader from '@/Components/PageHeader';
 
 export default function PerformanceIndex({ auth, reviews, filters, employees, templates }) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');

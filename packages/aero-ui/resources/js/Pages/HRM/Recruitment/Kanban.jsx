@@ -10,11 +10,11 @@ import {
     PlusIcon,
     UserIcon,
 } from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import {showToast} from '@ui/utils/toastUtils';
+import App from '@/Layouts/App';
+import {showToast} from '@/utils/toastUtils';
 import axios from 'axios';
-import KanbanColumn from '@ui/Components/Recruitment/KanbanColumn';
-import CandidateCard from '@ui/Components/Recruitment/CandidateCard';
+import KanbanColumn from '@/Components/Recruitment/KanbanColumn';
+import CandidateCard from '@/Components/Recruitment/CandidateCard';
 
 /**
  * RecruitmentKanban Component

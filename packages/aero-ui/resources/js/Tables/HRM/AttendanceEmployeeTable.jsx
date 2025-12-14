@@ -13,7 +13,7 @@ import {
 } from "@heroui/react";
 import {usePage} from "@inertiajs/react";
 import dayjs from "dayjs";
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {CalendarDaysIcon, ClockIcon, ExclamationTriangleIcon,} from '@heroicons/react/24/outline';
 import axios from 'axios';
 

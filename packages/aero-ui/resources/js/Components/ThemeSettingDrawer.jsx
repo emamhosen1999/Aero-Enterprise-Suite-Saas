@@ -16,7 +16,7 @@ import {
     Switch,
     Slider,
 } from '@heroui/react';
-import { useTheme } from '@ui/Context/ThemeContext';
+import { useTheme } from '@/Context/ThemeContext';
 import { 
     fontFamilies, 
     radiusOptions, 

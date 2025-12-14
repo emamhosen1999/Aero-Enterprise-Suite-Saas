@@ -17,7 +17,7 @@ import { X, Camera, Eye, EyeOff, Lock } from 'lucide-react';
 import { useForm } from 'laravel-precognition-react';
 import { showToast } from "@/utils/toastUtils";
 import { UserIcon } from "@heroicons/react/24/solid";
-import ProfileAvatar from '@ui/Components/ProfileAvatar';
+import ProfileAvatar from '@/Components/ProfileAvatar';
 
 /**
  * Helper to get routes based on context

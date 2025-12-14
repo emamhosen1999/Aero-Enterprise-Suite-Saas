@@ -47,7 +47,7 @@ class HandleInertiaRequests extends Middleware
         // Intercept root route "/" and render Platform landing page
         // This ensures the package works without modifying host app routes
         if ($request->is('/') || $request->path() === '/') {
-            return Inertia::render('Public/Landing')->toResponse($request);
+            return Inertia::render('Platform/Public/Landing')->toResponse($request);
         }
 
         return parent::handle($request, $next);
@@ -55,16 +55,12 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Determine the root template based on domain context.
+     * All views come from aero-ui package.
      */
     public function rootView(Request $request): string
     {
-        $context = $this->getDomainContext($request);
-
-        if ($context === IdentifyDomainContext::CONTEXT_TENANT) {
-            return 'aero-core::app';
-        }
-
-        return 'aero-platform::app';
+        // Both central and tenant contexts use the same aero-ui view
+        return 'aero-ui::app';
     }
 
     /**

@@ -207,91 +207,6 @@ const resolveInertiaPage = (name) => {
     throw new Error(`Unable to locate Inertia page: ${name}`);
 };
 
-/**
- * Fallback Error Boundary
- * This is a last-resort boundary that catches errors if UnifiedError itself fails
- */
-class FallbackErrorBoundary extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { hasError: false, error: null };
-    }
-
-    static getDerivedStateFromError(error) {
-        return { hasError: true, error };
-    }
-
-    componentDidCatch(error, errorInfo) {
-        console.error('FallbackErrorBoundary caught error:', error, errorInfo);
-        reportError({
-            error_type: 'FallbackBoundaryError',
-            http_code: 0,
-            message: `Critical error (primary boundary failed): ${error?.message}`.slice(0, 500),
-            stack: error?.stack?.slice(0, 2000) || 'No stack',
-            component_stack: errorInfo?.componentStack?.slice(0, 1000) || 'No component stack',
-            context: { type: 'fallback_boundary' },
-        });
-    }
-
-    render() {
-        if (this.state.hasError) {
-            // Minimal fallback UI - no dependencies on other components
-            return (
-                <div style={{
-                    minHeight: '100vh',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#fee2e2',
-                    fontFamily: 'system-ui, -apple-system, sans-serif',
-                }}>
-                    <div style={{ textAlign: 'center', padding: '2rem' }}>
-                        <h1 style={{ color: '#dc2626', fontSize: '1.5rem', marginBottom: '1rem' }}>
-                            Something went wrong
-                        </h1>
-                        <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-                            A critical error occurred. Please refresh the page.
-                        </p>
-                        <button 
-                            onClick={() => window.location.reload()}
-                            style={{
-                                backgroundColor: '#3b82f6',
-                                color: 'white',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '0.375rem',
-                                border: 'none',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            Refresh Page
-                        </button>
-                        <details style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '500px' }}>
-                            <summary style={{ cursor: 'pointer', color: '#6b7280' }}>
-                                Error details
-                            </summary>
-                            <pre style={{
-                                marginTop: '0.5rem',
-                                padding: '0.5rem',
-                                backgroundColor: '#f3f4f6',
-                                borderRadius: '0.25rem',
-                                fontSize: '0.75rem',
-                                overflow: 'auto',
-                                maxHeight: '200px',
-                            }}>
-                                {this.state.error?.message}
-                                {'\n\n'}
-                                {this.state.error?.stack}
-                            </pre>
-                        </details>
-                    </div>
-                </div>
-            );
-        }
-
-        return this.props.children;
-    }
-}
-
 
 createInertiaApp({
     // Disable default progress bar - using custom LoadingIndicator instead
@@ -310,16 +225,14 @@ createInertiaApp({
         const renderStart = performance.now();
         
         root.render(
-            <FallbackErrorBoundary>
-                <UnifiedError>
-                    <ThemeProvider>
-                        <HeroUIProvider>
-                            <LoadingIndicator />
-                            <App {...props} />
-                        </HeroUIProvider>
-                    </ThemeProvider>
-                </UnifiedError>
-            </FallbackErrorBoundary>
+            <ThemeProvider>
+                <HeroUIProvider>
+                    <UnifiedError>
+                        <LoadingIndicator />
+                        <App {...props} />
+                    </UnifiedError>
+                </HeroUIProvider>
+            </ThemeProvider>
         );
         
         // Log render performance only in development

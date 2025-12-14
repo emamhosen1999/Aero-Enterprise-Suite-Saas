@@ -15,8 +15,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { Link, usePage, router } from "@inertiajs/react";
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '@ui/Context/ThemeContext';
-import { showToast } from '@ui/utils/toastUtils';
+import { useTheme } from '@/Context/ThemeContext';
+import { showToast } from '@/utils/toastUtils';
 
 /**
  * Enhanced Bottom Navigation Component for Mobile ERP System

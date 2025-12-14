@@ -26,7 +26,7 @@ import {
     UsersIcon,
     XCircleIcon
 } from '@heroicons/react/24/outline';
-import NoDataMessage from '@ui/Components/NoDataMessage';
+import NoDataMessage from '@/Components/NoDataMessage';
 
 const DesignationTable = ({ 
     designations, 

@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import {Head, router, useForm} from '@inertiajs/react';
 import {Button, Card, CardBody, Input, Select, SelectItem, Switch, Tab, Tabs, Textarea,} from '@heroui/react';
 import {ArrowLeftIcon} from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import PageHeader from '@ui/Components/PageHeader';
-import {showToast} from '@ui/utils/toastUtils';
+import App from '@/Layouts/App';
+import PageHeader from '@/Components/PageHeader';
+import {showToast} from '@/utils/toastUtils';
 
 /**
  * Create/Edit Job Posting Form

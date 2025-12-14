@@ -34,7 +34,7 @@ import {
     TrashIcon
 } from "@heroicons/react/24/outline";
 import {differenceInDays, format, isAfter, isBefore} from 'date-fns';
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 
 // Theme utility function
 const getThemeRadius = () => {

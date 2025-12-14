@@ -36,11 +36,11 @@ import {
     TableRow,
     Tabs
 } from "@heroui/react";
-import StatsCards from "@ui/Components/StatsCards.jsx";
-import LeaveAnalytics from "@ui/Components/Leave/LeaveAnalytics.jsx";
-import {useTheme} from '@ui/Context/ThemeContext.jsx';
-import {useMediaQuery} from '@ui/Hooks/useMediaQuery.js';
-import App from "@ui/Layouts/App.jsx";
+import StatsCards from "@/Components/StatsCards.jsx";
+import LeaveAnalytics from "@/Components/Leave/LeaveAnalytics.jsx";
+import {useTheme} from '@/Context/ThemeContext.jsx';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import App from "@/Layouts/App.jsx";
 import axios from 'axios';
 
 const LeaveSummary = ({ title, summaryData }) => {

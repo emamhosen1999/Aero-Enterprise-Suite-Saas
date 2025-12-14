@@ -3,10 +3,10 @@ import {Head, usePage} from '@inertiajs/react';
 import {motion} from 'framer-motion';
 import axios from 'axios';
 import {Card, CardBody, CardHeader, Input, Tab, Tabs,} from "@heroui/react";
-import App from "@ui/Layouts/App.jsx";
-import StatsCards from '@ui/Components/StatsCards.jsx';
+import App from "@/Layouts/App.jsx";
+import StatsCards from '@/Components/StatsCards.jsx';
 import AttendanceEmployeeTable from "@/Tables/HRM/AttendanceEmployeeTable.jsx";
-import AttendanceCalendar from "@ui/Components/HRM/Attendance/AttendanceCalendar.jsx";
+import AttendanceCalendar from "@/Components/HRM/Attendance/AttendanceCalendar.jsx";
 import {
     CalendarDaysIcon,
     ChartBarIcon,

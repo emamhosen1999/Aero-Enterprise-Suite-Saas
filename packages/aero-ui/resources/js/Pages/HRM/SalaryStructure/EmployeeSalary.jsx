@@ -23,8 +23,8 @@ import {
     TrashIcon,
     UserIcon,
 } from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import {showToast} from '@ui/utils/toastUtils';
+import App from '@/Layouts/App';
+import {showToast} from '@/utils/toastUtils';
 import axios from 'axios';
 
 export default function EmployeeSalary({ title, employee, salaryStructures, allComponents, summary }) {

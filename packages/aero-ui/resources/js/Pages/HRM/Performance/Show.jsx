@@ -1,8 +1,8 @@
 import {Head, router} from '@inertiajs/react';
 import {Avatar, Button, Card, CardBody, Chip, Divider, Progress, Tab, Tabs} from '@heroui/react';
 import {ArrowLeftIcon, CalendarIcon, ChartBarIcon, CheckCircleIcon, PencilIcon} from '@heroicons/react/24/outline';
-import App from '@ui/Layouts/App';
-import PageHeader from '@ui/Components/PageHeader';
+import App from '@/Layouts/App';
+import PageHeader from '@/Components/PageHeader';
 
 export default function PerformanceShow({ auth, review, canEdit }) {
     const statusColors = {

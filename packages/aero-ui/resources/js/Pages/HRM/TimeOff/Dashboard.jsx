@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {Head, router} from '@inertiajs/react';
 import {Button, Card, CardBody, CardHeader, Chip, Divider, Progress} from "@heroui/react";
-import {useTheme} from '@ui/Context/ThemeContext';
+import {useTheme} from '@/Context/ThemeContext';
 
 import {
     CalendarDaysIcon,
@@ -16,9 +16,9 @@ import {
     UserGroupIcon
 } from "@heroicons/react/24/outline";
 
-import App from "@ui/Layouts/App.jsx";
-import PageHeader from "@ui/Components/PageHeader.jsx";
-import StatsCards from "@ui/Components/StatsCards.jsx";
+import App from "@/Layouts/App.jsx";
+import PageHeader from "@/Components/PageHeader.jsx";
+import StatsCards from "@/Components/StatsCards.jsx";
 
 const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, currentYear }) => {
   const theme = useTheme();

@@ -23,7 +23,7 @@ import {
     EyeIcon
 } from "@heroicons/react/24/outline";
 import { CalendarIcon, User, Clock } from 'lucide-react';
-import { showToast } from '@ui/utils/toastUtils';
+import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
 const StatusUpdateModal = ({ 

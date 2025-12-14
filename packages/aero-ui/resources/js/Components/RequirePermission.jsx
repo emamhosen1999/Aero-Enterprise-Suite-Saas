@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { usePermissions } from '@ui/Hooks/usePermissions';
+import { usePermissions } from '@/Hooks/usePermissions';
 import { Card, CardBody, Button } from '@heroui/react';
 import { ShieldExclamationIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';

@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { Button, Chip, Tooltip, Divider } from '@heroui/react';
-import { useModule, useModuleEnabled } from '@ui/Hooks/useModule';
-import { useModuleContext, AVAILABLE_MODULES } from '@ui/Context/ModuleContext';
+import { useModule, useModuleEnabled } from '@/Hooks/useModule';
+import { useModuleContext, AVAILABLE_MODULES } from '@/Context/ModuleContext';
 import {
     HomeIcon,
     UserGroupIcon,
@@ -132,7 +132,7 @@ const ModuleNavSection = ({ title, children, module }) => {
  * 
  * @example
  * // Usage in your layout
- * import ModuleAwareSidebar from '@ui/Components/Navigation/ModuleAwareSidebar';
+ * import ModuleAwareSidebar from '@/Components/Navigation/ModuleAwareSidebar';
  * 
  * function Layout({ children }) {
  *   return (

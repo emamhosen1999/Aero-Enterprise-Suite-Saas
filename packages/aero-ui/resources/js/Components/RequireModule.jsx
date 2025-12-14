@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useModule } from '@ui/Hooks/useModule';
+import { useModule } from '@/Hooks/useModule';
 import { Card, CardBody, Button } from '@heroui/react';
 import { LockClosedIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 

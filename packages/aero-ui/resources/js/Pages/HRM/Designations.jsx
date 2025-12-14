@@ -10,14 +10,14 @@ import {
     UserGroupIcon,
     XCircleIcon
 } from '@heroicons/react/24/outline';
-import PageHeader from '@ui/Components/PageHeader.jsx';
-import StatsCards from '@ui/Components/StatsCards.jsx';
-import App from '@ui/Layouts/App.jsx';
+import PageHeader from '@/Components/PageHeader.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
+import App from '@/Layouts/App.jsx';
 import DesignationTable from '@/Tables/HRM/DesignationTable.jsx';
 import DesignationForm from '@/Forms/HRM/DesignationForm.jsx';
 import DeleteDesignationForm from '@/Forms/HRM/DeleteDesignationForm.jsx';
 import axios from 'axios';
-import {showToast} from '@ui/utils/toastUtils.jsx';
+import {showToast} from '@/utils/toastUtils.jsx';
 
 const Designations = ({ title, initialDesignations, departments, managers, parentDesignations, allDesignations, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;

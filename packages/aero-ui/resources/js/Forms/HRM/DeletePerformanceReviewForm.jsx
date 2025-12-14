@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from '@heroui/react';
 import {XMarkIcon} from '@heroicons/react/24/outline';
-import {showToast} from '@ui/utils/toastUtils';
+import {showToast} from '@/utils/toastUtils';
 import axios from 'axios';
 
 const DeletePerformanceReviewForm = ({ open, onClose, performanceReview, fetchData, currentPage, perPage, filterData }) => {
