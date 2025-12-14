@@ -33,6 +33,7 @@ import {
 import { showToast } from '@/utils/toastUtils';
 import { useTheme } from '@/Shared/Context/ThemeContext';
 import { getDeviceId, getDeviceHeaders } from '@/utils/deviceAuth';
+import SocialLoginButtons from '@/Components/Auth/SocialLoginButtons';
 import { useBranding } from '@/Hooks/useBranding';
 
 /**
@@ -184,7 +185,8 @@ export default function Login({
     canResetPassword, 
     deviceBlocked, 
     deviceMessage, 
-    blockedDeviceInfo 
+    blockedDeviceInfo,
+    oauthProviders = []
 }) {
     // ===== THEME ACCESS =====
     const { themeSettings } = useTheme();
@@ -672,7 +674,9 @@ export default function Login({
                                         <div className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center font-bold text-2xl text-white`}>
                                             {siteName.charAt(0)}
                                         </div>
-                                    )}                                
+                                    )}
+                                        
+                                
                                 </motion.div>
 
                                 {/* Title */}
@@ -1058,7 +1062,7 @@ export default function Login({
                                     {canResetPassword && (
                                         <Link
                                             href="/forgot-password"
-                                        
+                                            
                                             className="text-sm font-medium transition-colors duration-200 hover:underline"
                                             style={{ color: 'var(--theme-primary, #006FEE)' }}
                                         >
@@ -1099,6 +1103,14 @@ export default function Login({
                                         {uiState.isSubmitting ? 'Signing in...' : 'Sign In'}
                                     </Button>
                                 </motion.div>
+
+                                {/* Social Login Buttons */}
+                                {oauthProviders && oauthProviders.length > 0 && (
+                                    <SocialLoginButtons 
+                                        providers={oauthProviders} 
+                                        isLoading={uiState.isSubmitting} 
+                                    />
+                                )}
 
                                 <Divider 
                                     className="my-6"

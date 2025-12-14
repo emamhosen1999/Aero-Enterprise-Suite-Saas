@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Link, Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { useBranding } from '@/Hooks/useBranding';
@@ -164,7 +164,7 @@ const About = () => {
               <Chip color="secondary" variant="flat" className="mb-1 md:mb-3 text-[10px] md:text-xs">Leadership</Chip>
               <h2 className="text-xl md:text-4xl font-semibold">People shaping the platform.</h2>
             </div>
-            <Link href={route('careers')} className={`${palette.mutedText} hover:text-current text-xs md:text-base`}>Meet the wider team →</Link>
+            <Link href={route('careers')} className={`${palette.mutedText} hover:text-current text-xs md:text-base`}>Meet the wider team â†’</Link>
           </div>
           <div className="grid md:grid-cols-2 gap-2 md:gap-6">
             {leadershipTeam.map((leader) => (
@@ -223,7 +223,7 @@ const About = () => {
             <Chip variant="flat" color="warning">Culture</Chip>
             <h3 className="text-4xl font-semibold">We believe transformation should feel human.</h3>
             <p className={`${palette.mutedText} max-w-3xl mx-auto`}>
-              Enterprise software should respect frontline teams, executives, and partners alike. That’s why Aero combines automation with empathy, data transparency, and design systems that make complex operations feel intuitive.
+              Enterprise software should respect frontline teams, executives, and partners alike. Thatâ€™s why Aero combines automation with empathy, data transparency, and design systems that make complex operations feel intuitive.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
               <Button as={Link} href={route('demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10">
