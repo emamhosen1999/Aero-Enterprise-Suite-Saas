@@ -21,8 +21,8 @@ import StatsCards from '@ui/Components/StatsCards.jsx';
 import LeaveEmployeeTable from '../../Tables/HRM/LeaveEmployeeTable.jsx';
 import LeaveForm from '../../Forms/HRM/LeaveForm.jsx';
 import DeleteLeaveForm from '../../Forms/HRM/DeleteLeaveForm.jsx';
-import BulkLeaveModal from '@/Tenant/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
-import BulkDeleteModal from '@/Tenant/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
+import BulkLeaveModal from '@/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
+import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import dayjs from 'dayjs';
 import axios from 'axios';
 

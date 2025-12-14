@@ -17,8 +17,8 @@ import App from '@ui/Layouts/App.jsx';
 import LeaveEmployeeTable from '../../Tables/HRM/LeaveEmployeeTable.jsx';
 import LeaveForm from '../../Forms/HRM/LeaveForm.jsx';
 import DeleteLeaveForm from '../../Forms/HRM/DeleteLeaveForm.jsx';
-import BulkLeaveModal from '@/Tenant/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
-import BulkDeleteModal from '@/Tenant/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
+import BulkLeaveModal from '@/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
+import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import {showToast} from '@ui/utils/toastUtils.jsx';
 import axios from 'axios';
 
