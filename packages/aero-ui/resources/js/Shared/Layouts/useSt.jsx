@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import Header from "@/Layouts/Header.jsx";
 import Breadcrumb from "@/Components/Breadcrumb.jsx";
 import BottomNav from "@/Layouts/BottomNav.jsx";
@@ -10,7 +10,6 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../css/theme-transitions.css';
 import Sidebar from "@/Layouts/Sidebar.jsx";
-import { Inertia } from '@inertiajs/inertia';
 import { getDynamicPages } from '@/Props/dynamicNavigation.jsx';
 import { getSettingsPages } from '@/Props/settings.jsx';
 import { HeroUIProvider, Button } from "@heroui/react";
@@ -214,8 +213,8 @@ function App({ children }) {
     useEffect(() => {
         const start = () => setLoading(true);
         const finish = () => setLoading(false);
-        const unStart = Inertia.on('start', start);
-        const unFinish = Inertia.on('finish', finish);
+        const unStart = router.on('start', start);
+        const unFinish = router.on('finish', finish);
         return () => {
             unStart();
             unFinish();

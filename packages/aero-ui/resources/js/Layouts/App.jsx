@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Inertia } from '@inertiajs/inertia';
 import { ScrollShadow, Divider } from "@heroui/react";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -325,8 +324,8 @@ const App = React.memo(({ children }) => {
       clearTimeout(loadingTimeout);
       setLoading(false);
     };
-    const unStart = Inertia.on('start', start);
-    const unFinish = Inertia.on('finish', finish);
+    const unStart = router.on('start', start);
+    const unFinish = router.on('finish', finish);
     return () => {
       clearTimeout(loadingTimeout);
       unStart();

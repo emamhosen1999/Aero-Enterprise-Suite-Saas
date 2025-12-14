@@ -4,7 +4,7 @@ import {Button, Card, CardBody, Divider, Input, Select, SelectItem, Tab, Tabs, T
 import {ArrowLeftIcon, CheckIcon} from '@heroicons/react/24/outline';
 import App from '@ui/Layouts/App';
 import PageHeader from '@ui/Components/PageHeader';
-import KPIBuilder from '@/Tenant/Components/HRM/HR/Performance/KPIBuilder';
+import KPIBuilder from '@/Components/HRM/HR/Performance/KPIBuilder';
 
 export default function PerformanceCreate({ auth, employees, templates, reviewTypes, review = null }) {
     const isEdit = !!review;
