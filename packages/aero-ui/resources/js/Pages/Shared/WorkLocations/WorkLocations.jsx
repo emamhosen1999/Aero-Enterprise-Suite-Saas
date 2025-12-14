@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Head } from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
-import WorkLocationsTable from '../../../../../aero-hrm/resources/js/Tables/WorkLocationsTable.jsx';
+import WorkLocationsTable from '@/Tables/HRM/WorkLocationsTable.jsx';
 import { 
     Card, 
     CardHeader, 
