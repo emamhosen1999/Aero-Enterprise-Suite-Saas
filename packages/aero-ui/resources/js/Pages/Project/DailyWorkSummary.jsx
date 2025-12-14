@@ -32,7 +32,7 @@ import {
     MapPinIcon
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import DailyWorkSummaryTable from '@/Tenant/Tables/HRM/DailyWorkSummaryTable';
+import DailyWorkSummaryTable from '@/Tables/HRM/DailyWorkSummaryTable';
 import StatsCards from "@/Components/StatsCards.jsx";
 import EnhancedDailyWorkSummaryExportForm from "@/Forms/EnhancedDailyWorkSummaryExportForm.jsx";
 

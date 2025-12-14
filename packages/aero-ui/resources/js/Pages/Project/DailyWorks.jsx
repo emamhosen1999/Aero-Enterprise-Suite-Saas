@@ -20,7 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Head } from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
-import DailyWorksTable from '@/Tenant/Tables/HRM/DailyWorksTable';
+import DailyWorksTable from '@/Tables/HRM/DailyWorksTable';
 import { 
     Card, 
     CardHeader, 
