@@ -8,16 +8,17 @@ import tailwindcss from '@tailwindcss/vite';
 /**
  * Aero Enterprise Suite - Standalone Host Vite Configuration
  * 
- * SINGLE ENTRY POINT:
- * - Core app.jsx → All domains (single-tenant, no tenancy)
- * - Modules (HRM, CRM, etc.) loaded via aliases
+ * UNIFIED ENTRY POINT STRATEGY:
+ * - All frontend lives in aero-ui package
+ * - Single app.jsx handles page resolution based on Inertia route
+ * - Pages are organized by module: Pages/{Core,HRM,CRM,...}
  * 
  * This mode is for on-premise or self-hosted single-organization deployments.
  * No aero-platform, no multi-tenancy, no billing.
  */
 
 // Package paths - symlinked from ../../packages via Composer
-const corePath = 'vendor/aero/core';
+const uiPath = 'vendor/aero/ui';
 
 /**
  * Dynamic Module Discovery
@@ -43,8 +44,8 @@ function discoverModules() {
                 const moduleConfig = JSON.parse(fs.readFileSync(moduleJsonPath, 'utf-8'));
                 const shortName = moduleConfig.short_name || pkg.replace('aero-', '');
                 
-                // Skip core - it has explicit alias
-                if (shortName !== 'core') {
+                // Skip core, platform, and ui - they have explicit aliases or don't have frontend anymore
+                if (shortName !== 'core' && shortName !== 'platform' && shortName !== 'ui') {
                     modules[shortName] = {
                         name: moduleConfig.name,
                         namespace: moduleConfig.namespace,
@@ -75,9 +76,9 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                // Core CSS & JS (main entry point for standalone)
-                `${corePath}/resources/css/app.css`,
-                `${corePath}/resources/js/app.jsx`,
+                // Unified UI package - single entry point for all frontend
+                `${uiPath}/resources/css/app.css`,
+                `${uiPath}/resources/js/app.jsx`,
             ],
             refresh: [
                 // Watch all package resources for HMR
@@ -99,11 +100,11 @@ export default defineConfig({
         preserveSymlinks: true,
         
         alias: {
-            // Core namespace (main UI - @ points to core in standalone mode)
-            '@': resolve(__dirname, `${corePath}/resources/js`),
-            '@core': resolve(__dirname, `${corePath}/resources/js`),
+            // Unified UI package - primary alias for all frontend imports
+            '@': resolve(__dirname, `${uiPath}/resources/js`),
+            '@ui': resolve(__dirname, `${uiPath}/resources/js`),
             
-            // Dynamic module aliases (e.g., @hrm, @crm, @ims)
+            // Dynamic module aliases (e.g., @hrm, @crm, @ims) - for backend resources if needed
             ...moduleAliases,
             
             // Ziggy for route generation
@@ -136,7 +137,7 @@ export default defineConfig({
             '@inertiajs/react',
         ],
         // Don't pre-bundle vendor packages (needed for HMR)
-        exclude: ['@core', ...Object.keys(moduleAliases)],
+        exclude: [...Object.keys(moduleAliases)],
     },
 
     server: {

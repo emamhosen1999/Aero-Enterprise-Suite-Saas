@@ -93,13 +93,12 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Register views (for email templates, etc.)
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-platform');
 
-        // Ensure Vite build configuration exists in host app
-        $this->ensureViteConfiguration();
+        // NOTE: Vite configuration is handled by aero/ui package
+        // All frontend code lives in aero/ui - this package is backend-only
 
         // Register commands
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Aero\Platform\Console\Commands\PublishAssets::class, // Asset building (npm run build wrapper)
                 \Aero\Platform\Console\Commands\TenantCreate::class,
                 \Aero\Platform\Console\Commands\TenantMigrate::class,
                 \Aero\Platform\Console\Commands\TenantFlush::class,
@@ -109,56 +108,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
             ]);
         }
     }
-
-    /**
-     * Ensure Vite configuration files exist in the host app.
-     * Automatically installs vite.config.js and package.json from stubs if missing or outdated.
-     */
-    protected function ensureViteConfiguration(): void
-    {
-        $viteConfigPath = base_path('vite.config.js');
-        $packageJsonPath = base_path('package.json');
-        $stubsPath = __DIR__.'/../stubs';
-
-        // Check if vite.config.js needs to be installed
-        if (!file_exists($viteConfigPath) || !$this->isAeroPlatformViteConfig($viteConfigPath)) {
-            $stubFile = $stubsPath.'/vite.config.js.stub';
-            if (file_exists($stubFile)) {
-                copy($stubFile, $viteConfigPath);
-            }
-        }
-
-        // Check if package.json needs to be installed/updated
-        if (!file_exists($packageJsonPath) || !$this->hasAeroPlatformDependencies($packageJsonPath)) {
-            $stubFile = $stubsPath.'/package.json.stub';
-            if (file_exists($stubFile)) {
-                copy($stubFile, $packageJsonPath);
-            }
-        }
-    }
-
-    /**
-     * Check if vite.config.js is configured for Aero Platform.
-     */
-    protected function isAeroPlatformViteConfig(string $path): bool
-    {
-        $content = file_get_contents($path);
-
-        return str_contains($content, 'vendor/aero/platform') && str_contains($content, 'vendor/aero/core');
-    }
-
-    /**
-     * Check if package.json has Aero Platform dependencies.
-     */
-    protected function hasAeroPlatformDependencies(string $path): bool
-    {
-        $content = file_get_contents($path);
-        $json = json_decode($content, true);
-
-        // Check for key dependencies that indicate Aero Platform setup
-        return isset($json['dependencies']['@heroui/react'])
-            && isset($json['dependencies']['framer-motion']);
-    }
+    
 
     /**
      * Register middleware aliases for the platform package.
@@ -350,14 +300,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 __DIR__.'/../config/modules.php' => config_path('aero-platform-modules.php'),
             ], 'aero-platform-config');
 
-            // Publish compiled assets (pre-built in package's public directory)
-            // Host app doesn't need to build anything - just uses pre-built assets
-            $prebuiltAssets = __DIR__.'/../public/build';
-            if (is_dir($prebuiltAssets)) {
-                $this->publishes([
-                    $prebuiltAssets => public_path('vendor/aero-platform'),
-                ], 'aero-platform-assets');
-            }
+            // NOTE: No assets publishing - all frontend is handled by aero/ui package
 
             // Publish views
             $this->publishes([

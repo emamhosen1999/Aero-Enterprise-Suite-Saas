@@ -12,7 +12,7 @@ class HandleInertiaRequests extends Middleware
      *
      * @var string
      */
-    protected $rootView = 'app';
+    protected $rootView = 'aero-ui::app';
 
     /**
      * Determine the current asset version.

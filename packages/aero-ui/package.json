@@ -1,0 +1,25 @@
+{
+    "name": "@aero/ui",
+    "version": "1.0.0",
+    "description": "Aero UI - Shared React components for all Aero modules",
+    "private": true,
+    "type": "module",
+    "main": "resources/js/index.js",
+    "exports": {
+        ".": "./resources/js/index.js",
+        "./Components/*": "./resources/js/Components/*",
+        "./Tables/*": "./resources/js/Tables/*",
+        "./Forms/*": "./resources/js/Forms/*",
+        "./Hooks/*": "./resources/js/Hooks/*",
+        "./Context/*": "./resources/js/Context/*",
+        "./Layouts/*": "./resources/js/Layouts/*",
+        "./utils/*": "./resources/js/utils/*",
+        "./theme/*": "./resources/js/theme/*"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0",
+        "@heroui/react": "^2.0.0",
+        "@inertiajs/react": "^2.0.0"
+    }
+}

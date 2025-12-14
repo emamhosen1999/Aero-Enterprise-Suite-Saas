@@ -1,15 +1,13 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "aero/saas-host",
+    "name": "laravel/laravel",
     "type": "project",
-    "description": "Aero Enterprise Suite - SaaS Host Application (Multi-tenant mode)",
+    "description": "The skeleton application for the Laravel framework.",
     "keywords": [
-        "aero",
-        "saas",
-        "multi-tenant",
-        "erp"
+        "laravel",
+        "framework"
     ],
-    "license": "proprietary",
+    "license": "MIT",
     "repositories": [
         {
             "type": "path",
@@ -21,10 +19,11 @@
     ],
     "require": {
         "php": "^8.2",
+        "aero/ui": "@dev",
         "aero/platform": "@dev",
         "aero/core": "@dev",
         "aero/hrm": "@dev",
-        "laravel/framework": "^11.0|^12.0",
+        "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1"
     },
     "require-dev": {

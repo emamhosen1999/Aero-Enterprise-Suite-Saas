@@ -23,7 +23,7 @@ class HandleInertiaRequests extends Middleware
      *
      * @var string
      */
-    protected $rootView = 'aero-platform::app';
+    protected $rootView = 'aero-ui::app';
 
     protected bool $resolvedSystemSetting = false;
 

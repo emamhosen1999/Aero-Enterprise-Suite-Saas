@@ -139,14 +139,6 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Configure Vite to use Core package's build directory
-        $this->app->booted(function () {
-            \Illuminate\Support\Facades\Vite::useBuildDirectory('build');
-            \Illuminate\Support\Facades\Vite::useManifestFilename('manifest.json');
-
-            // Use Laravel defaults for auth redirects and notification URLs
-        });
-
         // Load migrations from Core package (takes priority)
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
@@ -164,14 +156,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             __DIR__.'/../config/marketplace.php' => config_path('marketplace.php'),
         ], 'marketplace-config');
 
-        // Publish compiled assets (pre-built in package's public directory)
-        // Host app doesn't need to build anything - just uses pre-built assets
-        $prebuiltAssets = __DIR__.'/../public/build';
-        if (is_dir($prebuiltAssets)) {
-            $this->publishes([
-                $prebuiltAssets => public_path('vendor/aero-core'),
-            ], 'aero-core-assets');
-        }
+        // NOTE: No assets publishing - all frontend is handled by aero/ui package
 
         // Publish stubs for new installations (optional)
         $this->publishes([

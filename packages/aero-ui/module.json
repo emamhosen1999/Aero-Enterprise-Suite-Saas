@@ -1,0 +1,14 @@
+{
+    "name": "Aero UI",
+    "short_name": "ui",
+    "namespace": "Aero\\UI",
+    "description": "Shared React component library for all Aero modules",
+    "version": "1.0.0",
+    "category": "foundation",
+    "priority": 1,
+    "frontend_only": true,
+    "providers": [],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

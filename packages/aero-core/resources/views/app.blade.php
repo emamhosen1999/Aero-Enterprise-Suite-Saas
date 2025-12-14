@@ -489,7 +489,7 @@
     @routes
     @inertiaHead
     @viteReactRefresh
-    @vite(['vendor/aero/core/resources/css/app.css', 'vendor/aero/core/resources/js/app.jsx'])
+    @vite(['vendor/aero/ui/resources/css/app.css', 'vendor/aero/ui/resources/js/app.jsx'])
     
     <!-- Main Inertia App Container -->
     @inertia
