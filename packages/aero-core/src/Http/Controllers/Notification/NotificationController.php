@@ -17,7 +17,7 @@ class NotificationController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('Notifications/Index', [
+        return Inertia::render('Pages/Core/Notifications/Index', [
             'title' => 'Notifications',
         ]);
     }

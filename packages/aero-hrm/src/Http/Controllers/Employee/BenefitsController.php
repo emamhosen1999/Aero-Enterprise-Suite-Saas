@@ -10,7 +10,7 @@ class BenefitsController extends Controller
 {
     public function index()
     {
-        return Inertia::render('HR/Benefits/Index', [
+        return Inertia::render('Pages/HRM/Benefits/Index', [
             'title' => 'Employee Benefits',
             'benefits' => [],
         ]);
@@ -18,7 +18,7 @@ class BenefitsController extends Controller
 
     public function create()
     {
-        return Inertia::render('HR/Benefits/Create', [
+        return Inertia::render('Pages/HRM/Benefits/Create', [
             'title' => 'Create Benefit',
         ]);
     }
@@ -31,7 +31,7 @@ class BenefitsController extends Controller
 
     public function show($id)
     {
-        return Inertia::render('HR/Benefits/Show', [
+        return Inertia::render('Pages/HRM/Benefits/Show', [
             'title' => 'Benefit Details',
             'benefit' => [],
         ]);
@@ -39,7 +39,7 @@ class BenefitsController extends Controller
 
     public function edit($id)
     {
-        return Inertia::render('HR/Benefits/Edit', [
+        return Inertia::render('Pages/HRM/Benefits/Edit', [
             'title' => 'Edit Benefit',
             'benefit' => [],
         ]);
@@ -59,7 +59,7 @@ class BenefitsController extends Controller
 
     public function employeeBenefits($employeeId)
     {
-        return Inertia::render('HR/Benefits/EmployeeBenefits', [
+        return Inertia::render('Pages/HRM/Benefits/EmployeeBenefits', [
             'title' => 'Employee Benefits',
             'employeeId' => $employeeId,
             'benefits' => [],

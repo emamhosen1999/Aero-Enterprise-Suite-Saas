@@ -14,7 +14,7 @@ class ImportExportController extends Controller
 {
     public function index()
     {
-        return Inertia::render('SCM/ImportExport/Index', [
+        return Inertia::render('Pages/SCM/ImportExport/Index', [
             'tradeDocuments' => TradeDocument::with(['tradeTransaction'])
                 ->latest()
                 ->paginate(15),
@@ -37,7 +37,7 @@ class ImportExportController extends Controller
     // Trade Documents Management
     public function documents()
     {
-        return Inertia::render('SCM/ImportExport/Documents/Index', [
+        return Inertia::render('Pages/SCM/ImportExport/Documents/Index', [
             'documents' => TradeDocument::with(['tradeTransaction'])
                 ->latest()
                 ->paginate(15),
@@ -55,7 +55,7 @@ class ImportExportController extends Controller
 
     public function createDocument()
     {
-        return Inertia::render('SCM/ImportExport/Documents/Create', [
+        return Inertia::render('Pages/SCM/ImportExport/Documents/Create', [
             'nextDocumentNumber' => $this->generateDocumentNumber(),
             'documentTypes' => [
                 'invoice' => 'Commercial Invoice',
@@ -120,7 +120,7 @@ class ImportExportController extends Controller
     {
         $document->load(['tradeTransaction']);
 
-        return Inertia::render('SCM/ImportExport/Documents/Show', [
+        return Inertia::render('Pages/SCM/ImportExport/Documents/Show', [
             'document' => $document,
             'isExpired' => $document->isExpired(),
             'isExpiringSoon' => $document->isExpiringSoon(),
@@ -139,7 +139,7 @@ class ImportExportController extends Controller
     // Customs Declarations Management
     public function declarations()
     {
-        return Inertia::render('SCM/ImportExport/Declarations/Index', [
+        return Inertia::render('Pages/SCM/ImportExport/Declarations/Index', [
             'declarations' => CustomsDeclaration::with(['declarable'])
                 ->latest()
                 ->paginate(15),
@@ -155,7 +155,7 @@ class ImportExportController extends Controller
 
     public function createDeclaration()
     {
-        return Inertia::render('SCM/ImportExport/Declarations/Create', [
+        return Inertia::render('Pages/SCM/ImportExport/Declarations/Create', [
             'nextDeclarationNumber' => $this->generateDeclarationNumber(),
             'currencies' => ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'],
             'countries' => $this->getCountryCodes(),
@@ -196,7 +196,7 @@ class ImportExportController extends Controller
     {
         $declaration->load(['declarable']);
 
-        return Inertia::render('SCM/ImportExport/Declarations/Show', [
+        return Inertia::render('Pages/SCM/ImportExport/Declarations/Show', [
             'declaration' => $declaration,
             'isPending' => $declaration->isPending(),
             'isCleared' => $declaration->isCleared(),

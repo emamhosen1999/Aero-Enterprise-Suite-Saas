@@ -40,7 +40,7 @@ class TimeOffManagementController extends Controller
         // Calculate leave statistics
         $stats = $this->calculateLeaveStats($user->id, $currentYear);
 
-        return Inertia::render('HR/TimeOff/Dashboard', [
+        return Inertia::render('Pages/HRM/TimeOff/Dashboard', [
             'title' => 'Time Off Management',
             'holidays' => $holidays,
             'leaveTypes' => $leaveTypes,
@@ -118,7 +118,7 @@ class TimeOffManagementController extends Controller
 
         $events = $holidays->merge($leaves);
 
-        return Inertia::render('HR/TimeOff/Calendar', [
+        return Inertia::render('Pages/HRM/TimeOff/Calendar', [
             'title' => 'Time Off Calendar',
             'events' => $events,
         ]);
@@ -182,7 +182,7 @@ class TimeOffManagementController extends Controller
             ->groupBy('leave_settings.type')
             ->get();
 
-        return Inertia::render('HR/TimeOff/Reports', [
+        return Inertia::render('Pages/HRM/TimeOff/Reports', [
             'title' => 'Time Off Reports',
             'departmentStats' => $departmentStats,
             'monthlyTrends' => $monthlyTrends,

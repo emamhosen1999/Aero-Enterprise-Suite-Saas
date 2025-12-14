@@ -11,14 +11,14 @@ class InspectionController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Quality/Inspections/Index', [
+        return Inertia::render('Pages/Quality/Inspections/Index', [
             'title' => 'Quality Inspections',
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Quality/Inspections/Create', [
+        return Inertia::render('Pages/Quality/Inspections/Create', [
             'title' => 'Create Inspection',
         ]);
     }
@@ -31,14 +31,14 @@ class InspectionController extends Controller
 
     public function show($id)
     {
-        return Inertia::render('Quality/Inspections/Show', [
+        return Inertia::render('Pages/Quality/Inspections/Show', [
             'title' => 'Inspection Details',
         ]);
     }
 
     public function edit($id)
     {
-        return Inertia::render('Quality/Inspections/Edit', [
+        return Inertia::render('Pages/Quality/Inspections/Edit', [
             'title' => 'Edit Inspection',
         ]);
     }

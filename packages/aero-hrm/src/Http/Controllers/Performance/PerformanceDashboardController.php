@@ -20,7 +20,7 @@ class PerformanceDashboardController extends Controller
      */
     public function index()
     {
-        return Inertia::render('PerformanceDashboard', [
+        return Inertia::render('Pages/HRM/Performance/Dashboard', [
             'title' => 'Performance Dashboard - Glass ERP',
         ]);
     }

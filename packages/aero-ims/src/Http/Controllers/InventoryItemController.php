@@ -11,7 +11,7 @@ class InventoryItemController extends Controller
 {
     public function index()
     {
-        return Inertia::render('IMS/Items/Index', [
+        return Inertia::render('Pages/IMS/Items/Index', [
             'inventoryItems' => InventoryItem::with(['category', 'unit'])
                 ->latest()
                 ->paginate(10),
@@ -21,7 +21,7 @@ class InventoryItemController extends Controller
 
     public function create()
     {
-        return Inertia::render('IMS/Items/Create');
+        return Inertia::render('Pages/IMS/Items/Create');
     }
 
     public function store(Request $request)
@@ -57,7 +57,7 @@ class InventoryItemController extends Controller
 
     public function show(InventoryItem $item)
     {
-        return Inertia::render('IMS/Items/Show', [
+        return Inertia::render('Pages/IMS/Items/Show', [
             'item' => $item->load([
                 'category',
                 'unit',
@@ -71,7 +71,7 @@ class InventoryItemController extends Controller
 
     public function edit(InventoryItem $item)
     {
-        return Inertia::render('IMS/Items/Edit', [
+        return Inertia::render('Pages/IMS/Items/Edit', [
             'item' => $item->load(['category', 'unit', 'manufacturer']),
         ]);
     }

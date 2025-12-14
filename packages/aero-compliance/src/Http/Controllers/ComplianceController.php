@@ -29,7 +29,7 @@ class ComplianceController extends Controller
     {
         $stats = $this->getComplianceStats();
 
-        return Inertia::render('Compliance/Dashboard', [
+        return Inertia::render('Pages/Compliance/Dashboard', [
             'stats' => $stats,
             'recentActivities' => $this->getRecentActivities(),
             'upcomingDeadlines' => $this->getUpcomingDeadlines(),

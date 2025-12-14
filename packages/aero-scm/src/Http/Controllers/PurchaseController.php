@@ -17,7 +17,7 @@ class PurchaseController extends Controller
 {
     public function index()
     {
-        return Inertia::render('SCM/Purchases/Index', [
+        return Inertia::render('Pages/SCM/Purchases/Index', [
             'purchases' => PurchaseOrder::with(['supplier', 'user', 'items.inventoryItem'])
                 ->latest()
                 ->paginate(15),
@@ -33,7 +33,7 @@ class PurchaseController extends Controller
 
     public function create()
     {
-        return Inertia::render('SCM/Purchases/Create', [
+        return Inertia::render('Pages/SCM/Purchases/Create', [
             'suppliers' => Supplier::where('status', 'active')->select('id', 'name')->get(),
             'inventoryItems' => InventoryItem::select('id', 'name', 'sku', 'unit_price')->get(),
             'nextPoNumber' => $this->generatePoNumber(),
@@ -117,7 +117,7 @@ class PurchaseController extends Controller
     {
         $purchase->load(['supplier', 'user', 'approver', 'items.inventoryItem', 'receipts.receiptItems']);
 
-        return Inertia::render('SCM/Purchases/Show', [
+        return Inertia::render('Pages/SCM/Purchases/Show', [
             'purchase' => $purchase,
         ]);
     }
@@ -131,7 +131,7 @@ class PurchaseController extends Controller
 
         $purchase->load(['items.inventoryItem']);
 
-        return Inertia::render('SCM/Purchases/Edit', [
+        return Inertia::render('Pages/SCM/Purchases/Edit', [
             'purchase' => $purchase,
             'suppliers' => Supplier::where('status', 'active')->select('id', 'name')->get(),
             'inventoryItems' => InventoryItem::select('id', 'name', 'sku', 'unit_price')->get(),

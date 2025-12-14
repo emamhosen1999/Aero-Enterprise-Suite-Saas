@@ -38,7 +38,7 @@ class HrmSettingController extends Controller
         }
 
         // Load settings data for all tabs
-        return Inertia::render('Settings/HRMSettings', [
+        return Inertia::render('Pages/HRM/Settings/HRMSettings', [
             'title' => 'HR Module Settings',
             'activeTab' => $activeTab,
             'onboardingSettings' => [

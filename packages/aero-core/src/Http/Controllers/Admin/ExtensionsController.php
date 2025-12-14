@@ -58,7 +58,7 @@ class ExtensionsController extends Controller
         // Get purchased but not installed modules
         $purchasedCodes = $this->marketplaceService->getPurchasedCodes();
 
-        return Inertia::render('Core/Extensions/Index', [
+        return Inertia::render('Pages/Core/Admin/Extensions/Index', [
             'installedModules' => $installedModules,
             'marketplaceModules' => $marketplaceModules,
             'purchasedCodes' => $purchasedCodes,
@@ -255,7 +255,7 @@ class ExtensionsController extends Controller
             abort(404, 'Module not found');
         }
 
-        return Inertia::render('Core/Extensions/Settings', [
+        return Inertia::render('Pages/Core/Admin/Extensions/Settings', [
             'module' => $module,
         ]);
     }

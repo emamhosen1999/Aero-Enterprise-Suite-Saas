@@ -34,7 +34,7 @@ class PlatformSettingController extends Controller
             return new PlatformSettingResource($setting);
         }
 
-        return Inertia::render('Admin/Settings/Platform', [
+        return Inertia::render('Pages/Platform/Admin/Settings/Platform', [
             'title' => 'Platform Settings',
             'platformSettings' => PlatformSettingResource::make($setting)->resolve(),
         ]);

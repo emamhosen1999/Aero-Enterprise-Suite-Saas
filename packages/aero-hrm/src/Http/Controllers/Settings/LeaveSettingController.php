@@ -13,7 +13,7 @@ class LeaveSettingController extends Controller
     {
         $leaveSettings = LeaveSetting::all();
 
-        return Inertia::render('Settings/LeaveSettings', [
+        return Inertia::render('Pages/HRM/Settings/LeaveSettings', [
             'title' => 'Leave Settings',
             'leaveTypes' => $leaveSettings,
         ]);

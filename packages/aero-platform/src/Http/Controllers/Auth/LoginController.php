@@ -36,7 +36,7 @@ class LoginController extends Controller
      */
     public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Login', [
+        return Inertia::render('Pages/Platform/Admin/Auth/Login', [
             'canResetPassword' => true,
             'status' => session('status'),
             'deviceBlocked' => session('device_blocked', false),

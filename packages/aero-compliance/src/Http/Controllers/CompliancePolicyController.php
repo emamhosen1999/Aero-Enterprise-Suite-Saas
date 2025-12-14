@@ -42,7 +42,7 @@ class CompliancePolicyController extends Controller
 
         $policies = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        return Inertia::render('Compliance/Policies/Index', [
+        return Inertia::render('Pages/Compliance/Policies/Index', [
             'policies' => $policies,
             'filters' => $request->only(['search', 'category', 'status', 'due_for_review']),
             'categories' => $this->getCategories(),
@@ -55,7 +55,7 @@ class CompliancePolicyController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Compliance/Policies/Create', [
+        return Inertia::render('Pages/Compliance/Policies/Create', [
             'categories' => $this->getCategories(),
             'types' => $this->getTypes(),
             'users' => User::select('id', 'name', 'email')->get(),
@@ -121,7 +121,7 @@ class CompliancePolicyController extends Controller
                 ->paginate(10);
         }
 
-        return Inertia::render('Compliance/Policies/Show', [
+        return Inertia::render('Pages/Compliance/Policies/Show', [
             'policy' => $policy,
             'acknowledgments' => $acknowledgments,
             'userHasAcknowledged' => $this->userHasAcknowledged($policy),
@@ -134,7 +134,7 @@ class CompliancePolicyController extends Controller
      */
     public function edit(CompliancePolicy $policy)
     {
-        return Inertia::render('Compliance/Policies/Edit', [
+        return Inertia::render('Pages/Compliance/Policies/Edit', [
             'policy' => $policy,
             'categories' => $this->getCategories(),
             'types' => $this->getTypes(),

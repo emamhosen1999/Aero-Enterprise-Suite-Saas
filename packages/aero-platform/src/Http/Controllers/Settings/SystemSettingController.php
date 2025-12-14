@@ -30,7 +30,7 @@ class SystemSettingController extends Controller
             return new SystemSettingResource($setting);
         }
 
-        return Inertia::render('Settings/SystemSettings', [
+        return Inertia::render('Pages/Core/Settings/SystemSettings', [
             'title' => 'System Settings',
             'systemSettings' => SystemSettingResource::make($setting)->resolve(),
         ]);

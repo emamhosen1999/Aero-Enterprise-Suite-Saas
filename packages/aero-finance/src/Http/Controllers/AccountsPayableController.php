@@ -21,7 +21,7 @@ class AccountsPayableController extends Controller
         // TODO: Fetch payables from database
         $payables = [];
         
-        return Inertia::render('Tenant/Pages/Finance/AccountsPayable', [
+        return Inertia::render('Pages/Finance/AccountsPayable', [
             'title' => 'Accounts Payable',
             'payables' => $payables,
         ]);

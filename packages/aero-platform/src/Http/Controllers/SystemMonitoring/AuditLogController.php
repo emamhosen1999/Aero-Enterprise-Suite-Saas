@@ -69,7 +69,7 @@ class AuditLogController extends Controller
             ]);
         }
 
-        return Inertia::render('Administration/AuditLog/Index', [
+        return Inertia::render('Pages/Platform/Admin/AuditLogs/Index', [
             'activities' => $activities,
             'logNames' => $logNames,
             'filters' => $request->only(['log_name', 'subject_type', 'causer_id', 'start_date', 'end_date', 'search']),
@@ -87,7 +87,7 @@ class AuditLogController extends Controller
             return response()->json($activity);
         }
 
-        return Inertia::render('Administration/AuditLog/Show', [
+        return Inertia::render('Pages/Platform/Admin/AuditLogs/Show', [
             'activity' => $activity,
         ]);
     }

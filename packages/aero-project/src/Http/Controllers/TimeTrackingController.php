@@ -44,7 +44,7 @@ class TimeTrackingController extends Controller
 
         $timeEntries = $query->paginate(15);
 
-        return Inertia::render('ProjectManagement/TimeTracking/Index', [
+        return Inertia::render('Pages/Project/TimeTracking/Index', [
             'timeEntries' => $timeEntries,
             'projects' => Project::select('id', 'project_name')->get(),
             'users' => User::select('id', 'name')->get(),
@@ -54,7 +54,7 @@ class TimeTrackingController extends Controller
 
     public function create()
     {
-        return Inertia::render('ProjectManagement/TimeTracking/Create', [
+        return Inertia::render('Pages/Project/TimeTracking/Create', [
             'projects' => Project::with(['tasks' => function ($query) {
                 $query->select('id', 'project_id', 'name');
             }])->select('id', 'project_name')->get(),
@@ -95,14 +95,14 @@ class TimeTrackingController extends Controller
     {
         $timeEntry->load(['project', 'task', 'user', 'approvedBy']);
 
-        return Inertia::render('ProjectManagement/TimeTracking/Show', [
+        return Inertia::render('Pages/Project/TimeTracking/Show', [
             'timeEntry' => $timeEntry,
         ]);
     }
 
     public function edit(ProjectTimeEntry $timeEntry)
     {
-        return Inertia::render('ProjectManagement/TimeTracking/Edit', [
+        return Inertia::render('Pages/Project/TimeTracking/Edit', [
             'timeEntry' => $timeEntry,
             'projects' => Project::with(['tasks' => function ($query) {
                 $query->select('id', 'project_id', 'name');
@@ -230,7 +230,7 @@ class TimeTrackingController extends Controller
             ->groupBy('users.id', 'users.name')
             ->get();
 
-        return Inertia::render('ProjectManagement/TimeTracking/Reports', [
+        return Inertia::render('Pages/Project/TimeTracking/Reports', [
             'summary' => $summary,
             'projectBreakdown' => $projectBreakdown,
             'userBreakdown' => $userBreakdown,

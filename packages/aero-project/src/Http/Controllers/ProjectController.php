@@ -107,7 +107,7 @@ class ProjectController extends Controller
         $onTimeDeliveryRate = $totalProjects > 0 ?
             (Project::where('status', 'completed')->where('end_date', '<=', now())->count() / $totalProjects) * 100 : 0;
 
-        return Inertia::render('ProjectManagement/Projects/Index', [
+        return Inertia::render('Pages/Project/Projects/Index', [
             'projects' => $projects,
             'filters' => $request->all(),
             'kpis' => [
@@ -154,7 +154,7 @@ class ProjectController extends Controller
 
     public function create()
     {
-        return Inertia::render('ProjectManagement/Projects/Create', [
+        return Inertia::render('Pages/Project/Projects/Create', [
             'departments' => Department::all(),
             'users' => User::all(['id', 'name']),
             'statusOptions' => [
@@ -209,7 +209,7 @@ class ProjectController extends Controller
     {
         $project->load(['projectLeader', 'teamLeader', 'department', 'milestones', 'resources.user']);
 
-        return Inertia::render('ProjectManagement/Projects/Show', [
+        return Inertia::render('Pages/Project/Projects/Show', [
             'project' => $project,
             'statusOptions' => [
                 ['id' => 'not_started', 'name' => 'Not Started'],
@@ -229,7 +229,7 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
-        return Inertia::render('ProjectManagement/Projects/Edit', [
+        return Inertia::render('Pages/Project/Projects/Edit', [
             'project' => $project,
             'departments' => Department::all(),
             'users' => User::all(['id', 'name']),
@@ -296,7 +296,7 @@ class ProjectController extends Controller
         $projectsByStatus = $projects->groupBy('status')->map->count();
         $projectsByPriority = $projects->groupBy('priority')->map->count();
 
-        return Inertia::render('ProjectManagement/Dashboard', [
+        return Inertia::render('Pages/Project/Dashboard', [
             'projects' => $projects->take(5),
             'projectStats' => [
                 'total' => $projects->count(),

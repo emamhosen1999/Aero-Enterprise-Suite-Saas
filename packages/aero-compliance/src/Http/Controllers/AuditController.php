@@ -56,7 +56,7 @@ class AuditController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('Compliance/Audits/Index', [
+        return Inertia::render('Pages/Compliance/Audits/Index', [
             'audits' => $audits,
             'filters' => $request->only(['search', 'status', 'type', 'department_id', 'date_from', 'date_to']),
             'auditTypes' => [
@@ -80,7 +80,7 @@ class AuditController extends Controller
     {
         $this->authorize('create', ComplianceAudit::class);
 
-        return Inertia::render('Compliance/Audits/Create', [
+        return Inertia::render('Pages/Compliance/Audits/Create', [
             'auditTypes' => [
                 ['id' => 'internal', 'name' => 'Internal'],
                 ['id' => 'external', 'name' => 'External'],
@@ -125,7 +125,7 @@ class AuditController extends Controller
 
         $audit->load(['leadAuditor', 'department', 'auditFindings.assignee']);
 
-        return Inertia::render('Compliance/Audits/Show', [
+        return Inertia::render('Pages/Compliance/Audits/Show', [
             'audit' => $audit,
             'findingTypes' => [
                 ['id' => 'non_conformance', 'name' => 'Non-Conformance'],
@@ -145,7 +145,7 @@ class AuditController extends Controller
     {
         $this->authorize('update', $audit);
 
-        return Inertia::render('Compliance/Audits/Edit', [
+        return Inertia::render('Pages/Compliance/Audits/Edit', [
             'audit' => $audit,
             'auditTypes' => [
                 ['id' => 'internal', 'name' => 'Internal'],
