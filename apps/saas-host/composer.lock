@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2096699badf473cd72a74f69f2057a86",
+    "content-hash": "261d403d2c0b07ff893a330e253563ae",
     "packages": [
         {
             "name": "aero/core",
             "version": "dev-main",
             "dist": {
                 "type": "path",
-                "url": "../../packages/aero-core",
-                "reference": "6ae04dc90b89a84cfaccc925b3d9e15a9d3489a1"
+                "url": "D:/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-core",
+                "reference": "d1d8732c20770ba5eb9e51d3fb13e68477bac889"
             },
             "require": {
                 "inertiajs/inertia-laravel": "^2.0",
@@ -83,7 +83,7 @@
             ],
             "transport-options": {
                 "symlink": true,
-                "relative": true
+                "relative": false
             }
         },
         {
@@ -91,8 +91,8 @@
             "version": "1.0.0",
             "dist": {
                 "type": "path",
-                "url": "../../packages/aero-hrm",
-                "reference": "c33966e82c9cd866316d44fb61ad57bb5afa8189"
+                "url": "D:/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-hrm",
+                "reference": "703e43bf6e37ffdfe3944250f670b8baa2a2d4e3"
             },
             "require": {
                 "aero/core": "*",
@@ -152,7 +152,7 @@
             ],
             "transport-options": {
                 "symlink": true,
-                "relative": true
+                "relative": false
             }
         },
         {
@@ -160,8 +160,8 @@
             "version": "dev-main",
             "dist": {
                 "type": "path",
-                "url": "../../packages/aero-platform",
-                "reference": "cae0fb96f966c048665b3d68d4786684450e2fde"
+                "url": "D:/laragon/www/Aero-Enterprise-Suite-Saas/packages/aero-platform",
+                "reference": "f82e4639f7e3199279ea19618852d3d3ff70091f"
             },
             "require": {
                 "aero/core": "*",
@@ -193,7 +193,9 @@
                     "package": "platform",
                     "version": "1.0.0",
                     "category": "landlord",
-                    "description": "Platform management package providing multi-tenancy orchestration, landlord authentication, and platform administration"
+                    "description": "Platform management package providing multi-tenancy orchestration, landlord authentication, and platform administration",
+                    "has-assets": true,
+                    "build-command": "php artisan aero:build-assets"
                 }
             },
             "autoload": {
@@ -207,6 +209,11 @@
                 "psr-4": {
                     "Aero\\Platform\\Tests\\": "tests/"
                 }
+            },
+            "scripts": {
+                "post-autoload-dump": [
+                    "@php -r \"if (file_exists('artisan')) { echo '\\nℹ️  Publish platform assets: php artisan vendor:publish --tag=aero-platform-assets --force' . PHP_EOL; }\""
+                ]
             },
             "license": [
                 "MIT"
@@ -230,7 +237,7 @@
             ],
             "transport-options": {
                 "symlink": true,
-                "relative": true
+                "relative": false
             }
         },
         {
@@ -3220,31 +3227,31 @@
         },
         {
             "name": "maennchen/zipstream-php",
-            "version": "3.1.2",
+            "version": "3.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/maennchen/ZipStream-PHP.git",
-                "reference": "aeadcf5c412332eb426c0f9b4485f6accba2a99f"
+                "reference": "682f1098a8fddbaf43edac2306a691c7ad508ec5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/maennchen/ZipStream-PHP/zipball/aeadcf5c412332eb426c0f9b4485f6accba2a99f",
-                "reference": "aeadcf5c412332eb426c0f9b4485f6accba2a99f",
+                "url": "https://api.github.com/repos/maennchen/ZipStream-PHP/zipball/682f1098a8fddbaf43edac2306a691c7ad508ec5",
+                "reference": "682f1098a8fddbaf43edac2306a691c7ad508ec5",
                 "shasum": ""
             },
             "require": {
                 "ext-mbstring": "*",
                 "ext-zlib": "*",
-                "php-64bit": "^8.2"
+                "php-64bit": "^8.3"
             },
             "require-dev": {
                 "brianium/paratest": "^7.7",
                 "ext-zip": "*",
-                "friendsofphp/php-cs-fixer": "^3.16",
+                "friendsofphp/php-cs-fixer": "^3.86",
                 "guzzlehttp/guzzle": "^7.5",
                 "mikey179/vfsstream": "^1.6",
                 "php-coveralls/php-coveralls": "^2.5",
-                "phpunit/phpunit": "^11.0",
+                "phpunit/phpunit": "^12.0",
                 "vimeo/psalm": "^6.0"
             },
             "suggest": {
@@ -3286,7 +3293,7 @@
             ],
             "support": {
                 "issues": "https://github.com/maennchen/ZipStream-PHP/issues",
-                "source": "https://github.com/maennchen/ZipStream-PHP/tree/3.1.2"
+                "source": "https://github.com/maennchen/ZipStream-PHP/tree/3.2.1"
             },
             "funding": [
                 {
@@ -3294,7 +3301,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-27T12:07:53+00:00"
+            "time": "2025-12-10T09:58:31+00:00"
         },
         {
             "name": "markbaker/complex",
@@ -5516,16 +5523,16 @@
         },
         {
             "name": "spatie/laravel-permission",
-            "version": "6.23.0",
+            "version": "6.24.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-permission.git",
-                "reference": "9e41247bd512b1e6c229afbc1eb528f7565ae3bb"
+                "reference": "76adb1fc8d07c16a0721c35c4cc330b7a12598d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/9e41247bd512b1e6c229afbc1eb528f7565ae3bb",
-                "reference": "9e41247bd512b1e6c229afbc1eb528f7565ae3bb",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/76adb1fc8d07c16a0721c35c4cc330b7a12598d7",
+                "reference": "76adb1fc8d07c16a0721c35c4cc330b7a12598d7",
                 "shasum": ""
             },
             "require": {
@@ -5587,7 +5594,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-permission/issues",
-                "source": "https://github.com/spatie/laravel-permission/tree/6.23.0"
+                "source": "https://github.com/spatie/laravel-permission/tree/6.24.0"
             },
             "funding": [
                 {
@@ -5595,7 +5602,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-11-03T20:16:13+00:00"
+            "time": "2025-12-13T21:45:21+00:00"
         },
         {
             "name": "spatie/temporary-directory",
@@ -11128,8 +11135,12 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "dev",
-    "stability-flags": {},
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "aero/core": 20,
+        "aero/hrm": 20,
+        "aero/platform": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

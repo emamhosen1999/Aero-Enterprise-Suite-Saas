@@ -1,203 +1,351 @@
 # Asset Build Strategy
 
 ## Overview
-The Aero monorepo supports two distinct build strategies depending on the deployment context.
+
+The Aero Enterprise Suite uses a **dual-mode architecture** supporting both SaaS (multi-tenant) and Standalone (single-tenant) deployments from the same codebase.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        DEPLOYMENT MODES                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    STANDALONE MODE                               │   │
+│  │                  (apps/standalone-host)                          │   │
+│  │                                                                  │   │
+│  │   Packages: aero-core + aero-hrm + aero-crm + ...               │   │
+│  │   Database: Single database (no tenancy)                        │   │
+│  │   Auth: web guard only                                          │   │
+│  │   Entry: vendor/aero/core/resources/js/app.jsx                  │   │
+│  │   Use Case: Self-hosted, on-premise, single organization        │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                       SAAS MODE                                  │   │
+│  │                    (apps/saas-host)                              │   │
+│  │                                                                  │   │
+│  │   Packages: aero-platform + aero-core + aero-hrm + aero-crm     │   │
+│  │                                                                  │   │
+│  │   ┌─────────────────┐    ┌──────────────────────────────────┐   │   │
+│  │   │ LANDLORD DOMAIN │    │     TENANT SUBDOMAINS            │   │   │
+│  │   │ admin.domain.com│    │ {tenant}.domain.com              │   │   │
+│  │   │                 │    │                                   │   │   │
+│  │   │ • Platform UI   │    │ • Core UI (users, settings)      │   │   │
+│  │   │ • Tenant mgmt   │    │ • HRM, CRM, modules              │   │   │
+│  │   │ • Billing       │    │ • Tenant-scoped data             │   │   │
+│  │   │ • Central DB    │    │ • Per-tenant DB                  │   │   │
+│  │   │                 │    │                                   │   │   │
+│  │   │ Entry: platform │    │ Entry: core/app.jsx              │   │   │
+│  │   │ /app.jsx        │    │ + module pages                   │   │   │
+│  │   └─────────────────┘    └──────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## **Strategy 1: Monorepo Package-Level Builds**
+## Package Dependency Graph
 
-Used when developing within the monorepo (`Aero-Enterprise-Suite-Saas/`).
-
-### Package Build Configurations
-
-#### **aero-core** (Tenant Applications)
-```javascript
-// packages/aero-core/vite.config.js
-{
-  input: ['resources/css/app.css', 'resources/js/app.jsx'],
-  publicDirectory: '../../apps/standalone-host/public',
-  outDir: '../../apps/standalone-host/public/build',
-  port: 5173
-}
 ```
-
-**Usage:**
-```bash
-cd packages/aero-core
-npm install
-npm run dev   # Dev server on port 5173
-npm run build # Build to apps/standalone-host/public/build
+                    ┌─────────────────┐
+                    │  aero-platform  │
+                    │   (SaaS only)   │
+                    │                 │
+                    │ • stancl/tenancy│
+                    │ • cashier       │
+                    │ • Admin UI      │
+                    └────────┬────────┘
+                             │ requires
+                             ▼
+┌──────────────┐     ┌─────────────────┐     ┌──────────────┐
+│   aero-hrm   │────▶│    aero-core    │◀────│   aero-crm   │
+│              │     │   (foundation)   │     │              │
+│ • Employees  │     │                 │     │ • Contacts   │
+│ • Attendance │     │ • User model    │     │ • Deals      │
+│ • Leave      │     │ • Auth/RBAC     │     │ • Pipeline   │
+│ • Payroll    │     │ • Module system │     │              │
+└──────────────┘     │ • Base UI       │     └──────────────┘
+                     │ • Inertia setup │
+                     └─────────────────┘
 ```
-
-#### **aero-platform** (SaaS Admin)
-```javascript
-// packages/aero-platform/vite.config.js
-{
-  input: ['resources/css/app.css', 'resources/js/app.jsx'],
-  publicDirectory: '../../apps/saas-host/public',
-  outDir: '../../apps/saas-host/public/build',
-  port: 5174
-}
-```
-
-**Usage:**
-```bash
-cd packages/aero-platform
-npm install
-npm run dev   # Dev server on port 5174
-npm run build # Build to apps/saas-host/public/build
-```
-
-#### **aero-hrm** (Module - Library Mode)
-```javascript
-// packages/aero-hrm/vite.config.js
-{
-  lib: {
-    entry: 'resources/js/index.jsx',
-    name: 'AeroHrm',
-    formats: ['es'],
-    fileName: 'aero-hrm.js'
-  },
-  outDir: 'dist',
-  external: ['react', 'react-dom', '@inertiajs/react', '@heroui/react']
-}
-```
-
-**Usage:**
-```bash
-cd packages/aero-hrm
-npm install
-npm run build # Build to dist/aero-hrm.js (ES module)
-```
-
-### When to Use Package-Level Builds
-- ✅ Developing features within a specific package
-- ✅ Testing package in isolation
-- ✅ Working on monorepo's `apps/saas-host` or `apps/standalone-host`
-- ✅ CI/CD pipelines that build packages separately
 
 ---
 
-## **Strategy 2: Host App Unified Build**
+## Host Application Structure
 
-Used when deploying to external host applications (like `aeos365`).
+### SaaS Host (`apps/saas-host/saas/`)
 
-### Host App Configuration
-
-The host app has a **single vite.config.js** that reads from ALL packages:
-
-```javascript
-// aeos365/vite.config.js
+```json
+// composer.json
 {
-  input: [
-    'vendor/aero/platform/resources/css/app.css',
-    'vendor/aero/platform/resources/js/app.jsx'  // Entry point
-  ],
-  
-  alias: {
-    '@': 'vendor/aero/platform/resources/js',      // Platform
-    '@core': 'vendor/aero/core/resources/js',      // Core (tenants)
-    '@hrm': 'vendor/aero/hrm/resources/js',        // HRM module
-    // ... other modules
-  },
-  
-  // Output to host app's public directory
-  outDir: 'public/build'
+    "require": {
+        "aero/platform": "@dev",  // Multi-tenancy orchestrator
+        "aero/core": "@dev",      // Foundation
+        "aero/hrm": "@dev"        // Business modules
+    },
+    "repositories": [{
+        "type": "path",
+        "url": "../../../packages/*",
+        "options": { "symlink": true }
+    }]
 }
 ```
 
-### Build Process
+### Standalone Host (`apps/standalone-host/`)
 
-**1. Install Dependencies**
-```bash
-cd aeos365
-composer install  # Symlinks vendor/aero/* packages
-npm install       # Installs all frontend dependencies
+```json
+// composer.json
+{
+    "require": {
+        "aero/core": "@dev",      // Foundation (NO platform!)
+        "aero/hrm": "@dev"        // Business modules
+    },
+    "repositories": [{
+        "type": "path",
+        "url": "../../packages/*",
+        "options": { "symlink": true }
+    }]
+}
 ```
 
-**2. Build Assets**
-```bash
-# Option A: Use Laravel command
-php artisan aero:build-assets
+---
 
-# Option B: Direct npm
+## Vite Configuration Strategy
+
+### Key Principles
+
+1. **Dynamic Module Discovery**: Vite configs scan `vendor/aero/*/module.json` at build time
+2. **Dual Entry Points** (SaaS): Both platform and core `app.jsx` are built
+3. **Single Entry Point** (Standalone): Only core `app.jsx` is built
+4. **Unified Dependencies**: Host app's `node_modules` used by all packages
+5. **Symlink Support**: `preserveSymlinks: true` + `fs.allow` for vendor paths
+
+### SaaS Host Vite Config
+
+```javascript
+// apps/saas-host/saas/vite.config.js
+export default defineConfig({
+    input: [
+        // Platform entry (landlord domain)
+        'vendor/aero/platform/resources/js/app.jsx',
+        
+        // Core entry (tenant domains)  
+        'vendor/aero/core/resources/js/app.jsx',
+    ],
+    
+    alias: {
+        '@': 'vendor/aero/platform/resources/js',      // Platform (default)
+        '@platform': 'vendor/aero/platform/resources/js',
+        '@core': 'vendor/aero/core/resources/js',
+        '@hrm': 'vendor/aero/hrm/resources/js',        // Dynamic
+        '@crm': 'vendor/aero/crm/resources/js',        // Dynamic
+        // ... auto-discovered from module.json
+    }
+});
+```
+
+### Standalone Host Vite Config
+
+```javascript
+// apps/standalone-host/vite.config.js
+export default defineConfig({
+    input: [
+        // Core entry only (no platform)
+        'vendor/aero/core/resources/js/app.jsx',
+    ],
+    
+    alias: {
+        '@': 'vendor/aero/core/resources/js',          // Core (default)
+        '@core': 'vendor/aero/core/resources/js',
+        '@hrm': 'vendor/aero/hrm/resources/js',        // Dynamic
+        // ... auto-discovered from module.json
+    }
+});
+```
+
+---
+
+## Module Contract (module.json)
+
+Every module MUST have a `module.json` file at its root:
+
+```json
+{
+    "name": "aero-hrm",
+    "short_name": "hrm",
+    "namespace": "Aero\\Hrm",
+    "version": "1.0.0",
+    "description": "Human Resource Management Module",
+    "category": "business",
+    
+    "frontend": {
+        "pages": "resources/js/Pages",
+        "components": "resources/js/Components",
+        "pagePrefix": "Hrm"
+    },
+    
+    "exports": {
+        "components": ["EmployeeCard", "LeaveCalendar"],
+        "hooks": ["useEmployee", "useLeaveBalance"]
+    },
+    
+    "dependencies": {
+        "aero-core": "^1.0"
+    },
+    
+    "permissions": [
+        "hrm.employees.view",
+        "hrm.employees.create"
+    ],
+    
+    "config": {
+        "enabled": true
+    }
+}
+```
+
+### Category Values
+
+| Category | Description | Example Packages |
+|----------|-------------|------------------|
+| `foundation` | Core framework | aero-core |
+| `landlord` | SaaS-only, platform management | aero-platform |
+| `business` | Tenant-facing modules | aero-hrm, aero-crm |
+
+---
+
+## Build Commands
+
+### Using the Build Script
+
+```powershell
+# Build both hosts
+.\scripts\build-all.ps1
+
+# Build SaaS host only
+.\scripts\build-all.ps1 -Target saas
+
+# Build Standalone host only  
+.\scripts\build-all.ps1 -Target standalone
+
+# Start dev server
+.\scripts\build-all.ps1 -Target saas -Dev
+
+# Install dependencies before building
+.\scripts\build-all.ps1 -Install
+```
+
+### Manual Build
+
+```bash
+# SaaS Host
+cd apps/saas-host/saas
+composer install
+npm install
 npm run build
 
-# Option C: Development mode with hot reload
-php artisan aero:build-assets --watch
-# or
-npm run dev
-```
-
-**3. Result**
-- Vite reads source files from `vendor/aero/*/resources`
-- Compiles everything to `public/build/`
-- Single manifest: `public/build/manifest.json`
-- All assets bundled together optimally
-
-### When to Use Host App Build
-- ✅ Deploying to production
-- ✅ Testing the complete SaaS application
-- ✅ External host apps (outside monorepo)
-- ✅ Docker containers
-- ✅ Shared hosting environments
-
----
-
-## **Comparison**
-
-| Aspect | Package-Level | Host App Unified |
-|--------|--------------|------------------|
-| **Location** | `packages/aero-*/` | `aeos365/` (or any host) |
-| **Entry Point** | Package's app.jsx | Platform's app.jsx |
-| **Output** | `apps/*/public/build` | `public/build` |
-| **Modules** | Build separately | Import via aliases |
-| **Use Case** | Development | Deployment |
-| **Speed** | Faster (smaller scope) | Slower (full app) |
-| **Dependencies** | Package's package.json | Host's package.json |
-
----
-
-## **Module Loading**
-
-Modules (HRM, CRM, etc.) can be loaded two ways:
-
-### **1. Compile-Time (SaaS Mode)**
-Modules are bundled during build via aliases:
-```javascript
-// Host vite.config.js
-alias: {
-  '@hrm': 'vendor/aero/hrm/resources/js'
-}
-
-// Usage in components
-import { EmployeeList } from '@hrm/Pages/EmployeeList';
-```
-
-### **2. Runtime (Standalone Mode)**
-Modules are loaded dynamically as pre-built libraries:
-```javascript
-// Load HRM module at runtime
-const hrmModule = await import('/modules/aero-hrm.js');
+# Standalone Host
+cd apps/standalone-host
+composer install
+npm install
+npm run build
 ```
 
 ---
 
-## **Deployment Workflow**
+## Development Workflow
 
-### **For SaaS (aeos365 or similar)**
+### Local Development (Monorepo)
+
+1. **Symlinks are automatic**: Composer path repositories create symlinks
+2. **HMR works**: Vite watches symlinked package files
+3. **Single npm install**: Dependencies installed in host app only
 
 ```bash
-# 1. Clone/pull repository
-git clone [repo] aeos365
-cd aeos365
+# Start SaaS development
+cd apps/saas-host/saas
+composer install
+npm install
+npm run dev          # Vite dev server with HMR
+php artisan serve    # Laravel server
+```
 
-# 2. Install backend dependencies
-composer install --no-dev --optimize-autoloader
+### Adding a New Module
 
-# 3. Install frontend dependencies
-npm ci --production
+1. Create package in `packages/aero-{name}/`
+2. Add `module.json` with required fields
+3. Add to host's `composer.json`
+4. Run `composer update`
+5. Restart Vite dev server
+
+---
+
+## Inertia Page Resolution
+
+### How Pages Are Resolved
+
+1. Laravel controller returns: `Inertia::render('Hrm/Employees/Index', [...])`
+2. Vite builds all pages from discovered modules
+3. Frontend resolver matches `Hrm/Employees/Index` to the correct component
+
+### Page Naming Convention
+
+```
+{ModulePrefix}/{FeatureGroup}/{PageName}
+     │              │            │
+     │              │            └── Index, Create, Edit, Show
+     │              └── Employees, Attendance, Leave
+     └── Hrm, Crm, Core (from module.json pagePrefix)
+```
+
+### Example Resolution
+
+```javascript
+// Inertia page name: "Hrm/Employees/Index"
+// Resolved from: vendor/aero/hrm/resources/js/Pages/Employees/Index.jsx
+```
+
+---
+
+## Cross-Module Imports
+
+Modules can import from each other using the alias system:
+
+```jsx
+// In aero-crm component, importing from aero-core
+import { PageHeader } from '@core/Components/PageHeader';
+
+// In aero-crm component, importing from aero-hrm
+import { EmployeeCard } from '@hrm/Components/EmployeeCard';
+
+// WRONG: Never use relative paths to other packages
+import { EmployeeCard } from '../../../aero-hrm/resources/js/Components/EmployeeCard';
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `Cannot find module '@hrm/...'` | Module not installed | Run `composer install` |
+| HMR not working on vendor files | Symlinks not followed | Check `server.watch.followSymlinks: true` |
+| Duplicate React instances | Package bundles own React | Add react to `resolve.alias` |
+| Module not discovered | Missing `module.json` | Create file in package root |
+| Build fails with fs errors | Vite can't access vendor | Add to `server.fs.allow` |
+
+### Verify Setup
+
+```bash
+# Check symlinks are created
+ls -la vendor/aero/
+
+# Check modules are discovered
+node -e "console.log(require('./scripts/discover-modules.js').discoverModules('vendor/aero'))"
+```
 
 # 4. Build assets
 npm run build

@@ -11,7 +11,9 @@
     <meta http-equiv="Expires" content="0" />
 
     <!-- Security & Performance -->
+    @production
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    @endproduction
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -483,8 +485,14 @@
             <span class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">Loading {{ $siteName ?? 'aeos365' }}, please wait...</span>
         </div>
     </div>
+
     @routes
+    @inertiaHead
+    @viteReactRefresh
     @vite(['vendor/aero/core/resources/css/app.css', 'vendor/aero/core/resources/js/app.jsx'])
+    
+    <!-- Main Inertia App Container -->
+    @inertia
 
     @if(config('aero.mode') === 'standalone' && !app()->environment('local') || (app()->environment('local') && !file_exists(public_path('hot'))))
         {{-- Only load module bundles in production OR when Vite dev server is not running --}}
@@ -502,11 +510,6 @@
             @endif
         @endforeach
     @endif
-
-    @inertiaHead
-    
-    <!-- Main Inertia App Container -->
-    @inertia
 
     <!-- Enhanced Loading Management -->
     <script>

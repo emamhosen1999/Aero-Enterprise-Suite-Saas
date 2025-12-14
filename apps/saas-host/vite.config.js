@@ -1,102 +1,196 @@
-import react from '@vitejs/plugin-react';
+import react from '@vitejs/plugin-react-swc';
 import laravel from 'laravel-vite-plugin';
-import { resolve, dirname } from 'node:path';
-import { realpathSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import fs from 'node:fs';
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 /**
- * Aero Platform SaaS Host Application - Vite Configuration
+ * Aero Enterprise Suite - SaaS Host Vite Configuration
  * 
- * This configuration builds assets from the aero-platform package as the entry point,
- * with aliases to aero-core and aero-hrm packages for module resolution.
+ * DUAL ENTRY POINT STRATEGY:
+ * - Platform app.jsx → Landlord domain (admin.domain.com) - tenant management, billing
+ * - Core app.jsx → Tenant domains ({tenant}.domain.com) - actual tenant applications
  * 
- * Entry: vendor/aero/platform/resources/js/app.jsx
- * Aliases:
- *   @ -> vendor/aero/platform/resources/js (platform components)
- *   @core -> vendor/aero/core/resources/js (core tenant components)  
- *   @hrm -> vendor/aero/hrm/resources/js (HRM module components)
+ * Both entry points are built into the same bundle. The Laravel backend
+ * determines which app.jsx to load based on the current domain.
  */
 
-// Resolve symlinks to real paths (required for Tailwind v4 on Windows)
-const resolvePath = (relativePath) => {
-    const fullPath = resolve(__dirname, relativePath);
-    if (existsSync(fullPath)) {
-        try {
-            return realpathSync(fullPath);
-        } catch {
-            return fullPath;
+// Package paths - symlinked from ../../../packages via Composer
+const platformPath = 'vendor/aero/platform';
+const corePath = 'vendor/aero/core';
+
+/**
+ * Dynamic Module Discovery
+ * Scans vendor/aero/* for module.json files and builds alias map
+ */
+function discoverModules() {
+    const vendorAeroPath = resolve(__dirname, 'vendor/aero');
+    const modules = {};
+    
+    if (!fs.existsSync(vendorAeroPath)) {
+        console.warn('[Aero] vendor/aero not found. Run composer install first.');
+        return modules;
+    }
+    
+    const packages = fs.readdirSync(vendorAeroPath);
+    
+    for (const pkg of packages) {
+        const pkgPath = resolve(vendorAeroPath, pkg);
+        const moduleJsonPath = resolve(pkgPath, 'module.json');
+        
+        if (fs.existsSync(moduleJsonPath)) {
+            try {
+                const moduleConfig = JSON.parse(fs.readFileSync(moduleJsonPath, 'utf-8'));
+                const shortName = moduleConfig.short_name || pkg.replace('aero-', '');
+                
+                // Skip core and platform - they have explicit aliases
+                if (shortName !== 'core' && shortName !== 'platform') {
+                    modules[shortName] = {
+                        name: moduleConfig.name,
+                        namespace: moduleConfig.namespace,
+                        path: pkgPath,
+                        jsPath: resolve(pkgPath, 'resources/js'),
+                    };
+                    console.log(`[Aero] Discovered module: ${shortName}`);
+                }
+            } catch (e) {
+                console.warn(`[Aero] Error reading ${moduleJsonPath}:`, e.message);
+            }
         }
     }
-    return fullPath;
-};
+    
+    return modules;
+}
 
-// Package paths (resolved through symlinks)
-const platformPath = resolvePath('vendor/aero/platform');
-const corePath = resolvePath('vendor/aero/core');
-const hrmPath = resolvePath('vendor/aero/hrm');
+// Discover all installed modules
+const modules = discoverModules();
+
+// Build dynamic aliases for discovered modules
+const moduleAliases = Object.entries(modules).reduce((aliases, [shortName, module]) => {
+    aliases[`@${shortName}`] = module.jsPath;
+    return aliases;
+}, {});
 
 export default defineConfig({
     plugins: [
         laravel({
             input: [
-                // Platform Entry
+                // Platform CSS & JS (landlord/admin domain)
                 `${platformPath}/resources/css/app.css`,
                 `${platformPath}/resources/js/app.jsx`,
-                // Core Entry
+                
+                // Core CSS & JS (tenant domains)
                 `${corePath}/resources/css/app.css`,
                 `${corePath}/resources/js/app.jsx`,
             ],
-            refresh: true,
+            refresh: [
+                // Watch all package resources for HMR
+                'vendor/aero/*/resources/js/**/*.{js,jsx,ts,tsx}',
+                'vendor/aero/*/resources/css/**/*.css',
+                'resources/**/*.{blade.php,js,jsx}',
+            ],
         }),
-        react(),
+        react(),  // Using @vitejs/plugin-react-swc for better symlink support
+        tailwindcss(),
     ],
-  
-   
-    esbuild: {
-        jsx: 'automatic',
-    },
+
+    // Note: SWC plugin handles JSX transformation without preamble issues
 
     resolve: {
-        // Let Vite follow symlinks to their real path
-        // This is required for Tailwind v4 to properly process CSS through symlinks
-        preserveSymlinks: false,
+        // Preserve symlink paths so manifest keys match Blade references
+        preserveSymlinks: true,
         
         alias: {
-            // @ resolves to platform's resources (primary entry point)
-            '@': `${platformPath}/resources/js`,
+            // Platform namespace (landlord UI)
+            '@': resolve(__dirname, `${platformPath}/resources/js`),
+            '@platform': resolve(__dirname, `${platformPath}/resources/js`),
             
-            // @core resolves to core's resources (tenant shared components)
-            '@core': `${corePath}/resources/js`,
+            // Core namespace (tenant UI foundation)
+            '@core': resolve(__dirname, `${corePath}/resources/js`),
             
-            // @hrm resolves to HRM module's resources
-            '@hrm': `${hrmPath}/resources/js`,
+            // Dynamic module aliases (e.g., @hrm, @crm, @ims)
+            ...moduleAliases,
             
             // Ziggy for route generation
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
             
-            // Ensure packages resolve HeroUI from host app's node_modules
+            // Ensure all packages use host app's node_modules (single React instance)
+            'react': resolve(__dirname, 'node_modules/react'),
+            'react-dom': resolve(__dirname, 'node_modules/react-dom'),
             '@heroui/react': resolve(__dirname, 'node_modules/@heroui/react'),
             '@heroui/theme': resolve(__dirname, 'node_modules/@heroui/theme'),
-            'tailwindcss': resolve(__dirname, 'node_modules/tailwindcss'),
-     
-          
-            
+            'framer-motion': resolve(__dirname, 'node_modules/framer-motion'),
+            '@inertiajs/react': resolve(__dirname, 'node_modules/@inertiajs/react'),
         },
         
-        // Allow modules in vendor to resolve from root node_modules
+        // Module resolution order
         modules: [
             resolve(__dirname, 'node_modules'),
             'node_modules',
         ],
     },
 
-    // Optimize deps to include HeroUI packages
+    // Pre-bundle these to avoid duplicates
     optimizeDeps: {
-        include: ['@heroui/react', '@heroui/theme'],
+        include: [
+            'react',
+            'react-dom',
+            '@heroui/react',
+            '@heroui/theme',
+            'framer-motion',
+            '@inertiajs/react',
+        ],
+        // Don't pre-bundle vendor packages (needed for HMR)
+        exclude: ['@platform', '@core', ...Object.keys(moduleAliases)],
     },
 
     server: {
-        host: 'localhost',
+        host: '0.0.0.0',
         port: 5173,
-    }
+        strictPort: true,
+        hmr: {
+            host: 'aeos365.test',
+            protocol: 'ws',
+        },
+        // Full CORS configuration
+        cors: {
+            origin: ['http://aeos365.test', 'http://localhost', 'http://127.0.0.1'],
+            credentials: true,
+        },
+        // Required headers for cross-origin module loading
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept',
+        },
+        // Allow serving files from symlinked packages
+        fs: {
+            allow: [
+                __dirname,
+                resolve(__dirname, '../../../packages'),
+                resolve(__dirname, 'vendor/aero'),
+            ],
+            strict: false,
+        },
+        watch: {
+            // Follow symlinks for HMR
+            followSymlinks: true,
+        },
+    },
+
+    build: {
+        manifest: 'manifest.json',
+        outDir: 'public/build',
+        rollupOptions: {
+            output: {
+                // Optimal chunking strategy
+                manualChunks: {
+                    'vendor-react': ['react', 'react-dom'],
+                    'vendor-heroui': ['@heroui/react', '@heroui/theme'],
+                    'vendor-inertia': ['@inertiajs/react'],
+                },
+            },
+        },
+    },
 });

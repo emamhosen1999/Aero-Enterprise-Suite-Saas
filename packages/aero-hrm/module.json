@@ -4,46 +4,40 @@
   "version": "1.0.0",
   "description": "Aero Human Resource Management Module",
   "namespace": "Aero\\Hrm",
+  "category": "business",
   "providers": [
     "Aero\\Hrm\\AeroHrmServiceProvider"
   ],
-  "middleware": [
-    "web",
-    "auth"
-  ],
   "dependencies": {
     "aero-core": "^1.0"
+  },
+  "frontend": {
+    "pages": "resources/js/Pages",
+    "components": "resources/js/Components",
+    "pagePrefix": "Hrm"
+  },
+  "exports": {
+    "components": [
+      "EmployeeCard",
+      "LeaveCalendar",
+      "AttendanceWidget"
+    ],
+    "hooks": [
+      "useEmployee",
+      "useLeaveBalance"
+    ]
   },
   "routes": {
     "tenant": "routes/tenant.php",
     "web": "routes/web.php",
     "api": "routes/api.php"
   },
+  "middleware": [
+    "web",
+    "auth"
+  ],
   "migrations": {
     "path": "database/migrations"
-  },
-  "assets": {
-    "js": "dist/aero-hrm.umd.js",
-    "css": "dist/aero-hrm.css"
-  },
-  "pages": {
-    "Employees": {
-      "Index": "Pages/Employees/Index",
-      "Create": "Pages/Employees/Create",
-      "Edit": "Pages/Employees/Edit"
-    },
-    "Attendance": {
-      "Index": "Pages/Attendance/Index",
-      "Report": "Pages/Attendance/Report"
-    },
-    "Leave": {
-      "Index": "Pages/Leave/Index",
-      "Request": "Pages/Leave/Request"
-    },
-    "Payroll": {
-      "Index": "Pages/Payroll/Index",
-      "Process": "Pages/Payroll/Process"
-    }
   },
   "permissions": [
     "hrm.employees.view",
