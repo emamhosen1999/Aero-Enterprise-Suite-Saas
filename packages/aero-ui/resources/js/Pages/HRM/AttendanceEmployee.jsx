@@ -6,7 +6,7 @@ import {Card, CardBody, CardHeader, Input, Tab, Tabs,} from "@heroui/react";
 import App from "@ui/Layouts/App.jsx";
 import StatsCards from '@ui/Components/StatsCards.jsx';
 import AttendanceEmployeeTable from "@/Tables/HRM/AttendanceEmployeeTable.jsx";
-import AttendanceCalendar from "@ui/Components/Attendance/AttendanceCalendar.jsx";
+import AttendanceCalendar from "@ui/Components/HRM/Attendance/AttendanceCalendar.jsx";
 import {
     CalendarDaysIcon,
     ChartBarIcon,
