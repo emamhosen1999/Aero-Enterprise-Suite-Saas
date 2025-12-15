@@ -32,7 +32,7 @@ class RegistrationPageController extends Controller
 
     public function accountType(): Response
     {
-        return $this->render('Pages/Platform/Public/Register/AccountType', 'account', [
+        return $this->render('Platform/Public/Register/AccountType', 'account', [
             'trialDays' => (int) config('platform.trial_days', 14),
         ]);
     }
@@ -45,7 +45,7 @@ class RegistrationPageController extends Controller
 
         $account = $this->registrationSession->get()['account'] ?? [];
 
-        return $this->render('Pages/Platform/Public/Register/Details', 'details', [
+        return $this->render('Platform/Public/Register/Details', 'details', [
             'accountType' => $account['type'] ?? null,
             'baseDomain' => config('platform.central_domain'),
         ]);
@@ -63,7 +63,7 @@ class RegistrationPageController extends Controller
 
         $details = $this->registrationSession->get()['details'] ?? [];
 
-        return $this->render('Pages/Platform/Public/Register/VerifyEmail', 'verify-email', [
+        return $this->render('Platform/Public/Register/VerifyEmail', 'verify-email', [
             'email' => $details['email'] ?? '',
             'companyName' => $details['name'] ?? '',
         ]);
@@ -81,7 +81,7 @@ class RegistrationPageController extends Controller
 
         $details = $this->registrationSession->get()['details'] ?? [];
 
-        return $this->render('Pages/Platform/Public/Register/VerifyPhone', 'verify-phone', [
+        return $this->render('Platform/Public/Register/VerifyPhone', 'verify-phone', [
             'phone' => $details['phone'] ?? '',
             'companyName' => $details['name'] ?? '',
         ]);
@@ -141,7 +141,7 @@ class RegistrationPageController extends Controller
                 ];
             });
 
-        return $this->render('Pages/Platform/Public/Register/SelectPlan', 'plan', [
+        return $this->render('Platform/Public/Register/SelectPlan', 'plan', [
             'plans' => $plans,
             'modules' => $modules,
             'modulePricing' => config('platform.registration.module_pricing', ['monthly' => 20, 'yearly' => 200]),
@@ -192,7 +192,7 @@ class RegistrationPageController extends Controller
             ->select('id', 'code', 'name')
             ->get();
 
-        return $this->render('Pages/Platform/Public/Register/Payment', 'payment', [
+        return $this->render('Platform/Public/Register/Payment', 'payment', [
             'trialDays' => (int) config('platform.trial_days', 14),
             'baseDomain' => config('platform.central_domain'),
             'plans' => $plans,
@@ -208,7 +208,7 @@ class RegistrationPageController extends Controller
      */
     public function provisioning(Tenant $tenant): Response
     {
-        return Inertia::render('Pages/Platform/Public/Register/Provisioning', [
+        return Inertia::render('Platform/Public/Register/Provisioning', [
             'tenant' => [
                 'id' => $tenant->id,
                 'name' => $tenant->name,
@@ -270,7 +270,7 @@ class RegistrationPageController extends Controller
             return to_route('platform.register.index');
         }
 
-        return $this->render('Pages/Platform/Public/Register/Success', 'success', [
+        return $this->render('Platform/Public/Register/Success', 'success', [
             'result' => $result,
             'baseDomain' => config('platform.central_domain'),
         ]);

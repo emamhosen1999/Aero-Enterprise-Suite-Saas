@@ -40,7 +40,7 @@ class MaintenanceController extends Controller
             return response()->json($maintenanceSettings);
         }
 
-        return Inertia::render('Pages/Platform/Admin/Developer/Maintenance', [
+        return Inertia::render('Platform/Admin/Developer/Maintenance', [
             'title' => 'System Maintenance',
             'settings' => $maintenanceSettings,
         ]);
