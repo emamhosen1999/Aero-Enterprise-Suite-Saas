@@ -4,21 +4,21 @@ namespace Aero\Platform\Http\Middleware;
 
 use Aero\Platform\Http\Resources\PlatformSettingResource;
 use Aero\Platform\Http\Resources\SystemSettingResource;
-use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\Module;
+use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\SystemSetting;
 use Aero\Platform\Services\Module\RoleModuleAccessService;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use Inertia\Inertia;
 use Inertia\Middleware;
 use Throwable;
-use Closure;
-use Illuminate\Support\Facades\Schema;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,56 +39,17 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Handle the incoming request.
-     * Intercepts root route "/" to render the appropriate page based on domain context.
-     * This allows the package to work without modifying host app routes.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * Root "/" handling is delegated to IdentifyDomainContext middleware
+     * which runs before this and handles domain-specific redirects.
+     * This middleware focuses solely on Inertia response handling.
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next)
     {
-        // Only intercept the actual root path
-        if (! $request->is('/')) {
-            return parent::handle($request, $next);
-        }
-
-        $context = $this->getDomainContext($request);
-
-        // 1. Handle Admin/Landlord Domain
-        if ($context === IdentifyDomainContext::CONTEXT_ADMIN) {
-            return $this->handleAdminContext();
-        }
-
-        // 2. Handle Platform/Public Domain
-        return $this->handlePlatformContext($request);
-    }
-
-    /**
-     * Handle redirection logic for the Admin domain.
-     */
-    protected function handleAdminContext()
-    {
-        if (Auth::guard('landlord')->check()) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return redirect('/login');
-    }
-
-    /**
-     * Handle rendering logic for the Platform domain.
-     */
-    protected function handlePlatformContext(Request $request)
-    {
-        // Check if the application is fully installed
-        if (! $this->isApplicationInstalled()) {
-            return redirect('/install');
-        }
-
-        // Render the Landing Page
-        return Inertia::render('Platform/Public/Landing')
-            ->rootView($this->rootView);
+        // Delegate all Inertia response handling to parent
+        return parent::handle($request, $next);
     }
 
     /**
@@ -108,6 +69,7 @@ class HandleInertiaRequests extends Middleware
             DB::connection()->getPdo();
         } catch (\Throwable $e) {
             \Log::warning('Installation check: Database connection failed', ['error' => $e->getMessage()]);
+
             return false;
         }
 
@@ -115,10 +77,12 @@ class HandleInertiaRequests extends Middleware
         try {
             if (! Schema::hasTable('tenants')) {
                 \Log::warning('Installation check: tenants table not found');
+
                 return false;
             }
         } catch (\Throwable $e) {
             \Log::warning('Installation check: Schema check failed', ['error' => $e->getMessage()]);
+
             return false;
         }
 
@@ -298,7 +262,7 @@ class HandleInertiaRequests extends Middleware
                 'mode' => config('aero.mode', 'saas'),
                 'subscriptions' => [], // Admin has access to all modules by default
             ],
-                'flash' => [
+            'flash' => [
                 'success' => $request->hasSession() ? $request->session()->get('success') : null,
                 'error' => $request->hasSession() ? $request->session()->get('error') : null,
                 'warning' => $request->hasSession() ? $request->session()->get('warning') : null,
@@ -385,7 +349,7 @@ class HandleInertiaRequests extends Middleware
                 'plans' => $this->getSubscriptionPlans(),
             ],
             'url' => $request->getPathInfo(),
-                'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
+            'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
             // SaaS Frontend Data - platform context for public site
@@ -393,7 +357,7 @@ class HandleInertiaRequests extends Middleware
                 'mode' => config('aero.mode', 'saas'),
                 'subscriptions' => [], // Public pages don't need subscriptions
             ],
-                'flash' => [
+            'flash' => [
                 'success' => $request->hasSession() ? $request->session()->get('success') : null,
                 'error' => $request->hasSession() ? $request->session()->get('error') : null,
                 'warning' => $request->hasSession() ? $request->session()->get('warning') : null,
@@ -506,7 +470,7 @@ class HandleInertiaRequests extends Middleware
                 'environment' => config('app.env', 'production'),
             ],
             'url' => $request->getPathInfo(),
-                'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
+            'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
             'locale' => App::getLocale(),
             'fallbackLocale' => config('app.fallback_locale', 'en'),
             'supportedLocales' => SetLocale::getSupportedLocales(),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Traits\ParsesHostDomain;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,10 +12,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
-use Symfony\Component\HttpFoundation\Response;
 
 class IdentifyDomainContext
 {
+    use ParsesHostDomain;
     /**
      * Domain context constants.
      */
@@ -39,25 +40,27 @@ class IdentifyDomainContext
      */
     public function handle(Request $request, Closure $next)
     {
-        // 1. Only intercept the root path '/'
+        // 1. Identify and SET the domain context on request attributes
+        $context = $this->identifyContext($request);
+        $request->attributes->set('domain_context', $context);
+
+        // 2. Only intercept the root path '/'
         if (! $request->is('/')) {
             return $next($request);
         }
 
-        // 2. Get the Context (Relies on IdentifyDomainContext running first)
-        $context = IdentifyDomainContext::getContext($request);
-
-        // 3. Handle Admin Domain
-        if ($context === IdentifyDomainContext::CONTEXT_ADMIN) {
+        // 3. Handle Admin Domain (admin.domain.com)
+        if ($context === self::CONTEXT_ADMIN) {
             if (Auth::guard('landlord')->check()) {
                 return redirect()->route('admin.dashboard');
             }
+
             return redirect('/login');
         }
 
-        // 4. Handle Platform Domain (The Landing Page)
-        if ($context === IdentifyDomainContext::CONTEXT_PLATFORM) {
-            
+        // 4. Handle Platform Domain (domain.com) - The Landing Page
+        if ($context === self::CONTEXT_PLATFORM) {
+
             // Check if installed
             if (! $this->isApplicationInstalled()) {
                 return redirect('/install');
@@ -67,9 +70,17 @@ class IdentifyDomainContext
             return Inertia::render('Platform/Public/Landing');
         }
 
-        // 5. Handle Tenant Domain
-        // If it's a tenant, we usually do NOT want to interfere. 
-        // We pass it to the next middleware so the Tenant routes can handle '/'.
+        // 5. Handle Tenant Domain (tenant.domain.com)
+        // Redirect to dashboard if authenticated, or login if not
+        if ($context === self::CONTEXT_TENANT) {
+            if (Auth::guard('web')->check()) {
+                return redirect()->route('tenant.dashboard');
+            }
+
+            return redirect('/login');
+        }
+
+        // Fallback: Pass to next middleware
         return $next($request);
     }
 
@@ -97,69 +108,61 @@ class IdentifyDomainContext
         return true;
     }
 
-
     /**
      * Identify the domain context based on the request host.
+     *
+     * Auto-detects domain type from URL structure:
+     * - admin.domain.com → CONTEXT_ADMIN
+     * - domain.com → CONTEXT_PLATFORM
+     * - {anything-else}.domain.com → CONTEXT_TENANT
+     *
+     * No .env configuration required - derives from current request.
      */
     protected function identifyContext(Request $request): string
     {
         $host = $request->getHost();
 
-        // Check for admin domain (support both env var and pattern matching)
-        $adminDomain = env('ADMIN_DOMAIN', 'admin.localhost');
-        if ($this->matchesDomain($host, $adminDomain)) {
+        // Use trait's helper methods for domain detection
+        if ($this->isHostAdminDomain($host)) {
             return self::CONTEXT_ADMIN;
         }
 
-        // Fallback: if host starts with 'admin.' it's likely admin domain
-        if (str_starts_with($host, 'admin.')) {
-            return self::CONTEXT_ADMIN;
+        if ($this->isHostPlatformDomain($host)) {
+            return self::CONTEXT_PLATFORM;
         }
 
-        // Check for central/platform domain
-        $centralDomains = $this->getCentralDomains();
-        foreach ($centralDomains as $centralDomain) {
-            if ($this->matchesDomain($host, $centralDomain)) {
-                return self::CONTEXT_PLATFORM;
-            }
-        }
-
-        // If not admin or platform, it's a tenant subdomain
         return self::CONTEXT_TENANT;
     }
 
     /**
-     * Get the list of central domains from config.
-     *
-     * @return array<string>
+     * Get the platform/base domain from current request.
+     * Useful for generating cross-domain URLs.
      */
-    protected function getCentralDomains(): array
+    public static function getPlatformDomain(Request $request): string
     {
-        // First try the host application's tenancy config, fall back to package config keys.
-        $domains = config('tenancy.central_domains', []);
-        if (empty($domains)) {
-            $domains = config('aero-platform.tenancy.central_domains', config('aero-platform.central_domains', []));
-        }
+        $instance = new self;
 
-        // Filter out admin domain from central domains
-        $adminDomain = env('ADMIN_DOMAIN', 'admin.localhost');
-
-        return array_filter($domains, function ($domain) use ($adminDomain) {
-            return ! $this->matchesDomain($domain, $adminDomain);
-        });
+        return $instance->getPlatformDomainFromHost($request->getHost());
     }
 
     /**
-     * Check if host matches a domain pattern.
-     * Handles both exact matches and localhost with ports.
+     * Get the admin domain from current request.
      */
-    protected function matchesDomain(string $host, string $domain): bool
+    public static function getAdminDomain(Request $request): string
     {
-        // Normalize by removing ports
-        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
-        $domainWithoutPort = preg_replace('/:\d+$/', '', $domain);
+        $instance = new self;
 
-        return strtolower($hostWithoutPort) === strtolower($domainWithoutPort);
+        return $instance->getAdminDomainFromHost($request->getHost());
+    }
+
+    /**
+     * Get a tenant domain from current request.
+     */
+    public static function getTenantDomain(Request $request, string $tenantSlug): string
+    {
+        $instance = new self;
+
+        return $instance->getTenantDomainFromHost($request->getHost(), $tenantSlug);
     }
 
     /**

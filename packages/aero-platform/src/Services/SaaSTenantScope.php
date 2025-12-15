@@ -3,6 +3,7 @@
 namespace Aero\Platform\Services;
 
 use Aero\Core\Contracts\TenantScopeInterface;
+use Aero\Core\Traits\ParsesHostDomain;
 use Aero\Platform\Models\Tenant;
 
 /**
@@ -15,6 +16,7 @@ use Aero\Platform\Models\Tenant;
  */
 class SaaSTenantScope implements TenantScopeInterface
 {
+    use ParsesHostDomain;
     /**
      * {@inheritdoc}
      */
@@ -66,16 +68,15 @@ class SaaSTenantScope implements TenantScopeInterface
      */
     public function inCentralContext(): bool
     {
-        // Check if we're on a central domain or no tenant is initialized
-        if (! $this->inTenantContext()) {
-            return true;
+        // Check if we're on a central domain using auto-detection
+        $request = request();
+
+        if ($request) {
+            return $this->isHostOnCentralDomain($request->getHost());
         }
 
-        // Check central domains configuration
-        $centralDomains = config('tenancy.central_domains', []);
-        $currentHost = request()->getHost();
-
-        return in_array($currentHost, $centralDomains);
+        // Fallback: If no request context, check if tenant is initialized
+        return ! $this->inTenantContext();
     }
 
     /**

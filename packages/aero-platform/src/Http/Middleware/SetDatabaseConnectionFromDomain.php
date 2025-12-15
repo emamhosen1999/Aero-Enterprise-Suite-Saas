@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Traits\ParsesHostDomain;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -16,11 +17,14 @@ use Symfony\Component\HttpFoundation\Response;
  * This middleware runs GLOBALLY before sessions are started to ensure
  * the correct database connection is used for session storage.
  *
- * For admin.platform.com and platform.com, the central database is used.
- * For tenant subdomains, tenancy initialization handles the connection.
+ * Auto-detects domain type from URL structure (no .env required):
+ * - admin.domain.com → Central database
+ * - domain.com → Central database
+ * - {tenant}.domain.com → Let tenancy package handle connection
  */
 class SetDatabaseConnectionFromDomain
 {
+    use ParsesHostDomain;
     /**
      * Handle an incoming request.
      *
@@ -30,25 +34,14 @@ class SetDatabaseConnectionFromDomain
     {
         $host = $request->getHost();
 
-        // Check for admin domain
-        $adminDomain = env('ADMIN_DOMAIN', 'admin.localhost');
-        if ($this->matchesDomain($host, $adminDomain) || str_starts_with($host, 'admin.')) {
+        // Central domains use the central database
+        if ($this->isHostOnCentralDomain($host)) {
             $this->useCentralDatabase();
 
             return $next($request);
         }
 
-        // Check for platform/central domains
-        $centralDomains = config('tenancy.central_domains', []);
-        foreach ($centralDomains as $centralDomain) {
-            if ($this->matchesDomain($host, $centralDomain)) {
-                $this->useCentralDatabase();
-
-                return $next($request);
-            }
-        }
-
-        // For tenant domains, let tenancy package handle the connection
+        // Tenant subdomains - let tenancy package handle connection
         return $next($request);
     }
 
@@ -63,18 +56,5 @@ class SetDatabaseConnectionFromDomain
         // Set the default database connection to central
         Config::set('database.default', 'central');
         DB::setDefaultConnection('central');
-    }
-
-    /**
-     * Check if host matches a domain pattern.
-     * Handles both exact matches and localhost with ports.
-     */
-    protected function matchesDomain(string $host, string $domain): bool
-    {
-        // Normalize by removing ports
-        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
-        $domainWithoutPort = preg_replace('/:\d+$/', '', $domain);
-
-        return strtolower($hostWithoutPort) === strtolower($domainWithoutPort);
     }
 }
