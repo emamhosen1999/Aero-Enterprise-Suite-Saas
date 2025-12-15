@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import InstallationLayout from '@/Layouts/InstallationLayout';
 import { 
@@ -7,7 +7,7 @@ import {
     Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
     useDisclosure
 } from '@heroui/react';
-import { Cog6ToothIcon, CheckCircleIcon, XCircleIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, CheckCircleIcon, XCircleIcon, EnvelopeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
@@ -119,7 +119,7 @@ export default function PlatformSettings({ platformConfig = {} }) {
     const [testingSms, setTestingSms] = useState(false);
     const [smsTestResult, setSmsTestResult] = useState(null);
     const [testingSmsNumber, setTestingSmsNumber] = useState('');
-
+    const [driverWarning, setDriverWarning] = useState(null);
     const { data, setData, post, processing, errors } = useForm({
         // Basic Platform Info
         app_name: platformConfig.app_name || 'Aero Enterprise Suite',
@@ -160,6 +160,49 @@ export default function PlatformSettings({ platformConfig = {} }) {
         cache_driver: platformConfig.cache_driver || 'database',
         filesystem_disk: platformConfig.filesystem_disk || 'local',
     });
+
+    // Check for driver warnings on initial load and when drivers change
+    useEffect(() => {
+        checkDriverWarnings(data.session_driver, data.cache_driver);
+    }, []);
+
+    const checkDriverWarnings = (sessionDriver, cacheDriver) => {
+        const warnings = [];
+        
+        if (sessionDriver === 'database') {
+            warnings.push('Session driver "database" requires database tables that won\'t exist until after installation completes.');
+        }
+        if (cacheDriver === 'database') {
+            warnings.push('Cache driver "database" requires database tables that won\'t exist until after installation completes.');
+        }
+        
+        if (warnings.length > 0) {
+            setDriverWarning({
+                message: warnings.join(' '),
+                recommendation: 'Consider using "file" for initial setup. You can switch to "database" after installation completes.'
+            });
+        } else {
+            setDriverWarning(null);
+        }
+    };
+
+    const handleSessionDriverChange = (value) => {
+        setData('session_driver', value);
+        checkDriverWarnings(value, data.cache_driver);
+        
+        if (value === 'database') {
+            showToast.info('Note: Database sessions require tables that are created during installation. The system will use file sessions until then.', { duration: 5000 });
+        }
+    };
+
+    const handleCacheDriverChange = (value) => {
+        setData('cache_driver', value);
+        checkDriverWarnings(data.session_driver, value);
+        
+        if (value === 'database') {
+            showToast.info('Note: Database cache requires tables that are created during installation. The system will use file cache until then.', { duration: 5000 });
+        }
+    };
 
     const handleTestSms = async () => {
         if (!testingSmsNumber) {
@@ -713,6 +756,24 @@ export default function PlatformSettings({ platformConfig = {} }) {
                             {/* Backend Configuration */}
                             <div>
                                 <h3 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">Backend Configuration</h3>
+                                
+                                {/* Driver warning */}
+                                {driverWarning && (
+                                    <div className="bg-warning-50 dark:bg-warning-900/20 rounded-lg p-3 sm:p-4 border border-warning-200 dark:border-warning-800 mb-4">
+                                        <div className="flex items-start gap-2">
+                                            <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm text-warning-800 dark:text-warning-200 mb-1">
+                                                    {driverWarning.message}
+                                                </p>
+                                                <p className="text-xs text-warning-600 dark:text-warning-300">
+                                                    💡 {driverWarning.recommendation}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 <div className="space-y-3 sm:space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                         <Select
@@ -737,16 +798,16 @@ export default function PlatformSettings({ platformConfig = {} }) {
                                             label="Session Driver"
                                             placeholder="Select session driver"
                                             selectedKeys={[data.session_driver]}
-                                            onSelectionChange={(keys) => setData('session_driver', Array.from(keys)[0])}
+                                            onSelectionChange={(keys) => handleSessionDriverChange(Array.from(keys)[0])}
                                             isInvalid={!!errors.session_driver}
                                             errorMessage={errors.session_driver}
                                             isRequired
                                             description="User session storage mechanism"
                                             classNames={{ trigger: "bg-default-100" }}
                                         >
-                                            <SelectItem key="file">File (Default)</SelectItem>
+                                            <SelectItem key="file">File (Recommended for Install)</SelectItem>
                                             <SelectItem key="cookie">Cookie</SelectItem>
-                                            <SelectItem key="database">Database (Recommended)</SelectItem>
+                                            <SelectItem key="database">Database (After Install)</SelectItem>
                                             <SelectItem key="apc">APC</SelectItem>
                                             <SelectItem key="memcached">Memcached</SelectItem>
                                             <SelectItem key="redis">Redis</SelectItem>
@@ -759,18 +820,18 @@ export default function PlatformSettings({ platformConfig = {} }) {
                                             label="Cache Driver"
                                             placeholder="Select cache driver"
                                             selectedKeys={[data.cache_driver]}
-                                            onSelectionChange={(keys) => setData('cache_driver', Array.from(keys)[0])}
+                                            onSelectionChange={(keys) => handleCacheDriverChange(Array.from(keys)[0])}
                                             isInvalid={!!errors.cache_driver}
                                             errorMessage={errors.cache_driver}
                                             isRequired
                                             description="Application caching system"
                                             classNames={{ trigger: "bg-default-100" }}
                                         >
-                                            <SelectItem key="file">File (Default)</SelectItem>
-                                            <SelectItem key="database">Database</SelectItem>
+                                            <SelectItem key="file">File (Recommended for Install)</SelectItem>
+                                            <SelectItem key="database">Database (After Install)</SelectItem>
                                             <SelectItem key="apc">APC</SelectItem>
                                             <SelectItem key="memcached">Memcached</SelectItem>
-                                            <SelectItem key="redis">Redis (Recommended)</SelectItem>
+                                            <SelectItem key="redis">Redis (High Performance)</SelectItem>
                                             <SelectItem key="array">Array (Testing)</SelectItem>
                                         </Select>
 

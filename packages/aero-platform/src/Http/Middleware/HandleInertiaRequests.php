@@ -98,28 +98,28 @@ class HandleInertiaRequests extends Middleware
     {
         $lockFile = storage_path('installed');
 
-        // Debug 1: File Check
+        // Check 1: Installation lock file must exist
         if (! File::exists($lockFile)) {
-            dd("Debugging: File not found at: " . $lockFile);
+            return false;
         }
 
+        // Check 2: Database must be accessible
         try {
-            // Debug 2: PDO Connection
             DB::connection()->getPdo();
         } catch (\Throwable $e) {
-            dd("Debugging: Database Connection Failed", $e->getMessage());
+            \Log::warning('Installation check: Database connection failed', ['error' => $e->getMessage()]);
+            return false;
         }
 
+        // Check 3: Required tables must exist
         try {
-            // Debug 3: Schema Check
-            // Note: If you use a specific connection for tenants (like 'landlord'), define it here.
-            // e.g., Schema::connection('landlord')->hasTable('tenants')
             if (! Schema::hasTable('tenants')) {
-                 dd("Debugging: 'tenants' table not found in default database.", 
-                    "Current Database: " . DB::connection()->getDatabaseName());
+                \Log::warning('Installation check: tenants table not found');
+                return false;
             }
         } catch (\Throwable $e) {
-            dd("Debugging: Schema Check Error", $e->getMessage());
+            \Log::warning('Installation check: Schema check failed', ['error' => $e->getMessage()]);
+            return false;
         }
 
         return true;

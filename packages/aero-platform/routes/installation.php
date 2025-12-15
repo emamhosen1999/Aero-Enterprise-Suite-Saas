@@ -45,6 +45,8 @@ Route::prefix('install')->name('installation.')->group(function () {
 
         // Step 4: Database configuration
         Route::get('/database', [InstallationController::class, 'showDatabase'])->name('database');
+        Route::post('/test-server', [InstallationController::class, 'testServerConnection'])->name('test-server');
+        Route::post('/create-database', [InstallationController::class, 'createDatabase'])->name('create-database');
         Route::post('/test-database', [InstallationController::class, 'testDatabase'])->name('test-database');
 
         // Step 5: Platform settings
@@ -63,5 +65,8 @@ Route::prefix('install')->name('installation.')->group(function () {
 
         // Step 8: Installation complete
         Route::get('/complete', [InstallationController::class, 'complete'])->name('complete');
+
+        // API: Get installation progress (for recovery)
+        Route::get('/progress', [InstallationController::class, 'getInstallationProgress'])->name('progress');
     });
 });

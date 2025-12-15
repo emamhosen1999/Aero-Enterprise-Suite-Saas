@@ -89,14 +89,17 @@ class InstallationController extends Controller
             ]);
         }
 
-        // Get hash from .env - NO FALLBACK for security
-        $secretHash = config('app.installation_secret_hash');
+        // Get hash from config - check app config first, then platform config
+        $secretHash = config('app.installation_secret_hash') ?: config('platform.installation_secret_hash');
 
         if (empty($secretHash)) {
-            \Log::error('Installation secret hash not configured in .env file');
+            \Log::error('Installation secret hash not configured', [
+                'app_config' => config('app.installation_secret_hash') ? 'set' : 'empty',
+                'platform_config' => config('platform.installation_secret_hash') ? 'set' : 'empty',
+            ]);
 
             return back()->withErrors([
-                'secret_code' => 'Installation not properly configured. INSTALLATION_SECRET_HASH must be set in .env file.',
+                'secret_code' => 'Installation not properly configured. INSTALLATION_SECRET_HASH must be set in .env file or platform config.',
             ]);
         }
 
@@ -162,6 +165,9 @@ class InstallationController extends Controller
             return redirect()->route('installation.secret');
         }
 
+        // Check environment prerequisites
+        $envCheck = $this->installationService->validateEnvironmentPrerequisites();
+
         return Inertia::render('Platform/Installation/Database', [
             'title' => 'Database Configuration',
             'currentConfig' => [
@@ -170,7 +176,98 @@ class InstallationController extends Controller
                 'database' => config('database.connections.mysql.database'),
                 'username' => config('database.connections.mysql.username'),
             ],
+            'environmentIssues' => $envCheck['issues'],
         ]);
+    }
+
+    /**
+     * Test database server connection (without database)
+     */
+    public function testServerConnection(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'host' => ['required', 'string'],
+            'port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'username' => ['required', 'string'],
+            'password' => ['nullable', 'string'],
+        ]);
+
+        try {
+            $testConnection = $this->installationService->testServerConnection(
+                $request->host,
+                $request->port,
+                $request->username,
+                $request->password
+            );
+
+            if ($testConnection['success']) {
+                // Get available databases for user
+                $databases = $this->installationService->listDatabases(
+                    $request->host,
+                    $request->port,
+                    $request->username,
+                    $request->password
+                );
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Server connection successful!',
+                    'databases' => $databases['databases'] ?? [],
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $testConnection['message'],
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server connection failed: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Create database if it doesn't exist
+     */
+    public function createDatabase(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'host' => ['required', 'string'],
+            'port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'database' => ['required', 'string', 'regex:/^[a-zA-Z0-9_]+$/'],
+            'username' => ['required', 'string'],
+            'password' => ['nullable', 'string'],
+        ]);
+
+        try {
+            $result = $this->installationService->createDatabaseIfNotExists(
+                $request->host,
+                $request->port,
+                $request->database,
+                $request->username,
+                $request->password
+            );
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $result['message'],
+                    'created' => $result['created'],
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create database: '.$e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -208,6 +305,9 @@ class InstallationController extends Controller
                         'db_password_encrypted' => true,
                     ],
                 ]);
+
+                // Also persist installation progress
+                $this->persistInstallationProgress('database', ['configured' => true]);
 
                 return response()->json([
                     'success' => true,
@@ -788,6 +888,10 @@ class InstallationController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            // Attempt rollback
+            $adminEmail = $adminConfig['admin_email'] ?? null;
+            $this->rollbackInstallation('error', $adminEmail);
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -795,6 +899,7 @@ class InstallationController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'stage' => 'error',
+                'rollback_attempted' => true,
             ], 500);
         }
     }
@@ -880,5 +985,82 @@ class InstallationController extends Controller
         }
 
         return $requirements;
+    }
+
+    /**
+     * Persist installation progress to session (for recovery)
+     */
+    private function persistInstallationProgress(string $step, array $data = []): void
+    {
+        $progress = session('installation_progress', []);
+        $progress[$step] = [
+            'completed_at' => now()->toIso8601String(),
+            'checksum' => hash('sha256', json_encode($data)),
+        ];
+        session(['installation_progress' => $progress]);
+
+        \Log::info('Installation progress saved', ['step' => $step]);
+    }
+
+    /**
+     * Rollback installation on failure
+     *
+     * Attempts to clean up any partial installation state.
+     */
+    private function rollbackInstallation(string $failedStage, ?string $adminEmail = null): void
+    {
+        \Log::warning('Rolling back installation', ['failed_stage' => $failedStage]);
+
+        try {
+            // Remove admin user if created
+            if ($adminEmail && in_array($failedStage, ['settings', 'finalization'])) {
+                try {
+                    LandlordUser::where('email', $adminEmail)->delete();
+                    \Log::info('Rollback: Admin user deleted', ['email' => $adminEmail]);
+                } catch (\Throwable $e) {
+                    \Log::warning('Rollback: Failed to delete admin user', ['error' => $e->getMessage()]);
+                }
+            }
+
+            // Remove platform settings if created
+            if ($failedStage === 'finalization') {
+                try {
+                    PlatformSetting::where('slug', 'platform')->delete();
+                    \Log::info('Rollback: Platform settings deleted');
+                } catch (\Throwable $e) {
+                    \Log::warning('Rollback: Failed to delete platform settings', ['error' => $e->getMessage()]);
+                }
+            }
+
+            // Remove lock file if it exists
+            $lockFile = storage_path('installed');
+            if (File::exists($lockFile)) {
+                File::delete($lockFile);
+                \Log::info('Rollback: Installation lock file removed');
+            }
+
+            // Note: We don't rollback migrations as that could cause more issues
+            // The user will need to manually clean the database if needed
+
+        } catch (\Throwable $e) {
+            \Log::error('Rollback failed', [
+                'stage' => $failedStage,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Get installation progress for recovery UI
+     */
+    public function getInstallationProgress(): \Illuminate\Http\JsonResponse
+    {
+        return response()->json([
+            'progress' => session('installation_progress', []),
+            'hasDbConfig' => session()->has('db_config'),
+            'hasPlatformConfig' => session()->has('platform_config'),
+            'hasAdminConfig' => session()->has('admin_config'),
+            'isVerified' => session('installation_verified', false),
+        ]);
     }
 }

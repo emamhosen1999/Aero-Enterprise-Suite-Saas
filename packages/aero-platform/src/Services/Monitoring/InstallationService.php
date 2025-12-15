@@ -39,6 +39,219 @@ class InstallationService
     }
 
     /**
+     * Check if database server is reachable (without specifying database)
+     */
+    public function testServerConnection(
+        string $host,
+        int $port,
+        string $username,
+        ?string $password = null
+    ): array {
+        try {
+            $dsn = "mysql:host={$host};port={$port}";
+            $pdo = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_TIMEOUT => 5,
+            ]);
+
+            // Test if we can query
+            $pdo->query('SELECT 1');
+
+            return [
+                'success' => true,
+                'message' => 'Server connection successful',
+            ];
+        } catch (\PDOException $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Check if a database exists
+     */
+    public function databaseExists(
+        string $host,
+        int $port,
+        string $database,
+        string $username,
+        ?string $password = null
+    ): bool {
+        try {
+            $dsn = "mysql:host={$host};port={$port}";
+            $pdo = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_TIMEOUT => 5,
+            ]);
+
+            $stmt = $pdo->prepare("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?");
+            $stmt->execute([$database]);
+
+            return $stmt->rowCount() > 0;
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Create database if it doesn't exist
+     *
+     * @return array{success: bool, message: string, created: bool}
+     */
+    public function createDatabaseIfNotExists(
+        string $host,
+        int $port,
+        string $database,
+        string $username,
+        ?string $password = null
+    ): array {
+        try {
+            // Validate database name (prevent SQL injection)
+            if (! preg_match('/^[a-zA-Z0-9_]+$/', $database)) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid database name. Use only letters, numbers, and underscores.',
+                    'created' => false,
+                ];
+            }
+
+            $dsn = "mysql:host={$host};port={$port}";
+            $pdo = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_TIMEOUT => 10,
+            ]);
+
+            // Check if database already exists
+            $stmt = $pdo->prepare("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?");
+            $stmt->execute([$database]);
+
+            if ($stmt->rowCount() > 0) {
+                return [
+                    'success' => true,
+                    'message' => "Database '{$database}' already exists.",
+                    'created' => false,
+                ];
+            }
+
+            // Create the database with proper charset
+            $pdo->exec("CREATE DATABASE `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+            return [
+                'success' => true,
+                'message' => "Database '{$database}' created successfully.",
+                'created' => true,
+            ];
+        } catch (\PDOException $e) {
+            $errorMessage = $e->getMessage();
+
+            // Provide user-friendly error messages
+            if (str_contains($errorMessage, 'Access denied')) {
+                return [
+                    'success' => false,
+                    'message' => 'Access denied. The database user does not have CREATE DATABASE privileges.',
+                    'created' => false,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => "Failed to create database: {$errorMessage}",
+                'created' => false,
+            ];
+        }
+    }
+
+    /**
+     * Get list of available databases for the user
+     *
+     * @return array{success: bool, databases: array<string>, message: string}
+     */
+    public function listDatabases(
+        string $host,
+        int $port,
+        string $username,
+        ?string $password = null
+    ): array {
+        try {
+            $dsn = "mysql:host={$host};port={$port}";
+            $pdo = new \PDO($dsn, $username, $password, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_TIMEOUT => 5,
+            ]);
+
+            $stmt = $pdo->query("SHOW DATABASES");
+            $databases = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+            // Filter out system databases
+            $systemDbs = ['information_schema', 'mysql', 'performance_schema', 'sys'];
+            $userDatabases = array_filter($databases, fn ($db) => ! in_array($db, $systemDbs));
+
+            return [
+                'success' => true,
+                'databases' => array_values($userDatabases),
+                'message' => 'Databases retrieved successfully',
+            ];
+        } catch (\PDOException $e) {
+            return [
+                'success' => false,
+                'databases' => [],
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Validate environment prerequisites
+     *
+     * @return array{valid: bool, issues: array<string>}
+     */
+    public function validateEnvironmentPrerequisites(): array
+    {
+        $issues = [];
+
+        // Check if .env exists
+        $envPath = base_path('.env');
+        if (! File::exists($envPath)) {
+            if (File::exists(base_path('.env.example'))) {
+                $issues[] = '.env file missing. Will be created from .env.example during installation.';
+            } else {
+                $issues[] = 'CRITICAL: Neither .env nor .env.example exists. Please create .env file manually.';
+            }
+        }
+
+        // Check if APP_KEY is set
+        $appKey = config('app.key');
+        if (empty($appKey)) {
+            $issues[] = 'APP_KEY is not set. Run "php artisan key:generate" before installation.';
+        }
+
+        // Check if installation secret hash is configured
+        $secretHash = config('app.installation_secret_hash') ?: config('platform.installation_secret_hash');
+        if (empty($secretHash)) {
+            $issues[] = 'INSTALLATION_SECRET_HASH is not configured. Add it to your .env file.';
+        }
+
+        // Check storage directory permissions
+        $storagePath = storage_path();
+        if (! is_writable($storagePath)) {
+            $issues[] = "Storage directory is not writable: {$storagePath}";
+        }
+
+        // Check bootstrap/cache permissions
+        $cachePath = base_path('bootstrap/cache');
+        if (! is_writable($cachePath)) {
+            $issues[] = "Bootstrap cache directory is not writable: {$cachePath}";
+        }
+
+        return [
+            'valid' => empty($issues),
+            'issues' => $issues,
+        ];
+    }
+
+    /**
      * Update .env file with configuration
      */
     public function updateEnvironmentFile(array $dbConfig, array $platformConfig): void

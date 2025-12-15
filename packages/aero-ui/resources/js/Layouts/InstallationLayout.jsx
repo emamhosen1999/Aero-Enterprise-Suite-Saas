@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { Card, CardBody, Progress } from '@heroui/react';
 import { ToastContainer } from 'react-toastify';
+import { showToast } from '@/utils/toastUtils';
 import 'react-toastify/dist/ReactToastify.css';
 
 const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
@@ -10,6 +11,10 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
     const appVersion = app?.version || '1.0.0';
     const logo = platformSettings?.branding?.logo || platformSettings?.branding?.logo_light;
     const firstLetter = appName ? appName.charAt(0).toUpperCase() : 'A';
+
+    // Session timeout warning state
+    const [sessionWarningShown, setSessionWarningShown] = useState(false);
+
     const steps = [
         { number: 1, name: 'Welcome' },
         { number: 2, name: 'Verification' },
@@ -22,6 +27,56 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
     ];
 
     const progressPercentage = (currentStep / totalSteps) * 100;
+
+    // Warn before leaving the page during installation
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (currentStep > 1 && currentStep < totalSteps) {
+                e.preventDefault();
+                e.returnValue = 'Installation progress will be lost if you leave. Are you sure?';
+                return e.returnValue;
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [currentStep, totalSteps]);
+
+    // Session timeout warning (warn at 55 minutes for 60 min session)
+    useEffect(() => {
+        if (sessionWarningShown) return;
+
+        const warningTimeout = setTimeout(() => {
+            if (currentStep > 1 && currentStep < totalSteps) {
+                showToast.warning(
+                    'Your session will expire soon. Please complete the installation to avoid losing progress.',
+                    { duration: 10000 }
+                );
+                setSessionWarningShown(true);
+            }
+        }, 55 * 60 * 1000); // 55 minutes
+
+        return () => clearTimeout(warningTimeout);
+    }, [currentStep, totalSteps, sessionWarningShown]);
+
+    // Online/offline detection
+    useEffect(() => {
+        const handleOffline = () => {
+            showToast.error('You are offline. Please check your internet connection.', { duration: 0 });
+        };
+
+        const handleOnline = () => {
+            showToast.success('Connection restored!');
+        };
+
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('online', handleOnline);
+
+        return () => {
+            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('online', handleOnline);
+        };
+    }, []);
 
     return (
         <>

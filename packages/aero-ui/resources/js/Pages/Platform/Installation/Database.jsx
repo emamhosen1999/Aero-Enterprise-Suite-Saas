@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import InstallationLayout from '@/Layouts/InstallationLayout';
-import { Card, CardHeader, CardBody, CardFooter, Button, Input } from '@heroui/react';
-import { CircleStackIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { Card, CardHeader, CardBody, CardFooter, Button, Input, Chip, Divider, Tooltip } from '@heroui/react';
+import { CircleStackIcon, CheckCircleIcon, XCircleIcon, ServerIcon, PlusCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
-export default function Database({ dbConfig = {} }) {
+export default function Database({ dbConfig = {}, environmentIssues = [] }) {
     const [testResult, setTestResult] = useState(null);
     const [testing, setTesting] = useState(false);
+    const [serverTestResult, setServerTestResult] = useState(null);
+    const [testingServer, setTestingServer] = useState(false);
+    const [availableDatabases, setAvailableDatabases] = useState([]);
+    const [creatingDatabase, setCreatingDatabase] = useState(false);
+    const [canCreateDatabase, setCanCreateDatabase] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         host: dbConfig.host || 'localhost',
@@ -39,6 +44,76 @@ export default function Database({ dbConfig = {} }) {
         } finally {
             setTesting(false);
         }
+    };
+
+    const handleTestServerConnection = async () => {
+        setTestingServer(true);
+        setServerTestResult(null);
+        setAvailableDatabases([]);
+        setCanCreateDatabase(false);
+
+        try {
+            const response = await axios.post(route('installation.test-server'), {
+                host: data.host,
+                port: data.port,
+                username: data.username,
+                password: data.password,
+            });
+            
+            if (response.data.success) {
+                setServerTestResult({ success: true, message: response.data.message });
+                setAvailableDatabases(response.data.databases || []);
+                setCanCreateDatabase(response.data.can_create_database || false);
+                showToast.success('Server connection successful!');
+            } else {
+                setServerTestResult({ success: false, message: response.data.message });
+                showToast.error('Server connection failed');
+            }
+        } catch (error) {
+            const message = error.response?.data?.message || 'Server connection test failed';
+            setServerTestResult({ success: false, message });
+            showToast.error(message);
+        } finally {
+            setTestingServer(false);
+        }
+    };
+
+    const handleCreateDatabase = async () => {
+        if (!data.database) {
+            showToast.error('Please enter a database name');
+            return;
+        }
+
+        setCreatingDatabase(true);
+
+        try {
+            const response = await axios.post(route('installation.create-database'), {
+                host: data.host,
+                port: data.port,
+                username: data.username,
+                password: data.password,
+                database: data.database,
+            });
+            
+            if (response.data.success) {
+                showToast.success(response.data.message || 'Database created successfully!');
+                setAvailableDatabases(prev => [...prev, data.database]);
+                // Automatically test the full connection now
+                handleTestConnection();
+            } else {
+                showToast.error(response.data.message || 'Failed to create database');
+            }
+        } catch (error) {
+            const message = error.response?.data?.message || 'Failed to create database';
+            showToast.error(message);
+        } finally {
+            setCreatingDatabase(false);
+        }
+    };
+
+    const selectDatabase = (dbName) => {
+        setData('database', dbName);
+        setTestResult(null);
     };
 
     const handleSubmit = (e) => {
@@ -88,108 +163,264 @@ export default function Database({ dbConfig = {} }) {
                 <form onSubmit={handleSubmit}>
                     <CardBody className="px-4 sm:px-6 md:px-8 py-6 sm:py-8">
                         <div className="space-y-4 sm:space-y-6">
-                            {/* Database info */}
-                            <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-3 sm:p-4 border border-primary-200 dark:border-primary-800">
-                                <p className="text-xs sm:text-sm text-primary-800 dark:text-primary-200">
-                                    <strong>Note:</strong> The database must exist before installation. 
-                                    Create the database manually using phpMyAdmin or MySQL command line.
+                            {/* Environment issues warning */}
+                            {environmentIssues.length > 0 && (
+                                <div className="bg-warning-50 dark:bg-warning-900/20 rounded-lg p-3 sm:p-4 border border-warning-200 dark:border-warning-800">
+                                    <div className="flex items-start gap-2">
+                                        <ExclamationTriangleIcon className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm font-medium text-warning-800 dark:text-warning-200 mb-2">
+                                                Environment Issues Detected:
+                                            </p>
+                                            <ul className="list-disc list-inside text-xs text-warning-700 dark:text-warning-300 space-y-1">
+                                                {environmentIssues.map((issue, index) => (
+                                                    <li key={index}>{issue}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 1: Server connection */}
+                            <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4 border border-default-200 dark:border-default-700">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <ServerIcon className="w-5 h-5 text-primary-600" />
+                                    <h3 className="text-sm font-semibold text-foreground">Step 1: Test Server Connection</h3>
+                                </div>
+                                <p className="text-xs text-default-500 mb-4">
+                                    First, verify your MySQL server is accessible. This will also show available databases.
                                 </p>
-                            </div>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                                    <Input
+                                        label="Database Host"
+                                        placeholder="localhost"
+                                        value={data.host}
+                                        onValueChange={(value) => {
+                                            setData('host', value);
+                                            setServerTestResult(null);
+                                            setTestResult(null);
+                                        }}
+                                        isInvalid={!!errors.host}
+                                        errorMessage={errors.host}
+                                        isRequired
+                                        size="sm"
+                                        classNames={{ inputWrapper: "bg-default-100" }}
+                                    />
 
-                            {/* Database connection fields */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                <Input
-                                    label="Database Host"
-                                    placeholder="localhost"
-                                    value={data.host}
-                                    onValueChange={(value) => setData('host', value)}
-                                    isInvalid={!!errors.host}
-                                    errorMessage={errors.host}
-                                    isRequired
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
+                                    <Input
+                                        label="Database Port"
+                                        placeholder="3306"
+                                        value={data.port}
+                                        onValueChange={(value) => {
+                                            setData('port', value);
+                                            setServerTestResult(null);
+                                            setTestResult(null);
+                                        }}
+                                        isInvalid={!!errors.port}
+                                        errorMessage={errors.port}
+                                        isRequired
+                                        size="sm"
+                                        classNames={{ inputWrapper: "bg-default-100" }}
+                                    />
+                                </div>
 
-                                <Input
-                                    label="Database Port"
-                                    placeholder="3306"
-                                    value={data.port}
-                                    onValueChange={(value) => setData('port', value)}
-                                    isInvalid={!!errors.port}
-                                    errorMessage={errors.port}
-                                    isRequired
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
-                            </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                                    <Input
+                                        label="Database Username"
+                                        placeholder="root"
+                                        value={data.username}
+                                        onValueChange={(value) => {
+                                            setData('username', value);
+                                            setServerTestResult(null);
+                                            setTestResult(null);
+                                        }}
+                                        isInvalid={!!errors.username}
+                                        errorMessage={errors.username}
+                                        isRequired
+                                        size="sm"
+                                        classNames={{ inputWrapper: "bg-default-100" }}
+                                    />
 
-                            <Input
-                                label="Database Name"
-                                placeholder="eos365"
-                                value={data.database}
-                                onValueChange={(value) => setData('database', value)}
-                                isInvalid={!!errors.database}
-                                errorMessage={errors.database}
-                                isRequired
-                                classNames={{ inputWrapper: "bg-default-100" }}
-                            />
+                                    <Input
+                                        type="password"
+                                        label="Database Password"
+                                        placeholder="Leave empty if no password"
+                                        value={data.password}
+                                        onValueChange={(value) => {
+                                            setData('password', value);
+                                            setServerTestResult(null);
+                                            setTestResult(null);
+                                        }}
+                                        isInvalid={!!errors.password}
+                                        errorMessage={errors.password}
+                                        size="sm"
+                                        classNames={{ inputWrapper: "bg-default-100" }}
+                                    />
+                                </div>
 
-                            <Input
-                                label="Database Username"
-                                placeholder="root"
-                                value={data.username}
-                                onValueChange={(value) => setData('username', value)}
-                                isInvalid={!!errors.username}
-                                errorMessage={errors.username}
-                                isRequired
-                                classNames={{ inputWrapper: "bg-default-100" }}
-                            />
-
-                            <Input
-                                type="password"
-                                label="Database Password"
-                                placeholder="Leave empty if no password"
-                                value={data.password}
-                                onValueChange={(value) => setData('password', value)}
-                                isInvalid={!!errors.password}
-                                errorMessage={errors.password}
-                                classNames={{ inputWrapper: "bg-default-100" }}
-                            />
-
-                            {/* Test connection button */}
-                            <div className="flex flex-col gap-3">
                                 <Button
                                     type="button"
                                     color="secondary"
                                     variant="flat"
-                                    onPress={handleTestConnection}
-                                    isLoading={testing}
-                                    isDisabled={!data.host || !data.port || !data.database || !data.username}
-                                    className="w-full"
+                                    onPress={handleTestServerConnection}
+                                    isLoading={testingServer}
+                                    isDisabled={!data.host || !data.port || !data.username}
+                                    size="sm"
+                                    startContent={!testingServer && <ServerIcon className="w-4 h-4" />}
                                 >
-                                    Test Database Connection
+                                    Test Server Connection
                                 </Button>
 
-                                {/* Test result */}
-                                {testResult && (
-                                    <div className={`flex items-center gap-2 p-3 rounded-lg border ${
-                                        testResult.success
+                                {/* Server test result */}
+                                {serverTestResult && (
+                                    <div className={`flex items-center gap-2 p-3 rounded-lg border mt-3 ${
+                                        serverTestResult.success
                                             ? 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800'
                                             : 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-800'
                                     }`}>
-                                        {testResult.success ? (
+                                        {serverTestResult.success ? (
                                             <CheckCircleIcon className="w-5 h-5 text-success-600 flex-shrink-0" />
                                         ) : (
                                             <XCircleIcon className="w-5 h-5 text-danger-600 flex-shrink-0" />
                                         )}
                                         <p className={`text-sm ${
-                                            testResult.success 
+                                            serverTestResult.success 
                                                 ? 'text-success-800 dark:text-success-200' 
                                                 : 'text-danger-800 dark:text-danger-200'
                                         }`}>
-                                            {testResult.message}
+                                            {serverTestResult.message}
                                         </p>
                                     </div>
                                 )}
                             </div>
+
+                            {/* Step 2: Database selection/creation (only show after successful server test) */}
+                            {serverTestResult?.success && (
+                                <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4 border border-default-200 dark:border-default-700">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <CircleStackIcon className="w-5 h-5 text-primary-600" />
+                                        <h3 className="text-sm font-semibold text-foreground">Step 2: Select or Create Database</h3>
+                                    </div>
+
+                                    {/* Available databases */}
+                                    {availableDatabases.length > 0 && (
+                                        <div className="mb-4">
+                                            <p className="text-xs text-default-500 mb-2">Available databases (click to select):</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {availableDatabases.map((db) => (
+                                                    <Chip
+                                                        key={db}
+                                                        variant={data.database === db ? 'solid' : 'flat'}
+                                                        color={data.database === db ? 'primary' : 'default'}
+                                                        className="cursor-pointer"
+                                                        onClick={() => selectDatabase(db)}
+                                                    >
+                                                        {db}
+                                                    </Chip>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <Divider className="my-4" />
+
+                                    <div className="flex flex-col sm:flex-row gap-3 items-end">
+                                        <div className="flex-1 w-full">
+                                            <Input
+                                                label="Database Name"
+                                                placeholder="eos365"
+                                                value={data.database}
+                                                onValueChange={(value) => {
+                                                    setData('database', value);
+                                                    setTestResult(null);
+                                                }}
+                                                isInvalid={!!errors.database}
+                                                errorMessage={errors.database}
+                                                isRequired
+                                                size="sm"
+                                                classNames={{ inputWrapper: "bg-default-100" }}
+                                            />
+                                        </div>
+                                        
+                                        {canCreateDatabase && !availableDatabases.includes(data.database) && data.database && (
+                                            <Tooltip content="Create this database on the server">
+                                                <Button
+                                                    type="button"
+                                                    color="success"
+                                                    variant="flat"
+                                                    onPress={handleCreateDatabase}
+                                                    isLoading={creatingDatabase}
+                                                    size="sm"
+                                                    startContent={!creatingDatabase && <PlusCircleIcon className="w-4 h-4" />}
+                                                >
+                                                    Create Database
+                                                </Button>
+                                            </Tooltip>
+                                        )}
+                                    </div>
+
+                                    {!canCreateDatabase && !availableDatabases.includes(data.database) && data.database && (
+                                        <div className="flex items-start gap-2 mt-3 p-3 bg-warning-50 dark:bg-warning-900/20 rounded-lg border border-warning-200 dark:border-warning-800">
+                                            <InformationCircleIcon className="w-4 h-4 text-warning-600 flex-shrink-0 mt-0.5" />
+                                            <p className="text-xs text-warning-700 dark:text-warning-300">
+                                                Your MySQL user doesn't have CREATE DATABASE privileges. 
+                                                Please create the database manually using phpMyAdmin or MySQL command line, 
+                                                or use a user with administrative privileges.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Step 3: Test full connection (only show after database is selected) */}
+                            {serverTestResult?.success && data.database && (
+                                <div className="bg-default-50 dark:bg-default-100/10 rounded-lg p-4 border border-default-200 dark:border-default-700">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <CheckCircleIcon className="w-5 h-5 text-primary-600" />
+                                        <h3 className="text-sm font-semibold text-foreground">Step 3: Verify Database Connection</h3>
+                                    </div>
+                                    <p className="text-xs text-default-500 mb-4">
+                                        Test the full database connection to ensure everything is configured correctly.
+                                    </p>
+
+                                    <Button
+                                        type="button"
+                                        color="primary"
+                                        variant="flat"
+                                        onPress={handleTestConnection}
+                                        isLoading={testing}
+                                        isDisabled={!data.host || !data.port || !data.database || !data.username}
+                                        size="sm"
+                                        startContent={!testing && <CircleStackIcon className="w-4 h-4" />}
+                                    >
+                                        Test Database Connection
+                                    </Button>
+
+                                    {/* Database test result */}
+                                    {testResult && (
+                                        <div className={`flex items-center gap-2 p-3 rounded-lg border mt-3 ${
+                                            testResult.success
+                                                ? 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800'
+                                                : 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-800'
+                                        }`}>
+                                            {testResult.success ? (
+                                                <CheckCircleIcon className="w-5 h-5 text-success-600 flex-shrink-0" />
+                                            ) : (
+                                                <XCircleIcon className="w-5 h-5 text-danger-600 flex-shrink-0" />
+                                            )}
+                                            <p className={`text-sm ${
+                                                testResult.success 
+                                                    ? 'text-success-800 dark:text-success-200' 
+                                                    : 'text-danger-800 dark:text-danger-200'
+                                            }`}>
+                                                {testResult.message}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </CardBody>
 
