@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { Chip, Card, CardBody } from '@heroui/react';
 import { privacySections } from '@/constants/marketing';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import PublicLayout from '@/Layouts/PublicLayout';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 
 const Privacy = () => {
   const { themeSettings } = useTheme();

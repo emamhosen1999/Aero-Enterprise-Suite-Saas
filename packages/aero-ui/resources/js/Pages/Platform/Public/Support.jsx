@@ -16,8 +16,8 @@ import {
   TableCell,
 } from '@heroui/react';
 import { supportChannels, slaMatrix } from '@/constants/marketing';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import PublicLayout from '@/Layouts/PublicLayout';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 
 const Support = () => {
   const { themeSettings } = useTheme();

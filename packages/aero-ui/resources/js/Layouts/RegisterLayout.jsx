@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from '@inertiajs/react';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ToastContainer } from 'react-toastify';

@@ -45,10 +45,10 @@ class InstallationController extends Controller
     {
         // Check if already installed
         if ($this->isInstalled()) {
-            return Inertia::render('Pages/Platform/Admin/Installation/AlreadyInstalled');
+            return Inertia::render('Platform/Installation/AlreadyInstalled');
         }
 
-        return Inertia::render('Pages/Platform/Admin/Installation/Welcome', [
+        return Inertia::render('Platform/Installation/Welcome', [
             'title' => 'Welcome to Aero Enterprise Suite',
             'version' => config('app.version', '1.0.0'),
         ]);
@@ -63,7 +63,7 @@ class InstallationController extends Controller
             return redirect()->route('login');
         }
 
-        return Inertia::render('Pages/Platform/Admin/Installation/SecretVerification', [
+        return Inertia::render('Platform/Installation/SecretVerification', [
             'title' => 'Installation Security',
         ]);
     }
@@ -146,7 +146,7 @@ class InstallationController extends Controller
             return collect($group)->every(fn ($item) => $item['satisfied']);
         });
 
-        return Inertia::render('Pages/Platform/Admin/Installation/Requirements', [
+        return Inertia::render('Platform/Installation/Requirements', [
             'title' => 'System Requirements',
             'requirements' => $requirements,
             'canProceed' => $canProceed,
@@ -162,7 +162,7 @@ class InstallationController extends Controller
             return redirect()->route('installation.secret');
         }
 
-        return Inertia::render('Pages/Platform/Admin/Installation/Database', [
+        return Inertia::render('Platform/Installation/Database', [
             'title' => 'Database Configuration',
             'currentConfig' => [
                 'host' => config('database.connections.mysql.host'),
@@ -278,7 +278,7 @@ class InstallationController extends Controller
             'sms_nexmo_from' => config('services.nexmo.from', ''),
         ]);
 
-        return Inertia::render('Pages/Platform/Admin/Installation/PlatformSettings', [
+        return Inertia::render('Platform/Installation/PlatformSettings', [
             'title' => 'Platform Settings',
             'platformConfig' => $platformConfig,
         ]);
@@ -488,7 +488,7 @@ class InstallationController extends Controller
             return redirect()->route('installation.database');
         }
 
-        return Inertia::render('Pages/Platform/Admin/Installation/AdminAccount', [
+        return Inertia::render('Platform/Installation/AdminAccount', [
             'title' => 'Create Admin Account',
         ]);
     }
@@ -526,7 +526,7 @@ class InstallationController extends Controller
             return redirect()->route('installation.database');
         }
 
-        return Inertia::render('Pages/Platform/Admin/Installation/Review', [
+        return Inertia::render('Platform/Installation/Review', [
             'title' => 'Review & Install',
             'dbConfig' => array_merge(session('db_config', []), ['db_password' => '***']),
             'platformConfig' => session('platform_config'),
@@ -625,26 +625,9 @@ class InstallationController extends Controller
             $migrationOutput = Artisan::output();
             \Log::info('Migration output', ['output' => $migrationOutput]);
 
-            // Stage 3: Seed basic data
-            \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
 
-            // 3a: Super Administrator role (no permissions - using role-module-access system)
             Artisan::call('db:seed', [
-                '--class' => 'SuperAdministratorRolesSeeder',
-                '--force' => true,
-            ]);
-            \Log::info('SuperAdministratorRolesSeeder output', ['output' => Artisan::output()]);
-
-            // 3b: Module hierarchy from config/modules.php (platform modules only needed for installation)
-            Artisan::call('db:seed', [
-                '--class' => 'ModuleSeeder',
-                '--force' => true,
-            ]);
-            \Log::info('ModuleSeeder output', ['output' => Artisan::output()]);
-
-            // 3c: Subscription plans with module assignments
-            Artisan::call('db:seed', [
-                '--class' => 'PlanSeeder',
+                '--class' => 'Aero\\Platform\\Database\\Seeders\\PlanSeeder',
                 '--force' => true,
             ]);
             $seedOutput = Artisan::output();
@@ -663,6 +646,11 @@ class InstallationController extends Controller
                 }
             }
 
+            $role = \Spatie\Permission\Models\Role::firstOrCreate(
+                ['name' => 'Super Administrator'],
+                ['guard_name' => 'web']
+            );
+
             $admin = LandlordUser::updateOrCreate(
                 ['email' => $adminConfig['admin_email']],
                 [
@@ -671,11 +659,36 @@ class InstallationController extends Controller
                     'email_verified_at' => now(),
                 ]
             );
+
+       
+         
+
             \Log::info('Admin created/updated', ['admin_id' => $admin->id, 'email' => $admin->email]);
 
             // Assign Super Administrator role (syncRoles to avoid duplicates)
-            $admin->syncRoles(['Super Administrator']);
-            \Log::info('Role synced', ['role' => 'Super Administrator']);
+            try {
+                $admin->syncRoles(['Super Administrator']);
+                \Log::info('Role synced', ['role' => 'Super Administrator']);
+            } catch (\Throwable $e) {
+                // Fall back to direct pivot insert in case of schema differences
+                \Log::warning('syncRoles failed, falling back to direct pivot insert', ['error' => $e->getMessage()]);
+
+                try {
+                    $role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
+                    if ($role) {
+                        DB::connection('central')->table('model_has_roles')->insertOrIgnore([
+                            'role_id' => $role->id,
+                            'model_id' => $admin->id,
+                            'model_type' => \Aero\Platform\Models\LandlordUser::class,
+                        ]);
+                        \Log::info('Role pivot inserted (fallback)', ['role_id' => $role->id, 'admin_id' => $admin->id]);
+                    } else {
+                        \Log::warning('Fallback role insert skipped: role not found', []);
+                    }
+                } catch (\Throwable $inner) {
+                    \Log::error('Fallback role insert failed', ['error' => $inner->getMessage()]);
+                }
+            }
 
             // Stage 5: Create platform settings with all collected data
             \Log::info('Installation Stage: settings', ['stage' => 'settings']);
@@ -755,8 +768,11 @@ class InstallationController extends Controller
             ]);
 
             // Redirect to admin subdomain login
-            $adminDomain = env('ADMIN_DOMAIN', 'admin.'.env('APP_DOMAIN'));
-            $redirectUrl = 'https://'.$adminDomain.'/login';
+            $appUrl = config('app.url') ?: env('APP_URL', 'http://localhost');
+            $parsedHost = parse_url($appUrl, PHP_URL_HOST) ?: $appUrl;
+            $adminDomain = env('ADMIN_DOMAIN') ?: 'admin.'.$parsedHost;
+            $scheme = parse_url($appUrl, PHP_URL_SCHEME) ?: 'https';
+            $redirectUrl = $scheme.'://'.$adminDomain.'/login';
 
             return response()->json([
                 'success' => true,
@@ -788,9 +804,15 @@ class InstallationController extends Controller
      */
     public function complete(): \Inertia\Response
     {
-        return Inertia::render('Pages/Platform/Admin/Installation/Complete', [
+        $appUrl = config('app.url') ?: env('APP_URL', 'http://localhost');
+        $parsedHost = parse_url($appUrl, PHP_URL_HOST) ?: $appUrl;
+        $adminDomain = env('ADMIN_DOMAIN') ?: 'admin.'.$parsedHost;
+        $scheme = parse_url($appUrl, PHP_URL_SCHEME) ?: 'https';
+        $adminLoginUrl = $scheme.'://'.$adminDomain.'/login';
+
+        return Inertia::render('Platform/Installation/Complete', [
             'title' => 'Installation Complete',
-            'loginUrl' => route('login'),
+            'loginUrl' => $adminLoginUrl,
         ]);
     }
 

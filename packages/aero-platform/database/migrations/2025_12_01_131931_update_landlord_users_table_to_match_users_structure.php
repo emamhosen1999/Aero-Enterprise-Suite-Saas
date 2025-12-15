@@ -32,7 +32,7 @@ return new class extends Migration
         Schema::create('landlord_users', function (Blueprint $table) {
             // Core fields matching users table
             $table->id();
-            $table->string('user_name');
+           
             $table->string('phone')->unique()->nullable();
             $table->string('email')->unique();
             $table->string('password');

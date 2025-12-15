@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
-import AuthCard from '@/Shared/Components/UI/AuthCard.jsx'
-import RegisterLayout from '@/Shared/Layouts/RegisterLayout.jsx'
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import AuthCard from '@/Components/UI/AuthCard.jsx'
+import RegisterLayout from '@/Layouts/RegisterLayout.jsx'
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import ProgressSteps from './components/ProgressSteps.jsx';
 

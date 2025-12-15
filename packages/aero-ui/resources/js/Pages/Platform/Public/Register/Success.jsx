@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import ProgressSteps from './components/ProgressSteps.jsx';
 

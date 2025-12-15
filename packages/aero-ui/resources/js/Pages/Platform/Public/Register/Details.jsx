@@ -3,9 +3,9 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { Button, Input, Chip, Spinner } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import AuthCard from '@/Shared/Components/UI/AuthCard.jsx';
-import RegisterLayout from '@/Shared/Layouts/RegisterLayout.jsx';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import AuthCard from '@/Components/UI/AuthCard.jsx';
+import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import ProgressSteps from './components/ProgressSteps.jsx';
 

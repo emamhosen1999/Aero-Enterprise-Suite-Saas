@@ -82,7 +82,19 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Register routes
-        $this->registerRoutes();
+
+        // Register installation wizard routes if not installed
+        $installationLockFile = storage_path('installed');
+        if (!file_exists($installationLockFile)) {
+            // Load installation wizard routes (from package)
+            $installationRoutes = __DIR__ . '/../routes/installation.php';
+            if (file_exists($installationRoutes)) {
+                \Illuminate\Support\Facades\Route::middleware(['web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class])
+                    ->group($installationRoutes);
+            }
+        } else {
+            $this->registerRoutes();
+        }
 
         // Register middleware (including HandleInertiaRequests which intercepts "/")
         $this->registerMiddleware();
@@ -124,12 +136,18 @@ class AeroPlatformServiceProvider extends ServiceProvider
             // This ensures correct database connection for session storage on central domains
             $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\SetDatabaseConnectionFromDomain::class);
 
-            // Register IdentifyDomainContext to set context for the request
-            $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
+            // Force file-based sessions/cache for installation routes BEFORE StartSession
+            // so the installer can run without database-backed sessions/tables.
+            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class);
 
-            // Register HandleInertiaRequests middleware to web middleware group
-            // This middleware intercepts "/" and renders the proper page
-            $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
+            // Register IdentifyDomainContext to set context for the request
+            // and ensure it runs BEFORE session middleware so installation
+            // checks can redirect without accessing the sessions table.
+            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
+
+            // Register HandleInertiaRequests middleware early so root "/"
+            // interception happens before StartSession (avoids DB session access)
+            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
         });
 
         $router = $this->app['router'];

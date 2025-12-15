@@ -18,9 +18,9 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/react';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { supportChannels, slaMatrix, demoSteps } from '@/constants/marketing';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
+import PublicLayout from '@/Layouts/PublicLayout';
 
 const tierData = [
   {

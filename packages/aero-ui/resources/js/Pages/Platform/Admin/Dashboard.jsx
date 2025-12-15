@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
+import App from '@/Layouts/App';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Button, 

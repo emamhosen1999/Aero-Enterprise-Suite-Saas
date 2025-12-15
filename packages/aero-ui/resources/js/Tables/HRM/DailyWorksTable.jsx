@@ -3,7 +3,7 @@ import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { usePage, router } from "@inertiajs/react";
 import { showToast } from '@/utils/toastUtils';
 import { debounce } from "lodash";
-import StatsCards from '@/Shared/Components/Common/StatsCards';
+import StatsCards from '@/Components/Common/StatsCards';
 import ProfileAvatar, { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 
 import {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
-import { supportTickets, ticketThreads } from '@/Platform/Pages/Admin/data/mockData.js';
+import App from '@/Layouts/App';
+import { supportTickets, ticketThreads } from '@/Pages/Platform/Admin/data/mockData.js';
 import {
   LifebuoyIcon,
   ArrowPathIcon,

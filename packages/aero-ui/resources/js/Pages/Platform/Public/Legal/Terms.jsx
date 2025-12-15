@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { Card, CardBody, Chip } from '@heroui/react';
 import { termsSections } from '@/constants/marketing';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import PublicLayout from '@/Layouts/PublicLayout';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 
 const Terms = () => {
   const { themeSettings } = useTheme();

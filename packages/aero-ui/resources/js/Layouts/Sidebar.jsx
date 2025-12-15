@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Link, usePage } from "@inertiajs/react";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { useBranding } from '@/Hooks/useBranding';
@@ -15,7 +15,6 @@ import {
   Tooltip,
   Card
 } from "@heroui/react";
-import * as OutlineIcons from "@heroicons/react/24/outline";
 import {
   ChevronRightIcon,
   ChevronDownIcon,
@@ -23,61 +22,10 @@ import {
   MagnifyingGlassIcon,
   HomeIcon,
   StarIcon,
-  ClockIcon,
-  Squares2X2Icon
+  ClockIcon
 } from "@heroicons/react/24/outline"; 
   
 import { motion, AnimatePresence } from 'framer-motion';
-
-/**
- * Icon Resolver Helper
- * 
- * Converts string icon names (from modules) to React components (for rendering).
- * Modules pass icon names as strings (e.g., 'UserGroupIcon') to keep bundles small.
- * Core resolves these to actual HeroIcon components at render time.
- * 
- * @param {string|React.Component} icon - Icon identifier or React component
- * @returns {React.Component} Icon component ready for rendering
- */
-const getIcon = (icon) => {
-  // Fallback icon - always guaranteed to exist
-  const FallbackIcon = OutlineIcons.Squares2X2Icon || Squares2X2Icon;
-  
-  // Handle null/undefined
-  if (!icon) {
-    return FallbackIcon;
-  }
-  
-  // If already a React Component (Core navigation), return it
-  if (typeof icon === 'function') {
-    return icon;
-  }
-  
-  // If it's a React element (object with $$typeof), return fallback since we can't use it with createElement
-  if (typeof icon === 'object' && icon !== null) {
-    // Check if it's a valid React component type
-    if (icon.$$typeof) {
-      return FallbackIcon;
-    }
-    return icon;
-  }
-  
-  // If it's a string from a module, look it up in HeroIcons
-  if (typeof icon === 'string') {
-    const IconComponent = OutlineIcons[icon];
-    if (IconComponent) {
-      return IconComponent;
-    }
-    // Try with 'Icon' suffix if not found
-    const IconWithSuffix = OutlineIcons[icon + 'Icon'];
-    if (IconWithSuffix) {
-      return IconWithSuffix;
-    }
-  }
-  
-  // Fallback icon if not found
-  return FallbackIcon;
-};
 
 // Helper function to highlight search matches
 const highlightSearchMatch = (text, searchTerm) => {
@@ -162,30 +110,11 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   const [activePage, setActivePage] = useState(url);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Normalize navigation data - convert 'children' to 'subMenu' for consistency
-  const normalizePages = useCallback((pagesList) => {
-    if (!Array.isArray(pagesList)) return [];
-    return pagesList.map(page => {
-      const normalized = { ...page };
-      // Support both 'children' (from backend) and 'subMenu' (legacy)
-      if (page.children && !page.subMenu) {
-        normalized.subMenu = normalizePages(page.children);
-        delete normalized.children;
-      } else if (page.subMenu) {
-        normalized.subMenu = normalizePages(page.subMenu);
-      }
-      return normalized;
-    });
-  }, []);
-  
-  // Memoize normalized pages to prevent infinite re-renders
-  const normalizedPages = useMemo(() => normalizePages(pages), [pages, normalizePages]);
-  
   // HeroUI will handle theming automatically through semantic colors
   
-  // Memoized grouped pages - recalculate only when dependencies change
-  const groupedPages = useMemo(() => {
-    let allPages = normalizedPages;
+  // Fresh grouped pages - always recalculate for latest data
+  const groupedPages = (() => {
+    let allPages = pages;
     
     // Filter pages based on search term
     if (searchTerm.trim()) {
@@ -208,14 +137,14 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         });
       };
       
-      allPages = filterPagesRecursively(normalizedPages);
+      allPages = filterPagesRecursively(pages);
     }
     
     const mainPages = allPages.filter(page => !page.category || page.category === 'main');
     const settingsPages = allPages.filter(page => page.category === 'settings');
     
     return { mainPages, settingsPages };
-  }, [normalizedPages, searchTerm]);
+  })();
 
   // Auto-expand menus when searching
   useEffect(() => {
@@ -241,11 +170,10 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         return expandedSet;
       };
       
-      const newExpandedMenus = expandAllWithMatches(normalizedPages);
+      const newExpandedMenus = expandAllWithMatches(pages);
       updateOpenSubMenus(newExpandedMenus);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]); // Only trigger on searchTerm change, normalizedPages is stable
+  }, [searchTerm, pages]);
 
   // Update active page when URL changes
   useEffect(() => {
@@ -256,7 +184,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       for (const page of menuItems) {
         const currentParents = [...parentNames, page.name];
         
-        if (page.path && page.path === targetUrl) {
+        if (page.route && "/" + page.route === targetUrl) {
           const newSet = new Set([...openSubMenus, ...currentParents.slice(0, -1)]);
           updateOpenSubMenus(newSet);
           return true;
@@ -271,9 +199,8 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       return false;
     };
     
-    expandParentMenus(normalizedPages, url);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url]); // Only trigger on URL change
+    expandParentMenus(pages, url);
+  }, [url, pages]);
 
   // Simple callback handlers - no useCallback for fresh execution
   const handleSubMenuToggle = (pageName) => {
@@ -286,8 +213,8 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     updateOpenSubMenus(newSet);
   };
 
-  const handlePageClick = (pagePath) => {
-    setActivePage(pagePath);
+  const handlePageClick = (pageRoute) => {
+    setActivePage("/" + pageRoute);
     // Clear search when navigating to a page
     setSearchTerm('');
     if (isMobile) {
@@ -296,11 +223,11 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   };
 
   const renderCompactMenuItem = (page, isSubMenu = false, level = 0) => {
-    const isActive = page.path && activePage === page.path;
+    const isActive = activePage === "/" + page.route;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
-        if (subPage.path) return subPage.path === activePage;
-        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => nestedPage.path === activePage);
+        if (subPage.route) return "/" + subPage.route === activePage;
+        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => "/" + nestedPage.route === activePage);
         return false;
       }
     );
@@ -323,7 +250,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             color={hasActiveSubPage ? "primary" : "default"}
             startContent={
               <div style={{ color: hasActiveSubPage ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}>
-                {React.createElement(getIcon(page.icon), { className: iconSize })}
+                {React.cloneElement(page.icon, { className: iconSize })}
               </div>
             }
             endContent={
@@ -393,20 +320,20 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
     
-    // No submenu - leaf item (uses direct path from backend)
-    if (page.path) {
+    // No submenu - leaf item
+    if (page.route) {
       return (
         <div key={`route-item-${page.name}-${level}`}>
           <Button
             as={Link}
-            href={page.path}
+            href={route(page.route)}
             method={page.method}
             preserveState
             preserveScroll
             variant="light"
             startContent={
               <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-                {React.createElement(getIcon(page.icon), { className: iconSize })}
+                {React.cloneElement(page.icon, { className: iconSize })}
               </div>
             }
             className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
@@ -429,7 +356,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
               }
             }}
-            onPress={() => handlePageClick(page.path)}
+            onPress={() => handlePageClick(page.route)}
             size="sm"
           >
             <span 
@@ -443,7 +370,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
     
-    // Category header without path
+    // Category header without route
     return (
       <div 
         key={`category-item-${page.name}-${level}`} 
@@ -454,7 +381,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           color={hasActiveSubPage ? "primary" : "default"}
           startContent={
             <div style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-              {React.createElement(getIcon(page.icon), { className: iconSize })}
+              {React.cloneElement(page.icon, { className: iconSize })}
             </div>
           }
           endContent={
@@ -525,11 +452,11 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   };
 
   const renderMenuItem = (page, isSubMenu = false, level = 0) => {
-    const isActive = page.path && activePage === page.path;
+    const isActive = page.route && activePage === "/" + page.route;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
-        if (subPage.path) return subPage.path === activePage;
-        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => nestedPage.path === activePage);
+        if (subPage.route) return "/" + subPage.route === activePage;
+        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => "/" + nestedPage.route === activePage);
         return false;
       }
     );
@@ -545,7 +472,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             color={hasActiveSubPage ? "primary" : "default"}
             startContent={
               <div style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-                {React.createElement(getIcon(page.icon), { className: 'w-5 h-5' })}
+                {page.icon}
               </div>
             }
             endContent={
@@ -625,19 +552,19 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
 
-    // No submenu - either a path or category
-    if (page.path) {
+    // No submenu - either a route or category
+    if (page.route) {
       return (
         <Button
           key={`full-route-item-${page.name}-${level}`}
           as={Link}
-          href={page.path}
+          href={route(page.route)}
           method={page.method}
           preserveState
           preserveScroll
           startContent={
             <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
-              {React.createElement(getIcon(page.icon), { className: 'w-5 h-5' })}
+              {page.icon}
             </div>
           }
           color={isActive ? "primary" : "default"}
@@ -661,7 +588,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
             }
           }}
-          onPress={() => handlePageClick(page.path)}
+          onPress={() => handlePageClick(page.route)}
           size="sm"
         >
           <span className="text-sm font-medium" style={{ color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}>
@@ -671,13 +598,13 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
 
-    // Category without path - just display as header
+    // Category without route - just display as header
     return (
       <div key={`full-category-item-${page.name}-${level}`} className="w-full">
         <div className={`${paddingLeft} pr-4 py-2`}>
           <div className="flex items-center gap-2">
             <div>
-              {React.createElement(getIcon(page.icon), { className: 'w-5 h-5 text-foreground/80' })}
+              {page.icon}
             </div>
             <span className="text-sm font-semibold text-foreground/80">
               {highlightSearchMatch(page.name, searchTerm)}

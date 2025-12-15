@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
+import App from '@/Layouts/App';
 import { 
     Table, 
     TableHeader, 

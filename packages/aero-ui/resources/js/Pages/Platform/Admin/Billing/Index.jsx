@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
-import { billingSummary, transactionHistory, invoiceCollection, analyticsTimeSeries } from '@/Platform/Pages/Admin/data/mockData.js';
+import App from '@/Layouts/App';
+import { billingSummary, transactionHistory, invoiceCollection, analyticsTimeSeries } from '@/Pages/Platform/Admin/data/mockData.js';
 import {
   CurrencyDollarIcon,
   ArrowTrendingUpIcon,

@@ -7,7 +7,7 @@ import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
 import LoadingIndicator from './Components/LoadingIndicator';
 import UnifiedError from './Components/Errors/UnifiedError';
-import { ThemeProvider } from './Shared/Context/ThemeContext';
+import { ThemeProvider } from './Context/ThemeContext';
 import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';
 import { initializeDeviceAuth } from './utils/deviceAuth';

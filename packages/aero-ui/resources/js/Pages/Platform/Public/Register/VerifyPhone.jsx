@@ -12,7 +12,7 @@ import {
 import axios from 'axios';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { showToast } from '@/utils/toastUtils';
 import ProgressSteps from './components/ProgressSteps.jsx';

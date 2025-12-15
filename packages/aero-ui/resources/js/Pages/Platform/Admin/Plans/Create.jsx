@@ -1,9 +1,9 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
+import App from '@/Layouts/App';
 import { Card, CardHeader, CardBody } from '@heroui/react';
 import { CubeIcon } from '@heroicons/react/24/outline';
-import PlanForm from '@/Platform/Pages/Admin/Plans/components/PlanForm.jsx';
+import PlanForm from '@/Pages/Platform/Admin/Plans/components/PlanForm.jsx';
 
 const mainCardStyle = {
   border: `var(--borderWidth, 2px) solid transparent`,

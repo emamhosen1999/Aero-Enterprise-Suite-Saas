@@ -33,10 +33,10 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
     const [activeTab, setActiveTab] = useState('dashboard');
     const bottomNavRef = useRef(null);
 
-    // ===== CORE NAVIGATION ITEMS =====
+    // ===== CORE NAVIGATION ITEMS (4 MAIN + THEME) =====
     /**
-     * Streamlined navigation for mobile with only core items
-     * Additional module-specific items come from backend navigation
+     * Streamlined navigation for mobile with only essential items
+     * Plus theme toggle button for mobile-specific UI control
      */
     const navItems = useMemo(() => [
         {
@@ -44,15 +44,37 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
             label: 'Dashboard',
             icon: HomeIcon,
             href: '/dashboard',
+            route: 'dashboard',
             tooltip: 'Go to main dashboard',
             priority: 'high',
             category: 'main'
+        },
+        {
+            id: 'attendance',
+            label: 'Attendance',
+            icon: ClockIcon,
+            href: '/attendance-employee',
+            route: 'attendance-employee',
+            tooltip: 'View your attendance records',
+            priority: 'high',
+            category: 'hr'
+        },
+        {
+            id: 'leaves',
+            label: 'Leaves',
+            icon: DocumentTextIcon,
+            href: '/leaves-employee',
+            route: 'leaves-employee',
+            tooltip: 'Manage leave requests',
+            priority: 'high',
+            category: 'hr'
         },
         {
             id: 'profile',
             label: 'Profile',
             icon: UserCircleIcon,
             href: `/profile/${auth.user.id}`,
+            route: `profile.${auth.user.id}`,
             tooltip: `${auth.user.name}'s profile`,
             priority: 'high',
             category: 'user'
@@ -110,8 +132,12 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
 
     // ===== ACTIVE STATE DETECTION =====
     useEffect(() => {
-        // URL matching for active state detection
-        if (url.includes('/dashboard')) {
+        // Enhanced URL matching for better active state detection
+        if (url.includes('/attendance-employee')) {
+            setActiveTab('attendance');
+        } else if (url.includes('/leaves-employee')) {
+            setActiveTab('leaves');
+        } else if (url.includes('/dashboard')) {
             setActiveTab('dashboard');
         } else if (url.includes('/profile/') && url.includes(auth.user.id.toString())) {
             setActiveTab('profile');

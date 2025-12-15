@@ -31,7 +31,7 @@ import {
     Spinner
 } from '@heroui/react';
 import { showToast } from '@/utils/toastUtils';
-import { useTheme } from '@/Shared/Context/ThemeContext';
+import { useTheme } from '@/Context/ThemeContext';
 import { getDeviceId, getDeviceHeaders } from '@/utils/deviceAuth';
 import { useBranding } from '@/Hooks/useBranding';
 

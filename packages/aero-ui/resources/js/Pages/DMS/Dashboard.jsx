@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
+import App from '@/Layouts/App';
 import {
     Card,
     CardBody,
@@ -18,7 +18,7 @@ import {
     ShareIcon,
     ChartBarIcon,
 } from '@heroicons/react/24/outline';
-import { FileManager, VersionHistory } from '@/Shared/Components/FileManager';
+import { FileManager, VersionHistory } from '@/Components/FileManager';
 
 const Dashboard = () => {
     const {

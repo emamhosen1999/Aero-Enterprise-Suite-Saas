@@ -9,7 +9,7 @@ import {
   Divider,
 } from '@heroui/react';
 import { motion } from 'framer-motion';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import {
   heroStats,
   platformModules,
@@ -20,7 +20,7 @@ import {
   testimonialSlides,
   demoStats,
 } from '@/constants/marketing';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
+import PublicLayout from '@/Layouts/PublicLayout';
 
 const iconMap = {
   people: (

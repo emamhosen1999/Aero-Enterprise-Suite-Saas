@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Middleware;
 use Throwable;
@@ -57,8 +59,31 @@ class HandleInertiaRequests extends Middleware
                 return redirect('/login');
             }
 
+            // Platform domain: if not installed or database missing, redirect to installer
+            try {
+                $installationLock = storage_path('installed');
+                $dbAccessible = true;
+                try {
+                    DB::connection()->getPdo();
+                    if (! DB::getSchemaBuilder()->hasTable('tenants')) {
+                        $dbAccessible = false;
+                    }
+                } catch (\Throwable $e) {
+                    $dbAccessible = false;
+                }
+
+                if (! File::exists($installationLock) || ! $dbAccessible) {
+                    return redirect('/install');
+                }
+            } catch (\Throwable $e) {
+                // If any error occurs while checking, fallback to rendering landing
+            }
+
             // Platform domain: render landing page
-            return Inertia::render('Platform/Public/Landing')->toResponse($request);
+            // Ensure we use the package root view (avoid default 'app' view missing in host)
+            return Inertia::render('Platform/Public/Landing')
+                ->rootView($this->rootView)
+                ->toResponse($request);
         }
 
         return parent::handle($request, $next);

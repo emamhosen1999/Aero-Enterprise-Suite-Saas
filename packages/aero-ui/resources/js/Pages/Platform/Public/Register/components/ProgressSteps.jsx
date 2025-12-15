@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
 import { clsx } from 'clsx';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { CheckIcon } from '@heroicons/react/24/solid';
 
 export default function ProgressSteps({ steps = [], currentStep }) {

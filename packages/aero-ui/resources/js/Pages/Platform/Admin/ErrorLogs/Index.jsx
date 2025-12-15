@@ -48,7 +48,7 @@ import {
     ServerIcon,
     DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
-import App from '@/Shared/Layouts/App';
+import App from '@/Layouts/App';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 

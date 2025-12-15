@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/Context/ThemeContext';
 import { Card } from '@heroui/react';
-import { useBranding } from '@/Hooks/useBranding.js';
+import { useBranding } from '@/Hooks/useBranding';
+
 
 const AuthLayout = ({ children, title, subtitle }) => {
+    const { logo, favicon, siteName } = useBranding();
     const [isDesktop, setIsDesktop] = useState(false);
     const { themeSettings } = useTheme();
-    const { logo, squareLogo, siteName } = useBranding();
 
     // Check if screen is desktop for showing floating elements
     useEffect(() => {

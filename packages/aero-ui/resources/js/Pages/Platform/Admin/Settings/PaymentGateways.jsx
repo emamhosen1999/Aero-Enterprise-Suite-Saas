@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
-import { paymentProfiles } from '@/Platform/Pages/Admin/data/mockData.js';
+import App from '@/Layouts/App';
+import { paymentProfiles } from '@/Pages/Platform/Admin/data/mockData.js';
 import { showToast } from '@/utils/toastUtils.jsx';
 import {
   Button,

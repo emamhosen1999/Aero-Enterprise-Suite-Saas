@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Head } from '@inertiajs/react';
-import App from '@/Shared/Layouts/App';
-import { invoiceCollection } from '@/Platform/Pages/Admin/data/mockData.js';
+import App from '@/Layouts/App';
+import { invoiceCollection } from '@/Pages/Platform/Admin/data/mockData.js';
 import {
   Card,
   CardHeader,

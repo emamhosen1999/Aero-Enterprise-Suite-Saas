@@ -10,8 +10,8 @@ import {
   Textarea,
 } from '@heroui/react';
 import { demoSteps, demoStats, testimonialSlides } from '@/constants/marketing';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import PublicLayout from '@/Layouts/PublicLayout';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 
 const Demo = () => {
   const { themeSettings } = useTheme();

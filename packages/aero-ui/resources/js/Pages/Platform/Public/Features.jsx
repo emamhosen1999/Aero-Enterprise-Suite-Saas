@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Link, Head } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip, Divider, Accordion, AccordionItem } from '@heroui/react';
-import PublicLayout from '@/Shared/Layouts/PublicLayout';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import PublicLayout from '@/Layouts/PublicLayout';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import {
   productHighlights,

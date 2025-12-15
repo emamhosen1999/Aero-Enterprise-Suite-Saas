@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '@/Shared/Context/ThemeContext.jsx';
+import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { usePage } from "@inertiajs/react";
 

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { usePage, router } from "@inertiajs/react";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 import { ScrollShadow, Divider } from "@heroui/react";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,6 +14,7 @@ import ThemeSettingDrawer from "@/Components/ThemeSettingDrawer.jsx";
 import UpdateNotification from '@/Components/UpdateNotification.jsx';
 import ImpersonationBanner from '@/Components/Admin/ImpersonationBanner.jsx';
 import CommandPalette from '@/Components/Navigation/CommandPalette.jsx';
+import { FadeIn, SlideIn } from '@/Components/Animations/SmoothAnimations';
 import { useVersionManager } from '@/Hooks/useVersionManager.js';
 import AuthGuard from '@/Components/AuthGuard.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
@@ -131,8 +133,7 @@ const App = React.memo(({ children }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Get global page props
-  // Navigation is a flat array of items from backend (only installed modules)
-  const { auth, app, url, roles, navigation } = usePage().props;
+  const { auth, app, url, roles, context: domainContext = 'tenant' } = usePage().props;
   
   // Get domain-aware branding
   const { favicon, siteName } = useBranding();
@@ -147,36 +148,29 @@ const App = React.memo(({ children }) => {
   } = useVersionManager();
 
   // ===== NAVIGATION DATA =====
-  // Navigation comes directly from backend via Inertia props
-  // Backend only registers navigation for installed modules
+  // Recalculates when auth changes to ensure navigation reflects user permissions
   const staticLayoutData = useMemo(() => {
-    // DEBUG: Log navigation data from backend
-    console.log('[App.jsx] Navigation from backend:', navigation);
-    console.log('[App.jsx] Navigation type:', typeof navigation);
-    console.log('[App.jsx] Is array:', Array.isArray(navigation));
-    
     const currentAuth = {
       user: auth?.user,
       permissions: auth?.permissions,
       roles: auth?.roles,
       id: auth?.user?.id,
       permissionCount: auth?.permissions?.length,
+      // Include super admin flags for navigation filtering
       isPlatformSuperAdmin: auth?.isPlatformSuperAdmin ?? false,
       isTenantSuperAdmin: auth?.isTenantSuperAdmin ?? false,
       isSuperAdmin: auth?.isSuperAdmin ?? false,
       isAdmin: auth?.isAdmin ?? false,
     };
 
-    // Navigation is a flat array of items from backend
-    // Each item has: name, icon (string), path, access, priority, children
-    const pages = Array.isArray(navigation) ? navigation : [];
-    
-    console.log('[App.jsx] Pages to render:', pages);
+    const permissions = currentAuth?.permissions || [];
+    const derivedRoles = roles?.length ? roles : (currentAuth?.roles || []);
+    const isAdminContext = domainContext === 'admin';
 
     return {
       currentAuth,
-      permissions: currentAuth?.permissions || [],
-      roles: roles?.length ? roles : (currentAuth?.roles || []),
+      permissions,
+      roles: derivedRoles,
       pages,
       app,
       url
@@ -190,10 +184,10 @@ const App = React.memo(({ children }) => {
     auth?.permissions,
     auth?.roles,
     roles,
+    domainContext,
     url,
-    app,
-    navigation
-  ]); // Recalculate when auth or navigation changes
+    app
+  ]); // Recalculate when auth or context changes
 
   // Responsive breakpoints
   const isMobile = useMediaQuery('(max-width: 768px)');
