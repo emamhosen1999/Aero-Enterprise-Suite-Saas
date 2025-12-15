@@ -32,18 +32,66 @@ class IdentifyDomainContext
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        $context = $this->identifyContext($request);
+        // 1. Only intercept the root path '/'
+        if (! $request->is('/')) {
+            return $next($request);
+        }
 
-        // Store context in request attributes for use throughout the application
-        $request->attributes->set('domain_context', $context);
+        // 2. Get the Context (Relies on IdentifyDomainContext running first)
+        $context = IdentifyDomainContext::getContext($request);
 
-        // Also store in session for use in views and elsewhere
-        session(['domain_context' => $context]);
+        // 3. Handle Admin Domain
+        if ($context === IdentifyDomainContext::CONTEXT_ADMIN) {
+            if (Auth::guard('landlord')->check()) {
+                return redirect()->route('admin.dashboard');
+            }
+            return redirect('/login');
+        }
 
+        // 4. Handle Platform Domain (The Landing Page)
+        if ($context === IdentifyDomainContext::CONTEXT_PLATFORM) {
+            
+            // Check if installed
+            if (! $this->isApplicationInstalled()) {
+                return redirect('/install');
+            }
+
+            // Render Landing Page
+            return Inertia::render('Platform/Public/Landing');
+        }
+
+        // 5. Handle Tenant Domain
+        // If it's a tenant, we usually do NOT want to interfere. 
+        // We pass it to the next middleware so the Tenant routes can handle '/'.
         return $next($request);
     }
+
+    /**
+     * Check if the application file lock exists and DB is accessible.
+     */
+    protected function isApplicationInstalled(): bool
+    {
+        // Check lock file
+        if (! File::exists(storage_path('installed'))) {
+            return false;
+        }
+
+        // Check Database
+        try {
+            DB::connection()->getPdo();
+            // Assuming 'tenants' table is in the default/landlord connection
+            if (! Schema::hasTable('tenants')) {
+                return false;
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     /**
      * Identify the domain context based on the request host.
@@ -82,7 +130,11 @@ class IdentifyDomainContext
      */
     protected function getCentralDomains(): array
     {
+        // First try the host application's tenancy config, fall back to package config keys.
         $domains = config('tenancy.central_domains', []);
+        if (empty($domains)) {
+            $domains = config('aero-platform.tenancy.central_domains', config('aero-platform.central_domains', []));
+        }
 
         // Filter out admin domain from central domains
         $adminDomain = env('ADMIN_DOMAIN', 'admin.localhost');

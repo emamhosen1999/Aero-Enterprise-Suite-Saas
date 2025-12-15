@@ -3,7 +3,7 @@ import { Link, usePage, Head } from '@inertiajs/react';
 import { Button } from '@heroui/react';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
-import Footer from '@/Pages/Platform/Public/Footer';
+import Footer from '@/Layouts/Footer';
 import { publicNavLinks } from '@/Config/publicNavigation';
 
 export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24', title }) {

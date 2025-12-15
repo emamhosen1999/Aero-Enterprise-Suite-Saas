@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Middleware;
 use Throwable;
+use Closure;
+use Illuminate\Support\Facades\Schema;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -44,49 +46,83 @@ class HandleInertiaRequests extends Middleware
      * @param  \Closure  $next
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handle(Request $request, \Closure $next)
+    public function handle(Request $request, Closure $next)
     {
-        // Intercept root route "/" and render appropriate page based on domain
-        if ($request->is('/') || $request->path() === '/') {
-            $context = $this->getDomainContext($request);
-
-            // Admin domain: redirect to dashboard if authenticated, login if not
-            if ($context === IdentifyDomainContext::CONTEXT_ADMIN) {
-                if (auth()->guard('landlord')->check()) {
-                    return redirect()->route('admin.dashboard');
-                }
-
-                return redirect('/login');
-            }
-
-            // Platform domain: if not installed or database missing, redirect to installer
-            try {
-                $installationLock = storage_path('installed');
-                $dbAccessible = true;
-                try {
-                    DB::connection()->getPdo();
-                    if (! DB::getSchemaBuilder()->hasTable('tenants')) {
-                        $dbAccessible = false;
-                    }
-                } catch (\Throwable $e) {
-                    $dbAccessible = false;
-                }
-
-                if (! File::exists($installationLock) || ! $dbAccessible) {
-                    return redirect('/install');
-                }
-            } catch (\Throwable $e) {
-                // If any error occurs while checking, fallback to rendering landing
-            }
-
-            // Platform domain: render landing page
-            // Ensure we use the package root view (avoid default 'app' view missing in host)
-            return Inertia::render('Platform/Public/Landing')
-                ->rootView($this->rootView)
-                ->toResponse($request);
+        // Only intercept the actual root path
+        if (! $request->is('/')) {
+            return parent::handle($request, $next);
         }
 
-        return parent::handle($request, $next);
+        $context = $this->getDomainContext($request);
+
+        // 1. Handle Admin/Landlord Domain
+        if ($context === IdentifyDomainContext::CONTEXT_ADMIN) {
+            return $this->handleAdminContext();
+        }
+
+        // 2. Handle Platform/Public Domain
+        return $this->handlePlatformContext($request);
+    }
+
+    /**
+     * Handle redirection logic for the Admin domain.
+     */
+    protected function handleAdminContext()
+    {
+        if (Auth::guard('landlord')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect('/login');
+    }
+
+    /**
+     * Handle rendering logic for the Platform domain.
+     */
+    protected function handlePlatformContext(Request $request)
+    {
+        // Check if the application is fully installed
+        if (! $this->isApplicationInstalled()) {
+            return redirect('/install');
+        }
+
+        // Render the Landing Page
+        return Inertia::render('Platform/Public/Landing')
+            ->rootView($this->rootView);
+    }
+
+    /**
+     * Check if the application file lock exists and DB is accessible.
+     */
+    protected function isApplicationInstalled(): bool
+    {
+        $lockFile = storage_path('installed');
+
+        // Debug 1: File Check
+        if (! File::exists($lockFile)) {
+            dd("Debugging: File not found at: " . $lockFile);
+        }
+
+        try {
+            // Debug 2: PDO Connection
+            DB::connection()->getPdo();
+        } catch (\Throwable $e) {
+            dd("Debugging: Database Connection Failed", $e->getMessage());
+        }
+
+        try {
+            // Debug 3: Schema Check
+            // Note: If you use a specific connection for tenants (like 'landlord'), define it here.
+            // e.g., Schema::connection('landlord')->hasTable('tenants')
+            if (! Schema::hasTable('tenants')) {
+                 dd("Debugging: 'tenants' table not found in default database.", 
+                    "Current Database: " . DB::connection()->getDatabaseName());
+            }
+        } catch (\Throwable $e) {
+            dd("Debugging: Schema Check Error", $e->getMessage());
+        }
+
+        return true;
     }
 
     /**
@@ -238,7 +274,7 @@ class HandleInertiaRequests extends Middleware
                     'is_platform_super_admin' => $user?->hasRole('Super Administrator') ?? false,
                 ] : null,
                 'isAuthenticated' => (bool) $user,
-                'sessionValid' => $user && $request->session()->isStarted(),
+                'sessionValid' => $user && $request->hasSession() && $request->session()->isStarted(),
                 'isSuperAdmin' => $user?->isSuperAdmin() ?? false,
                 'isAdmin' => $user?->isAdmin() ?? false,
                 'role' => $user?->role,
@@ -262,11 +298,11 @@ class HandleInertiaRequests extends Middleware
                 'mode' => config('aero.mode', 'saas'),
                 'subscriptions' => [], // Admin has access to all modules by default
             ],
-            'flash' => [
-                'success' => $request->session()->get('success'),
-                'error' => $request->session()->get('error'),
-                'warning' => $request->session()->get('warning'),
-                'info' => $request->session()->get('info'),
+                'flash' => [
+                'success' => $request->hasSession() ? $request->session()->get('success') : null,
+                'error' => $request->hasSession() ? $request->session()->get('error') : null,
+                'warning' => $request->hasSession() ? $request->session()->get('warning') : null,
+                'info' => $request->hasSession() ? $request->session()->get('info') : null,
             ],
         ];
     }
@@ -349,7 +385,7 @@ class HandleInertiaRequests extends Middleware
                 'plans' => $this->getSubscriptionPlans(),
             ],
             'url' => $request->getPathInfo(),
-            'csrfToken' => session('csrfToken'),
+                'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
             // SaaS Frontend Data - platform context for public site
@@ -357,11 +393,11 @@ class HandleInertiaRequests extends Middleware
                 'mode' => config('aero.mode', 'saas'),
                 'subscriptions' => [], // Public pages don't need subscriptions
             ],
-            'flash' => [
-                'success' => $request->session()->get('success'),
-                'error' => $request->session()->get('error'),
-                'warning' => $request->session()->get('warning'),
-                'info' => $request->session()->get('info'),
+                'flash' => [
+                'success' => $request->hasSession() ? $request->session()->get('success') : null,
+                'error' => $request->hasSession() ? $request->session()->get('error') : null,
+                'warning' => $request->hasSession() ? $request->session()->get('warning') : null,
+                'info' => $request->hasSession() ? $request->session()->get('info') : null,
             ],
         ];
     }
@@ -470,7 +506,7 @@ class HandleInertiaRequests extends Middleware
                 'environment' => config('app.env', 'production'),
             ],
             'url' => $request->getPathInfo(),
-            'csrfToken' => session('csrfToken'),
+                'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
             'locale' => App::getLocale(),
             'fallbackLocale' => config('app.fallback_locale', 'en'),
             'supportedLocales' => SetLocale::getSupportedLocales(),
