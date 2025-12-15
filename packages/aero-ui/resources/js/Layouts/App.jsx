@@ -22,6 +22,7 @@ import { TranslationProvider } from '@/Context/TranslationContext';
 import { GlobalAutoTranslator } from '@/Context/GlobalAutoTranslator';
 import { AppStateProvider } from '@/Context/AppStateContext';
 import { useBranding } from '@/Hooks/useBranding';
+import { useLegacyPages } from '@/Configs/navigationUtils.jsx';
 
 import '@/utils/serviceWorkerManager.js';
 import axios from 'axios';
@@ -138,6 +139,9 @@ const App = React.memo(({ children }) => {
   // Get domain-aware branding
   const { favicon, siteName } = useBranding();
 
+  // Get navigation pages (from config-driven navigation system)
+  const pages = useLegacyPages();
+
   // Version manager for update notifications
   const {
     currentVersion,
@@ -186,7 +190,8 @@ const App = React.memo(({ children }) => {
     roles,
     domainContext,
     url,
-    app
+    app,
+    pages
   ]); // Recalculate when auth or context changes
 
   // Responsive breakpoints

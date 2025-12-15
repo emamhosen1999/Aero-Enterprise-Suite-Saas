@@ -275,6 +275,37 @@ export const isAuthSuperAdmin = (auth) => {
 };
 
 /**
+ * Check if auth object indicates platform super admin status
+ * Used specifically for admin/landlord context
+ * @param {Object} auth - Auth object from Inertia usePage().props
+ * @returns {boolean} True if Platform Super Admin
+ */
+export const isPlatformSuperAdmin = (auth) => {
+    if (!auth) return false;
+    
+    // Check auth-level flag for platform super admin
+    if (auth.isPlatformSuperAdmin) return true;
+    
+    // Check user-level flag
+    const user = auth.user;
+    if (user) {
+        if (user.is_platform_super_admin) return true;
+        if (user.isPlatformSuperAdmin) return true;
+        
+        // Check roles for platform admin
+        const roles = user.roles || [];
+        if (roles.some(r => {
+            const roleName = typeof r === 'string' ? r : r.name;
+            return roleName === 'Platform Super Admin' || roleName === 'platform-super-admin';
+        })) {
+            return true;
+        }
+    }
+    
+    return false;
+};
+
+/**
  * Get all accessible modules for a user
  * @param {Object} auth - Auth object from Inertia usePage() props
  * @returns {Array} Array of accessible module objects
@@ -376,6 +407,79 @@ export const filterNavigationByAccess = (navItems, auth = null) => {
     });
 };
 
+/**
+ * Get the current domain context from page props
+ * @returns {string} 'admin' | 'tenant' | 'platform'
+ */
+export const getDomainContext = () => {
+    if (typeof window !== 'undefined' && window.__page?.props?.context) {
+        return window.__page.props.context;
+    }
+    return 'tenant'; // default to tenant
+};
+
+/**
+ * Check if current context is admin (platform admin)
+ * @returns {boolean}
+ */
+export const isAdminContext = () => {
+    return getDomainContext() === 'admin';
+};
+
+/**
+ * Get the correct dashboard route name based on context
+ * @returns {string} Route name for dashboard
+ */
+export const getDashboardRouteName = () => {
+    const context = getDomainContext();
+    if (context === 'admin') {
+        return 'admin.dashboard';
+    }
+    return 'dashboard';
+};
+
+/**
+ * Get a context-aware route name
+ * For admin context, prefixes route with 'admin.'
+ * @param {string} routeName - Base route name (e.g., 'dashboard', 'profile')
+ * @returns {string} Context-aware route name
+ */
+export const getContextRoute = (routeName) => {
+    const context = getDomainContext();
+    if (context === 'admin' && !routeName.startsWith('admin.')) {
+        return `admin.${routeName}`;
+    }
+    return routeName;
+};
+
+/**
+ * Safely get a route URL with fallback
+ * @param {string} routeName - Route name to resolve
+ * @param {Object} params - Route parameters
+ * @param {string} fallback - Fallback URL if route doesn't exist
+ * @returns {string} Route URL or fallback
+ */
+export const safeRoute = (routeName, params = {}, fallback = '/') => {
+    try {
+        if (typeof route === 'function') {
+            return route(routeName, params);
+        }
+        return fallback;
+    } catch (e) {
+        console.warn(`Route '${routeName}' not found, using fallback`, e);
+        return fallback;
+    }
+};
+
+/**
+ * Get the dashboard URL for current context
+ * @returns {string} Dashboard URL
+ */
+export const getDashboardUrl = () => {
+    const routeName = getDashboardRouteName();
+    return safeRoute(routeName, {}, isAdminContext() ? '/admin/dashboard' : '/dashboard');
+};
+
 // Default export for convenience
 export default {
     // SaaS mode helpers
@@ -388,9 +492,17 @@ export default {
     canPerformAction,
     getActionScope,
     isSuperAdmin,
+    isPlatformSuperAdmin,
     isAuthSuperAdmin,
     getAccessibleModules,
     hasAccess,
     checkAccess,
-    filterNavigationByAccess
+    filterNavigationByAccess,
+    // Context helpers
+    getDomainContext,
+    isAdminContext,
+    getDashboardRouteName,
+    getContextRoute,
+    safeRoute,
+    getDashboardUrl
 };

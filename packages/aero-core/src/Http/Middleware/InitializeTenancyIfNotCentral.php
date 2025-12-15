@@ -43,7 +43,4 @@ class InitializeTenancyIfNotCentral
         // Not on central domain - proceed with tenancy initialization
         return app(InitializeTenancyByDomain::class)->handle($request, $next);
     }
-
-        return ['subdomain' => $subdomain, 'baseDomain' => $baseDomain];
-    }
 }

@@ -83,18 +83,16 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Register routes
 
-        // Register installation wizard routes if not installed
-        $installationLockFile = storage_path('installed');
-        if (!file_exists($installationLockFile)) {
-            // Load installation wizard routes (from package)
-            $installationRoutes = __DIR__ . '/../routes/installation.php';
-            if (file_exists($installationRoutes)) {
-                \Illuminate\Support\Facades\Route::middleware(['web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class])
-                    ->group($installationRoutes);
-            }
-        } else {
-            $this->registerRoutes();
+        // Always load installation wizard routes 
+        // (routes file handles redirect logic internally, but /install/complete must be accessible post-install)
+        $installationRoutes = __DIR__ . '/../routes/installation.php';
+        if (file_exists($installationRoutes)) {
+            \Illuminate\Support\Facades\Route::middleware(['web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class])
+                ->group($installationRoutes);
         }
+
+        // Also register main platform routes
+        $this->registerRoutes();
 
         // Register middleware (including HandleInertiaRequests which intercepts "/")
         $this->registerMiddleware();

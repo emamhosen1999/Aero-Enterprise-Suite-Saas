@@ -84,11 +84,11 @@ Route::middleware(['auth:landlord'])->group(function () {
     // 1. DASHBOARD MODULE (platform-dashboard)
     // =========================================================================
     Route::get('/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
+        return Inertia::render('Platform/Admin/Dashboard');
     })->middleware(['module:platform-dashboard,overview'])->name('admin.dashboard');
 
     Route::get('/system-health', function () {
-        return Inertia::render('Admin/SystemHealth');
+        return Inertia::render('Platform/Admin/SystemHealth');
     })->middleware(['module:platform-dashboard,system-health'])->name('admin.system-health');
 
     // =========================================================================
@@ -96,29 +96,29 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:tenants'])->prefix('tenants')->name('admin.tenants.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Tenants/Index');
+            return Inertia::render('Platform/Admin/Tenants/Index');
         })->middleware(['module:tenants,tenant-list'])->name('index');
 
         Route::get('/create', function () {
-            return Inertia::render('Admin/Tenants/Create');
+            return Inertia::render('Platform/Admin/Tenants/Create');
         })->middleware(['module:tenants,tenant-list,tenant-management,create'])->name('create');
 
         Route::get('/{tenant}', function ($tenant) {
-            return Inertia::render('Admin/Tenants/Show', ['tenantId' => $tenant]);
+            return Inertia::render('Platform/Admin/Tenants/Show', ['tenantId' => $tenant]);
         })->middleware(['module:tenants,tenant-list,tenant-management,view'])->name('show');
 
         Route::get('/{tenant}/edit', function ($tenant) {
-            return Inertia::render('Admin/Tenants/Edit', ['tenantId' => $tenant]);
+            return Inertia::render('Platform/Admin/Tenants/Edit', ['tenantId' => $tenant]);
         })->middleware(['module:tenants,tenant-list,tenant-management,update'])->name('edit');
 
         // Domain Management
         Route::get('/domains', function () {
-            return Inertia::render('Admin/Tenants/Domains');
+            return Inertia::render('Platform/Admin/Tenants/Domains');
         })->middleware(['module:tenants,domains'])->name('domains');
 
         // Database Management
         Route::get('/databases', function () {
-            return Inertia::render('Admin/Tenants/Databases');
+            return Inertia::render('Platform/Admin/Tenants/Databases');
         })->middleware(['module:tenants,databases'])->name('databases');
 
         // Tenant Impersonation
@@ -164,22 +164,22 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->middleware(['module:platform-users,admin-users,user-list,update'])->name('update-roles');
 
         Route::get('/{user}', function ($user) {
-            return Inertia::render('Admin/Users/Show', ['userId' => $user]);
+            return Inertia::render('Platform/Admin/Users/Show', ['userId' => $user]);
         })->middleware(['module:platform-users,admin-users,user-list,view'])->name('show');
 
         Route::get('/{user}/edit', function ($user) {
-            return Inertia::render('Admin/Users/Edit', ['userId' => $user]);
+            return Inertia::render('Platform/Admin/Users/Edit', ['userId' => $user]);
         })->middleware(['module:platform-users,admin-users,user-list,update'])->name('edit');
     });
 
     // Authentication Settings
     Route::get('/authentication', function () {
-        return Inertia::render('Admin/Authentication/Index');
+        return Inertia::render('Platform/Admin/Authentication/Index');
     })->middleware(['module:platform-users,authentication'])->name('admin.authentication');
 
     // Active Sessions
     Route::get('/sessions', function () {
-        return Inertia::render('Admin/Sessions/Index');
+        return Inertia::render('Platform/Admin/Sessions/Index');
     })->middleware(['module:platform-users,sessions'])->name('admin.sessions');
 
     // =========================================================================
@@ -296,11 +296,11 @@ Route::middleware(['auth:landlord'])->group(function () {
     // Subscription Plans
     Route::middleware(['module:subscriptions'])->prefix('plans')->name('admin.plans.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Plans/Index');
+            return Inertia::render('Platform/Admin/Plans/Index');
         })->middleware(['module:subscriptions,plans'])->name('index');
 
         Route::get('/create', function () {
-            return Inertia::render('Admin/Plans/Create');
+            return Inertia::render('Platform/Admin/Plans/Create');
         })->middleware(['module:subscriptions,plans,plan-list,create'])->name('create');
 
         // Plan-Module Management API
@@ -329,15 +329,15 @@ Route::middleware(['auth:landlord'])->group(function () {
     // Billing & Invoices
     Route::middleware(['module:subscriptions'])->prefix('billing')->name('admin.billing.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Billing/Index');
+            return Inertia::render('Platform/Admin/Billing/Index');
         })->middleware(['module:subscriptions,tenant-subscriptions'])->name('index');
 
         Route::get('/subscriptions', function () {
-            return Inertia::render('Admin/Billing/Subscriptions');
+            return Inertia::render('Platform/Admin/Billing/Subscriptions');
         })->middleware(['module:subscriptions,tenant-subscriptions'])->name('subscriptions');
 
         Route::get('/invoices', function () {
-            return Inertia::render('Admin/Billing/Invoices');
+            return Inertia::render('Platform/Admin/Billing/Invoices');
         })->middleware(['module:subscriptions,invoices'])->name('invoices');
 
         // Tenant-specific billing management
@@ -380,15 +380,15 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:notifications'])->prefix('notifications')->name('admin.notifications.')->group(function () {
         Route::get('/channels', function () {
-            return Inertia::render('Admin/Notifications/Channels');
+            return Inertia::render('Platform/Admin/Notifications/Channels');
         })->middleware(['module:notifications,channels'])->name('channels');
 
         Route::get('/templates', function () {
-            return Inertia::render('Admin/Notifications/Templates');
+            return Inertia::render('Platform/Admin/Notifications/Templates');
         })->middleware(['module:notifications,templates'])->name('templates');
 
         Route::get('/broadcasts', function () {
-            return Inertia::render('Admin/Notifications/Broadcasts');
+            return Inertia::render('Platform/Admin/Notifications/Broadcasts');
         })->middleware(['module:notifications,broadcasts'])->name('broadcasts');
     });
 
@@ -397,15 +397,15 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:file-manager'])->prefix('files')->name('admin.files.')->group(function () {
         Route::get('/storage', function () {
-            return Inertia::render('Admin/Files/Storage');
+            return Inertia::render('Platform/Admin/Files/Storage');
         })->middleware(['module:file-manager,storage'])->name('storage');
 
         Route::get('/quotas', function () {
-            return Inertia::render('Admin/Files/Quotas');
+            return Inertia::render('Platform/Admin/Files/Quotas');
         })->middleware(['module:file-manager,quotas'])->name('quotas');
 
         Route::get('/media', function () {
-            return Inertia::render('Admin/Files/Media');
+            return Inertia::render('Platform/Admin/Files/Media');
         })->middleware(['module:file-manager,media-library'])->name('media');
     });
 
@@ -414,15 +414,15 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:audit-logs'])->prefix('logs')->name('admin.logs.')->group(function () {
         Route::get('/activity', function () {
-            return Inertia::render('Admin/Logs/Activity');
+            return Inertia::render('Platform/Admin/Logs/Activity');
         })->middleware(['module:audit-logs,activity-logs'])->name('activity');
 
         Route::get('/security', function () {
-            return Inertia::render('Admin/Logs/Security');
+            return Inertia::render('Platform/Admin/Logs/Security');
         })->middleware(['module:audit-logs,security-logs'])->name('security');
 
         Route::get('/system', function () {
-            return Inertia::render('Admin/Logs/System');
+            return Inertia::render('Platform/Admin/Logs/System');
         })->middleware(['module:audit-logs,system-logs'])->name('system');
     });
 
@@ -452,27 +452,27 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:system-settings'])->prefix('settings')->name('admin.settings.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Settings/Index');
+            return Inertia::render('Platform/Admin/Settings/Index');
         })->middleware(['module:system-settings,general-settings'])->name('index');
 
         Route::get('/branding', function () {
-            return Inertia::render('Admin/Settings/Branding');
+            return Inertia::render('Platform/Admin/Settings/Branding');
         })->middleware(['module:system-settings,branding'])->name('branding');
 
         Route::get('/localization', function () {
-            return Inertia::render('Admin/Settings/Localization');
+            return Inertia::render('Platform/Admin/Settings/Localization');
         })->middleware(['module:system-settings,localization'])->name('localization');
 
         Route::get('/email', function () {
-            return Inertia::render('Admin/Settings/Email');
+            return Inertia::render('Platform/Admin/Settings/Email');
         })->middleware(['module:system-settings,email-settings'])->name('email');
 
         Route::get('/integrations', function () {
-            return Inertia::render('Admin/Settings/Integrations');
+            return Inertia::render('Platform/Admin/Settings/Integrations');
         })->middleware(['module:system-settings,integrations'])->name('integrations');
 
         Route::get('/payment-gateways', function () {
-            return Inertia::render('Admin/Settings/PaymentGateways');
+            return Inertia::render('Platform/Admin/Settings/PaymentGateways');
         })->middleware(['module:subscriptions,payment-gateways'])->name('payment-gateways');
 
         // Platform Settings API
@@ -509,23 +509,23 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:developer-tools'])->prefix('developer')->name('admin.developer.')->group(function () {
         Route::get('/api', function () {
-            return Inertia::render('Admin/Developer/Api');
+            return Inertia::render('Platform/Admin/Developer/Api');
         })->middleware(['module:developer-tools,api-management'])->name('api');
 
         Route::get('/webhooks', function () {
-            return Inertia::render('Admin/Developer/Webhooks');
+            return Inertia::render('Platform/Admin/Developer/Webhooks');
         })->middleware(['module:developer-tools,webhooks'])->name('webhooks');
 
         Route::get('/debug', function () {
-            return Inertia::render('Admin/Developer/Debug');
+            return Inertia::render('Platform/Admin/Developer/Debug');
         })->middleware(['module:developer-tools,debug-tools'])->name('debug');
 
         Route::get('/queues', function () {
-            return Inertia::render('Admin/Developer/Queues');
+            return Inertia::render('Platform/Admin/Developer/Queues');
         })->middleware(['module:developer-tools,queue-jobs'])->name('queues');
 
         Route::get('/cache', function () {
-            return Inertia::render('Admin/Developer/Cache');
+            return Inertia::render('Platform/Admin/Developer/Cache');
         })->middleware(['module:developer-tools,cache-management'])->name('cache');
 
         Route::get('/maintenance', [MaintenanceController::class, 'index'])
@@ -544,27 +544,27 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:platform-analytics'])->prefix('analytics')->name('admin.analytics.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Analytics/Index');
+            return Inertia::render('Platform/Admin/Analytics/Index');
         })->middleware(['module:platform-analytics,platform-overview'])->name('index');
 
         Route::get('/revenue', function () {
-            return Inertia::render('Admin/Analytics/Revenue');
+            return Inertia::render('Platform/Admin/Analytics/Revenue');
         })->middleware(['module:platform-analytics,revenue-analytics'])->name('revenue');
 
         Route::get('/tenants', function () {
-            return Inertia::render('Admin/Analytics/Tenants');
+            return Inertia::render('Platform/Admin/Analytics/Tenants');
         })->middleware(['module:platform-analytics,tenant-analytics'])->name('tenants');
 
         Route::get('/usage', function () {
-            return Inertia::render('Admin/Analytics/Usage');
+            return Inertia::render('Platform/Admin/Analytics/Usage');
         })->middleware(['module:platform-analytics,usage-analytics'])->name('usage');
 
         Route::get('/performance', function () {
-            return Inertia::render('Admin/Analytics/Performance');
+            return Inertia::render('Platform/Admin/Analytics/Performance');
         })->middleware(['module:platform-analytics,system-performance'])->name('performance');
 
         Route::get('/reports', function () {
-            return Inertia::render('Admin/Analytics/Reports');
+            return Inertia::render('Platform/Admin/Analytics/Reports');
         })->middleware(['module:platform-analytics,platform-reports'])->name('reports');
 
         // Module Analytics API
@@ -584,31 +584,31 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:platform-integrations'])->prefix('integrations')->name('admin.integrations.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Integrations/Index');
+            return Inertia::render('Platform/Admin/Integrations/Index');
         })->middleware(['module:platform-integrations,global-connectors'])->name('index');
 
         Route::get('/connectors', function () {
-            return Inertia::render('Admin/Integrations/Connectors');
+            return Inertia::render('Platform/Admin/Integrations/Connectors');
         })->middleware(['module:platform-integrations,global-connectors'])->name('connectors');
 
         Route::get('/api', function () {
-            return Inertia::render('Admin/Integrations/Api');
+            return Inertia::render('Platform/Admin/Integrations/Api');
         })->middleware(['module:platform-integrations,api-management'])->name('api');
 
         Route::get('/webhooks', function () {
-            return Inertia::render('Admin/Integrations/Webhooks');
+            return Inertia::render('Platform/Admin/Integrations/Webhooks');
         })->middleware(['module:platform-integrations,webhook-management'])->name('webhooks');
 
         Route::get('/tenants', function () {
-            return Inertia::render('Admin/Integrations/Tenants');
+            return Inertia::render('Platform/Admin/Integrations/Tenants');
         })->middleware(['module:platform-integrations,tenant-integrations-overview'])->name('tenants');
 
         Route::get('/apps', function () {
-            return Inertia::render('Admin/Integrations/Apps');
+            return Inertia::render('Platform/Admin/Integrations/Apps');
         })->middleware(['module:platform-integrations,third-party-apps'])->name('apps');
 
         Route::get('/logs', function () {
-            return Inertia::render('Admin/Integrations/Logs');
+            return Inertia::render('Platform/Admin/Integrations/Logs');
         })->middleware(['module:platform-integrations,integration-logs'])->name('logs');
     });
 
@@ -619,185 +619,185 @@ Route::middleware(['auth:landlord'])->group(function () {
         // Ticket Management
         Route::prefix('tickets')->name('tickets.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Tickets/Index');
+                return Inertia::render('Platform/Admin/Support/Tickets/Index');
             })->middleware(['module:platform-support,ticket-management'])->name('index');
 
             Route::get('/sla-violations', function () {
-                return Inertia::render('Admin/Support/Tickets/SlaViolations');
+                return Inertia::render('Platform/Admin/Support/Tickets/SlaViolations');
             })->middleware(['module:platform-support,ticket-management,sla-violations,view'])->name('sla-violations');
 
             Route::get('/categories', function () {
-                return Inertia::render('Admin/Support/Tickets/Categories');
+                return Inertia::render('Platform/Admin/Support/Tickets/Categories');
             })->middleware(['module:platform-support,ticket-management,ticket-categories,view'])->name('categories');
 
             Route::get('/priorities', function () {
-                return Inertia::render('Admin/Support/Tickets/Priorities');
+                return Inertia::render('Platform/Admin/Support/Tickets/Priorities');
             })->middleware(['module:platform-support,ticket-management,ticket-priorities,view'])->name('priorities');
 
             Route::get('/{ticket}', function ($ticket) {
-                return Inertia::render('Admin/Support/Tickets/Show', ['ticketId' => $ticket]);
+                return Inertia::render('Platform/Admin/Support/Tickets/Show', ['ticketId' => $ticket]);
             })->middleware(['module:platform-support,ticket-management,ticket-detail,view'])->name('show');
         });
 
         // Department & Agent Management
         Route::prefix('departments')->name('departments.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Departments/Index');
+                return Inertia::render('Platform/Admin/Support/Departments/Index');
             })->middleware(['module:platform-support,department-agent,departments,view'])->name('index');
         });
 
         Route::prefix('agents')->name('agents.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Agents/Index');
+                return Inertia::render('Platform/Admin/Support/Agents/Index');
             })->middleware(['module:platform-support,department-agent,agents,view'])->name('index');
         });
 
         Route::prefix('schedules')->name('schedules.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Schedules/Index');
+                return Inertia::render('Platform/Admin/Support/Schedules/Index');
             })->middleware(['module:platform-support,department-agent,schedules,view'])->name('index');
         });
 
         Route::prefix('auto-assign')->name('auto-assign.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/AutoAssign/Index');
+                return Inertia::render('Platform/Admin/Support/AutoAssign/Index');
             })->middleware(['module:platform-support,department-agent,auto-assign,view'])->name('index');
         });
 
         // Routing & SLA
         Route::prefix('sla')->name('sla.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Sla/Index');
+                return Inertia::render('Platform/Admin/Support/Sla/Index');
             })->middleware(['module:platform-support,routing-sla'])->name('index');
 
             Route::get('/policies', function () {
-                return Inertia::render('Admin/Support/Sla/Policies');
+                return Inertia::render('Platform/Admin/Support/Sla/Policies');
             })->middleware(['module:platform-support,routing-sla,sla-policies,view'])->name('policies');
 
             Route::get('/routing', function () {
-                return Inertia::render('Admin/Support/Sla/Routing');
+                return Inertia::render('Platform/Admin/Support/Sla/Routing');
             })->middleware(['module:platform-support,routing-sla,routing-rules,view'])->name('routing');
 
             Route::get('/escalation', function () {
-                return Inertia::render('Admin/Support/Sla/Escalation');
+                return Inertia::render('Platform/Admin/Support/Sla/Escalation');
             })->middleware(['module:platform-support,routing-sla,escalation-rules,view'])->name('escalation');
         });
 
         // Knowledge Base
         Route::prefix('kb')->name('kb.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Kb/Index');
+                return Inertia::render('Platform/Admin/Support/Kb/Index');
             })->middleware(['module:platform-support,knowledge-base'])->name('index');
 
             Route::get('/categories', function () {
-                return Inertia::render('Admin/Support/Kb/Categories');
+                return Inertia::render('Platform/Admin/Support/Kb/Categories');
             })->middleware(['module:platform-support,knowledge-base,kb-categories,view'])->name('categories');
 
             Route::get('/articles', function () {
-                return Inertia::render('Admin/Support/Kb/Articles');
+                return Inertia::render('Platform/Admin/Support/Kb/Articles');
             })->middleware(['module:platform-support,knowledge-base,kb-articles,view'])->name('articles');
 
             Route::get('/templates', function () {
-                return Inertia::render('Admin/Support/Kb/Templates');
+                return Inertia::render('Platform/Admin/Support/Kb/Templates');
             })->middleware(['module:platform-support,knowledge-base,article-templates,view'])->name('templates');
         });
 
         // Canned Responses
         Route::prefix('canned')->name('canned.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Canned/Index');
+                return Inertia::render('Platform/Admin/Support/Canned/Index');
             })->middleware(['module:platform-support,canned-responses'])->name('index');
 
             Route::get('/templates', function () {
-                return Inertia::render('Admin/Support/Canned/Templates');
+                return Inertia::render('Platform/Admin/Support/Canned/Templates');
             })->middleware(['module:platform-support,canned-responses,response-templates,view'])->name('templates');
 
             Route::get('/categories', function () {
-                return Inertia::render('Admin/Support/Canned/Categories');
+                return Inertia::render('Platform/Admin/Support/Canned/Categories');
             })->middleware(['module:platform-support,canned-responses,macro-categories,view'])->name('categories');
         });
 
         // Reporting & Analytics
         Route::prefix('analytics')->name('analytics.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Analytics/Index');
+                return Inertia::render('Platform/Admin/Support/Analytics/Index');
             })->middleware(['module:platform-support,support-analytics'])->name('index');
 
             Route::get('/volume', function () {
-                return Inertia::render('Admin/Support/Analytics/Volume');
+                return Inertia::render('Platform/Admin/Support/Analytics/Volume');
             })->middleware(['module:platform-support,support-analytics,ticket-volume,view'])->name('volume');
 
             Route::get('/agents', function () {
-                return Inertia::render('Admin/Support/Analytics/Agents');
+                return Inertia::render('Platform/Admin/Support/Analytics/Agents');
             })->middleware(['module:platform-support,support-analytics,agent-performance,view'])->name('agents');
 
             Route::get('/sla', function () {
-                return Inertia::render('Admin/Support/Analytics/Sla');
+                return Inertia::render('Platform/Admin/Support/Analytics/Sla');
             })->middleware(['module:platform-support,support-analytics,sla-compliance,view'])->name('sla');
 
             Route::get('/csat', function () {
-                return Inertia::render('Admin/Support/Analytics/Csat');
+                return Inertia::render('Platform/Admin/Support/Analytics/Csat');
             })->middleware(['module:platform-support,support-analytics,csat-reports,view'])->name('csat');
         });
 
         // Customer Feedback
         Route::prefix('feedback')->name('feedback.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Feedback/Index');
+                return Inertia::render('Platform/Admin/Support/Feedback/Index');
             })->middleware(['module:platform-support,customer-feedback'])->name('index');
 
             Route::get('/ratings', function () {
-                return Inertia::render('Admin/Support/Feedback/Ratings');
+                return Inertia::render('Platform/Admin/Support/Feedback/Ratings');
             })->middleware(['module:platform-support,customer-feedback,csat-ratings,view'])->name('ratings');
 
             Route::get('/forms', function () {
-                return Inertia::render('Admin/Support/Feedback/Forms');
+                return Inertia::render('Platform/Admin/Support/Feedback/Forms');
             })->middleware(['module:platform-support,customer-feedback,feedback-forms,view'])->name('forms');
         });
 
         // Multi-Channel Support
         Route::prefix('channels')->name('channels.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Channels/Index');
+                return Inertia::render('Platform/Admin/Support/Channels/Index');
             })->middleware(['module:platform-support,multi-channel'])->name('index');
 
             Route::get('/email', function () {
-                return Inertia::render('Admin/Support/Channels/Email');
+                return Inertia::render('Platform/Admin/Support/Channels/Email');
             })->middleware(['module:platform-support,multi-channel,email-channel,view'])->name('email');
 
             Route::get('/chat', function () {
-                return Inertia::render('Admin/Support/Channels/Chat');
+                return Inertia::render('Platform/Admin/Support/Channels/Chat');
             })->middleware(['module:platform-support,multi-channel,chat-widget,view'])->name('chat');
 
             Route::get('/whatsapp', function () {
-                return Inertia::render('Admin/Support/Channels/Whatsapp');
+                return Inertia::render('Platform/Admin/Support/Channels/Whatsapp');
             })->middleware(['module:platform-support,multi-channel,whatsapp-channel,view'])->name('whatsapp');
 
             Route::get('/sms', function () {
-                return Inertia::render('Admin/Support/Channels/Sms');
+                return Inertia::render('Platform/Admin/Support/Channels/Sms');
             })->middleware(['module:platform-support,multi-channel,sms-channel,view'])->name('sms');
 
             Route::get('/logs', function () {
-                return Inertia::render('Admin/Support/Channels/Logs');
+                return Inertia::render('Platform/Admin/Support/Channels/Logs');
             })->middleware(['module:platform-support,multi-channel,channel-logs,view'])->name('logs');
         });
 
         // Admin Tools
         Route::prefix('tools')->name('tools.')->group(function () {
             Route::get('/', function () {
-                return Inertia::render('Admin/Support/Tools/Index');
+                return Inertia::render('Platform/Admin/Support/Tools/Index');
             })->middleware(['module:platform-support,support-admin-tools'])->name('index');
 
             Route::get('/tags', function () {
-                return Inertia::render('Admin/Support/Tools/Tags');
+                return Inertia::render('Platform/Admin/Support/Tools/Tags');
             })->middleware(['module:platform-support,support-admin-tools,ticket-tags,view'])->name('tags');
 
             Route::get('/fields', function () {
-                return Inertia::render('Admin/Support/Tools/Fields');
+                return Inertia::render('Platform/Admin/Support/Tools/Fields');
             })->middleware(['module:platform-support,support-admin-tools,custom-fields,view'])->name('fields');
 
             Route::get('/forms', function () {
-                return Inertia::render('Admin/Support/Tools/Forms');
+                return Inertia::render('Platform/Admin/Support/Tools/Forms');
             })->middleware(['module:platform-support,support-admin-tools,ticket-forms,view'])->name('forms');
         });
     });
@@ -807,31 +807,32 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     Route::middleware(['module:platform-onboarding'])->prefix('onboarding')->name('admin.onboarding.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Admin/Onboarding/Dashboard');
+            return Inertia::render('Platform/Admin/Onboarding/Dashboard');
         })->middleware(['module:platform-onboarding,registration-dashboard'])->name('dashboard');
 
         Route::get('/pending', function () {
-            return Inertia::render('Admin/Onboarding/Pending');
+            return Inertia::render('Platform/Admin/Onboarding/Pending');
         })->middleware(['module:platform-onboarding,pending-registrations'])->name('pending');
 
         Route::get('/provisioning', function () {
-            return Inertia::render('Admin/Onboarding/Provisioning');
+            return Inertia::render('Platform/Admin/Onboarding/Provisioning');
         })->middleware(['module:platform-onboarding,provisioning-queue'])->name('provisioning');
 
         Route::get('/trials', function () {
-            return Inertia::render('Admin/Onboarding/Trials');
+            return Inertia::render('Platform/Admin/Onboarding/Trials');
         })->middleware(['module:platform-onboarding,trial-management'])->name('trials');
 
         Route::get('/automation', function () {
-            return Inertia::render('Admin/Onboarding/Automation');
+            return Inertia::render('Platform/Admin/Onboarding/Automation');
         })->middleware(['module:platform-onboarding,welcome-automation'])->name('automation');
 
         Route::get('/analytics', function () {
-            return Inertia::render('Admin/Onboarding/Analytics');
+            return Inertia::render('Platform/Admin/Onboarding/Analytics');
         })->middleware(['module:platform-onboarding,onboarding-analytics'])->name('analytics');
 
         Route::get('/settings', function () {
-            return Inertia::render('Admin/Onboarding/Settings');
+            return Inertia::render('Platform/Admin/Onboarding/Settings');
         })->middleware(['module:platform-onboarding,onboarding-settings'])->name('settings');
     });
 });
+

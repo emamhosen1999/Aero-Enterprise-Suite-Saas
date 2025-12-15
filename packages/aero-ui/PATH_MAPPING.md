@@ -6,7 +6,8 @@ This document maps old Inertia::render paths to the new module-based structure.
 
 All frontend resources are now organized by module in `packages/aero-ui/resources/js/`:
 
-```
+```mermaid
+graph TD;
 Pages/
 ├── Core/          # aero-core: Auth, Settings, Admin, Dashboard, etc.
 ├── Platform/      # aero-platform: Installation, Billing, SaaS features

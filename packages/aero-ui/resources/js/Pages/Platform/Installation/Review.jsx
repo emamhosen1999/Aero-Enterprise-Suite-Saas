@@ -37,6 +37,7 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
     ]);
     const [currentStage, setCurrentStage] = useState(-1);
     const [installError, setInstallError] = useState(null);
+    const [installationComplete, setInstallationComplete] = useState(false);
 
     const handleInstall = async () => {
         setInstalling(true);
@@ -67,16 +68,22 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
             // Mark all stages as completed
             const completedStages = installStages.map(stage => ({ ...stage, status: 'completed' }));
             setInstallStages(completedStages);
+            
+            // Mark installation as complete to disable beforeunload warning
+            setInstallationComplete(true);
+            
+            // Also call global function to disable warning synchronously (state updates are async)
+            if (typeof window.disableInstallationWarning === 'function') {
+                window.disableInstallationWarning();
+            }
 
             showToast.success(response.data.message || 'Installation completed successfully!');
 
-            // Redirect to login page (cross-domain requires full page navigation)
+            // Navigate to Complete page using window.location
+            // The warning is now disabled via the global function above
             setTimeout(() => {
-                const redirectUrl = response.data.redirect || route('login');
-                console.log('🔄 Redirecting to:', redirectUrl);
-                
-                // Use window.location.replace for cross-domain redirects (to admin subdomain)
-                window.location.replace(redirectUrl);
+                console.log('🔄 Navigating to Complete page...');
+                window.location.href = route('installation.complete');
             }, 1500);
 
         } catch (error) {
@@ -133,7 +140,7 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
     );
 
     return (
-        <InstallationLayout currentStep={7}>
+        <InstallationLayout currentStep={7} installationComplete={installationComplete}>
             <Head title="Installation - Review" />
             
             <Card 

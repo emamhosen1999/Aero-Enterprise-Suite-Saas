@@ -3,6 +3,7 @@ import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
 import { HomeIcon } from '@heroicons/react/24/outline';
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { getDashboardUrl } from '@/utils/moduleAccessUtils';
 import { getPages } from '@/Props/pages.jsx';
 import { getSettingsPages } from '@/Props/settings.jsx';
 
@@ -63,13 +64,7 @@ const Breadcrumb = () => {
         breadcrumbs.push({
             label: "Home",
             icon: <HomeIcon className="w-4 h-4" />,
-            href: (() => {
-                try {
-                    return route('dashboard');
-                } catch {
-                    return '/';
-                }
-            })(),
+            href: getDashboardUrl(),
             key: 'home'
         });
         

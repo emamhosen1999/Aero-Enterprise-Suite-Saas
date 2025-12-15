@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
 import { Card, CardBody, Progress } from '@heroui/react';
 import { ToastContainer } from 'react-toastify';
 import { showToast } from '@/utils/toastUtils';
 import 'react-toastify/dist/ReactToastify.css';
 
-const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
+const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8, installationComplete = false }) => {
     const { app, platformSettings } = usePage().props;
     const appName = app?.name || 'Aero Enterprise Suite';
     const appVersion = app?.version || '1.0.0';
@@ -14,6 +14,27 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
 
     // Session timeout warning state
     const [sessionWarningShown, setSessionWarningShown] = useState(false);
+
+    // Check if on complete step (step 8)
+    const isCompleteStep = currentStep >= totalSteps;
+
+    // Use ref to track installation completion synchronously (state updates are async)
+    const installationCompleteRef = useRef(installationComplete);
+    
+    // Keep ref in sync with prop
+    useEffect(() => {
+        installationCompleteRef.current = installationComplete;
+    }, [installationComplete]);
+
+    // Expose global function to disable beforeunload warning (for use before navigation)
+    useEffect(() => {
+        window.disableInstallationWarning = () => {
+            installationCompleteRef.current = true;
+        };
+        return () => {
+            delete window.disableInstallationWarning;
+        };
+    }, []);
 
     const steps = [
         { number: 1, name: 'Welcome' },
@@ -28,9 +49,14 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
 
     const progressPercentage = (currentStep / totalSteps) * 100;
 
-    // Warn before leaving the page during installation
+    // Warn before leaving the page during installation (but NOT on complete step or when finished)
     useEffect(() => {
         const handleBeforeUnload = (e) => {
+            // Don't warn on complete step, or when installation is finished
+            // Use ref for synchronous check (state updates are async and may not reflect in time)
+            if (isCompleteStep || installationCompleteRef.current) {
+                return;
+            }
             if (currentStep > 1 && currentStep < totalSteps) {
                 e.preventDefault();
                 e.returnValue = 'Installation progress will be lost if you leave. Are you sure?';
@@ -40,7 +66,7 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8 }) => {
 
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [currentStep, totalSteps]);
+    }, [currentStep, totalSteps, isCompleteStep]);
 
     // Session timeout warning (warn at 55 minutes for 60 min session)
     useEffect(() => {

@@ -7,6 +7,7 @@
  * It replaces the old monolithic pages.jsx approach with a decentralized system.
  * 
  * Features:
+ * - Context-aware: Returns admin navigation for 'admin' context, tenant for others
  * - Merges Core + Module navigation
  * - Applies role-based access control filtering
  * - Resolves icon strings to HeroIcon components
@@ -25,113 +26,201 @@
 import { usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 import { navigationRegistry } from '../Services/NavigationRegistry';
-import { filterNavigationByAccess, isSuperAdmin } from '../utils/moduleAccessUtils';
+import { adminNavigationRegistry } from '../Services/AdminNavigationRegistry';
+import { filterNavigationByAccess, isSuperAdmin, isPlatformSuperAdmin } from '../utils/moduleAccessUtils';
 
-// Import Core Icons statically
+// Import Core Icons statically - expanded for admin navigation
 import { 
     HomeIcon, 
     UsersIcon, 
     Cog6ToothIcon,
+    Cog8ToothIcon,
     ShieldCheckIcon,
     UserIcon,
     UserGroupIcon,
+    UserPlusIcon,
     ClipboardDocumentListIcon,
     ChartBarIcon,
+    ChartBarSquareIcon,
+    ChartPieIcon,
     BriefcaseIcon,
     BuildingOfficeIcon,
+    BuildingOffice2Icon,
     CurrencyDollarIcon,
+    CreditCardIcon,
+    BanknotesIcon,
     ShoppingCartIcon,
     TruckIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
+    CubeIcon,
+    GlobeAltIcon,
+    CircleStackIcon,
+    ServerIcon,
+    ClockIcon,
+    ExclamationTriangleIcon,
+    ExclamationCircleIcon,
+    LinkIcon,
+    KeyIcon,
+    ArrowsRightLeftIcon,
+    ArrowPathIcon,
+    PuzzlePieceIcon,
+    CommandLineIcon,
+    ComputerDesktopIcon,
+    PaintBrushIcon,
+    EnvelopeIcon,
+    LanguageIcon,
+    WrenchScrewdriverIcon,
+    QueueListIcon,
+    ViewColumnsIcon,
+    RectangleStackIcon,
+    PresentationChartLineIcon,
 } from '@heroicons/react/24/outline';
 
-// Icon name to component mapping
+// Icon name to component mapping - expanded for all platform icons
 const ICON_MAP = {
     HomeIcon,
     UsersIcon,
     UserIcon,
-    Cog6ToothIcon,
-    ShieldCheckIcon,
     UserGroupIcon,
+    UserPlusIcon,
+    Cog6ToothIcon,
+    Cog8ToothIcon,
+    ShieldCheckIcon,
     ClipboardDocumentListIcon,
     ChartBarIcon,
+    ChartBarSquareIcon,
+    ChartPieIcon,
     BriefcaseIcon,
     BuildingOfficeIcon,
+    BuildingOffice2Icon,
     CurrencyDollarIcon,
+    CreditCardIcon,
+    BanknotesIcon,
     ShoppingCartIcon,
     TruckIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
+    CubeIcon,
+    GlobeAltIcon,
+    CircleStackIcon,
+    ServerIcon,
+    ClockIcon,
+    ExclamationTriangleIcon,
+    ExclamationCircleIcon,
+    LinkIcon,
+    KeyIcon,
+    ArrowsRightLeftIcon,
+    ArrowPathIcon,
+    PuzzlePieceIcon,
+    CommandLineIcon,
+    ComputerDesktopIcon,
+    PaintBrushIcon,
+    EnvelopeIcon,
+    LanguageIcon,
+    WrenchScrewdriverIcon,
+    QueueListIcon,
+    ViewColumnsIcon,
+    RectangleStackIcon,
+    PresentationChartLineIcon,
 };
 
-export function useNavigation() {
-    const { auth, url } = usePage().props;
+/**
+ * Process a navigation item - resolve icons and check current route
+ */
+function processNavItem(navItem, url) {
+    // Resolve icon from string to component if needed
+    const icon = typeof navItem.icon === 'string' 
+        ? ICON_MAP[navItem.icon] 
+        : navItem.icon;
 
-    // 1. Get Core Navigation from NavigationRegistry
-    const coreNavigation = useMemo(() => {
-        return navigationRegistry.get().map(item => ({
-            ...item,
-            // Resolve icon from string to component
-            icon: typeof item.icon === 'string' ? ICON_MAP[item.icon] : item.icon
-        }));
-    }, []);
+    // Check if current route matches this item
+    let current = false;
+    if (navItem.href) {
+        current = url === navItem.href || url.startsWith(navItem.href + '/');
+    } else if (navItem.active_rule) {
+        try {
+            current = typeof route === 'function' && route().current(navItem.active_rule);
+        } catch (e) {
+            // route() may not be available in all contexts
+            current = false;
+        }
+    }
+
+    // Process children recursively
+    const children = navItem.children?.map(child => processNavItem(child, url));
+
+    return {
+        ...navItem,
+        icon,
+        current,
+        children
+    };
+}
+
+export function useNavigation() {
+    const { auth, url, context: domainContext = 'tenant' } = usePage().props;
+    const isAdminContext = domainContext === 'admin';
+
+    // 1. Get Base Navigation based on context
+    const baseNavigation = useMemo(() => {
+        if (isAdminContext) {
+            // Use admin navigation registry for platform admin context
+            return adminNavigationRegistry.get().map(item => processNavItem(item, url));
+        }
+        // Use tenant navigation registry for tenant context
+        return navigationRegistry.get().map(item => processNavItem(item, url));
+    }, [isAdminContext, url]);
 
     // 2. Merge with Module Navigation
     const mergedNavigation = useMemo(() => {
         // Get dynamic navigation from window.Aero
-        const moduleNav = (window.Aero?.navigation || []).map(item => {
-            // Process each navigation item recursively
-            const processItem = (navItem) => {
-                // Resolve icon from string to component if needed
-                const icon = typeof navItem.icon === 'string' 
-                    ? ICON_MAP[navItem.icon] 
-                    : navItem.icon;
+        const registeredNav = window.Aero?.navigation || [];
+        
+        // Filter navigation based on context
+        const contextNav = isAdminContext
+            ? registeredNav.filter(item => item.module === 'platform' || item._registeredBy === 'platform')
+            : registeredNav.filter(item => item.module !== 'platform' && item._registeredBy !== 'platform');
 
-                // Check if current route matches this item
-                let current = false;
-                if (navItem.href) {
-                    current = url === navItem.href || url.startsWith(navItem.href + '/');
-                } else if (navItem.active_rule) {
-                    current = route().current(navItem.active_rule);
-                }
+        const moduleNav = contextNav.map(item => processNavItem(item, url));
 
-                // Process children recursively
-                const children = navItem.children?.map(processItem);
+        // Combine base + module navigation
+        const allNav = [...baseNavigation, ...moduleNav];
 
-                return {
-                    ...navItem,
-                    icon,
-                    current,
-                    children
-                };
-            };
-
-            return processItem(item);
+        // Remove duplicates by href or name
+        const seen = new Set();
+        const dedupedNav = allNav.filter(item => {
+            const key = item.href || item.name;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
         });
 
-        // Combine Core + Module navigation
-        const allNav = [...coreNavigation, ...moduleNav];
+        // Sort by 'order' property (default 500 if not specified)
+        return dedupedNav.sort((a, b) => (a.order || 500) - (b.order || 500));
+    }, [baseNavigation, isAdminContext, url]);
 
-        // 3. Sort by 'order' property (default 500 if not specified)
-        return allNav.sort((a, b) => (a.order || 500) - (b.order || 500));
-    }, [coreNavigation, url]);
-
-    // 4. Filter based on user permissions
+    // 3. Filter based on user permissions
     const filteredNavigation = useMemo(() => {
         const user = auth?.user;
         
-        // Super Admin sees all navigation
-        if (user && isSuperAdmin(user)) {
+        // Platform Super Admin sees all admin navigation
+        if (isAdminContext && (auth?.isPlatformSuperAdmin || isPlatformSuperAdmin(auth))) {
+            return mergedNavigation;
+        }
+        
+        // Tenant Super Admin sees all tenant navigation
+        if (!isAdminContext && user && isSuperAdmin(user)) {
             return mergedNavigation;
         }
 
         // Apply access control filtering
         return filterNavigationByAccess(mergedNavigation, auth);
-    }, [mergedNavigation, auth]);
+    }, [mergedNavigation, auth, isAdminContext]);
 
     return { 
         navigation: filteredNavigation,
-        coreNavigation,
-        moduleNavigation: window.Aero?.navigation || []
+        baseNavigation,
+        moduleNavigation: window.Aero?.navigation || [],
+        isAdminContext
     };
 }
 

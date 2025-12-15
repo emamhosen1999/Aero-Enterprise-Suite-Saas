@@ -13,16 +13,29 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Early exit if already installed
-if (file_exists(storage_path('installed'))) {
-    Route::get('/install', function () {
-        return redirect()->route('login');
-    });
-    // Stop processing if this file is included directly
-    return;
-}
+// Check if already installed
+$isInstalled = file_exists(storage_path('installed'));
 
+// Always register the complete route OUTSIDE the conditional (so it works after installation)
 Route::prefix('install')->name('installation.')->group(function () {
+    Route::get('/complete', [InstallationController::class, 'complete'])->name('complete');
+});
+
+// Handle the rest of the installation routes
+Route::prefix('install')->name('installation.')->group(function () use ($isInstalled) {
+    // If already installed, redirect main install route to login
+    if ($isInstalled) {
+        Route::get('/', function () {
+            return redirect()->route('login');
+        })->name('index');
+        
+        // Show "Already Installed" page for other install routes (except complete which is registered above)
+        Route::get('/{any}', function () {
+            return \Inertia\Inertia::render('Platform/Installation/AlreadyInstalled');
+        })->where('any', '^(?!complete).*$');
+        
+        return;
+    }
     
     /* * PUBLIC STAGE
      * Accessible without verification
@@ -63,8 +76,7 @@ Route::prefix('install')->name('installation.')->group(function () {
         Route::get('/review', [InstallationController::class, 'showReview'])->name('review');
         Route::post('/install', [InstallationController::class, 'install'])->name('install');
 
-        // Step 8: Installation complete
-        Route::get('/complete', [InstallationController::class, 'complete'])->name('complete');
+        // Step 8: Installation complete (already registered above, no duplicate needed)
 
         // API: Get installation progress (for recovery)
         Route::get('/progress', [InstallationController::class, 'getInstallationProgress'])->name('progress');

@@ -30,6 +30,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Link, usePage, router } from '@inertiajs/react';
 import { useTheme } from '@/Context/ThemeContext';
+import { getDashboardUrl } from '@/utils/moduleAccessUtils';
 import ThemeSettingDrawer from '@/Components/ThemeSettingDrawer';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import ProfileAvatar from '@/Components/ProfileAvatar';
@@ -73,7 +74,7 @@ const Header = ({
 
     // Navigation items - can be customized based on user role
     const navigationItems = [
-        { label: 'Dashboard', href: route('dashboard') },
+        { label: 'Dashboard', href: getDashboardUrl() },
         { label: 'HR', href: '#' },
         { label: 'Projects', href: '#' },
         { label: 'Analytics', href: '#' },

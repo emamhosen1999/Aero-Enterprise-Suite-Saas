@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
+import { getDashboardUrl } from '@/utils/moduleAccessUtils';
 import {
   Dropdown,
   DropdownTrigger,
@@ -222,7 +223,7 @@ const ProfileMenu = ({ children }) => {
             />
           </div>
         }
-        onPress={() => handleNavigation(route('dashboard'))}
+        onPress={() => handleNavigation(getDashboardUrl())}
         className="px-3 py-2 transition-colors duration-200"
         textValue="Account Settings"
         style={{
