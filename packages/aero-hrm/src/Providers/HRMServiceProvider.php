@@ -37,7 +37,7 @@ class HRMServiceProvider extends AbstractModuleProvider
     {
         $basePath = dirname(__DIR__, 2);
 
-        return $path ? $basePath . '/' . $path : $basePath;
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     /**
@@ -194,7 +194,7 @@ class HRMServiceProvider extends AbstractModuleProvider
     /**
      * Register HRM navigation items with NavigationRegistry.
      * Navigation is derived from config/module.php submodules for consistency.
-     * 
+     *
      * Structure: Module → Submodules → Components (3 levels)
      */
     protected function registerNavigation(): void
@@ -212,7 +212,7 @@ class HRMServiceProvider extends AbstractModuleProvider
         foreach ($config['submodules'] ?? [] as $submodule) {
             $submoduleCode = $submodule['code'] ?? '';
             $submoduleIcon = $submodule['icon'] ?? null;
-            
+
             // Build component children for this submodule
             $componentNav = [];
             foreach ($submodule['components'] ?? [] as $component) {
@@ -220,25 +220,26 @@ class HRMServiceProvider extends AbstractModuleProvider
                     'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
                     'path' => $component['route'] ?? '',
                     'icon' => $component['icon'] ?? $submoduleIcon, // Inherit submodule icon if not set
-                    'access' => $this->moduleCode . '.' . $submoduleCode . '.' . ($component['code'] ?? ''),
+                    'access' => $this->moduleCode.'.'.$submoduleCode.'.'.($component['code'] ?? ''),
                     'type' => $component['type'] ?? 'page',
                 ];
             }
-            
+
             $submoduleNav[] = [
                 'name' => $submodule['name'] ?? ucfirst($submoduleCode),
                 'path' => $submodule['route'] ?? '',
                 'icon' => $submoduleIcon,
-                'access' => $this->moduleCode . '.' . $submoduleCode,
+                'access' => $this->moduleCode.'.'.$submoduleCode,
                 'priority' => $submodule['priority'] ?? 100,
                 'children' => $componentNav,
             ];
         }
 
         // Sort submodules by priority
-        usort($submoduleNav, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+        usort($submoduleNav, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
 
         // Register main HRM navigation with module as parent wrapper
+        // Scope: 'tenant' - HRM is for tenant users only
         $navRegistry->register($this->moduleCode, [
             [
                 'name' => $config['name'] ?? 'Human Resources',
@@ -247,7 +248,7 @@ class HRMServiceProvider extends AbstractModuleProvider
                 'priority' => $modulePriority,
                 'children' => $submoduleNav,
             ],
-        ], $modulePriority);
+        ], $modulePriority, 'tenant');
     }
 
     /**

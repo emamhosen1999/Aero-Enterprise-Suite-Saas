@@ -3,6 +3,7 @@
 namespace Aero\Platform;
 
 use Aero\Core\Contracts\TenantScopeInterface;
+use Aero\Core\Services\NavigationRegistry;
 use Aero\Platform\Listeners\TenantCreatedListener;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Services\Billing\SslCommerzService;
@@ -78,14 +79,22 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS for all generated URLs when APP_URL uses https
+        if (str_starts_with(config('app.url', ''), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
+        // Configure guest redirect for authentication middleware
+        $this->configureGuestRedirect();
+
         // Load platform migrations for landlord database
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Register routes
 
-        // Always load installation wizard routes 
+        // Always load installation wizard routes
         // (routes file handles redirect logic internally, but /install/complete must be accessible post-install)
-        $installationRoutes = __DIR__ . '/../routes/installation.php';
+        $installationRoutes = __DIR__.'/../routes/installation.php';
         if (file_exists($installationRoutes)) {
             \Illuminate\Support\Facades\Route::middleware(['web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class])
                 ->group($installationRoutes);
@@ -117,8 +126,96 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 \Aero\Platform\Console\Commands\SetupApplication::class,
             ]);
         }
+
+        // Register platform navigation with NavigationRegistry
+        // This allows HandleInertiaRequests to share navigation via Inertia props
+        $this->registerPlatformNavigation();
     }
-    
+
+    /**
+     * Register platform navigation items from config/module.php.
+     *
+     * Structure: Module → Submodules → Components
+     * - Submodules become top-level menu items (flattened by NavigationRegistry)
+     * - If submodule has only ONE component, that component becomes the menu item directly
+     * - If submodule has multiple components, they become submenu items
+     * - Icons are inherited from parent if not specified
+     */
+    protected function registerPlatformNavigation(): void
+    {
+        // Only register if NavigationRegistry is bound (Core is loaded)
+        if (! $this->app->bound(NavigationRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(NavigationRegistry::class);
+
+        // Load platform module config
+        $configPath = __DIR__.'/../config/module.php';
+        $config = file_exists($configPath) ? require $configPath : [];
+
+        // Build navigation from config submodules
+        $submoduleNav = [];
+        foreach ($config['submodules'] ?? [] as $submodule) {
+            $submoduleCode = $submodule['code'] ?? '';
+
+            // Get submodule icon for fallback
+            $submoduleIcon = $submodule['icon'] ?? 'FolderIcon';
+            $components = $submodule['components'] ?? [];
+
+            // If submodule has only ONE component, use it directly as the menu item
+            if (count($components) === 1) {
+                $component = $components[0];
+                $submoduleNav[] = [
+                    'name' => $submodule['name'] ?? ucfirst($submoduleCode),
+                    'path' => $component['route'] ?? $submodule['route'] ?? null,
+                    'icon' => $component['icon'] ?? $submoduleIcon,
+                    'access' => 'platform.'.$submoduleCode.'.'.($component['code'] ?? ''),
+                    'priority' => $submodule['priority'] ?? 100,
+                    'type' => $component['type'] ?? 'page',
+                    // No children - single component becomes the page
+                ];
+            } else {
+                // Multiple components - build children submenu
+                $componentNav = [];
+                foreach ($components as $component) {
+                    $componentNav[] = [
+                        'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
+                        'path' => $component['route'] ?? null,
+                        'icon' => $component['icon'] ?? $submoduleIcon, // Inherit parent icon
+                        'access' => 'platform.'.$submoduleCode.'.'.($component['code'] ?? ''),
+                        'type' => $component['type'] ?? 'page',
+                    ];
+                }
+
+                // Create submodule navigation item with component children
+                $submoduleNav[] = [
+                    'name' => $submodule['name'] ?? ucfirst($submoduleCode),
+                    'path' => $submodule['route'] ?? null,
+                    'icon' => $submoduleIcon,
+                    'access' => 'platform.'.$submoduleCode,
+                    'priority' => $submodule['priority'] ?? 100,
+                    'children' => $componentNav, // Include children for submenu
+                ];
+            }
+        }
+
+        // Sort submodules by priority
+        usort($submoduleNav, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+
+        // Register platform navigation with highest priority (0)
+        // Platform is is_core=true so its children flatten to top level in admin context
+        // Scope: 'platform' - Platform navigation is for admin/landlord users only
+        $registry->register('platform', [
+            [
+                'name' => $config['name'] ?? 'Platform Administration',
+                'icon' => $config['icon'] ?? 'BuildingOffice2Icon',
+                'access' => 'platform',
+                'priority' => $config['priority'] ?? 0,
+                'children' => $submoduleNav,
+            ],
+        ], $config['priority'] ?? 0, 'platform');
+    }
 
     /**
      * Register middleware aliases for the platform package.
@@ -138,14 +235,18 @@ class AeroPlatformServiceProvider extends ServiceProvider
             // so the installer can run without database-backed sessions/tables.
             $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class);
 
+            // Check installation status and redirect to /install if not installed
+            // IMPORTANT: Must run BEFORE session middleware to avoid DB errors when not installed
+            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\CheckInstallation::class);
+
             // Register IdentifyDomainContext to set context for the request
-            // and ensure it runs BEFORE session middleware so installation
-            // checks can redirect without accessing the sessions table.
+            // and ensure it runs BEFORE CheckInstallation so it has access to domain_context
             $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
 
-            // Register HandleInertiaRequests middleware early so root "/"
-            // interception happens before StartSession (avoids DB session access)
-            $router->prependMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
+            // Register HandleInertiaRequests middleware AFTER session starts
+            // Using pushMiddlewareToGroup so it runs AFTER StartSession
+            // This ensures auth is available when sharing props
+            $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
         });
 
         $router = $this->app['router'];
@@ -266,17 +367,17 @@ class AeroPlatformServiceProvider extends ServiceProvider
         if (request() && request()->getHost()) {
             $currentHost = request()->getHost();
             $hostWithoutPort = preg_replace('/:\d+$/', '', $currentHost);
-            
+
             // Extract root domain (remove subdomain if present)
             $parts = explode('.', $hostWithoutPort);
-            
+
             // If it's a subdomain (e.g., tenant.aeos365.test or admin.aeos365.test)
             // Extract the root domain (aeos365.test)
             if (count($parts) > 2) {
                 // Remove first part (subdomain), keep domain.tld
                 return implode('.', array_slice($parts, 1));
             }
-            
+
             // Already a root domain (e.g., aeos365.test)
             return $hostWithoutPort;
         }
@@ -297,7 +398,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
         }
 
         // Fallback: admin. + platform domain
-        return 'admin.' . $this->getPlatformDomain();
+        return 'admin.'.$this->getPlatformDomain();
     }
 
     /**
@@ -392,12 +493,43 @@ class AeroPlatformServiceProvider extends ServiceProvider
                     return collect($files)->filter(function ($path, $name) {
                         // Normalize path for comparison (resolve ../ and convert slashes)
                         $normalizedPath = realpath($path) ?: $path;
-                        
+
                         // Allow ONLY platform migrations
                         return str_starts_with($normalizedPath, $this->platformMigrationsPath);
                     })->all();
                 }
             };
+        });
+    }
+
+    /**
+     * Configure guest redirect for authentication middleware.
+     *
+     * Redirects unauthenticated users to the appropriate login page
+     * based on domain context (admin vs tenant).
+     */
+    protected function configureGuestRedirect(): void
+    {
+        $this->app['auth']->shouldUse('landlord');
+
+        // Configure the Authenticate middleware to redirect to admin.login for landlord guard
+        $this->app->resolving(\Illuminate\Auth\Middleware\Authenticate::class, function ($middleware) {
+            $middleware->redirectUsing(function ($request) {
+                $host = $request->getHost();
+
+                // Admin subdomain uses admin.login
+                if (str_starts_with($host, 'admin.')) {
+                    return route('admin.login');
+                }
+
+                // Tenant subdomain uses tenant login (if exists)
+                if (Route::has('tenant.login')) {
+                    return route('tenant.login');
+                }
+
+                // Fallback to admin.login
+                return route('admin.login');
+            });
         });
     }
 }

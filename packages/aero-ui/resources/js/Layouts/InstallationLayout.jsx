@@ -179,6 +179,7 @@ const InstallationLayout = ({ children, currentStep = 1, totalSteps = 8, install
                                 </span>
                             </div>
                             <Progress 
+                                aria-label="Installation progress"
                                 value={progressPercentage} 
                                 color="primary"
                                 className="w-full"

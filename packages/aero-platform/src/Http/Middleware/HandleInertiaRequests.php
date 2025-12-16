@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Services\NavigationRegistry;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
 use Aero\Platform\Http\Resources\SystemSettingResource;
 use Aero\Platform\Models\Module;
@@ -116,13 +117,29 @@ class HandleInertiaRequests extends Middleware
     {
         $context = $this->getDomainContext($request);
 
+        \Log::info('=== HandleInertiaRequests::share START ===', [
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'context' => $context,
+            'session_id' => $request->hasSession() ? $request->session()->getId() : 'NO_SESSION',
+            'session_started' => $request->hasSession() && $request->session()->isStarted(),
+        ]);
+
         // Share context-specific data
-        return match ($context) {
+        $result = match ($context) {
             IdentifyDomainContext::CONTEXT_ADMIN => $this->shareAdminProps($request),
             IdentifyDomainContext::CONTEXT_PLATFORM => $this->sharePlatformProps($request),
             IdentifyDomainContext::CONTEXT_TENANT => $this->shareTenantProps($request),
             default => $this->sharePlatformProps($request),
         };
+
+        \Log::info('=== HandleInertiaRequests::share END ===', [
+            'context' => $context,
+            'auth_user_id' => $result['auth']['user']['id'] ?? 'NULL',
+            'auth_isAuthenticated' => $result['auth']['isAuthenticated'] ?? false,
+        ]);
+
+        return $result;
     }
 
     /**
@@ -144,12 +161,12 @@ class HandleInertiaRequests extends Middleware
     {
         // Skip database queries if installation is not complete
         if ($request->routeIs('installation.*') || $request->is('install*')) {
-            // Use .env values for installation context
+            // Use .env values for installation context - null for logos so frontend shows letter fallback
             View::share([
-                'logoUrl' => asset('assets/images/logo.png'),
-                'logoLightUrl' => asset('assets/images/logo.png'),
-                'logoDarkUrl' => asset('assets/images/logo.png'),
-                'faviconUrl' => asset('assets/images/favicon.ico'),
+                'logoUrl' => null,
+                'logoLightUrl' => null,
+                'logoDarkUrl' => null,
+                'faviconUrl' => null,
                 'siteName' => config('app.name', 'aeos365'),
             ]);
 
@@ -164,10 +181,10 @@ class HandleInertiaRequests extends Middleware
                 ],
                 'platformSettings' => [
                     'branding' => [
-                        'logo' => asset('assets/images/logo.png'),
-                        'logo_light' => asset('assets/images/logo.png'),
-                        'logo_dark' => asset('assets/images/logo.png'),
-                        'favicon' => asset('assets/images/favicon.ico'),
+                        'logo' => null,
+                        'logo_light' => null,
+                        'logo_dark' => null,
+                        'favicon' => null,
                         'primary_color' => '#006FEE',
                         'border_radius' => '12px',
                         'border_width' => '2px',
@@ -186,10 +203,36 @@ class HandleInertiaRequests extends Middleware
         $platformSetting = null;
         $platformSettingsPayload = null;
 
+        \Log::info('=== shareAdminProps: Starting auth check ===', [
+            'session_id' => $request->hasSession() ? $request->session()->getId() : 'NO_SESSION',
+            'session_started' => $request->hasSession() && $request->session()->isStarted(),
+            'cookie_session_id' => $request->cookies->get(config('session.cookie')),
+        ]);
+
         try {
+            // Check session data directly
+            if ($request->hasSession()) {
+                $sessionData = $request->session()->all();
+                $landlordKey = collect(array_keys($sessionData))->first(fn($k) => str_starts_with($k, 'login_landlord_'));
+                
+                \Log::info('=== shareAdminProps: Session data ===', [
+                    'session_keys' => array_keys($sessionData),
+                    'landlord_key' => $landlordKey,
+                    'landlord_user_id_in_session' => $landlordKey ? $sessionData[$landlordKey] : null,
+                ]);
+            }
+
             $user = \Illuminate\Support\Facades\Auth::guard('landlord')->user();
+            
+            \Log::info('=== shareAdminProps: Auth guard result ===', [
+                'guard_check' => \Illuminate\Support\Facades\Auth::guard('landlord')->check(),
+                'user_id' => $user?->id,
+                'user_name' => $user?->name,
+                'user_email' => $user?->email,
+            ]);
         } catch (\Exception $e) {
             // Database might not be set up yet, skip user loading
+            \Log::warning('HandleInertiaRequests - Auth error', ['error' => $e->getMessage()]);
         }
 
         try {
@@ -201,13 +244,13 @@ class HandleInertiaRequests extends Middleware
             ? PlatformSettingResource::make($platformSetting)->resolve($request)
             : null;
 
-        // Share branding with blade template
+        // Share branding with blade template - use null fallback to show letter fallback
         $branding = $platformSettingsPayload['branding'] ?? [];
         View::share([
-            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'faviconUrl' => $branding['favicon'] ?? asset('assets/images/favicon.ico'),
+            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? null,
+            'faviconUrl' => $branding['favicon'] ?? null,
             'siteName' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
         ]);
 
@@ -262,6 +305,8 @@ class HandleInertiaRequests extends Middleware
                 'mode' => config('aero.mode', 'saas'),
                 'subscriptions' => [], // Admin has access to all modules by default
             ],
+            // Navigation from backend NavigationRegistry (module.php driven)
+            'navigation' => fn () => $this->getNavigationProps($user),
             'flash' => [
                 'success' => $request->hasSession() ? $request->session()->get('success') : null,
                 'error' => $request->hasSession() ? $request->session()->get('error') : null,
@@ -280,12 +325,12 @@ class HandleInertiaRequests extends Middleware
     {
         // Skip database queries if installation is not complete
         if ($request->routeIs('installation.*') || $request->is('install*')) {
-            // Use .env values for installation context
+            // Use null for logos so frontend shows letter fallback
             View::share([
-                'logoUrl' => asset('assets/images/logo.png'),
-                'logoLightUrl' => asset('assets/images/logo.png'),
-                'logoDarkUrl' => asset('assets/images/logo.png'),
-                'faviconUrl' => asset('assets/images/favicon.ico'),
+                'logoUrl' => null,
+                'logoLightUrl' => null,
+                'logoDarkUrl' => null,
+                'faviconUrl' => null,
                 'siteName' => config('app.name', 'aeos365'),
             ]);
 
@@ -300,10 +345,10 @@ class HandleInertiaRequests extends Middleware
                 ],
                 'platformSettings' => [
                     'branding' => [
-                        'logo' => asset('assets/images/logo.png'),
-                        'logo_light' => asset('assets/images/logo.png'),
-                        'logo_dark' => asset('assets/images/logo.png'),
-                        'favicon' => asset('assets/images/favicon.ico'),
+                        'logo' => null,
+                        'logo_light' => null,
+                        'logo_dark' => null,
+                        'favicon' => null,
                         'primary_color' => '#006FEE',
                         'border_radius' => '12px',
                         'border_width' => '2px',
@@ -321,13 +366,13 @@ class HandleInertiaRequests extends Middleware
             ? PlatformSettingResource::make($platformSetting)->resolve($request)
             : null;
 
-        // Share branding with blade template
+        // Share branding with blade template - use null fallback to show letter fallback
         $branding = $platformSettingsPayload['branding'] ?? [];
         View::share([
-            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'faviconUrl' => $branding['favicon'] ?? asset('assets/images/favicon.ico'),
+            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? null,
+            'faviconUrl' => $branding['favicon'] ?? null,
             'siteName' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
         ]);
 
@@ -385,12 +430,12 @@ class HandleInertiaRequests extends Middleware
         $branding = $systemSettingsPayload['branding'] ?? [];
         $legacyCompanySettings = $this->formatLegacyCompanySettings($organization);
 
-        // Share branding with blade template (tenant uses logo_light for main logo)
+        // Share branding with blade template (tenant uses logo_light for main logo) - use null fallback
         View::share([
-            'logoUrl' => $branding['logo_light'] ?? asset('assets/images/logo.png'),
-            'logoLightUrl' => $branding['logo_light'] ?? asset('assets/images/logo.png'),
-            'logoDarkUrl' => $branding['logo_dark'] ?? asset('assets/images/logo.png'),
-            'faviconUrl' => $branding['favicon'] ?? asset('assets/images/favicon.ico'),
+            'logoUrl' => $branding['logo_light'] ?? null,
+            'logoLightUrl' => $branding['logo_light'] ?? null,
+            'logoDarkUrl' => $branding['logo_dark'] ?? null,
+            'faviconUrl' => $branding['favicon'] ?? null,
             'siteName' => $organization['company_name'] ?? config('app.name', 'aeos365'),
         ]);
 
@@ -589,6 +634,32 @@ class HandleInertiaRequests extends Middleware
                 'discount' => 17, // ~17% discount (12 months for price of 10)
             ],
         ];
+    }
+
+    /**
+     * Get navigation items from NavigationRegistry.
+     * Returns a flat array of navigation items ready for frontend.
+     *
+     * @param  mixed  $user  The authenticated user (LandlordUser or null)
+     */
+    protected function getNavigationProps($user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        try {
+            if (app()->bound(NavigationRegistry::class)) {
+                $registry = app(NavigationRegistry::class);
+
+                // Platform context: only return platform-scoped navigation
+                return $registry->toFrontend('platform');
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Navigation error: '.$e->getMessage());
+        }
+
+        return [];
     }
 
     /**

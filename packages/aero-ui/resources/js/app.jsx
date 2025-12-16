@@ -12,10 +12,6 @@ import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';
 import { initializeDeviceAuth } from './utils/deviceAuth';
 
-// Initialize Aero global namespace and register platform navigation
-import { initializeAeroNamespace } from './Services/AeroNamespace';
-initializeAeroNamespace();
-
 /**
  * Global Error Reporter
  * Centralizes error reporting for all error types

@@ -453,22 +453,26 @@ export const getContextRoute = (routeName) => {
 };
 
 /**
- * Safely get a route URL with fallback
+ * Get a route URL using context-aware route name
+ * Safely handles missing routes by falling back to path-based URL
  * @param {string} routeName - Route name to resolve
  * @param {Object} params - Route parameters
- * @param {string} fallback - Fallback URL if route doesn't exist
- * @returns {string} Route URL or fallback
+ * @returns {string} Route URL
  */
-export const safeRoute = (routeName, params = {}, fallback = '/') => {
+export const safeRoute = (routeName, params = {}) => {
     try {
         if (typeof route === 'function') {
-            return route(routeName, params);
+            // Check if route exists first to avoid Ziggy throwing
+            if (route().has(routeName)) {
+                return route(routeName, params);
+            }
         }
-        return fallback;
     } catch (e) {
-        console.warn(`Route '${routeName}' not found, using fallback`, e);
-        return fallback;
+        // Silently handle route errors
+        console.debug(`Route '${routeName}' not available, using fallback path`);
     }
+    // Fallback to path-based URL if route function not available or route doesn't exist
+    return isAdminContext() ? '/admin/dashboard' : '/dashboard';
 };
 
 /**
@@ -477,7 +481,7 @@ export const safeRoute = (routeName, params = {}, fallback = '/') => {
  */
 export const getDashboardUrl = () => {
     const routeName = getDashboardRouteName();
-    return safeRoute(routeName, {}, isAdminContext() ? '/admin/dashboard' : '/dashboard');
+    return safeRoute(routeName);
 };
 
 // Default export for convenience

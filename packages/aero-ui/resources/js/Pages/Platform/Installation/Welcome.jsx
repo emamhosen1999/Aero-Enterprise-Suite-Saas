@@ -36,9 +36,12 @@ export default function Welcome() {
                                 alt={appName}
                                 className="w-full h-full object-contain"
                                 onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.parentElement.innerHTML = `<span class="text-white font-bold text-4xl">${firstLetter}</span>`;
-                                    e.target.parentElement.classList.add('bg-primary');
+                                    const parent = e.target.parentElement;
+                                    if (parent) {
+                                        e.target.style.display = 'none';
+                                        parent.classList.add('bg-primary');
+                                        parent.innerHTML = `<span class="text-white font-bold text-4xl">${firstLetter}</span>`;
+                                    }
                                 }}
                             />
                         </div>

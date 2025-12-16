@@ -1,35 +1,33 @@
 /**
- * useNavigation Hook - DECENTRALIZED VERSION with Access Control
+ * useNavigation Hook - BACKEND-DRIVEN NAVIGATION
  * 
- * This hook merges Core's static navigation with dynamically registered
- * module navigation from window.Aero.navigation.
- * 
- * It replaces the old monolithic pages.jsx approach with a decentralized system.
+ * Simple architecture: module.php → Backend NavigationRegistry → Inertia props.navigation → Frontend
  * 
  * Features:
- * - Context-aware: Returns admin navigation for 'admin' context, tenant for others
- * - Merges Core + Module navigation
- * - Applies role-based access control filtering
+ * - Reads navigation from `props.navigation` (supplied by HandleInertiaRequests)
  * - Resolves icon strings to HeroIcon components
- * - Sorts by order property
+ * - Applies role-based access control filtering
  * - Super Admin bypass for full visibility
  * 
- * Each module registers its own navigation via:
- *   window.Aero.registerNavigation('moduleName', navigationArray)
+ * Backend Flow:
+ * 1. Each module's ServiceProvider registers navigation from its config/module.php
+ * 2. NavigationRegistry aggregates all module navigation
+ * 3. HandleInertiaRequests shares navigation via Inertia props
+ * 4. This hook consumes props.navigation directly
  * 
  * @example
  * const { navigation } = useNavigation();
  * 
- * @returns {Object} Navigation state with merged Core + Module items
+ * @returns {Object} Navigation state with processed items
  */
+
+
 
 import { usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
-import { navigationRegistry } from '../Services/NavigationRegistry';
-import { adminNavigationRegistry } from '../Services/AdminNavigationRegistry';
 import { filterNavigationByAccess, isSuperAdmin, isPlatformSuperAdmin } from '../utils/moduleAccessUtils';
 
-// Import Core Icons statically - expanded for admin navigation
+// Import Core Icons statically - expanded for all navigation icons
 import { 
     HomeIcon, 
     UsersIcon, 
@@ -74,9 +72,20 @@ import {
     ViewColumnsIcon,
     RectangleStackIcon,
     PresentationChartLineIcon,
+    FolderIcon,
+    CalendarIcon,
+    CalendarDaysIcon,
+    ClipboardDocumentCheckIcon,
+    AcademicCapIcon,
+    ArchiveBoxIcon,
+    ScaleIcon,
+    SparklesIcon,
+    ChatBubbleLeftRightIcon,
+    FunnelIcon,
+    DocumentChartBarIcon,
 } from '@heroicons/react/24/outline';
 
-// Icon name to component mapping - expanded for all platform icons
+// Icon name to component mapping
 const ICON_MAP = {
     HomeIcon,
     UsersIcon,
@@ -121,6 +130,17 @@ const ICON_MAP = {
     ViewColumnsIcon,
     RectangleStackIcon,
     PresentationChartLineIcon,
+    FolderIcon,
+    CalendarIcon,
+    CalendarDaysIcon,
+    ClipboardDocumentCheckIcon,
+    AcademicCapIcon,
+    ArchiveBoxIcon,
+    ScaleIcon,
+    SparklesIcon,
+    ChatBubbleLeftRightIcon,
+    FunnelIcon,
+    DocumentChartBarIcon,
 };
 
 /**
@@ -134,13 +154,13 @@ function processNavItem(navItem, url) {
 
     // Check if current route matches this item
     let current = false;
-    if (navItem.href) {
-        current = url === navItem.href || url.startsWith(navItem.href + '/');
+    const itemPath = navItem.href || navItem.path;
+    if (itemPath) {
+        current = url === itemPath || url.startsWith(itemPath + '/');
     } else if (navItem.active_rule) {
         try {
             current = typeof route === 'function' && route().current(navItem.active_rule);
         } catch (e) {
-            // route() may not be available in all contexts
             current = false;
         }
     }
@@ -148,55 +168,33 @@ function processNavItem(navItem, url) {
     // Process children recursively
     const children = navItem.children?.map(child => processNavItem(child, url));
 
+    // Normalize the item structure (backend uses 'path', frontend expects 'href')
     return {
         ...navItem,
+        href: itemPath,
         icon,
         current,
-        children
+        children: children?.length ? children : undefined,
     };
 }
 
 export function useNavigation() {
-    const { auth, url, context: domainContext = 'tenant' } = usePage().props;
+    const { auth, url, context: domainContext = 'tenant', navigation: backendNavigation = [] } = usePage().props;
     const isAdminContext = domainContext === 'admin';
 
-    // 1. Get Base Navigation based on context
-    const baseNavigation = useMemo(() => {
-        if (isAdminContext) {
-            // Use admin navigation registry for platform admin context
-            return adminNavigationRegistry.get().map(item => processNavItem(item, url));
-        }
-        // Use tenant navigation registry for tenant context
-        return navigationRegistry.get().map(item => processNavItem(item, url));
-    }, [isAdminContext, url]);
-
-    // 2. Merge with Module Navigation
-    const mergedNavigation = useMemo(() => {
-        // Get dynamic navigation from window.Aero
-        const registeredNav = window.Aero?.navigation || [];
+    // 1. Process backend navigation (primary source)
+    const processedNavigation = useMemo(() => {
+        // Use navigation from Inertia props (supplied by HandleInertiaRequests)
+        const rawNavigation = Array.isArray(backendNavigation) ? backendNavigation : [];
         
-        // Filter navigation based on context
-        const contextNav = isAdminContext
-            ? registeredNav.filter(item => item.module === 'platform' || item._registeredBy === 'platform')
-            : registeredNav.filter(item => item.module !== 'platform' && item._registeredBy !== 'platform');
+        // Process each item (resolve icons, check current route)
+        return rawNavigation.map(item => processNavItem(item, url));
+    }, [backendNavigation, url]);
 
-        const moduleNav = contextNav.map(item => processNavItem(item, url));
-
-        // Combine base + module navigation
-        const allNav = [...baseNavigation, ...moduleNav];
-
-        // Remove duplicates by href or name
-        const seen = new Set();
-        const dedupedNav = allNav.filter(item => {
-            const key = item.href || item.name;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        });
-
-        // Sort by 'order' property (default 500 if not specified)
-        return dedupedNav.sort((a, b) => (a.order || 500) - (b.order || 500));
-    }, [baseNavigation, isAdminContext, url]);
+    // 2. Sort by priority
+    const sortedNavigation = useMemo(() => {
+        return [...processedNavigation].sort((a, b) => (a.priority || 500) - (b.priority || 500));
+    }, [processedNavigation]);
 
     // 3. Filter based on user permissions
     const filteredNavigation = useMemo(() => {
@@ -204,22 +202,21 @@ export function useNavigation() {
         
         // Platform Super Admin sees all admin navigation
         if (isAdminContext && (auth?.isPlatformSuperAdmin || isPlatformSuperAdmin(auth))) {
-            return mergedNavigation;
+            return sortedNavigation;
         }
         
         // Tenant Super Admin sees all tenant navigation
         if (!isAdminContext && user && isSuperAdmin(user)) {
-            return mergedNavigation;
+            return sortedNavigation;
         }
 
         // Apply access control filtering
-        return filterNavigationByAccess(mergedNavigation, auth);
-    }, [mergedNavigation, auth, isAdminContext]);
+        return filterNavigationByAccess(sortedNavigation, auth);
+    }, [sortedNavigation, auth, isAdminContext]);
 
     return { 
         navigation: filteredNavigation,
-        baseNavigation,
-        moduleNavigation: window.Aero?.navigation || [],
+        rawNavigation: backendNavigation,
         isAdminContext
     };
 }

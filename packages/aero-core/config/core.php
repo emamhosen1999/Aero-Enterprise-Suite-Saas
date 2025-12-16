@@ -51,10 +51,10 @@ return [
     */
 
     'ui' => [
-        // Default branding
-        'logo' => '/images/logo.png',
-        'logo_dark' => '/images/logo-dark.png',
-        'favicon' => '/favicon.ico',
+        // Default branding - null means use letter fallback
+        'logo' => null,
+        'logo_dark' => null,
+        'favicon' => null,
 
         // Default theme
         'primary_color' => '#006FEE',

@@ -16,10 +16,12 @@ return [
     |
     | Hierarchy: Module → SubModule → Component → Action
     |
+    | Scope: 'platform' - Platform admin modules, 'tenant' - Tenant user modules
+    |
     */
 
     'code' => 'platform',
-    'scope' => 'landlord',
+    'scope' => 'platform',
     'name' => 'Platform Administration',
     'description' => 'Multi-tenant SaaS platform management including tenants, plans, billing, and system settings',
     'icon' => 'BuildingOffice2Icon',
@@ -59,14 +61,14 @@ return [
             'name' => 'Dashboard',
             'description' => 'Platform overview and statistics',
             'icon' => 'HomeIcon',
-            'route' => '/admin/dashboard',
+            'route' => '/dashboard',
             'priority' => 1,
 
             'components' => [
                 [
                     'code' => 'dashboard_overview',
-                    'name' => 'Overview',
-                    'route' => '/admin/dashboard',
+                    'name' => 'Dashboard',
+                    'route' => '/dashboard',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Dashboard'],
                     ],
@@ -84,14 +86,14 @@ return [
             'name' => 'Tenants',
             'description' => 'Manage all tenant organizations',
             'icon' => 'BuildingOfficeIcon',
-            'route' => '/admin/tenants',
+            'route' => '/tenants',
             'priority' => 2,
 
             'components' => [
                 [
                     'code' => 'tenant_list',
                     'name' => 'All Tenants',
-                    'route' => '/admin/tenants',
+                    'route' => '/tenants',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Tenants'],
                         ['code' => 'create', 'name' => 'Create Tenant'],
@@ -105,7 +107,7 @@ return [
                 [
                     'code' => 'tenant_domains',
                     'name' => 'Domains',
-                    'route' => '/admin/tenants/domains',
+                    'route' => '/tenants/domains',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Domains'],
                         ['code' => 'manage', 'name' => 'Manage Domains'],
@@ -114,7 +116,7 @@ return [
                 [
                     'code' => 'tenant_databases',
                     'name' => 'Databases',
-                    'route' => '/admin/tenants/databases',
+                    'route' => '/tenants/databases',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Databases'],
                         ['code' => 'migrate', 'name' => 'Run Migrations'],
@@ -134,14 +136,14 @@ return [
             'name' => 'Onboarding',
             'description' => 'Manage tenant registration and onboarding',
             'icon' => 'UserPlusIcon',
-            'route' => '/admin/onboarding',
+            'route' => '/onboarding',
             'priority' => 3,
 
             'components' => [
                 [
                     'code' => 'onboarding_dashboard',
                     'name' => 'Dashboard',
-                    'route' => '/admin/onboarding',
+                    'route' => '/onboarding',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Onboarding Stats'],
                     ],
@@ -149,7 +151,7 @@ return [
                 [
                     'code' => 'pending_approvals',
                     'name' => 'Pending Approvals',
-                    'route' => '/admin/onboarding/pending',
+                    'route' => '/onboarding/pending',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Pending'],
                         ['code' => 'approve', 'name' => 'Approve Tenant'],
@@ -159,7 +161,7 @@ return [
                 [
                     'code' => 'provisioning',
                     'name' => 'Provisioning',
-                    'route' => '/admin/onboarding/provisioning',
+                    'route' => '/onboarding/provisioning',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Provisioning'],
                         ['code' => 'retry', 'name' => 'Retry Failed'],
@@ -168,7 +170,7 @@ return [
                 [
                     'code' => 'trials',
                     'name' => 'Trials',
-                    'route' => '/admin/onboarding/trials',
+                    'route' => '/onboarding/trials',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Trials'],
                         ['code' => 'extend', 'name' => 'Extend Trial'],
@@ -188,14 +190,14 @@ return [
             'name' => 'Plans',
             'description' => 'Manage subscription plans and pricing',
             'icon' => 'CurrencyDollarIcon',
-            'route' => '/admin/plans',
+            'route' => '/plans',
             'priority' => 4,
 
             'components' => [
                 [
                     'code' => 'plan_list',
                     'name' => 'All Plans',
-                    'route' => '/admin/plans',
+                    'route' => '/plans',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Plans'],
                         ['code' => 'create', 'name' => 'Create Plan'],
@@ -207,7 +209,7 @@ return [
                 [
                     'code' => 'plan_modules',
                     'name' => 'Module Assignment',
-                    'route' => '/admin/plans/modules',
+                    'route' => '/plans/modules',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Module Assignments'],
                         ['code' => 'assign', 'name' => 'Assign Modules'],
@@ -226,14 +228,14 @@ return [
             'name' => 'Billing',
             'description' => 'Manage subscriptions, invoices, and payments',
             'icon' => 'CreditCardIcon',
-            'route' => '/admin/billing',
+            'route' => '/billing',
             'priority' => 5,
 
             'components' => [
                 [
                     'code' => 'billing_dashboard',
                     'name' => 'Dashboard',
-                    'route' => '/admin/billing',
+                    'route' => '/billing',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Billing Dashboard'],
                     ],
@@ -241,7 +243,7 @@ return [
                 [
                     'code' => 'subscriptions',
                     'name' => 'Subscriptions',
-                    'route' => '/admin/billing/subscriptions',
+                    'route' => '/billing/subscriptions',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Subscriptions'],
                         ['code' => 'cancel', 'name' => 'Cancel Subscription'],
@@ -251,7 +253,7 @@ return [
                 [
                     'code' => 'invoices',
                     'name' => 'Invoices',
-                    'route' => '/admin/billing/invoices',
+                    'route' => '/billing/invoices',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Invoices'],
                         ['code' => 'generate', 'name' => 'Generate Invoice'],
@@ -262,7 +264,7 @@ return [
                 [
                     'code' => 'payment_gateways',
                     'name' => 'Payment Gateways',
-                    'route' => '/admin/billing/gateways',
+                    'route' => '/billing/gateways',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Gateways'],
                         ['code' => 'configure', 'name' => 'Configure Gateway'],
@@ -281,14 +283,14 @@ return [
             'name' => 'Modules',
             'description' => 'Manage available modules and marketplace',
             'icon' => 'CubeIcon',
-            'route' => '/admin/modules',
+            'route' => '/modules',
             'priority' => 6,
 
             'components' => [
                 [
                     'code' => 'module_list',
                     'name' => 'All Modules',
-                    'route' => '/admin/modules',
+                    'route' => '/modules',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Modules'],
                         ['code' => 'configure', 'name' => 'Configure Module'],
@@ -298,7 +300,7 @@ return [
                 [
                     'code' => 'module_pricing',
                     'name' => 'Module Pricing',
-                    'route' => '/admin/modules/pricing',
+                    'route' => '/modules/pricing',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Pricing'],
                         ['code' => 'edit', 'name' => 'Edit Pricing'],
@@ -317,14 +319,14 @@ return [
             'name' => 'Error Logs',
             'description' => 'Monitor errors from all installations',
             'icon' => 'ExclamationTriangleIcon',
-            'route' => '/admin/error-logs',
+            'route' => '/error-logs',
             'priority' => 7,
 
             'components' => [
                 [
                     'code' => 'error_log_list',
                     'name' => 'All Errors',
-                    'route' => '/admin/error-logs',
+                    'route' => '/error-logs',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Errors'],
                         ['code' => 'resolve', 'name' => 'Mark Resolved'],
@@ -334,7 +336,7 @@ return [
                 [
                     'code' => 'error_analytics',
                     'name' => 'Analytics',
-                    'route' => '/admin/error-logs/analytics',
+                    'route' => '/error-logs/analytics',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Analytics'],
                     ],
@@ -352,14 +354,14 @@ return [
             'name' => 'Platform Users',
             'description' => 'Manage platform administrators',
             'icon' => 'UserGroupIcon',
-            'route' => '/admin/users',
+            'route' => '/users',
             'priority' => 8,
 
             'components' => [
                 [
                     'code' => 'landlord_user_list',
                     'name' => 'All Users',
-                    'route' => '/admin/users',
+                    'route' => '/users',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Users'],
                         ['code' => 'create', 'name' => 'Create User'],
@@ -370,7 +372,7 @@ return [
                 [
                     'code' => 'landlord_roles',
                     'name' => 'Roles',
-                    'route' => '/admin/users/roles',
+                    'route' => '/users/roles',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Roles'],
                         ['code' => 'manage', 'name' => 'Manage Roles'],
@@ -389,14 +391,14 @@ return [
             'name' => 'Integrations',
             'description' => 'Manage API keys, webhooks, and connectors',
             'icon' => 'LinkIcon',
-            'route' => '/admin/integrations',
+            'route' => '/integrations',
             'priority' => 9,
 
             'components' => [
                 [
                     'code' => 'api_keys',
                     'name' => 'API Keys',
-                    'route' => '/admin/integrations/api',
+                    'route' => '/integrations/api',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View API Keys'],
                         ['code' => 'create', 'name' => 'Create API Key'],
@@ -406,7 +408,7 @@ return [
                 [
                     'code' => 'webhooks',
                     'name' => 'Webhooks',
-                    'route' => '/admin/integrations/webhooks',
+                    'route' => '/integrations/webhooks',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Webhooks'],
                         ['code' => 'manage', 'name' => 'Manage Webhooks'],
@@ -415,7 +417,7 @@ return [
                 [
                     'code' => 'connectors',
                     'name' => 'Connectors',
-                    'route' => '/admin/integrations/connectors',
+                    'route' => '/integrations/connectors',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Connectors'],
                         ['code' => 'configure', 'name' => 'Configure Connector'],
@@ -434,14 +436,14 @@ return [
             'name' => 'Settings',
             'description' => 'Platform configuration and settings',
             'icon' => 'Cog6ToothIcon',
-            'route' => '/admin/settings',
+            'route' => '/settings',
             'priority' => 10,
 
             'components' => [
                 [
                     'code' => 'general_settings',
                     'name' => 'General',
-                    'route' => '/admin/settings',
+                    'route' => '/settings',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Settings'],
                         ['code' => 'edit', 'name' => 'Edit Settings'],
@@ -450,7 +452,7 @@ return [
                 [
                     'code' => 'branding_settings',
                     'name' => 'Branding',
-                    'route' => '/admin/settings/branding',
+                    'route' => '/settings/branding',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Branding'],
                         ['code' => 'edit', 'name' => 'Edit Branding'],
@@ -459,7 +461,7 @@ return [
                 [
                     'code' => 'email_settings',
                     'name' => 'Email',
-                    'route' => '/admin/settings/email',
+                    'route' => '/settings/email',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Email Settings'],
                         ['code' => 'edit', 'name' => 'Edit Email Settings'],
@@ -469,7 +471,7 @@ return [
                 [
                     'code' => 'localization_settings',
                     'name' => 'Localization',
-                    'route' => '/admin/settings/localization',
+                    'route' => '/settings/localization',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Localization'],
                         ['code' => 'edit', 'name' => 'Edit Localization'],
@@ -478,7 +480,7 @@ return [
                 [
                     'code' => 'maintenance_settings',
                     'name' => 'Maintenance',
-                    'route' => '/admin/settings/maintenance',
+                    'route' => '/settings/maintenance',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Maintenance'],
                         ['code' => 'toggle', 'name' => 'Toggle Maintenance Mode'],
@@ -497,14 +499,14 @@ return [
             'name' => 'Developer',
             'description' => 'Developer tools and system monitoring',
             'icon' => 'CommandLineIcon',
-            'route' => '/admin/developer',
+            'route' => '/developer',
             'priority' => 11,
 
             'components' => [
                 [
                     'code' => 'developer_dashboard',
                     'name' => 'Dashboard',
-                    'route' => '/admin/developer',
+                    'route' => '/developer',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Developer Dashboard'],
                     ],
@@ -512,7 +514,7 @@ return [
                 [
                     'code' => 'cache_management',
                     'name' => 'Cache',
-                    'route' => '/admin/developer/cache',
+                    'route' => '/developer/cache',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Cache'],
                         ['code' => 'clear', 'name' => 'Clear Cache'],
@@ -521,7 +523,7 @@ return [
                 [
                     'code' => 'queue_management',
                     'name' => 'Queues',
-                    'route' => '/admin/developer/queues',
+                    'route' => '/developer/queues',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Queues'],
                         ['code' => 'manage', 'name' => 'Manage Queues'],
@@ -530,7 +532,7 @@ return [
                 [
                     'code' => 'log_viewer',
                     'name' => 'Logs',
-                    'route' => '/admin/developer/logs',
+                    'route' => '/developer/logs',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Logs'],
                         ['code' => 'download', 'name' => 'Download Logs'],
@@ -549,14 +551,14 @@ return [
             'name' => 'Audit Logs',
             'description' => 'Platform activity and audit trail',
             'icon' => 'ClipboardDocumentListIcon',
-            'route' => '/admin/audit-logs',
+            'route' => '/audit-logs',
             'priority' => 12,
 
             'components' => [
                 [
                     'code' => 'audit_log_list',
                     'name' => 'All Logs',
-                    'route' => '/admin/audit-logs',
+                    'route' => '/audit-logs',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Audit Logs'],
                         ['code' => 'export', 'name' => 'Export Logs'],
@@ -575,14 +577,14 @@ return [
             'name' => 'Analytics',
             'description' => 'Platform analytics and reports',
             'icon' => 'ChartBarIcon',
-            'route' => '/admin/analytics',
+            'route' => '/analytics',
             'priority' => 13,
 
             'components' => [
                 [
                     'code' => 'analytics_dashboard',
                     'name' => 'Dashboard',
-                    'route' => '/admin/analytics',
+                    'route' => '/analytics',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Analytics'],
                     ],
@@ -590,7 +592,7 @@ return [
                 [
                     'code' => 'revenue_reports',
                     'name' => 'Revenue',
-                    'route' => '/admin/analytics/revenue',
+                    'route' => '/analytics/revenue',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Revenue'],
                         ['code' => 'export', 'name' => 'Export Reports'],
@@ -599,7 +601,7 @@ return [
                 [
                     'code' => 'tenant_analytics',
                     'name' => 'Tenant Analytics',
-                    'route' => '/admin/analytics/tenants',
+                    'route' => '/analytics/tenants',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Tenant Analytics'],
                     ],

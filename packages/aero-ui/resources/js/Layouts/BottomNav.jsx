@@ -29,6 +29,11 @@ const BottomNav = ({ auth, contentRef, toggleSideBar, sideBarOpen, toggleThemeDr
     const { url } = usePage().props;
     const { themeSettings } = useTheme();
     
+    // Early return if no authenticated user
+    if (!auth?.user) {
+        return null;
+    }
+    
     // ===== STATE MANAGEMENT =====
     const [activeTab, setActiveTab] = useState('dashboard');
     const bottomNavRef = useRef(null);

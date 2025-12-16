@@ -40,12 +40,14 @@ class NavigationRegistry
      * @param  string  $moduleCode  Module identifier
      * @param  array  $items  Navigation items array
      * @param  int  $priority  Module priority for ordering
+     * @param  string  $scope  Module scope: 'platform' for admin, 'tenant' for tenant users
      */
-    public function register(string $moduleCode, array $items, int $priority = 100): void
+    public function register(string $moduleCode, array $items, int $priority = 100, string $scope = 'tenant'): void
     {
         $this->navigationItems[$moduleCode] = [
             'module' => $moduleCode,
             'priority' => $priority,
+            'scope' => $scope,
             'items' => $items,
         ];
 
@@ -92,23 +94,31 @@ class NavigationRegistry
 
     /**
      * Get navigation items ready for frontend.
-     * 
-     * Core module: submodules are promoted to top level (Dashboard, Users, Roles, Settings)
+     *
+     * Core/Platform modules: submodules are promoted to top level (Dashboard, Users, Roles, Settings)
      * Other modules: wrapped under module name (Human Resources → Employees, Attendance, etc.)
-     * 
+     *
      * Structure for non-core: [{ name: "Human Resources", children: [submodules...] }]
+     *
+     * @param  string|null  $scope  Filter by scope: 'platform' for admin, 'tenant' for tenant users, null for all
      */
-    public function toFrontend(): array
+    public function toFrontend(?string $scope = null): array
     {
         $navigationItems = [];
-        
+
         $sortedModules = collect($this->navigationItems)->sortBy('priority');
-        
+
         foreach ($sortedModules as $moduleCode => $moduleData) {
+            // Filter by scope if specified
+            $moduleScope = $moduleData['scope'] ?? 'tenant';
+            if ($scope !== null && $moduleScope !== $scope) {
+                continue;
+            }
+
             foreach ($moduleData['items'] as $item) {
-                // Core module: flatten children (submodules) to top level
-                if ($moduleCode === 'core') {
-                    if (!empty($item['children'])) {
+                // Core/Platform modules: flatten children (submodules) to top level
+                if ($moduleCode === 'core' || $moduleCode === 'platform') {
+                    if (! empty($item['children'])) {
                         foreach ($item['children'] as $child) {
                             $navigationItems[] = $child;
                         }
@@ -122,10 +132,10 @@ class NavigationRegistry
                 }
             }
         }
-        
+
         // Sort by priority
         usort($navigationItems, fn ($a, $b) => ($a['priority'] ?? 999) <=> ($b['priority'] ?? 999));
-        
+
         return $navigationItems;
     }
 

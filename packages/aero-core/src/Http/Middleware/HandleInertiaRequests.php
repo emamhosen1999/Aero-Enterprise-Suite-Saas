@@ -36,8 +36,6 @@ class HandleInertiaRequests extends Middleware
      * Handle the incoming request.
      * Intercepts root route to redirect to dashboard or login.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, \Closure $next)
@@ -86,23 +84,35 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = $request->user();
+        // In SaaS mode with Platform active:
+        // - Admin context: Platform's HandleInertiaRequests provides everything
+        // - Tenant context: Core provides tenant navigation, Platform provides tenant-specific props
+        $context = $request->attributes->get('domain_context', 'tenant');
+        $isSaaSMode = config('aero.mode') === 'saas';
         
+        // Skip sharing props for admin/platform contexts in SaaS mode
+        // Platform's HandleInertiaRequests handles those contexts completely
+        if ($isSaaSMode && ($context === 'admin' || $context === 'platform')) {
+            return parent::share($request);
+        }
+
+        $user = $request->user();
+
         $systemSetting = $this->systemSetting();
         $systemSettingsPayload = $systemSetting
             ? SystemSettingResource::make($systemSetting)->resolve($request)
             : null;
-            
+
         $organization = $systemSettingsPayload['organization'] ?? [];
         $branding = $systemSettingsPayload['branding'] ?? [];
         $companyName = $organization['company_name'] ?? config('app.name', 'Aero ERP');
 
-        // Share branding with blade template
+        // Share branding with blade template - use null fallback to show letter fallback
         View::share([
-            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? asset('assets/images/logo.png'),
-            'faviconUrl' => $branding['favicon'] ?? asset('assets/images/favicon.ico'),
+            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? null,
+            'faviconUrl' => $branding['favicon'] ?? null,
             'siteName' => $companyName,
         ]);
 
@@ -143,7 +153,7 @@ class HandleInertiaRequests extends Middleware
      */
     protected function getAuthProps($user): array
     {
-        if (!$user) {
+        if (! $user) {
             return [
                 'user' => null,
                 'isAuthenticated' => false,
@@ -183,30 +193,30 @@ class HandleInertiaRequests extends Middleware
     /**
      * Get navigation items from NavigationRegistry.
      * Returns a flat array of navigation items ready for frontend.
-     *
-     * @return array
      */
     protected function getNavigationProps($user): array
     {
-        if (!$user) {
+        if (! $user) {
             return [];
         }
 
         try {
             if (app()->bound(NavigationRegistry::class)) {
                 $registry = app(NavigationRegistry::class);
-                $navigation = $registry->toFrontend();
-                
+
+                // Tenant context: only return tenant-scoped navigation
+                $navigation = $registry->toFrontend('tenant');
+
                 // Debug: Log navigation data
                 \Log::debug('Navigation data:', [
                     'count' => count($navigation),
-                    'items' => $navigation
+                    'items' => $navigation,
                 ]);
-                
+
                 return $navigation;
             }
         } catch (Throwable $e) {
-            \Log::error('Navigation error: ' . $e->getMessage());
+            \Log::error('Navigation error: '.$e->getMessage());
         }
 
         return [];

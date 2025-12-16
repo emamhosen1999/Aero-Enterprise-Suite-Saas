@@ -168,7 +168,7 @@ class PayrollController extends Controller
         $company = [
             'name' => tenant('company_name') ?? config('app.name'),
             'address' => tenant('company_address') ?? '',
-            'logo' => tenant('company_logo') ?? '/assets/images/logo.png',
+            'logo' => tenant('company_logo') ?? null,
             'phone' => tenant('company_phone') ?? '',
             'email' => tenant('company_email') ?? '',
         ];

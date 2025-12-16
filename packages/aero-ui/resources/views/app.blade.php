@@ -46,10 +46,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="{{ $siteName ?? config('app.name') }}">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl ?? asset('assets/images/favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl ?? asset('assets/images/favicon-32x32.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ $logoUrl ?? asset('assets/images/apple-touch-icon.png') }}">
+    <!-- Favicon - Only render if favicon/logo URLs are set -->
+    @if(!empty($faviconUrl))
+    <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl }}">
+    @endif
+    @if(!empty($logoUrl))
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $logoUrl }}">
+    @endif
 
     <!-- DNS Prefetch for Performance -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">

@@ -213,8 +213,10 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     updateOpenSubMenus(newSet);
   };
 
-  const handlePageClick = (pageRoute) => {
-    setActivePage("/" + pageRoute);
+  const handlePageClick = (pageRouteOrPath) => {
+    // Handle both route names and paths
+    const targetPath = pageRouteOrPath.startsWith('/') ? pageRouteOrPath : "/" + pageRouteOrPath;
+    setActivePage(targetPath);
     // Clear search when navigating to a page
     setSearchTerm('');
     if (isMobile) {
@@ -222,12 +224,21 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     }
   };
 
+  // Helper to get the page's URL path (supports both route name and path)
+  const getPagePath = (page) => {
+    if (page.path) return page.path;
+    if (page.route) return "/" + page.route;
+    return null;
+  };
+
   const renderCompactMenuItem = (page, isSubMenu = false, level = 0) => {
-    const isActive = activePage === "/" + page.route;
+    const pagePath = getPagePath(page);
+    const isActive = pagePath && activePage === pagePath;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
-        if (subPage.route) return "/" + subPage.route === activePage;
-        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => "/" + nestedPage.route === activePage);
+        const subPath = getPagePath(subPage);
+        if (subPath) return subPath === activePage;
+        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => getPagePath(nestedPage) === activePage);
         return false;
       }
     );
@@ -320,13 +331,14 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
     
-    // No submenu - leaf item
-    if (page.route) {
+    // No submenu - leaf item (can have route name OR path URL)
+    const leafHref = page.route ? route(page.route) : page.path;
+    if (leafHref) {
       return (
         <div key={`route-item-${page.name}-${level}`}>
           <Button
             as={Link}
-            href={route(page.route)}
+            href={leafHref}
             method={page.method}
             preserveState
             preserveScroll
@@ -356,7 +368,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
               }
             }}
-            onPress={() => handlePageClick(page.route)}
+            onPress={() => handlePageClick(leafHref)}
             size="sm"
           >
             <span 
@@ -452,11 +464,13 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   };
 
   const renderMenuItem = (page, isSubMenu = false, level = 0) => {
-    const isActive = page.route && activePage === "/" + page.route;
+    const pagePath = getPagePath(page);
+    const isActive = pagePath && activePage === pagePath;
     const hasActiveSubPage = page.subMenu?.some(
       subPage => {
-        if (subPage.route) return "/" + subPage.route === activePage;
-        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => "/" + nestedPage.route === activePage);
+        const subPath = getPagePath(subPage);
+        if (subPath) return subPath === activePage;
+        if (subPage.subMenu) return subPage.subMenu.some(nestedPage => getPagePath(nestedPage) === activePage);
         return false;
       }
     );
@@ -552,13 +566,14 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       );
     }
 
-    // No submenu - either a route or category
-    if (page.route) {
+    // No submenu - leaf item (can have route name OR path URL)
+    const leafHref = page.route ? route(page.route) : pagePath;
+    if (leafHref) {
       return (
         <Button
           key={`full-route-item-${page.name}-${level}`}
           as={Link}
-          href={route(page.route)}
+          href={leafHref}
           method={page.method}
           preserveState
           preserveScroll
@@ -588,7 +603,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
             }
           }}
-          onPress={() => handlePageClick(page.route)}
+          onPress={() => handlePageClick(leafHref)}
           size="sm"
         >
           <span className="text-sm font-medium" style={{ color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}>

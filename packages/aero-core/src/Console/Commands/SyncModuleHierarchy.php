@@ -28,11 +28,12 @@ use Illuminate\Support\Facades\Schema;
 class SyncModuleHierarchy extends Command
 {
     protected $signature = 'aero:sync-module
-                          {--scope= : Sync only specific scope (platform or tenant)}
+                          {--scope= : Override auto-detected scope (platform or tenant)}
+                          {--fresh : Clear all existing modules before syncing (fresh seed)}
                           {--force : Force sync even if modules table does not exist}
                           {--prune : Remove modules that are no longer installed}';
 
-    protected $description = 'Sync module hierarchy from package configs to database (modules, sub_modules, components, actions)';
+    protected $description = 'Sync module hierarchy from package configs to database. Auto-detects context: central DB = platform modules, tenant DB = tenant modules.';
 
     protected ModuleDiscoveryService $moduleDiscovery;
 
@@ -67,11 +68,21 @@ class SyncModuleHierarchy extends Command
             return self::FAILURE;
         }
 
-        $scope = $this->option('scope');
+        // Auto-detect scope based on current context (tenant vs central)
+        $scope = $this->option('scope') ?: $this->detectScope();
         $prune = $this->option('prune');
+        $fresh = $this->option('fresh');
+
+        $this->info("📍 Detected context: {$scope}");
+        $this->newLine();
 
         try {
             DB::beginTransaction();
+
+            // Fresh sync: Clear all existing modules before syncing
+            if ($fresh) {
+                $this->clearExistingModules($scope);
+            }
 
             $modules = $this->moduleDiscovery->getModuleDefinitions();
 
@@ -100,9 +111,9 @@ class SyncModuleHierarchy extends Command
             $syncedModuleCodes = [];
 
             foreach ($modules as $moduleDef) {
-                // Filter by scope if specified
+                // Filter by scope (skip if scope is 'all' - sync everything in standalone mode)
                 $moduleScope = $moduleDef['scope'] ?? 'tenant';
-                if ($scope && $moduleScope !== $scope) {
+                if ($scope && $scope !== 'all' && $moduleScope !== $scope) {
                     $progressBar->advance();
                     continue;
                 }
@@ -184,6 +195,61 @@ class SyncModuleHierarchy extends Command
     }
 
     /**
+     * Clear all existing modules before fresh sync.
+     * Respects scope filter if provided.
+     */
+    protected function clearExistingModules(?string $scope): void
+    {
+        $this->warn('🧹 Fresh sync: Clearing existing modules...');
+
+        $query = Module::query();
+
+        // Filter by scope if specified (unless 'all' which clears everything)
+        if ($scope && $scope !== 'all') {
+            $query->where('scope', $scope);
+            $this->line("   Clearing only '{$scope}' scoped modules");
+        } else {
+            $this->line('   Clearing all modules');
+        }
+
+        $modules = $query->get();
+
+        if ($modules->isEmpty()) {
+            $this->info('   No existing modules to clear.');
+
+            return;
+        }
+
+        foreach ($modules as $module) {
+            // Count items being removed for stats
+            $submoduleCount = $module->subModules()->count();
+            $componentCount = ModuleComponent::where('module_id', $module->id)->count();
+            $actionCount = ModuleComponentAction::whereIn(
+                'module_component_id',
+                ModuleComponent::where('module_id', $module->id)->pluck('id')
+            )->count();
+
+            // Delete in reverse order (actions -> components -> submodules -> module)
+            ModuleComponentAction::whereIn(
+                'module_component_id',
+                ModuleComponent::where('module_id', $module->id)->pluck('id')
+            )->delete();
+
+            ModuleComponent::where('module_id', $module->id)->delete();
+            $module->subModules()->delete();
+            $module->delete();
+
+            $this->stats['modules_removed']++;
+            $this->stats['submodules_removed'] += $submoduleCount;
+            $this->stats['components_removed'] += $componentCount;
+            $this->stats['actions_removed'] += $actionCount;
+        }
+
+        $this->info("   ✓ Cleared {$modules->count()} module(s)");
+        $this->newLine();
+    }
+
+    /**
      * Validate database schema before syncing.
      * Prevents crashes in Standalone mode if migrations haven't run.
      */
@@ -217,6 +283,40 @@ class SyncModuleHierarchy extends Command
         $this->newLine();
 
         return true;
+    }
+
+    /**
+     * Auto-detect scope based on current database context.
+     *
+     * - If running in tenant context (tenancy initialized) → tenant scope
+     * - If running on central/landlord database → platform scope
+     *
+     * Detection logic:
+     * 1. Check if tenancy() helper exists and tenant is initialized
+     * 2. Check if 'tenants' table exists (indicates central database)
+     * 3. Default to tenant if unclear
+     */
+    protected function detectScope(): string
+    {
+        // Check if we're in a tenant context (stancl/tenancy)
+        if (function_exists('tenancy') && tenancy()->initialized) {
+            return 'tenant';
+        }
+
+        // Check if tenants table exists - indicates central/landlord database
+        if (Schema::hasTable('tenants')) {
+            return 'platform';
+        }
+
+        // Check if this is a standalone app (no tenancy package)
+        // In standalone mode, we sync all modules
+        if (! class_exists(\Stancl\Tenancy\Tenancy::class)) {
+            // Return null to sync all modules in standalone mode
+            return 'all';
+        }
+
+        // Default to tenant scope if running in an ambiguous context
+        return 'tenant';
     }
 
     /**

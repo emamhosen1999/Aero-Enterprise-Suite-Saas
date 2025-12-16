@@ -13,62 +13,93 @@ class CheckInstallation
     /**
      * Handle an incoming request.
      *
+     * When the application is not installed (no lock file or no database),
+     * ALL requests from ANY domain should redirect to the platform domain's /install route.
+     *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip check for installation routes
+        // Skip check for installation routes (allow the installer to work)
         if ($request->routeIs('installation.*') || $request->is('install*')) {
             return $next($request);
         }
 
-        // Get domain context - only check installation on platform domain, not admin
-        $context = $request->attributes->get('domain_context', 'platform');
-        $host = $request->getHost();
-        $isAdminDomain = str_starts_with($host, 'admin.');
+        // Also skip for static assets and health checks
+        if ($request->is('build/*', 'assets/*', 'favicon.ico', 'robots.txt', 'up')) {
+            return $next($request);
+        }
 
+        $host = $request->getHost();
         $installationLockFile = storage_path('installed');
         $isInstalled = File::exists($installationLockFile);
 
         // Check if database is accessible
-        $databaseAccessible = true;
+        $databaseAccessible = $this->isDatabaseAccessible();
+
+        // If not installed or database not accessible, redirect to platform /install
+        if (! $isInstalled || ! $databaseAccessible) {
+            // Get the platform domain (remove any subdomain prefix)
+            $platformHost = $this->getPlatformHost($host);
+
+            // If we're already on the platform domain, just redirect to /install
+            if ($host === $platformHost) {
+                return redirect('/install');
+            }
+
+            // Otherwise redirect to the platform domain's /install
+            return redirect()->away($request->getScheme().'://'.$platformHost.'/install');
+        }
+
+        return $next($request);
+    }
+
+    /**
+     * Check if the database is accessible and has required tables.
+     */
+    protected function isDatabaseAccessible(): bool
+    {
         try {
             DB::connection()->getPdo();
             // Check if essential tables exist (tenants table is required for multi-tenant system)
             if (! DB::getSchemaBuilder()->hasTable('tenants')) {
-                $databaseAccessible = false;
+                return false;
             }
+
+            return true;
         } catch (\Exception $e) {
-            $databaseAccessible = false;
+            return false;
+        }
+    }
+
+    /**
+     * Get the platform (root) domain by removing any subdomain.
+     *
+     * Examples:
+     * - admin.aeos365.test → aeos365.test
+     * - tenant1.aeos365.test → aeos365.test
+     * - aeos365.test → aeos365.test
+     */
+    protected function getPlatformHost(string $host): string
+    {
+        // Handle common patterns
+        $platformDomain = config('app.platform_domain');
+        if ($platformDomain) {
+            return $platformDomain;
         }
 
-        // If on admin domain and installation not complete, redirect to platform domain installation
-        if ($isAdminDomain && (! $isInstalled || ! $databaseAccessible)) {
-            // Remove 'admin.' prefix to get platform domain
-            $platformHost = preg_replace('/^admin\./', '', $host);
+        // Extract base domain from subdomain pattern
+        // For xxx.domain.tld, return domain.tld
+        $parts = explode('.', $host);
 
-            return redirect()->away($request->getScheme().'://'.$platformHost.'/install');
+        // If only 2 parts (domain.tld), it's already the platform domain
+        if (count($parts) <= 2) {
+            return $host;
         }
 
-        // For platform domain, handle installation check normally
-        if ($context !== 'admin' && ! $isAdminDomain) {
-            // If installation lock file doesn't exist, redirect to installation
-            if (! $isInstalled) {
-                return redirect('/install');
-            }
+        // Remove the first subdomain part to get platform domain
+        array_shift($parts);
 
-            // Additionally check if database is actually accessible
-            // This handles cases where the lock file exists but database is missing/corrupted
-            if (! $databaseAccessible) {
-                // Database exists but tables are missing or connection failed - need reinstallation
-                if (File::exists($installationLockFile)) {
-                    File::delete($installationLockFile);
-                }
-
-                return redirect('/install');
-            }
-        }
-
-        return $next($request);
+        return implode('.', $parts);
     }
 }

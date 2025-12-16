@@ -218,23 +218,28 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         $routesPath = __DIR__.'/../routes';
 
+        // Register API routes (always available - no auth required for public endpoints)
+        // These include /api/version/check and /api/error-log
+        $this->registerApiRoutes($routesPath);
+
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
             // SaaS Mode: Core routes ONLY on tenant domains (NOT on central/admin domains)
             // AUTO-DETECT from browser request - no .env configuration needed
-            
-            if (!request()) {
+
+            if (! request()) {
                 // In console, load routes without domain restriction
                 Route::middleware(['web'])->group($routesPath.'/web.php');
+
                 return;
             }
 
             $currentHost = request()->getHost();
-            
+
             // Check if we're on a central domain (auto-detected)
             $isCentralDomain = $this->isOnCentralDomain($currentHost);
-            
-            if (!$isCentralDomain) {
+
+            if (! $isCentralDomain) {
                 // ONLY load core routes on tenant subdomains
                 Route::middleware([
                     'web',
@@ -251,9 +256,24 @@ class AeroCoreServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register Core API routes.
+     *
+     * These routes are available on all domains (central and tenant).
+     * Public endpoints like version check don't require authentication.
+     */
+    protected function registerApiRoutes(string $routesPath): void
+    {
+        if (file_exists($routesPath.'/api.php')) {
+            Route::middleware(['api'])
+                ->prefix('api')
+                ->group($routesPath.'/api.php');
+        }
+    }
+
+    /**
      * Check if current domain is a central domain.
      * AUTO-DETECTS from browser request - no configuration needed.
-     * 
+     *
      * Logic:
      * - admin.domain.com → Central (admin subdomain)
      * - domain.com → Central (root domain)
@@ -262,7 +282,7 @@ class AeroCoreServiceProvider extends ServiceProvider
     protected function isOnCentralDomain(string $host): bool
     {
         $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
-        
+
         // Check for admin subdomain (always central)
         if (str_starts_with($hostWithoutPort, 'admin.')) {
             return true;
@@ -481,9 +501,12 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Register core navigation items from config/module.php.
-     * 
-     * Structure: Module → Submodules → Components (3 levels, matching HRM pattern)
-     * All items are included regardless of whether routes exist (for debugging).
+     *
+     * Structure: Module → Submodules → Components
+     * - Submodules become top-level menu items (flattened by NavigationRegistry)
+     * - If submodule has only ONE component, that component becomes the menu item directly
+     * - If submodule has multiple components, they become submenu items
+     * - Icons are inherited from parent if not specified
      */
     protected function registerCoreNavigation(): void
     {
@@ -498,7 +521,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         $submoduleNav = [];
         foreach ($config['submodules'] ?? [] as $submodule) {
             $submoduleCode = $submodule['code'] ?? '';
-            
+
             // Skip authentication submodule from navigation (it's internal)
             if ($submoduleCode === 'authentication') {
                 continue;
@@ -506,28 +529,43 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             // Get submodule icon for fallback
             $submoduleIcon = $submodule['icon'] ?? 'FolderIcon';
+            $components = $submodule['components'] ?? [];
 
-            // Build component children for this submodule
-            $componentNav = [];
-            foreach ($submodule['components'] ?? [] as $component) {
-                $componentNav[] = [
-                    'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
-                    'path' => $component['route'] ?? null,
-                    'icon' => $component['icon'] ?? $submoduleIcon, // Inherit parent icon
-                    'access' => 'core.' . $submoduleCode . '.' . ($component['code'] ?? ''),
+            // If submodule has only ONE component, use it directly as the menu item
+            if (count($components) === 1) {
+                $component = $components[0];
+                $submoduleNav[] = [
+                    'name' => $submodule['name'] ?? ucfirst($submoduleCode),
+                    'path' => $component['route'] ?? $submodule['route'] ?? null,
+                    'icon' => $component['icon'] ?? $submoduleIcon,
+                    'access' => 'core.'.$submoduleCode.'.'.($component['code'] ?? ''),
+                    'priority' => $submodule['priority'] ?? 100,
                     'type' => $component['type'] ?? 'page',
+                    // No children - single component becomes the page
+                ];
+            } else {
+                // Multiple components - build children submenu
+                $componentNav = [];
+                foreach ($components as $component) {
+                    $componentNav[] = [
+                        'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
+                        'path' => $component['route'] ?? null,
+                        'icon' => $component['icon'] ?? $submoduleIcon, // Inherit parent icon
+                        'access' => 'core.'.$submoduleCode.'.'.($component['code'] ?? ''),
+                        'type' => $component['type'] ?? 'page',
+                    ];
+                }
+
+                // Create submodule navigation item with component children
+                $submoduleNav[] = [
+                    'name' => $submodule['name'] ?? ucfirst($submoduleCode),
+                    'path' => $submodule['route'] ?? null,
+                    'icon' => $submoduleIcon,
+                    'access' => 'core.'.$submoduleCode,
+                    'priority' => $submodule['priority'] ?? 100,
+                    'children' => $componentNav, // Include children for submenu
                 ];
             }
-
-            // Create submodule navigation item with all component children
-            $submoduleNav[] = [
-                'name' => $submodule['name'] ?? ucfirst($submoduleCode),
-                'path' => $submodule['route'] ?? null,
-                'icon' => $submoduleIcon,
-                'access' => 'core.' . $submoduleCode,
-                'priority' => $submodule['priority'] ?? 100,
-                'children' => $componentNav, // Always include children
-            ];
         }
 
         // Sort submodules by priority
@@ -535,6 +573,7 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         // Register core navigation with highest priority (1)
         // Core uses is_core=true so its children flatten to top level
+        // Scope: 'tenant' - Core navigation is for tenant users
         $registry->register('core', [
             [
                 'name' => $config['name'] ?? 'Core',
@@ -543,7 +582,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                 'priority' => $config['priority'] ?? 1,
                 'children' => $submoduleNav,
             ],
-        ], $config['priority'] ?? 1);
+        ], $config['priority'] ?? 1, 'tenant');
     }
 
     /**

@@ -4,6 +4,7 @@ import { HomeIcon } from '@heroicons/react/24/outline';
 import * as OutlineIcons from '@heroicons/react/24/outline';
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { getDashboardUrl } from '@/utils/moduleAccessUtils';
 
 /**
  * Icon Resolver - converts string icon names to React components
@@ -59,11 +60,11 @@ const Breadcrumb = () => {
     const generateBreadcrumbs = () => {
         const breadcrumbs = [];
         
-        // Always add Home breadcrumb first
+        // Always add Home breadcrumb first - use context-aware dashboard URL
         breadcrumbs.push({
             label: "Home",
             icon: <HomeIcon className="w-4 h-4" />,
-            href: '/dashboard',
+            href: getDashboardUrl(),
             key: 'home'
         });
         

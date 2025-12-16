@@ -30,111 +30,39 @@ const AuthGuard = ({ children, auth, url }) => {
     );
 
     useEffect(() => {
-        const checkAuthStatus = async () => {
-            try {
-                // If it's a public route, skip auth check
-                if (isPublicRoute) {
-                    setIsAuthenticated(true);
-                    setIsCheckingAuth(false);
-                    hasInitialized.current = true;
-                    return;
-                }
-
-                // CRITICAL: For protected routes, verify auth immediately
-                // Do NOT render until we confirm authentication
-                
-                // Check server-provided auth status first - this is most reliable
-                if (auth?.isAuthenticated && auth?.user?.id) {
-                    // Server says user is authenticated, trust it immediately
-                    setIsAuthenticated(true);
-                    setIsCheckingAuth(false);
-                    hasInitialized.current = true;
-                    return;
-                }
-
-                // If no valid auth data from server, redirect immediately
-                // Do NOT do async checks that would show protected content
-                console.warn('No valid authentication data from server, redirecting to login');
-                router.visit('/login', {
-                    method: 'get',
-                    preserveState: false,
-                    preserveScroll: false,
-                    replace: true
-                });
-                return;
-            } catch (error) {
-                console.error('Auth check failed:', error);
-                router.visit('/login', {
-                    method: 'get',
-                    preserveState: false,
-                    preserveScroll: false, 
-                    replace: true
-                });
-                return;
-            }
-
+        // If it's a public route, allow access immediately
+        if (isPublicRoute) {
+            setIsAuthenticated(true);
             setIsCheckingAuth(false);
-        };
+            hasInitialized.current = true;
+            return;
+        }
 
-        checkAuthStatus();
-    }, [auth?.user?.id, auth?.isAuthenticated, auth?.sessionValid, url, isPublicRoute]);
+        // For protected routes, trust the server-provided auth data
+        // No async verification needed - server already verified via middleware
+        if (auth?.isAuthenticated && auth?.user?.id) {
+            setIsAuthenticated(true);
+            setIsCheckingAuth(false);
+            hasInitialized.current = true;
+            return;
+        }
 
-    // CRITICAL: Show loading screen for ALL auth checks on protected routes
-    // This prevents flashing authenticated content to unauthenticated users
-    if (isCheckingAuth && !isPublicRoute) {
-        return (
-            <div className="fixed inset-0 z-9999 flex items-center justify-center bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="flex flex-col items-center space-y-6 text-center"
-                >
-                    {/* Logo or App Name */}
-                    <motion.div
-                        initial={{ y: -20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.6 }}
-                        className="text-3xl font-bold text-white mb-4"
-                    >
-                        aeos365
-                    </motion.div>
+        // If no auth data from server on protected route, redirect immediately
+        if (!auth?.user) {
+            router.visit('/login', {
+                method: 'get',
+                preserveState: false,
+                preserveScroll: false,
+                replace: true
+            });
+            return;
+        }
 
-                    {/* Spinner */}
-                    <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.3, duration: 0.4 }}
-                    >
-                        <Spinner 
-                            size="lg" 
-                            color="primary"
-                            className="w-12 h-12"
-                        />
-                    </motion.div>
+        setIsCheckingAuth(false);
+    }, [auth?.user?.id, auth?.isAuthenticated, url, isPublicRoute]);
 
-                    {/* Loading text */}
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="text-white/80 text-lg"
-                    >
-                        Verifying session...
-                    </motion.div>
-
-                    {/* Progress indicator */}
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "100%" }}
-                        transition={{ delay: 0.5, duration: 1.5, ease: "easeInOut" }}
-                        className="h-1 bg-blue-500 rounded-full"
-                        style={{ maxWidth: "200px" }}
-                    />
-                </motion.div>
-            </div>
-        );
-    }
+    // Simplified: No loading screen needed since server already verified auth
+    // Just render immediately or redirect - no async verification delays
 
     // If authenticated or public route, render children
     if (isAuthenticated || isPublicRoute) {

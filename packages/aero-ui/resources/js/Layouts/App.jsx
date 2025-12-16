@@ -16,7 +16,6 @@ import ImpersonationBanner from '@/Components/Admin/ImpersonationBanner.jsx';
 import CommandPalette from '@/Components/Navigation/CommandPalette.jsx';
 import { FadeIn, SlideIn } from '@/Components/Animations/SmoothAnimations';
 import { useVersionManager } from '@/Hooks/useVersionManager.js';
-import AuthGuard from '@/Components/AuthGuard.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { TranslationProvider } from '@/Context/TranslationContext';
 import { GlobalAutoTranslator } from '@/Context/GlobalAutoTranslator';
@@ -135,6 +134,17 @@ const App = React.memo(({ children }) => {
 
   // Get global page props
   const { auth, app, url, roles, context: domainContext = 'tenant' } = usePage().props;
+
+ 
+    console.group('=== App.jsx: Auth Debug ===');
+    console.log('Full page props:', usePage().props);
+    console.log('auth object:', auth);
+    console.log('auth.user:', auth?.user);
+    console.log('auth.isAuthenticated:', auth?.isAuthenticated);
+    console.log('domainContext:', domainContext);
+    console.log('url:', url);
+    console.groupEnd();
+ 
   
   // Get domain-aware branding
   const { favicon, siteName } = useBranding();
@@ -393,7 +403,6 @@ const App = React.memo(({ children }) => {
             {/* Command Palette (⌘K / Ctrl+K) */}
             {commandPalette}
 
-            <AuthGuard auth={auth} url={url}>
           <div className="relative w-full h-screen overflow-hidden">
             {/* Global Overlays and Modals */}
             <UpdateNotification
@@ -566,7 +575,6 @@ const App = React.memo(({ children }) => {
             </motion.main>
           </div>
         </div>
-      </AuthGuard>
     </LayoutContext.Provider>
         </AppStateProvider>
       </GlobalAutoTranslator>

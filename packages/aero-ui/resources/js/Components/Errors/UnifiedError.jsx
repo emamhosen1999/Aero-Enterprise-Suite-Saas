@@ -177,14 +177,20 @@ class UnifiedError extends React.Component {
     render() {
         // If ErrorBoundary caught an error, show error UI
         if (this.state.hasError) {
+            const { error, errorInfo } = this.state;
             const reactError = {
                 code: 500,
                 type: 'ReactError',
                 title: 'Something Went Wrong',
-                message: 'An unexpected error occurred while rendering this page.',
+                message: error?.message || 'An unexpected error occurred while rendering this page.',
                 trace_id: this.state.traceId,
                 showHomeButton: true,
                 showRetryButton: true,
+                details: {
+                    errorMessage: error?.message || 'Unknown error',
+                    errorStack: error?.stack?.split('\n').slice(0, 5).join('\n') || null,
+                    componentStack: errorInfo?.componentStack?.split('\n').slice(0, 8).join('\n') || null,
+                },
             };
             
             return <UnifiedErrorDisplay error={reactError} />;
