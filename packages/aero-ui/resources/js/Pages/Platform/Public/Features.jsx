@@ -35,6 +35,12 @@ const iconMap = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5h18m-16.5 0L4 17.25a2.25 2.25 0 002.247 2.118h11.506A2.25 2.25 0 0020 17.25L20.5 7.5M8.25 7.5L9 3.75h6L14.25 7.5" />
     </svg>
   ),
+  bank: (
+    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3 3 7v2h18V7l-9-4z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 11v8m4-8v8m4-8v8m4-8v8m4 0H4" />
+    </svg>
+  ),
   'chart-bar': (
     <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -51,9 +57,34 @@ const iconMap = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
     </svg>
   ),
+  cube: (
+    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3 4.5 6.75V17.25L12 21l7.5-3.75V6.75L12 3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 6.75 12 10.5l7.5-3.75M12 10.5V21" />
+    </svg>
+  ),
+  truck: (
+    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5h10.5v7.5H3zM13.5 10.5H17l2.5 2.5v2H13.5z" />
+      <circle cx="6" cy="17" r="1.5" />
+      <circle cx="16" cy="17" r="1.5" />
+    </svg>
+  ),
   'shopping-cart': (
     <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+    </svg>
+  ),
+  document: (
+    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 3h6l4 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6M9 13h6M9 17h3" />
+    </svg>
+  ),
+  badge: (
+    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 11.5l1.75 1.75L15 9.5" />
     </svg>
   ),
   check: (
@@ -62,9 +93,6 @@ const iconMap = {
     </svg>
   ),
 };
-
-// Module keys for navigation
-const moduleKeys = ['hrm', 'crm', 'erp', 'project', 'collaboration', 'ecommerce', 'analytics'];
 
 export default function Features() {
   const { themeSettings } = useTheme();
@@ -118,10 +146,10 @@ export default function Features() {
                 FEATURES
               </Chip>
               <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight mb-3 md:mb-6">
-                All your business modules. One unified platform.
+                Features mapped directly from products.php.
               </h1>
               <p className={`text-sm md:text-lg ${palette.mutedText} mb-4 md:mb-8 max-w-3xl mx-auto`}>
-                From HR and CRM to ERP and Analytics—each module shares the same data, permissions, and automation engine.
+                HRM, CRM, Finance, Projects, Inventory, POS, Supply Chain, Quality, DMS, and Compliance use the same data fabric, permissions, and automation engine described in the product catalog.
               </p>
               <div className="flex flex-wrap justify-center gap-2 md:gap-4">
                 <Button as={Link} href={route('demo')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-4 md:px-10 text-xs md:text-sm">
@@ -140,16 +168,13 @@ export default function Features() {
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3">
               {platformModules.map((module) => {
-                const moduleKey = module.name.toLowerCase().replace(' management', '').replace('-', '');
-                const isActive = activeModule === moduleKey || 
-                  (moduleKey === 'project' && activeModule === 'project') ||
-                  (moduleKey === 'e-commerce' && activeModule === 'ecommerce');
-                const actualKey = moduleKey === 'e-commerce' ? 'ecommerce' : moduleKey;
+                const moduleKey = module.key;
+                const isActive = activeModule === moduleKey;
                 
                 return (
                   <button
                     key={module.name}
-                    onClick={() => setActiveModule(actualKey)}
+                    onClick={() => setActiveModule(moduleKey)}
                     className={`p-2 md:p-3 rounded-lg md:rounded-xl text-left transition-all ${
                       isActive
                         ? `bg-gradient-to-br ${module.color} text-white shadow-lg scale-[1.02]`

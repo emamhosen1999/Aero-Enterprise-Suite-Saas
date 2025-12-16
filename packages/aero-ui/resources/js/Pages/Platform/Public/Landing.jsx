@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, usePage, Head } from '@inertiajs/react';
 import {
   Button,
@@ -8,7 +8,7 @@ import {
   Avatar,
   Divider,
 } from '@heroui/react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import {
   heroStats,
@@ -44,6 +44,12 @@ const iconMap = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5h18m-16.5 0L4 17.25a2.25 2.25 0 002.247 2.118h11.506A2.25 2.25 0 0020 17.25L20.5 7.5M8.25 7.5L9 3.75h6L14.25 7.5" />
     </svg>
   ),
+  bank: (
+    <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3 3 7v2h18V7l-9-4z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 11v8m4-8v8m4-8v8m4-8v8m4 0H4" />
+    </svg>
+  ),
   'chart-bar': (
     <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -60,9 +66,34 @@ const iconMap = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
     </svg>
   ),
+  cube: (
+    <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3 4.5 6.75V17.25L12 21l7.5-3.75V6.75L12 3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 6.75 12 10.5l7.5-3.75M12 10.5V21" />
+    </svg>
+  ),
+  truck: (
+    <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5h10.5v7.5H3zM13.5 10.5H17l2.5 2.5v2H13.5z" />
+      <circle cx="6" cy="17.5" r="1.5" />
+      <circle cx="16" cy="17.5" r="1.5" />
+    </svg>
+  ),
   'shopping-cart': (
     <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+    </svg>
+  ),
+  document: (
+    <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 3h6l4 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6M9 13h6M9 17h3" />
+    </svg>
+  ),
+  badge: (
+    <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 11.5l1.75 1.75L15 9.5" />
     </svg>
   ),
 };
@@ -87,6 +118,19 @@ const problemStatements = [
 ];
 
 const integrations = ['Slack', 'Teams', 'SAP', 'QuickBooks', 'Salesforce', 'Oracle', 'Jira', 'HubSpot'];
+
+const heroSlideHighlights = {
+  hrm: ['Attendance and leave automation', 'Payroll-ready timesheets', 'Skills and training ops'],
+  crm: ['Multi-channel pipeline automation', 'Service desk with SLAs', 'Campaigns tied to revenue'],
+  finance: ['Ledger to statements in one flow', 'Multi-entity budgeting', 'Audit-ready trails always on'],
+  project: ['Gantt, boards, and sprints in sync', 'Resource utilization heatmaps', 'Change orders with budgets'],
+  ims: ['Warehouse movements with scans', 'Reorder signals and buffers', 'Cycle counts with variance AI'],
+  scm: ['RFQ to PO with vendor scoring', 'Inbound QC with holds', 'Freight and landed cost clarity'],
+  pos: ['Omnichannel pricing and promos', 'Day-end cash control', 'Returns and exchanges with guardrails'],
+  quality: ['NC/CAPA with effectiveness checks', 'Control plans and labs', 'Calibration and audit cadence'],
+  dms: ['Versioned repositories', 'Approvals and publishing', 'Retention and access controls'],
+  compliance: ['Risk registers with heatmaps', 'Incident to CAPA workflows', 'Policy attestations in one place'],
+};
 
 const pricingPlans = [
   {
@@ -121,8 +165,8 @@ export default function Landing() {
   const { metadata = {}, branding = {}, site = {} } = platformSettings || {};
   
   // Use platform settings with fallbacks
-  const heroTitle = metadata.hero_title || "All your enterprise modules. One unified platform. No juggling, no silos.";
-  const heroSubtitle = metadata.hero_subtitle || "HRM, CRM, ERP, DMS, POS, and more. Purpose-built for midsized organizations that want speed, clarity, and control.";
+  const heroTitle = metadata.hero_title || "HRM, CRM, Finance, Projects, Inventory, POS, SCM, Quality, DMS, and Compliance in one platform.";
+  const heroSubtitle = metadata.hero_subtitle || "Every public page mirrors the modules defined in products.php so prospects see the exact suites, submodules, and controls they will run on day one.";
   const siteName = site.name || "Aero";
   const primaryColor = branding.primary_color || '#3b82f6';
   const accentColor = branding.accent_color || '#8b5cf6';
@@ -151,6 +195,44 @@ export default function Landing() {
     { type: 'anchor', href: '#pricing', label: 'Plans' },
   ];
 
+  const heroSlides = useMemo(() => (
+    platformModules.map((module) => ({
+      ...module,
+      highlights: heroSlideHighlights[module.key] || [module.description],
+    }))
+  ), [platformModules]);
+
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
+
+  useEffect(() => {
+    if (!heroSlides.length) {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5200);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const handleMouseMove = useCallback((event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    setTilt({
+      rotateX: y * -6,
+      rotateY: x * 10,
+    });
+  }, []);
+
+  const resetTilt = useCallback(() => setTilt({ rotateX: 0, rotateY: 0 }), []);
+
+  const handleSlideSelect = useCallback((index) => {
+    setActiveSlide(index);
+  }, []);
+
+  const activeSlideData = heroSlides[activeSlide % (heroSlides.length || 1)];
+
   return (
     <PublicLayout mainClassName="pt-0">
       <Head>
@@ -161,7 +243,10 @@ export default function Landing() {
       </Head>
       
       <div className={`relative ${palette.baseText}`}>
-        <section id="hero" className="relative px-4 md:px-6 pt-20 md:pt-32 pb-12 md:pb-24 overflow-hidden">
+        <section
+          id="hero"
+          className="relative px-4 md:px-6 pt-16 md:pt-24 pb-10 md:pb-16 min-h-screen flex items-center overflow-hidden"
+        >
           <div className="absolute inset-0 pointer-events-none" aria-hidden>
             <div
               className={`absolute inset-0 ${
@@ -170,11 +255,12 @@ export default function Landing() {
                   : 'bg-gradient-to-br from-sky-200/60 via-indigo-100/40 to-cyan-100/40'
               }`}
             />
-            <div className="absolute -right-32 top-8 w-48 md:w-72 h-48 md:h-72 bg-blue-500/20 blur-[100px] md:blur-[140px]" />
-            <div className="absolute -left-24 bottom-0 w-48 md:w-72 h-48 md:h-72 bg-emerald-400/20 blur-[80px] md:blur-[120px]" />
+            <div className="absolute -right-32 top-8 w-48 md:w-80 h-48 md:h-80 bg-blue-500/25 blur-[110px] md:blur-[150px]" />
+            <div className="absolute -left-24 bottom-0 w-48 md:w-80 h-48 md:h-80 bg-emerald-400/25 blur-[90px] md:blur-[130px]" />
+            <div className="absolute inset-x-0 bottom-[-30%] h-[60%] bg-gradient-to-t from-sky-200/25 via-transparent to-transparent dark:from-slate-900/40" />
           </div>
-          <div className="relative max-w-6xl mx-auto grid items-center gap-8 md:gap-16 lg:grid-cols-2">
-            <div>
+          <div className="relative max-w-7xl mx-auto grid items-center gap-10 md:gap-16 lg:grid-cols-2">
+            <div className="space-y-4 md:space-y-6">
               <Chip color="success" variant="flat" className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[9px] md:text-[11px] mb-3 md:mb-6">
                 Enterprise ready
               </Chip>
@@ -217,49 +303,123 @@ export default function Landing() {
                 ))}
               </div>
             </div>
-            <motion.div
-              initial={{ rotateX: 15, rotateY: -15, opacity: 0 }}
-              animate={{ rotateX: 0, rotateY: 0, opacity: 1 }}
-              transition={{ duration: 0.9 }}
-              className="relative hidden md:block"
-            >
-              <Card className={palette.panel}>
-                <CardBody className="p-3 md:p-6">
-                  <div className="flex items-center justify-between mb-3 md:mb-4">
-                    <div>
-                      <p className={`text-xs md:text-sm ${palette.mutedText}`}>Live operational map</p>
-                      <h3 className="text-lg md:text-2xl font-semibold">Command board</h3>
-                    </div>
-                    <Chip color="secondary" variant="flat" size="sm" className="text-[10px] md:text-xs">
-                      Realtime
-                    </Chip>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 md:gap-4">
-                    {platformModules.slice(0, 4).map((module) => (
-                      <Card key={module.name} className={palette.card}>
-                        <CardBody className="p-2 md:p-4">
-                          <div className={`w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl mb-2 md:mb-3 bg-gradient-to-br ${module.color} flex items-center justify-center text-white`}>
-                            {iconMap[module.icon]}
+            <div className="relative w-full max-w-3xl mx-auto lg:mx-0" style={{ perspective: '1800px' }}>
+              <div className="absolute -top-10 -right-14 w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-blue-500/30 via-indigo-500/20 to-emerald-400/20 blur-[100px]" aria-hidden />
+              <div className="absolute bottom-4 -left-12 w-40 h-40 md:w-56 md:h-56 rounded-full bg-gradient-to-br from-cyan-400/25 via-sky-400/10 to-purple-500/25 blur-[80px]" aria-hidden />
+              <AnimatePresence mode="wait">
+                {activeSlideData && (
+                  <motion.div
+                    key={activeSlideData.key}
+                    initial={{ opacity: 0, rotateY: -22, y: 26, translateZ: -160 }}
+                    animate={{
+                      opacity: 1,
+                      rotateY: tilt.rotateY,
+                      rotateX: tilt.rotateX,
+                      y: 0,
+                      translateZ: 0,
+                    }}
+                    exit={{ opacity: 0, rotateY: 30, y: -18, translateZ: -180 }}
+                    transition={{ duration: 0.85, ease: 'easeOut' }}
+                    className="relative"
+                    style={{ transformStyle: 'preserve-3d' }}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={resetTilt}
+                  >
+                    <Card className={`${palette.panel} overflow-hidden shadow-2xl shadow-blue-900/10 min-h-[420px] md:min-h-[520px] backdrop-blur-xl border-white/10`}>
+                      <CardBody className="p-4 md:p-7 flex flex-col gap-4 md:gap-6">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 md:gap-4">
+                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${activeSlideData.color} flex items-center justify-center text-white shadow-lg shadow-blue-500/25`}>
+                              {iconMap[activeSlideData.icon]}
+                            </div>
+                            <div>
+                              <p className={`text-[10px] md:text-xs uppercase tracking-wide ${palette.mutedText}`}>Live service</p>
+                              <h3 className="text-xl md:text-3xl font-semibold leading-tight">{activeSlideData.name} experience</h3>
+                              <p className={`text-[11px] md:text-sm ${palette.mutedText} mt-1`}>{activeSlideData.shortName}</p>
+                            </div>
                           </div>
-                          <p className="font-semibold text-xs md:text-sm">{module.name}</p>
-                          <p className={`text-[10px] md:text-xs mt-0.5 md:mt-1 ${palette.mutedText} line-clamp-2`}>{module.description}</p>
-                        </CardBody>
-                      </Card>
-                    ))}
-                  </div>
-                  <Divider className={`my-3 md:my-6 ${palette.divider}`} />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm md:text-lg font-semibold">Pulse automations</p>
-                      <p className={`text-[10px] md:text-sm ${palette.mutedText}`}>Escalations fire automatically when KPIs drift.</p>
-                    </div>
-                    <Chip color="primary" variant="flat" size="sm" className="text-[10px] md:text-xs">
-                      AI Assist
-                    </Chip>
-                  </div>
-                </CardBody>
-              </Card>
-            </motion.div>
+                          <Chip color="secondary" variant="flat" size="sm" className="text-[10px] md:text-xs">
+                            3D Preview
+                          </Chip>
+                        </div>
+
+                        <div className="grid md:grid-cols-12 gap-3 md:gap-6">
+                          <div className="md:col-span-7 space-y-3 md:space-y-5">
+                            <p className={`text-sm md:text-lg ${palette.mutedText}`}>{activeSlideData.description}</p>
+                            <div className="grid grid-cols-2 gap-2 md:gap-3">
+                              {activeSlideData.highlights.slice(0, 4).map((item) => (
+                                <div
+                                  key={item}
+                                  className={`${palette.card} bg-gradient-to-br from-white/70 via-white/40 to-white/10 dark:from-white/10 dark:via-white/5 dark:to-white/0 border border-white/30 shadow-sm p-2.5 md:p-3.5 rounded-lg md:rounded-xl`}
+                                >
+                                  <p className="text-[11px] md:text-sm font-semibold leading-tight">{item}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="md:col-span-5">
+                            <div className="relative h-full min-h-[220px]">
+                              <motion.div
+                                className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${activeSlideData.color} opacity-70 blur-3xl`}
+                                animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }}
+                                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                                aria-hidden
+                              />
+                              <Card className={`${palette.card} relative overflow-hidden backdrop-blur-xl border-white/30 shadow-lg`}>
+                                <CardBody className="p-3 md:p-4 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className={`text-[10px] md:text-xs ${palette.mutedText}`}>Live snapshot</p>
+                                      <p className="text-sm md:text-lg font-semibold">{activeSlideData.shortName}</p>
+                                    </div>
+                                    <Chip size="sm" color="primary" variant="flat" className="text-[9px] md:text-xs">
+                                      Auto-synced
+                                    </Chip>
+                                  </div>
+                                  <Divider className={palette.divider} />
+                                  <div className="grid grid-cols-2 gap-2 md:gap-3 text-[10px] md:text-sm">
+                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>AI alerts & escalations</div>
+                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>Realtime KPIs</div>
+                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>Role-based spaces</div>
+                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>Audit-ready logs</div>
+                                  </div>
+                                </CardBody>
+                              </Card>
+                            </div>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                    <motion.div
+                      className="absolute -left-6 md:-left-10 bottom-10 md:bottom-16 w-24 md:w-32 h-24 md:h-32 rounded-full bg-blue-500/20 blur-2xl"
+                      animate={{ x: [0, 6, -4, 0], y: [0, -6, 8, 0] }}
+                      transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+                      aria-hidden
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <div className="flex items-center gap-1.5 md:gap-3 mt-5 md:mt-8 flex-wrap">
+                {heroSlides.map((slide, index) => {
+                  const isActive = index === activeSlide;
+                  return (
+                    <button
+                      key={slide.key}
+                      type="button"
+                      onClick={() => handleSlideSelect(index)}
+                      className={`flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border text-[10px] md:text-sm transition-all duration-300 ${
+                        isActive
+                          ? 'border-current bg-white/90 dark:bg-white/10 shadow-lg shadow-blue-500/20'
+                          : 'border-transparent bg-white/40 dark:bg-white/5'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full bg-gradient-to-br ${slide.color}`} aria-hidden />
+                      <span>{slide.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </section>
 

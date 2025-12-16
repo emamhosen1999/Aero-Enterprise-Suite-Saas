@@ -71,7 +71,7 @@ const About = () => {
               We built Aero after running operations teams that had to juggle too many systems.
             </h1>
             <p className={`text-sm md:text-lg ${palette.mutedText}`}>
-              The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and multiple tools. Aero keeps that work in one place so decisions stay grounded in fresh data.
+              The platform exists because our own HR, project, compliance, and finance leads were stuck reconciling spreadsheets and multiple tools. Aero keeps that work in one place across HRM, CRM, Finance, Projects, Inventory, POS, Supply Chain, Quality, DMS, and Compliance—the same modules listed in products.php—so decisions stay grounded in fresh data.
             </p>
             <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-8">
               <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-4 md:px-8 text-xs md:text-base">

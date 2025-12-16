@@ -1,63 +1,94 @@
 export const heroStats = [
-  { value: '18', label: 'Modules shipped' },
+  { value: '10', label: 'Modules available' },
+  { value: '140+', label: 'Submodules in products.php' },
   { value: '99.96%', label: 'Rolling 24‑month uptime' },
-  { value: '22', label: 'Countries live' },
   { value: '38 days', label: 'Median go-live' },
 ];
 
 export const platformModules = [
   {
+    key: 'hrm',
     name: 'HRM',
-    shortName: 'Human Resource Management',
-    description: 'Complete workforce management from hiring to retirement with attendance, payroll, and performance reviews.',
+    shortName: 'Human Resources',
+    description: 'Employees, attendance, leave, payroll, recruitment, performance, training, and HR analytics.',
     color: 'from-blue-500 to-cyan-500',
     icon: 'people',
   },
   {
+    key: 'crm',
     name: 'CRM',
-    shortName: 'Customer Relationship Management',
-    description: 'Lead capture, deal pipelines, marketing campaigns, support desk, and live chat integration.',
+    shortName: 'Customer Relations',
+    description: 'Leads, contacts, deals, activities, campaigns, support desk, knowledge base, chat, and analytics.',
     color: 'from-indigo-500 to-violet-500',
     icon: 'users',
   },
   {
-    name: 'ERP',
-    shortName: 'Enterprise Resource Planning',
-    description: 'Inventory, purchasing, sales, warehouse, accounting, expenses, fixed assets, and procurement.',
-    color: 'from-emerald-500 to-teal-500',
-    icon: 'inbox-stack',
+    key: 'finance',
+    name: 'Finance',
+    shortName: 'Accounting & Finance',
+    description: 'COA, GL, AP/AR, banking, budgeting, fixed assets, tax, statements, and audits.',
+    color: 'from-emerald-600 to-teal-500',
+    icon: 'bank',
   },
   {
-    name: 'Project Management',
-    shortName: 'Project & Task Management',
-    description: 'Projects, tasks, Kanban boards, time tracking, sprints, and workload reports.',
+    key: 'project',
+    name: 'Projects',
+    shortName: 'Project Management',
+    description: 'Projects, tasks, sprints, resources, documents, risks, budgets, and reporting.',
     color: 'from-purple-500 to-pink-500',
     icon: 'project',
   },
   {
-    name: 'Collaboration',
-    shortName: 'Collaboration & Communication',
-    description: 'Messaging, video meetings, document management, and multi-level approval workflows.',
-    color: 'from-orange-500 to-amber-500',
-    icon: 'chat',
+    key: 'ims',
+    name: 'Inventory',
+    shortName: 'Inventory & Warehouse',
+    description: 'Items, warehouses, stock moves, barcodes, reorder planning, and cycle counts.',
+    color: 'from-amber-500 to-orange-500',
+    icon: 'cube',
   },
   {
-    name: 'E-commerce',
-    shortName: 'E-commerce Platform',
-    description: 'Product catalog, cart & checkout, order management, and payment gateway integrations.',
+    key: 'scm',
+    name: 'Supply Chain',
+    shortName: 'Procurement & SCM',
+    description: 'Suppliers, RFQ, purchase planning, freight, inbound QC, and vendor scorecards.',
+    color: 'from-sky-500 to-cyan-500',
+    icon: 'truck',
+  },
+  {
+    key: 'pos',
+    name: 'POS',
+    shortName: 'Point of Sale',
+    description: 'Terminals, price lists, promotions, taxes, receipts, cash drawers, and day-end.',
     color: 'from-pink-500 to-rose-500',
     icon: 'shopping-cart',
   },
   {
-    name: 'Analytics',
-    shortName: 'Analytics & Intelligence',
-    description: 'Dashboards, KPI tiles, tabular reports, and predictive analytics with AI insights.',
-    color: 'from-rose-500 to-red-500',
-    icon: 'chart-bar',
+    key: 'quality',
+    name: 'Quality',
+    shortName: 'Quality Management',
+    description: 'NC/CAPA, inspections, control plans, lab tests, audits, and calibration.',
+    color: 'from-green-600 to-emerald-500',
+    icon: 'shield-check',
+  },
+  {
+    key: 'dms',
+    name: 'DMS',
+    shortName: 'Document Management',
+    description: 'Repository, versioning, approvals, publishing, retention, and sign-offs.',
+    color: 'from-slate-600 to-gray-700',
+    icon: 'document',
+  },
+  {
+    key: 'compliance',
+    name: 'Compliance',
+    shortName: 'Compliance & EHS',
+    description: 'Policies, risk register, audits, incidents, corrective actions, and training evidence.',
+    color: 'from-red-500 to-amber-500',
+    icon: 'badge',
   },
 ];
 
-// Detailed module features for Features page
+// Detailed module features for Features page (aligned with products.php)
 export const moduleFeatures = {
   hrm: {
     name: 'HRM',
@@ -66,32 +97,36 @@ export const moduleFeatures = {
     icon: 'people',
     submodules: [
       {
-        name: 'Employee Information System',
-        features: ['Employee profile', 'Department & designation', 'Joining/exit workflow', 'Document vault'],
+        name: 'Employees',
+        features: ['Employee directory', 'Departments & designations', 'Onboarding/offboarding', 'Document vault'],
       },
       {
         name: 'Attendance',
-        features: ['Time-in/time-out', 'IP/device restrictions', 'Geolocation attendance', 'Manual adjustment requests'],
+        features: ['Shift rules & devices', 'Geolocation/IP rules', 'Overtime policies', 'Adjustment requests'],
       },
       {
-        name: 'Leave Management',
-        features: ['Leave types', 'Leave request workflow', 'Balance calculation', 'Calendar integration'],
+        name: 'Leaves',
+        features: ['Leave types & balances', 'Holiday calendar', 'Conflict checks', 'Approvals & accruals'],
       },
       {
         name: 'Payroll',
-        features: ['Salary structure', 'Allowances & deductions', 'Payslip generator', 'Payment disbursement logs'],
+        features: ['Salary structures', 'Allowances/deductions', 'Payroll run & locking', 'Payslips & bank files'],
       },
       {
         name: 'Recruitment',
-        features: ['Job posts', 'Applicant tracking', 'Interview scheduling', 'Evaluation scoring'],
+        features: ['Job posts & ATS', 'Pipelines & scoring', 'Interview scheduling', 'Offer workflows'],
       },
       {
-        name: 'Performance Management',
-        features: ['KPI groups', 'Appraisal cycles', '360° feedback', 'Performance reports'],
+        name: 'Performance',
+        features: ['KPI groups', 'Appraisal cycles', '360° feedback', 'Performance insights'],
       },
       {
-        name: 'Training & Development',
-        features: ['Training calendar', 'Skill matrix', 'Certification tracking'],
+        name: 'Training & Skills',
+        features: ['Training calendar', 'Skill matrix', 'Certification tracking', 'Attendance & outcomes'],
+      },
+      {
+        name: 'HR Analytics',
+        features: ['Turnover & absenteeism', 'Payroll cost analysis', 'Recruitment funnel', 'Performance dashboards'],
       },
     ],
   },
@@ -103,163 +138,263 @@ export const moduleFeatures = {
     submodules: [
       {
         name: 'Leads',
-        features: ['Lead capture', 'Lead scoring', 'Lead assignment', 'Lead pipeline'],
+        features: ['Capture & import', 'Pipelines/stages', 'Lead scoring', 'Assignment & routing'],
       },
       {
         name: 'Contacts & Accounts',
-        features: ['Customer/company profiles', 'Contact linking', 'Interaction logs'],
+        features: ['Account hierarchy', 'Interaction history', 'Notes & tags', 'Segmentation'],
       },
       {
-        name: 'Deals/Pipelines',
-        features: ['Stages', 'Deal forecasting', 'Deal probability', 'Revenue estimation'],
+        name: 'Deals & Opportunities',
+        features: ['Forecasting', 'Products & quotes', 'Probability tracking', 'Revenue projections'],
       },
       {
-        name: 'Marketing',
-        features: ['Email/SMS campaigns', 'Audience segmentation', 'Template builder', 'Campaign analytics'],
+        name: 'Activities & Tasks',
+        features: ['Meetings/calls/logs', 'Reminders & follow-ups', 'Templates', 'Calendar sync'],
+      },
+      {
+        name: 'Campaigns & Journeys',
+        features: ['Email/SMS campaigns', 'Source tracking', 'A/B templates', 'Analytics'],
       },
       {
         name: 'Support Desk',
-        features: ['Ticket submission', 'Priority/SLA rules', 'Canned responses', 'Ticket workflows', 'Feedback/rating'],
+        features: ['Tickets & SLAs', 'Canned responses', 'Feedback/CSAT', 'Escalation workflows'],
       },
       {
-        name: 'Live Chat/Widget',
-        features: ['Chat inbox', 'Visitor tracking', 'Chatbot integration'],
+        name: 'Knowledge & Chat',
+        features: ['Knowledge base', 'Live chat widget', 'Chatbot handoff', 'Visitor tracking'],
+      },
+      {
+        name: 'CRM Analytics',
+        features: ['Pipeline health', 'Win/loss analysis', 'Agent performance', 'Campaign ROI'],
       },
     ],
   },
-  erp: {
-    name: 'ERP',
-    fullName: 'Enterprise Resource Planning',
-    color: 'from-emerald-500 to-teal-500',
-    icon: 'inbox-stack',
+  finance: {
+    name: 'Finance',
+    fullName: 'Accounting & Finance',
+    color: 'from-emerald-600 to-teal-500',
+    icon: 'bank',
     submodules: [
       {
-        name: 'Inventory',
-        features: ['Items & categories', 'Units of measure', 'Stock movements', 'Opening balance', 'Multi-warehouse support'],
+        name: 'Dashboard',
+        features: ['Income/expense tiles', 'Cashflow snapshot', 'Aging widgets', 'Downloadable PDF'],
       },
       {
-        name: 'Purchase Management',
-        features: ['Purchase requests', 'Purchase order creation', 'Supplier comparison', 'Goods received note'],
+        name: 'Chart of Accounts',
+        features: ['Account hierarchy', 'Types & groups', 'Opening balances', 'Imports'],
       },
       {
-        name: 'Sales Management',
-        features: ['Sales orders', 'Quotations', 'Delivery notes', 'Customer credit limit'],
+        name: 'General Ledger & Journals',
+        features: ['Ledger drill-down', 'Manual journals', 'Accruals & reversals', 'Approvals'],
       },
       {
-        name: 'Warehouse',
-        features: ['Bins & shelves', 'Put-away rules', 'Stock transfer', 'Cycle counting'],
+        name: 'Accounts Payable/Receivable',
+        features: ['Vendor/customer invoices', 'Credit/debit notes', 'Aging & collections', 'Write-off rules'],
       },
       {
-        name: 'Accounting & Finance',
-        features: ['Chart of accounts', 'Journal entries', 'Invoices', 'Payments', 'Bank reconciliation', 'VAT/Tax rules'],
+        name: 'Banking & Cash',
+        features: ['Bank feeds/imports', 'Reconciliation', 'Cash registers', 'Transfers'],
       },
       {
-        name: 'Expense Management',
-        features: ['Expense categories', 'Expense claim workflow', 'Reimbursements'],
+        name: 'Budgeting',
+        features: ['Budget versions', 'Branch/department budgets', 'Variance reports', 'Locking'],
       },
       {
         name: 'Fixed Assets',
-        features: ['Asset registration', 'Depreciation schedules', 'Disposal tracking'],
+        features: ['Asset registry', 'Depreciation schedules', 'Revaluation/disposal', 'Capital work-in-progress'],
       },
       {
-        name: 'Procurement',
-        features: ['Supplier directory', 'Tender management', 'Approval workflow'],
+        name: 'Tax & Compliance',
+        features: ['Multi-tax rules', 'Withholding/VAT', 'E-filing exports', 'Audit trail'],
       },
     ],
   },
   project: {
-    name: 'Project Management',
-    fullName: 'Project & Task Management',
+    name: 'Projects',
+    fullName: 'Project Management',
     color: 'from-purple-500 to-pink-500',
     icon: 'project',
     submodules: [
       {
         name: 'Projects',
-        features: ['Project creation', 'Milestones', 'Member assignment'],
+        features: ['Gantt & timelines', 'Members & roles', 'Budgets & status', 'Activity feed'],
       },
       {
-        name: 'Tasks',
-        features: ['Task creation', 'Subtasks', 'Checklists', 'Attachments'],
+        name: 'Tasks & Boards',
+        features: ['Kanban & sprints', 'Dependencies', 'Subtasks/checklists', 'File attachments'],
       },
       {
-        name: 'Boards',
-        features: ['Kanban board', 'Sprint planning', 'Backlogs'],
+        name: 'Teams & Resources',
+        features: ['Workload view', 'Capacity & allocation', 'Skills tagging', 'Utilization insights'],
       },
       {
         name: 'Time Tracking',
-        features: ['Timers', 'Timesheets', 'Billing rates'],
+        features: ['Timers & timesheets', 'Billable rates', 'Approvals', 'Exports'],
       },
       {
-        name: 'Reports',
-        features: ['Velocity', 'Workload', 'Burn-down charts'],
+        name: 'Risks & Issues',
+        features: ['Risk register', 'Issue logs', 'Mitigation plans', 'SLA tracking'],
+      },
+      {
+        name: 'Project Financials',
+        features: ['Cost codes', 'Purchase links', 'Change orders', 'Revenue recognition hooks'],
+      },
+      {
+        name: 'Reports & Dashboards',
+        features: ['Velocity & burn-down', 'Budget vs actuals', 'Milestone health', 'Export packs'],
       },
     ],
   },
-  collaboration: {
-    name: 'Collaboration',
-    fullName: 'Collaboration & Communication',
-    color: 'from-orange-500 to-amber-500',
-    icon: 'chat',
+  ims: {
+    name: 'Inventory',
+    fullName: 'Inventory & Warehouse',
+    color: 'from-amber-500 to-orange-500',
+    icon: 'cube',
     submodules: [
       {
-        name: 'Messaging',
-        features: ['Direct messages', 'Group channels', 'Attachments'],
+        name: 'Catalog',
+        features: ['Items & variants', 'Units of measure', 'Attributes & barcodes', 'Opening stock'],
       },
       {
-        name: 'Meetings',
-        features: ['Video call integration', 'Calendar sync', 'Meeting notes'],
+        name: 'Warehouses & Bins',
+        features: ['Multi-warehouse', 'Bins/shelves', 'Put-away rules', 'Location transfers'],
       },
       {
-        name: 'Document Management',
-        features: ['File repository', 'Versioning', 'Share permissions'],
+        name: 'Stock Operations',
+        features: ['Issues/receipts', 'Returns & adjustments', 'Stock reconciliation', 'Serial/batch tracking'],
       },
       {
-        name: 'Approvals',
-        features: ['Multi-level approvals', 'Dynamic workflow builder', 'Approval history'],
+        name: 'Planning',
+        features: ['Reorder levels', 'Safety stock', 'Procurement suggestions', 'Lead-time buffers'],
+      },
+      {
+        name: 'Inventory Analytics',
+        features: ['Ageing & valuation', 'Movement history', 'Cycle count variance', 'Stock availability'],
       },
     ],
   },
-  ecommerce: {
-    name: 'E-commerce',
-    fullName: 'E-commerce Platform',
+  scm: {
+    name: 'Supply Chain',
+    fullName: 'Procurement & Supply Chain',
+    color: 'from-sky-500 to-cyan-500',
+    icon: 'truck',
+    submodules: [
+      {
+        name: 'Suppliers & Contracts',
+        features: ['Supplier onboarding', 'Vendor grading', 'Contract terms', 'Performance scoring'],
+      },
+      {
+        name: 'Planning & RFQ',
+        features: ['Procurement plans', 'RFQ & comparisons', 'Award workflows', 'Budget checks'],
+      },
+      {
+        name: 'Purchase Orders',
+        features: ['PO creation', 'Receipts & GRN', 'Returns', 'Pricing & taxes'],
+      },
+      {
+        name: 'Logistics',
+        features: ['Freight & carrier management', 'Shipment tracking', 'Last-mile confirmations', 'Cost analysis'],
+      },
+      {
+        name: 'Inbound Quality',
+        features: ['Inspection plans', 'Hold/release', 'Non-conformance', 'Supplier CAPA'],
+      },
+    ],
+  },
+  pos: {
+    name: 'POS',
+    fullName: 'Point of Sale',
     color: 'from-pink-500 to-rose-500',
     icon: 'shopping-cart',
     submodules: [
       {
-        name: 'Catalog',
-        features: ['Products', 'Variants', 'Attributes'],
+        name: 'Counters & Terminals',
+        features: ['Register setup', 'User roles', 'Shift management', 'Hardware profiles'],
       },
       {
-        name: 'Cart & Checkout',
-        features: ['Cart logic', 'Shipping rules', 'Coupons'],
+        name: 'Pricing & Promotions',
+        features: ['Price lists', 'Discount rules', 'Coupons & loyalty', 'Tax profiles'],
       },
       {
-        name: 'Orders',
-        features: ['Order lifecycle', 'Cancellations/returns', 'Fulfillment'],
+        name: 'Billing',
+        features: ['Barcode billing', 'Receipts & invoices', 'Refunds/returns', 'Split payments'],
       },
       {
-        name: 'Payment Integrations',
-        features: ['Gateways', 'Wallets', 'Refund logs'],
+        name: 'Cash & Settlement',
+        features: ['Cash drawer logs', 'Day-end close', 'Settlement reports', 'Bank deposit prep'],
       },
     ],
   },
-  analytics: {
-    name: 'Analytics',
-    fullName: 'Analytics & Intelligence',
-    color: 'from-rose-500 to-red-500',
-    icon: 'chart-bar',
+  quality: {
+    name: 'Quality',
+    fullName: 'Quality Management',
+    color: 'from-green-600 to-emerald-500',
+    icon: 'shield-check',
     submodules: [
       {
-        name: 'Dashboards',
-        features: ['Widgets', 'KPI tiles', 'Visualization engine'],
+        name: 'Non-conformance & CAPA',
+        features: ['NC logging', 'Root cause & 5-Why', 'Corrective actions', 'Effectiveness checks'],
       },
       {
-        name: 'Reports',
-        features: ['Tabular reports', 'Exporter (PDF, Excel)', 'Scheduler'],
+        name: 'Control & Inspection',
+        features: ['Control plans', 'Sampling & inspections', 'Hold/release', 'Defect codes'],
       },
       {
-        name: 'Predictive Analytics',
-        features: ['Demand forecasting', 'Customer churn model', 'Anomaly detection'],
+        name: 'Lab & Testing',
+        features: ['Test methods', 'Lab worksheets', 'Result entry', 'COA generation'],
+      },
+      {
+        name: 'Calibration & Audit',
+        features: ['Equipment calibration', 'Audit schedules', 'Findings & actions', 'Compliance checklists'],
+      },
+    ],
+  },
+  dms: {
+    name: 'DMS',
+    fullName: 'Document Management',
+    color: 'from-slate-600 to-gray-700',
+    icon: 'document',
+    submodules: [
+      {
+        name: 'Document Library',
+        features: ['Categories & tags', 'Versioning', 'Check-in/out', 'Download controls'],
+      },
+      {
+        name: 'Approvals & Publishing',
+        features: ['Review workflows', 'E-signature/acknowledge', 'Effective dates', 'Change logs'],
+      },
+      {
+        name: 'Retention & Compliance',
+        features: ['Retention rules', 'Auto-expiry', 'Access policies', 'Audit trail'],
+      },
+    ],
+  },
+  compliance: {
+    name: 'Compliance',
+    fullName: 'Compliance & EHS',
+    color: 'from-red-500 to-amber-500',
+    icon: 'badge',
+    submodules: [
+      {
+        name: 'Policies & Controls',
+        features: ['Policy library', 'Control mappings', 'Acknowledgements', 'Exceptions'],
+      },
+      {
+        name: 'Risk & Registers',
+        features: ['Enterprise risk register', 'Likelihood/impact scoring', 'Mitigation plans', 'Heatmaps'],
+      },
+      {
+        name: 'Audits & Checklists',
+        features: ['Internal/external audits', 'Audit schedules', 'Findings & remediation', 'Export packs'],
+      },
+      {
+        name: 'Incidents & EHS',
+        features: ['Incident logging', 'Investigations', 'CAPA workflows', 'Permit to work & safety forms'],
+      },
+      {
+        name: 'Training Evidence',
+        features: ['Competency records', 'Assessment logs', 'Certificates', 'Renewal alerts'],
       },
     ],
   },
@@ -308,19 +443,19 @@ export const industryStarters = [
 
 export const productHighlights = [
   {
-    title: 'Unified Data Fabric',
-    description: 'People, projects, finance, and compliance share the same live record instead of emailing sheets around.',
-    stat: '3x faster reviews',
+    title: 'Products.php parity',
+    description: 'Public pages mirror the ten modules and 140+ submodules defined in the catalog—no vague marketing gloss.',
+    stat: '10 suites aligned',
   },
   {
-    title: 'Automation Playbooks',
-    description: 'We bring ready-to-run workflows for onboarding, audits, change orders, and vendor reviews.',
-    stat: '120+ blueprints',
+    title: 'Ready tenants',
+    description: 'Every module ships with seeded data, approval chains, and dashboards so prospects see working flows immediately.',
+    stat: 'Preloaded demo',
   },
   {
-    title: 'AI-Assisted Ops',
-    description: 'Variance alerts and natural language summaries highlight issues before weekly reviews.',
-    stat: '92% risk matches',
+    title: 'Audit-grade controls',
+    description: 'Policies, risk registers, CAPA, and financial audit trails are first-class, matching the compliance module in the product file.',
+    stat: 'Compliance built-in',
   },
 ];
 

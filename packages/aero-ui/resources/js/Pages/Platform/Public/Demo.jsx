@@ -6,8 +6,6 @@ import {
   CardBody,
   Chip,
   Button,
-  Input,
-  Textarea,
 } from '@heroui/react';
 import { demoSteps, demoStats, testimonialSlides } from '@/constants/marketing';
 import PublicLayout from '@/Layouts/PublicLayout';
@@ -31,14 +29,7 @@ const Demo = () => {
     badge: isDarkMode ? 'border-white/30 text-white' : 'border-slate-300 text-slate-700',
     buttonPrimary: isDarkMode ? 'bg-white text-slate-900 font-semibold' : 'bg-slate-900 text-white font-semibold',
     buttonBorder: isDarkMode ? 'border-white/40 text-white' : 'border-slate-300 text-slate-700',
-    inputWrapper: isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-slate-200',
-    inputLabel: isDarkMode ? 'text-slate-200' : 'text-slate-600',
   }), [isDarkMode]);
-
-  const fieldClasses = {
-    inputWrapper: palette.inputWrapper,
-    label: palette.inputLabel,
-  };
 
   return (
     <PublicLayout mainClassName="pt-0">
@@ -60,10 +51,10 @@ const Demo = () => {
           <div>
             <Chip variant="flat" color="primary" className="uppercase tracking-[0.35em] text-[10px] md:text-xs">Demo</Chip>
             <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-5 mb-4 md:mb-6">
-              See your workflows running in Aero before you commit.
+              Open the pre-provisioned demo tenant in seconds.
             </h1>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
-              We configure the demo with your modules, sample data, and approval chains so stakeholders can judge the fit in a single session.
+              The environment already includes the modules and submodules defined in products.php with seeded data, approvals, dashboards, and workflows so you can explore without a scheduling loop.
             </p>
             <div className="grid grid-cols-3 gap-2 md:gap-4 mt-6 md:mt-10">
               {demoStats.map((stat) => (
@@ -76,23 +67,62 @@ const Demo = () => {
               ))}
             </div>
             <div className="flex flex-wrap gap-2 md:gap-4 mt-6 md:mt-10">
-              <Button as={Link} href={route('platform.register.index')} size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10">
-                Start free trial
+              <Button
+                as="a"
+                href="https://demo.aeos365.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+                className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-10"
+              >
+                Open live demo
               </Button>
-              <Button as={Link} href={route('pricing')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.buttonBorder}`}>
-                Explore pricing
+              <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.buttonBorder}`}>
+                Start free trial
               </Button>
             </div>
           </div>
         <Card className={palette.card}>
           <CardBody className="space-y-3 md:space-y-4">
-            <Chip color="success" variant="flat" size="sm" className="text-[10px] md:text-xs">Request a demo</Chip>
-            <Input label="Full name" variant="bordered" classNames={fieldClasses} />
-            <Input label="Work email" type="email" variant="bordered" classNames={fieldClasses} />
-            <Input label="Company" variant="bordered" classNames={fieldClasses} />
-            <Input label="Number of employees" variant="bordered" classNames={fieldClasses} />
-            <Textarea label="What should we cover?" minRows={4} variant="bordered" classNames={fieldClasses} />
-            <Button className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold">Book session</Button>
+            <Chip color="success" variant="flat" size="sm" className="text-[10px] md:text-xs">Pre-provisioned tenant</Chip>
+            <p className={`text-sm md:text-base ${palette.mutedText}`}>
+              The demo environment runs a ready tenant with HRM, CRM, Finance, Projects, Inventory, POS, SCM, Quality, DMS, and Compliance modules enabled. Sample data, approval chains, and analytics are preloaded so you can explore without waiting on a call.
+            </p>
+            <div className="grid grid-cols-1 gap-2 md:gap-3">
+              <Card className={`${palette.gradientCard} text-left`}>
+                <CardBody className="space-y-1">
+                  <p className="text-xs md:text-sm font-semibold">How to check the demo</p>
+                  <ul className={`text-[11px] md:text-sm ${palette.mutedText} space-y-1 list-disc list-inside`}>
+                    <li>Click "Open live demo" to launch https://demo.aeos365.com.</li>
+                    <li>Use the provided demo personas on the login screen for different roles.</li>
+                    <li>Switch modules to review the same hierarchy from products.php.</li>
+                  </ul>
+                </CardBody>
+              </Card>
+              <Card className={palette.card}>
+                <CardBody className="space-y-1">
+                  <p className="text-xs md:text-sm font-semibold">What is included</p>
+                  <p className={`text-[11px] md:text-sm ${palette.mutedText}`}>
+                    Sample employees, suppliers, projects, inventory, sales counters, audits, and compliance registers with dashboards, workflows, and reports already wired.
+                  </p>
+                </CardBody>
+              </Card>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                as="a"
+                href="https://demo.aeos365.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+                className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold"
+              >
+                Check demo
+              </Button>
+              <Button as={Link} href={route('pricing')} size="sm" variant="bordered" className={`px-6 md:px-10 ${palette.buttonBorder}`}>
+                See pricing
+              </Button>
+            </div>
           </CardBody>
         </Card>
         </div>
@@ -147,11 +177,18 @@ const Demo = () => {
               We'll map your key workflows, pick modules, and share your implementation timeline.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-              <Button size="sm" className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-8">
-                Book a live tour
+              <Button
+                size="sm"
+                as="a"
+                href="https://demo.aeos365.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold px-6 md:px-8"
+              >
+                Open live demo
               </Button>
-              <Button as={Link} href={route('contact')} size="sm" variant="bordered" className={`px-6 md:px-8 ${palette.buttonBorder}`}>
-                Message our team
+              <Button as={Link} href={route('platform.register.index')} size="sm" variant="bordered" className={`px-6 md:px-8 ${palette.buttonBorder}`}>
+                Start free trial
               </Button>
             </div>
           </CardBody>
