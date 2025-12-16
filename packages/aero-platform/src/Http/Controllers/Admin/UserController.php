@@ -6,7 +6,7 @@ use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\Platform\Http\Resources\UserCollection;
 use Aero\Platform\Models\LandlordUser;
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +46,7 @@ class UserController extends Controller
      */
     public function adminIndex(): \Inertia\Response
     {
-        return Inertia::render('Pages/Shared/UsersList', [
+        return Inertia::render('UsersList', [
             'title' => 'Platform Administrators',
             'roles' => Role::where('guard_name', 'landlord')->get(),
             'departments' => [], // Platform admins don't have departments
@@ -60,7 +60,7 @@ class UserController extends Controller
      */
     public function tenantIndex(): \Inertia\Response
     {
-        return Inertia::render('Pages/Shared/UsersList', [
+        return Inertia::render('UsersList', [
             'title' => 'User Management',
             'roles' => Role::where('guard_name', 'web')->get(),
             'departments' => Department::all(),

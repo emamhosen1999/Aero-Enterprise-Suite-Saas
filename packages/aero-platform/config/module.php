@@ -372,10 +372,19 @@ return [
                 [
                     'code' => 'landlord_roles',
                     'name' => 'Roles',
-                    'route' => '/users/roles',
+                    'route' => '/roles',
                     'actions' => [
                         ['code' => 'view', 'name' => 'View Roles'],
                         ['code' => 'manage', 'name' => 'Manage Roles'],
+                    ],
+                ],
+                [
+                    'code' => 'module_access',
+                    'name' => 'Module Access',
+                    'route' => '/module-access',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Module Access'],
+                        ['code' => 'manage', 'name' => 'Manage Module Access'],
                     ],
                 ],
             ],

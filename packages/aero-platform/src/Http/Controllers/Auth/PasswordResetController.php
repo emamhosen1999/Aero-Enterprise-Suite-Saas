@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Http\Controllers\Auth;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Aero\Platform\Services\Shared\Auth\ModernAuthenticationService;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;

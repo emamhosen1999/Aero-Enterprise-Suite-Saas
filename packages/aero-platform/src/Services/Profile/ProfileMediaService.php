@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Services\Profile;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 

@@ -126,7 +126,7 @@ class RegistrationPageController extends Controller
             });
 
         // Fetch all modules (excluding core) for individual selection
-        $modules = \Aero\Platform\Models\Shared\Module::where('is_active', true)
+        $modules = \Aero\Core\Models\Module::where('is_active', true)
             ->where('is_core', false) // Core is always included
             ->select('id', 'code', 'name', 'description', 'category')
             ->orderBy('priority')
@@ -187,7 +187,7 @@ class RegistrationPageController extends Controller
             });
 
         // Fetch modules for display
-        $modules = \Aero\Platform\Models\Shared\Module::where('is_active', true)
+        $modules = \Aero\Core\Models\Module::where('is_active', true)
             ->where('is_core', false)
             ->select('id', 'code', 'name')
             ->get();

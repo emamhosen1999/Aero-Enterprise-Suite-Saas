@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Services\Notification;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 

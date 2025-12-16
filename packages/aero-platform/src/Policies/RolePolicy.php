@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Policies;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Auth\Access\Response;
 use Spatie\Permission\Models\Role;
 

@@ -14,7 +14,7 @@ use Aero\Platform\Http\Requests\UpdateUserRoleRequest;
 use Aero\Platform\Http\Requests\UpdateUserStatusRequest;
 use Aero\Platform\Http\Resources\UserCollection;
 use Aero\Platform\Http\Resources\UserResource;
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

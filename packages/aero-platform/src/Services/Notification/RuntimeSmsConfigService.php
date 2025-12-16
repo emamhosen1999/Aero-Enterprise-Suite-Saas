@@ -3,7 +3,7 @@
 namespace Aero\Platform\Services\Notification;
 
 use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Models\Shared\SystemSetting;
+use Aero\Core\Models\SystemSetting;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;

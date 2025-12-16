@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Policies;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Aero\Platform\Policies\Concerns\ChecksModuleAccess;
 
 class UserPolicy

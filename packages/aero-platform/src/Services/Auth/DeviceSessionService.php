@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Services\Auth;
 
-use Aero\Platform\Models\Shared\User;
-use Aero\Platform\Models\Shared\UserDevice;
+use Aero\Core\Models\User;
+use Aero\Core\Models\UserDevice;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;

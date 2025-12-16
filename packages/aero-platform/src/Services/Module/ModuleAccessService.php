@@ -2,23 +2,22 @@
 
 namespace Aero\Platform\Services\Module;
 
-use Aero\Platform\Models\Shared\Module;
-use Aero\Platform\Models\Shared\ModuleComponent;
-use Aero\Platform\Models\Shared\ModuleComponentAction;
-use Aero\Platform\Models\Shared\Role;
-use Aero\Platform\Models\Shared\SubModule;
-use Aero\Platform\Models\Shared\User;
+use Aero\Platform\Models\LandlordUser;
+use Aero\Platform\Models\Module;
+use Aero\Platform\Models\ModuleComponent;
+use Aero\Platform\Models\ModuleComponentAction;
+use Aero\Platform\Models\Role;
+use Aero\Platform\Models\SubModule;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * Module Access Service
  *
- * Handles checking user access to modules based on:
- * 1. Super Admin Bypass - Platform/Tenant Super Admins have special access
- * 2. Plan Access - Is the module/submodule/component/action in the tenant's subscription plan?
- * 3. Role Module Access - Does the user's role have access to the module hierarchy?
+ * Handles checking landlord user access to platform modules based on:
+ * 1. Super Admin Bypass - Platform Super Admins have special access
+ * 2. Role Module Access - Does the user's role have access to the module hierarchy?
  *
- * Access Formula: User Access = Super Admin Bypass OR (Plan Access ∩ Role Module Access)
+ * Access Formula: User Access = Super Admin Bypass OR Role Module Access
  *
  * Compliance: Section 7 - Access Control Logic
  */
@@ -34,7 +33,7 @@ class ModuleAccessService
     /**
      * Check if user is platform super administrator.
      */
-    protected function isPlatformSuperAdmin(User $user): bool
+    protected function isPlatformSuperAdmin(LandlordLandlordUser $user): bool
     {
         return $user->hasRole('Super Administrator');
     }
@@ -42,7 +41,7 @@ class ModuleAccessService
     /**
      * Check if user is tenant super administrator.
      */
-    protected function isTenantSuperAdmin(User $user): bool
+    protected function isTenantSuperAdmin(LandlordLandlordUser $user): bool
     {
         return $user->hasRole('tenant_super_administrator');
     }
@@ -50,7 +49,7 @@ class ModuleAccessService
     /**
      * Check if user's role has access to a module by ID.
      */
-    protected function userHasModuleAccess(User $user, int $moduleId): bool
+    protected function userHasModuleAccess(LandlordUser $user, int $moduleId): bool
     {
         // Get user's roles and check each
         $roles = $user->roles;
@@ -67,7 +66,7 @@ class ModuleAccessService
     /**
      * Check if user's role has access to a submodule by ID.
      */
-    protected function userHasSubModuleAccess(User $user, int $subModuleId): bool
+    protected function userHasSubModuleAccess(LandlordUser $user, int $subModuleId): bool
     {
         $roles = $user->roles;
 
@@ -83,7 +82,7 @@ class ModuleAccessService
     /**
      * Check if user's role has access to a component by ID.
      */
-    protected function userHasComponentAccess(User $user, int $componentId): bool
+    protected function userHasComponentAccess(LandlordUser $user, int $componentId): bool
     {
         $roles = $user->roles;
 
@@ -99,7 +98,7 @@ class ModuleAccessService
     /**
      * Check if user's role has access to an action by ID.
      */
-    protected function userHasActionAccess(User $user, int $actionId): bool
+    protected function userHasActionAccess(LandlordUser $user, int $actionId): bool
     {
         $roles = $user->roles;
 
@@ -115,7 +114,7 @@ class ModuleAccessService
     /**
      * Get user's access scope for an action.
      */
-    public function getUserAccessScope(User $user, int $actionId): ?string
+    public function getUserAccessScope(LandlordUser $user, int $actionId): ?string
     {
         $roles = $user->roles;
 
@@ -151,7 +150,7 @@ class ModuleAccessService
      *
      * @return array{allowed: bool, reason: string, message: string}
      */
-    public function canAccessModule(User $user, string $moduleCode): array
+    public function canAccessModule(LandlordUser $user, string $moduleCode): array
     {
         // EXCEPTION: Super Administrator bypasses everything
         if ($this->isPlatformSuperAdmin($user)) {
@@ -201,7 +200,7 @@ class ModuleAccessService
      *
      * @return array{allowed: bool, reason: string, message: string}
      */
-    public function canAccessSubModule(User $user, string $moduleCode, string $subModuleCode): array
+    public function canAccessSubModule(LandlordUser $user, string $moduleCode, string $subModuleCode): array
     {
         // EXCEPTION: Super Administrator bypasses everything
         if ($this->isPlatformSuperAdmin($user)) {
@@ -264,7 +263,7 @@ class ModuleAccessService
      *
      * @return array{allowed: bool, reason: string, message: string}
      */
-    public function canAccessComponent(User $user, string $moduleCode, string $subModuleCode, string $componentCode): array
+    public function canAccessComponent(LandlordUser $user, string $moduleCode, string $subModuleCode, string $componentCode): array
     {
         // EXCEPTION: Super Administrator bypasses everything
         if ($this->isPlatformSuperAdmin($user)) {
@@ -341,7 +340,7 @@ class ModuleAccessService
      * @return array{allowed: bool, reason: string, message: string}
      */
     public function canPerformAction(
-        User $user,
+        LandlordUser $user,
         string $moduleCode,
         string $subModuleCode,
         string $componentCode,
@@ -435,7 +434,7 @@ class ModuleAccessService
      * @param  string  $type  Type: module, submodule, component, action
      */
     protected function isPlanAllowed(
-        User $user,
+        LandlordUser $user,
         string $type,
         string $moduleCode,
         ?string $subModuleCode = null,
@@ -494,7 +493,7 @@ class ModuleAccessService
     /**
      * Get all accessible modules for a user (respecting both plan and role access).
      */
-    public function getAccessibleModules(User $user): array
+    public function getAccessibleModules(LandlordUser $user): array
     {
         $cacheKey = "user_accessible_modules:{$user->id}";
 
@@ -522,7 +521,7 @@ class ModuleAccessService
     /**
      * Clear user access cache.
      */
-    public function clearUserCache(User $user): void
+    public function clearUserCache(LandlordUser $user): void
     {
         Cache::forget("user_accessible_modules:{$user->id}");
 
@@ -532,3 +531,4 @@ class ModuleAccessService
         }
     }
 }
+

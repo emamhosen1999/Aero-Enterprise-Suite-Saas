@@ -3,7 +3,7 @@
 namespace Aero\Platform\Http\Controllers\Admin;
 
 use Aero\Platform\Models\LandlordUser;
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +50,7 @@ class RoleController extends Controller
      */
     protected function getViewPath(): string
     {
-        return 'Shared/Pages/RoleManagement';
+        return 'RoleManagement';
     }
 
     /**

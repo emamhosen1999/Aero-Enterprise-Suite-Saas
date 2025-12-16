@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Services\Profile;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileCrudService

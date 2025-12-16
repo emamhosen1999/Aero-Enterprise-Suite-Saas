@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Policies\Concerns;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Aero\Platform\Services\Shared\Module\ModuleAccessService;
 
 /**

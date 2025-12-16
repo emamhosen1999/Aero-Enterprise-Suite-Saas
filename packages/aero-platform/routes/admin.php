@@ -221,6 +221,11 @@ Route::middleware(['auth:landlord'])->group(function () {
             ->name('modules.index');
     });
 
+    // Module Access Management (Platform Users > Module Access)
+    Route::get('/module-access', [ModuleController::class, 'index'])
+        ->middleware(['module:landlord_users,module_access'])
+        ->name('admin.module-access');
+
     // Modules Management (Module Access)
     Route::middleware(['module:platform-roles,module-permissions'])->prefix('modules')->name('admin.modules.')->group(function () {
         Route::get('/', [ModuleController::class, 'index'])->name('index');

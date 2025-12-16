@@ -5,7 +5,7 @@ namespace Aero\Platform\Services\Profile;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 
 /**
  * Profile Update Service

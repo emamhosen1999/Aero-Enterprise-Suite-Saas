@@ -2,12 +2,12 @@
 
 namespace Aero\Platform\Services\Module;
 
-use Aero\Platform\Models\Shared\Module;
-use Aero\Platform\Models\Shared\ModuleComponent;
-use Aero\Platform\Models\Shared\ModuleComponentAction;
-use Aero\Platform\Models\Shared\Role;
-use Aero\Platform\Models\Shared\RoleModuleAccess;
-use Aero\Platform\Models\Shared\SubModule;
+use Aero\Platform\Models\Module;
+use Aero\Platform\Models\ModuleComponent;
+use Aero\Platform\Models\ModuleComponentAction;
+use Aero\Platform\Models\Role;
+use Aero\Platform\Models\RoleModuleAccess;
+use Aero\Platform\Models\SubModule;
 use Illuminate\Support\Facades\Cache;
 
 /**

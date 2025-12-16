@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Services\Auth;
 
-use Aero\Platform\Models\Shared\User;
+use Aero\Core\Models\User;
 use Aero\Platform\Models\Tenant;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;

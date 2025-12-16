@@ -3,7 +3,7 @@
 namespace Aero\Platform\Services;
 
 use Aero\Platform\Models\PlatformSetting;
-use Aero\Platform\Models\Shared\SystemSetting;
+use Aero\Core\Models\SystemSetting;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;

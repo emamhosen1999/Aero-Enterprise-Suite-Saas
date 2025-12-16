@@ -5,15 +5,17 @@
  * 
  * Features:
  * - Reads navigation from `props.navigation` (supplied by HandleInertiaRequests)
- * - Resolves icon strings to HeroIcon components
  * - Applies role-based access control filtering
  * - Super Admin bypass for full visibility
+ * 
+ * NOTE: Icon resolution happens in navigationUtils.jsx (single source of truth)
  * 
  * Backend Flow:
  * 1. Each module's ServiceProvider registers navigation from its config/module.php
  * 2. NavigationRegistry aggregates all module navigation
  * 3. HandleInertiaRequests shares navigation via Inertia props
  * 4. This hook consumes props.navigation directly
+ * 5. navigationUtils.jsx resolves icon strings to React components
  * 
  * @example
  * const { navigation } = useNavigation();
@@ -21,137 +23,15 @@
  * @returns {Object} Navigation state with processed items
  */
 
-
-
 import { usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 import { filterNavigationByAccess, isSuperAdmin, isPlatformSuperAdmin } from '../utils/moduleAccessUtils';
 
-// Import Core Icons statically - expanded for all navigation icons
-import { 
-    HomeIcon, 
-    UsersIcon, 
-    Cog6ToothIcon,
-    Cog8ToothIcon,
-    ShieldCheckIcon,
-    UserIcon,
-    UserGroupIcon,
-    UserPlusIcon,
-    ClipboardDocumentListIcon,
-    ChartBarIcon,
-    ChartBarSquareIcon,
-    ChartPieIcon,
-    BriefcaseIcon,
-    BuildingOfficeIcon,
-    BuildingOffice2Icon,
-    CurrencyDollarIcon,
-    CreditCardIcon,
-    BanknotesIcon,
-    ShoppingCartIcon,
-    TruckIcon,
-    DocumentTextIcon,
-    CubeIcon,
-    GlobeAltIcon,
-    CircleStackIcon,
-    ServerIcon,
-    ClockIcon,
-    ExclamationTriangleIcon,
-    ExclamationCircleIcon,
-    LinkIcon,
-    KeyIcon,
-    ArrowsRightLeftIcon,
-    ArrowPathIcon,
-    PuzzlePieceIcon,
-    CommandLineIcon,
-    ComputerDesktopIcon,
-    PaintBrushIcon,
-    EnvelopeIcon,
-    LanguageIcon,
-    WrenchScrewdriverIcon,
-    QueueListIcon,
-    ViewColumnsIcon,
-    RectangleStackIcon,
-    PresentationChartLineIcon,
-    FolderIcon,
-    CalendarIcon,
-    CalendarDaysIcon,
-    ClipboardDocumentCheckIcon,
-    AcademicCapIcon,
-    ArchiveBoxIcon,
-    ScaleIcon,
-    SparklesIcon,
-    ChatBubbleLeftRightIcon,
-    FunnelIcon,
-    DocumentChartBarIcon,
-} from '@heroicons/react/24/outline';
-
-// Icon name to component mapping
-const ICON_MAP = {
-    HomeIcon,
-    UsersIcon,
-    UserIcon,
-    UserGroupIcon,
-    UserPlusIcon,
-    Cog6ToothIcon,
-    Cog8ToothIcon,
-    ShieldCheckIcon,
-    ClipboardDocumentListIcon,
-    ChartBarIcon,
-    ChartBarSquareIcon,
-    ChartPieIcon,
-    BriefcaseIcon,
-    BuildingOfficeIcon,
-    BuildingOffice2Icon,
-    CurrencyDollarIcon,
-    CreditCardIcon,
-    BanknotesIcon,
-    ShoppingCartIcon,
-    TruckIcon,
-    DocumentTextIcon,
-    CubeIcon,
-    GlobeAltIcon,
-    CircleStackIcon,
-    ServerIcon,
-    ClockIcon,
-    ExclamationTriangleIcon,
-    ExclamationCircleIcon,
-    LinkIcon,
-    KeyIcon,
-    ArrowsRightLeftIcon,
-    ArrowPathIcon,
-    PuzzlePieceIcon,
-    CommandLineIcon,
-    ComputerDesktopIcon,
-    PaintBrushIcon,
-    EnvelopeIcon,
-    LanguageIcon,
-    WrenchScrewdriverIcon,
-    QueueListIcon,
-    ViewColumnsIcon,
-    RectangleStackIcon,
-    PresentationChartLineIcon,
-    FolderIcon,
-    CalendarIcon,
-    CalendarDaysIcon,
-    ClipboardDocumentCheckIcon,
-    AcademicCapIcon,
-    ArchiveBoxIcon,
-    ScaleIcon,
-    SparklesIcon,
-    ChatBubbleLeftRightIcon,
-    FunnelIcon,
-    DocumentChartBarIcon,
-};
-
 /**
- * Process a navigation item - resolve icons and check current route
+ * Process a navigation item - check current route
+ * NOTE: Icon resolution happens in navigationUtils.jsx, not here
  */
 function processNavItem(navItem, url) {
-    // Resolve icon from string to component if needed
-    const icon = typeof navItem.icon === 'string' 
-        ? ICON_MAP[navItem.icon] 
-        : navItem.icon;
-
     // Check if current route matches this item
     let current = false;
     const itemPath = navItem.href || navItem.path;
@@ -169,10 +49,10 @@ function processNavItem(navItem, url) {
     const children = navItem.children?.map(child => processNavItem(child, url));
 
     // Normalize the item structure (backend uses 'path', frontend expects 'href')
+    // Keep icon as string - it will be resolved in navigationUtils.jsx
     return {
         ...navItem,
         href: itemPath,
-        icon,
         current,
         children: children?.length ? children : undefined,
     };

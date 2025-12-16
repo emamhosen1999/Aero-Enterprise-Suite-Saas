@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Services;
 
-use Aero\Platform\Models\Shared\SystemSetting;
+use Aero\Core\Models\SystemSetting;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;

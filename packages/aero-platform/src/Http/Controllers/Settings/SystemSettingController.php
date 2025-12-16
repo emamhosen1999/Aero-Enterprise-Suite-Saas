@@ -4,7 +4,7 @@ namespace Aero\Platform\Http\Controllers\Settings;
 
 use Aero\Platform\Http\Requests\UpdateSystemSettingRequest;
 use Aero\Platform\Http\Resources\SystemSettingResource;
-use Aero\Platform\Models\Shared\SystemSetting;
+use Aero\Core\Models\SystemSetting;
 use Aero\Platform\Services\Notification\RuntimeSmsConfigService;
 use Aero\Platform\Services\Settings\SystemSettingService;
 use Aero\Platform\Services\MailService;

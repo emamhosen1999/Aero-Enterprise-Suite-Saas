@@ -2,8 +2,8 @@
 
 namespace Aero\Platform\Http\Controllers;
 
+use Aero\Platform\Models\Module;
 use Aero\Platform\Models\Plan;
-use Aero\Platform\Models\Shared\Module;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

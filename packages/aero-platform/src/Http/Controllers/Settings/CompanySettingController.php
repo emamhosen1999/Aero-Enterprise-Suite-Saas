@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Http\Controllers\Settings;
 
-use Aero\Platform\Models\Shared\CompanySetting;
+use Aero\Core\Models\CompanySetting;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
