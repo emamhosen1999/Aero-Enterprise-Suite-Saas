@@ -66,6 +66,9 @@ class IdentifyDomainContext
                 return redirect('/install');
             }
 
+            // Set root view for Inertia (since this bypasses HandleInertiaRequests)
+            Inertia::setRootView('aero-ui::app');
+
             // Render Landing Page
             return Inertia::render('Platform/Public/Landing');
         }
