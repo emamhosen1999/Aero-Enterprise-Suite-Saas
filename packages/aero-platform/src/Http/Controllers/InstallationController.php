@@ -725,19 +725,32 @@ class InstallationController extends Controller
             ]]);
             DB::reconnect('mysql');
 
-            // Stage 2: Run migrations
-            \Log::info('Installation Stage: migrations', ['stage' => 'migrations']);
-            Artisan::call('migrate', ['--force' => true]);
-            $migrationOutput = Artisan::output();
-            \Log::info('Migration output', ['output' => $migrationOutput]);
+            // Verify database connection after reconnect
+            try {
+                DB::connection()->getPdo();
+                \Log::info('Database reconnection successful');
+            } catch (\Exception $e) {
+                throw new \RuntimeException('Failed to reconnect to database after configuration update: ' . $e->getMessage());
+            }
 
+            // Wrap all database operations in a transaction for atomicity
+            DB::beginTransaction();
 
-            Artisan::call('db:seed', [
-                '--class' => 'Aero\\Platform\\Database\\Seeders\\PlanSeeder',
-                '--force' => true,
-            ]);
-            $seedOutput = Artisan::output();
-            \Log::info('PlanSeeder output', ['output' => $seedOutput]);
+            try {
+                // Stage 2: Run migrations
+                \Log::info('Installation Stage: migrations', ['stage' => 'migrations']);
+                Artisan::call('migrate', ['--force' => true]);
+                $migrationOutput = Artisan::output();
+                \Log::info('Migration output', ['output' => $migrationOutput]);
+
+                // Stage 3: Seed plans
+                \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
+                Artisan::call('db:seed', [
+                    '--class' => 'Aero\\Platform\\Database\\Seeders\\PlanSeeder',
+                    '--force' => true,
+                ]);
+                $seedOutput = Artisan::output();
+                \Log::info('PlanSeeder output', ['output' => $seedOutput]);
 
             // Stage 4: Create admin user
             \Log::info('Installation Stage: admin', ['stage' => 'admin']);
@@ -851,12 +864,29 @@ class InstallationController extends Controller
                 ],
             ]);
 
-            // Stage 6: Finalization
+                // Commit transaction - all database operations succeeded
+                DB::commit();
+                \Log::info('Database transaction committed successfully');
+
+            } catch (\Throwable $transactionException) {
+                // Rollback transaction on any failure
+                DB::rollBack();
+                \Log::error('Transaction rolled back due to error', [
+                    'error' => $transactionException->getMessage(),
+                ]);
+                throw $transactionException;
+            }
+
+            // Stage 6: Verify Installation
+            \Log::info('Installation Stage: verification', ['stage' => 'verification']);
+            $this->verifyInstallation($adminConfig['admin_email']);
+
+            // Stage 7: Finalization
             \Log::info('Installation Stage: finalization', ['stage' => 'finalization']);
             File::put(storage_path('installed'), json_encode([
                 'installed_at' => now()->toIso8601String(),
                 'version' => config('app.version', '1.0.0'),
-                'admin_email' => $admin->email,
+                'admin_email' => $adminConfig['admin_email'],
             ]));
 
             // Clear all caches
@@ -869,7 +899,7 @@ class InstallationController extends Controller
             session()->forget(['installation_verified', 'db_config', 'platform_config', 'admin_config']);
 
             \Log::info('Installation completed successfully', [
-                'admin_email' => $admin->email,
+                'admin_email' => $adminConfig['admin_email'],
                 'platform' => $platformConfig['app_name'],
             ]);
 
@@ -1018,35 +1048,59 @@ class InstallationController extends Controller
         \Log::warning('Rolling back installation', ['failed_stage' => $failedStage]);
 
         try {
-            // Remove admin user if created
-            if ($adminEmail && in_array($failedStage, ['settings', 'finalization'])) {
+            // If database operations failed, transaction will already be rolled back
+            // But we still need to clean up other artifacts
+
+            // 1. Remove admin user if created (belt and suspenders with transaction rollback)
+            if ($adminEmail) {
                 try {
                     LandlordUser::where('email', $adminEmail)->delete();
                     \Log::info('Rollback: Admin user deleted', ['email' => $adminEmail]);
                 } catch (\Throwable $e) {
-                    \Log::warning('Rollback: Failed to delete admin user', ['error' => $e->getMessage()]);
+                    \Log::warning('Rollback: Failed to delete admin user (may already be rolled back)', ['error' => $e->getMessage()]);
                 }
             }
 
-            // Remove platform settings if created
-            if ($failedStage === 'finalization') {
+            // 2. Remove platform settings if created
+            try {
+                PlatformSetting::where('slug', 'platform')->delete();
+                \Log::info('Rollback: Platform settings deleted');
+            } catch (\Throwable $e) {
+                \Log::warning('Rollback: Failed to delete platform settings (may already be rolled back)', ['error' => $e->getMessage()]);
+            }
+
+            // 3. Rollback migrations if they were run
+            if (in_array($failedStage, ['seeding', 'admin', 'settings', 'verification', 'finalization'])) {
                 try {
-                    PlatformSetting::where('slug', 'platform')->delete();
-                    \Log::info('Rollback: Platform settings deleted');
+                    \Log::info('Rollback: Attempting to rollback migrations');
+                    Artisan::call('migrate:rollback', ['--force' => true]);
+                    $rollbackOutput = Artisan::output();
+                    \Log::info('Rollback: Migrations rolled back', ['output' => $rollbackOutput]);
                 } catch (\Throwable $e) {
-                    \Log::warning('Rollback: Failed to delete platform settings', ['error' => $e->getMessage()]);
+                    \Log::warning('Rollback: Failed to rollback migrations', ['error' => $e->getMessage()]);
                 }
             }
 
-            // Remove lock file if it exists
+            // 4. Remove lock file if it exists
             $lockFile = storage_path('installed');
             if (File::exists($lockFile)) {
                 File::delete($lockFile);
                 \Log::info('Rollback: Installation lock file removed');
             }
 
-            // Note: We don't rollback migrations as that could cause more issues
-            // The user will need to manually clean the database if needed
+            // 5. Restore .env backup if it exists
+            $backupPath = storage_path('.env.backup');
+            if (File::exists($backupPath)) {
+                try {
+                    File::copy($backupPath, base_path('.env'));
+                    File::delete($backupPath);
+                    \Log::info('Rollback: .env file restored from backup');
+                } catch (\Throwable $e) {
+                    \Log::warning('Rollback: Failed to restore .env backup', ['error' => $e->getMessage()]);
+                }
+            }
+
+            \Log::info('Rollback completed');
 
         } catch (\Throwable $e) {
             \Log::error('Rollback failed', [
@@ -1068,5 +1122,122 @@ class InstallationController extends Controller
             'hasAdminConfig' => session()->has('admin_config'),
             'isVerified' => session('installation_verified', false),
         ]);
+    }
+
+    /**
+     * Validate prerequisites before installation
+     */
+    private function validatePreInstallation(): void
+    {
+        // 1. Check if already installed
+        if (File::exists(storage_path('installed'))) {
+            throw new \RuntimeException('Platform is already installed. Remove storage/installed file to reinstall.');
+        }
+
+        // 2. Check storage directory is writable
+        if (! is_writable(storage_path())) {
+            throw new \RuntimeException('Storage directory is not writable. Please check permissions.');
+        }
+
+        // 3. Check .env file is writable
+        $envPath = base_path('.env');
+        if (File::exists($envPath) && ! is_writable($envPath)) {
+            throw new \RuntimeException('.env file exists but is not writable. Please check permissions.');
+        }
+
+        // 4. Check disk space (require 100MB minimum)
+        $freeSpace = disk_free_space(storage_path());
+        if ($freeSpace < 100 * 1024 * 1024) {
+            $freeMB = round($freeSpace / 1024 / 1024, 2);
+            throw new \RuntimeException("Insufficient disk space. Only {$freeMB}MB available, 100MB required.");
+        }
+
+        // 5. Backup existing .env if it exists
+        if (File::exists($envPath)) {
+            $backupPath = storage_path('.env.backup');
+            File::copy($envPath, $backupPath);
+            \Log::info('Backed up existing .env file', ['backup' => $backupPath]);
+        }
+
+        \Log::info('Pre-flight validation passed');
+    }
+
+    /**
+     * Verify installation completed successfully
+     */
+    private function verifyInstallation(string $adminEmail): void
+    {
+        // 1. Check migrations table exists and has records
+        if (! \Illuminate\Support\Facades\Schema::hasTable('migrations')) {
+            throw new \RuntimeException('Migrations table not found. Database migration may have failed.');
+        }
+
+        $migrationCount = DB::table('migrations')->count();
+        if ($migrationCount === 0) {
+            throw new \RuntimeException('No migrations were executed. Migration process may have failed.');
+        }
+        \Log::info('Migration verification passed', ['migration_count' => $migrationCount]);
+
+        // 2. Check required tables exist
+        $requiredTables = [
+            'landlord_users', 'tenants', 'domains', 'plans',
+            'modules', 'platform_settings', 'roles', 'permissions',
+        ];
+
+        $missingTables = [];
+        foreach ($requiredTables as $table) {
+            if (! \Illuminate\Support\Facades\Schema::hasTable($table)) {
+                $missingTables[] = $table;
+            }
+        }
+
+        if (! empty($missingTables)) {
+            throw new \RuntimeException('Required tables missing: ' . implode(', ', $missingTables));
+        }
+        \Log::info('Required tables verification passed', ['tables_checked' => count($requiredTables)]);
+
+        // 3. Verify admin user exists with Super Administrator role
+        $adminCount = LandlordUser::whereHas('roles', function ($q) {
+            $q->where('name', 'Super Administrator');
+        })->count();
+
+        if ($adminCount === 0) {
+            throw new \RuntimeException('No admin user with Super Administrator role found. Admin creation may have failed.');
+        }
+
+        // Verify specific admin user
+        $admin = LandlordUser::where('email', $adminEmail)->first();
+        if (! $admin) {
+            throw new \RuntimeException("Admin user with email {$adminEmail} not found.");
+        }
+
+        if (! $admin->hasRole('Super Administrator')) {
+            throw new \RuntimeException("Admin user exists but does not have Super Administrator role.");
+        }
+        \Log::info('Admin user verification passed', ['email' => $adminEmail]);
+
+        // 4. Verify platform settings exist
+        if (! PlatformSetting::where('slug', 'platform')->exists()) {
+            throw new \RuntimeException('Platform settings not found. Settings creation may have failed.');
+        }
+        \Log::info('Platform settings verification passed');
+
+        // 5. Verify plans seeded (at least one plan should exist)
+        $planCount = DB::table('plans')->count();
+        if ($planCount === 0) {
+            \Log::warning('No plans found in database. Plan seeding may have been skipped or failed.');
+        } else {
+            \Log::info('Plan seeding verification passed', ['plan_count' => $planCount]);
+        }
+
+        // 6. Test basic database operations
+        try {
+            DB::select('SELECT 1');
+            \Log::info('Database query test passed');
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Database query test failed: ' . $e->getMessage());
+        }
+
+        \Log::info('Installation verification completed successfully');
     }
 }
