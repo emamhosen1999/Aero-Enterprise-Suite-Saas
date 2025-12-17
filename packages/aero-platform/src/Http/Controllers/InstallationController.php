@@ -648,11 +648,13 @@ class InstallationController extends Controller
         }
 
         $stages = [
+            'validation' => 'Validating prerequisites',
             'environment' => 'Updating environment configuration',
             'migrations' => 'Running database migrations',
             'seeding' => 'Seeding initial data',
             'admin' => 'Creating administrator account',
             'settings' => 'Configuring platform settings',
+            'verification' => 'Verifying installation',
             'finalization' => 'Finalizing installation',
         ];
 
@@ -677,6 +679,10 @@ class InstallationController extends Controller
                     'error' => 'Missing configuration data',
                 ], 400);
             }
+
+            // Pre-flight validation
+            \Log::info('Installation Stage: validation', ['stage' => 'validation']);
+            $this->validatePreInstallation();
 
             // Normalize database config keys (handle both old and new format)
             // Convert to format expected by InstallationService (without db_ prefix)
