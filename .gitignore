@@ -1,0 +1,22 @@
+# MCP Template Build Artifacts
+/mcp-agent-template/node_modules/
+/mcp-agent-template/dist/
+/mcp-agent-template/package-lock.json
+
+# MCP Reports
+/mcp-report.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
