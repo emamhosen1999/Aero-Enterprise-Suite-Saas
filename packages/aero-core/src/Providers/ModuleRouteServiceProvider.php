@@ -170,8 +170,8 @@ class ModuleRouteServiceProvider extends ServiceProvider
      */
     protected function registerSaaSRoutes(string $moduleName, string $routesPath, string $namespace): void
     {
-        // CRITICAL: InitializeTenancyIfNotCentral MUST come before 'tenant' middleware
-        // to gracefully return 404 on central domains instead of throwing exceptions.
+        // InitializeTenancyIfNotCentral initializes tenant context on tenant domains
+        // 'tenant' middleware (EnsureTenantContext) ensures valid tenant context exists
         $tenancyMiddleware = \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class;
 
         // Register tenant routes (subdomain-based, requires auth)

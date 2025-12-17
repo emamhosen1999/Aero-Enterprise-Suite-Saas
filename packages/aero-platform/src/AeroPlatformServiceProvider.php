@@ -322,14 +322,20 @@ class AeroPlatformServiceProvider extends ServiceProvider
     /**
      * Register package routes.
      *
-     * Routes are loaded based on domain context:
-     * - admin.* subdomain → admin.php (landlord routes)
-     * - Main platform domain → platform.php (public registration, landing)
-     * - Tenant subdomains → handled by aero-core (NOT loaded here)
+     * Route Architecture:
+     * -------------------
+     * aero-platform has exactly 2 route files:
+     * 1. web.php - Platform domain (domain.com): Landing, registration, public pages, installation
+     * 2. admin.php - Admin domain (admin.domain.com): Landlord management, tenant admin
+     *
+     * Domain-based routing prevents conflicts:
+     * - domain.com → web.php (public platform routes)
+     * - admin.domain.com → admin.php (landlord/admin routes)
+     * - tenant.domain.com → handled by aero-core and modules (NOT loaded here)
      */
     protected function registerRoutes(): void
     {
-        // Admin routes (for admin.* subdomain - landlord guard)
+        // Admin routes (for admin.domain.com - landlord guard)
         Route::group([
             'middleware' => ['web'],
             'domain' => $this->getAdminDomain(),
@@ -337,22 +343,13 @@ class AeroPlatformServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__.'/../routes/admin.php');
         });
 
-        // Public platform routes (MAIN DOMAIN ONLY - registration, landing)
-        // CRITICAL: Must restrict to central domain to avoid conflicts with tenant routes
+        // Platform web routes (for domain.com ONLY - public pages, registration)
+        // CRITICAL: Domain restriction prevents conflicts with tenant routes
         Route::group([
             'middleware' => ['web'],
             'domain' => $this->getPlatformDomain(),
         ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../routes/platform.php');
-        });
-
-        // API routes (public + authenticated)
-        Route::group([
-            'middleware' => ['api'],
-            'prefix' => 'api/platform',
-            'as' => 'api.platform.',
-        ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         });
     }
 

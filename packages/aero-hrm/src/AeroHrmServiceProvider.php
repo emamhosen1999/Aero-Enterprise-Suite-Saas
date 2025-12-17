@@ -71,16 +71,14 @@ class AeroHrmServiceProvider extends ServiceProvider
     /**
      * Register module routes.
      *
-     * Routing Strategy (same as Core):
-     * --------------------------------
-     * In SaaS mode (aero-platform active):
-     * - HRM routes use InitializeTenancyIfNotCentral middleware which:
-     *   1. Checks if request is on a central domain (platform, admin)
-     *   2. Returns 404 on central domains (routes don't exist there)
-     *   3. Initializes tenancy on tenant subdomains
+     * Route Architecture:
+     * -------------------
+     * aero-hrm has exactly 1 route file: web.php
+     * Contains all HRM routes under /hrm prefix with hrm.* naming.
      *
-     * In Standalone mode:
-     * - HRM routes run on all domains with standard web middleware
+     * Domain-based routing:
+     * - In SaaS mode: Routes ONLY on tenant domains (tenant.domain.com/hrm/*)
+     * - In Standalone mode: Routes on main domain (domain.com/hrm/*)
      *
      * @return void
      */
@@ -90,8 +88,8 @@ class AeroHrmServiceProvider extends ServiceProvider
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
-            // SaaS Mode: InitializeTenancyIfNotCentral MUST come BEFORE 'tenant'
-            // to gracefully return 404 on central domains instead of crashing
+            // SaaS Mode: InitializeTenancyIfNotCentral initializes tenant context,
+            // 'tenant' middleware ensures valid tenant context exists
             Route::middleware([
                 'web',
                 \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
@@ -100,32 +98,12 @@ class AeroHrmServiceProvider extends ServiceProvider
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath . '/web.php');
-
-            // API routes for SaaS mode
-            if (file_exists($routesPath . '/api.php')) {
-                Route::middleware([
-                    'api',
-                    \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
-                    'tenant',
-                ])
-                    ->prefix('api/hrm')
-                    ->name('api.hrm.')
-                    ->group($routesPath . '/api.php');
-            }
         } else {
-            // Standalone Mode: Routes with standard web middleware
+            // Standalone Mode: Routes with standard web middleware on domain.com
             Route::middleware(['web'])
                 ->prefix('hrm')
                 ->name('hrm.')
                 ->group($routesPath . '/web.php');
-
-            // API routes for Standalone mode
-            if (file_exists($routesPath . '/api.php')) {
-                Route::middleware(['api'])
-                    ->prefix('api/hrm')
-                    ->name('api.hrm.')
-                    ->group($routesPath . '/api.php');
-            }
         }
     }
 

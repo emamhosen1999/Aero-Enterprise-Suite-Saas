@@ -202,25 +202,22 @@ class AeroCoreServiceProvider extends ServiceProvider
     /**
      * Register Core routes.
      *
-     * Routing Strategy:
-     * -----------------
-     * In SaaS mode (aero-platform active):
-     * - Core routes are ONLY registered on TENANT domains (AUTO-DETECTED from browser)
-     * - On central/admin domains: NO core routes (platform handles those)
-     * - Domain-aware route registration prevents route collision
-     * - Runtime detection - NO manual configuration needed
+     * Route Architecture:
+     * -------------------
+     * aero-core has exactly 1 route file: web.php
+     * Contains all routes including:
+     * - Authentication (login, logout)
+     * - Dashboard, User Management, Roles
+     * - Settings, Profile
+     * - API endpoints (under /api prefix within the file)
      *
-     * In Standalone mode:
-     * - Core routes run on all domains with standard web middleware
-     * - No tenancy middleware is applied
+     * Domain-based routing:
+     * - In SaaS mode: Routes ONLY on tenant domains (tenant.domain.com)
+     * - In Standalone mode: Routes on all domains (domain.com)
      */
     protected function registerRoutes(): void
     {
         $routesPath = __DIR__.'/../routes';
-
-        // Register API routes (always available - no auth required for public endpoints)
-        // These include /api/version/check and /api/error-log
-        $this->registerApiRoutes($routesPath);
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
@@ -241,6 +238,7 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             if (! $isCentralDomain) {
                 // ONLY load core routes on tenant subdomains
+                // InitializeTenancyIfNotCentral initializes tenant, 'tenant' ensures context exists
                 Route::middleware([
                     'web',
                     \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
@@ -249,24 +247,9 @@ class AeroCoreServiceProvider extends ServiceProvider
             }
             // On central domains: do NOT register core routes (platform owns those)
         } else {
-            // Standalone Mode: Routes with standard web middleware
+            // Standalone Mode: Routes with standard web middleware on domain.com
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
-        }
-    }
-
-    /**
-     * Register Core API routes.
-     *
-     * These routes are available on all domains (central and tenant).
-     * Public endpoints like version check don't require authentication.
-     */
-    protected function registerApiRoutes(string $routesPath): void
-    {
-        if (file_exists($routesPath.'/api.php')) {
-            Route::middleware(['api'])
-                ->prefix('api')
-                ->group($routesPath.'/api.php');
         }
     }
 
@@ -324,6 +307,10 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             // Register middleware aliases
             $router->aliasMiddleware('module', \Aero\Core\Http\Middleware\CheckModuleAccess::class);
+
+            // Register 'tenant' middleware alias for tenant-only routes
+            // This ensures requests have a valid tenant context (used after InitializeTenancyIfNotCentral)
+            $router->aliasMiddleware('tenant', \Aero\Core\Http\Middleware\EnsureTenantContext::class);
         });
     }
 

@@ -12,6 +12,7 @@ use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
+use Aero\Core\Services\PlatformErrorReporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +54,18 @@ Route::get('/aero-core/health', function () {
         'timestamp' => now()->toIso8601String(),
     ]);
 })->name('core.health')->withoutMiddleware(['auth']);
+
+// ERROR LOGGING API - Receives frontend errors and forwards to platform (No Auth Required)
+Route::post('/api/error-log', function (Request $request) {
+    $reporter = app(PlatformErrorReporter::class);
+    $traceId = $reporter->reportFrontendError($request->all());
+    
+    return response()->json([
+        'success' => true,
+        'trace_id' => $traceId,
+        'message' => 'Error reported successfully',
+    ]);
+})->name('core.api.error-log')->middleware('throttle:30,1')->withoutMiddleware(['auth']);
 
 // ============================================================================
 // ROOT ROUTE - Redirect to dashboard or login

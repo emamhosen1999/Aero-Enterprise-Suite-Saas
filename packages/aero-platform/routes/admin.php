@@ -15,6 +15,7 @@ use Aero\Platform\Http\Controllers\PlanController;
 use Aero\Platform\Http\Controllers\PlanModuleController;
 use Aero\Platform\Http\Controllers\PlatformSettingController;
 use Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController;
+use Aero\Platform\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -839,5 +840,45 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Platform/Admin/Onboarding/Settings');
         })->middleware(['module:platform-onboarding,onboarding-settings'])->name('settings');
     });
-});
 
+    // =========================================================================
+    // ADMIN API ROUTES (Authenticated - Landlord Guard)
+    // =========================================================================
+    // These are JSON API endpoints for admin operations
+
+    Route::prefix('api/v1')->name('api.v1.')->group(function () {
+        // Tenant Management API
+        Route::prefix('tenants')->name('tenants.')->group(function () {
+            Route::get('/', [TenantController::class, 'index'])->name('index');
+            Route::get('/stats', [TenantController::class, 'stats'])->name('stats');
+            Route::get('/{tenant}', [TenantController::class, 'show'])->name('show');
+            Route::post('/', [TenantController::class, 'store'])->name('store');
+            Route::put('/{tenant}', [TenantController::class, 'update'])->name('update');
+            Route::delete('/{tenant}', [TenantController::class, 'destroy'])->name('destroy');
+            Route::post('/{tenant}/suspend', [TenantController::class, 'suspend'])->name('suspend');
+            Route::post('/{tenant}/activate', [TenantController::class, 'activate'])->name('activate');
+            Route::post('/{tenant}/archive', [TenantController::class, 'archive'])->name('archive');
+        });
+
+        // Plans Management API
+        Route::prefix('plans')->name('plans.')->group(function () {
+            Route::get('/', [PlanController::class, 'index'])->name('index');
+            Route::get('/{plan}', [PlanController::class, 'show'])->name('show');
+            Route::post('/', [PlanController::class, 'store'])->name('store');
+            Route::put('/{plan}', [PlanController::class, 'update'])->name('update');
+            Route::delete('/{plan}', [PlanController::class, 'destroy'])->name('destroy');
+        });
+
+        // Error Logs API
+        Route::prefix('error-logs')->name('error-logs.')->group(function () {
+            Route::get('/', [ErrorLogController::class, 'index'])->name('index');
+            Route::get('/statistics', [ErrorLogController::class, 'statistics'])->name('statistics');
+            Route::get('/domain-statistics', [ErrorLogController::class, 'domainStatistics'])->name('domain-statistics');
+            Route::get('/{errorLog}', [ErrorLogController::class, 'show'])->name('show');
+            Route::post('/{errorLog}/resolve', [ErrorLogController::class, 'resolve'])->name('resolve');
+            Route::delete('/{errorLog}', [ErrorLogController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-resolve', [ErrorLogController::class, 'bulkResolve'])->name('bulk-resolve');
+            Route::post('/bulk-destroy', [ErrorLogController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+    });
+});
