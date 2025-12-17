@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node dist/index.js",
     "build": "tsc",
-    "report": "npm run build && node dist/scripts/report.js"
+    "report": "npm run build && node dist/scripts/report.js",
+    "dual-compliance": "npm run build && node dist/scripts/dual-compliance.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
@@ -14,9 +15,9 @@
     "fs-extra": "^11.1.1"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.0",
+    "@types/node": "^20.19.27",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
-    "@types/node": "^20.0.0",
-    "@types/fs-extra": "^11.0.0"
+    "typescript": "^5.2.2"
   }
 }

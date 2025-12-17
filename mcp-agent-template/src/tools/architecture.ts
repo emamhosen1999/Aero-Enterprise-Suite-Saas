@@ -215,3 +215,153 @@ export async function listAllPackages(): Promise<any[]> {
     ...rules.packages[pkg],
   }));
 }
+
+/**
+ * Check compliance for both SaaS and Standalone distributions
+ * This simulates what would happen if the repository were configured for each mode
+ */
+export async function checkDualArchitectureCompliance(): Promise<any> {
+  const rules = await loadRules();
+  const packages = await getPackages();
+  const repoRoot = await getRepoRoot();
+
+  const results = {
+    currentDistribution: await detectDistribution(),
+    compliance: {
+      saas: {
+        valid: true,
+        violations: [] as ArchitectureViolation[],
+        compatiblePackages: [] as string[],
+        incompatiblePackages: [] as string[],
+      },
+      standalone: {
+        valid: true,
+        violations: [] as ArchitectureViolation[],
+        compatiblePackages: [] as string[],
+        incompatiblePackages: [] as string[],
+      },
+    },
+    recommendations: [] as string[],
+  };
+
+  // Check SaaS compliance
+  const saasRules = rules.distributions.saas;
+  
+  // Check required packages for SaaS
+  for (const required of saasRules.required) {
+    if (!packages.includes(required)) {
+      results.compliance.saas.valid = false;
+      results.compliance.saas.violations.push({
+        severity: "error",
+        message: `Required package '${required}' is missing for SaaS distribution`,
+        package: required,
+        suggestion: `Add ${required} package to enable SaaS mode`,
+      });
+      results.compliance.saas.incompatiblePackages.push(required);
+    } else {
+      results.compliance.saas.compatiblePackages.push(required);
+    }
+  }
+
+  // Check forbidden packages for SaaS
+  for (const forbidden of saasRules.forbidden) {
+    if (packages.includes(forbidden)) {
+      results.compliance.saas.valid = false;
+      results.compliance.saas.violations.push({
+        severity: "error",
+        message: `Forbidden package '${forbidden}' found in SaaS distribution`,
+        package: forbidden,
+        suggestion: `Remove ${forbidden} package to maintain SaaS compliance`,
+      });
+      results.compliance.saas.incompatiblePackages.push(forbidden);
+    }
+  }
+
+  // Check Standalone compliance
+  const standaloneRules = rules.distributions.standalone;
+  
+  // Check required packages for Standalone
+  for (const required of standaloneRules.required) {
+    if (!packages.includes(required)) {
+      results.compliance.standalone.valid = false;
+      results.compliance.standalone.violations.push({
+        severity: "error",
+        message: `Required package '${required}' is missing for Standalone distribution`,
+        package: required,
+        suggestion: `Add ${required} package to enable Standalone mode`,
+      });
+      results.compliance.standalone.incompatiblePackages.push(required);
+    } else {
+      results.compliance.standalone.compatiblePackages.push(required);
+    }
+  }
+
+  // Check forbidden packages for Standalone
+  for (const forbidden of standaloneRules.forbidden) {
+    if (packages.includes(forbidden)) {
+      results.compliance.standalone.valid = false;
+      results.compliance.standalone.violations.push({
+        severity: "error",
+        message: `Forbidden package '${forbidden}' found in Standalone distribution`,
+        package: forbidden,
+        suggestion: `Remove ${forbidden} package to enable Standalone mode`,
+      });
+      results.compliance.standalone.incompatiblePackages.push(forbidden);
+    }
+  }
+
+  // Check all packages for compatibility with both distributions
+  for (const pkg of packages) {
+    const pkgMetadata = rules.packages[pkg];
+    if (pkgMetadata) {
+      if (pkgMetadata.type === "saas-only") {
+        if (!results.compliance.standalone.incompatiblePackages.includes(pkg)) {
+          results.compliance.standalone.incompatiblePackages.push(pkg);
+        }
+        results.compliance.saas.compatiblePackages.push(pkg);
+      } else if (pkgMetadata.type === "required" || pkgMetadata.type === "module") {
+        if (!results.compliance.saas.compatiblePackages.includes(pkg)) {
+          results.compliance.saas.compatiblePackages.push(pkg);
+        }
+        if (!results.compliance.standalone.compatiblePackages.includes(pkg)) {
+          results.compliance.standalone.compatiblePackages.push(pkg);
+        }
+      }
+    }
+  }
+
+  // Generate recommendations
+  if (results.compliance.saas.valid && results.compliance.standalone.valid) {
+    results.recommendations.push("✓ Repository can support BOTH SaaS and Standalone distributions");
+    results.recommendations.push("  - Deploy as SaaS using apps/saas-host");
+    results.recommendations.push("  - Deploy as Standalone using apps/standalone-host");
+  } else if (results.compliance.saas.valid && !results.compliance.standalone.valid) {
+    results.recommendations.push("✓ Repository is configured for SaaS distribution only");
+    if (results.compliance.standalone.violations.length > 0) {
+      results.recommendations.push(`✗ Cannot deploy as Standalone due to ${results.compliance.standalone.violations.length} violation(s)`);
+      results.recommendations.push("  - Remove aero-platform package to enable Standalone mode");
+    }
+  } else if (!results.compliance.saas.valid && results.compliance.standalone.valid) {
+    results.recommendations.push("✓ Repository is configured for Standalone distribution only");
+    if (results.compliance.saas.violations.length > 0) {
+      results.recommendations.push(`✗ Cannot deploy as SaaS due to ${results.compliance.saas.violations.length} violation(s)`);
+      results.recommendations.push("  - Add aero-platform package to enable SaaS mode");
+    }
+  } else {
+    results.recommendations.push("✗ Repository does not meet requirements for either distribution");
+    results.recommendations.push("  - Add required packages for at least one distribution");
+  }
+
+  // Check for cross-distribution compatibility issues
+  const crossCompatiblePackages = packages.filter(pkg => {
+    const pkgMeta = rules.packages[pkg];
+    return pkgMeta && pkgMeta.type !== "saas-only";
+  });
+
+  results.recommendations.push(`\nPackage Compatibility Summary:`);
+  results.recommendations.push(`  - ${results.compliance.saas.compatiblePackages.length} packages compatible with SaaS`);
+  results.recommendations.push(`  - ${results.compliance.standalone.compatiblePackages.length} packages compatible with Standalone`);
+  results.recommendations.push(`  - ${crossCompatiblePackages.length} packages compatible with BOTH distributions`);
+
+  return results;
+}

@@ -20,7 +20,7 @@ The MCP server supports multiple specialized agents, each with access to specifi
 
 | Agent | Tools | Purpose |
 |-------|-------|---------|
-| **Architect Agent** | `detect_distribution`, `check_architecture_violations`, `get_package_info`, `list_all_packages` | Validate architecture rules and distribution type |
+| **Architect Agent** | `detect_distribution`, `check_architecture_violations`, `check_dual_architecture_compliance`, `get_package_info`, `list_all_packages` | Validate architecture rules and distribution type |
 | **Laravel Agent** | `list_models`, `list_routes`, `list_migrations`, `list_controllers`, `list_middleware`, `list_service_providers` | Inspect Laravel backend code |
 | **Frontend Agent** | `list_pages`, `list_components`, `analyze_component_dependencies`, `find_components_using_heroui`, `get_page_hierarchy`, `list_forms`, `list_tables` | Analyze React/Inertia frontend |
 | **Reviewer Agent** | `git_diff`, `git_blame`, `git_log`, `git_status`, `get_package_history`, `get_package_contributors` | Review code changes and history |
@@ -63,7 +63,34 @@ npm run dev
 
 The server runs in stdio mode and communicates via stdin/stdout for MCP protocol.
 
-### 2. Generate Report
+### 2. Run Dual Architecture Compliance Check (NEW!)
+
+Check if the repository can support SaaS, Standalone, or both deployment modes:
+
+```bash
+npm run dual-compliance
+```
+
+This performs a comprehensive compliance check that:
+- Validates requirements for both SaaS and Standalone distributions
+- Identifies forbidden packages for each mode
+- Lists compatible and incompatible packages
+- Provides deployment recommendations
+- Determines if dual-mode deployment is possible
+
+**Example Output:**
+```
+Distribution Type:    SAAS (75% confidence)
+SaaS Compliance:      ✅ COMPLIANT (13 packages)
+Standalone Compliance: ❌ NON-COMPLIANT (aero-platform forbidden)
+Deployment Capability: SINGLE MODE: SAAS
+
+Recommendations:
+  - Remove aero-platform to enable Standalone mode
+  - 11 packages are compatible with BOTH distributions
+```
+
+### 3. Generate Report
 
 Generate a comprehensive distribution and dependency report:
 
@@ -141,6 +168,55 @@ Get detailed information about a specific package.
 
 #### `list_all_packages`
 List all packages with their metadata from `architecture.rules.json`.
+
+#### `check_dual_architecture_compliance` (NEW!)
+Perform a comprehensive compliance check for both SaaS and Standalone distributions simultaneously.
+
+This tool validates:
+- Whether the repository meets SaaS requirements (needs aero-platform)
+- Whether the repository meets Standalone requirements (forbids aero-platform)
+- Which packages are compatible with each distribution
+- If dual-mode deployment is possible
+
+**Returns:**
+```json
+{
+  "currentDistribution": {
+    "type": "saas",
+    "confidence": 75,
+    "indicators": ["✓ aero-platform package found"],
+    "packages": ["aero-core", "aero-platform", ...]
+  },
+  "compliance": {
+    "saas": {
+      "valid": true,
+      "violations": [],
+      "compatiblePackages": ["aero-platform", "aero-core", ...],
+      "incompatiblePackages": []
+    },
+    "standalone": {
+      "valid": false,
+      "violations": [{
+        "severity": "error",
+        "message": "Forbidden package 'aero-platform' found",
+        "suggestion": "Remove aero-platform to enable Standalone mode"
+      }],
+      "compatiblePackages": ["aero-core", ...],
+      "incompatiblePackages": ["aero-platform"]
+    }
+  },
+  "recommendations": [
+    "✓ Repository is configured for SaaS distribution only",
+    "✗ Cannot deploy as Standalone due to 1 violation(s)"
+  ]
+}
+```
+
+**Use Cases:**
+- Validate if repository can support multiple deployment modes
+- Plan package additions/removals for dual-mode support
+- Pre-deployment compliance verification
+- Architecture decision support
 
 ### Laravel Tools
 

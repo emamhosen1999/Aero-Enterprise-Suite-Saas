@@ -40,7 +40,26 @@ Packages: 13 packages, 214 models, 614 routes
 Dependencies: No circular dependencies found
 ```
 
-### 4. Run the MCP Server
+### 4. Run Dual Architecture Compliance Check (NEW!)
+
+```bash
+npm run dual-compliance
+```
+
+This performs a comprehensive check to determine if your repository can support:
+- **SaaS mode only** (with aero-platform)
+- **Standalone mode only** (without aero-platform)
+- **Both modes** (dual deployment capability)
+
+**Example Output:**
+```
+Distribution Type:    SAAS (75% confidence)
+SaaS Compliance:      ✅ COMPLIANT (13 packages)
+Standalone Compliance: ❌ NON-COMPLIANT (aero-platform forbidden)
+Deployment Capability: SINGLE MODE: SAAS
+```
+
+### 5. Run the MCP Server
 
 ```bash
 npm run dev
@@ -81,6 +100,7 @@ Connect any MCP-compatible client using stdio transport to `dist/index.js`.
 ### 🏗️ Architect Agent
 - **detect_distribution** - Auto-detect SaaS/Standalone mode
 - **check_architecture_violations** - Validate distribution rules
+- **check_dual_architecture_compliance** - **NEW** Full dual-mode compliance check
 - **get_package_info** - Get package details
 - **list_all_packages** - List all packages with metadata
 

@@ -77,6 +77,14 @@ class AeroMCPServer {
             properties: {},
           },
         },
+        {
+          name: "check_dual_architecture_compliance",
+          description: "Check compliance for both SaaS and Standalone distributions - validates if repository can support single or dual deployment modes",
+          inputSchema: {
+            type: "object",
+            properties: {},
+          },
+        },
 
         // Laravel Tools
         {
@@ -390,6 +398,9 @@ class AeroMCPServer {
             break;
           case "list_all_packages":
             result = await arch.listAllPackages();
+            break;
+          case "check_dual_architecture_compliance":
+            result = await arch.checkDualArchitectureCompliance();
             break;
 
           // Laravel tools
