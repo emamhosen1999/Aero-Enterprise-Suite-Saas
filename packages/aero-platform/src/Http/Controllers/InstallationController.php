@@ -34,6 +34,26 @@ class InstallationController extends Controller
      */
     private const LOCKOUT_DURATION = 900;
 
+    /**
+     * Minimum disk space required for installation (in bytes)
+     */
+    private const MIN_DISK_SPACE = 100 * 1024 * 1024; // 100MB
+
+    /**
+     * Required database tables for installation verification
+     */
+    private const REQUIRED_TABLES = [
+        'landlord_users', 'tenants', 'domains', 'plans',
+        'modules', 'platform_settings', 'roles', 'permissions',
+    ];
+
+    /**
+     * Installation stages that require migration rollback during cleanup
+     */
+    private const STAGES_REQUIRING_MIGRATION_ROLLBACK = [
+        'seeding', 'admin', 'settings', 'verification', 'finalization',
+    ];
+
     public function __construct(
         private readonly InstallationService $installationService
     ) {}
@@ -1054,8 +1074,14 @@ class InstallationController extends Controller
             // 1. Remove admin user if created (belt and suspenders with transaction rollback)
             if ($adminEmail) {
                 try {
-                    LandlordUser::where('email', $adminEmail)->delete();
-                    \Log::info('Rollback: Admin user deleted', ['email' => $adminEmail]);
+                    // Find and delete specific admin user created during installation
+                    $admin = LandlordUser::where('email', $adminEmail)->first();
+                    if ($admin) {
+                        $admin->delete();
+                        \Log::info('Rollback: Admin user deleted', ['email' => $adminEmail, 'user_id' => $admin->id]);
+                    } else {
+                        \Log::info('Rollback: Admin user not found (may already be rolled back)', ['email' => $adminEmail]);
+                    }
                 } catch (\Throwable $e) {
                     \Log::warning('Rollback: Failed to delete admin user (may already be rolled back)', ['error' => $e->getMessage()]);
                 }
@@ -1070,7 +1096,7 @@ class InstallationController extends Controller
             }
 
             // 3. Rollback migrations if they were run
-            if (in_array($failedStage, ['seeding', 'admin', 'settings', 'verification', 'finalization'])) {
+            if (in_array($failedStage, self::STAGES_REQUIRING_MIGRATION_ROLLBACK, true)) {
                 try {
                     \Log::info('Rollback: Attempting to rollback migrations');
                     Artisan::call('migrate:rollback', ['--force' => true]);
@@ -1145,11 +1171,12 @@ class InstallationController extends Controller
             throw new \RuntimeException('.env file exists but is not writable. Please check permissions.');
         }
 
-        // 4. Check disk space (require 100MB minimum)
+        // 4. Check disk space (require minimum specified in constant)
         $freeSpace = disk_free_space(storage_path());
-        if ($freeSpace < 100 * 1024 * 1024) {
+        if ($freeSpace < self::MIN_DISK_SPACE) {
             $freeMB = round($freeSpace / 1024 / 1024, 2);
-            throw new \RuntimeException("Insufficient disk space. Only {$freeMB}MB available, 100MB required.");
+            $requiredMB = round(self::MIN_DISK_SPACE / 1024 / 1024, 2);
+            throw new \RuntimeException("Insufficient disk space. Only {$freeMB}MB available, {$requiredMB}MB required.");
         }
 
         // 5. Backup existing .env if it exists
@@ -1179,13 +1206,8 @@ class InstallationController extends Controller
         \Log::info('Migration verification passed', ['migration_count' => $migrationCount]);
 
         // 2. Check required tables exist
-        $requiredTables = [
-            'landlord_users', 'tenants', 'domains', 'plans',
-            'modules', 'platform_settings', 'roles', 'permissions',
-        ];
-
         $missingTables = [];
-        foreach ($requiredTables as $table) {
+        foreach (self::REQUIRED_TABLES as $table) {
             if (! \Illuminate\Support\Facades\Schema::hasTable($table)) {
                 $missingTables[] = $table;
             }
@@ -1194,7 +1216,7 @@ class InstallationController extends Controller
         if (! empty($missingTables)) {
             throw new \RuntimeException('Required tables missing: ' . implode(', ', $missingTables));
         }
-        \Log::info('Required tables verification passed', ['tables_checked' => count($requiredTables)]);
+        \Log::info('Required tables verification passed', ['tables_checked' => count(self::REQUIRED_TABLES)]);
 
         // 3. Verify admin user exists with Super Administrator role
         $adminCount = LandlordUser::whereHas('roles', function ($q) {
