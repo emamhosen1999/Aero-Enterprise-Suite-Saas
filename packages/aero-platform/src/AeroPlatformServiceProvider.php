@@ -137,6 +137,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 \Aero\Platform\Console\Commands\TenantHealth::class,
                 \Aero\Platform\Console\Commands\EnsureSuperAdmin::class,
                 \Aero\Platform\Console\Commands\SetupApplication::class,
+                \Aero\Platform\Console\Commands\CleanupFailedInstallation::class,
             ]);
         }
 
