@@ -234,7 +234,12 @@ class ProvisionTenant implements ShouldQueue
 
         // Verify database was actually created
         try {
-            $exists = DB::select('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?', [$dbName]);
+            // Use parameterized query to prevent SQL injection
+            $exists = DB::select(
+                'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
+                [$dbName]
+            );
+            
             if (empty($exists)) {
                 throw new \RuntimeException("Database {$dbName} was not created successfully");
             }
@@ -370,6 +375,12 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
+     * Modules that should be excluded from migration loading.
+     * These are either already included (core) or don't have migrations (dashboard).
+     */
+    private const EXCLUDED_MODULES = ['core', 'dashboard'];
+
+    /**
      * Get migration paths for tenant based on their plan's modules.
      * Always includes core, plus any modules in the plan.
      *
@@ -378,15 +389,20 @@ class ProvisionTenant implements ShouldQueue
     protected function getTenantMigrationPaths(): array
     {
         $paths = [];
+        $searchedPaths = [];
 
         // Always include core migrations (users, roles, permissions, etc.)
         $corePath = 'vendor/aero/core/database/migrations';
+        $searchedPaths[] = $corePath;
+        
         if (File::exists(base_path($corePath))) {
             $paths[] = $corePath;
             $this->logStep("   → Including core migrations: {$corePath}", []);
         } else {
             // Fallback: try packages directory (for development/non-composer installs)
             $coreDevPath = 'packages/aero-core/database/migrations';
+            $searchedPaths[] = $coreDevPath;
+            
             if (File::exists(base_path($coreDevPath))) {
                 $paths[] = $coreDevPath;
                 $this->logStep("   → Including core migrations (dev): {$coreDevPath}", []);
@@ -404,8 +420,8 @@ class ProvisionTenant implements ShouldQueue
             ]);
 
             foreach ($planModules as $moduleCode) {
-                // Skip core as it's already included
-                if ($moduleCode === 'core' || $moduleCode === 'dashboard') {
+                // Skip excluded modules
+                if (in_array($moduleCode, self::EXCLUDED_MODULES, true)) {
                     continue;
                 }
 
@@ -440,7 +456,8 @@ class ProvisionTenant implements ShouldQueue
 
         // Validate that we have at least core migrations
         if (empty($paths)) {
-            throw new \RuntimeException('No migration paths found. Cannot provision tenant without migrations.');
+            $searchedPathsStr = implode(', ', $searchedPaths);
+            throw new \RuntimeException("No migration paths found. Searched: {$searchedPathsStr}. Cannot provision tenant without migrations.");
         }
 
         return $paths;
@@ -682,8 +699,15 @@ class ProvisionTenant implements ShouldQueue
                 'tenant_email' => $email,
             ]);
 
+            // Check if notification class exists (may not be present in all installations)
+            $notificationClass = '\\App\\Notifications\\WelcomeToTenant';
+            if (! class_exists($notificationClass)) {
+                $this->logStep('   → WelcomeToTenant notification not found, skipping email', [], 'warning');
+                return;
+            }
+
             // Use the notification's sendEmail method with MailService
-            $notification = new \App\Notifications\WelcomeToTenant($this->tenant);
+            $notification = new $notificationClass($this->tenant);
             $sent = $notification->sendEmail($email);
 
             if ($sent) {

@@ -56,7 +56,7 @@ return [
     // Tenant provisioning rollback behavior
     // When true: Keep failed tenant records for debugging (useful in development)
     // When false: Delete failed tenants completely to allow re-registration (production)
-    // Defaults to APP_DEBUG value
-    'preserve_failed_tenants' => env('PRESERVE_FAILED_TENANTS', env('APP_DEBUG', false)),
+    // Defaults to APP_DEBUG value if not explicitly set
+    'preserve_failed_tenants' => env('PRESERVE_FAILED_TENANTS') ?? env('APP_DEBUG', false),
 
 ];
