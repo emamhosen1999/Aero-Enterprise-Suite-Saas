@@ -1,0 +1,22 @@
+{
+  "name": "mcp-agent-template",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP Multi-Agent Template for aeos365 monorepo",
+  "scripts": {
+    "dev": "node dist/index.js",
+    "build": "tsc",
+    "report": "npm run build && node dist/scripts/report.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "fast-glob": "^3.2.7",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
+    "@types/node": "^20.0.0",
+    "@types/fs-extra": "^11.0.0"
+  }
+}
