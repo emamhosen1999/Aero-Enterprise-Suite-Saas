@@ -9,14 +9,6 @@ yarn.lock
 # Build outputs
 dist/
 build/
-*.js
-*.js.map
-*.d.ts
-*.d.ts.map
-
-# Keep source files
-!src/**/*
-!scripts/**/*
 
 # Reports
 mcp-report.json

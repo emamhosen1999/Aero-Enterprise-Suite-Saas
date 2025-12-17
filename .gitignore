@@ -2,6 +2,9 @@
 /mcp-agent-template/node_modules/
 /mcp-agent-template/dist/
 /mcp-agent-template/package-lock.json
+/mcp-agent-template/scripts/*.js
+/mcp-agent-template/scripts/*.d.ts
+/mcp-agent-template/scripts/*.map
 
 # MCP Reports
 /mcp-report.json
