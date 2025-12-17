@@ -35,6 +35,11 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Register the TenancyBootstrapServiceProvider FIRST
+        // CRITICAL: This registers event listeners for TenancyInitialized which
+        // runs the DatabaseTenancyBootstrapper to switch DB connections
+        $this->app->register(\Aero\Platform\Providers\TenancyBootstrapServiceProvider::class);
+
         // Disable Fortify's default routes - we define auth routes with proper domain restrictions
         // Admin subdomain uses Platform's AuthenticatedSessionController
         // Tenant subdomains use Core's AuthenticatedSessionController
@@ -79,6 +84,14 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Override tenancy bootstrappers after all providers registered
+        // FilesystemTenancyBootstrapper disabled - causes "Undefined array key 'local'" error
+        Config::set('tenancy.bootstrappers', [
+            \Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
+            \Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
+            \Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
+        ]);
+
         // Force HTTPS for all generated URLs when APP_URL uses https
         if (str_starts_with(config('app.url', ''), 'https://')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');

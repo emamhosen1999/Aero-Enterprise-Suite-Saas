@@ -9,7 +9,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Stancl\Tenancy\Jobs\CreateDatabase;
 use Stancl\Tenancy\Jobs\MigrateDatabase;
 use Throwable;
@@ -110,20 +114,25 @@ class ProvisionTenant implements ShouldQueue
             $this->migrateDatabase();
             $this->logStep('✅ Step 3 Complete: Migrations applied successfully', $context);
 
-            // Step 4: Seed default roles
-            $this->logStep('🔐 Step 4: Seeding default roles', $context);
+            // Step 4: Sync module hierarchy
+            $this->logStep('📦 Step 4: Syncing module hierarchy', $context);
+            $this->syncModuleHierarchy();
+            $this->logStep('✅ Step 4 Complete: Module hierarchy synced', $context);
+
+            // Step 5: Seed default roles
+            $this->logStep('🔐 Step 5: Seeding default roles', $context);
             $this->seedDefaultRoles();
-            $this->logStep('✅ Step 4 Complete: Default roles seeded', $context);
+            $this->logStep('✅ Step 5 Complete: Default roles seeded', $context);
 
-            // Step 5: Activate the tenant (ready for admin setup on tenant domain)
-            $this->logStep('🎉 Step 5: Activating tenant', $context);
+            // Step 6: Activate the tenant (ready for admin setup on tenant domain)
+            $this->logStep('🎉 Step 6: Activating tenant', $context);
             $this->activateTenant();
-            $this->logStep('✅ Step 5 Complete: Tenant activated and ready for admin setup', $context);
+            $this->logStep('✅ Step 6 Complete: Tenant activated and ready for admin setup', $context);
 
-            // Step 6: Send notification email
-            $this->logStep('📧 Step 6: Sending notification email', $context);
+            // Step 7: Send notification email
+            $this->logStep('📧 Step 7: Sending notification email', $context);
             $this->sendWelcomeEmail();
-            $this->logStep('✅ Step 6 Complete: Notification email sent', $context);
+            $this->logStep('✅ Step 7 Complete: Notification email sent', $context);
 
             $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY - AWAITING ADMIN SETUP', $context);
         } catch (Throwable $e) {
@@ -167,6 +176,9 @@ class ProvisionTenant implements ShouldQueue
 
     /**
      * Run migrations on the tenant database.
+     * Only runs migrations for:
+     * - Core package (always required)
+     * - Modules included in the tenant's plan
      */
     protected function migrateDatabase(): void
     {
@@ -174,9 +186,170 @@ class ProvisionTenant implements ShouldQueue
 
         $this->tenant->updateProvisioningStep(Tenant::STEP_MIGRATING);
 
-        MigrateDatabase::dispatchSync($this->tenant);
+        // Get dynamic migration paths based on plan modules
+        $migrationPaths = $this->getTenantMigrationPaths();
+
+        $this->logStep("   → Migration paths: " . implode(', ', $migrationPaths), [
+            'paths' => $migrationPaths,
+        ]);
+
+        // Run migrations using tenancy()->run() which properly handles context
+        tenancy()->runForMultiple([$this->tenant], function () use ($migrationPaths) {
+            // Ensure migrations table exists
+            if (! Schema::hasTable('migrations')) {
+                Schema::create('migrations', function ($table) {
+                    $table->id();
+                    $table->string('migration');
+                    $table->integer('batch');
+                });
+                $this->logStep("   → Created migrations table");
+            }
+            
+            $batch = 1;
+            
+            foreach ($migrationPaths as $path) {
+                $absolutePath = base_path($path);
+                $this->logStep("   → Running migrations from: {$absolutePath}");
+                
+                // Get all PHP files from the directory manually
+                $files = glob($absolutePath . '/*.php');
+                
+                if (empty($files)) {
+                    $this->logStep("   → No migration files found in: {$absolutePath}");
+                    continue;
+                }
+                
+                // Sort files by name (which sorts by date due to Laravel naming convention)
+                sort($files);
+                
+                $this->logStep("   → Found " . count($files) . " migration files");
+                
+                foreach ($files as $file) {
+                    $migrationName = str_replace('.php', '', basename($file));
+                    
+                    // Check if already ran
+                    $alreadyRan = DB::table('migrations')
+                        ->where('migration', $migrationName)
+                        ->exists();
+                    
+                    if ($alreadyRan) {
+                        continue;
+                    }
+                    
+                    try {
+                        // Run the migration using require which handles both named and anonymous classes
+                        $migration = require $file;
+                        
+                        if (is_object($migration)) {
+                            // Anonymous class migration (Laravel 9+)
+                            $migration->up();
+                        }
+                        
+                        // Record that we ran this migration
+                        DB::table('migrations')->insert([
+                            'migration' => $migrationName,
+                            'batch' => $batch,
+                        ]);
+                        
+                        $this->logStep("   → Migrated: {$migrationName}");
+                    } catch (\Throwable $e) {
+                        $this->logStep("   ❌ Failed to migrate {$migrationName}: " . $e->getMessage(), [], 'error');
+                        throw $e;
+                    }
+                }
+                
+                $batch++;
+            }
+        });
 
         $this->logStep('   → All migrations completed', []);
+    }
+    
+    /**
+     * Get migration class name from file.
+     */
+    protected function getMigrationClassName(string $file): string
+    {
+        $content = file_get_contents($file);
+        
+        // Check for anonymous class migration (Laravel 9+)
+        if (preg_match('/return\s+new\s+class/', $content)) {
+            return 'anonymous';
+        }
+        
+        // Traditional named class
+        if (preg_match('/class\s+(\w+)\s+extends/', $content, $matches)) {
+            return $matches[1];
+        }
+        
+        return '';
+    }
+    
+    /**
+     * Run a single migration file.
+     */
+    protected function runMigrationFile(string $file): void
+    {
+        $migration = require $file;
+        
+        if (is_object($migration)) {
+            // Anonymous class migration
+            $migration->up();
+        }
+    }
+
+    /**
+     * Get migration paths for tenant based on their plan's modules.
+     * Always includes core, plus any modules in the plan.
+     *
+     * @return array<string>
+     */
+    protected function getTenantMigrationPaths(): array
+    {
+        $paths = [];
+
+        // Always include core migrations (users, roles, permissions, etc.)
+        $corePath = 'vendor/aero/core/database/migrations';
+        if (File::exists(base_path($corePath))) {
+            $paths[] = $corePath;
+            $this->logStep("   → Including core migrations: {$corePath}", []);
+        }
+
+        // Get modules from tenant's plan
+        if ($this->tenant->plan) {
+            $planModules = $this->tenant->plan->modules()->pluck('code')->toArray();
+
+            $this->logStep('   → Plan modules: ' . implode(', ', $planModules), [
+                'modules' => $planModules,
+            ]);
+
+            foreach ($planModules as $moduleCode) {
+                // Skip core as it's already included
+                if ($moduleCode === 'core') {
+                    continue;
+                }
+
+                // Check if migration path exists for this module
+                $modulePath = "vendor/aero/{$moduleCode}/database/migrations";
+                if (File::exists(base_path($modulePath))) {
+                    $paths[] = $modulePath;
+                    $this->logStep("   → Including {$moduleCode} migrations: {$modulePath}", []);
+                } else {
+                    $this->logStep("   ⚠️  Module {$moduleCode} has no migrations at {$modulePath}", [], 'warning');
+                }
+            }
+        } else {
+            $this->logStep('   ⚠️  No plan assigned to tenant, using core only', [], 'warning');
+        }
+
+        // Include app-level tenant migrations if they exist
+        $appTenantPath = database_path('migrations/tenant');
+        if (File::exists($appTenantPath)) {
+            $paths[] = $appTenantPath;
+            $this->logStep("   → Including app tenant migrations: {$appTenantPath}", []);
+        }
+
+        return $paths;
     }
 
     /**
@@ -204,6 +377,38 @@ class ProvisionTenant implements ShouldQueue
     // Admin user creation is now handled on the tenant domain after provisioning
     // completes, during the admin setup step of the registration flow.
     // See: app/Http/Controllers/Tenant/AdminSetupController.php
+
+    /**
+     * Sync module hierarchy from config to tenant database.
+     * Populates modules, sub_modules, module_components, and module_component_actions tables.
+     */
+    protected function syncModuleHierarchy(): void
+    {
+        $this->logStep('   → Syncing module hierarchy to tenant database', []);
+        $this->tenant->updateProvisioningStep('syncing_modules');
+
+        try {
+            tenancy()->initialize($this->tenant);
+
+            // Call aero:sync-module with fresh flag for clean seed
+            // Scope is auto-detected (tenant context = tenant modules only)
+            \Illuminate\Support\Facades\Artisan::call('aero:sync-module', [
+                '--fresh' => true,
+                '--force' => true,
+            ]);
+
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            $this->logStep('   → Module sync output: ' . trim($output), []);
+            $this->logStep('   → Module hierarchy synced successfully', []);
+        } catch (Throwable $e) {
+            $this->logStep("   → Failed to sync modules: {$e->getMessage()}", [
+                'error' => $e->getMessage(),
+            ], 'error');
+            throw $e;
+        } finally {
+            tenancy()->end();
+        }
+    }
 
     /**
      * Seed default roles for the tenant.

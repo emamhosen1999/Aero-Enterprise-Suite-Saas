@@ -50,8 +50,8 @@ class TenantProvisioner
         $trialEndsAt = now()->addDays((int) config('platform.trial_days', 14));
         $modules = $this->cleanModules($plan['modules'] ?? []);
 
-        // Resolve plan_id from slug if provided
-        $planId = $this->resolvePlanId($plan['plan_slug'] ?? null);
+        // Get plan_id directly (UUID) or resolve from slug
+        $planId = $plan['plan_id'] ?? $this->resolvePlanId($plan['plan_slug'] ?? null);
 
         $email = (string) Arr::get($details, 'email');
         $subdomain = (string) Arr::get($details, 'subdomain');
@@ -159,8 +159,8 @@ class TenantProvisioner
         $trialEndsAt = now()->addDays((int) config('platform.trial_days', 14));
         $modules = $this->cleanModules($plan['modules'] ?? []);
 
-        // Resolve plan_id from slug if provided
-        $planId = $this->resolvePlanId($plan['plan_slug'] ?? null);
+        // Get plan_id directly (UUID) or resolve from slug
+        $planId = $plan['plan_id'] ?? $this->resolvePlanId($plan['plan_slug'] ?? null);
 
         // Get existing data as array (handles ArrayObject or array)
         $existingData = $tenant->data instanceof \ArrayObject

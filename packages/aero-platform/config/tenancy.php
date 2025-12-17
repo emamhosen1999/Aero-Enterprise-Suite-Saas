@@ -99,6 +99,10 @@ return [
     */
 
     'database' => [
+        // The connection to use when reverting to central database
+        // This is the default connection before tenancy is initialized
+        'central_connection' => env('DB_CONNECTION', 'mysql'),
+
         'prefix' => 'tenant',
         'suffix' => '',
 
@@ -140,7 +144,7 @@ return [
     'bootstrappers' => [
         \Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
         \Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
-        \Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class,
+        // \Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class, // Disabled - causing "Undefined array key 'local'" error
         \Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
     ],
 
@@ -171,7 +175,12 @@ return [
     'migration_parameters' => [
         '--force' => true,
         '--path' => [
-            // Paths to tenant-specific migrations
+            // Tenant migrations from packages (monorepo structure)
+            // aero-core provides base tenant tables (users, roles, permissions, etc.)
+            'vendor/aero/core/database/migrations',
+            // aero-hrm provides HRM-specific tables
+            'vendor/aero/hrm/database/migrations',
+            // App-level tenant migrations (if any)
             database_path('migrations/tenant'),
         ],
     ],
