@@ -137,8 +137,13 @@ class AdminSetupController extends Controller
                 'has_super_admin_role' => $user->hasRole('Super Administrator'),
             ]);
 
-            // Always return Inertia redirect (no JSON response needed for Inertia forms)
-            return redirect()->route('core.dashboard')
+            // Redirect to onboarding if platform package is installed (SaaS mode)
+            // Otherwise redirect to dashboard (standalone mode)
+            $redirectRoute = class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')
+                ? 'onboarding.index'
+                : 'core.dashboard';
+
+            return redirect()->route($redirectRoute)
                 ->with('success', 'Welcome! Your admin account has been created.');
 
         } catch (\Throwable $e) {

@@ -2,7 +2,7 @@
 
 namespace Aero\Platform\Http\Middleware;
 
-use App\Http\Controllers\Tenant\TenantOnboardingController;
+use Aero\Platform\Http\Controllers\TenantOnboardingController;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
