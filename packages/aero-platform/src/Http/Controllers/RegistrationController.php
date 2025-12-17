@@ -86,15 +86,18 @@ class RegistrationController extends Controller
 
         $this->registrationSession->putStep('details', $validated);
 
-        // Check if maintenance mode is enabled with skip verification
+        // Check if maintenance mode is enabled with skip verification OR debug mode is enabled
         $platformSettings = PlatformSetting::current();
-        $skipVerification = $platformSettings->maintenance_mode && $platformSettings->maintenance_skip_verification;
+        $skipVerification = ($platformSettings->maintenance_mode && $platformSettings->maintenance_skip_verification)
+            || config('app.debug', false);
 
         if ($skipVerification) {
-            // Skip verification steps during maintenance mode
-            Log::info('Skipping verification due to maintenance mode', [
+            // Skip verification steps during maintenance mode or debug mode
+            Log::info('Skipping verification due to maintenance/debug mode', [
                 'email' => $email,
                 'subdomain' => $subdomain,
+                'maintenance_mode' => $platformSettings->maintenance_mode,
+                'debug_mode' => config('app.debug', false),
             ]);
 
             // Mark verification as complete

@@ -52,7 +52,7 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
       setSubdomainStatus({ checking: true, available: null, message: '' });
       
       try {
-        const response = await axios.post('/api/check-subdomain', { subdomain });
+        const response = await axios.post('/api/platform/v1/check-subdomain', { subdomain });
         setSubdomainStatus({
           checking: false,
           available: response.data.available,

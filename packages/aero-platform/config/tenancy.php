@@ -103,11 +103,13 @@ return [
         'suffix' => '',
 
         // Template for tenant database connection
-        'template_tenant_connection' => null,
+        // Uses the default DB connection as the template for creating tenant databases
+        'template_tenant_connection' => env('DB_CONNECTION', 'mysql'),
 
         // Managers that handle tenant database creation/deletion
         'managers' => [
             'mysql' => \Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
+            'mariadb' => \Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
         ],
     ],
 

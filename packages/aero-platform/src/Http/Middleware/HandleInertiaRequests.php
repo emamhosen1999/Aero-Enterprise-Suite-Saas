@@ -294,8 +294,11 @@ class HandleInertiaRequests extends Middleware
                 'name' => ($platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365')).' - Admin',
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
+                'debug' => config('app.debug', false),
             ],
             'platformSettings' => $platformSettingsPayload,
+            // Maintenance mode status for admin context
+            'maintenance' => fn () => $this->getAdminMaintenanceStatus(),
             'url' => $request->getPathInfo(),
             'csrfToken' => csrf_token(),
             'locale' => App::getLocale(),
@@ -376,6 +379,10 @@ class HandleInertiaRequests extends Middleware
             'siteName' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
         ]);
 
+        // Get maintenance status for platform context
+        $maintenanceStatus = PlatformSetting::getMaintenanceStatus();
+        $isDebugMode = config('app.debug', false);
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -387,11 +394,18 @@ class HandleInertiaRequests extends Middleware
                 'name' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
+                'debug' => $isDebugMode,
             ],
             'platformSettings' => $platformSettingsPayload,
             'platform' => [
                 'modules' => $this->getAvailableModules(),
                 'plans' => $this->getSubscriptionPlans(),
+            ],
+            'maintenance' => [
+                'enabled' => $maintenanceStatus['enabled'],
+                'message' => $maintenanceStatus['message'],
+                'endsAt' => $maintenanceStatus['ends_at'],
+                'skipVerification' => $maintenanceStatus['enabled'] || $isDebugMode,
             ],
             'url' => $request->getPathInfo(),
             'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
@@ -525,6 +539,8 @@ class HandleInertiaRequests extends Middleware
                 'mode' => config('aero.mode', 'saas'),
                 'subscriptions' => fn () => $this->getTenantSubscribedModules(),
             ],
+            // Maintenance mode status for tenant context
+            'maintenance' => fn () => $this->getTenantMaintenanceStatus(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -533,6 +549,62 @@ class HandleInertiaRequests extends Middleware
                 'email_results' => $request->session()->get('email_results'),
                 'invitation_errors' => $request->session()->get('invitation_errors'),
             ],
+        ];
+    }
+
+    /**
+     * Get maintenance mode status for tenant context.
+     *
+     * Checks both platform-level and tenant-level maintenance mode.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getTenantMaintenanceStatus(): array
+    {
+        $isDebugMode = config('app.debug', false);
+        $tenant = tenant();
+        
+        // Check platform-level maintenance
+        $platformMaintenance = PlatformSetting::getMaintenanceStatus();
+        $platformMaintenanceEnabled = $platformMaintenance['enabled'] ?? false;
+        
+        // Check tenant-level maintenance
+        $tenantMaintenanceEnabled = $tenant && method_exists($tenant, 'isInMaintenanceMode') 
+            ? $tenant->isInMaintenanceMode() 
+            : false;
+        
+        $isMaintenanceMode = $platformMaintenanceEnabled || $tenantMaintenanceEnabled;
+        
+        return [
+            'enabled' => $isMaintenanceMode,
+            'platformEnabled' => $platformMaintenanceEnabled,
+            'tenantEnabled' => $tenantMaintenanceEnabled,
+            'message' => $isMaintenanceMode 
+                ? ($tenantMaintenanceEnabled ? 'Workspace is in maintenance mode' : $platformMaintenance['message'])
+                : null,
+            'endsAt' => $platformMaintenance['ends_at'] ?? null,
+            'skipVerification' => $isMaintenanceMode || $isDebugMode,
+        ];
+    }
+
+    /**
+     * Get maintenance mode status for admin context.
+     *
+     * Admin context only checks platform-level maintenance mode.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getAdminMaintenanceStatus(): array
+    {
+        $isDebugMode = config('app.debug', false);
+        $platformMaintenance = PlatformSetting::getMaintenanceStatus();
+        $isMaintenanceMode = $platformMaintenance['enabled'] ?? false;
+        
+        return [
+            'enabled' => $isMaintenanceMode,
+            'message' => $platformMaintenance['message'] ?? null,
+            'endsAt' => $platformMaintenance['ends_at'] ?? null,
+            'skipVerification' => $isMaintenanceMode || $isDebugMode,
         ];
     }
 

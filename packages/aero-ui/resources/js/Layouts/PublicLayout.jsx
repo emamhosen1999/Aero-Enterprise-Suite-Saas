@@ -5,6 +5,7 @@ import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
 import Footer from '@/Layouts/Footer';
 import { publicNavLinks } from '@/Config/publicNavigation';
+import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
 
 export default function PublicLayout({ children, extraNavLinks = [], mainClassName = 'pt-24', title }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -192,6 +193,9 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
       </main>
 
       <Footer />
+      
+      {/* Maintenance/Debug Mode Indicator */}
+      <MaintenanceModeBanner position="bottom-right" />
     </div>
     </>
   );

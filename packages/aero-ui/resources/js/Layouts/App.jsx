@@ -14,6 +14,7 @@ import ThemeSettingDrawer from "@/Components/ThemeSettingDrawer.jsx";
 import UpdateNotification from '@/Components/UpdateNotification.jsx';
 import ImpersonationBanner from '@/Components/Admin/ImpersonationBanner.jsx';
 import CommandPalette from '@/Components/Navigation/CommandPalette.jsx';
+import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
 import { FadeIn, SlideIn } from '@/Components/Animations/SmoothAnimations';
 import { useVersionManager } from '@/Hooks/useVersionManager.js';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
@@ -579,6 +580,9 @@ const App = React.memo(({ children }) => {
         </AppStateProvider>
       </GlobalAutoTranslator>
     </TranslationProvider>
+    
+    {/* Maintenance/Debug Mode Indicator */}
+    <MaintenanceModeBanner position="bottom-right" />
     </>
   );
 });

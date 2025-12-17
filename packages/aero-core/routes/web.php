@@ -4,6 +4,7 @@ use Aero\Core\Http\Controllers\Admin\RoleController;
 use Aero\Core\Http\Controllers\Admin\CoreUserController;
 use Aero\Core\Http\Controllers\Admin\ModuleController;
 use Aero\Core\Http\Controllers\Admin\ExtensionsController;
+use Aero\Core\Http\Controllers\Auth\AdminSetupController;
 use Aero\Core\Http\Controllers\Auth\AuthenticatedSessionController;
 use Aero\Core\Http\Controllers\Auth\DeviceController;
 use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
@@ -60,6 +61,12 @@ Route::get('/aero-core/health', function () {
     Route::get('/', function () {
         return redirect('/dashboard');
     })->middleware(['auth:web']);
+
+// ============================================================================
+// ADMIN SETUP ROUTES (No Auth - for newly provisioned tenants)
+// ============================================================================
+Route::get('admin-setup', [AdminSetupController::class, 'show'])->name('admin.setup.show');
+Route::post('admin-setup', [AdminSetupController::class, 'store'])->name('admin.setup.store');
 
 // ============================================================================
 // AUTHENTICATION ROUTES (Guest)

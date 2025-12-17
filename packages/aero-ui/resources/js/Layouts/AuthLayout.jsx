@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/Context/ThemeContext';
 import { Card } from '@heroui/react';
 import { useBranding } from '@/Hooks/useBranding';
+import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
 
 
 const AuthLayout = ({ children, title, subtitle }) => {
@@ -225,6 +226,9 @@ const AuthLayout = ({ children, title, subtitle }) => {
                     </motion.div>
                 </div>
             </div>
+            
+            {/* Maintenance/Debug Mode Indicator */}
+            <MaintenanceModeBanner position="bottom-right" />
         </div>
     );
 };

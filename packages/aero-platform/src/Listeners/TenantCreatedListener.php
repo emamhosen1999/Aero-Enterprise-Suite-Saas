@@ -192,15 +192,16 @@ class TenantCreatedListener implements ShouldQueue
         // Fallback: Check ModuleRegistry (from aero-core)
         if (empty($paths) && app()->bound(ModuleRegistry::class)) {
             $registry = app(ModuleRegistry::class);
-            $modules = $registry->getRegisteredModules();
+            $modules = $registry->all();
 
-            foreach ($modules as $module) {
-                $modulePath = $module['path'] ?? null;
-                if ($modulePath) {
-                    $migrationPath = $modulePath.'/database/migrations';
-                    if (is_dir($migrationPath)) {
-                        $paths[$module['name'] ?? 'unknown'][] = $migrationPath;
-                    }
+            foreach ($modules as $moduleCode => $provider) {
+                // Try to find migration path from provider's base path
+                $providerClass = get_class($provider);
+                $reflector = new \ReflectionClass($providerClass);
+                $modulePath = dirname($reflector->getFileName(), 2);
+                $migrationPath = $modulePath.'/database/migrations';
+                if (is_dir($migrationPath)) {
+                    $paths[$moduleCode][] = $migrationPath;
                 }
             }
         }

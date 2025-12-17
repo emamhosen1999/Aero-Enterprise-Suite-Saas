@@ -103,7 +103,7 @@ class RegistrationPageController extends Controller
             ->orderBy('sort_order')
             ->get()
             ->map(function ($plan) {
-                $limits = $plan->limits ? json_decode($plan->limits, true) : [];
+                $limits = $plan->limits ?? [];
 
                 return [
                     'id' => $plan->id,
@@ -113,7 +113,7 @@ class RegistrationPageController extends Controller
                     'monthly_price' => $plan->monthly_price,
                     'yearly_price' => $plan->yearly_price,
                     'is_featured' => $plan->is_featured,
-                    'features' => $plan->features ? json_decode($plan->features, true) : [],
+                    'features' => $plan->features ?? [],
                     'limits' => $limits,
                     'badge' => $limits['badge'] ?? null,
                     'modules' => $plan->modules->map(fn ($m) => [

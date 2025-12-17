@@ -5,6 +5,7 @@ import { useBranding } from '@/Hooks/useBranding.js';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import MaintenanceModeBanner from '@/Components/Platform/MaintenanceModeBanner.jsx';
 
 export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-16' }) {
   const { themeSettings } = useTheme();
@@ -117,6 +118,9 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
         pauseOnHover
         theme={isDarkMode ? 'dark' : 'light'}
       />
+      
+      {/* Maintenance/Debug Mode Indicator */}
+      <MaintenanceModeBanner position="bottom-right" />
     </div>
   );
 }

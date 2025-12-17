@@ -22,6 +22,9 @@ return [
     // Platform domain (without subdomain)
     'domain' => env('PLATFORM_DOMAIN', 'localhost'),
 
+    // Central domain for tenant subdomains (used for subdomain URLs like tenant.domain.com)
+    'central_domain' => env('PLATFORM_DOMAIN', 'localhost'),
+
     // Admin subdomain
     'admin_subdomain' => env('PLATFORM_ADMIN_SUBDOMAIN', 'admin'),
 
