@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router, Link } from '@inertiajs/react';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -19,6 +19,13 @@ import {
     ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import { FileManager, VersionHistory } from '@/Components/FileManager';
+
+/**
+ * Navigate using Inertia router (SPA navigation)
+ */
+const navigateTo = (url) => {
+    router.visit(url, { preserveScroll: false });
+};
 
 const Dashboard = () => {
     const {
@@ -55,7 +62,7 @@ const Dashboard = () => {
                         <Button
                             color="primary"
                             startContent={<CloudArrowUpIcon className="h-5 w-5" />}
-                            onClick={() => window.location.href = route('dms.documents.create')}
+                            onPress={() => navigateTo(route('dms.documents.create'))}
                         >
                             Upload Document
                         </Button>
@@ -161,7 +168,7 @@ const Dashboard = () => {
                             <Button
                                 size="sm"
                                 variant="light"
-                                onClick={() => window.location.href = route('dms.documents')}
+                                onPress={() => navigateTo(route('dms.documents'))}
                             >
                                 View All
                             </Button>
@@ -174,7 +181,7 @@ const Dashboard = () => {
                                         <li
                                             key={doc.id}
                                             className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                                            onClick={() => window.location.href = route('dms.documents.show', doc.id)}
+                                            onClick={() => navigateTo(route('dms.documents.show', doc.id))}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
@@ -219,7 +226,7 @@ const Dashboard = () => {
                                         color="primary"
                                         variant="flat"
                                         className="mt-3"
-                                        onClick={() => window.location.href = route('dms.documents.create')}
+                                        onPress={() => navigateTo(route('dms.documents.create'))}
                                     >
                                         Upload your first document
                                     </Button>
@@ -235,7 +242,7 @@ const Dashboard = () => {
                             <Button
                                 size="sm"
                                 variant="light"
-                                onClick={() => window.location.href = route('dms.shared')}
+                                onPress={() => navigateTo(route('dms.shared'))}
                             >
                                 View All
                             </Button>
@@ -248,7 +255,7 @@ const Dashboard = () => {
                                         <li
                                             key={doc.id}
                                             className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                                            onClick={() => window.location.href = route('dms.documents.show', doc.id)}
+                                            onClick={() => navigateTo(route('dms.documents.show', doc.id))}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">

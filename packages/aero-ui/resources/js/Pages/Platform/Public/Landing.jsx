@@ -6,7 +6,6 @@ import {
   CardBody,
   Chip,
   Avatar,
-  Divider,
 } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from '@/Context/ThemeContext.jsx';
@@ -137,13 +136,13 @@ const pricingPlans = [
     name: 'Launch',
     price: 'Custom',
     period: '',
-    description: 'Pilot two modules with guided onboarding, sample data, and a success architect.',
+    description: 'Pilot two products with guided onboarding, sample data, and a success architect.',
     highlight: false,
   },
   {
     name: 'Scale',
     price: '$20',
-    period: '/module/month',
+    period: '/product/month',
     description: 'Core suite, automation playbooks, premium support, and integration connectors.',
     highlight: true,
   },
@@ -165,8 +164,8 @@ export default function Landing() {
   const { metadata = {}, branding = {}, site = {} } = platformSettings || {};
   
   // Use platform settings with fallbacks
-  const heroTitle = metadata.hero_title || "HRM, CRM, Finance, Projects, Inventory, POS, SCM, Quality, DMS, and Compliance in one platform.";
-  const heroSubtitle = metadata.hero_subtitle || "Every public page mirrors the modules defined in products.php so prospects see the exact suites, submodules, and controls they will run on day one.";
+  const heroTitle = metadata.hero_title || "One unified platform for every core business function.";
+  const heroSubtitle = metadata.hero_subtitle || "Streamline workforce, customer, financial, and operational management with integrated solutions designed for speed, clarity, and enterprise-grade control.";
   const siteName = site.name || "Aero";
   const primaryColor = branding.primary_color || '#3b82f6';
   const accentColor = branding.accent_color || '#8b5cf6';
@@ -184,14 +183,13 @@ export default function Landing() {
       ? 'bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-cyan-500/10 border border-white/20'
       : 'bg-gradient-to-br from-blue-100 via-purple-100 to-cyan-50 border border-slate-200 shadow-lg',
     tint: isDarkMode ? 'bg-white/5' : 'bg-slate-50',
-    divider: isDarkMode ? 'bg-white/10' : 'bg-slate-200',
     badge: isDarkMode
       ? 'bg-white/10 border border-white/20 text-white'
       : 'bg-white border border-slate-200 text-slate-700',
   }), [isDarkMode]);
 
   const anchorNavLinks = [
-    { type: 'anchor', href: '#modules', label: 'Modules' },
+    { type: 'anchor', href: '#products', label: 'Products' },
     { type: 'anchor', href: '#pricing', label: 'Plans' },
   ];
 
@@ -237,7 +235,7 @@ export default function Landing() {
     <PublicLayout mainClassName="pt-0">
       <Head>
         <title>{metadata.meta_title || 'Home'}</title>
-        <meta name="description" content={metadata.meta_description || "HRM, CRM, ERP, DMS, POS, and more. Purpose-built for organizations that want speed, clarity, and control."} />
+        <meta name="description" content={metadata.meta_description || "Enterprise business platform with integrated solutions for workforce, customer, financial, and operational management."} />
         {metadata.meta_keywords && <meta name="keywords" content={metadata.meta_keywords} />}
         {branding.favicon && <link rel="icon" type="image/x-icon" href={branding.favicon} />}
       </Head>
@@ -285,8 +283,8 @@ export default function Landing() {
                 <Button as={Link} href={route('demo')} size="sm" variant="bordered" className="px-3 md:px-9 py-2 md:py-7 rounded-lg md:rounded-2xl border-current text-xs md:text-base">
                   Watch demo
                 </Button>
-                <Button as="a" href="#modules" size="sm" variant="light" className="px-3 md:px-9 py-2 md:py-7 text-xs md:text-base">
-                  Modules
+                <Button as="a" href="#products" size="sm" variant="light" className="px-3 md:px-9 py-2 md:py-7 text-xs md:text-base">
+                  Products
                 </Button>
               </div>
               <div className={`mt-3 md:mt-6 text-[10px] md:text-sm ${palette.mutedText}`}>
@@ -325,68 +323,40 @@ export default function Landing() {
                     onMouseMove={handleMouseMove}
                     onMouseLeave={resetTilt}
                   >
-                    <Card className={`${palette.panel} overflow-hidden shadow-2xl shadow-blue-900/10 min-h-[420px] md:min-h-[520px] backdrop-blur-xl border-white/10`}>
-                      <CardBody className="p-4 md:p-7 flex flex-col gap-4 md:gap-6">
+                    <Card className={`${palette.panel} overflow-hidden shadow-2xl shadow-blue-900/10 backdrop-blur-xl border-white/10`}>
+                      <CardBody className="p-4 md:p-6 flex flex-col gap-3 md:gap-4">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 md:gap-4">
-                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${activeSlideData.color} flex items-center justify-center text-white shadow-lg shadow-blue-500/25`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${activeSlideData.color} flex items-center justify-center text-white shadow-lg shadow-blue-500/25`}>
                               {iconMap[activeSlideData.icon]}
                             </div>
                             <div>
-                              <p className={`text-[10px] md:text-xs uppercase tracking-wide ${palette.mutedText}`}>Live service</p>
-                              <h3 className="text-xl md:text-3xl font-semibold leading-tight">{activeSlideData.name} experience</h3>
-                              <p className={`text-[11px] md:text-sm ${palette.mutedText} mt-1`}>{activeSlideData.shortName}</p>
+                              <h3 className="text-lg md:text-2xl font-semibold leading-tight">{activeSlideData.name}</h3>
+                              <p className={`text-[10px] md:text-sm ${palette.mutedText}`}>{activeSlideData.shortName}</p>
                             </div>
                           </div>
-                          <Chip color="secondary" variant="flat" size="sm" className="text-[10px] md:text-xs">
-                            3D Preview
+                          <Chip color="success" variant="flat" size="sm" className="text-[9px] md:text-xs hidden sm:flex">
+                            Active
                           </Chip>
                         </div>
 
-                        <div className="grid md:grid-cols-12 gap-3 md:gap-6">
-                          <div className="md:col-span-7 space-y-3 md:space-y-5">
-                            <p className={`text-sm md:text-lg ${palette.mutedText}`}>{activeSlideData.description}</p>
-                            <div className="grid grid-cols-2 gap-2 md:gap-3">
-                              {activeSlideData.highlights.slice(0, 4).map((item) => (
-                                <div
-                                  key={item}
-                                  className={`${palette.card} bg-gradient-to-br from-white/70 via-white/40 to-white/10 dark:from-white/10 dark:via-white/5 dark:to-white/0 border border-white/30 shadow-sm p-2.5 md:p-3.5 rounded-lg md:rounded-xl`}
-                                >
-                                  <p className="text-[11px] md:text-sm font-semibold leading-tight">{item}</p>
-                                </div>
-                              ))}
+                        <p className={`text-xs md:text-base ${palette.mutedText}`}>{activeSlideData.description}</p>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {activeSlideData.highlights.slice(0, 3).map((item) => (
+                            <div
+                              key={item}
+                              className={`${palette.card} bg-gradient-to-br from-white/70 via-white/40 to-white/10 dark:from-white/10 dark:via-white/5 dark:to-white/0 border border-white/30 shadow-sm p-2 md:p-3 rounded-lg`}
+                            >
+                              <p className="text-[10px] md:text-sm font-medium leading-tight">{item}</p>
                             </div>
-                          </div>
-                          <div className="md:col-span-5">
-                            <div className="relative h-full min-h-[220px]">
-                              <motion.div
-                                className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${activeSlideData.color} opacity-70 blur-3xl`}
-                                animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }}
-                                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                                aria-hidden
-                              />
-                              <Card className={`${palette.card} relative overflow-hidden backdrop-blur-xl border-white/30 shadow-lg`}>
-                                <CardBody className="p-3 md:p-4 space-y-3">
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <p className={`text-[10px] md:text-xs ${palette.mutedText}`}>Live snapshot</p>
-                                      <p className="text-sm md:text-lg font-semibold">{activeSlideData.shortName}</p>
-                                    </div>
-                                    <Chip size="sm" color="primary" variant="flat" className="text-[9px] md:text-xs">
-                                      Auto-synced
-                                    </Chip>
-                                  </div>
-                                  <Divider className={palette.divider} />
-                                  <div className="grid grid-cols-2 gap-2 md:gap-3 text-[10px] md:text-sm">
-                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>AI alerts & escalations</div>
-                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>Realtime KPIs</div>
-                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>Role-based spaces</div>
-                                    <div className={`${palette.badge} rounded-lg md:rounded-xl p-2 md:p-3`}>Audit-ready logs</div>
-                                  </div>
-                                </CardBody>
-                              </Card>
-                            </div>
-                          </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
+                          <Chip size="sm" color="primary" variant="flat" className="text-[8px] md:text-xs">Realtime KPIs</Chip>
+                          <Chip size="sm" color="secondary" variant="flat" className="text-[8px] md:text-xs">Role-based</Chip>
+                          <Chip size="sm" color="success" variant="flat" className="text-[8px] md:text-xs">Audit-ready</Chip>
                         </div>
                       </CardBody>
                     </Card>
@@ -470,15 +440,15 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="modules" className="py-8 md:py-20 px-4 md:px-6">
+        <section id="products" className="py-8 md:py-20 px-4 md:px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6 md:mb-16">
               <Chip color="secondary" variant="flat" className="mb-2 md:mb-4 text-[10px] md:text-xs">
-                Modular Platform
+                Integrated Products
               </Chip>
-              <h2 className="text-xl md:text-4xl font-bold">Complete enterprise coverage, modular by design.</h2>
+              <h2 className="text-xl md:text-4xl font-bold">Complete enterprise coverage, ready to deploy.</h2>
               <p className={`mt-1 md:mt-3 text-xs md:text-lg ${palette.mutedText}`}>
-                Each module includes specialized submodules. Activate what you need, expand as you grow.
+                Each product includes specialized capabilities. Activate what you need, expand as you grow.
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6">
@@ -497,7 +467,7 @@ export default function Landing() {
             </div>
             <div className="text-center mt-6 md:mt-10">
               <Button as={Link} href={route('features')} variant="bordered" className="border-current text-xs md:text-base px-4 md:px-8 py-2 md:py-6">
-                Explore all module features
+                Explore all product features
               </Button>
             </div>
           </div>
@@ -650,7 +620,7 @@ export default function Landing() {
               </Chip>
               <h2 className="text-xl md:text-4xl font-bold">Transparent, modular, enterprise-ready.</h2>
               <p className={`mt-1 md:mt-3 text-xs md:text-base ${palette.mutedText}`}>
-                Only pay for the modules and environments you activate. Cancel or expand anytime.
+                Only pay for the products and environments you activate. Cancel or expand anytime.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-2 md:gap-6">

@@ -2,22 +2,95 @@ import './bootstrap';
 import '../css/app.css';
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import {createInertiaApp} from '@inertiajs/react';
+import {createInertiaApp, router} from '@inertiajs/react';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
 import LoadingIndicator from './Components/LoadingIndicator';
-import UnifiedError from './Components/Errors/UnifiedError';
+import UnifiedError from './Shared/Errors/UnifiedError';
 import { ThemeProvider } from './Context/ThemeContext';
 import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';
 import { initializeDeviceAuth } from './utils/deviceAuth';
 
+// Expose Inertia router globally for error handlers and external use
+if (typeof window !== 'undefined') {
+    window.Inertia = router;
+}
+
+/**
+ * Global Error State Manager
+ * Manages critical errors that should show full-screen error UI
+ */
+class GlobalErrorManager {
+    constructor() {
+        this.listeners = new Set();
+        this.currentError = null;
+    }
+
+    setError(error) {
+        this.currentError = error;
+        this.listeners.forEach(listener => listener(error));
+    }
+
+    clearError() {
+        this.currentError = null;
+        this.listeners.forEach(listener => listener(null));
+    }
+
+    subscribe(listener) {
+        this.listeners.add(listener);
+        return () => this.listeners.delete(listener);
+    }
+
+    getError() {
+        return this.currentError;
+    }
+}
+
+export const globalErrorManager = new GlobalErrorManager();
+
+/**
+ * Generate unique trace ID for error tracking
+ */
+const generateTraceId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
 /**
  * Global Error Reporter
  * Centralizes error reporting for all error types
  */
-const reportError = async (errorData) => {
+const reportError = async (errorData, showUI = false) => {
     const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
+    const traceId = errorData.trace_id || generateTraceId();
+    
+    const fullErrorData = {
+        trace_id: traceId,
+        origin: 'frontend',
+        ...errorData,
+        url: window.location.href,
+        user_agent: navigator.userAgent.slice(0, 200),
+        timestamp: new Date().toISOString(),
+        viewport: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+        },
+        browser: getBrowserInfo(),
+    };
+
+    // Show full-screen error UI for critical errors
+    if (showUI) {
+        globalErrorManager.setError({
+            code: errorData.http_code || 500,
+            type: errorData.error_type || 'UnknownError',
+            title: getErrorTitle(errorData.error_type),
+            message: errorData.message || 'An unexpected error occurred.',
+            trace_id: traceId,
+            showHomeButton: true,
+            showRetryButton: true,
+            timestamp: new Date().toISOString(),
+        });
+    }
     
     try {
         await fetch('/api/error-log', {
@@ -27,19 +100,95 @@ const reportError = async (errorData) => {
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
             },
-            body: JSON.stringify({
-                trace_id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                origin: 'frontend',
-                ...errorData,
-                url: window.location.href,
-                user_agent: navigator.userAgent.slice(0, 200),
-                timestamp: new Date().toISOString(),
-            }),
+            body: JSON.stringify(fullErrorData),
         });
     } catch (e) {
         console.warn('Failed to report error:', e);
     }
+
+    return traceId;
 };
+
+/**
+ * Get browser information
+ */
+const getBrowserInfo = () => {
+    const ua = navigator.userAgent;
+    let browserName = 'Unknown';
+    let browserVersion = 'Unknown';
+
+    if (ua.indexOf('Firefox') > -1) {
+        browserName = 'Firefox';
+        browserVersion = ua.match(/Firefox\/(\d+\.\d+)/)?.[1];
+    } else if (ua.indexOf('Edg') > -1) {
+        browserName = 'Edge';
+        browserVersion = ua.match(/Edg\/(\d+\.\d+)/)?.[1];
+    } else if (ua.indexOf('Chrome') > -1) {
+        browserName = 'Chrome';
+        browserVersion = ua.match(/Chrome\/(\d+\.\d+)/)?.[1];
+    } else if (ua.indexOf('Safari') > -1) {
+        browserName = 'Safari';
+        browserVersion = ua.match(/Version\/(\d+\.\d+)/)?.[1];
+    }
+
+    return { name: browserName, version: browserVersion, platform: navigator.platform };
+};
+
+/**
+ * Get user-friendly error title based on error type
+ */
+const getErrorTitle = (errorType) => {
+    const titles = {
+        'GlobalError': 'Application Error',
+        'UnhandledPromiseRejection': 'Async Operation Failed',
+        'ResourceLoadError': 'Resource Loading Failed',
+        'NetworkError': 'Network Connection Error',
+        'APIError': 'API Request Failed',
+        'FetchError': 'Data Fetch Failed',
+        'ChunkLoadError': 'Page Loading Failed',
+        'SyntaxError': 'Script Error',
+        'TypeError': 'Type Error',
+        'ReferenceError': 'Reference Error',
+        'ReactError': 'Rendering Error',
+        'MemoryWarning': 'Memory Warning',
+    };
+    return titles[errorType] || 'Something Went Wrong';
+};
+
+/**
+ * Check if error is critical and should show full-screen UI
+ */
+const isCriticalError = (error, errorType) => {
+    // These errors should show full-screen error UI
+    const criticalTypes = [
+        'ChunkLoadError',
+        'SyntaxError',
+        'ReferenceError',
+    ];
+
+    // Check for chunk loading failures (lazy load failures)
+    if (error?.message?.includes('Loading chunk') || 
+        error?.message?.includes('Failed to fetch dynamically imported module') ||
+        error?.message?.includes('Unable to preload CSS')) {
+        return true;
+    }
+
+    // Check error type
+    if (criticalTypes.includes(errorType)) {
+        return true;
+    }
+
+    // Network failures on critical API calls
+    if (errorType === 'NetworkError' && error?.isCritical) {
+        return true;
+    }
+
+    return false;
+};
+
+// Expose reportError globally for use in other modules
+window.__reportError = reportError;
+window.__globalErrorManager = globalErrorManager;
 
 /**
  * GLOBAL ERROR HANDLERS
@@ -47,20 +196,32 @@ const reportError = async (errorData) => {
  * - Event handler errors
  * - Async errors (setTimeout, Promises)
  * - Errors outside React tree
+ * - Chunk loading failures
+ * - Network/API errors
  */
+
+// Track reported errors to prevent duplicates
+const reportedErrors = new Set();
 
 // 1. Catch all unhandled JavaScript errors (event handlers, sync errors outside React)
 window.onerror = function(message, source, lineno, colno, error) {
+    const errorKey = `${message}-${source}-${lineno}`;
+    if (reportedErrors.has(errorKey)) return false;
+    reportedErrors.add(errorKey);
+
     console.error('Global error caught:', { message, source, lineno, colno, error });
     
+    const errorType = error?.name || 'GlobalError';
+    const isCritical = isCriticalError(error, errorType);
+    
     reportError({
-        error_type: 'GlobalError',
+        error_type: errorType,
         http_code: 0,
         message: String(message).slice(0, 500),
         stack: error?.stack?.slice(0, 2000) || `${source}:${lineno}:${colno}`,
         component_stack: `Source: ${source}, Line: ${lineno}, Col: ${colno}`,
-        context: { type: 'window.onerror' },
-    });
+        context: { type: 'window.onerror', critical: isCritical },
+    }, isCritical);
     
     // Return false to allow default browser error handling (console logging)
     return false;
@@ -69,16 +230,28 @@ window.onerror = function(message, source, lineno, colno, error) {
 // 2. Catch all unhandled promise rejections (async errors, failed fetches, etc.)
 window.onunhandledrejection = function(event) {
     const reason = event.reason;
+    const errorKey = `promise-${reason?.message || String(reason)}`;
+    if (reportedErrors.has(errorKey)) return;
+    reportedErrors.add(errorKey);
+
     console.error('Unhandled promise rejection:', reason);
     
+    // Check for chunk loading failures
+    const isChunkError = reason?.message?.includes('Loading chunk') ||
+                         reason?.message?.includes('Failed to fetch dynamically imported module') ||
+                         reason?.message?.includes('Unable to preload CSS');
+    
+    const errorType = isChunkError ? 'ChunkLoadError' : 'UnhandledPromiseRejection';
+    const isCritical = isCriticalError(reason, errorType);
+    
     reportError({
-        error_type: 'UnhandledPromiseRejection',
+        error_type: errorType,
         http_code: 0,
         message: (reason?.message || String(reason)).slice(0, 500),
         stack: reason?.stack?.slice(0, 2000) || 'No stack trace',
         component_stack: 'Promise rejection - async error',
-        context: { type: 'unhandledrejection' },
-    });
+        context: { type: 'unhandledrejection', critical: isCritical },
+    }, isCritical);
 };
 
 // 3. Catch errors in error event listeners (more comprehensive than onerror)
@@ -97,19 +270,75 @@ window.addEventListener('error', (event) => {
         const tagName = target.tagName?.toLowerCase();
         
         if (['img', 'script', 'link', 'video', 'audio'].includes(tagName)) {
-            console.error('Resource loading error:', target.src || target.href);
+            const resourceUrl = target.src || target.href;
+            const errorKey = `resource-${tagName}-${resourceUrl}`;
+            if (reportedErrors.has(errorKey)) return;
+            reportedErrors.add(errorKey);
+
+            console.error('Resource loading error:', resourceUrl);
+            
+            // Script loading failures are critical
+            const isCritical = tagName === 'script';
             
             reportError({
                 error_type: 'ResourceLoadError',
                 http_code: 0,
-                message: `Failed to load ${tagName}: ${target.src || target.href}`.slice(0, 500),
+                message: `Failed to load ${tagName}: ${resourceUrl}`.slice(0, 500),
                 stack: 'Resource loading failure',
-                component_stack: `Element: <${tagName}>, URL: ${target.src || target.href}`,
-                context: { type: 'resource_error', element: tagName },
-            });
+                component_stack: `Element: <${tagName}>, URL: ${resourceUrl}`,
+                context: { type: 'resource_error', element: tagName, critical: isCritical },
+            }, isCritical);
         }
     }
 }, true); // Use capture phase to catch before bubbling
+
+// 4. Wrap fetch to catch network errors
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || 'unknown';
+    
+    try {
+        const response = await originalFetch.apply(this, args);
+        
+        // Log server errors (5xx)
+        if (response.status >= 500) {
+            const errorKey = `fetch-${response.status}-${url}`;
+            if (!reportedErrors.has(errorKey)) {
+                reportedErrors.add(errorKey);
+                
+                reportError({
+                    error_type: 'APIError',
+                    http_code: response.status,
+                    message: `API Error ${response.status}: ${url}`.slice(0, 500),
+                    stack: `Fetch failed with status ${response.status}`,
+                    component_stack: `URL: ${url}, Status: ${response.status}`,
+                    context: { type: 'fetch_error', status: response.status },
+                }, false); // Don't show UI for API errors, let the component handle it
+            }
+        }
+        
+        return response;
+    } catch (error) {
+        // Network errors (no response received)
+        const errorKey = `fetch-network-${url}`;
+        if (!reportedErrors.has(errorKey)) {
+            reportedErrors.add(errorKey);
+            
+            console.error('Fetch network error:', url, error);
+            
+            reportError({
+                error_type: 'NetworkError',
+                http_code: 0,
+                message: `Network error fetching ${url}: ${error.message}`.slice(0, 500),
+                stack: error.stack?.slice(0, 2000) || 'No stack trace',
+                component_stack: `Fetch URL: ${url}`,
+                context: { type: 'fetch_network_error' },
+            }, false);
+        }
+        
+        throw error;
+    }
+};
 
 // Initialize secure device authentication
 initializeDeviceAuth();
@@ -156,18 +385,61 @@ axios.interceptors.response.use(
         return response;
     },
     (error) => {
+        const url = error.config?.url || 'unknown';
+        const status = error.response?.status || 0;
+        const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+
         // Enhanced error logging (always enabled)
         if (error.response) {
             console.error('API Error:', {
-                status: error.response.status,
-                url: error.config?.url,
-                method: error.config?.method,
+                status: status,
+                url: url,
+                method: method,
                 data: error.response.data
             });
+
+            // Report server errors (5xx) to error logging
+            if (status >= 500) {
+                const errorKey = `axios-${status}-${url}`;
+                if (!reportedErrors.has(errorKey)) {
+                    reportedErrors.add(errorKey);
+                    
+                    reportError({
+                        error_type: 'APIError',
+                        http_code: status,
+                        message: `${method} ${url} failed with status ${status}`.slice(0, 500),
+                        stack: JSON.stringify(error.response.data || {}).slice(0, 2000),
+                        component_stack: `Axios request: ${method} ${url}`,
+                        context: { 
+                            type: 'axios_error', 
+                            status: status,
+                            method: method,
+                            response_data: error.response.data,
+                        },
+                    }, false);
+                }
+            }
+        } else if (error.request) {
+            // Network error - no response received
+            const errorKey = `axios-network-${url}`;
+            if (!reportedErrors.has(errorKey)) {
+                reportedErrors.add(errorKey);
+                
+                console.error('Network Error:', { url, method, error: error.message });
+                
+                reportError({
+                    error_type: 'NetworkError',
+                    http_code: 0,
+                    message: `Network error: ${method} ${url} - ${error.message}`.slice(0, 500),
+                    stack: error.stack?.slice(0, 2000) || 'No stack trace',
+                    component_stack: `Axios request: ${method} ${url}`,
+                    context: { type: 'axios_network_error', method: method },
+                }, false);
+            }
         }
         
         // CRITICAL: Handle session expiry (419 or 401 status codes) - ALWAYS enabled
-        if (error.response && (error.response.status === 419 || error.response.status === 401)) {
+        if (error.response && (status === 419 || status === 401)) {
             // Immediately redirect to login without showing modal
             console.warn('Session expired or unauthenticated, redirecting to login');
             

@@ -1,6 +1,6 @@
 export const heroStats = [
-  { value: '10', label: 'Modules available' },
-  { value: '140+', label: 'Submodules in products.php' },
+  { value: '10', label: 'Business Solutions' },
+  { value: '140+', label: 'Integrated Features' },
   { value: '99.96%', label: 'Rolling 24‑month uptime' },
   { value: '38 days', label: 'Median go-live' },
 ];

@@ -90,8 +90,17 @@ export function handleDeviceMismatch(message: string): void {
     // Clear localStorage
     clearDeviceId();
 
-    // Redirect to login
-    window.location.href = '/login';
+    // Redirect to login using Inertia if available
+    if (typeof window !== 'undefined' && window.Inertia) {
+        window.Inertia.visit('/login', {
+            method: 'get',
+            preserveState: false,
+            preserveScroll: false,
+            replace: true
+        });
+    } else {
+        window.location.href = '/login';
+    }
 }
 
 /**

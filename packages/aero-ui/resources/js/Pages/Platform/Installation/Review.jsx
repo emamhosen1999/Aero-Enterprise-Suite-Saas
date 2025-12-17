@@ -79,11 +79,11 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
 
             showToast.success(response.data.message || 'Installation completed successfully!');
 
-            // Navigate to Complete page using window.location
+            // Navigate to Complete page using Inertia router
             // The warning is now disabled via the global function above
             setTimeout(() => {
                 console.log('🔄 Navigating to Complete page...');
-                window.location.href = route('installation.complete');
+                router.visit(route('installation.complete'));
             }, 1500);
 
         } catch (error) {

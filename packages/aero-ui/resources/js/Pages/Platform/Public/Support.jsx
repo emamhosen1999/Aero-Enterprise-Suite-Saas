@@ -163,7 +163,7 @@ const Support = () => {
               Check realtime uptime, scheduled maintenance, and compliance documents in the Trust Center.
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4">
-              <Button as="a" href="/status" className={palette.buttonPrimary}>
+              <Button as={Link} href={route('status')} className={palette.buttonPrimary}>
                 View status
               </Button>
               <Button as={Link} href={route('docs')} variant="bordered" className={palette.buttonBorder}>

@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -48,7 +48,7 @@ export default function Index({
     const handlePipelineChange = (pipelineId) => {
         setSelectedPipelineId(pipelineId);
         // Navigate to the selected pipeline
-        window.location.href = route('crm.pipeline', { pipeline: pipelineId });
+        router.visit(route('crm.pipeline', { pipeline: pipelineId }));
     };
 
     return (

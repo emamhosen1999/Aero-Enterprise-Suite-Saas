@@ -84,6 +84,7 @@ Route::get('/pricing', fn () => Inertia::render('Platform/Public/Pricing'))->nam
 Route::get('/about', fn () => Inertia::render('Platform/Public/About'))->name('about');
 Route::get('/resources', fn () => Inertia::render('Platform/Public/Resources'))->name('resources');
 Route::get('/support', fn () => Inertia::render('Platform/Public/Support'))->name('support');
+Route::get('/status', fn () => Inertia::render('Platform/Public/Status'))->name('status');
 Route::get('/demo', fn () => Inertia::render('Platform/Public/Demo'))->name('demo');
 Route::get('/contact', fn () => Inertia::render('Platform/Public/Contact'))->name('contact');
 Route::get('/features', fn () => Inertia::render('Platform/Public/Features'))->name('features');

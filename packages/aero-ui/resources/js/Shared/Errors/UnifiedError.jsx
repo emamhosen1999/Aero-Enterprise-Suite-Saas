@@ -1,8 +1,8 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip } from "@heroui/react";
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     ExclamationTriangleIcon,
     XCircleIcon,
@@ -14,6 +14,10 @@ import {
     HomeIcon,
     ClipboardDocumentIcon,
     CheckIcon,
+    WifiIcon,
+    CodeBracketIcon,
+    BugAntIcon,
+    CubeTransparentIcon,
 } from '@heroicons/react/24/outline';
 
 /**
@@ -22,6 +26,10 @@ import {
  * A comprehensive error component that handles:
  * 1. HTTP error pages (401, 403, 404, 500, etc.)
  * 2. React Error Boundary (catches rendering errors)
+ * 3. Global errors from the GlobalErrorManager
+ * 4. Network/API errors
+ * 5. Chunk loading failures
+ * 6. Resource loading errors
  * 
  * Features:
  * - Animated UI with Framer Motion
@@ -31,6 +39,7 @@ import {
  * - Context-aware messaging (platform/tenant/standalone)
  * - Automatic error reporting to platform
  * - Support for backend and frontend error logging
+ * - Global error state integration
  * 
  * Error codes supported:
  * - 400: Bad Request
@@ -44,6 +53,15 @@ import {
  * - 500: Internal Server Error
  * - 502: Bad Gateway
  * - 503: Service Unavailable
+ * 
+ * Error types supported:
+ * - ReactError: Component rendering errors
+ * - GlobalError: Uncaught JavaScript errors
+ * - NetworkError: Network connection failures
+ * - APIError: Backend API errors
+ * - ChunkLoadError: Dynamic import failures
+ * - ResourceLoadError: Asset loading failures
+ * - UnhandledPromiseRejection: Async errors
  */
 class UnifiedError extends React.Component {
     constructor(props) {
@@ -55,7 +73,29 @@ class UnifiedError extends React.Component {
             copied: false,
             traceId: null,
             reported: false,
+            globalError: null,
         };
+        this.unsubscribeGlobalError = null;
+    }
+
+    componentDidMount() {
+        // Subscribe to global error manager
+        if (typeof window !== 'undefined' && window.__globalErrorManager) {
+            this.unsubscribeGlobalError = window.__globalErrorManager.subscribe((error) => {
+                this.setState({ globalError: error });
+            });
+            // Check for existing error
+            const existingError = window.__globalErrorManager.getError();
+            if (existingError) {
+                this.setState({ globalError: existingError });
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.unsubscribeGlobalError) {
+            this.unsubscribeGlobalError();
+        }
     }
 
     static getDerivedStateFromError(error) {
@@ -174,32 +214,73 @@ class UnifiedError extends React.Component {
         return { name: browserName, version: browserVersion, platform: navigator.platform };
     }
 
+    /**
+     * Clear global error and allow retry
+     */
+    clearGlobalError = () => {
+        if (typeof window !== 'undefined' && window.__globalErrorManager) {
+            window.__globalErrorManager.clearError();
+        }
+        this.setState({ globalError: null });
+    };
+
     render() {
-        // If ErrorBoundary caught an error, show error UI
+        // Priority 1: Global errors from GlobalErrorManager (critical errors like chunk load failures)
+        if (this.state.globalError) {
+            return (
+                <UnifiedErrorDisplay 
+                    error={this.state.globalError} 
+                    onClearError={this.clearGlobalError}
+                />
+            );
+        }
+
+        // Priority 2: React Error Boundary caught an error
         if (this.state.hasError) {
+            const { error, errorInfo } = this.state;
             const reactError = {
                 code: 500,
                 type: 'ReactError',
                 title: 'Something Went Wrong',
-                message: 'An unexpected error occurred while rendering this page.',
+                message: error?.message || 'An unexpected error occurred while rendering this page.',
                 trace_id: this.state.traceId,
                 showHomeButton: true,
                 showRetryButton: true,
+                details: {
+                    errorMessage: error?.message || 'Unknown error',
+                    errorStack: error?.stack?.split('\n').slice(0, 5).join('\n') || null,
+                    componentStack: errorInfo?.componentStack?.split('\n').slice(0, 8).join('\n') || null,
+                },
             };
             
             return <UnifiedErrorDisplay error={reactError} />;
         }
 
-        // Otherwise render HTTP error from props
-        return <UnifiedErrorDisplay error={this.props.error} />;
+        // Priority 3: Error prop passed from server (HTTP error)
+        if (this.props.error) {
+            return <UnifiedErrorDisplay error={this.props.error} />;
+        }
+
+        // Otherwise render children normally
+        return this.props.children;
     }
 }
 
 /**
  * UnifiedErrorDisplay - Pure display component
  */
-function UnifiedErrorDisplay({ error = {} }) {
+function UnifiedErrorDisplay({ error = {}, onClearError = null }) {
     const [copied, setCopied] = useState(false);
+    
+    // Check if we're inside Inertia context (for safe Head usage)
+    let hasInertiaContext = false;
+    try {
+        // usePage will throw if we're outside Inertia context
+        usePage();
+        hasInertiaContext = true;
+    } catch {
+        hasInertiaContext = false;
+    }
 
     // Extract error properties with defaults
     const {
@@ -277,11 +358,17 @@ function UnifiedErrorDisplay({ error = {} }) {
     const context = detectContext();
 
     /**
-     * Get error configuration based on HTTP status code
+     * Get error configuration based on HTTP status code OR error type string
      * Returns appropriate icon, colors, and gradients
+     * 
+     * Supports:
+     * - HTTP status codes: 400, 401, 403, 404, 408, 419, 422, 429, 500, 502, 503
+     * - Error type strings: ReactError, NetworkError, APIError, ChunkLoadError, 
+     *   ResourceLoadError, GlobalError, UnhandledPromiseRejection, TimeoutError
      */
-    const getErrorConfig = (statusCode) => {
-        const configs = {
+    const getErrorConfig = (codeOrType) => {
+        // HTTP status code configurations
+        const httpConfigs = {
             400: {
                 icon: ExclamationTriangleIcon,
                 color: 'warning',
@@ -350,10 +437,76 @@ function UnifiedErrorDisplay({ error = {} }) {
             },
         };
 
-        return configs[statusCode] || configs[500];
+        // Error type string configurations (for global/non-HTTP errors)
+        const typeConfigs = {
+            ReactError: {
+                icon: BugAntIcon,
+                color: 'danger',
+                gradient: 'from-danger-400 to-danger-600',
+                bgGradient: 'from-danger-100 to-danger-200',
+            },
+            NetworkError: {
+                icon: WifiIcon,
+                color: 'warning',
+                gradient: 'from-warning-400 to-warning-600',
+                bgGradient: 'from-warning-100 to-warning-200',
+            },
+            APIError: {
+                icon: ServerIcon,
+                color: 'danger',
+                gradient: 'from-danger-400 to-danger-600',
+                bgGradient: 'from-danger-100 to-danger-200',
+            },
+            ChunkLoadError: {
+                icon: CubeTransparentIcon,
+                color: 'warning',
+                gradient: 'from-warning-400 to-warning-600',
+                bgGradient: 'from-warning-100 to-warning-200',
+            },
+            ResourceLoadError: {
+                icon: ExclamationTriangleIcon,
+                color: 'warning',
+                gradient: 'from-warning-400 to-warning-600',
+                bgGradient: 'from-warning-100 to-warning-200',
+            },
+            GlobalError: {
+                icon: CodeBracketIcon,
+                color: 'danger',
+                gradient: 'from-danger-400 to-danger-600',
+                bgGradient: 'from-danger-100 to-danger-200',
+            },
+            UnhandledPromiseRejection: {
+                icon: ExclamationTriangleIcon,
+                color: 'warning',
+                gradient: 'from-warning-400 to-warning-600',
+                bgGradient: 'from-warning-100 to-warning-200',
+            },
+            TimeoutError: {
+                icon: ClockIcon,
+                color: 'warning',
+                gradient: 'from-warning-400 to-warning-600',
+                bgGradient: 'from-warning-100 to-warning-200',
+            },
+        };
+
+        // Check if it's a number (HTTP code) or string (error type)
+        if (typeof codeOrType === 'number') {
+            return httpConfigs[codeOrType] || httpConfigs[500];
+        }
+
+        if (typeof codeOrType === 'string') {
+            return typeConfigs[codeOrType] || httpConfigs[500];
+        }
+
+        return httpConfigs[500];
     };
 
-    const errorConfig = getErrorConfig(code);
+    // Use error type for non-HTTP errors, otherwise use HTTP code
+    // If type is a known error type string (not a PHP exception class), prefer it
+    const knownErrorTypes = ['ReactError', 'NetworkError', 'APIError', 'ChunkLoadError', 
+        'ResourceLoadError', 'GlobalError', 'UnhandledPromiseRejection', 'TimeoutError'];
+    const configKey = knownErrorTypes.includes(type) ? type : code;
+    const errorConfig = getErrorConfig(configKey);
     const ErrorIcon = errorConfig.icon;
 
     // Animation variants
@@ -376,10 +529,32 @@ function UnifiedErrorDisplay({ error = {} }) {
 
     /**
      * Handle retry button click
-     * Reloads the current page
+     * Uses Inertia router for SPA navigation instead of full page reload
+     * Falls back to window reload only for chunk load errors
      */
     const handleRetry = () => {
-        window.location.reload();
+        // Clear global error first if callback provided
+        if (onClearError) {
+            onClearError();
+        }
+
+        // For chunk load errors, we need a full reload to refetch the module
+        if (type === 'ChunkLoadError' || type === 'ResourceLoadError') {
+            window.location.reload();
+            return;
+        }
+
+        // Use Inertia router for SPA navigation (no full reload)
+        if (typeof window !== 'undefined' && window.Inertia) {
+            window.Inertia.reload({
+                preserveScroll: false,
+                preserveState: false,
+                only: [],
+            });
+        } else {
+            // Fallback for non-Inertia contexts
+            window.location.reload();
+        }
     };
 
     /**
@@ -438,7 +613,7 @@ function UnifiedErrorDisplay({ error = {} }) {
 
     return (
         <>
-            <Head title={title} />
+            {hasInertiaContext && <Head title={title} />}
             
             <div className="min-h-screen flex items-center justify-center bg-background p-6">
                 <motion.div
@@ -581,7 +756,7 @@ function UnifiedErrorDisplay({ error = {} }) {
                         <Button
                             variant="flat"
                             color="default"
-                            onPress={() => window.history.length > 1 ? window.history.back() : window.location.href = dashboardUrl}
+                            onPress={() => window.history.length > 1 ? window.history.back() : router.visit(dashboardUrl)}
                         >
                             Go Back
                         </Button>
