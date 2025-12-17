@@ -54,6 +54,18 @@ class InstallationController extends Controller
         'seeding', 'admin', 'settings', 'verification', 'finalization',
     ];
 
+    /**
+     * Installation lock timeout (30 minutes)
+     */
+    private const INSTALLATION_LOCK_TIMEOUT = 1800; // 30 minutes
+
+    /**
+     * Config file paths for persistence
+     */
+    private const CONFIG_FILE_DB = 'installation_db_config.json';
+    private const CONFIG_FILE_PLATFORM = 'installation_platform_config.json';
+    private const CONFIG_FILE_ADMIN = 'installation_admin_config.json';
+
     public function __construct(
         private readonly InstallationService $installationService
     ) {}
@@ -315,16 +327,19 @@ class InstallationController extends Controller
             if ($testConnection['success']) {
                 // Store config in session for later use
                 // Encrypt sensitive password before storing in session
-                session([
-                    'db_config' => [
-                        'db_host' => $request->host,
-                        'db_port' => $request->port,
-                        'db_database' => $request->database,
-                        'db_username' => $request->username,
-                        'db_password' => $request->password ? Crypt::encryptString($request->password) : '',
-                        'db_password_encrypted' => true,
-                    ],
-                ]);
+                $dbConfig = [
+                    'db_host' => $request->host,
+                    'db_port' => $request->port,
+                    'db_database' => $request->database,
+                    'db_username' => $request->username,
+                    'db_password' => $request->password ? Crypt::encryptString($request->password) : '',
+                    'db_password_encrypted' => true,
+                ];
+                
+                session(['db_config' => $dbConfig]);
+                
+                // Phase 2: Persist to file
+                $this->persistConfig('db', $dbConfig);
 
                 // Also persist installation progress
                 $this->persistInstallationProgress('database', ['configured' => true]);
@@ -451,6 +466,9 @@ class InstallationController extends Controller
         ]);
 
         session(['platform_config' => $validated]);
+        
+        // Phase 2: Persist to file
+        $this->persistConfig('platform', $validated);
 
         return redirect()->route('installation.admin');
     }
@@ -625,14 +643,17 @@ class InstallationController extends Controller
         ]);
 
         // Encrypt sensitive password before storing in session
-        session([
-            'admin_config' => [
-                'admin_name' => $validated['admin_name'],
-                'admin_email' => $validated['admin_email'],
-                'admin_password' => Crypt::encryptString($validated['admin_password']),
-                'admin_password_encrypted' => true,
-            ],
-        ]);
+        $adminConfig = [
+            'admin_name' => $validated['admin_name'],
+            'admin_email' => $validated['admin_email'],
+            'admin_password' => Crypt::encryptString($validated['admin_password']),
+            'admin_password_encrypted' => true,
+        ];
+        
+        session(['admin_config' => $adminConfig]);
+        
+        // Phase 2: Persist to file
+        $this->persistConfig('admin', $adminConfig);
 
         return redirect()->route('installation.review');
     }
@@ -668,6 +689,7 @@ class InstallationController extends Controller
         }
 
         $stages = [
+            'lock' => 'Acquiring installation lock',
             'validation' => 'Validating prerequisites',
             'environment' => 'Updating environment configuration',
             'migrations' => 'Running database migrations',
@@ -679,11 +701,18 @@ class InstallationController extends Controller
         ];
 
         try {
-            $dbConfig = session('db_config');
-            $platformConfig = session('platform_config');
-            $adminConfig = session('admin_config');
+            // Phase 2: Acquire installation lock
+            $this->trackProgress('lock', 'in_progress', 'Acquiring installation lock');
+            $this->acquireInstallationLock();
+            $this->trackProgress('lock', 'completed', 'Lock acquired');
 
-            // Validate session data
+            // Phase 2: Load config from files with session fallback
+            $persistedConfig = $this->loadPersistedConfig();
+            $dbConfig = $persistedConfig['db_config'] ?? session('db_config');
+            $platformConfig = $persistedConfig['platform_config'] ?? session('platform_config');
+            $adminConfig = $persistedConfig['admin_config'] ?? session('admin_config');
+
+            // Validate session/file data
             if (! $dbConfig || ! $platformConfig || ! $adminConfig) {
                 \Log::error('Installation failed: Missing session data', [
                     'db_config' => $dbConfig ? 'present' : 'missing',
@@ -691,6 +720,9 @@ class InstallationController extends Controller
                     'admin_config' => $adminConfig ? 'present' : 'missing',
                     'all_session' => session()->all(),
                 ]);
+
+                $this->trackProgress('validation', 'failed', 'Missing configuration data');
+                $this->releaseInstallationLock();
 
                 return response()->json([
                     'success' => false,
@@ -702,7 +734,9 @@ class InstallationController extends Controller
 
             // Pre-flight validation
             \Log::info('Installation Stage: validation', ['stage' => 'validation']);
+            $this->trackProgress('validation', 'in_progress', 'Validating prerequisites');
             $this->validatePreInstallation();
+            $this->trackProgress('validation', 'completed', 'Validation passed');
 
             // Normalize database config keys (handle both old and new format)
             // Convert to format expected by InstallationService (without db_ prefix)
@@ -726,7 +760,9 @@ class InstallationController extends Controller
 
             // Stage 1: Update environment file
             \Log::info('Installation Stage: environment', ['stage' => 'environment']);
+            $this->trackProgress('environment', 'in_progress', 'Updating environment configuration');
             $this->installationService->updateEnvironmentFile($dbConfig, $platformConfig);
+            $this->trackProgress('environment', 'completed', 'Environment updated');
 
             // Reconnect to use new database configuration
             DB::purge('mysql');
@@ -759,21 +795,26 @@ class InstallationController extends Controller
             try {
                 // Stage 2: Run migrations
                 \Log::info('Installation Stage: migrations', ['stage' => 'migrations']);
+                $this->trackProgress('migrations', 'in_progress', 'Running database migrations');
                 Artisan::call('migrate', ['--force' => true]);
                 $migrationOutput = Artisan::output();
                 \Log::info('Migration output', ['output' => $migrationOutput]);
+                $this->trackProgress('migrations', 'completed', 'Migrations completed');
 
                 // Stage 3: Seed plans
                 \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
+                $this->trackProgress('seeding', 'in_progress', 'Seeding initial data');
                 Artisan::call('db:seed', [
                     '--class' => 'Aero\\Platform\\Database\\Seeders\\PlanSeeder',
                     '--force' => true,
                 ]);
                 $seedOutput = Artisan::output();
                 \Log::info('PlanSeeder output', ['output' => $seedOutput]);
+                $this->trackProgress('seeding', 'completed', 'Seeding completed');
 
             // Stage 4: Create admin user
             \Log::info('Installation Stage: admin', ['stage' => 'admin']);
+            $this->trackProgress('admin', 'in_progress', 'Creating administrator account');
 
             // Decrypt admin password if it was encrypted in session
             $adminPassword = $adminConfig['admin_password'];
@@ -829,8 +870,11 @@ class InstallationController extends Controller
                 }
             }
 
+            $this->trackProgress('admin', 'completed', 'Administrator account created');
+
             // Stage 5: Create platform settings with all collected data
             \Log::info('Installation Stage: settings', ['stage' => 'settings']);
+            $this->trackProgress('settings', 'in_progress', 'Configuring platform settings');
 
             // Build SMS settings array
             $smsSettings = [];
@@ -884,6 +928,8 @@ class InstallationController extends Controller
                 ],
             ]);
 
+                $this->trackProgress('settings', 'completed', 'Platform settings configured');
+
                 // Commit transaction - all database operations succeeded
                 DB::commit();
                 \Log::info('Database transaction committed successfully');
@@ -894,15 +940,19 @@ class InstallationController extends Controller
                 \Log::error('Transaction rolled back due to error', [
                     'error' => $transactionException->getMessage(),
                 ]);
+                $this->trackProgress('transaction', 'failed', $transactionException->getMessage());
                 throw $transactionException;
             }
 
             // Stage 6: Verify Installation
             \Log::info('Installation Stage: verification', ['stage' => 'verification']);
+            $this->trackProgress('verification', 'in_progress', 'Verifying installation');
             $this->verifyInstallation($adminConfig['admin_email']);
+            $this->trackProgress('verification', 'completed', 'Verification passed');
 
             // Stage 7: Finalization
             \Log::info('Installation Stage: finalization', ['stage' => 'finalization']);
+            $this->trackProgress('finalization', 'in_progress', 'Finalizing installation');
             File::put(storage_path('installed'), json_encode([
                 'installed_at' => now()->toIso8601String(),
                 'version' => config('app.version', '1.0.0'),
@@ -914,6 +964,11 @@ class InstallationController extends Controller
             Artisan::call('cache:clear');
             Artisan::call('route:clear');
             Artisan::call('view:clear');
+
+            // Phase 2 & 3: Clean up
+            $this->cleanupPersistedConfig();
+            $this->releaseInstallationLock();
+            $this->cleanupProgressTracking();
 
             // Clear installation session
             session()->forget(['installation_verified', 'db_config', 'platform_config', 'admin_config']);
@@ -943,6 +998,10 @@ class InstallationController extends Controller
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
+            // Phase 2 & 3: Clean up on failure
+            $this->releaseInstallationLock();
+            $this->trackProgress('installation', 'failed', $e->getMessage());
 
             // Attempt rollback
             $adminEmail = $adminConfig['admin_email'] ?? null;
@@ -1261,5 +1320,256 @@ class InstallationController extends Controller
         }
 
         \Log::info('Installation verification completed successfully');
+    }
+
+    /**
+     * Phase 2: Persist configuration to file (not just session)
+     */
+    private function persistConfig(string $type, array $config): void
+    {
+        $filename = match($type) {
+            'db' => self::CONFIG_FILE_DB,
+            'platform' => self::CONFIG_FILE_PLATFORM,
+            'admin' => self::CONFIG_FILE_ADMIN,
+            default => throw new \InvalidArgumentException("Invalid config type: {$type}"),
+        };
+
+        $filePath = storage_path($filename);
+        
+        try {
+            // Encrypt sensitive data before saving
+            $encryptedConfig = $this->encryptSensitiveConfig($config);
+            File::put($filePath, json_encode($encryptedConfig, JSON_PRETTY_PRINT));
+            \Log::info("Config persisted to file", ['type' => $type, 'file' => $filename]);
+        } catch (\Exception $e) {
+            \Log::warning("Failed to persist config to file", [
+                'type' => $type,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Load persisted configuration from file with fallback to session
+     */
+    private function loadPersistedConfig(): array
+    {
+        $config = [];
+
+        // Try to load from files first
+        foreach (['db', 'platform', 'admin'] as $type) {
+            $filename = match($type) {
+                'db' => self::CONFIG_FILE_DB,
+                'platform' => self::CONFIG_FILE_PLATFORM,
+                'admin' => self::CONFIG_FILE_ADMIN,
+            };
+
+            $filePath = storage_path($filename);
+            
+            if (File::exists($filePath)) {
+                try {
+                    $fileContent = json_decode(File::get($filePath), true);
+                    $config["{$type}_config"] = $this->decryptSensitiveConfig($fileContent);
+                    \Log::info("Config loaded from file", ['type' => $type]);
+                } catch (\Exception $e) {
+                    \Log::warning("Failed to load config from file", [
+                        'type' => $type,
+                        'error' => $e->getMessage(),
+                    ]);
+                    // Fallback to session
+                    $config["{$type}_config"] = session("{$type}_config");
+                }
+            } else {
+                // Fallback to session
+                $config["{$type}_config"] = session("{$type}_config");
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * Encrypt sensitive fields in configuration
+     */
+    private function encryptSensitiveConfig(array $config): array
+    {
+        $sensitiveFields = ['password', 'db_password', 'admin_password', 'mail_password'];
+        
+        foreach ($sensitiveFields as $field) {
+            if (isset($config[$field]) && !empty($config[$field])) {
+                try {
+                    $config[$field] = Crypt::encryptString($config[$field]);
+                    $config["{$field}_encrypted"] = true;
+                } catch (\Exception $e) {
+                    \Log::warning("Failed to encrypt field: {$field}");
+                }
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * Decrypt sensitive fields in configuration
+     */
+    private function decryptSensitiveConfig(array $config): array
+    {
+        $sensitiveFields = ['password', 'db_password', 'admin_password', 'mail_password'];
+        
+        foreach ($sensitiveFields as $field) {
+            if (isset($config[$field]) && !empty($config["{$field}_encrypted"])) {
+                try {
+                    $config[$field] = Crypt::decryptString($config[$field]);
+                    unset($config["{$field}_encrypted"]);
+                } catch (\Exception $e) {
+                    \Log::warning("Failed to decrypt field: {$field}");
+                }
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * Clean up persisted config files
+     */
+    private function cleanupPersistedConfig(): void
+    {
+        $files = [
+            self::CONFIG_FILE_DB,
+            self::CONFIG_FILE_PLATFORM,
+            self::CONFIG_FILE_ADMIN,
+        ];
+
+        foreach ($files as $filename) {
+            $filePath = storage_path($filename);
+            if (File::exists($filePath)) {
+                File::delete($filePath);
+                \Log::info("Cleaned up config file", ['file' => $filename]);
+            }
+        }
+    }
+
+    /**
+     * Phase 2: Acquire installation lock to prevent concurrent installations
+     */
+    private function acquireInstallationLock(): void
+    {
+        $lockFile = storage_path('installation.lock');
+        
+        if (File::exists($lockFile)) {
+            $lockData = json_decode(File::get($lockFile), true);
+            $createdAt = \Carbon\Carbon::parse($lockData['created_at'] ?? now());
+            $lockAge = now()->diffInSeconds($createdAt);
+            
+            // Lock expires after timeout
+            if ($lockAge < self::INSTALLATION_LOCK_TIMEOUT) {
+                $remainingTime = self::INSTALLATION_LOCK_TIMEOUT - $lockAge;
+                $remainingMinutes = ceil($remainingTime / 60);
+                
+                throw new \RuntimeException(
+                    "Installation already in progress by {$lockData['user']}. " .
+                    "Lock expires in {$remainingMinutes} minutes. " .
+                    "If the previous installation failed, delete storage/installation.lock to retry."
+                );
+            }
+            
+            // Lock expired, remove it
+            File::delete($lockFile);
+            \Log::info('Expired installation lock removed', ['age_seconds' => $lockAge]);
+        }
+        
+        // Create new lock
+        File::put($lockFile, json_encode([
+            'created_at' => now()->toIso8601String(),
+            'user' => request()->ip() ?: 'unknown',
+            'process_id' => getmypid(),
+        ], JSON_PRETTY_PRINT));
+        
+        \Log::info('Installation lock acquired', ['user' => request()->ip()]);
+    }
+
+    /**
+     * Release installation lock
+     */
+    private function releaseInstallationLock(): void
+    {
+        $lockFile = storage_path('installation.lock');
+        
+        if (File::exists($lockFile)) {
+            File::delete($lockFile);
+            \Log::info('Installation lock released');
+        }
+    }
+
+    /**
+     * Phase 3: Track installation progress to database (for multi-tab support)
+     */
+    private function trackProgress(string $stage, string $status = 'in_progress', ?string $message = null): void
+    {
+        try {
+            $progressFile = storage_path('installation_progress.json');
+            
+            $progress = [];
+            if (File::exists($progressFile)) {
+                $progress = json_decode(File::get($progressFile), true) ?? [];
+            }
+            
+            $progress[$stage] = [
+                'status' => $status, // 'in_progress', 'completed', 'failed'
+                'message' => $message,
+                'timestamp' => now()->toIso8601String(),
+            ];
+            
+            File::put($progressFile, json_encode($progress, JSON_PRETTY_PRINT));
+            
+            \Log::info('Installation progress tracked', [
+                'stage' => $stage,
+                'status' => $status,
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to track progress', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Get installation progress
+     */
+    public function getProgress(): \Illuminate\Http\JsonResponse
+    {
+        $progressFile = storage_path('installation_progress.json');
+        
+        if (File::exists($progressFile)) {
+            try {
+                $progress = json_decode(File::get($progressFile), true);
+                return response()->json([
+                    'success' => true,
+                    'progress' => $progress,
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Failed to read progress',
+                ], 500);
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'progress' => [],
+        ]);
+    }
+
+    /**
+     * Clean up progress tracking file
+     */
+    private function cleanupProgressTracking(): void
+    {
+        $progressFile = storage_path('installation_progress.json');
+        
+        if (File::exists($progressFile)) {
+            File::delete($progressFile);
+            \Log::info('Installation progress file cleaned up');
+        }
     }
 }
