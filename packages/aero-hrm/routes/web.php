@@ -420,6 +420,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/employees/pending-onboarding', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'getPendingOnboarding'])->name('employees.pending-onboarding');
         Route::post('/employees', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'store'])->name('employees.store');
         Route::post('/employees/onboard', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'onboard'])->name('employees.onboard');
+        Route::post('/employees/onboard-bulk', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'bulkOnboard'])->name('employees.onboard-bulk');
         Route::get('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'show'])->name('employees.show');
         Route::put('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'update'])->name('employees.update');
         Route::delete('/employees/{id}', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'destroy'])->name('employees.destroy');
