@@ -72,6 +72,7 @@ import InviteUserForm from "@/Forms/InviteUserForm.jsx";
 import PendingInvitationsPanel from "@/Components/PendingInvitationsPanel.jsx";
 import ExportUsersModal from "@/Components/ExportUsersModal.jsx";
 import LockAccountModal from "@/Components/LockAccountModal.jsx";
+import OnboardEmployeeModal from "@/Components/HRM/OnboardEmployeeModal.jsx";
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
@@ -165,6 +166,11 @@ const UsersList = ({
 
   // Modal states
   const [openModalType, setOpenModalType] = useState(null);
+  const [userToOnboard, setUserToOnboard] = useState(null);
+  
+  // Check if HRM module is installed
+  const { modules } = usePage().props;
+  const hrmModuleInstalled = modules?.hrm || false;
   
   // Filters
   const [filters, setFilters] = useState({
@@ -340,6 +346,21 @@ const UsersList = ({
     setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: newStatus } : user));
     fetchStats();
   }, [fetchStats]);
+
+  // Handle onboard employee
+  const handleOnboardEmployee = useCallback((user) => {
+    setUserToOnboard(user);
+    setOpenModalType('onboard');
+  }, []);
+
+  // Handle successful onboarding
+  const handleOnboardingSuccess = useCallback((employee) => {
+    // Refresh users list to update the employee_id field
+    fetchUsers();
+    // Close modal
+    setUserToOnboard(null);
+    setOpenModalType(null);
+  }, [fetchUsers]);
 
   // Optimized roles update
   const updateUserRolesOptimized = useCallback((userId, newRoles) => {
@@ -762,6 +783,22 @@ const UsersList = ({
         />
       )}
 
+      {/* Onboard Employee Modal */}
+      {openModalType === 'onboard' && userToOnboard && hrmModuleInstalled && (
+        <OnboardEmployeeModal
+          open={openModalType === 'onboard'}
+          onClose={() => {
+            setOpenModalType(null);
+            setUserToOnboard(null);
+          }}
+          user={userToOnboard}
+          departments={departments || []}
+          designations={designations || []}
+          managers={users.filter(u => u.employee_id) || []}
+          onSuccess={handleOnboardingSuccess}
+        />
+      )}
+
       <div 
         className="flex flex-col w-full h-full p-4"
         role="main"
@@ -1073,6 +1110,8 @@ const UsersList = ({
                     
                         deviceActions={deviceActions}
                         context={context}
+                        onOnboardEmployee={handleOnboardEmployee}
+                        hrmModuleInstalled={hrmModuleInstalled}
                       />
                     ) : (
                       <div>

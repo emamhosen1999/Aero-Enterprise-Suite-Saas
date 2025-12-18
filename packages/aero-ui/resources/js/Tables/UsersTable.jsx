@@ -45,7 +45,8 @@ import {
   LockOpenIcon,
   ArrowPathIcon,
   ClockIcon,
-  BriefcaseIcon
+  BriefcaseIcon,
+  UserPlusIcon
 } from "@heroicons/react/24/outline";
 
 // Theme utility function (consistent with UsersList)
@@ -96,6 +97,12 @@ const UsersTable = ({
 
   // Context for route generation
   context = 'tenant',
+  
+  // Onboarding callback
+  onOnboardEmployee,
+  
+  // HRM module check
+  hrmModuleInstalled = false,
 }) => {
   // Get routes for the current context
   const routes = getRoutes(context);
@@ -780,6 +787,22 @@ const UsersTable = ({
             Edit
           </DropdownItem>
         );
+        
+        // Onboard as Employee (only if HRM installed and user doesn't have employee record)
+        if (hrmModuleInstalled && onOnboardEmployee && !user.employee_id) {
+          actionItems.push(
+            <DropdownItem
+              key="onboard-employee"
+              onPress={() => {
+                if (onOnboardEmployee) onOnboardEmployee(user);
+              }}
+              className="text-success"
+              startContent={<UserPlusIcon className="w-4 h-4" />}
+            >
+              Onboard as Employee
+            </DropdownItem>
+          );
+        }
         
         // View Device History
         actionItems.push(
