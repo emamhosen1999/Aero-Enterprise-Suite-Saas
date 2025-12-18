@@ -1042,4 +1042,43 @@ class EmployeeController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get onboarding analytics data
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOnboardingAnalytics(Request $request)
+    {
+        try {
+            $days = $request->get('days', 30);
+            
+            // Validate days parameter
+            if (!is_numeric($days) || $days < 1 || $days > 365) {
+                return response()->json([
+                    'error' => 'Days parameter must be between 1 and 365',
+                ], 400);
+            }
+            
+            // Get analytics data with caching (5 minutes)
+            $cacheKey = "onboarding_analytics_{$days}_days";
+            $analytics = cache()->remember($cacheKey, 300, function () use ($days) {
+                return \Aero\HRM\Models\Onboarding::getAnalytics((int) $days);
+            });
+            
+            return response()->json($analytics);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch onboarding analytics', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user' => Auth::id(),
+            ]);
+            
+            return response()->json([
+                'error' => 'Failed to fetch onboarding analytics',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
