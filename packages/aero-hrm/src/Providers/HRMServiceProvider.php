@@ -92,6 +92,9 @@ class HRMServiceProvider extends AbstractModuleProvider
 
         // Register navigation items for auto-discovery
         $this->registerNavigation();
+
+        // Register console commands
+        $this->registerCommands();
     }
 
     /**
@@ -267,6 +270,18 @@ class HRMServiceProvider extends AbstractModuleProvider
             if (class_exists($policy)) {
                 Gate::policy($model, $policy);
             }
+        }
+    }
+
+    /**
+     * Register console commands.
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Aero\HRM\Console\Commands\SendOnboardingRemindersCommand::class,
+            ]);
         }
     }
 
