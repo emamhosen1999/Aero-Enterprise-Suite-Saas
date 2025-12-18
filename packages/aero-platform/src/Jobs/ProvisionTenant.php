@@ -492,6 +492,9 @@ class ProvisionTenant implements ShouldQueue
     /**
      * Sync module hierarchy from config to tenant database.
      * Populates modules, sub_modules, module_components, and module_component_actions tables.
+     *
+     * This method directly syncs modules from package config files to avoid
+     * artisan command resolution issues in HTTP request context.
      */
     protected function syncModuleHierarchy(): void
     {
@@ -501,15 +504,9 @@ class ProvisionTenant implements ShouldQueue
         try {
             tenancy()->initialize($this->tenant);
 
-            // Call aero:sync-module with fresh flag for clean seed
-            // Scope is auto-detected (tenant context = tenant modules only)
-            \Illuminate\Support\Facades\Artisan::call('aero:sync-module', [
-                '--fresh' => true,
-                '--force' => true,
-            ]);
+            // Directly sync modules from config files
+            $this->runModuleSyncDirectly();
 
-            $output = \Illuminate\Support\Facades\Artisan::output();
-            $this->logStep('   → Module sync output: ' . trim($output), []);
             $this->logStep('   → Module hierarchy synced successfully', []);
         } catch (Throwable $e) {
             $this->logStep("   → Failed to sync modules: {$e->getMessage()}", [
@@ -518,6 +515,168 @@ class ProvisionTenant implements ShouldQueue
             throw $e;
         } finally {
             tenancy()->end();
+        }
+    }
+
+    /**
+     * Run module sync directly without artisan command.
+     * Discovers module configs and syncs them to database.
+     */
+    protected function runModuleSyncDirectly(): void
+    {
+        $modules = $this->discoverModuleConfigs();
+
+        if (empty($modules)) {
+            $this->logStep('   → No module configs found to sync', []);
+
+            return;
+        }
+
+        $this->logStep('   → Found '.count($modules).' module(s) to sync', []);
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($modules as $moduleConfig) {
+                // Only sync tenant-scoped modules for tenant databases
+                $scope = $moduleConfig['scope'] ?? 'tenant';
+                if ($scope !== 'tenant') {
+                    continue;
+                }
+
+                $this->syncModuleToDatabase($moduleConfig);
+            }
+
+            DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Discover module configs from installed packages.
+     *
+     * @return array
+     */
+    protected function discoverModuleConfigs(): array
+    {
+        $modules = [];
+
+        // Look for module configs in vendor/aero/* packages
+        $vendorPath = base_path('vendor/aero');
+        if (File::exists($vendorPath)) {
+            foreach (File::directories($vendorPath) as $packagePath) {
+                $configPath = $packagePath.'/config/module.php';
+                if (File::exists($configPath)) {
+                    try {
+                        $moduleConfig = require $configPath;
+                        if (is_array($moduleConfig) && isset($moduleConfig['code'], $moduleConfig['name'])) {
+                            $modules[] = $moduleConfig;
+                        }
+                    } catch (Throwable $e) {
+                        Log::warning("Failed to load module config from {$packagePath}: ".$e->getMessage());
+                    }
+                }
+            }
+        }
+
+        return $modules;
+    }
+
+    /**
+     * Sync a single module and its hierarchy to the database.
+     *
+     * @param  array  $moduleDef
+     */
+    protected function syncModuleToDatabase(array $moduleDef): void
+    {
+        // Import models
+        $moduleClass = \Aero\Core\Models\Module::class;
+        $subModuleClass = \Aero\Core\Models\SubModule::class;
+        $componentClass = \Aero\Core\Models\ModuleComponent::class;
+        $actionClass = \Aero\Core\Models\ModuleComponentAction::class;
+
+        // Sync module (top level)
+        $module = $moduleClass::updateOrCreate(
+            ['code' => $moduleDef['code']],
+            [
+                'name' => $moduleDef['name'],
+                'scope' => $moduleDef['scope'] ?? 'tenant',
+                'description' => $moduleDef['description'] ?? null,
+                'icon' => $moduleDef['icon'] ?? null,
+                'route_prefix' => $moduleDef['route_prefix'] ?? null,
+                'category' => $moduleDef['category'] ?? 'core_system',
+                'priority' => $moduleDef['priority'] ?? 100,
+                'is_active' => $moduleDef['is_active'] ?? true,
+                'is_core' => $moduleDef['is_core'] ?? false,
+                'settings' => $moduleDef['settings'] ?? null,
+                'version' => $moduleDef['version'] ?? '1.0.0',
+                'min_plan' => $moduleDef['min_plan'] ?? null,
+                'license_type' => $moduleDef['license_type'] ?? null,
+                'dependencies' => $moduleDef['dependencies'] ?? null,
+                'release_date' => $moduleDef['release_date'] ?? null,
+            ]
+        );
+
+        $this->logStep("      → Synced module: {$moduleDef['name']}", []);
+
+        // Sync submodules
+        if (isset($moduleDef['submodules']) && is_array($moduleDef['submodules'])) {
+            foreach ($moduleDef['submodules'] as $subModuleDef) {
+                $subModule = $subModuleClass::updateOrCreate(
+                    [
+                        'module_id' => $module->id,
+                        'code' => $subModuleDef['code'],
+                    ],
+                    [
+                        'name' => $subModuleDef['name'],
+                        'description' => $subModuleDef['description'] ?? null,
+                        'icon' => $subModuleDef['icon'] ?? null,
+                        'route' => $subModuleDef['route'] ?? null,
+                        'priority' => $subModuleDef['priority'] ?? 100,
+                        'is_active' => $subModuleDef['is_active'] ?? true,
+                    ]
+                );
+
+                // Sync components
+                if (isset($subModuleDef['components']) && is_array($subModuleDef['components'])) {
+                    foreach ($subModuleDef['components'] as $componentDef) {
+                        $component = $componentClass::updateOrCreate(
+                            [
+                                'module_id' => $module->id,
+                                'sub_module_id' => $subModule->id,
+                                'code' => $componentDef['code'],
+                            ],
+                            [
+                                'name' => $componentDef['name'],
+                                'description' => $componentDef['description'] ?? null,
+                                'type' => $componentDef['type'] ?? 'page',
+                                'route' => $componentDef['route'] ?? null,
+                                'priority' => $componentDef['priority'] ?? 100,
+                                'is_active' => $componentDef['is_active'] ?? true,
+                            ]
+                        );
+
+                        // Sync actions
+                        if (isset($componentDef['actions']) && is_array($componentDef['actions'])) {
+                            foreach ($componentDef['actions'] as $actionDef) {
+                                $actionClass::updateOrCreate(
+                                    [
+                                        'module_component_id' => $component->id,
+                                        'code' => $actionDef['code'],
+                                    ],
+                                    [
+                                        'name' => $actionDef['name'],
+                                        'description' => $actionDef['description'] ?? null,
+                                        'is_active' => $actionDef['is_active'] ?? true,
+                                    ]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -873,12 +1032,15 @@ class ProvisionTenant implements ShouldQueue
         // Log to Laravel log
         Log::log($level, $message, $fullContext);
 
-        // Log to console (visible in terminal output)
-        echo '['.now()->format('Y-m-d H:i:s')."] {$message}".PHP_EOL;
+        // Log to console ONLY when running from CLI (not HTTP context)
+        // This prevents output from corrupting Inertia responses when using sync queue
+        if (app()->runningInConsole()) {
+            echo '['.now()->format('Y-m-d H:i:s')."] {$message}".PHP_EOL;
 
-        // Flush output immediately
-        if (function_exists('flush')) {
-            flush();
+            // Flush output immediately
+            if (function_exists('flush')) {
+                flush();
+            }
         }
 
         // Broadcast step completion for real-time updates (if WebSocket configured)

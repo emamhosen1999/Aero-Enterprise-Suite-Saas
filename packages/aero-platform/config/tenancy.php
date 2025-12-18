@@ -143,7 +143,7 @@ return [
 
     'bootstrappers' => [
         \Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
-        \Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
+        // \Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class, // Disabled - file/database cache drivers don't support tagging
         // \Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class, // Disabled - causing "Undefined array key 'local'" error
         \Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
     ],

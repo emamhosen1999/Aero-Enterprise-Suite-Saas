@@ -86,9 +86,10 @@ class AeroPlatformServiceProvider extends ServiceProvider
     {
         // Override tenancy bootstrappers after all providers registered
         // FilesystemTenancyBootstrapper disabled - causes "Undefined array key 'local'" error
+        // CacheTenancyBootstrapper disabled - file/database cache drivers don't support tagging
         Config::set('tenancy.bootstrappers', [
             \Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
-            \Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
+            // \Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class, // Requires Redis/Memcached
             \Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
         ]);
 
@@ -541,6 +542,29 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 // Fallback to admin.login
                 return route('admin.login');
             });
+        });
+
+        // Configure RedirectIfAuthenticated (guest middleware) to redirect to correct dashboard
+        \Illuminate\Auth\Middleware\RedirectIfAuthenticated::redirectUsing(function ($request) {
+            $host = $request->getHost();
+
+            // Check if we're on admin subdomain - redirect to admin dashboard
+            if (str_starts_with($host, 'admin.')) {
+                // Check if landlord is authenticated
+                if (\Illuminate\Support\Facades\Auth::guard('landlord')->check()) {
+                    return route('admin.dashboard');
+                }
+            }
+
+            // For tenant subdomain - redirect to tenant dashboard
+            if (\Illuminate\Support\Facades\Auth::guard('web')->check()) {
+                if (Route::has('dashboard')) {
+                    return route('dashboard');
+                }
+            }
+
+            // Default fallback
+            return '/';
         });
     }
 }

@@ -814,14 +814,9 @@ class InstallationController extends Controller
             \Log::info('PlanSeeder output', ['output' => $seedOutput]);
             
             // Sync platform modules from config to database
+            // Note: We call the command class directly to avoid command discovery issues during installation
             $this->trackProgress('seeding', 'in_progress', 'Syncing platform modules');
-            Artisan::call('aero:sync-module', [
-                '--scope' => 'platform',
-                '--fresh' => true,
-                '--force' => true,
-            ]);
-            $moduleSyncOutput = Artisan::output();
-            \Log::info('Module sync output', ['output' => $moduleSyncOutput]);
+            $this->syncPlatformModules();
             
             $this->trackProgress('seeding', 'completed', 'Seeding completed');
 
@@ -1589,6 +1584,160 @@ class InstallationController extends Controller
         if (File::exists($progressFile)) {
             File::delete($progressFile);
             \Log::info('Installation progress file cleaned up');
+        }
+    }
+
+    /**
+     * Sync platform modules from package configs to the database.
+     * 
+     * This method directly uses the SyncModuleHierarchy command's logic
+     * to avoid command discovery issues during installation when artisan
+     * commands may not be fully registered after environment changes.
+     */
+    private function syncPlatformModules(): void
+    {
+        try {
+            // Try to call the command via Artisan first
+            Artisan::call('aero:sync-module', [
+                '--scope' => 'platform',
+                '--fresh' => true,
+                '--force' => true,
+            ]);
+            $moduleSyncOutput = Artisan::output();
+            \Log::info('Module sync output', ['output' => $moduleSyncOutput]);
+        } catch (\Symfony\Component\Console\Exception\CommandNotFoundException $e) {
+            // If command not found, run the sync logic directly
+            \Log::warning('aero:sync-module command not found, running sync logic directly');
+            $this->runModuleSyncDirectly();
+        }
+    }
+
+    /**
+     * Run module sync logic directly without using Artisan command.
+     * This is a fallback for when the command isn't registered during installation.
+     */
+    private function runModuleSyncDirectly(): void
+    {
+        // Get all module config files from packages
+        $moduleConfigs = $this->discoverModuleConfigs();
+        
+        \Log::info('Discovered module configs for direct sync', ['count' => count($moduleConfigs)]);
+        
+        foreach ($moduleConfigs as $packageName => $config) {
+            if (empty($config['modules'])) {
+                continue;
+            }
+            
+            foreach ($config['modules'] as $moduleData) {
+                // Only sync platform-scoped modules during installation
+                $scope = $moduleData['scope'] ?? 'tenant';
+                if ($scope !== 'platform') {
+                    continue;
+                }
+                
+                $this->syncModuleToDatabase($moduleData);
+            }
+        }
+        
+        \Log::info('Direct module sync completed');
+    }
+
+    /**
+     * Discover module config files from vendor packages.
+     */
+    private function discoverModuleConfigs(): array
+    {
+        $configs = [];
+        $vendorPath = base_path('vendor/aero');
+        
+        if (!is_dir($vendorPath)) {
+            return $configs;
+        }
+        
+        $packages = scandir($vendorPath);
+        foreach ($packages as $package) {
+            if ($package === '.' || $package === '..') {
+                continue;
+            }
+            
+            $configPath = $vendorPath . '/' . $package . '/config/modules.php';
+            if (file_exists($configPath)) {
+                $configs[$package] = require $configPath;
+            }
+        }
+        
+        return $configs;
+    }
+
+    /**
+     * Sync a single module and its hierarchy to the database.
+     */
+    private function syncModuleToDatabase(array $moduleData): void
+    {
+        $moduleModel = config('aero-core.models.module', \Aero\Core\Models\Module::class);
+        $subModuleModel = config('aero-core.models.sub_module', \Aero\Core\Models\SubModule::class);
+        $componentModel = config('aero-core.models.module_component', \Aero\Core\Models\ModuleComponent::class);
+        $actionModel = config('aero-core.models.module_component_action', \Aero\Core\Models\ModuleComponentAction::class);
+        
+        // Create or update module
+        $module = $moduleModel::updateOrCreate(
+            ['code' => $moduleData['code']],
+            [
+                'name' => $moduleData['name'],
+                'description' => $moduleData['description'] ?? null,
+                'icon' => $moduleData['icon'] ?? null,
+                'category' => $moduleData['category'] ?? null,
+                'scope' => $moduleData['scope'] ?? 'tenant',
+                'is_active' => true,
+                'display_order' => $moduleData['display_order'] ?? 0,
+            ]
+        );
+        
+        \Log::info('Synced module', ['code' => $moduleData['code'], 'id' => $module->id]);
+        
+        // Sync sub-modules
+        if (!empty($moduleData['sub_modules'])) {
+            foreach ($moduleData['sub_modules'] as $subModuleData) {
+                $subModule = $subModuleModel::updateOrCreate(
+                    ['code' => $subModuleData['code'], 'module_id' => $module->id],
+                    [
+                        'name' => $subModuleData['name'],
+                        'description' => $subModuleData['description'] ?? null,
+                        'icon' => $subModuleData['icon'] ?? null,
+                        'is_active' => true,
+                        'display_order' => $subModuleData['display_order'] ?? 0,
+                    ]
+                );
+                
+                // Sync components
+                if (!empty($subModuleData['components'])) {
+                    foreach ($subModuleData['components'] as $componentData) {
+                        $component = $componentModel::updateOrCreate(
+                            ['code' => $componentData['code'], 'sub_module_id' => $subModule->id],
+                            [
+                                'name' => $componentData['name'],
+                                'description' => $componentData['description'] ?? null,
+                                'is_active' => true,
+                                'display_order' => $componentData['display_order'] ?? 0,
+                            ]
+                        );
+                        
+                        // Sync actions
+                        if (!empty($componentData['actions'])) {
+                            foreach ($componentData['actions'] as $actionData) {
+                                $actionModel::updateOrCreate(
+                                    ['code' => $actionData['code'], 'module_component_id' => $component->id],
+                                    [
+                                        'name' => $actionData['name'],
+                                        'description' => $actionData['description'] ?? null,
+                                        'is_active' => true,
+                                    ]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

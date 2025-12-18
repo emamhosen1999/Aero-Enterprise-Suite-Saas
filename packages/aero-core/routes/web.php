@@ -16,10 +16,8 @@ use Aero\Core\Services\PlatformErrorReporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Import TenantOnboardingController from platform package (if platform is installed)
-if (class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')) {
-    use Aero\Platform\Http\Controllers\TenantOnboardingController;
-}
+// Note: TenantOnboardingController is referenced dynamically if platform package is installed
+// We don't use a 'use' statement here since it may not exist
 
 /*
 |--------------------------------------------------------------------------
