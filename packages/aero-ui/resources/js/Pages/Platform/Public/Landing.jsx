@@ -467,7 +467,7 @@ export default function Landing() {
             </div>
             <div className="text-center mt-6 md:mt-10">
               <Button as={Link} href={route('features')} variant="bordered" className="border-current text-xs md:text-base px-4 md:px-8 py-2 md:py-6">
-                Explore all product features
+                Explore all product products
               </Button>
             </div>
           </div>

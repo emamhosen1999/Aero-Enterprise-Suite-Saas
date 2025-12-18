@@ -317,7 +317,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
                         <RocketLaunchIcon className="w-16 h-16 text-primary mx-auto mb-4" />
                         <h3 className="text-2xl font-bold mb-2">Need a Custom Enterprise Solution?</h3>
                         <p className="text-default-500 mb-6 max-w-2xl mx-auto">
-                            Get dedicated support, custom integrations, and tailored features for your organization.
+                            Get dedicated support, custom integrations, and tailored products for your organization.
                         </p>
                         <Button 
                             color="primary" 

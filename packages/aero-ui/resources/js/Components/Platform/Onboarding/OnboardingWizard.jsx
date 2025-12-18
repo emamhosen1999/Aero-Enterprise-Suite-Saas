@@ -294,7 +294,7 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
                             {selectedPlan && (
                                 <Card>
                                     <CardBody>
-                                        <h4 className="font-semibold mb-2">Plan Features</h4>
+                                        <h4 className="font-semibold mb-2">Plan Products</h4>
                                         <ul className="space-y-1 text-sm">
                                             {selectedPlan.features?.map((feature, idx) => (
                                                 <li key={idx} className="flex items-center gap-2">

@@ -206,7 +206,7 @@ export default function Pricing() {
           <div className="overflow-x-auto">
             <Table aria-label="Plan comparison" className="min-w-[800px]">
               <TableHeader>
-                <TableColumn>Features</TableColumn>
+                <TableColumn>Products</TableColumn>
                 <TableColumn>Launch</TableColumn>
                 <TableColumn>Scale</TableColumn>
                 <TableColumn>Enterprise</TableColumn>

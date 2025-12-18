@@ -14,17 +14,20 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Set Database Connection From Domain
  *
- * This middleware runs GLOBALLY before sessions are started to ensure
- * the correct database connection is used for session storage.
+ * This middleware runs GLOBALLY before sessions are started to ensure:
+ * 1. The correct database connection is used for session storage
+ * 2. Session cookies are isolated between central and tenant domains
  *
- * Auto-detects domain type from URL structure (no .env required):
- * - admin.domain.com → Central database
- * - domain.com → Central database
- * - {tenant}.domain.com → Let tenancy package handle connection
+ * Session Isolation:
+ * - Central domains (platform, admin): Use 'aeos_central_session' cookie
+ * - Tenant domains: Use 'aeos_tenant_session' cookie
+ *
+ * This prevents session bleeding when users navigate between domains.
  */
 class SetDatabaseConnectionFromDomain
 {
     use ParsesHostDomain;
+
     /**
      * Handle an incoming request.
      *
@@ -34,14 +37,18 @@ class SetDatabaseConnectionFromDomain
     {
         $host = $request->getHost();
 
-        // Central domains use the central database
+        // Central domains use the central database and central session cookie
         if ($this->isHostOnCentralDomain($host)) {
             $this->useCentralDatabase();
+            $this->useCentralSessionCookie();
 
             return $next($request);
         }
 
-        // Tenant subdomains - let tenancy package handle connection
+        // Tenant subdomains use tenant session cookie
+        // Database connection is handled by tenancy package
+        $this->useTenantSessionCookie($host);
+
         return $next($request);
     }
 
@@ -56,5 +63,30 @@ class SetDatabaseConnectionFromDomain
         // Set the default database connection to central
         Config::set('database.default', 'central');
         DB::setDefaultConnection('central');
+    }
+
+    /**
+     * Configure session cookie for central domains.
+     * Uses a distinct cookie name to isolate from tenant sessions.
+     */
+    protected function useCentralSessionCookie(): void
+    {
+        Config::set('session.cookie', 'aeos_central_session');
+    }
+
+    /**
+     * Configure session cookie for tenant domains.
+     * Uses a distinct cookie name to isolate from central sessions.
+     * Each tenant subdomain gets its own session isolation.
+     */
+    protected function useTenantSessionCookie(string $host): void
+    {
+        // Use tenant-specific session cookie
+        Config::set('session.cookie', 'aeos_tenant_session');
+        
+        // Set session domain to the specific subdomain (not shared across all subdomains)
+        // This ensures tenant1.domain.com and tenant2.domain.com have separate sessions
+        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
+        Config::set('session.domain', $hostWithoutPort);
     }
 }

@@ -111,10 +111,37 @@ return [
         'template_tenant_connection' => env('DB_CONNECTION', 'mysql'),
 
         // Managers that handle tenant database creation/deletion
+        // Use 'cpanel' for shared hosting, 'mysql' for VPS/dedicated servers
         'managers' => [
-            'mysql' => \Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
-            'mariadb' => \Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
+            'mysql' => env('TENANCY_DATABASE_MANAGER', 'mysql') === 'cpanel'
+                ? \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager::class
+                : \Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
+            'mariadb' => env('TENANCY_DATABASE_MANAGER', 'mysql') === 'cpanel'
+                ? \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager::class
+                : \Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | cPanel Configuration (for shared hosting)
+    |--------------------------------------------------------------------------
+    |
+    | These settings are only used when TENANCY_DATABASE_MANAGER=cpanel
+    |
+    | To use cPanel mode:
+    | 1. Set TENANCY_DATABASE_MANAGER=cpanel in .env
+    | 2. Generate an API token in cPanel → Security → Manage API Tokens
+    | 3. Configure the credentials below
+    |
+    */
+
+    'cpanel' => [
+        'host' => env('CPANEL_HOST'),           // e.g., 'aeos365.com' or 'cpanel.aeos365.com'
+        'username' => env('CPANEL_USERNAME'),    // cPanel username (e.g., 'aeos365')
+        'api_token' => env('CPANEL_API_TOKEN'),  // API token from cPanel
+        'port' => env('CPANEL_PORT', 2083),      // cPanel HTTPS port (usually 2083)
+        'db_user' => env('CPANEL_DB_USER'),      // Database user (defaults to username)
     ],
 
     /*

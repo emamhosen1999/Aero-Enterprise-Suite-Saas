@@ -221,14 +221,66 @@ class ProvisionTenant implements ShouldQueue
 
     /**
      * Create the tenant database.
+     * 
+     * For cPanel hosting (TENANCY_DATABASE_MANAGER=cpanel):
+     * - Uses cPanel API to create database
+     * - Database name is prefixed with cPanel username
+     * 
+     * For VPS/Dedicated (default):
+     * - Uses standard SQL CREATE DATABASE
      */
     protected function createDatabase(): void
+    {
+        $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_DB);
+
+        // Check if using cPanel mode
+        if (config('tenancy.cpanel.host') && env('TENANCY_DATABASE_MANAGER') === 'cpanel') {
+            $this->createDatabaseViaCpanel();
+        } else {
+            $this->createDatabaseViaSQL();
+        }
+    }
+
+    /**
+     * Create database using cPanel API.
+     */
+    protected function createDatabaseViaCpanel(): void
+    {
+        $cpanelManager = new \Aero\Platform\TenantDatabaseManagers\CpanelDatabaseManager();
+        
+        // Get the database name that cPanel will create
+        $shortDbName = $this->getCpanelShortDatabaseName();
+        $fullDbName = config('tenancy.cpanel.username') . '_' . $shortDbName;
+        
+        $this->logStep("   → Creating database via cPanel API: {$fullDbName}", [
+            'database' => $fullDbName,
+            'short_name' => $shortDbName,
+        ]);
+
+        try {
+            $cpanelManager->createDatabase($this->tenant);
+            
+            // Update tenant with the cPanel database name
+            $this->tenant->update([
+                'tenancy_db_name' => $fullDbName,
+            ]);
+            
+            $this->logStep("   → Database '{$fullDbName}' created successfully via cPanel", [
+                'database' => $fullDbName,
+            ]);
+        } catch (\Exception $e) {
+            throw new \RuntimeException("cPanel database creation failed: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Create database using standard SQL (for VPS/dedicated servers).
+     */
+    protected function createDatabaseViaSQL(): void
     {
         $dbName = $this->tenant->database()->getName();
 
         $this->logStep("   → Creating database: {$dbName}", ['database' => $dbName]);
-
-        $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_DB);
 
         CreateDatabase::dispatchSync($this->tenant);
 
@@ -248,6 +300,22 @@ class ProvisionTenant implements ShouldQueue
         }
 
         $this->logStep("   → Database '{$dbName}' created successfully", ['database' => $dbName]);
+    }
+
+    /**
+     * Get the short database name for cPanel (without prefix).
+     * Uses subdomain for readability, truncated to fit cPanel limits.
+     */
+    protected function getCpanelShortDatabaseName(): string
+    {
+        if ($this->tenant->subdomain) {
+            $subdomain = preg_replace('/[^a-z0-9]/i', '', $this->tenant->subdomain);
+            return 'tn_' . substr(strtolower($subdomain), 0, 16);
+        }
+        
+        // Fallback: use first 16 chars of UUID
+        $shortId = str_replace('-', '', substr($this->tenant->id, 0, 16));
+        return 'tn_' . $shortId;
     }
 
     /**

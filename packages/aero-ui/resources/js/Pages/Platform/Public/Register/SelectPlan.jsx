@@ -98,8 +98,8 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-2 sm:space-y-3 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 4</p>
-          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Choose Your Plan & Modules</h1>
-          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Select a pre-configured plan or customize with individual modules. Core platform features are always included.</p>
+          <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Choose Your Plan & Products</h1>
+          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Select a pre-configured plan or customize with individual products.</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
@@ -231,11 +231,17 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                           {plan.modules && plan.modules.length > 0 && (
                             <div>
                               <p className={`text-xs font-semibold ${palette.muted} mb-2`}>INCLUDED MODULES:</p>
-                              <div className="flex flex-wrap gap-1">
+                              <div className="space-y-2">
                                 {plan.modules.map((module) => (
-                                  <Chip key={module.id} size="sm" variant="flat" color="success">
-                                    {module.name}
-                                  </Chip>
+                                  <div key={module.id} className="flex items-start gap-2">
+                                    <CheckCircleIcon className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`font-medium ${palette.heading} text-sm`}>{module.name}</p>
+                                      {module.description && (
+                                        <p className={`text-xs ${palette.muted} line-clamp-2`}>{module.description}</p>
+                                      )}
+                                    </div>
+                                  </div>
                                 ))}
                               </div>
                             </div>

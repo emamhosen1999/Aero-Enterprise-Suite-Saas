@@ -282,7 +282,7 @@ export default function Features() {
               <Chip color="primary" variant="flat" className="text-[10px] md:text-xs mb-2">Complete Suite</Chip>
               <h2 className="text-xl md:text-3xl font-semibold">All modules at a glance</h2>
               <p className={`mt-1 md:mt-2 text-xs md:text-base ${palette.mutedText}`}>
-                Click any module above to explore its detailed features
+                Click any product above to explore its detailed features
               </p>
             </div>
 

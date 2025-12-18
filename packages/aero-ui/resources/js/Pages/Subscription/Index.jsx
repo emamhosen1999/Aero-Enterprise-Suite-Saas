@@ -203,7 +203,7 @@ export default function SubscriptionIndex({
 
                                 {/* Plan Features */}
                                 <div>
-                                    <h4 className="font-semibold mb-3">Plan Features</h4>
+                                    <h4 className="font-semibold mb-3">Plan Products</h4>
                                     <div className="grid grid-cols-2 gap-3">
                                         {plan?.features?.map((feature, index) => (
                                             <div key={index} className="flex items-center gap-2">
