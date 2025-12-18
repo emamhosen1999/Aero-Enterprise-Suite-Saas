@@ -7,6 +7,8 @@ use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Services\EmployeeOnboardingService;
+use Aero\HRM\Notifications\WelcomeEmployeeNotification;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -152,6 +154,115 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Onboard a user as an employee.
+     *
+     * Converts an existing User to an Employee with automatic onboarding initialization.
+     * This is the recommended way to create employees from existing users.
+     *
+     * @param  Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function onboard(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'employee_code' => 'nullable|string|unique:employees,employee_code',
+            'department_id' => 'required|exists:departments,id',
+            'designation_id' => 'required|exists:designations,id',
+            'manager_id' => 'nullable|exists:users,id',
+            'date_of_joining' => 'nullable|date',
+            'probation_end_date' => 'nullable|date|after:date_of_joining',
+            'employment_type' => 'nullable|in:full_time,part_time,contract,intern',
+            'basic_salary' => 'nullable|numeric|min:0',
+            'work_location' => 'nullable|string|max:255',
+            'shift' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // 1. Validate user exists and doesn't already have employee record
+            $user = User::findOrFail($request->user_id);
+
+            $existingEmployee = Employee::where('user_id', $user->id)->first();
+            if ($existingEmployee) {
+                return response()->json([
+                    'error' => 'User is already onboarded as an employee',
+                    'employee_id' => $existingEmployee->id,
+                ], 422);
+            }
+
+            // 2. Create Employee record with employment data
+            $employee = Employee::create([
+                'user_id' => $user->id,
+                'employee_code' => $request->employee_code ?? $this->generateEmployeeCode(),
+                'department_id' => $request->department_id,
+                'designation_id' => $request->designation_id,
+                'manager_id' => $request->manager_id,
+                'date_of_joining' => $request->date_of_joining ?? now(),
+                'probation_end_date' => $request->probation_end_date,
+                'employment_type' => $request->employment_type ?? 'full_time',
+                'basic_salary' => $request->basic_salary ?? 0,
+                'work_location' => $request->work_location,
+                'shift' => $request->shift,
+                'status' => 'active',
+            ]);
+
+            // 3. Initialize Onboarding workflow with default tasks
+            $onboardingService = app(EmployeeOnboardingService::class);
+            $onboarding = $onboardingService->initializeOnboarding($employee);
+
+            // 4. Assign default employee role if not already assigned
+            if (! $user->hasRole('Employee')) {
+                $user->assignRole('Employee');
+            }
+
+            // 5. Send WelcomeEmployeeNotification (queued)
+            $user->notify(new WelcomeEmployeeNotification($employee, $onboarding));
+
+            // 6. Log activity
+            Log::info('User onboarded as employee', [
+                'user_id' => $user->id,
+                'employee_id' => $employee->id,
+                'employee_code' => $employee->employee_code,
+                'onboarding_id' => $onboarding->id,
+                'onboarded_by' => Auth::id(),
+            ]);
+
+            DB::commit();
+
+            // Load relationships for response
+            $employee->load(['user', 'department', 'designation', 'manager']);
+
+            return response()->json([
+                'message' => 'Employee onboarded successfully',
+                'employee' => $this->transformEmployee($employee),
+                'onboarding' => [
+                    'id' => $onboarding->id,
+                    'status' => $onboarding->status,
+                    'tasks_count' => $onboarding->tasks->count(),
+                    'expected_completion_date' => $onboarding->expected_completion_date->format('Y-m-d'),
+                ],
+                'redirect' => route('hrm.employees.show', $employee->id),
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error onboarding user as employee', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $request->user_id,
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to onboard employee: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Store a newly created employee
      *
      * Creates both User and Employee records in a transaction.
@@ -214,6 +325,13 @@ class EmployeeController extends Controller
             // Assign default employee role
             $user->assignRole('Employee');
 
+            // Initialize onboarding workflow
+            $onboardingService = app(EmployeeOnboardingService::class);
+            $onboarding = $onboardingService->initializeOnboarding($employee);
+
+            // Send welcome notification
+            $user->notify(new WelcomeEmployeeNotification($employee, $onboarding));
+
             DB::commit();
 
             // Load relationships for response
@@ -222,6 +340,8 @@ class EmployeeController extends Controller
             return response()->json([
                 'message' => 'Employee created successfully',
                 'employee' => $this->transformEmployee($employee),
+                'onboarding_id' => $onboarding->id,
+                'redirect' => route('hrm.onboarding.wizard', $employee->id),
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
