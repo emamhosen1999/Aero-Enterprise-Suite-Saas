@@ -887,4 +887,40 @@ class EmployeeController extends Controller
             ],
         ];
     }
+
+    /**
+     * Get users who haven't been onboarded as employees yet (pending onboarding).
+     *
+     * Used by UI to display users that can be converted to employees.
+     *
+     * @param  Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getPendingOnboarding(Request $request)
+    {
+        try {
+            $query = User::whereDoesntHave('employee')
+                ->when($request->search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%");
+                    });
+                })
+                ->with('roles')
+                ->orderBy('created_at', 'desc');
+
+            $users = $query->paginate($request->per_page ?? 20);
+
+            return response()->json($users);
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch pending onboarding users', [
+                'error' => $e->getMessage(),
+                'user' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to fetch pending onboarding users',
+            ], 500);
+        }
+    }
 }
