@@ -36,6 +36,7 @@ import {
 import { 
   UserPlusIcon,
   UsersIcon,
+  UserGroupIcon,
   MagnifyingGlassIcon,
   UserIcon,
   CheckCircleIcon,
@@ -72,6 +73,8 @@ import InviteUserForm from "@/Forms/InviteUserForm.jsx";
 import PendingInvitationsPanel from "@/Components/PendingInvitationsPanel.jsx";
 import ExportUsersModal from "@/Components/ExportUsersModal.jsx";
 import LockAccountModal from "@/Components/LockAccountModal.jsx";
+import OnboardEmployeeModal from "@/Components/HRM/OnboardEmployeeModal.jsx";
+import BulkOnboardModal from "@/Components/HRM/BulkOnboardModal.jsx";
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
@@ -165,6 +168,13 @@ const UsersList = ({
 
   // Modal states
   const [openModalType, setOpenModalType] = useState(null);
+  const [userToOnboard, setUserToOnboard] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [showBulkOnboardModal, setShowBulkOnboardModal] = useState(false);
+  
+  // Check if HRM module is installed
+  const { modules } = usePage().props;
+  const hrmModuleInstalled = modules?.hrm || false;
   
   // Filters
   const [filters, setFilters] = useState({
@@ -340,6 +350,21 @@ const UsersList = ({
     setUsers(prevUsers => prevUsers.map(user => user.id === userId ? { ...user, active: newStatus } : user));
     fetchStats();
   }, [fetchStats]);
+
+  // Handle onboard employee
+  const handleOnboardEmployee = useCallback((user) => {
+    setUserToOnboard(user);
+    setOpenModalType('onboard');
+  }, []);
+
+  // Handle successful onboarding
+  const handleOnboardingSuccess = useCallback((employee) => {
+    // Refresh users list to update the employee_id field
+    fetchUsers();
+    // Close modal
+    setUserToOnboard(null);
+    setOpenModalType(null);
+  }, [fetchUsers]);
 
   // Optimized roles update
   const updateUserRolesOptimized = useCallback((userId, newRoles) => {
@@ -762,6 +787,42 @@ const UsersList = ({
         />
       )}
 
+      {/* Onboard Employee Modal */}
+      {openModalType === 'onboard' && userToOnboard && hrmModuleInstalled && (
+        <OnboardEmployeeModal
+          open={openModalType === 'onboard'}
+          onClose={() => {
+            setOpenModalType(null);
+            setUserToOnboard(null);
+          }}
+          user={userToOnboard}
+          departments={departments || []}
+          designations={designations || []}
+          managers={users.filter(u => u.employee_id) || []}
+          onSuccess={handleOnboardingSuccess}
+        />
+      )}
+
+      {/* Bulk Onboard Modal */}
+      {showBulkOnboardModal && hrmModuleInstalled && (
+        <BulkOnboardModal
+          open={showBulkOnboardModal}
+          onClose={() => {
+            setShowBulkOnboardModal(false);
+            setSelectedUsers([]);
+          }}
+          users={selectedUsers}
+          departments={departments || []}
+          designations={designations || []}
+          managers={users.filter(u => u.employee_id) || []}
+          onSuccess={() => {
+            fetchUsers();
+            setShowBulkOnboardModal(false);
+            setSelectedUsers([]);
+          }}
+        />
+      )}
+
       <div 
         className="flex flex-col w-full h-full p-4"
         role="main"
@@ -898,6 +959,23 @@ const UsersList = ({
                                 className="min-w-0"
                               >
                                 {isMobile ? "Invite" : "Invite User"}
+                              </Button>
+                            )}
+
+                            {/* Bulk Onboard button - HRM module only */}
+                            {hrmModuleInstalled && selectedUsers.length > 0 && (
+                              <Button
+                                size={isMobile ? "sm" : "md"}
+                                color="success"
+                                startContent={<UserGroupIcon className="w-4 h-4" />}
+                                onPress={() => setShowBulkOnboardModal(true)}
+                                radius={themeRadius}
+                                style={{
+                                  fontFamily: `var(--fontFamily, "Inter")`,
+                                }}
+                                className="min-w-0"
+                              >
+                                {isMobile ? "Onboard" : `Onboard Selected (${selectedUsers.length})`}
                               </Button>
                             )}
                             
@@ -1073,6 +1151,10 @@ const UsersList = ({
                     
                         deviceActions={deviceActions}
                         context={context}
+                        onOnboardEmployee={handleOnboardEmployee}
+                        hrmModuleInstalled={hrmModuleInstalled}
+                        selectedUsers={selectedUsers}
+                        onSelectionChange={setSelectedUsers}
                       />
                     ) : (
                       <div>

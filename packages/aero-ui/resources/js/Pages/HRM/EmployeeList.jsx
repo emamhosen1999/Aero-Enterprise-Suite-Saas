@@ -42,6 +42,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import EmployeeTable from "@/Tables/HRM/EmployeeTable.jsx";
 import ProfileAvatar from "@/Components/ProfileAvatar.jsx";
+import PendingOnboardingSection from "@/Components/HRM/PendingOnboardingSection.jsx";
 
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
@@ -555,7 +556,17 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                   {/* Statistics Cards */}
                   <StatsCards stats={statsData} className="mb-6" />
                   
-                 
+                  {/* Pending Onboarding Section */}
+                  <PendingOnboardingSection
+                    departments={departments || []}
+                    designations={designations || []}
+                    managers={allManagers || []}
+                    onOnboardingComplete={(employee) => {
+                      // Refresh employees list after successful onboarding
+                      fetchEmployees();
+                      fetchStats();
+                    }}
+                  />
 
                 {/* Analytics Dashboard */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

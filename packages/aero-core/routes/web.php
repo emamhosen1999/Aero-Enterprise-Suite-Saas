@@ -16,6 +16,11 @@ use Aero\Core\Services\PlatformErrorReporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Import TenantOnboardingController from platform package (if platform is installed)
+if (class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')) {
+    use Aero\Platform\Http\Controllers\TenantOnboardingController;
+}
+
 /*
 |--------------------------------------------------------------------------
 | Aero Core Routes
@@ -80,6 +85,23 @@ Route::post('/api/error-log', function (Request $request) {
 // ============================================================================
 Route::get('admin-setup', [AdminSetupController::class, 'show'])->name('admin.setup.show');
 Route::post('admin-setup', [AdminSetupController::class, 'store'])->name('admin.setup.store');
+
+// ============================================================================
+// TENANT ONBOARDING ROUTES (Auth required - after admin setup)
+// ============================================================================
+// Only register these routes if the platform package is installed (SaaS mode)
+if (class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')) {
+    Route::middleware(['auth:web'])->prefix('onboarding')->name('onboarding.')->group(function () {
+        Route::get('/', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'index'])->name('index');
+        Route::post('/company', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveCompany'])->name('company.save');
+        Route::post('/branding', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveBranding'])->name('branding.save');
+        Route::post('/team', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveTeam'])->name('team.save');
+        Route::post('/modules', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'saveModules'])->name('modules.save');
+        Route::post('/complete', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'complete'])->name('complete');
+        Route::post('/skip', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'skip'])->name('skip');
+        Route::post('/update-step', [\Aero\Platform\Http\Controllers\TenantOnboardingController::class, 'updateStep'])->name('update-step');
+    });
+}
 
 // ============================================================================
 // AUTHENTICATION ROUTES (Guest)

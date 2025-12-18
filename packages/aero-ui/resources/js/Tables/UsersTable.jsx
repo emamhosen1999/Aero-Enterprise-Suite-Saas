@@ -23,6 +23,7 @@ import {
   Spinner,
   Select,
   SelectItem,
+  Checkbox,
 } from "@heroui/react";
 import {
   PencilIcon,
@@ -45,7 +46,8 @@ import {
   LockOpenIcon,
   ArrowPathIcon,
   ClockIcon,
-  BriefcaseIcon
+  BriefcaseIcon,
+  UserPlusIcon
 } from "@heroicons/react/24/outline";
 
 // Theme utility function (consistent with UsersList)
@@ -96,6 +98,16 @@ const UsersTable = ({
 
   // Context for route generation
   context = 'tenant',
+  
+  // Onboarding callback
+  onOnboardEmployee,
+  
+  // HRM module check
+  hrmModuleInstalled = false,
+  
+  // Selection for bulk operations
+  selectedUsers = [],
+  onSelectionChange = () => {},
 }) => {
   // Get routes for the current context
   const routes = getRoutes(context);
@@ -409,8 +421,49 @@ const UsersTable = ({
     });
   };
 
+  // Selection handlers
+  const isUserSelected = (user) => {
+    return selectedUsers.some(u => u.id === user.id);
+  };
+
+  const handleUserToggle = (user) => {
+    // Only allow selecting users who can be onboarded (no employee_id)
+    if (user.employee_id) return;
+    
+    if (isUserSelected(user)) {
+      onSelectionChange(selectedUsers.filter(u => u.id !== user.id));
+    } else {
+      onSelectionChange([...selectedUsers, user]);
+    }
+  };
+
+  const handleSelectAll = () => {
+    // Only select users without employee_id
+    const selectableUsers = allUsers.filter(u => !u.employee_id);
+    
+    if (selectedUsers.length === selectableUsers.length) {
+      // Deselect all
+      onSelectionChange([]);
+    } else {
+      // Select all selectable
+      onSelectionChange(selectableUsers);
+    }
+  };
+
   const columns = useMemo(() => {
-    const baseColumns = [
+    const baseColumns = hrmModuleInstalled ? [
+      { name: <Checkbox 
+          isSelected={selectedUsers.length > 0 && selectedUsers.length === allUsers.filter(u => !u.employee_id).length}
+          onChange={handleSelectAll}
+          isIndeterminate={selectedUsers.length > 0 && selectedUsers.length < allUsers.filter(u => !u.employee_id).length}
+        />, uid: "select" },
+      { name: "#", uid: "sl" },
+      { name: "USER", uid: "user" },
+      { name: "EMAIL", uid: "email" },
+      { name: "STATUS", uid: "status" },
+      { name: "ROLES", uid: "roles" },
+      { name: "ACTIONS", uid: "actions" }
+    ] : [
       { name: "#", uid: "sl" },
       { name: "USER", uid: "user" },
       { name: "EMAIL", uid: "email" },
@@ -421,7 +474,7 @@ const UsersTable = ({
 
     
     return baseColumns;
-  }, [isMobile, isTablet, context]);
+  }, [isMobile, isTablet, context, hrmModuleInstalled, selectedUsers, allUsers]);
 
   // Function to toggle user status - optimized to avoid full reloads
   const toggleUserStatus = async (userId, currentStatus) => {
@@ -456,6 +509,17 @@ const UsersTable = ({
     const cellValue = user[columnKey];
     
     switch (columnKey) {
+      case "select":
+        return (
+          <div className="flex items-center justify-center">
+            <Checkbox
+              isSelected={isUserSelected(user)}
+              onChange={() => handleUserToggle(user)}
+              isDisabled={user.employee_id}
+              aria-label={`Select ${user.name}`}
+            />
+          </div>
+        );
       case "sl":
         // Calculate serial number based on pagination
         const startIndex = pagination?.currentPage && pagination?.perPage 
@@ -780,6 +844,22 @@ const UsersTable = ({
             Edit
           </DropdownItem>
         );
+        
+        // Onboard as Employee (only if HRM installed and user doesn't have employee record)
+        if (hrmModuleInstalled && onOnboardEmployee && !user.employee_id) {
+          actionItems.push(
+            <DropdownItem
+              key="onboard-employee"
+              onPress={() => {
+                if (onOnboardEmployee) onOnboardEmployee(user);
+              }}
+              className="text-success"
+              startContent={<UserPlusIcon className="w-4 h-4" />}
+            >
+              Onboard as Employee
+            </DropdownItem>
+          );
+        }
         
         // View Device History
         actionItems.push(

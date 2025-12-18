@@ -75,11 +75,14 @@ class ProvisionTenant implements ShouldQueue
      * Execute the job.
      *
      * Provision the tenant through the following steps:
+     * 0. Pre-flight validation (plan, modules, database connection)
      * 1. Create the tenant database
      * 2. Run migrations on the tenant database
-     * 3. Seed default roles
-     * 4. Activate the tenant
-     * 5. Send notification email
+     * 3. Sync module hierarchy
+     * 4. Seed default roles
+     * 5. Verify provisioning (check required tables)
+     * 6. Activate the tenant
+     * 7. Send notification email
      *
      * NOTE: Admin user creation is done AFTER provisioning on the tenant domain.
      *
@@ -98,6 +101,11 @@ class ProvisionTenant implements ShouldQueue
         $databaseCreated = false;
 
         try {
+            // Step 0: Pre-flight validation
+            $this->logStep('✅ Step 0: Running pre-flight validation', $context);
+            $this->validatePrerequisites();
+            $this->logStep('✅ Step 0 Complete: Pre-flight validation passed', $context);
+
             // Step 1: Mark as provisioning
             $this->logStep('📋 Step 1: Marking tenant as provisioning', $context);
             $this->tenant->startProvisioning(Tenant::STEP_CREATING_DB);
@@ -124,15 +132,20 @@ class ProvisionTenant implements ShouldQueue
             $this->seedDefaultRoles();
             $this->logStep('✅ Step 5 Complete: Default roles seeded', $context);
 
-            // Step 6: Activate the tenant (ready for admin setup on tenant domain)
-            $this->logStep('🎉 Step 6: Activating tenant', $context);
-            $this->activateTenant();
-            $this->logStep('✅ Step 6 Complete: Tenant activated and ready for admin setup', $context);
+            // Step 6: Verify provisioning
+            $this->logStep('🔍 Step 6: Verifying provisioning', $context);
+            $this->verifyProvisioning();
+            $this->logStep('✅ Step 6 Complete: Provisioning verified', $context);
 
-            // Step 7: Send notification email
-            $this->logStep('📧 Step 7: Sending notification email', $context);
+            // Step 7: Activate the tenant (ready for admin setup on tenant domain)
+            $this->logStep('🎉 Step 7: Activating tenant', $context);
+            $this->activateTenant();
+            $this->logStep('✅ Step 7 Complete: Tenant activated and ready for admin setup', $context);
+
+            // Step 8: Send notification email
+            $this->logStep('📧 Step 8: Sending notification email', $context);
             $this->sendWelcomeEmail();
-            $this->logStep('✅ Step 7 Complete: Notification email sent', $context);
+            $this->logStep('✅ Step 8 Complete: Notification email sent', $context);
 
             $this->logStep('🎊 PROVISIONING COMPLETED SUCCESSFULLY - AWAITING ADMIN SETUP', $context);
         } catch (Throwable $e) {
@@ -159,6 +172,54 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
+     * Validate prerequisites before starting provisioning.
+     * Throws exception if any validation fails.
+     */
+    protected function validatePrerequisites(): void
+    {
+        $this->logStep('   → Validating tenant data', []);
+
+        // 1. Validate tenant has a subdomain
+        if (empty($this->tenant->subdomain)) {
+            throw new \RuntimeException('Tenant subdomain is required for provisioning');
+        }
+
+        // 2. Validate tenant has at least one domain
+        if ($this->tenant->domains()->count() === 0) {
+            throw new \RuntimeException('Tenant must have at least one domain configured');
+        }
+
+        // 3. Validate database connection
+        try {
+            DB::connection()->getPdo();
+            $this->logStep('   → Database connection verified', []);
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Database connection failed: ' . $e->getMessage());
+        }
+
+        // 4. Validate tenant has a plan (optional but log warning)
+        if (! $this->tenant->plan_id || ! $this->tenant->plan) {
+            $this->logStep('   ⚠️  Tenant has no plan assigned - will provision with core only', [], 'warning');
+        } else {
+            // 5. Validate plan has modules
+            $moduleCount = $this->tenant->plan->modules()->count();
+            if ($moduleCount === 0) {
+                $this->logStep('   ⚠️  Plan has no modules - will provision with core only', [], 'warning');
+            } else {
+                $this->logStep("   → Plan has {$moduleCount} module(s)", ['module_count' => $moduleCount]);
+            }
+        }
+
+        // 6. Validate migration paths exist
+        $migrationPaths = $this->getTenantMigrationPaths();
+        if (empty($migrationPaths)) {
+            throw new \RuntimeException('No migration paths found - cannot provision without migrations');
+        }
+
+        $this->logStep('   → All prerequisite checks passed', []);
+    }
+
+    /**
      * Create the tenant database.
      */
     protected function createDatabase(): void
@@ -170,6 +231,21 @@ class ProvisionTenant implements ShouldQueue
         $this->tenant->updateProvisioningStep(Tenant::STEP_CREATING_DB);
 
         CreateDatabase::dispatchSync($this->tenant);
+
+        // Verify database was actually created
+        try {
+            // Use parameterized query to prevent SQL injection
+            $exists = DB::select(
+                'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
+                [$dbName]
+            );
+            
+            if (empty($exists)) {
+                throw new \RuntimeException("Database {$dbName} was not created successfully");
+            }
+        } catch (\Exception $e) {
+            throw new \RuntimeException("Failed to verify database creation: " . $e->getMessage());
+        }
 
         $this->logStep("   → Database '{$dbName}' created successfully", ['database' => $dbName]);
     }
@@ -299,6 +375,12 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
+     * Modules that should be excluded from migration loading.
+     * These are either already included (core) or don't have migrations (dashboard).
+     */
+    private const EXCLUDED_MODULES = ['core', 'dashboard'];
+
+    /**
      * Get migration paths for tenant based on their plan's modules.
      * Always includes core, plus any modules in the plan.
      *
@@ -307,12 +389,26 @@ class ProvisionTenant implements ShouldQueue
     protected function getTenantMigrationPaths(): array
     {
         $paths = [];
+        $searchedPaths = [];
 
         // Always include core migrations (users, roles, permissions, etc.)
         $corePath = 'vendor/aero/core/database/migrations';
+        $searchedPaths[] = $corePath;
+        
         if (File::exists(base_path($corePath))) {
             $paths[] = $corePath;
             $this->logStep("   → Including core migrations: {$corePath}", []);
+        } else {
+            // Fallback: try packages directory (for development/non-composer installs)
+            $coreDevPath = 'packages/aero-core/database/migrations';
+            $searchedPaths[] = $coreDevPath;
+            
+            if (File::exists(base_path($coreDevPath))) {
+                $paths[] = $coreDevPath;
+                $this->logStep("   → Including core migrations (dev): {$coreDevPath}", []);
+            } else {
+                $this->logStep("   ⚠️  Core migrations not found at {$corePath} or {$coreDevPath}", [], 'warning');
+            }
         }
 
         // Get modules from tenant's plan
@@ -324,19 +420,28 @@ class ProvisionTenant implements ShouldQueue
             ]);
 
             foreach ($planModules as $moduleCode) {
-                // Skip core as it's already included
-                if ($moduleCode === 'core') {
+                // Skip excluded modules
+                if (in_array($moduleCode, self::EXCLUDED_MODULES, true)) {
                     continue;
                 }
 
-                // Check if migration path exists for this module
+                // Try vendor path first (production with composer install)
                 $modulePath = "vendor/aero/{$moduleCode}/database/migrations";
                 if (File::exists(base_path($modulePath))) {
                     $paths[] = $modulePath;
                     $this->logStep("   → Including {$moduleCode} migrations: {$modulePath}", []);
-                } else {
-                    $this->logStep("   ⚠️  Module {$moduleCode} has no migrations at {$modulePath}", [], 'warning');
+                    continue;
                 }
+
+                // Fallback: try packages directory with aero- prefix (development)
+                $moduleDevPath = "packages/aero-{$moduleCode}/database/migrations";
+                if (File::exists(base_path($moduleDevPath))) {
+                    $paths[] = $moduleDevPath;
+                    $this->logStep("   → Including {$moduleCode} migrations (dev): {$moduleDevPath}", []);
+                    continue;
+                }
+
+                $this->logStep("   ⚠️  Module {$moduleCode} has no migrations at {$modulePath} or {$moduleDevPath}", [], 'warning');
             }
         } else {
             $this->logStep('   ⚠️  No plan assigned to tenant, using core only', [], 'warning');
@@ -347,6 +452,12 @@ class ProvisionTenant implements ShouldQueue
         if (File::exists($appTenantPath)) {
             $paths[] = $appTenantPath;
             $this->logStep("   → Including app tenant migrations: {$appTenantPath}", []);
+        }
+
+        // Validate that we have at least core migrations
+        if (empty($paths)) {
+            $searchedPathsStr = implode(', ', $searchedPaths);
+            throw new \RuntimeException("No migration paths found. Searched: {$searchedPathsStr}. Cannot provision tenant without migrations.");
         }
 
         return $paths;
@@ -474,6 +585,78 @@ class ProvisionTenant implements ShouldQueue
     }
 
     /**
+     * Verify that provisioning completed successfully.
+     * Checks that all required tables and roles exist.
+     */
+    protected function verifyProvisioning(): void
+    {
+        $this->logStep('   → Verifying provisioning completion', []);
+        $this->tenant->updateProvisioningStep('verifying');
+
+        try {
+            tenancy()->initialize($this->tenant);
+
+            // 1. Check required core tables exist
+            $requiredTables = [
+                'users',
+                'roles',
+                'model_has_roles',
+                'modules',
+                'sub_modules',
+                'module_components',
+                'module_component_actions',
+            ];
+
+            $missingTables = [];
+            foreach ($requiredTables as $table) {
+                if (! Schema::hasTable($table)) {
+                    $missingTables[] = $table;
+                }
+            }
+
+            if (! empty($missingTables)) {
+                throw new \RuntimeException('Required tables missing: ' . implode(', ', $missingTables));
+            }
+
+            $this->logStep('   → All required tables verified', []);
+
+            // 2. Verify roles were seeded
+            $roleCount = DB::table('roles')->count();
+            if ($roleCount === 0) {
+                throw new \RuntimeException('No roles found after seeding');
+            }
+
+            // Check Super Administrator role exists
+            $superAdminExists = DB::table('roles')
+                ->where('name', 'Super Administrator')
+                ->exists();
+
+            if (! $superAdminExists) {
+                throw new \RuntimeException('Super Administrator role not found after seeding');
+            }
+
+            $this->logStep("   → Roles verified ({$roleCount} roles found)", ['role_count' => $roleCount]);
+
+            // 3. Verify modules were synced
+            $moduleCount = DB::table('modules')->count();
+            if ($moduleCount === 0) {
+                $this->logStep('   ⚠️  No modules found after sync', [], 'warning');
+            } else {
+                $this->logStep("   → Modules verified ({$moduleCount} modules found)", ['module_count' => $moduleCount]);
+            }
+
+            $this->logStep('   → Provisioning verification passed', []);
+        } catch (Throwable $e) {
+            $this->logStep("   → Provisioning verification failed: {$e->getMessage()}", [
+                'error' => $e->getMessage(),
+            ], 'error');
+            throw $e;
+        } finally {
+            tenancy()->end();
+        }
+    }
+
+    /**
      * Assign Super Administrator role to the admin user.
      */
     // NOTE: assignSuperAdminRole() method removed.
@@ -516,8 +699,15 @@ class ProvisionTenant implements ShouldQueue
                 'tenant_email' => $email,
             ]);
 
+            // Check if notification class exists (may not be present in all installations)
+            $notificationClass = '\\App\\Notifications\\WelcomeToTenant';
+            if (! class_exists($notificationClass)) {
+                $this->logStep('   → WelcomeToTenant notification not found, skipping email', [], 'warning');
+                return;
+            }
+
             // Use the notification's sendEmail method with MailService
-            $notification = new \App\Notifications\WelcomeToTenant($this->tenant);
+            $notification = new $notificationClass($this->tenant);
             $sent = $notification->sendEmail($email);
 
             if ($sent) {
@@ -571,17 +761,19 @@ class ProvisionTenant implements ShouldQueue
     /**
      * Handle a job failure.
      *
-     * Performs complete rollback:
-     * 1. Deletes tenant database (if created)
-     * 2. Deletes domain records
-     * 3. Deletes tenant record from platform database
-     * 4. Sends failure notification to user
+     * Performs rollback based on configuration:
+     * - If PRESERVE_FAILED_TENANTS=true: Keep tenant record for debugging (default in dev)
+     * - If PRESERVE_FAILED_TENANTS=false: Delete completely to allow re-registration (production)
      *
-     * This ensures users can re-register with the same subdomain/email.
+     * Steps:
+     * 1. Mark tenant as failed with error details
+     * 2. Drop tenant database (if created)
+     * 3. Send failure notification to user
+     * 4. Optionally delete tenant record (based on config)
      */
     public function failed(?Throwable $exception): void
     {
-        $this->logStep('❌ TENANT PROVISIONING FAILED - PERFORMING COMPLETE ROLLBACK', [
+        $this->logStep('❌ TENANT PROVISIONING FAILED - PERFORMING ROLLBACK', [
             'step' => $this->tenant->provisioning_step,
             'error' => $exception?->getMessage(),
             'trace' => $exception?->getTraceAsString(),
@@ -591,29 +783,48 @@ class ProvisionTenant implements ShouldQueue
         $this->notifyProvisioningFailure($exception);
 
         try {
-            // Step 1: Drop tenant database if it exists
-            $this->logStep('🔙 Step 1/3: Rolling back database', [], 'warning');
+            // Step 1: Mark tenant as failed with error details
+            $this->logStep('🔙 Step 1/3: Marking tenant as failed', [], 'warning');
+            $this->tenant->markProvisioningFailed($exception?->getMessage());
+
+            // Step 2: Drop tenant database if it exists
+            $this->logStep('🔙 Step 2/3: Rolling back database', [], 'warning');
             $this->rollbackDatabase();
 
-            // Step 2: Delete domain records (allows re-registration with same subdomain)
-            $this->logStep('🔙 Step 2/3: Deleting domain records', [], 'warning');
-            $this->tenant->domains()->delete();
+            // Step 3: Decide whether to delete tenant completely
+            $preserveFailedTenants = config('platform.preserve_failed_tenants', config('app.debug', false));
 
-            // Step 3: Delete tenant record (allows re-registration with same email/name)
-            $this->logStep('🔙 Step 3/3: Deleting tenant record', [], 'warning');
-            $this->tenant->forceDelete(); // Use forceDelete to bypass soft deletes if enabled
+            if ($preserveFailedTenants) {
+                // Keep tenant record for debugging (useful in development)
+                $this->logStep('✅ ROLLBACK COMPLETE - Tenant preserved for debugging', [
+                    'tenant_id' => $this->tenant->id,
+                    'subdomain' => $this->tenant->subdomain,
+                    'note' => 'Admin can retry provisioning or manually delete',
+                ], 'warning');
+            } else {
+                // Delete tenant completely to allow re-registration (production)
+                $this->logStep('🔙 Step 3/3: Deleting tenant and domain records', [], 'warning');
+                $this->tenant->domains()->delete();
+                $this->tenant->forceDelete(); // Use forceDelete to bypass soft deletes if enabled
 
-            $this->logStep('✅ COMPLETE ROLLBACK SUCCESSFUL - User can re-register', [], 'warning');
+                $this->logStep('✅ COMPLETE ROLLBACK SUCCESSFUL - User can re-register', [], 'warning');
+            }
         } catch (Throwable $e) {
             $this->logStep('❌ ROLLBACK FAILED: '.$e->getMessage(), [
                 'error' => $e->getMessage(),
             ], 'error');
 
-            // As a last resort, mark as failed so admin can manually clean up
+            // As a last resort, try to mark as failed so admin can manually clean up
             try {
+                $this->tenant->refresh();
                 $this->tenant->markProvisioningFailed($exception?->getMessage());
+
+                $this->logStep('⚠️  Tenant marked as failed - manual cleanup required', [
+                    'tenant_id' => $this->tenant->id,
+                ], 'error');
             } catch (Throwable $markError) {
                 $this->logStep('❌ CRITICAL: Could not even mark tenant as failed', [
+                    'tenant_id' => $this->tenant->id ?? 'unknown',
                     'error' => $markError->getMessage(),
                 ], 'critical');
             }
