@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers;
 
+use Aero\Core\Services\Module\ModuleDiscoveryService;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantRegistrationSession;
 use Aero\Platform\Http\Controllers\Controller;
@@ -28,7 +29,10 @@ class RegistrationPageController extends Controller
         // Admin setup happens on tenant domain after provisioning completes
     ];
 
-    public function __construct(private TenantRegistrationSession $registrationSession) {}
+    public function __construct(
+        private TenantRegistrationSession $registrationSession,
+        private ModuleDiscoveryService $moduleDiscovery
+    ) {}
 
     public function accountType(): Response
     {
@@ -94,16 +98,45 @@ class RegistrationPageController extends Controller
             return to_route('platform.register.index');
         }
 
-        // Fetch plans with their modules
-        $plans = \Aero\Platform\Models\Plan::with(['modules' => function ($query) {
-            $query->select('modules.id', 'modules.code', 'modules.name', 'modules.is_core')
-                ->where('is_active', true);
-        }])
-            ->where('is_active', true)
+        // Fetch all sellable modules from installed Composer packages
+        // Excludes: core (hidden layer), platform (admin system), ui (shared components)
+        $excludedModules = ['core', 'platform', 'ui'];
+        
+        $discoveredModules = $this->moduleDiscovery->getModuleDefinitions()
+            ->filter(function ($module) use ($excludedModules) {
+                // Exclude core/platform/ui and modules marked as core
+                $code = $module['code'] ?? '';
+                $isCore = $module['is_core'] ?? false;
+                return !in_array($code, $excludedModules) && !$isCore;
+            })
+            ->keyBy('code');
+
+        // Fetch plans and enrich with discovered module data
+        $plans = \Aero\Platform\Models\Plan::where('is_active', true)
             ->orderBy('sort_order')
             ->get()
-            ->map(function ($plan) {
+            ->map(function ($plan) use ($discoveredModules) {
                 $limits = $plan->limits ?? [];
+                $moduleCodes = $plan->module_codes ?? [];
+                
+                // Enrich module codes with full module info from discovered modules
+                $enrichedModules = collect($moduleCodes)
+                    ->map(function ($code) use ($discoveredModules) {
+                        $moduleConfig = $discoveredModules->get($code);
+                        if (!$moduleConfig) {
+                            return null;
+                        }
+                        return [
+                            'id' => $code,
+                            'code' => $code,
+                            'name' => $moduleConfig['name'] ?? ucfirst($code),
+                            'description' => $moduleConfig['description'] ?? '',
+                            'icon' => $moduleConfig['icon'] ?? null,
+                            'category' => $moduleConfig['category'] ?? 'General',
+                        ];
+                    })
+                    ->filter()
+                    ->values();
 
                 return [
                     'id' => $plan->id,
@@ -116,30 +149,24 @@ class RegistrationPageController extends Controller
                     'features' => $plan->features ?? [],
                     'limits' => $limits,
                     'badge' => $limits['badge'] ?? null,
-                    'modules' => $plan->modules->map(fn ($m) => [
-                        'id' => $m->id,
-                        'code' => $m->code,
-                        'name' => $m->name,
-                        'is_core' => $m->is_core,
-                    ]),
+                    'modules' => $enrichedModules,
                 ];
             });
 
-        // Fetch all modules (excluding core) for individual selection
-        $modules = \Aero\Core\Models\Module::where('is_active', true)
-            ->where('is_core', false) // Core is always included
-            ->select('id', 'code', 'name', 'description', 'category')
-            ->orderBy('priority')
-            ->get()
+        // Format discovered modules for individual selection
+        $modules = $discoveredModules
             ->map(function ($module) {
                 return [
-                    'id' => $module->id,
-                    'code' => $module->code,
-                    'name' => $module->name,
-                    'description' => $module->description,
-                    'category' => $module->category ?? 'General',
+                    'id' => $module['code'], // Use code as ID for discovered modules
+                    'code' => $module['code'],
+                    'name' => $module['name'],
+                    'description' => $module['description'] ?? '',
+                    'category' => $module['category'] ?? 'General',
+                    'icon' => $module['icon'] ?? null,
                 ];
-            });
+            })
+            ->sortBy('priority')
+            ->values();
 
         return $this->render('Platform/Public/Register/SelectPlan', 'plan', [
             'plans' => $plans,
@@ -164,33 +191,59 @@ class RegistrationPageController extends Controller
                 ->with('error', 'Please select a plan or modules before continuing.');
         }
 
-        // Fetch plans to display selected plan details
-        $plans = \Aero\Platform\Models\Plan::with(['modules' => function ($query) {
-            $query->select('modules.id', 'modules.code', 'modules.name')
-                ->where('is_active', true);
-        }])
-            ->where('is_active', true)
+        // Fetch all sellable modules from installed Composer packages
+        $excludedModules = ['core', 'platform', 'ui'];
+        
+        $discoveredModules = $this->moduleDiscovery->getModuleDefinitions()
+            ->filter(function ($module) use ($excludedModules) {
+                $code = $module['code'] ?? '';
+                $isCore = $module['is_core'] ?? false;
+                return !in_array($code, $excludedModules) && !$isCore;
+            })
+            ->keyBy('code');
+
+        // Fetch plans and enrich with discovered module data
+        $plans = \Aero\Platform\Models\Plan::where('is_active', true)
             ->get()
-            ->map(function ($plan) {
+            ->map(function ($plan) use ($discoveredModules) {
+                $moduleCodes = $plan->module_codes ?? [];
+                
+                // Enrich module codes with full module info from discovered modules
+                $enrichedModules = collect($moduleCodes)
+                    ->map(function ($code) use ($discoveredModules) {
+                        $moduleConfig = $discoveredModules->get($code);
+                        if (!$moduleConfig) {
+                            return null;
+                        }
+                        return [
+                            'id' => $code,
+                            'code' => $code,
+                            'name' => $moduleConfig['name'] ?? ucfirst($code),
+                        ];
+                    })
+                    ->filter()
+                    ->values();
+
                 return [
                     'id' => $plan->id,
                     'name' => $plan->name,
                     'slug' => $plan->slug,
                     'monthly_price' => $plan->monthly_price,
                     'yearly_price' => $plan->yearly_price,
-                    'modules' => $plan->modules->map(fn ($m) => [
-                        'id' => $m->id,
-                        'code' => $m->code,
-                        'name' => $m->name,
-                    ]),
+                    'modules' => $enrichedModules,
                 ];
             });
 
-        // Fetch modules for display
-        $modules = \Aero\Core\Models\Module::where('is_active', true)
-            ->where('is_core', false)
-            ->select('id', 'code', 'name')
-            ->get();
+        // Format discovered modules for display
+        $modules = $discoveredModules
+            ->map(function ($module) {
+                return [
+                    'id' => $module['code'],
+                    'code' => $module['code'],
+                    'name' => $module['name'],
+                ];
+            })
+            ->values();
 
         return $this->render('Platform/Public/Register/Payment', 'payment', [
             'trialDays' => (int) config('platform.trial_days', 14),

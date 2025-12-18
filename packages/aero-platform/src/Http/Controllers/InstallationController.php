@@ -44,14 +44,14 @@ class InstallationController extends Controller
      */
     private const REQUIRED_TABLES = [
         'landlord_users', 'tenants', 'domains', 'plans',
-        'modules', 'platform_settings', 'roles', 'permissions',
+        'modules', 'platform_settings', 'roles', 'model_has_roles', 'role_module_access',
     ];
 
     /**
      * Installation stages that require migration rollback during cleanup
      */
     private const STAGES_REQUIRING_MIGRATION_ROLLBACK = [
-        'seeding', 'admin', 'settings', 'verification', 'finalization',
+        'seeding', 'admin', 'settings', 'verification', 'finalization', 'error',
     ];
 
     /**
@@ -326,14 +326,15 @@ class InstallationController extends Controller
 
             if ($testConnection['success']) {
                 // Store config in session for later use
-                // Encrypt sensitive password before storing in session
+                // Note: Not encrypting password here because APP_KEY may change during installation
+                // Session data is server-side and config files are cleaned up after installation
                 $dbConfig = [
                     'db_host' => $request->host,
                     'db_port' => $request->port,
                     'db_database' => $request->database,
                     'db_username' => $request->username,
-                    'db_password' => $request->password ? Crypt::encryptString($request->password) : '',
-                    'db_password_encrypted' => true,
+                    'db_password' => $request->password ?? '',
+                    'db_password_encrypted' => false,
                 ];
                 
                 session(['db_config' => $dbConfig]);
@@ -642,12 +643,13 @@ class InstallationController extends Controller
             'admin_password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        // Encrypt sensitive password before storing in session
+        // Note: Not encrypting password here because APP_KEY may change during installation
+        // Session data is server-side and config files are cleaned up after installation
         $adminConfig = [
             'admin_name' => $validated['admin_name'],
             'admin_email' => $validated['admin_email'],
-            'admin_password' => Crypt::encryptString($validated['admin_password']),
-            'admin_password_encrypted' => true,
+            'admin_password' => $validated['admin_password'],
+            'admin_password_encrypted' => false,
         ];
         
         session(['admin_config' => $adminConfig]);
@@ -741,12 +743,14 @@ class InstallationController extends Controller
             // Normalize database config keys (handle both old and new format)
             // Convert to format expected by InstallationService (without db_ prefix)
             // Decrypt password if it was encrypted in session
+            // Get database password (may be encrypted if from older installation attempt)
             $dbPassword = $dbConfig['db_password'] ?? $dbConfig['password'] ?? null;
             if (! empty($dbConfig['db_password_encrypted']) && $dbPassword) {
                 try {
                     $dbPassword = Crypt::decryptString($dbPassword);
                 } catch (\Exception $e) {
-                    \Log::warning('Failed to decrypt db_password, using as-is', ['error' => $e->getMessage()]);
+                    \Log::warning('Failed to decrypt db_password, assuming it is plain text', ['error' => $e->getMessage()]);
+                    // Password is likely already plain text from newer installation flow
                 }
             }
 
@@ -789,46 +793,62 @@ class InstallationController extends Controller
                 throw new \RuntimeException('Failed to reconnect to database after configuration update: ' . $e->getMessage());
             }
 
-            // Wrap all database operations in a transaction for atomicity
+            // Stage 2: Run migrations (outside transaction - migrations manage their own transactions)
+            \Log::info('Installation Stage: migrations', ['stage' => 'migrations']);
+            $this->trackProgress('migrations', 'in_progress', 'Running database migrations');
+            Artisan::call('migrate', ['--force' => true]);
+            $migrationOutput = Artisan::output();
+            \Log::info('Migration output', ['output' => $migrationOutput]);
+            $this->trackProgress('migrations', 'completed', 'Migrations completed');
+
+            // Stage 3: Seed plans and modules (outside transaction - seeders manage their own transactions)
+            \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
+            $this->trackProgress('seeding', 'in_progress', 'Seeding initial data');
+            
+            // Seed plans
+            Artisan::call('db:seed', [
+                '--class' => 'Aero\\Platform\\Database\\Seeders\\PlanSeeder',
+                '--force' => true,
+            ]);
+            $seedOutput = Artisan::output();
+            \Log::info('PlanSeeder output', ['output' => $seedOutput]);
+            
+            // Sync platform modules from config to database
+            $this->trackProgress('seeding', 'in_progress', 'Syncing platform modules');
+            Artisan::call('aero:sync-module', [
+                '--scope' => 'platform',
+                '--fresh' => true,
+                '--force' => true,
+            ]);
+            $moduleSyncOutput = Artisan::output();
+            \Log::info('Module sync output', ['output' => $moduleSyncOutput]);
+            
+            $this->trackProgress('seeding', 'completed', 'Seeding completed');
+
+            // Wrap post-migration database operations in a transaction for atomicity
             DB::beginTransaction();
 
             try {
-                // Stage 2: Run migrations
-                \Log::info('Installation Stage: migrations', ['stage' => 'migrations']);
-                $this->trackProgress('migrations', 'in_progress', 'Running database migrations');
-                Artisan::call('migrate', ['--force' => true]);
-                $migrationOutput = Artisan::output();
-                \Log::info('Migration output', ['output' => $migrationOutput]);
-                $this->trackProgress('migrations', 'completed', 'Migrations completed');
-
-                // Stage 3: Seed plans
-                \Log::info('Installation Stage: seeding', ['stage' => 'seeding']);
-                $this->trackProgress('seeding', 'in_progress', 'Seeding initial data');
-                Artisan::call('db:seed', [
-                    '--class' => 'Aero\\Platform\\Database\\Seeders\\PlanSeeder',
-                    '--force' => true,
-                ]);
-                $seedOutput = Artisan::output();
-                \Log::info('PlanSeeder output', ['output' => $seedOutput]);
-                $this->trackProgress('seeding', 'completed', 'Seeding completed');
 
             // Stage 4: Create admin user
             \Log::info('Installation Stage: admin', ['stage' => 'admin']);
             $this->trackProgress('admin', 'in_progress', 'Creating administrator account');
 
-            // Decrypt admin password if it was encrypted in session
+            // Get admin password (may be encrypted if from older installation attempt)
             $adminPassword = $adminConfig['admin_password'];
             if (! empty($adminConfig['admin_password_encrypted'])) {
                 try {
                     $adminPassword = Crypt::decryptString($adminPassword);
                 } catch (\Exception $e) {
-                    \Log::warning('Failed to decrypt admin_password, using as-is', ['error' => $e->getMessage()]);
+                    \Log::warning('Failed to decrypt admin_password, assuming it is plain text', ['error' => $e->getMessage()]);
+                    // Password is likely already plain text from newer installation flow
                 }
             }
 
+            // Create Super Administrator role for landlord guard (matching LandlordUser's guard_name)
             $role = \Spatie\Permission\Models\Role::firstOrCreate(
-                ['name' => 'Super Administrator'],
-                ['guard_name' => 'web']
+                ['name' => 'Super Administrator', 'guard_name' => 'landlord'],
+                ['name' => 'Super Administrator', 'guard_name' => 'landlord', 'scope' => 'platform']
             );
 
             $admin = LandlordUser::updateOrCreate(
@@ -839,9 +859,6 @@ class InstallationController extends Controller
                     'email_verified_at' => now(),
                 ]
             );
-
-       
-         
 
             \Log::info('Admin created/updated', ['admin_id' => $admin->id, 'email' => $admin->email]);
 
@@ -854,7 +871,9 @@ class InstallationController extends Controller
                 \Log::warning('syncRoles failed, falling back to direct pivot insert', ['error' => $e->getMessage()]);
 
                 try {
-                    $role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
+                    $role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')
+                        ->where('guard_name', 'landlord')
+                        ->first();
                     if ($role) {
                         DB::connection('central')->table('model_has_roles')->insertOrIgnore([
                             'role_id' => $role->id,
@@ -1154,13 +1173,13 @@ class InstallationController extends Controller
                 \Log::warning('Rollback: Failed to delete platform settings (may already be rolled back)', ['error' => $e->getMessage()]);
             }
 
-            // 3. Rollback migrations if they were run
+            // 3. Rollback migrations if they were run - use migrate:reset to drop ALL tables
             if (in_array($failedStage, self::STAGES_REQUIRING_MIGRATION_ROLLBACK, true)) {
                 try {
-                    \Log::info('Rollback: Attempting to rollback migrations');
-                    Artisan::call('migrate:rollback', ['--force' => true]);
+                    \Log::info('Rollback: Attempting to reset all migrations (drop all tables)');
+                    Artisan::call('migrate:reset', ['--force' => true]);
                     $rollbackOutput = Artisan::output();
-                    \Log::info('Rollback: Migrations rolled back', ['output' => $rollbackOutput]);
+                    \Log::info('Rollback: All migrations reset (tables dropped)', ['output' => $rollbackOutput]);
                 } catch (\Throwable $e) {
                     \Log::warning('Rollback: Failed to rollback migrations', ['error' => $e->getMessage()]);
                 }

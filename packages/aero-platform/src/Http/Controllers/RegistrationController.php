@@ -611,7 +611,7 @@ class RegistrationController extends Controller
     private function cleanupOrphanedDatabase(Tenant $tenant): void
     {
         try {
-            $databaseName = $tenant->tenancy_db_name;
+            $databaseName = $tenant->database()->getName();
 
             if (empty($databaseName)) {
                 return;

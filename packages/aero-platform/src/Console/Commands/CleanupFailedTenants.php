@@ -76,7 +76,7 @@ class CleanupFailedTenants extends Command
 
             try {
                 // Step 1: Drop database if it exists
-                $databaseName = $tenant->tenancy_db_name;
+                $databaseName = $tenant->database()->getName();
                 if ($databaseName) {
                     $this->line("  → Dropping database: {$databaseName}");
                     DB::statement("DROP DATABASE IF EXISTS `{$databaseName}`");

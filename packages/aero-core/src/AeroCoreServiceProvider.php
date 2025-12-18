@@ -214,10 +214,14 @@ class AeroCoreServiceProvider extends ServiceProvider
      * Domain-based routing:
      * - In SaaS mode: Routes ONLY on tenant domains (tenant.domain.com)
      * - In Standalone mode: Routes on all domains (domain.com)
+     * - Public API routes (/api/version/check, /api/error-log) on ALL domains
      */
     protected function registerRoutes(): void
     {
         $routesPath = __DIR__.'/../routes';
+
+        // Always register public API routes on all domains (version check, error logging)
+        $this->registerPublicApiRoutes();
 
         // Check if aero-platform is active (SaaS mode)
         if ($this->isPlatformActive()) {
@@ -251,6 +255,50 @@ class AeroCoreServiceProvider extends ServiceProvider
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
+    }
+
+    /**
+     * Register public API routes that should be available on ALL domains.
+     * These are domain-agnostic routes for version checking and error logging.
+     */
+    protected function registerPublicApiRoutes(): void
+    {
+        $reporter = \Aero\Core\Services\PlatformErrorReporter::class;
+
+        // Version check API - available on all domains
+        Route::post('/api/version/check', function (\Illuminate\Http\Request $request) {
+            $clientVersion = $request->input('version', '1.0.0');
+            $serverVersion = config('app.version', '1.0.0');
+
+            return response()->json([
+                'version_match' => $clientVersion === $serverVersion,
+                'client_version' => $clientVersion,
+                'server_version' => $serverVersion,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        })->name('api.version.check')->middleware(['web', 'throttle:30,1']);
+
+        // Error logging API - available on all domains
+        Route::post('/api/error-log', function (\Illuminate\Http\Request $request) use ($reporter) {
+            $reporterInstance = app($reporter);
+            $traceId = $reporterInstance->reportFrontendError($request->all());
+
+            return response()->json([
+                'success' => true,
+                'trace_id' => $traceId,
+                'message' => 'Error reported successfully',
+            ]);
+        })->name('api.error-log')->middleware(['web', 'throttle:30,1']);
+
+        // Health check API - available on all domains
+        Route::get('/aero-core/health', function () {
+            return response()->json([
+                'status' => 'ok',
+                'package' => 'aero/core',
+                'version' => '1.0.0',
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        })->name('api.core.health')->middleware(['web']);
     }
 
     /**

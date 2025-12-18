@@ -33,10 +33,40 @@ class TenantCreatedListener implements ShouldQueue
 
     /**
      * Handle the event.
+     *
+     * NOTE: This listener runs when a Tenant model is created. However, during
+     * registration, tenants are created as PENDING records before their database
+     * exists. The actual database is created later by the ProvisionTenant job.
+     *
+     * This listener will:
+     * - Skip processing for pending tenants (no database yet)
+     * - Only run for tenants that already have a database (e.g., programmatically created)
      */
     public function handle(TenantCreated $event): void
     {
         $tenant = $event->tenant;
+
+        Log::info("[TenantCreated] Event received for tenant: {$tenant->id}");
+
+        // Check if this is a pending tenant from registration flow
+        // Pending tenants don't have databases yet - ProvisionTenant job will handle setup
+        if ($tenant->status === 'pending' || empty($tenant->database()->getName())) {
+            Log::info("[TenantCreated] Skipping setup for pending tenant (no database yet): {$tenant->id}", [
+                'status' => $tenant->status,
+                'has_db_name' => ! empty($tenant->database()->getName()),
+            ]);
+
+            return;
+        }
+
+        // Verify database actually exists before attempting to initialize
+        if (! $this->databaseExists($tenant)) {
+            Log::info("[TenantCreated] Skipping setup - database does not exist yet: {$tenant->id}", [
+                'expected_db' => $tenant->database()->getName(),
+            ]);
+
+            return;
+        }
 
         Log::info("[TenantCreated] Setting up tenant database for: {$tenant->id}");
 
@@ -63,6 +93,31 @@ class TenantCreatedListener implements ShouldQueue
             throw $e;
         } finally {
             tenancy()->end();
+        }
+    }
+
+    /**
+     * Check if the tenant database exists.
+     */
+    protected function databaseExists($tenant): bool
+    {
+        try {
+            $databaseName = $tenant->database()->getName();
+
+            if (empty($databaseName)) {
+                return false;
+            }
+
+            $result = \Illuminate\Support\Facades\DB::select(
+                'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
+                [$databaseName]
+            );
+
+            return ! empty($result);
+        } catch (\Throwable $e) {
+            Log::warning("[TenantCreated] Failed to check database existence: {$e->getMessage()}");
+
+            return false;
         }
     }
 

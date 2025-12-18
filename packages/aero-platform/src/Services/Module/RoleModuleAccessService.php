@@ -5,10 +5,10 @@ namespace Aero\Platform\Services\Module;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\ModuleComponent;
 use Aero\Platform\Models\ModuleComponentAction;
-use Aero\Platform\Models\Role;
 use Aero\Platform\Models\RoleModuleAccess;
 use Aero\Platform\Models\SubModule;
 use Illuminate\Support\Facades\Cache;
+use Spatie\Permission\Models\Role;
 
 /**
  * Role Module Access Service

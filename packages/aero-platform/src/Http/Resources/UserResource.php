@@ -40,8 +40,10 @@ class UserResource extends JsonResource
                     'profile_image_url' => $this->reportsTo->profile_image_url,
                 ];
             }),
+            // Note: Using role check instead of Spatie permission check
+            // since we use role_module_access instead of permissions table
             'salary_amount' => $this->when(
-                $request->user()?->can('view-salary', $this->resource),
+                $this->canViewSalary($request),
                 $this->salary_amount
             ),
 
@@ -79,16 +81,95 @@ class UserResource extends JsonResource
             'deleted_at' => $this->when($this->trashed(), $this->deleted_at),
 
             // Authorization flags (only when user is authenticated)
+            // Note: Using try-catch to gracefully handle cases where
+            // Spatie permission checks might fail (no permissions table)
             'can' => $this->when($request->user(), function () use ($request) {
-                return [
-                    'view' => $request->user()->can('view', $this->resource),
-                    'update' => $request->user()->can('update', $this->resource),
-                    'delete' => $request->user()->can('delete', $this->resource),
-                    'update_roles' => $request->user()->can('updateRoles', $this->resource),
-                    'toggle_status' => $request->user()->can('toggleStatus', $this->resource),
-                    'manage_devices' => $request->user()->can('manageDevices', $this->resource),
-                ];
+                return $this->getAuthorizationFlags($request);
             }),
         ];
+    }
+
+    /**
+     * Check if the current user can view salary information.
+     * Uses role-based check instead of Spatie permission check since
+     * we use role_module_access instead of permissions table.
+     */
+    protected function canViewSalary(Request $request): bool
+    {
+        $user = $request->user();
+        if (! $user) {
+            return false;
+        }
+
+        // Super Administrators and platform admins can view salary
+        if ($user->hasRole(['Super Administrator', 'super-admin', 'Platform Admin'])) {
+            return true;
+        }
+
+        // If roles have is_protected flag, grant access
+        foreach ($user->roles as $role) {
+            if ($role->is_protected ?? false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get authorization flags for the resource.
+     * Gracefully handles cases where policy checks might fail.
+     */
+    protected function getAuthorizationFlags(Request $request): array
+    {
+        $user = $request->user();
+
+        // For platform admin users, grant all permissions
+        if ($user->hasRole(['Super Administrator', 'super-admin', 'Platform Admin'])) {
+            return [
+                'view' => true,
+                'update' => true,
+                'delete' => true,
+                'update_roles' => true,
+                'toggle_status' => true,
+                'manage_devices' => true,
+            ];
+        }
+
+        // For protected roles, grant all permissions
+        foreach ($user->roles as $role) {
+            if ($role->is_protected ?? false) {
+                return [
+                    'view' => true,
+                    'update' => true,
+                    'delete' => true,
+                    'update_roles' => true,
+                    'toggle_status' => true,
+                    'manage_devices' => true,
+                ];
+            }
+        }
+
+        // Try policy-based checks with fallback to false
+        try {
+            return [
+                'view' => $user->can('view', $this->resource),
+                'update' => $user->can('update', $this->resource),
+                'delete' => $user->can('delete', $this->resource),
+                'update_roles' => $user->can('updateRoles', $this->resource),
+                'toggle_status' => $user->can('toggleStatus', $this->resource),
+                'manage_devices' => $user->can('manageDevices', $this->resource),
+            ];
+        } catch (\Throwable) {
+            // If permission checks fail (e.g., no permissions table), return false for all
+            return [
+                'view' => false,
+                'update' => false,
+                'delete' => false,
+                'update_roles' => false,
+                'toggle_status' => false,
+                'manage_devices' => false,
+            ];
+        }
     }
 }

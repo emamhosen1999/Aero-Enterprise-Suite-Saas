@@ -21,7 +21,18 @@ return [
         'team_foreign_key' => 'team_id',
     ],
 
-    'register_permission_check_method' => true,
+    /*
+    |--------------------------------------------------------------------------
+    | Register Permission Check Method
+    |--------------------------------------------------------------------------
+    |
+    | Set to false to disable Spatie's automatic permission checks via Gate.
+    | This prevents the 'permissions' table from being queried on every can() call.
+    | We use role_module_access instead of the permissions table for access control.
+    |
+    */
+    'register_permission_check_method' => false,
+
     'register_octane_reset_listener' => false,
     'events_enabled' => false,
     'teams' => false,

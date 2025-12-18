@@ -115,7 +115,7 @@ class ProvisionTenant implements ShouldQueue
             $this->logStep('🗄️  Step 2: Creating tenant database', $context);
             $this->createDatabase();
             $databaseCreated = true;
-            $this->logStep('✅ Step 2 Complete: Database created - '.$this->tenant->tenancy_db_name, $context);
+            $this->logStep('✅ Step 2 Complete: Database created - '.$this->tenant->database()->getName(), $context);
 
             // Step 3: Run migrations
             $this->logStep('🔄 Step 3: Running database migrations', $context);
@@ -224,7 +224,7 @@ class ProvisionTenant implements ShouldQueue
      */
     protected function createDatabase(): void
     {
-        $dbName = $this->tenant->tenancy_db_name;
+        $dbName = $this->tenant->database()->getName();
 
         $this->logStep("   → Creating database: {$dbName}", ['database' => $dbName]);
 
@@ -736,7 +736,7 @@ class ProvisionTenant implements ShouldQueue
     protected function rollbackDatabase(): void
     {
         try {
-            $databaseName = $this->tenant->tenancy_db_name;
+            $databaseName = $this->tenant->database()->getName();
 
             if (empty($databaseName)) {
                 $this->logStep('   → No database name found for rollback', [], 'warning');

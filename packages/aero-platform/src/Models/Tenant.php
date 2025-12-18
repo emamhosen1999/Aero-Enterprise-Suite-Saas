@@ -111,7 +111,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'provisioning_step', // Async provisioning: creating_db, migrating, seeding, creating_admin
             'admin_data',        // Temporary admin credentials during provisioning
             'maintenance_mode',
-            'tenancy_db_name',   // Database name for tenant (from stancl/tenancy)
             // Admin verification columns (legacy - kept for backward compatibility)
             'admin_email_verified_at',
             'admin_phone_verified_at',

@@ -1,1 +1,0 @@
-const i=async()=>(console.warn("[Firebase] Push notifications are disabled - firebase package not installed"),null),n=()=>new Promise((s,e)=>{e(new Error("Firebase not available - push notifications disabled"))});export{n as onMessageListener,i as requestNotificationPermission};

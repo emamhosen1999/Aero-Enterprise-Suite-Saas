@@ -12,7 +12,6 @@ import ProgressSteps from './components/ProgressSteps.jsx';
 export default function Payment({ steps = [], currentStep, savedData = {}, trialDays = 14, baseDomain = 'platform.test', plans = [], modules = [], modulePricing = {} }) {
   const account = savedData.account ?? {};
   const details = savedData.details ?? {};
-  const admin = savedData.admin ?? {};
   const plan = savedData.plan ?? {};
 
   // Find selected plan
@@ -157,17 +156,7 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
             </div>
 
             <Card className={`${palette.surface} text-xs sm:text-sm`}>
-              <CardBody className="space-y-3 sm:space-y-4">
-                <div>
-                  <p className={`font-semibold ${palette.heading}`}>Administrator Login</p>
-                  <p className={`text-xs sm:text-sm ${palette.copy} break-all`}>
-                    <strong>{admin.name}</strong> ({admin.username}) will be able to login at {details.subdomain}.{baseDomain}
-                  </p>
-                </div>
-              </CardBody>
-            </Card>
 
-            <Card className={`${palette.surface} text-xs sm:text-sm`}>
               <CardBody className="space-y-2 sm:space-y-3">
                 <p className={`font-semibold ${palette.heading}`}>What happens next?</p>
                 <ol className={`list-decimal list-inside space-y-2 ${palette.copy}`}>
