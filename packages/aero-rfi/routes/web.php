@@ -1,6 +1,7 @@
 <?php
 
 use Aero\Rfi\Http\Controllers\DailyWorkController;
+use Aero\Rfi\Http\Controllers\DailyWorkSummaryController;
 use Aero\Rfi\Http\Controllers\ObjectionController;
 use Aero\Rfi\Http\Controllers\RfiDashboardController;
 use Aero\Rfi\Http\Controllers\WorkLocationController;
@@ -29,6 +30,14 @@ Route::prefix('daily-works')->name('daily-works.')->group(function () {
     Route::put('/{dailyWork}', [DailyWorkController::class, 'update'])->name('update');
     Route::delete('/{dailyWork}', [DailyWorkController::class, 'destroy'])->name('destroy');
 
+    // API Endpoints for pagination and filtering
+    Route::get('/api/paginate', [DailyWorkController::class, 'paginate'])->name('paginate');
+    Route::get('/api/all', [DailyWorkController::class, 'all'])->name('all');
+
+    // Import
+    Route::post('/import', [DailyWorkController::class, 'import'])->name('import');
+    Route::get('/template/download', [DailyWorkController::class, 'downloadTemplate'])->name('template.download');
+
     // RFI Submission
     Route::post('/{dailyWork}/submit', [DailyWorkController::class, 'submit'])->name('submit');
 
@@ -37,20 +46,43 @@ Route::prefix('daily-works')->name('daily-works.')->group(function () {
 
     // Files
     Route::post('/{dailyWork}/files', [DailyWorkController::class, 'uploadFiles'])->name('files.upload');
+    Route::get('/{dailyWork}/files', [DailyWorkController::class, 'getRfiFiles'])->name('files.list');
     Route::delete('/{dailyWork}/files/{mediaId}', [DailyWorkController::class, 'deleteFile'])->name('files.delete');
+    Route::get('/{dailyWork}/files/{mediaId}/download', [DailyWorkController::class, 'downloadRfiFile'])->name('files.download');
 
     // Objection management
     Route::post('/{dailyWork}/objections', [DailyWorkController::class, 'attachObjections'])->name('objections.attach');
     Route::delete('/{dailyWork}/objections', [DailyWorkController::class, 'detachObjections'])->name('objections.detach');
 
-    // Summary
-    Route::get('/summary/view', [DailyWorkController::class, 'summary'])->name('summary');
-
     // Bulk operations
     Route::post('/bulk/status', [DailyWorkController::class, 'bulkUpdateStatus'])->name('bulk.status');
+    Route::post('/bulk/submit', [DailyWorkController::class, 'bulkSubmit'])->name('bulk.submit');
+    Route::post('/bulk/import-submit', [DailyWorkController::class, 'bulkImportSubmit'])->name('bulk.import-submit');
+    Route::get('/bulk/submit-template', [DailyWorkController::class, 'downloadBulkImportTemplate'])->name('bulk.submit-template');
+    Route::post('/bulk/response-status', [DailyWorkController::class, 'bulkResponseStatusUpdate'])->name('bulk.response-status');
+    Route::post('/bulk/import-response-status', [DailyWorkController::class, 'bulkImportResponseStatus'])->name('bulk.import-response-status');
+    Route::get('/bulk/response-status-template', [DailyWorkController::class, 'downloadResponseStatusTemplate'])->name('bulk.response-status-template');
+
+    // Status updates
+    Route::post('/update-status', [DailyWorkController::class, 'updateStatus'])->name('update-status');
+    Route::post('/update-completion-time', [DailyWorkController::class, 'updateCompletionTime'])->name('update-completion-time');
+    Route::post('/update-submission-time', [DailyWorkController::class, 'updateSubmissionTime'])->name('update-submission-time');
+    Route::post('/update-inspection-details', [DailyWorkController::class, 'updateInspectionDetails'])->name('update-inspection-details');
+    Route::post('/update-incharge', [DailyWorkController::class, 'updateIncharge'])->name('update-incharge');
+    Route::post('/update-assigned', [DailyWorkController::class, 'updateAssigned'])->name('update-assigned');
 
     // Export
     Route::get('/export/csv', [DailyWorkController::class, 'export'])->name('export');
+    Route::get('/export/objected', [DailyWorkController::class, 'exportObjectedRfis'])->name('export.objected');
+});
+
+// Daily Work Summary
+Route::prefix('daily-works-summary')->name('daily-works-summary.')->group(function () {
+    Route::get('/', [DailyWorkSummaryController::class, 'index'])->name('index');
+    Route::post('/filter', [DailyWorkSummaryController::class, 'filterSummary'])->name('filter');
+    Route::get('/export', [DailyWorkSummaryController::class, 'exportDailySummary'])->name('export');
+    Route::get('/statistics', [DailyWorkSummaryController::class, 'getStatistics'])->name('statistics');
+    Route::post('/refresh', [DailyWorkSummaryController::class, 'refresh'])->name('refresh');
 });
 
 // Objections

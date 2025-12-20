@@ -161,6 +161,82 @@ class DailyWorkPolicy
     }
 
     /**
+     * Determine whether the user can update the status of the daily work.
+     */
+    public function updateStatus(User $user, DailyWork $dailyWork): bool
+    {
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Incharge or assigned can update status
+        if ($dailyWork->incharge_user_id === $user->id || $dailyWork->assigned_user_id === $user->id) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'rfi', 'daily-works', 'daily-work-list', 'update');
+    }
+
+    /**
+     * Determine whether the user can update the completion time.
+     */
+    public function updateCompletionTime(User $user, DailyWork $dailyWork): bool
+    {
+        return $this->updateStatus($user, $dailyWork);
+    }
+
+    /**
+     * Determine whether the user can update the submission time.
+     */
+    public function updateSubmissionTime(User $user, DailyWork $dailyWork): bool
+    {
+        return $this->updateStatus($user, $dailyWork);
+    }
+
+    /**
+     * Determine whether the user can update the inspection details.
+     */
+    public function updateInspectionDetails(User $user, DailyWork $dailyWork): bool
+    {
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Incharge or assigned can update inspection details
+        if ($dailyWork->incharge_user_id === $user->id || $dailyWork->assigned_user_id === $user->id) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'rfi', 'daily-works', 'daily-work-list', 'update');
+    }
+
+    /**
+     * Determine whether the user can update the incharge.
+     */
+    public function updateIncharge(User $user, DailyWork $dailyWork): bool
+    {
+        // Only admins can change incharge
+        return $this->isSuperAdmin($user);
+    }
+
+    /**
+     * Determine whether the user can update the assigned user.
+     */
+    public function updateAssigned(User $user, DailyWork $dailyWork): bool
+    {
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Incharge can assign
+        if ($dailyWork->incharge_user_id === $user->id) {
+            return true;
+        }
+
+        return $this->canPerformAction($user, 'rfi', 'daily-works', 'daily-work-list', 'update');
+    }
+
+    /**
      * Determine whether the user can view daily work summary.
      */
     public function viewSummary(User $user): bool

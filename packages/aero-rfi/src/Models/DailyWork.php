@@ -84,6 +84,18 @@ class DailyWork extends Model implements HasMedia
 
     public const TYPE_PAVEMENT = 'Pavement';
 
+    // ==================== RFI Response Status Constants ====================
+
+    public const RFI_RESPONSE_APPROVED = 'approved';
+
+    public const RFI_RESPONSE_REJECTED = 'rejected';
+
+    public const RFI_RESPONSE_RETURNED = 'returned';
+
+    public const RFI_RESPONSE_CONCURRED = 'concurred';
+
+    public const RFI_RESPONSE_NOT_CONCURRED = 'not_concurred';
+
     /**
      * Valid statuses for validation
      *
@@ -138,6 +150,19 @@ class DailyWork extends Model implements HasMedia
     ];
 
     /**
+     * Valid RFI response statuses for validation
+     *
+     * @var array<string>
+     */
+    public static array $rfiResponseStatuses = [
+        self::RFI_RESPONSE_APPROVED,
+        self::RFI_RESPONSE_REJECTED,
+        self::RFI_RESPONSE_RETURNED,
+        self::RFI_RESPONSE_CONCURRED,
+        self::RFI_RESPONSE_NOT_CONCURRED,
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<string>
@@ -147,6 +172,8 @@ class DailyWork extends Model implements HasMedia
         'number',
         'status',
         'inspection_result',
+        'rfi_response_status',
+        'rfi_response_date',
         'type',
         'description',
         'location',
@@ -172,6 +199,7 @@ class DailyWork extends Model implements HasMedia
         'date' => 'date',
         'completion_time' => 'datetime',
         'rfi_submission_date' => 'date',
+        'rfi_response_date' => 'date',
         'resubmission_date' => 'date',
         'resubmission_count' => 'integer',
         'qty_layer' => 'integer',

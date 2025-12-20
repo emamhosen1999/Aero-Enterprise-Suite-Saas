@@ -43,6 +43,8 @@ return new class extends Migration
             $table->integer('resubmission_count')->default(0);
             $table->date('resubmission_date')->nullable();
             $table->date('rfi_submission_date')->nullable()->comment('Date RFI was formally submitted');
+            $table->string('rfi_response_status')->nullable()->comment('Response status: approved, rejected, returned, concurred, not_concurred');
+            $table->date('rfi_response_date')->nullable()->comment('Date of RFI response');
             $table->timestamps();
             $table->softDeletes();
 

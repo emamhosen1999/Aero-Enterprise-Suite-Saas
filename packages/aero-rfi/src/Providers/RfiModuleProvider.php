@@ -68,6 +68,14 @@ class RfiModuleProvider extends AbstractModuleProvider
             return new \Aero\Rfi\Services\ObjectionService;
         });
 
+        // Register DailyWork specialized services
+        $this->app->singleton(\Aero\Rfi\Services\DailyWorkPaginationService::class);
+        $this->app->singleton(\Aero\Rfi\Services\DailyWorkImportService::class);
+        $this->app->singleton(\Aero\Rfi\Services\DailyWorkCrudService::class);
+        $this->app->singleton(\Aero\Rfi\Services\DailyWorkFileService::class);
+        $this->app->singleton(\Aero\Rfi\Services\DailyWorkValidationService::class);
+        $this->app->singleton(\Aero\Rfi\Services\DailyWorkSummaryService::class);
+
         // Merge RFI-specific configuration
         $rfiConfigPath = $this->getModulePath('config/rfi.php');
         if (file_exists($rfiConfigPath)) {
