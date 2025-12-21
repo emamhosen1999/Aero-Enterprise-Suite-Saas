@@ -32,9 +32,9 @@ import {
     MapPinIcon
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
-import DailyWorkSummaryTable from '@/Tables/DailyWorkSummaryTable.jsx';
+import DailyWorkSummaryTable from '@/Tables/Rfi/DailyWorkSummaryTable.jsx';
 import StatsCards from "@/Components/StatsCards.jsx";
-import EnhancedDailyWorkSummaryExportForm from "@/Forms/EnhancedDailyWorkSummaryExportForm.jsx";
+import EnhancedDailyWorkSummaryExportForm from "@/Forms/Rfi/EnhancedDailyWorkSummaryExportForm.jsx";
 
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import dayjs from 'dayjs';

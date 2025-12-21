@@ -14,6 +14,7 @@ use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Fortify;
 
 /**
  * AeroCoreServiceProvider
@@ -29,6 +30,10 @@ class AeroCoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         try {
+            // Disable Fortify's default routes - aero-core defines its own auth routes
+            // This prevents conflicts between Fortify's routes and Core's AuthenticatedSessionController
+            Fortify::ignoreRoutes();
+
             // Override the Migrator to exclude app's migration directory
             // Core and module packages provide all necessary migrations
             $this->app->extend('migrator', function ($migrator, $app) {

@@ -48,8 +48,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            // Indexes
-            $table->index('date');
+            // Indexes for common queries
+            $table->index('date', 'daily_works_date_index');
             $table->index('number');
             $table->index('status');
             $table->index('type');
@@ -57,8 +57,14 @@ return new class extends Migration
             $table->index('incharge_user_id');
             $table->index('assigned_user_id');
             $table->index('work_location_id');
-            $table->index(['date', 'status']);
-            $table->index(['rfi_submission_date', 'status']);
+
+            // Composite indexes for common filter combinations
+            $table->index(['date', 'status'], 'daily_works_date_status_index');
+            $table->index(['date', 'type'], 'daily_works_date_type_index');
+            $table->index(['date', 'id'], 'daily_works_date_id_index');
+            $table->index(['incharge_user_id', 'date'], 'daily_works_incharge_date_index');
+            $table->index(['assigned_user_id', 'status'], 'daily_works_assigned_status_index');
+            $table->index(['rfi_submission_date', 'status'], 'daily_works_submission_status_index');
         });
     }
 

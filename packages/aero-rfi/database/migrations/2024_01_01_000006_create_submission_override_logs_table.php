@@ -19,7 +19,11 @@ return new class extends Migration
             $table->foreignId('daily_work_id')
                 ->constrained('daily_works')
                 ->cascadeOnDelete();
+            $table->date('old_submission_date')->nullable()->comment('Previous RFI submission date');
+            $table->date('new_submission_date')->nullable()->comment('New RFI submission date after override');
+            $table->integer('active_objections_count')->default(0)->comment('Number of active objections at time of override');
             $table->text('reason')->comment('Justification for override');
+            $table->boolean('user_acknowledged')->default(true)->comment('Whether user acknowledged the override');
             $table->foreignId('overridden_by')
                 ->nullable()
                 ->constrained('users')
@@ -32,6 +36,7 @@ return new class extends Migration
             $table->index('daily_work_id');
             $table->index('overridden_by');
             $table->index('overridden_at');
+            $table->index(['daily_work_id', 'overridden_at']);
         });
     }
 

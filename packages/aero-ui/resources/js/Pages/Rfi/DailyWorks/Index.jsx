@@ -22,7 +22,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Head } from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
-import DailyWorksTable from '@/Tables/DailyWorksTable.jsx';
+import DailyWorksTable from '@/Tables/Rfi/DailyWorksTable.jsx';
 import { 
     Card, 
     CardHeader, 
@@ -39,10 +39,10 @@ import {
 import StatsCards from "@/Components/StatsCards.jsx";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { getThemeRadius } from '@/Hooks/useThemeRadius.js';
-import DailyWorkForm from "@/Forms/DailyWorkForm.jsx";
-import DeleteDailyWorkForm from "@/Forms/DeleteDailyWorkForm.jsx";
-import EnhancedDailyWorksExportForm from "@/Forms/EnhancedDailyWorksExportForm.jsx";
-import DailyWorksUploadForm from "@/Forms/DailyWorksUploadForm.jsx";
+import DailyWorkForm from "@/Forms/Rfi/DailyWorkForm.jsx";
+import DeleteDailyWorkForm from "@/Forms/Rfi/DeleteDailyWorkForm.jsx";
+import EnhancedDailyWorksExportForm from "@/Forms/Rfi/EnhancedDailyWorksExportForm.jsx";
+import DailyWorksUploadForm from "@/Forms/Rfi/DailyWorksUploadForm.jsx";
 import ErrorBoundary from "@/Components/Common/ErrorBoundary.jsx";
 
 
