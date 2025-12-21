@@ -60,7 +60,7 @@ class CoreUserController extends Controller
 
         $users = $query->paginate($request->per_page ?? 15);
 
-        return Inertia::render('Core/Users/Index', [
+        return Inertia::render('Shared/Users/Index', [
             'title' => 'Users',
             'users' => $users,
             'roles' => Role::all(['id', 'name']),
@@ -208,7 +208,7 @@ class CoreUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Core/Users/Create', [
+        return Inertia::render('Shared/Users/Create/Index', [
             'title' => 'Create User',
             'roles' => Role::all(['id', 'name']),
         ]);
@@ -282,7 +282,7 @@ class CoreUserController extends Controller
     {
         $user->load(['roles', 'permissions']);
 
-        return Inertia::render('Core/Users/Show', [
+        return Inertia::render('Shared/Users/Show/Index', [
             'title' => $user->name,
             'user' => $user,
         ]);
@@ -295,7 +295,7 @@ class CoreUserController extends Controller
     {
         $user->load(['roles']);
 
-        return Inertia::render('Core/Users/Edit', [
+        return Inertia::render('Shared/Users/Edit/Index', [
             'title' => 'Edit User',
             'user' => $user,
             'roles' => Role::all(['id', 'name']),

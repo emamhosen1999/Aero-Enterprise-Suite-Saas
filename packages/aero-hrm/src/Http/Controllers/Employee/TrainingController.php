@@ -58,7 +58,7 @@ class TrainingController extends Controller
      */
     public function create()
     {
-        return Inertia::render('HRM/Training/Create', [
+        return Inertia::render('HRM/Training/Create/Index', [
             'categories' => TrainingCategory::where('is_active', true)->get(['id', 'name']),
             'instructors' => User::role(['HR Manager', 'Department Manager', 'Team Lead', 'Senior Employee'])->get(['id', 'name']),
             'departments' => Department::all(['id', 'name']),
@@ -138,7 +138,7 @@ class TrainingController extends Controller
                 ->first();
         }
 
-        return Inertia::render('HRM/Training/Show', [
+        return Inertia::render('HRM/Training/Show/Index', [
             'training' => $training,
             'userEnrollment' => $userEnrollment,
             'attachments' => $training->getMedia('training_attachments'),
@@ -158,7 +158,7 @@ class TrainingController extends Controller
             'department',
         ])->findOrFail($id);
 
-        return Inertia::render('HRM/Training/Edit', [
+        return Inertia::render('HRM/Training/Edit/Index', [
             'training' => $training,
             'categories' => TrainingCategory::where('is_active', true)->get(['id', 'name']),
             'instructors' => User::role(['HR Manager', 'Department Manager', 'Team Lead', 'Senior Employee'])->get(['id', 'name']),

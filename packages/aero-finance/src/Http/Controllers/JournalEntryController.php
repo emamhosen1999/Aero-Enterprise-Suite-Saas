@@ -23,7 +23,7 @@ class JournalEntryController extends Controller
         // TODO: Fetch journal entries from database
         $entries = [];
         
-        return Inertia::render('Finance/JournalEntries', [
+        return Inertia::render('Finance/JournalEntries/Index', [
             'title' => 'Journal Entries',
             'entries' => $entries,
         ]);

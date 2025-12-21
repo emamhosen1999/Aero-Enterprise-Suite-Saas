@@ -47,7 +47,7 @@ class PublicEventController extends Controller
         $registrationStatus = $event->registration_status;
         $remainingSlots = $event->getRemainingSlots();
 
-        return Inertia::render('Shared/Public/Events/Show', [
+        return Inertia::render('Shared/Public/Events/Show/Index', [
             'event' => $event,
             'canRegister' => $canRegister,
             'registrationStatus' => $registrationStatus,
@@ -196,7 +196,7 @@ class PublicEventController extends Controller
             ->with('subEvents')
             ->firstOrFail();
 
-        return Inertia::render('Shared/Public/Events/RegistrationSuccess', [
+        return Inertia::render('Shared/Public/Events/RegistrationSuccess/Index', [
             'event' => $event,
             'registration' => $registration,
         ]);
@@ -212,7 +212,7 @@ class PublicEventController extends Controller
             ->with(['event', 'subEvents'])
             ->firstOrFail();
 
-        return Inertia::render('Shared/Public/Events/CheckRegistration', [
+        return Inertia::render('Shared/Public/Events/CheckRegistration/Index', [
             'registration' => $registration,
         ]);
     }
@@ -224,7 +224,7 @@ class PublicEventController extends Controller
             ->firstOrFail();
 
         // Return printable token view
-        return Inertia::render('Shared/Public/Events/PrintToken', [
+        return Inertia::render('Shared/Public/Events/PrintToken/Index', [
             'registration' => $registration,
         ]);
     }

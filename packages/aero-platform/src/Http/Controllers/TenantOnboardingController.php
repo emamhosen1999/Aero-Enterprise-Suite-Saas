@@ -76,7 +76,7 @@ class TenantOnboardingController extends Controller
         $currentStep = $onboardingData['current_step'] ?? 'welcome';
         $completedSteps = $onboardingData['completed_steps'] ?? [];
 
-        return Inertia::render('Onboarding/Index', [
+        return Inertia::render('Core/Onboarding/Index', [
             'title' => 'Setup Your Organization',
             'steps' => $this->steps,
             'currentStep' => $currentStep,

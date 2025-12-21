@@ -70,7 +70,7 @@ class IdentifyDomainContext
             Inertia::setRootView('aero-ui::app');
 
             // Render Landing Page
-            return Inertia::render('Platform/Public/Landing');
+            return Inertia::render('Platform/Public/Landing/Index');
         }
 
         // 5. Handle Tenant Domain (tenant.domain.com)

@@ -29,32 +29,32 @@ class TeamMemberController extends Controller
         $invitation = TenantInvitation::where('token', $token)->first();
 
         if (! $invitation) {
-            return Inertia::render('Core/Auth/InvitationExpired', [
+            return Inertia::render('Shared/Auth/InvitationExpired/Index', [
                 'message' => 'This invitation link is invalid or has already been used.',
             ]);
         }
 
         if (! $invitation->is_pending) {
             if ($invitation->is_accepted) {
-                return Inertia::render('Core/Auth/InvitationExpired', [
+                return Inertia::render('Shared/Auth/InvitationExpired/Index', [
                     'message' => 'This invitation has already been accepted.',
                 ]);
             }
 
             if ($invitation->is_expired) {
-                return Inertia::render('Core/Auth/InvitationExpired', [
+                return Inertia::render('Shared/Auth/InvitationExpired/Index', [
                     'message' => 'This invitation has expired. Please request a new invitation.',
                 ]);
             }
 
             if ($invitation->is_cancelled) {
-                return Inertia::render('Core/Auth/InvitationExpired', [
+                return Inertia::render('Shared/Auth/InvitationExpired/Index', [
                     'message' => 'This invitation has been cancelled.',
                 ]);
             }
         }
 
-        return Inertia::render('Core/Auth/AcceptInvitation', [
+        return Inertia::render('Shared/Auth/AcceptInvitation/Index', [
             'invitation' => [
                 'email' => $invitation->email,
                 'role' => $invitation->role,

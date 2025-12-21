@@ -255,7 +255,7 @@ class ExtensionsController extends Controller
             abort(404, 'Module not found');
         }
 
-        return Inertia::render('Core/Admin/Extensions/Settings', [
+        return Inertia::render('Core/Admin/Extensions/Settings/Index', [
             'module' => $module,
         ]);
     }

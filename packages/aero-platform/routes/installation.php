@@ -24,7 +24,7 @@ Route::prefix('install')->name('installation.')->group(function () use ($isInsta
         // Already installed - redirect to landing
         Route::get('/', fn () => redirect('/'))
             ->name('index');
-        Route::get('/{any}', fn () => Inertia::render('Platform/Installation/AlreadyInstalled'))
+        Route::get('/{any}', fn () => Inertia::render('Platform/Installation/AlreadyInstalled/Index'))
             ->where('any', '^(?!complete).*$');
 
         return;

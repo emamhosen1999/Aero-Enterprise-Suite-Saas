@@ -39,7 +39,7 @@ class EventRegistrationController extends Controller
 
         $registration->load('subEvents');
 
-        return Inertia::render('HRM/Events/Registrations/Show', [
+        return Inertia::render('HRM/Events/Registrations/Show/Index', [
             'event' => $event,
             'registration' => $registration,
         ]);
@@ -303,7 +303,7 @@ class EventRegistrationController extends Controller
 
         $registration->load(['subEvents', 'event']);
 
-        return Inertia::render('HRM/Events/Registrations/PrintToken', [
+        return Inertia::render('HRM/Events/Registrations/PrintToken/Index', [
             'event' => $event,
             'registration' => $registration,
         ]);

@@ -15,7 +15,7 @@ class LetterController extends Controller
     {
         $users = User::with(['designation'])->get();
 
-        return Inertia::render('Letters', [
+        return Inertia::render('HRM/Letters/Index', [
             'users' => $users,
             'title' => 'Letters',
         ]);

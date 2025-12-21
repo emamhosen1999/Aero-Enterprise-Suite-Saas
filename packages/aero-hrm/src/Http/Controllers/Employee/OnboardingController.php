@@ -51,7 +51,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HRM/Onboarding/Create', [
+        return Inertia::render('HRM/Onboarding/Create/Index', [
             'title' => 'Create Onboarding Process',
             'employees' => $employees,
         ]);
@@ -112,7 +112,7 @@ class OnboardingController extends Controller
 
         $this->authorize('view', $onboarding);
 
-        return Inertia::render('HRM/Onboarding/Show', [
+        return Inertia::render('HRM/Onboarding/Show/Index', [
             'title' => 'Onboarding Details',
             'onboarding' => $onboarding,
         ]);
@@ -137,7 +137,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HRM/Onboarding/Edit', [
+        return Inertia::render('HRM/Onboarding/Edit/Index', [
             'title' => 'Edit Onboarding Process',
             'onboarding' => $onboarding,
             'employees' => $employees,
@@ -266,7 +266,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HRM/Onboarding/Wizard', [
+        return Inertia::render('HRM/Onboarding/Wizard/Index', [
             'title' => 'Employee Onboarding Wizard',
             'employee' => $employee,
             'departments' => $departments,
@@ -511,7 +511,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HRM/Offboarding/Create', [
+        return Inertia::render('HRM/Offboarding/Create/Index', [
             'title' => 'Create Offboarding Process',
             'employees' => $employees,
         ]);
@@ -571,7 +571,7 @@ class OnboardingController extends Controller
         $offboarding = Offboarding::with(['employee', 'tasks.assignee'])->findOrFail($id);
         $this->authorize('view', $offboarding);
 
-        return Inertia::render('HRM/Offboarding/Show', [
+        return Inertia::render('HRM/Offboarding/Show/Index', [
             'title' => 'Offboarding Details',
             'offboarding' => $offboarding,
         ]);

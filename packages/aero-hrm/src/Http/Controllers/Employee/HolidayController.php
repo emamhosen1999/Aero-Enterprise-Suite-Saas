@@ -28,7 +28,7 @@ class HolidayController extends Controller
             }),
         ];
 
-        return Inertia::render('Holidays', [
+        return Inertia::render('HRM/Holidays/Index', [
             'title' => 'Company Holidays',
             'holidays' => $holidays,
             'stats' => $stats,

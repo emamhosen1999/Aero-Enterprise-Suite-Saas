@@ -29,7 +29,7 @@ class RegisterController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Core/Auth/Register');
+        return Inertia::render('Shared/Auth/Register/Index');
     }
 
     /**

@@ -11,7 +11,7 @@ class QualityController extends Controller
 {
     public function dashboard()
     {
-        return Inertia::render('Quality/Dashboard', [
+        return Inertia::render('Quality/Dashboard/Index', [
             'title' => 'Quality Dashboard',
         ]);
     }

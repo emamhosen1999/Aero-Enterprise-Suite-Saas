@@ -26,7 +26,7 @@ class SimpleLoginController extends Controller
      */
     public function create(Request $request): Response
     {
-        return Inertia::render('Core/Auth/Login', [
+        return Inertia::render('Shared/Auth/Login/Index', [
             'canResetPassword' => true,
             'status' => session('status'),
             'canRegister' => config('aero.core.allow_registration', false),

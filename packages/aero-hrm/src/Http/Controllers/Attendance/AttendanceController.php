@@ -24,7 +24,7 @@ class AttendanceController extends Controller
 {
     public function index1(): \Inertia\Response
     {
-        return Inertia::render('HRM/Attendance/Admin', [
+        return Inertia::render('HRM/Attendance/Admin/Index', [
             'allUsers' => User::role('Employee')->get(),
             'title' => 'Attendances of Employees',
         ]);
@@ -32,7 +32,7 @@ class AttendanceController extends Controller
 
     public function index2(): \Inertia\Response
     {
-        return Inertia::render('HRM/Attendance/Employee', [
+        return Inertia::render('HRM/Attendance/Employee/Index', [
             'title' => 'Attendances',
         ]);
     }

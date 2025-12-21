@@ -57,7 +57,7 @@ class CareersController extends Controller
             ->where('status', 'published')
             ->findOrFail($id);
 
-        return Inertia::render('Shared/Public/Careers/Show', [
+        return Inertia::render('Shared/Public/Careers/Show/Index', [
             'job' => $job,
         ]);
     }
@@ -76,7 +76,7 @@ class CareersController extends Controller
                 ->with('error', 'Application deadline has passed for this position.');
         }
 
-        return Inertia::render('Shared/Public/Careers/Apply', [
+        return Inertia::render('Shared/Public/Careers/Apply/Index', [
             'job' => $job,
         ]);
     }

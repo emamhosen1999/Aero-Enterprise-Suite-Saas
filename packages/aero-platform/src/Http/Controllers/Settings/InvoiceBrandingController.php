@@ -29,7 +29,7 @@ class InvoiceBrandingController extends Controller
     {
         $branding = $this->brandingService->getTenantBranding();
 
-        return Inertia::render('Core/Settings/InvoiceBrandingSettings', [
+        return Inertia::render('Core/Settings/InvoiceBrandingSettings/Index', [
             'branding' => $branding,
             'previewUrl' => route('settings.invoice-branding.preview'),
         ]);

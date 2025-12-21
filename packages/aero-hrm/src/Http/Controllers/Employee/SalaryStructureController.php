@@ -188,7 +188,7 @@ class SalaryStructureController extends Controller
             return response()->json($data);
         }
 
-        return Inertia::render('HRM/SalaryStructure/EmployeeSalary', $data);
+        return Inertia::render('HRM/SalaryStructure/EmployeeSalary/Index', $data);
     }
 
     /**

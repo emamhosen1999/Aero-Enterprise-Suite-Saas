@@ -36,7 +36,7 @@ class PayrollController extends Controller
     {
         $employees = User::role('Employee')->select('id', 'name', 'employee_id', 'email')->get();
 
-        return Inertia::render('HRM/Payroll/Create', [
+        return Inertia::render('HRM/Payroll/Create/Index', [
             'title' => 'Generate Payroll',
             'employees' => $employees,
             'allowanceTypes' => PayrollAllowance::allowanceTypes(),
@@ -144,7 +144,7 @@ class PayrollController extends Controller
         $payroll = Payroll::with(['employee', 'allowances', 'deductions', 'processedBy', 'payslip'])
             ->findOrFail($id);
 
-        return Inertia::render('HRM/Payroll/Show', [
+        return Inertia::render('HRM/Payroll/Show/Index', [
             'title' => 'Payroll Details',
             'payroll' => $payroll,
         ]);
@@ -216,7 +216,7 @@ class PayrollController extends Controller
             'amount' => $deduction->amount,
         ])->toArray();
 
-        return Inertia::render('HRM/Payroll/Payslip', [
+        return Inertia::render('HRM/Payroll/Payslip/Index', [
             'title' => 'Payslip',
             'payroll' => $payroll,
             'company' => $company,
@@ -255,7 +255,7 @@ class PayrollController extends Controller
             return redirect()->back()->with('error', 'Cannot edit processed payroll');
         }
 
-        return Inertia::render('HRM/Payroll/Edit', [
+        return Inertia::render('HRM/Payroll/Edit/Index', [
             'title' => 'Edit Payroll',
             'payroll' => $payroll,
             'allowanceTypes' => PayrollAllowance::allowanceTypes(),
@@ -386,7 +386,7 @@ class PayrollController extends Controller
     {
         $employees = User::role('Employee')->select('id', 'name', 'employee_id', 'email')->get();
 
-        return Inertia::render('HRM/Payroll/Bulk', [
+        return Inertia::render('HRM/Payroll/Bulk/Index', [
             'title' => 'Bulk Payroll Generation',
             'employees' => $employees,
         ]);
@@ -450,7 +450,7 @@ class PayrollController extends Controller
             ->latest()
             ->paginate(15);
 
-        return Inertia::render('HRM/Payroll/Payslips', [
+        return Inertia::render('HRM/Payroll/Payslips/Index', [
             'title' => 'Payslips',
             'payslips' => $payslips,
         ]);
@@ -612,7 +612,7 @@ class PayrollController extends Controller
 
         $monthlyStats = $reportService->generateMonthlySummary($currentMonth, $currentYear);
 
-        return Inertia::render('HRM/Payroll/Reports', [
+        return Inertia::render('HRM/Payroll/Reports/Index', [
             'title' => 'Payroll Reports',
             'monthlyStats' => $monthlyStats,
             'availableMonths' => $this->getAvailableMonths(),

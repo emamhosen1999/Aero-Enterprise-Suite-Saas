@@ -48,7 +48,7 @@ class CustomDomainController extends Controller
         // Get platform domain from config
         $platformDomain = config('tenancy.central_domains.0', 'eos365.com');
 
-        return Inertia::render('Platform/Admin/Settings/DomainManager', [
+        return Inertia::render('Platform/Admin/Settings/DomainManager/Index', [
             'title' => 'Domain Settings',
             'domains' => $domains,
             'tenant' => [

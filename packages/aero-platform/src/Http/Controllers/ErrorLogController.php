@@ -143,7 +143,7 @@ class ErrorLogController extends Controller
             ]);
         }
 
-        return Inertia::render('Platform/Admin/ErrorLogs/Show', [
+        return Inertia::render('Platform/Admin/ErrorLogs/Show/Index', [
             'errorLog' => $errorLog,
         ]);
     }

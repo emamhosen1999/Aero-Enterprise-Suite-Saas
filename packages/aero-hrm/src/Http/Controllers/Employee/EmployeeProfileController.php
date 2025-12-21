@@ -41,7 +41,7 @@ class EmployeeProfileController extends Controller
             'designation',
         ]);
 
-        return Inertia::render('HRM/Profile/EmployeeProfile', [
+        return Inertia::render('HRM/Profile/EmployeeProfile/Index', [
             'title' => 'Employee Profile',
             'employee' => $this->formatEmployeeData($user),
             'canEdit' => $this->canEditProfile($user),

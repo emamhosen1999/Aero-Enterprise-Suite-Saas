@@ -30,7 +30,7 @@ class DMSController extends Controller
         $statistics = $this->dmsService->getStatistics($user);
         $recentActivity = $this->dmsService->getRecentActivity(10);
 
-        return Inertia::render('DMS/Dashboard', [
+        return Inertia::render('DMS/Dashboard/Index', [
             'statistics' => $statistics,
             'recentActivity' => $recentActivity,
             'categories' => Category::active()->get(),

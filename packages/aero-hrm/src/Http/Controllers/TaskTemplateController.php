@@ -62,7 +62,7 @@ class TaskTemplateController extends Controller
     {
         $this->authorize('create', TaskTemplate::class);
 
-        return Inertia::render('HRM/TaskTemplates/Create', [
+        return Inertia::render('HRM/TaskTemplates/Create/Index', [
             'departments' => Department::all(),
         ]);
     }
@@ -92,7 +92,7 @@ class TaskTemplateController extends Controller
 
         $taskTemplate->load(['department', 'creator']);
 
-        return Inertia::render('HRM/TaskTemplates/Show', [
+        return Inertia::render('HRM/TaskTemplates/Show/Index', [
             'template' => $taskTemplate,
         ]);
     }
@@ -106,7 +106,7 @@ class TaskTemplateController extends Controller
 
         $taskTemplate->load('department');
 
-        return Inertia::render('HRM/TaskTemplates/Edit', [
+        return Inertia::render('HRM/TaskTemplates/Edit/Index', [
             'template' => $taskTemplate,
             'departments' => Department::all(),
         ]);

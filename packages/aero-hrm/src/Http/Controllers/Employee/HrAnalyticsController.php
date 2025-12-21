@@ -45,7 +45,7 @@ class HrAnalyticsController extends Controller
         $metrics = $this->metricsService->getAttendanceMetrics($filters);
         $departments = Department::select('id', 'name')->orderBy('name')->get();
 
-        return Inertia::render('HRM/Analytics/Attendance', [
+        return Inertia::render('HRM/Analytics/Attendance/Index', [
             'title' => 'Attendance Analytics',
             'data' => $metrics,
             'departments' => $departments,
@@ -55,7 +55,7 @@ class HrAnalyticsController extends Controller
 
     public function performanceAnalytics()
     {
-        return Inertia::render('HRM/Analytics/Performance', [
+        return Inertia::render('HRM/Analytics/Performance/Index', [
             'title' => 'Performance Analytics',
             'data' => [],
         ]);
@@ -70,7 +70,7 @@ class HrAnalyticsController extends Controller
 
         $metrics = $this->metricsService->getRecruitmentMetrics($filters);
 
-        return Inertia::render('HRM/Analytics/Recruitment', [
+        return Inertia::render('HRM/Analytics/Recruitment/Index', [
             'title' => 'Recruitment Analytics',
             'data' => $metrics,
             'filters' => $filters,
@@ -86,7 +86,7 @@ class HrAnalyticsController extends Controller
 
         $metrics = $this->metricsService->getTurnoverMetrics($filters);
 
-        return Inertia::render('HRM/Analytics/Turnover', [
+        return Inertia::render('HRM/Analytics/Turnover/Index', [
             'title' => 'Turnover Analytics',
             'data' => $metrics,
             'filters' => $filters,
@@ -95,7 +95,7 @@ class HrAnalyticsController extends Controller
 
     public function trainingAnalytics()
     {
-        return Inertia::render('HRM/Analytics/Training', [
+        return Inertia::render('HRM/Analytics/Training/Index', [
             'title' => 'Training Analytics',
             'data' => [],
         ]);
@@ -103,7 +103,7 @@ class HrAnalyticsController extends Controller
 
     public function reports()
     {
-        return Inertia::render('HRM/Analytics/Reports', [
+        return Inertia::render('HRM/Analytics/Reports/Index', [
             'title' => 'HR Reports',
             'reports' => [],
         ]);

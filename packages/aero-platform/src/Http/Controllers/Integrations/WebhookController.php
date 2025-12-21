@@ -21,7 +21,7 @@ class WebhookController extends Controller
         // TODO: Fetch webhooks from database
         $webhooks = [];
 
-        return Inertia::render('Shared/Integrations/Webhooks', [
+        return Inertia::render('Shared/Integrations/Webhooks/Index', [
             'title' => 'Webhooks',
             'webhooks' => $webhooks,
         ]);

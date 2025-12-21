@@ -37,7 +37,7 @@ class PerformanceReviewController extends Controller
             ->take(5)
             ->get();
 
-        return Inertia::render('HRM/Dashboard', [
+        return Inertia::render('HRM/Dashboard/Index', [
             'stats' => [
                 'totalReviews' => $totalReviews,
                 'pendingReviews' => $pendingReviews,
@@ -91,7 +91,7 @@ class PerformanceReviewController extends Controller
      */
     public function create()
     {
-        return Inertia::render('HRM/Performance/Create', [
+        return Inertia::render('HRM/Performance/Create/Index', [
             'employees' => User::role('Employee')->get(['id', 'name']),
             'reviewers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
             'departments' => Department::all(['id', 'name']),
@@ -134,7 +134,7 @@ class PerformanceReviewController extends Controller
             'competencyRatings.competency.category',
         ])->findOrFail($id);
 
-        return Inertia::render('HRM/Performance/Show', [
+        return Inertia::render('HRM/Performance/Show/Index', [
             'review' => $review,
         ]);
     }
@@ -152,7 +152,7 @@ class PerformanceReviewController extends Controller
             'competencyRatings.competency.category',
         ])->findOrFail($id);
 
-        return Inertia::render('HRM/Performance/Edit', [
+        return Inertia::render('HRM/Performance/Edit/Index', [
             'review' => $review,
             'employees' => User::role('Employee')->get(['id', 'name']),
             'reviewers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
@@ -223,7 +223,7 @@ class PerformanceReviewController extends Controller
      */
     public function createTemplate()
     {
-        return Inertia::render('HRM/Performance/Templates/Create', [
+        return Inertia::render('HRM/Performance/Templates/Create/Index', [
             'departments' => Department::all(['id', 'name']),
         ]);
     }
@@ -260,7 +260,7 @@ class PerformanceReviewController extends Controller
             'competencyCategories.competencies',
         ])->findOrFail($id);
 
-        return Inertia::render('HRM/Performance/Templates/Show', [
+        return Inertia::render('HRM/Performance/Templates/Show/Index', [
             'template' => $template,
         ]);
     }
@@ -276,7 +276,7 @@ class PerformanceReviewController extends Controller
             'competencyCategories.competencies',
         ])->findOrFail($id);
 
-        return Inertia::render('HRM/Performance/Templates/Edit', [
+        return Inertia::render('HRM/Performance/Templates/Edit/Index', [
             'template' => $template,
             'departments' => Department::all(['id', 'name']),
         ]);

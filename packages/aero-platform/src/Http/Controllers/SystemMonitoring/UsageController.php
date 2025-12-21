@@ -34,7 +34,7 @@ class UsageController extends Controller
             $trends[$metric] = $this->billingService->getUsageTrend($tenant, $metric, 'daily', 30);
         }
 
-        return Inertia::render('Settings/Usage', [
+        return Inertia::render('Core/Settings/Usage/Index', [
             'summary' => $summary,
             'trends' => $trends,
         ]);

@@ -12,7 +12,7 @@ class AccountsReceivableController extends Controller
     {
         $receivables = [];
         
-        return Inertia::render('Finance/AccountsReceivable', [
+        return Inertia::render('Finance/AccountsReceivable/Index', [
             'title' => 'Accounts Receivable',
             'receivables' => $receivables,
         ]);

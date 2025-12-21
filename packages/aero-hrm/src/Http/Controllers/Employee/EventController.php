@@ -69,7 +69,7 @@ class EventController extends Controller
 
     public function create()
     {
-        return Inertia::render('HRM/Events/Create');
+        return Inertia::render('HRM/Events/Create/Index');
     }
 
     public function store(Request $request)
@@ -172,7 +172,7 @@ class EventController extends Controller
 
         $analytics = $event->getAnalytics();
 
-        return Inertia::render('HRM/Events/Show', [
+        return Inertia::render('HRM/Events/Show/Index', [
             'event' => $event,
             'analytics' => $analytics,
         ]);
@@ -189,7 +189,7 @@ class EventController extends Controller
             },
         ]);
 
-        return Inertia::render('HRM/Events/Edit', [
+        return Inertia::render('HRM/Events/Edit/Index', [
             'event' => $event,
         ]);
     }
@@ -369,7 +369,7 @@ class EventController extends Controller
             ->groupBy('sub_events.id', 'sub_events.title')
             ->get();
 
-        return Inertia::render('HRM/Events/Analytics', [
+        return Inertia::render('HRM/Events/Analytics/Index', [
             'event' => $event,
             'analytics' => $analytics,
             'registrationsByDate' => $registrationsByDate,

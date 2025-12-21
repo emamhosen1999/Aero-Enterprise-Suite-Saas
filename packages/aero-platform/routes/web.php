@@ -37,7 +37,7 @@ use Inertia\Inertia;
 // LANDING & ROOT ROUTES
 // =========================================================================
 
-Route::get('/', fn () => Inertia::render('Platform/Public/Landing'))->name('landing');
+Route::get('/', fn () => Inertia::render('Platform/Public/Landing/Index'))->name('landing');
 
 // Redirect /login to /register (no login on platform domain - login is on tenant/admin domains)
 Route::redirect('login', '/register', 302);
@@ -95,28 +95,28 @@ Route::prefix('register')->name('platform.register.')->group(function () {
 // PUBLIC INFORMATION PAGES
 // =========================================================================
 
-Route::get('/product', fn () => Inertia::render('Platform/Public/Product'))->name('product');
-Route::get('/pricing', fn () => Inertia::render('Platform/Public/Pricing'))->name('pricing');
-Route::get('/about', fn () => Inertia::render('Platform/Public/About'))->name('about');
-Route::get('/resources', fn () => Inertia::render('Platform/Public/Resources'))->name('resources');
-Route::get('/support', fn () => Inertia::render('Platform/Public/Support'))->name('support');
-Route::get('/status', fn () => Inertia::render('Platform/Public/Status'))->name('status');
-Route::get('/demo', fn () => Inertia::render('Platform/Public/Demo'))->name('demo');
-Route::get('/contact', fn () => Inertia::render('Platform/Public/Contact'))->name('contact');
-Route::get('/features', fn () => Inertia::render('Platform/Public/Features'))->name('features');
-Route::get('/careers', fn () => Inertia::render('Platform/Public/Careers'))->name('careers');
-Route::get('/blog', fn () => Inertia::render('Platform/Public/Blog'))->name('blog');
-Route::get('/docs', fn () => Inertia::render('Platform/Public/Docs'))->name('docs');
+Route::get('/product', fn () => Inertia::render('Platform/Public/Product/Index'))->name('product');
+Route::get('/pricing', fn () => Inertia::render('Platform/Public/Pricing/Index'))->name('pricing');
+Route::get('/about', fn () => Inertia::render('Platform/Public/About/Index'))->name('about');
+Route::get('/resources', fn () => Inertia::render('Platform/Public/Resources/Index'))->name('resources');
+Route::get('/support', fn () => Inertia::render('Platform/Public/Support/Index'))->name('support');
+Route::get('/status', fn () => Inertia::render('Platform/Public/Status/Index'))->name('status');
+Route::get('/demo', fn () => Inertia::render('Platform/Public/Demo/Index'))->name('demo');
+Route::get('/contact', fn () => Inertia::render('Platform/Public/Contact/Index'))->name('contact');
+Route::get('/features', fn () => Inertia::render('Platform/Public/Features/Index'))->name('features');
+Route::get('/careers', fn () => Inertia::render('Platform/Public/Careers/Index'))->name('careers');
+Route::get('/blog', fn () => Inertia::render('Platform/Public/Blog/Index'))->name('blog');
+Route::get('/docs', fn () => Inertia::render('Platform/Public/Docs/Index'))->name('docs');
 
 // =========================================================================
 // LEGAL PAGES
 // =========================================================================
 
 Route::get('/legal', fn () => Inertia::render('Platform/Public/Legal/Index'))->name('legal');
-Route::get('/legal/privacy', fn () => Inertia::render('Platform/Public/Legal/Privacy'))->name('legal.privacy');
-Route::get('/legal/terms', fn () => Inertia::render('Platform/Public/Legal/Terms'))->name('legal.terms');
-Route::get('/legal/cookies', fn () => Inertia::render('Platform/Public/Legal/Cookies'))->name('legal.cookies');
-Route::get('/legal/security', fn () => Inertia::render('Platform/Public/Legal/Security'))->name('legal.security');
+Route::get('/legal/privacy', fn () => Inertia::render('Platform/Public/Legal/Privacy/Index'))->name('legal.privacy');
+Route::get('/legal/terms', fn () => Inertia::render('Platform/Public/Legal/Terms/Index'))->name('legal.terms');
+Route::get('/legal/cookies', fn () => Inertia::render('Platform/Public/Legal/Cookies/Index'))->name('legal.cookies');
+Route::get('/legal/security', fn () => Inertia::render('Platform/Public/Legal/Security/Index'))->name('legal.security');
 Route::get('/privacy', fn () => redirect('/legal/privacy'));
 Route::get('/terms', fn () => redirect('/legal/terms'));
 
@@ -133,7 +133,7 @@ Route::prefix('install')->name('installation.')->group(function () use ($isInsta
     if ($isInstalled) {
         // Already installed - redirect to landing
         Route::get('/', fn () => redirect()->route('landing'))->name('index');
-        Route::get('/{any}', fn () => Inertia::render('Platform/Installation/AlreadyInstalled'))
+        Route::get('/{any}', fn () => Inertia::render('Platform/Installation/AlreadyInstalled/Index'))
             ->where('any', '^(?!complete).*$');
 
         return;

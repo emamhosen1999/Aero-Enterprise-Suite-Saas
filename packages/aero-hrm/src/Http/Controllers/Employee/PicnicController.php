@@ -14,7 +14,7 @@ class PicnicController extends Controller
     {
         $participants = PicnicParticipant::all();
 
-        return Inertia::render('LeavesEmployee', [
+        return Inertia::render('HRM/TimeOff/LeavesEmployee/Index', [
             'title' => 'Leaves',
             'participants' => $participants,
         ]);

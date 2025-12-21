@@ -18,7 +18,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function profile()
     {
-        return Inertia::render('HRM/SelfService/Profile', [
+        return Inertia::render('HRM/SelfService/Profile/Index', [
             'title' => 'My Profile',
             'user' => auth()->user(),
         ]);
@@ -32,7 +32,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function documents()
     {
-        return Inertia::render('HRM/SelfService/Documents', [
+        return Inertia::render('HRM/SelfService/Documents/Index', [
             'title' => 'My Documents',
             'documents' => [],
         ]);
@@ -40,7 +40,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function benefits()
     {
-        return Inertia::render('HRM/SelfService/Benefits', [
+        return Inertia::render('HRM/SelfService/Benefits/Index', [
             'title' => 'My Benefits',
             'benefits' => [],
         ]);
@@ -48,7 +48,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function timeOff()
     {
-        return Inertia::render('HRM/SelfService/TimeOff', [
+        return Inertia::render('HRM/SelfService/TimeOff/Index', [
             'title' => 'Time-off Requests',
             'requests' => [],
         ]);
@@ -62,7 +62,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function trainings()
     {
-        return Inertia::render('HRM/SelfService/Trainings', [
+        return Inertia::render('HRM/SelfService/Trainings/Index', [
             'title' => 'My Trainings',
             'trainings' => [],
         ]);
@@ -70,7 +70,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function payslips()
     {
-        return Inertia::render('HRM/SelfService/Payslips', [
+        return Inertia::render('HRM/SelfService/Payslips/Index', [
             'title' => 'My Payslips',
             'payslips' => [],
         ]);
@@ -78,7 +78,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function performance()
     {
-        return Inertia::render('HRM/SelfService/Performance', [
+        return Inertia::render('HRM/SelfService/Performance/Index', [
             'title' => 'My Performance',
             'reviews' => [],
         ]);

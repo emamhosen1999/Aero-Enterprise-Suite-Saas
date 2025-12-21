@@ -21,7 +21,7 @@ class FinanceDashboardController extends Controller
     {
         $stats = $this->getFinancialStats();
         
-        return Inertia::render('Finance/Dashboard', [
+        return Inertia::render('Finance/Dashboard/Index', [
             'title' => 'Finance Dashboard',
             'stats' => $stats,
         ]);
