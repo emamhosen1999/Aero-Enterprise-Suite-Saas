@@ -49,7 +49,7 @@ class AdminSetupController extends Controller
                 ->with('info', 'Admin account already exists. Please login.');
         }
 
-        return Inertia::render('Auth/AdminSetup', [
+        return Inertia::render('Core/Auth/AdminSetup', [
             'title' => 'Complete Your Account Setup',
             'tenant' => [
                 'id' => $tenant->id,

@@ -123,12 +123,97 @@ if (!function_exists('isPlatformActive')) {
     /**
      * Check if aero-platform is active (determines SaaS vs Standalone).
      *
+     * Uses TenantScopeInterface when available for authoritative answer,
+     * falls back to class_exists check during early boot.
+     *
      * @return bool
      */
     function isPlatformActive(): bool
     {
+        // Try TenantScopeInterface first (authoritative after boot)
+        try {
+            if (app()->bound(\Aero\Core\Contracts\TenantScopeInterface::class)) {
+                return app(\Aero\Core\Contracts\TenantScopeInterface::class)->isSaaSMode();
+            }
+        } catch (\Throwable $e) {
+            // App not fully booted yet
+        }
+
+        // Fallback: class existence check (works during boot)
         return class_exists('Aero\Platform\AeroPlatformServiceProvider') ||
                config('platform.enabled', false);
+    }
+}
+
+if (!function_exists('is_saas_mode')) {
+    /**
+     * Check if running in SaaS (multi-tenant) mode.
+     *
+     * @return bool
+     */
+    function is_saas_mode(): bool
+    {
+        try {
+            if (app()->bound(\Aero\Core\Contracts\TenantScopeInterface::class)) {
+                return app(\Aero\Core\Contracts\TenantScopeInterface::class)->isSaaSMode();
+            }
+        } catch (\Throwable $e) {
+            // App not fully booted
+        }
+
+        return isPlatformActive();
+    }
+}
+
+if (!function_exists('is_standalone_mode')) {
+    /**
+     * Check if running in Standalone (single-tenant) mode.
+     *
+     * @return bool
+     */
+    function is_standalone_mode(): bool
+    {
+        return !is_saas_mode();
+    }
+}
+
+if (!function_exists('aero_mode')) {
+    /**
+     * Get the current mode: 'saas' or 'standalone'.
+     *
+     * @return string
+     */
+    function aero_mode(): string
+    {
+        try {
+            if (app()->bound(\Aero\Core\Contracts\TenantScopeInterface::class)) {
+                return app(\Aero\Core\Contracts\TenantScopeInterface::class)->getMode();
+            }
+        } catch (\Throwable $e) {
+            // App not fully booted
+        }
+
+        return isPlatformActive() ? 'saas' : 'standalone';
+    }
+}
+
+if (!function_exists('tenant_scope')) {
+    /**
+     * Get the TenantScopeInterface instance.
+     *
+     * @return \Aero\Core\Contracts\TenantScopeInterface|null
+     */
+    function tenant_scope(): ?\Aero\Core\Contracts\TenantScopeInterface
+    {
+        try {
+            if (app()->bound(\Aero\Core\Contracts\TenantScopeInterface::class)) {
+                return app(\Aero\Core\Contracts\TenantScopeInterface::class);
+            }
+        } catch (\Throwable $e) {
+            // App not fully booted
+        }
+
+        return null;
     }
 }
 

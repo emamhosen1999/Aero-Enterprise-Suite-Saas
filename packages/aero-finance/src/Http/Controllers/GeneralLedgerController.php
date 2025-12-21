@@ -23,7 +23,7 @@ class GeneralLedgerController extends Controller
         // TODO: Fetch ledger entries from database
         $entries = [];
         
-        return Inertia::render('Pages/Finance/GeneralLedger', [
+        return Inertia::render('Finance/GeneralLedger', [
             'title' => 'General Ledger',
             'entries' => $entries,
             'filters' => $filters,

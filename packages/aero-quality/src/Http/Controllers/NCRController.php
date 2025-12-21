@@ -11,14 +11,14 @@ class NCRController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/Quality/NCR/Index', [
+        return Inertia::render('Quality/NCR/Index', [
             'title' => 'Non-Conformance Reports',
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Pages/Quality/NCR/Create', [
+        return Inertia::render('Quality/NCR/Create', [
             'title' => 'Create NCR',
         ]);
     }
@@ -31,14 +31,14 @@ class NCRController extends Controller
 
     public function show($id)
     {
-        return Inertia::render('Pages/Quality/NCR/Show', [
+        return Inertia::render('Quality/NCR/Show', [
             'title' => 'NCR Details',
         ]);
     }
 
     public function edit($id)
     {
-        return Inertia::render('Pages/Quality/NCR/Edit', [
+        return Inertia::render('Quality/NCR/Edit', [
             'title' => 'Edit NCR',
         ]);
     }

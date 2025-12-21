@@ -22,7 +22,7 @@ class ChartOfAccountsController extends Controller
         // TODO: Fetch accounts from database
         $accounts = [];
         
-        return Inertia::render('Pages/Finance/ChartOfAccounts', [
+        return Inertia::render('Finance/ChartOfAccounts', [
             'title' => 'Chart of Accounts',
             'accounts' => $accounts,
         ]);

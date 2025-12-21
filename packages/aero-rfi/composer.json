@@ -3,6 +3,13 @@
     "description": "Aero RFI (Request for Inspection) Management Module - Daily Works, Objections, Work Locations",
     "type": "library",
     "license": "proprietary",
+    "keywords": [
+        "laravel",
+        "rfi",
+        "inspection",
+        "daily-works",
+        "objections"
+    ],
     "authors": [
         {
             "name": "Aero Development Team",
@@ -11,12 +18,20 @@
     ],
     "require": {
         "php": "^8.2",
+        "laravel/framework": "^11.0|^12.0",
         "aero/core": "@dev",
-        "spatie/laravel-medialibrary": "^11.0"
+        "spatie/laravel-medialibrary": "^11.0",
+        "inertiajs/inertia-laravel": "^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "orchestra/testbench": "^9.0|^10.0",
+        "mockery/mockery": "^1.6"
     },
     "autoload": {
         "psr-4": {
-            "Aero\\Rfi\\": "src/"
+            "Aero\\Rfi\\": "src/",
+            "Aero\\Rfi\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
@@ -29,8 +44,18 @@
             "providers": [
                 "Aero\\Rfi\\AeroRfiServiceProvider"
             ]
+        },
+        "aero": {
+            "package": "rfi",
+            "version": "1.0.0",
+            "category": "business",
+            "description": "RFI management with daily works, objections, and work locations"
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
 }

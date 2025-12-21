@@ -18,7 +18,7 @@ class IssueController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return Inertia::render('Pages/Project/Issues/GlobalIndex', [
+        return Inertia::render('Project/Issues/GlobalIndex', [
             'issues' => $issues,
         ]);
     }
@@ -30,7 +30,7 @@ class IssueController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return Inertia::render('Pages/Project/Issues/Index', [
+        return Inertia::render('Project/Issues/Index', [
             'project' => $project,
             'issues' => $issues,
         ]);
@@ -38,7 +38,7 @@ class IssueController extends Controller
 
     public function create(Project $project)
     {
-        return Inertia::render('Pages/Project/Issues/Create', [
+        return Inertia::render('Project/Issues/Create', [
             'project' => $project,
             'users' => User::select('id', 'name')->get(),
             'tasks' => $project->tasks()->select('id', 'name')->get(),
@@ -70,7 +70,7 @@ class IssueController extends Controller
     {
         $issue->load(['assignedUser', 'reportedBy', 'tasks']);
 
-        return Inertia::render('Pages/Project/Issues/Show', [
+        return Inertia::render('Project/Issues/Show', [
             'project' => $project,
             'issue' => $issue,
         ]);
@@ -78,7 +78,7 @@ class IssueController extends Controller
 
     public function edit(Project $project, ProjectIssue $issue)
     {
-        return Inertia::render('Pages/Project/Issues/Edit', [
+        return Inertia::render('Project/Issues/Edit', [
             'project' => $project,
             'issue' => $issue,
             'users' => User::select('id', 'name')->get(),

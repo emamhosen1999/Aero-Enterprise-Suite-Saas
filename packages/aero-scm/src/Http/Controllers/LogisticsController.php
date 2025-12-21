@@ -14,7 +14,7 @@ class LogisticsController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/SCM/Logistics/Index', [
+        return Inertia::render('SCM/Logistics/Index', [
             'shipments' => LogisticsShipment::with(['carrier', 'fromLocation', 'toLocation'])
                 ->latest()
                 ->paginate(15),
@@ -31,7 +31,7 @@ class LogisticsController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/SCM/Logistics/Create', [
+        return Inertia::render('SCM/Logistics/Create', [
             'carriers' => LogisticsCarrier::where('is_active', true)->get(),
             'locations' => InventoryLocation::where('is_active', true)->get(),
             'nextShipmentNumber' => $this->generateShipmentNumber(),
@@ -75,14 +75,14 @@ class LogisticsController extends Controller
     {
         $logistic->load(['carrier', 'fromLocation', 'toLocation', 'shippable']);
 
-        return Inertia::render('Pages/SCM/Logistics/Show', [
+        return Inertia::render('SCM/Logistics/Show', [
             'shipment' => $logistic,
         ]);
     }
 
     public function edit(LogisticsShipment $logistic)
     {
-        return Inertia::render('Pages/SCM/Logistics/Edit', [
+        return Inertia::render('SCM/Logistics/Edit', [
             'shipment' => $logistic,
             'carriers' => LogisticsCarrier::where('is_active', true)->get(),
             'locations' => InventoryLocation::where('is_active', true)->get(),
@@ -160,7 +160,7 @@ class LogisticsController extends Controller
             $trackingInfo['url'] = str_replace('{tracking_number}', $logistic->tracking_number, $logistic->carrier->tracking_url_format);
         }
 
-        return Inertia::render('Pages/SCM/Logistics/Track', [
+        return Inertia::render('SCM/Logistics/Track', [
             'shipment' => $logistic->load(['carrier', 'fromLocation', 'toLocation']),
             'trackingInfo' => $trackingInfo,
         ]);
@@ -169,7 +169,7 @@ class LogisticsController extends Controller
     // Carriers Management
     public function carriers()
     {
-        return Inertia::render('Pages/SCM/Logistics/Carriers', [
+        return Inertia::render('SCM/Logistics/Carriers', [
             'carriers' => LogisticsCarrier::latest()->paginate(10),
             'status' => session('status'),
         ]);
@@ -177,7 +177,7 @@ class LogisticsController extends Controller
 
     public function createCarrier()
     {
-        return Inertia::render('Pages/SCM/Logistics/CreateCarrier');
+        return Inertia::render('SCM/Logistics/CreateCarrier');
     }
 
     public function storeCarrier(Request $request)
@@ -197,7 +197,7 @@ class LogisticsController extends Controller
 
     public function editCarrier(LogisticsCarrier $carrier)
     {
-        return Inertia::render('Pages/SCM/Logistics/EditCarrier', [
+        return Inertia::render('SCM/Logistics/EditCarrier', [
             'carrier' => $carrier,
         ]);
     }

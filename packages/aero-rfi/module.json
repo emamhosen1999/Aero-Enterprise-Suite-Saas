@@ -1,60 +1,21 @@
 {
     "name": "aero-rfi",
     "short_name": "rfi",
-    "version": "1.0.0",
-    "description": "Aero RFI (Request for Inspection) Management Module",
     "namespace": "Aero\\Rfi",
+    "provider": "Aero\\Rfi\\AeroRfiServiceProvider",
+    "version": "1.0.0",
+    "description": "Aero RFI (Request for Inspection) Management Module - Daily Works, Objections, Work Locations",
     "category": "project_management",
-    "providers": [
-        "Aero\\Rfi\\AeroRfiServiceProvider"
-    ],
     "dependencies": {
         "aero-core": "^1.0"
     },
-    "frontend": {
-        "pages": "resources/js/Pages",
-        "components": "resources/js/Components",
-        "pagePrefix": "Rfi"
-    },
-    "exports": {
-        "components": [
-            "DailyWorkCard",
-            "ObjectionBadge",
-            "WorkLocationSelector"
-        ],
-        "hooks": [
-            "useDailyWork",
-            "useObjections"
-        ]
-    },
     "routes": {
-        "web": "routes/web.php",
-        "api": "routes/api.php"
+        "web": "routes/web.php"
     },
-    "middleware": [
-        "web",
-        "auth"
-    ],
     "migrations": {
         "path": "database/migrations"
     },
-    "permissions": [
-        "rfi.daily-works.view",
-        "rfi.daily-works.create",
-        "rfi.daily-works.update",
-        "rfi.daily-works.delete",
-        "rfi.daily-works.export",
-        "rfi.daily-works.import",
-        "rfi.objections.view",
-        "rfi.objections.create",
-        "rfi.objections.review",
-        "rfi.objections.resolve",
-        "rfi.work-locations.view",
-        "rfi.work-locations.manage"
-    ],
     "config": {
-        "enabled": true,
-        "auto_register": true,
-        "priority": 20
+        "enabled": true
     }
 }

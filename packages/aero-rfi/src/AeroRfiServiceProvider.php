@@ -43,7 +43,7 @@ class AeroRfiServiceProvider extends ServiceProvider
         // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        // Load views (if any)
+        // Load views (if any - for email templates, PDFs, etc.)
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'rfi');
 
         // Register routes
@@ -54,13 +54,8 @@ class AeroRfiServiceProvider extends ServiceProvider
             __DIR__.'/../config/rfi.php' => config_path('rfi.php'),
         ], 'aero-rfi-config');
 
-        // Publish compiled module library (ES module for runtime loading)
-        $moduleLibrary = __DIR__.'/../dist';
-        if (is_dir($moduleLibrary)) {
-            $this->publishes([
-                $moduleLibrary => public_path('modules/aero-rfi'),
-            ], 'aero-rfi-assets');
-        }
+        // NOTE: Frontend is handled by aero/ui package
+        // This package is backend-only (controllers, models, services)
     }
 
     /**
@@ -80,7 +75,8 @@ class AeroRfiServiceProvider extends ServiceProvider
         $routesPath = __DIR__.'/../routes';
 
         // Check if aero-platform is active (SaaS mode)
-        if ($this->isPlatformActive()) {
+        // Use global helper function for consistency
+        if (function_exists('is_saas_mode') && is_saas_mode()) {
             // SaaS Mode: InitializeTenancyIfNotCentral initializes tenant context,
             // 'tenant' middleware ensures valid tenant context exists
             Route::middleware([
@@ -102,9 +98,30 @@ class AeroRfiServiceProvider extends ServiceProvider
 
     /**
      * Check if aero-platform is active.
+     *
+     * @deprecated Use global isPlatformActive() or is_saas_mode() helper instead
      */
     protected function isPlatformActive(): bool
     {
+        // Use global helper if available
+        if (function_exists('isPlatformActive')) {
+            return isPlatformActive();
+        }
+
         return class_exists(\Aero\Platform\AeroPlatformServiceProvider::class);
+    }
+
+    /**
+     * Check if running in SaaS mode.
+     *
+     * @deprecated Use global is_saas_mode() helper instead
+     */
+    protected function isSaaSMode(): bool
+    {
+        if (function_exists('is_saas_mode')) {
+            return is_saas_mode();
+        }
+
+        return config('aero.mode') === 'saas';
     }
 }

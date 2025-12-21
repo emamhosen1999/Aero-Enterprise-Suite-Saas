@@ -33,7 +33,7 @@ class OnboardingController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Pages/HRM/Onboarding/Index', [
+        return Inertia::render('HRM/Onboarding/Index', [
             'title' => 'Employee Onboarding',
             'onboardings' => $onboardings,
         ]);
@@ -51,7 +51,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('Pages/HRM/Onboarding/Create', [
+        return Inertia::render('HRM/Onboarding/Create', [
             'title' => 'Create Onboarding Process',
             'employees' => $employees,
         ]);
@@ -112,7 +112,7 @@ class OnboardingController extends Controller
 
         $this->authorize('view', $onboarding);
 
-        return Inertia::render('Pages/HRM/Onboarding/Show', [
+        return Inertia::render('HRM/Onboarding/Show', [
             'title' => 'Onboarding Details',
             'onboarding' => $onboarding,
         ]);
@@ -137,7 +137,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('Pages/HRM/Onboarding/Edit', [
+        return Inertia::render('HRM/Onboarding/Edit', [
             'title' => 'Edit Onboarding Process',
             'onboarding' => $onboarding,
             'employees' => $employees,
@@ -266,7 +266,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('Pages/HRM/Onboarding/Wizard', [
+        return Inertia::render('HRM/Onboarding/Wizard', [
             'title' => 'Employee Onboarding Wizard',
             'employee' => $employee,
             'departments' => $departments,
@@ -493,7 +493,7 @@ class OnboardingController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Pages/HRM/Offboarding/Index', [
+        return Inertia::render('HRM/Offboarding/Index', [
             'title' => 'Employee Offboarding',
             'offboardings' => $offboardings,
         ]);
@@ -511,7 +511,7 @@ class OnboardingController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('Pages/HRM/Offboarding/Create', [
+        return Inertia::render('HRM/Offboarding/Create', [
             'title' => 'Create Offboarding Process',
             'employees' => $employees,
         ]);
@@ -571,7 +571,7 @@ class OnboardingController extends Controller
         $offboarding = Offboarding::with(['employee', 'tasks.assignee'])->findOrFail($id);
         $this->authorize('view', $offboarding);
 
-        return Inertia::render('Pages/HRM/Offboarding/Show', [
+        return Inertia::render('HRM/Offboarding/Show', [
             'title' => 'Offboarding Details',
             'offboarding' => $offboarding,
         ]);

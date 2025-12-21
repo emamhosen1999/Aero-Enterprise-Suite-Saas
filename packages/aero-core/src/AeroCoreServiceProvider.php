@@ -368,7 +368,10 @@ class AeroCoreServiceProvider extends ServiceProvider
     }
 
     /**
-     * Check if aero-platform is active.
+     * Check if aero-platform is active (SaaS mode).
+     *
+     * Note: This method is used during early boot before helpers are loaded.
+     * Use the global is_saas_mode() helper when available.
      */
     protected function isPlatformActive(): bool
     {
@@ -383,6 +386,11 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Guard against early execution before config is loaded
         if (! $this->app->configurationIsCached() && ! file_exists(config_path('aero.php'))) {
             return false;
+        }
+
+        // Use global helper if available
+        if (function_exists('is_standalone_mode')) {
+            return is_standalone_mode() && config('aero.runtime_loading.enabled', false);
         }
 
         return config('aero.mode', 'saas') === 'standalone' &&

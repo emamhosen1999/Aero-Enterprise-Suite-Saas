@@ -49,7 +49,7 @@ class DocumentController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('Pages/Compliance/Documents/Index', [
+        return Inertia::render('Compliance/Documents/Index', [
             'documents' => $documents,
             'filters' => $request->only(['search', 'status', 'document_type', 'department_id']),
             'documentTypes' => [
@@ -80,7 +80,7 @@ class DocumentController extends Controller
     {
         $this->authorize('create', ComplianceDocument::class);
 
-        return Inertia::render('Pages/Compliance/Documents/Create', [
+        return Inertia::render('Compliance/Documents/Create', [
             'documentTypes' => [
                 ['id' => 'policy', 'name' => 'Policy'],
                 ['id' => 'procedure', 'name' => 'Procedure'],
@@ -157,7 +157,7 @@ class DocumentController extends Controller
 
         $document->load(['owner', 'approver', 'department', 'revisions.creator']);
 
-        return Inertia::render('Pages/Compliance/Documents/Show', [
+        return Inertia::render('Compliance/Documents/Show', [
             'document' => $document,
         ]);
     }
@@ -166,7 +166,7 @@ class DocumentController extends Controller
     {
         $this->authorize('update', $document);
 
-        return Inertia::render('Pages/Compliance/Documents/Edit', [
+        return Inertia::render('Compliance/Documents/Edit', [
             'document' => $document,
             'documentTypes' => [
                 ['id' => 'policy', 'name' => 'Policy'],

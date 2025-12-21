@@ -47,25 +47,19 @@ class AeroHrmServiceProvider extends ServiceProvider
         // Load migrations
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        // Load views (if any)
+        // Load views (if any - for email templates, PDFs, etc.)
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'hrm');
 
         // Register routes
         $this->registerRoutes();
 
-        // Publish compiled module library (ES module for runtime loading)
-        // Built to dist/ directory via npm run build
-        $moduleLibrary = __DIR__ . '/../dist';
-        if (is_dir($moduleLibrary)) {
-            $this->publishes([
-                $moduleLibrary => public_path('modules/aero-hrm'),
-            ], 'aero-hrm-assets');
-        }
-
         // Publish configuration
         $this->publishes([
             __DIR__ . '/../config/hrm.php' => config_path('hrm.php'),
         ], 'aero-hrm-config');
+
+        // NOTE: Frontend is handled by aero/ui package
+        // This package is backend-only (controllers, models, services)
     }
 
     /**
@@ -87,7 +81,8 @@ class AeroHrmServiceProvider extends ServiceProvider
         $routesPath = __DIR__ . '/../routes';
 
         // Check if aero-platform is active (SaaS mode)
-        if ($this->isPlatformActive()) {
+        // Use global helper function for consistency
+        if (function_exists('is_saas_mode') && is_saas_mode()) {
             // SaaS Mode: InitializeTenancyIfNotCentral initializes tenant context,
             // 'tenant' middleware ensures valid tenant context exists
             Route::middleware([
@@ -110,20 +105,31 @@ class AeroHrmServiceProvider extends ServiceProvider
     /**
      * Check if aero-platform is active.
      *
+     * @deprecated Use global isPlatformActive() or is_saas_mode() helper instead
      * @return bool
      */
     protected function isPlatformActive(): bool
     {
+        // Use global helper if available
+        if (function_exists('isPlatformActive')) {
+            return isPlatformActive();
+        }
+
         return class_exists(\Aero\Platform\AeroPlatformServiceProvider::class);
     }
 
     /**
      * Check if running in SaaS mode.
      *
+     * @deprecated Use global is_saas_mode() helper instead
      * @return bool
      */
     protected function isSaaSMode(): bool
     {
+        if (function_exists('is_saas_mode')) {
+            return is_saas_mode();
+        }
+
         return config('aero.mode') === 'saas';
     }
 }

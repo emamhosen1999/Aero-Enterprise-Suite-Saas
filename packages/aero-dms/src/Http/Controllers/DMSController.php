@@ -30,7 +30,7 @@ class DMSController extends Controller
         $statistics = $this->dmsService->getStatistics($user);
         $recentActivity = $this->dmsService->getRecentActivity(10);
 
-        return Inertia::render('Pages/DMS/Dashboard', [
+        return Inertia::render('DMS/Dashboard', [
             'statistics' => $statistics,
             'recentActivity' => $recentActivity,
             'categories' => Category::active()->get(),
@@ -50,7 +50,7 @@ class DMSController extends Controller
             ->latest()
             ->paginate(20);
 
-        return Inertia::render('Pages/DMS/Documents', [
+        return Inertia::render('DMS/Documents', [
             'documents' => $documents,
             'categories' => Category::active()->get(),
             'folders' => Folder::all(),
@@ -67,7 +67,7 @@ class DMSController extends Controller
 
         $document->load(['category', 'folder', 'creator', 'shares.user', 'versionHistory.creator']);
 
-        return Inertia::render('Pages/DMS/DocumentView', [
+        return Inertia::render('DMS/DocumentView', [
             'document' => $document,
             'versions' => $document->versionHistory,
         ]);
@@ -78,7 +78,7 @@ class DMSController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Pages/DMS/DocumentCreate', [
+        return Inertia::render('DMS/DocumentCreate', [
             'categories' => Category::active()->get(),
             'folders' => Folder::all(),
         ]);
@@ -185,7 +185,7 @@ class DMSController extends Controller
             $query->where('shared_with', $user->id)->active();
         })->with(['category', 'creator'])->paginate(20);
 
-        return Inertia::render('Pages/DMS/SharedDocuments', [
+        return Inertia::render('DMS/SharedDocuments', [
             'documents' => $documents,
         ]);
     }
@@ -198,7 +198,7 @@ class DMSController extends Controller
         $statistics = $this->dmsService->getStatistics(Auth::user());
         $recentActivity = $this->dmsService->getRecentActivity(50);
 
-        return Inertia::render('Pages/DMS/Analytics', [
+        return Inertia::render('DMS/Analytics', [
             'statistics' => $statistics,
             'recentActivity' => $recentActivity,
         ]);
@@ -209,7 +209,7 @@ class DMSController extends Controller
      */
     public function categories()
     {
-        return Inertia::render('Pages/DMS/Categories', [
+        return Inertia::render('DMS/Categories', [
             'categories' => Category::withCount('documents')->get(),
         ]);
     }
@@ -266,7 +266,7 @@ class DMSController extends Controller
      */
     public function folders()
     {
-        return Inertia::render('Pages/DMS/Folders', [
+        return Inertia::render('DMS/Folders', [
             'folders' => Folder::withCount('documents')->with('children')->whereNull('parent_id')->get(),
         ]);
     }
@@ -322,7 +322,7 @@ class DMSController extends Controller
      */
     public function accessControl()
     {
-        return Inertia::render('Pages/DMS/AccessControl', [
+        return Inertia::render('DMS/AccessControl', [
             'documents' => Document::with('shares')->get(),
         ]);
     }

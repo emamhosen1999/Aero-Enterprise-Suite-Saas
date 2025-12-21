@@ -36,10 +36,11 @@ class RoleController extends Controller
 
     /**
      * Determine the Inertia page path based on context
+     * Uses Core/Roles/Index for shared role management
      */
     protected function getViewPath(): string
     {
-        return 'Roles/Index';
+        return 'Core/Roles/Index';
     }
 
     /**

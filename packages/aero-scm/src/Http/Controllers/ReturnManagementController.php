@@ -13,7 +13,7 @@ class ReturnManagementController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/SCM/ReturnManagement/Index', [
+        return Inertia::render('SCM/ReturnManagement/Index', [
             'returns' => ReturnRequest::with(['requester', 'approver', 'returnable'])
                 ->latest()
                 ->paginate(15),
@@ -30,7 +30,7 @@ class ReturnManagementController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/SCM/ReturnManagement/Create', [
+        return Inertia::render('SCM/ReturnManagement/Create', [
             'nextRmaNumber' => $this->generateRmaNumber(),
             'returnTypes' => [
                 'defective' => 'Defective Item',
@@ -75,7 +75,7 @@ class ReturnManagementController extends Controller
     {
         $returnRequest->load(['requester', 'approver', 'returnable']);
 
-        return Inertia::render('Pages/SCM/ReturnManagement/Show', [
+        return Inertia::render('SCM/ReturnManagement/Show', [
             'return' => $returnRequest,
             'isOverdue' => $returnRequest->isOverdue(),
         ]);
@@ -87,7 +87,7 @@ class ReturnManagementController extends Controller
             return Redirect::route('scm.return-management.index')->with('error', 'Only pending returns can be edited.');
         }
 
-        return Inertia::render('Pages/SCM/ReturnManagement/Edit', [
+        return Inertia::render('SCM/ReturnManagement/Edit', [
             'return' => $returnRequest,
             'returnTypes' => [
                 'defective' => 'Defective Item',

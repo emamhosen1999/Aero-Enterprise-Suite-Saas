@@ -20,7 +20,7 @@ class ResourceController extends Controller
             ->where('project_id', $project->id)
             ->get();
 
-        return Inertia::render('Pages/Project/Resources/Index', [
+        return Inertia::render('Project/Resources/Index', [
             'project' => $project,
             'resources' => $resources,
             'availableUsers' => User::whereNotIn('id', $resources->pluck('user_id'))
@@ -164,7 +164,7 @@ class ResourceController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return Inertia::render('Pages/Project/Resources/GlobalIndex', [
+        return Inertia::render('Project/Resources/GlobalIndex', [
             'resources' => $resources,
         ]);
     }

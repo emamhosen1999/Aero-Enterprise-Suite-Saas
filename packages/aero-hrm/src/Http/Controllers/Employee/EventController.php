@@ -61,7 +61,7 @@ class EventController extends Controller
 
         $events = $query->paginate(15);
 
-        return Inertia::render('Pages/HRM/Events/Index', [
+        return Inertia::render('HRM/Events/Index', [
             'events' => $events,
             'filters' => $request->only(['search', 'status', 'registration', 'timeline']),
         ]);
@@ -69,7 +69,7 @@ class EventController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/HRM/Events/Create');
+        return Inertia::render('HRM/Events/Create');
     }
 
     public function store(Request $request)
@@ -172,7 +172,7 @@ class EventController extends Controller
 
         $analytics = $event->getAnalytics();
 
-        return Inertia::render('Pages/HRM/Events/Show', [
+        return Inertia::render('HRM/Events/Show', [
             'event' => $event,
             'analytics' => $analytics,
         ]);
@@ -189,7 +189,7 @@ class EventController extends Controller
             },
         ]);
 
-        return Inertia::render('Pages/HRM/Events/Edit', [
+        return Inertia::render('HRM/Events/Edit', [
             'event' => $event,
         ]);
     }
@@ -369,7 +369,7 @@ class EventController extends Controller
             ->groupBy('sub_events.id', 'sub_events.title')
             ->get();
 
-        return Inertia::render('Pages/HRM/Events/Analytics', [
+        return Inertia::render('HRM/Events/Analytics', [
             'event' => $event,
             'analytics' => $analytics,
             'registrationsByDate' => $registrationsByDate,

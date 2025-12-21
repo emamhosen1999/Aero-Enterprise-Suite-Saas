@@ -41,7 +41,7 @@ class IMSController extends Controller
     {
         $data = $this->imsService->getDashboardData();
 
-        return Inertia::render('Pages/IMS/Index', [
+        return Inertia::render('IMS/Index', [
             'data' => $data,
             'can' => $this->getPermissions(),
         ]);
@@ -54,7 +54,7 @@ class IMSController extends Controller
     {
         $products = $this->imsService->getProducts();
 
-        return Inertia::render('Pages/IMS/Products/Index', [
+        return Inertia::render('IMS/Products/Index', [
             'products' => $products,
             'can' => $this->getPermissions(),
         ]);
@@ -67,7 +67,7 @@ class IMSController extends Controller
     {
         $warehouses = $this->imsService->getWarehouses();
 
-        return Inertia::render('Pages/IMS/Warehouse/Index', [
+        return Inertia::render('IMS/Warehouse/Index', [
             'warehouses' => $warehouses,
             'can' => $this->getPermissions(),
         ]);
@@ -80,7 +80,7 @@ class IMSController extends Controller
     {
         $movements = $this->imsService->getStockMovements();
 
-        return Inertia::render('Pages/IMS/StockMovements/Index', [
+        return Inertia::render('IMS/StockMovements/Index', [
             'movements' => $movements,
             'can' => $this->getPermissions(),
         ]);
@@ -93,7 +93,7 @@ class IMSController extends Controller
     {
         $suppliers = $this->imsService->getSuppliers();
 
-        return Inertia::render('Pages/IMS/Suppliers/Index', [
+        return Inertia::render('IMS/Suppliers/Index', [
             'suppliers' => $suppliers,
             'can' => $this->getPermissions(),
         ]);
@@ -106,7 +106,7 @@ class IMSController extends Controller
     {
         $orders = $this->imsService->getPurchaseOrders();
 
-        return Inertia::render('Pages/IMS/PurchaseOrders/Index', [
+        return Inertia::render('IMS/PurchaseOrders/Index', [
             'orders' => $orders,
             'can' => $this->getPermissions(),
         ]);
@@ -119,7 +119,7 @@ class IMSController extends Controller
     {
         $reports = $this->imsService->getReports();
 
-        return Inertia::render('Pages/IMS/Reports/Index', [
+        return Inertia::render('IMS/Reports/Index', [
             'reports' => $reports,
             'can' => $this->getPermissions(),
         ]);

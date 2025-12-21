@@ -241,12 +241,20 @@ class ModuleRouteServiceProvider extends ServiceProvider
     }
 
     /**
-     * Determine if aero-platform is active.
+     * Determine if aero-platform is active (SaaS mode).
+     *
+     * Uses the global helper function for consistency across all packages.
      *
      * @return bool
      */
     protected function isPlatformActive(): bool
     {
+        // Use global helper if available (registered by aero-core)
+        if (function_exists('is_saas_mode')) {
+            return is_saas_mode();
+        }
+
+        // Fallback during early boot:
         // Method 1: Check if platform service provider is registered
         if (class_exists('Aero\Platform\AeroPlatformServiceProvider')) {
             return true;

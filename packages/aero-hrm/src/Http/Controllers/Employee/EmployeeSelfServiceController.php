@@ -10,7 +10,7 @@ class EmployeeSelfServiceController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/HRM/SelfService/Index', [
+        return Inertia::render('HRM/SelfService/Index', [
             'title' => 'Employee Self-Service Portal',
             'user' => auth()->user(),
         ]);
@@ -18,7 +18,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function profile()
     {
-        return Inertia::render('Pages/HRM/SelfService/Profile', [
+        return Inertia::render('HRM/SelfService/Profile', [
             'title' => 'My Profile',
             'user' => auth()->user(),
         ]);
@@ -32,7 +32,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function documents()
     {
-        return Inertia::render('Pages/HRM/SelfService/Documents', [
+        return Inertia::render('HRM/SelfService/Documents', [
             'title' => 'My Documents',
             'documents' => [],
         ]);
@@ -40,7 +40,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function benefits()
     {
-        return Inertia::render('Pages/HRM/SelfService/Benefits', [
+        return Inertia::render('HRM/SelfService/Benefits', [
             'title' => 'My Benefits',
             'benefits' => [],
         ]);
@@ -48,7 +48,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function timeOff()
     {
-        return Inertia::render('Pages/HRM/SelfService/TimeOff', [
+        return Inertia::render('HRM/SelfService/TimeOff', [
             'title' => 'Time-off Requests',
             'requests' => [],
         ]);
@@ -62,7 +62,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function trainings()
     {
-        return Inertia::render('Pages/HRM/SelfService/Trainings', [
+        return Inertia::render('HRM/SelfService/Trainings', [
             'title' => 'My Trainings',
             'trainings' => [],
         ]);
@@ -70,7 +70,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function payslips()
     {
-        return Inertia::render('Pages/HRM/SelfService/Payslips', [
+        return Inertia::render('HRM/SelfService/Payslips', [
             'title' => 'My Payslips',
             'payslips' => [],
         ]);
@@ -78,7 +78,7 @@ class EmployeeSelfServiceController extends Controller
 
     public function performance()
     {
-        return Inertia::render('Pages/HRM/SelfService/Performance', [
+        return Inertia::render('HRM/SelfService/Performance', [
             'title' => 'My Performance',
             'reviews' => [],
         ]);

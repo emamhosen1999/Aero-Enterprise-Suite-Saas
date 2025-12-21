@@ -12,7 +12,7 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/CRM/Customers/Index', [
+        return Inertia::render('CRM/Customers/Index', [
             'customers' => Customer::with('user')
                 ->latest()
                 ->paginate(10),
@@ -22,7 +22,7 @@ class CustomerController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/CRM/Customers/Create');
+        return Inertia::render('CRM/Customers/Create');
     }
 
     public function store(Request $request)
@@ -46,7 +46,7 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
-        return Inertia::render('Pages/CRM/Customers/Edit', [
+        return Inertia::render('CRM/Customers/Edit', [
             'customer' => $customer,
         ]);
     }
@@ -79,7 +79,7 @@ class CustomerController extends Controller
 
     public function dashboard()
     {
-        return Inertia::render('Pages/CRM/Dashboard', [
+        return Inertia::render('CRM/Dashboard', [
             'customerStats' => [
                 'total' => Customer::count(),
                 'active' => Customer::where('status', 'active')->count(),

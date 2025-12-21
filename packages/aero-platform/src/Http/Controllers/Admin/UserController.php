@@ -43,10 +43,11 @@ class UserController extends Controller
 
     /**
      * Display the platform admin users list (admin context)
+     * Uses Core/Users/Index for consistency across platform and tenant contexts
      */
     public function adminIndex(): \Inertia\Response
     {
-        return Inertia::render('UsersList', [
+        return Inertia::render('Core/Users/Index', [
             'title' => 'Platform Administrators',
             'roles' => Role::where('guard_name', 'landlord')->get(),
             'departments' => [], // Platform admins don't have departments
@@ -57,10 +58,11 @@ class UserController extends Controller
 
     /**
      * Display the tenant users list (tenant context)
+     * Uses Core/Users/Index for consistency across platform and tenant contexts
      */
     public function tenantIndex(): \Inertia\Response
     {
-        return Inertia::render('UsersList', [
+        return Inertia::render('Core/Users/Index', [
             'title' => 'User Management',
             'roles' => Role::where('guard_name', 'web')->get(),
             'departments' => Department::all(),

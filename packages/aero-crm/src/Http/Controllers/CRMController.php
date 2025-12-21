@@ -29,7 +29,7 @@ class CRMController extends Controller
             'upcomingTasks' => $this->crmService->getUpcomingTasks(),
         ];
 
-        return Inertia::render('Pages/CRM/Index', $data);
+        return Inertia::render('CRM/Index', $data);
     }
 
     /**
@@ -41,7 +41,7 @@ class CRMController extends Controller
 
         $leads = $this->crmService->getLeads($request->all());
 
-        return Inertia::render('Pages/CRM/Leads/Index', [
+        return Inertia::render('CRM/Leads/Index', [
             'leads' => $leads,
             'filters' => $request->only(['status', 'source', 'search']),
         ]);
@@ -77,7 +77,7 @@ class CRMController extends Controller
 
         $customers = $this->crmService->getCustomers($request->all());
 
-        return Inertia::render('Pages/CRM/Customers/Index', [
+        return Inertia::render('CRM/Customers/Index', [
             'customers' => $customers,
             'filters' => $request->only(['type', 'status', 'search']),
         ]);
@@ -92,7 +92,7 @@ class CRMController extends Controller
 
         $opportunities = $this->crmService->getOpportunities($request->all());
 
-        return Inertia::render('Pages/CRM/Opportunities/Index', [
+        return Inertia::render('CRM/Opportunities/Index', [
             'opportunities' => $opportunities,
             'filters' => $request->only(['stage', 'assigned_to', 'search']),
         ]);
@@ -107,7 +107,7 @@ class CRMController extends Controller
 
         $pipeline = $this->crmService->getSalesPipeline();
 
-        return Inertia::render('Pages/CRM/Pipeline/Index', [
+        return Inertia::render('CRM/Pipeline/Index', [
             'pipeline' => $pipeline,
             'stages' => $this->crmService->getSalesStages(),
         ]);
@@ -122,7 +122,7 @@ class CRMController extends Controller
 
         $reports = $this->crmService->getReports($request->all());
 
-        return Inertia::render('Pages/CRM/Reports/Index', [
+        return Inertia::render('CRM/Reports/Index', [
             'reports' => $reports,
             'filters' => $request->only(['period', 'type']),
         ]);
@@ -135,7 +135,7 @@ class CRMController extends Controller
     {
         $this->authorize('manage_crm_settings');
 
-        return Inertia::render('Pages/CRM/Settings/Index', [
+        return Inertia::render('CRM/Settings/Index', [
             'leadSources' => $this->crmService->getLeadSources(),
             'salesStages' => $this->crmService->getSalesStages(),
             'customerTypes' => $this->crmService->getCustomerTypes(),

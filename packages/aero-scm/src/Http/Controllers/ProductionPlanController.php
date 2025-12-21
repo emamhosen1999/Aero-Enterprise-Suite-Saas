@@ -16,7 +16,7 @@ class ProductionPlanController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/SCM/ProductionPlan/Index', [
+        return Inertia::render('SCM/ProductionPlan/Index', [
             'plans' => ProductionPlan::with(['product', 'assignedUser', 'materials.inventoryItem'])
                 ->latest()
                 ->paginate(15),
@@ -32,7 +32,7 @@ class ProductionPlanController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/SCM/ProductionPlan/Create', [
+        return Inertia::render('SCM/ProductionPlan/Create', [
             'products' => InventoryItem::select('id', 'name', 'sku')->get(),
             'materials' => InventoryItem::select('id', 'name', 'sku', 'unit_price')->get(),
             'users' => User::select('id', 'name')->get(),
@@ -89,7 +89,7 @@ class ProductionPlanController extends Controller
     {
         $productionPlan->load(['product', 'assignedUser', 'materials.inventoryItem']);
 
-        return Inertia::render('Pages/SCM/ProductionPlan/Show', [
+        return Inertia::render('SCM/ProductionPlan/Show', [
             'plan' => $productionPlan,
             'progressData' => [
                 'completion_percentage' => $productionPlan->completion_percentage,
@@ -103,7 +103,7 @@ class ProductionPlanController extends Controller
     {
         $productionPlan->load(['materials']);
 
-        return Inertia::render('Pages/SCM/ProductionPlan/Edit', [
+        return Inertia::render('SCM/ProductionPlan/Edit', [
             'plan' => $productionPlan,
             'products' => InventoryItem::select('id', 'name', 'sku')->get(),
             'materials' => InventoryItem::select('id', 'name', 'sku', 'unit_price')->get(),

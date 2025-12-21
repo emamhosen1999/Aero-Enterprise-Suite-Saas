@@ -14,7 +14,7 @@ class DemandForecastController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/SCM/DemandForecast/Index', [
+        return Inertia::render('SCM/DemandForecast/Index', [
             'forecasts' => DemandForecast::with(['inventoryItem', 'creator'])
                 ->latest()
                 ->paginate(15),
@@ -30,7 +30,7 @@ class DemandForecastController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/SCM/DemandForecast/Create', [
+        return Inertia::render('SCM/DemandForecast/Create', [
             'inventoryItems' => InventoryItem::select('id', 'name', 'sku')->get(),
             'forecastMethods' => [
                 'historical' => 'Historical Data Analysis',
@@ -70,7 +70,7 @@ class DemandForecastController extends Controller
     {
         $demandForecast->load(['inventoryItem', 'creator']);
 
-        return Inertia::render('Pages/SCM/DemandForecast/Show', [
+        return Inertia::render('SCM/DemandForecast/Show', [
             'forecast' => $demandForecast,
             'historicalData' => $this->getHistoricalData($demandForecast),
         ]);
@@ -78,7 +78,7 @@ class DemandForecastController extends Controller
 
     public function edit(DemandForecast $demandForecast)
     {
-        return Inertia::render('Pages/SCM/DemandForecast/Edit', [
+        return Inertia::render('SCM/DemandForecast/Edit', [
             'forecast' => $demandForecast,
             'inventoryItems' => InventoryItem::select('id', 'name', 'sku')->get(),
             'forecastMethods' => [

@@ -10,7 +10,7 @@ class HrDocumentController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/HRM/Documents/Index', [
+        return Inertia::render('HRM/Documents/Index', [
             'title' => 'HR Documents',
             'documents' => [],
         ]);
@@ -18,7 +18,7 @@ class HrDocumentController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/HRM/Documents/Create', [
+        return Inertia::render('HRM/Documents/Create', [
             'title' => 'Create Document',
         ]);
     }
@@ -31,7 +31,7 @@ class HrDocumentController extends Controller
 
     public function show($id)
     {
-        return Inertia::render('Pages/HRM/Documents/Show', [
+        return Inertia::render('HRM/Documents/Show', [
             'title' => 'Document Details',
             'document' => [],
         ]);
@@ -51,7 +51,7 @@ class HrDocumentController extends Controller
 
     public function categories()
     {
-        return Inertia::render('Pages/HRM/Documents/Categories', [
+        return Inertia::render('HRM/Documents/Categories', [
             'title' => 'Document Categories',
             'categories' => [],
         ]);
@@ -77,7 +77,7 @@ class HrDocumentController extends Controller
 
     public function employeeDocuments($employeeId)
     {
-        return Inertia::render('Pages/HRM/Documents/EmployeeDocuments', [
+        return Inertia::render('HRM/Documents/EmployeeDocuments', [
             'title' => 'Employee Documents',
             'employeeId' => $employeeId,
             'documents' => [],
@@ -92,7 +92,7 @@ class HrDocumentController extends Controller
 
     public function showEmployeeDocument($employeeId, $documentId)
     {
-        return Inertia::render('Pages/HRM/Documents/ShowEmployeeDocument', [
+        return Inertia::render('HRM/Documents/ShowEmployeeDocument', [
             'title' => 'Employee Document',
             'document' => [],
         ]);

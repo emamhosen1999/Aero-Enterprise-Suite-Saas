@@ -52,7 +52,7 @@ class RegulatoryRequirementController extends Controller
 
         $requirements = $query->orderBy('compliance_deadline', 'asc')->paginate(15);
 
-        return Inertia::render('Pages/Compliance/RegulatoryRequirements/Index', [
+        return Inertia::render('Compliance/RegulatoryRequirements/Index', [
             'requirements' => $requirements,
             'filters' => $request->only(['search', 'status', 'priority', 'regulatory_body', 'requirement_type', 'overdue', 'due_soon']),
             'statuses' => $this->getStatuses(),
@@ -67,7 +67,7 @@ class RegulatoryRequirementController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Pages/Compliance/RegulatoryRequirements/Create', [
+        return Inertia::render('Compliance/RegulatoryRequirements/Create', [
             'statuses' => $this->getStatuses(),
             'priorities' => $this->getPriorities(),
             'types' => $this->getTypes(),
@@ -128,7 +128,7 @@ class RegulatoryRequirementController extends Controller
     {
         $requirement->load(['assignedUser']);
 
-        return Inertia::render('Pages/Compliance/RegulatoryRequirements/Show', [
+        return Inertia::render('Compliance/RegulatoryRequirements/Show', [
             'requirement' => $requirement,
             'complianceHistory' => $this->getComplianceHistory($requirement),
             'relatedRequirements' => $this->getRelatedRequirements($requirement),
@@ -140,7 +140,7 @@ class RegulatoryRequirementController extends Controller
      */
     public function edit(RegulatoryRequirement $requirement)
     {
-        return Inertia::render('Pages/Compliance/RegulatoryRequirements/Edit', [
+        return Inertia::render('Compliance/RegulatoryRequirements/Edit', [
             'requirement' => $requirement,
             'statuses' => $this->getStatuses(),
             'priorities' => $this->getPriorities(),

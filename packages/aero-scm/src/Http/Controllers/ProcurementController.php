@@ -17,7 +17,7 @@ class ProcurementController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/SCM/Procurement/Index', [
+        return Inertia::render('SCM/Procurement/Index', [
             'requests' => ProcurementRequest::with(['requester', 'department', 'approver', 'items'])
                 ->latest()
                 ->paginate(15),
@@ -33,7 +33,7 @@ class ProcurementController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/SCM/Procurement/Create', [
+        return Inertia::render('SCM/Procurement/Create', [
             'departments' => Department::select('id', 'name')->get(),
             'nextRequestNumber' => $this->generateRequestNumber(),
         ]);
@@ -91,7 +91,7 @@ class ProcurementController extends Controller
     {
         $procurementRequest->load(['requester', 'department', 'approver', 'items']);
 
-        return Inertia::render('Pages/SCM/Procurement/Show', [
+        return Inertia::render('SCM/Procurement/Show', [
             'request' => $procurementRequest,
         ]);
     }
@@ -104,7 +104,7 @@ class ProcurementController extends Controller
 
         $procurementRequest->load(['items']);
 
-        return Inertia::render('Pages/SCM/Procurement/Edit', [
+        return Inertia::render('SCM/Procurement/Edit', [
             'request' => $procurementRequest,
             'departments' => Department::select('id', 'name')->get(),
         ]);

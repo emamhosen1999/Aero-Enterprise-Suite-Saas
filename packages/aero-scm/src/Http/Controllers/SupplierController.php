@@ -13,7 +13,7 @@ class SupplierController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/SCM/Suppliers/Index', [
+        return Inertia::render('SCM/Suppliers/Index', [
             'suppliers' => Supplier::query()
                 ->latest()
                 ->paginate(10),
@@ -23,7 +23,7 @@ class SupplierController extends Controller
 
     public function create()
     {
-        return Inertia::render('Pages/SCM/Suppliers/Create');
+        return Inertia::render('SCM/Suppliers/Create');
     }
 
     public function store(Request $request)
@@ -55,14 +55,14 @@ class SupplierController extends Controller
 
     public function show(Supplier $supplier)
     {
-        return Inertia::render('Pages/SCM/Suppliers/Show', [
+        return Inertia::render('SCM/Suppliers/Show', [
             'supplier' => $supplier->load(['category', 'purchaseOrders']),
         ]);
     }
 
     public function edit(Supplier $supplier)
     {
-        return Inertia::render('Pages/SCM/Suppliers/Edit', [
+        return Inertia::render('SCM/Suppliers/Edit', [
             'supplier' => $supplier,
         ]);
     }
@@ -103,7 +103,7 @@ class SupplierController extends Controller
 
     public function dashboard()
     {
-        return Inertia::render('Pages/SCM/Dashboard', [
+        return Inertia::render('SCM/Dashboard', [
             'stats' => [
                 // Supplier Stats
                 'total_suppliers' => Supplier::count(),

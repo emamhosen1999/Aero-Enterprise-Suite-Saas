@@ -10,7 +10,7 @@ class SkillsController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pages/HRM/Skills/Index', [
+        return Inertia::render('HRM/Skills/Index', [
             'title' => 'Skills Management',
             'skills' => [],
         ]);
@@ -36,7 +36,7 @@ class SkillsController extends Controller
 
     public function competencies()
     {
-        return Inertia::render('Pages/HRM/Skills/Competencies', [
+        return Inertia::render('HRM/Skills/Competencies', [
             'title' => 'Competency Framework',
             'competencies' => [],
         ]);
@@ -62,7 +62,7 @@ class SkillsController extends Controller
 
     public function employeeSkills($employeeId)
     {
-        return Inertia::render('Pages/HRM/Skills/EmployeeSkills', [
+        return Inertia::render('HRM/Skills/EmployeeSkills', [
             'title' => 'Employee Skills',
             'employeeId' => $employeeId,
             'skills' => [],

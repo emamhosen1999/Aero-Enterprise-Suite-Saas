@@ -14,6 +14,7 @@ return [
     */
 
     'code' => 'rfi',
+    'scope' => 'tenant',
     'name' => 'RFI Management',
     'description' => 'Request for Inspection management including daily works, objections, and work locations',
     'icon' => 'ClipboardDocumentCheckIcon',

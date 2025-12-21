@@ -16,7 +16,7 @@ class MilestoneController extends Controller
             ->orderBy('due_date')
             ->paginate(15);
 
-        return Inertia::render('Pages/Project/Milestones/GlobalIndex', [
+        return Inertia::render('Project/Milestones/GlobalIndex', [
             'milestones' => $milestones,
         ]);
     }
@@ -27,7 +27,7 @@ class MilestoneController extends Controller
             ->orderBy('due_date')
             ->paginate(10);
 
-        return Inertia::render('Pages/Project/Milestones/Index', [
+        return Inertia::render('Project/Milestones/Index', [
             'project' => $project,
             'milestones' => $milestones,
         ]);
@@ -35,7 +35,7 @@ class MilestoneController extends Controller
 
     public function create(Project $project)
     {
-        return Inertia::render('Pages/Project/Milestones/Create', [
+        return Inertia::render('Project/Milestones/Create', [
             'project' => $project,
         ]);
     }
@@ -59,7 +59,7 @@ class MilestoneController extends Controller
 
     public function edit(Project $project, ProjectMilestone $milestone)
     {
-        return Inertia::render('Pages/Project/Milestones/Edit', [
+        return Inertia::render('Project/Milestones/Edit', [
             'project' => $project,
             'milestone' => $milestone,
         ]);

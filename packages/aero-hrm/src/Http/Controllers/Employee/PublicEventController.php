@@ -23,7 +23,7 @@ class PublicEventController extends Controller
             ->orderBy('event_date')
             ->paginate(12);
 
-        return Inertia::render('Pages/Shared/Public/Events/Index', [
+        return Inertia::render('Shared/Public/Events/Index', [
             'events' => $events,
         ]);
     }
@@ -47,7 +47,7 @@ class PublicEventController extends Controller
         $registrationStatus = $event->registration_status;
         $remainingSlots = $event->getRemainingSlots();
 
-        return Inertia::render('Pages/Shared/Public/Events/Show', [
+        return Inertia::render('Shared/Public/Events/Show', [
             'event' => $event,
             'canRegister' => $canRegister,
             'registrationStatus' => $registrationStatus,
@@ -196,7 +196,7 @@ class PublicEventController extends Controller
             ->with('subEvents')
             ->firstOrFail();
 
-        return Inertia::render('Pages/Shared/Public/Events/RegistrationSuccess', [
+        return Inertia::render('Shared/Public/Events/RegistrationSuccess', [
             'event' => $event,
             'registration' => $registration,
         ]);
@@ -212,7 +212,7 @@ class PublicEventController extends Controller
             ->with(['event', 'subEvents'])
             ->firstOrFail();
 
-        return Inertia::render('Pages/Shared/Public/Events/CheckRegistration', [
+        return Inertia::render('Shared/Public/Events/CheckRegistration', [
             'registration' => $registration,
         ]);
     }
@@ -224,7 +224,7 @@ class PublicEventController extends Controller
             ->firstOrFail();
 
         // Return printable token view
-        return Inertia::render('Pages/Shared/Public/Events/PrintToken', [
+        return Inertia::render('Shared/Public/Events/PrintToken', [
             'registration' => $registration,
         ]);
     }
