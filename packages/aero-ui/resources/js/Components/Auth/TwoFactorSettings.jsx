@@ -23,7 +23,6 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 /**
  * Two-Factor Authentication Settings Component
@@ -137,7 +136,7 @@ export default function TwoFactorSettings({ enabled = false, remainingCodes = 0 
 
     return (
         <>
-            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+            <Card className="transition-all duration-200">
                 <CardHeader className="border-b border-divider p-4">
                     <div className="flex items-center gap-3">
                         <ShieldCheckIcon className="w-6 h-6 text-primary" />
