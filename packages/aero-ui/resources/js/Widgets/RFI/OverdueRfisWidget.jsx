@@ -8,7 +8,6 @@ import {
 import { router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import axios from 'axios';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 /**
  * OverdueRfisWidget - Shows overdue RFI tasks
@@ -47,8 +46,8 @@ export default function OverdueRfisWidget({ data, meta }) {
 
     if (loading) {
         return (
-            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-                <CardHeader className="border-b border-divider p-4">
+            <Card>
+                <CardHeader className="p-4">
                     <div className="flex items-center gap-2">
                         <ExclamationTriangleIcon className="w-5 h-5 text-danger" />
                         <Skeleton className="w-28 h-5 rounded" />
@@ -72,15 +71,14 @@ export default function OverdueRfisWidget({ data, meta }) {
 
     return (
         <Card 
-            className="transition-all duration-200 cursor-pointer hover:shadow-md border-danger/30" 
+            className="cursor-pointer hover:shadow-md border-danger/30" 
             style={{
-                ...getThemedCardStyle(),
                 borderColor: 'rgb(var(--heroui-danger) / 0.3)',
             }}
             isPressable
             onPress={handleViewAll}
         >
-            <CardHeader className="border-b border-danger/20 p-4 bg-danger/5">
+            <CardHeader className="p-4 bg-danger/5">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                         <ExclamationTriangleIcon className="w-5 h-5 text-danger" />

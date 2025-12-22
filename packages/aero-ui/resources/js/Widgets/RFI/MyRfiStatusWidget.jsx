@@ -11,7 +11,6 @@ import {
 import { router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import axios from 'axios';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 /**
  * MyRfiStatusWidget - Shows user's today's RFI tasks
@@ -54,8 +53,8 @@ export default function MyRfiStatusWidget({ data, meta }) {
 
     if (loading) {
         return (
-            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-                <CardHeader className="border-b border-divider p-4">
+            <Card>
+                <CardHeader className="p-4">
                     <div className="flex items-center gap-2">
                         <DocumentTextIcon className="w-5 h-5 text-primary" />
                         <Skeleton className="w-28 h-5 rounded" />
@@ -86,8 +85,8 @@ export default function MyRfiStatusWidget({ data, meta }) {
     ];
 
     return (
-        <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-            <CardHeader className="border-b border-divider p-4">
+        <Card>
+            <CardHeader className="p-4">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                         <DocumentTextIcon className="w-5 h-5 text-primary" />

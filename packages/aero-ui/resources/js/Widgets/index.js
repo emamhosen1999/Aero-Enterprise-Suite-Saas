@@ -3,6 +3,9 @@
 
 // Core Widgets
 export { default as ActiveModules } from './Core/ActiveModules';
+export { default as WelcomeWidget } from './Core/WelcomeWidget';
+export { default as QuickActionsWidget } from './Core/QuickActionsWidget';
+export { default as NotificationsWidget } from './Core/NotificationsWidget';
 
 // Re-export module widget registries
 export { HRM_WIDGETS } from './HRM';
@@ -13,6 +16,9 @@ export { RFI_WIDGETS } from './RFI';
 export const WIDGET_REGISTRY = {
     // Core widgets
     'Widgets/Core/ActiveModules': () => import('./Core/ActiveModules'),
+    'Widgets/Core/WelcomeWidget': () => import('./Core/WelcomeWidget'),
+    'Widgets/Core/QuickActionsWidget': () => import('./Core/QuickActionsWidget'),
+    'Widgets/Core/NotificationsWidget': () => import('./Core/NotificationsWidget'),
     
     // HRM widgets (use existing components where available)
     'Components/PunchStatusCard': () => import('@/Components/PunchStatusCard'),

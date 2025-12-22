@@ -7,7 +7,7 @@ use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\SystemSetting;
 use Aero\Core\Services\Notification\RuntimeSmsConfigService;
-use Aero\Core\Services\Settings\SystemSettingService;
+use Aero\Core\Services\SystemSettingService;
 use Aero\Core\Services\MailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

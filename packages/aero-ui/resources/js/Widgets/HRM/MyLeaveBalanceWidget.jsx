@@ -8,7 +8,6 @@ import {
 import { router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import axios from 'axios';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 /**
  * MyLeaveBalanceWidget - Compact leave balance display for Core Dashboard
@@ -63,8 +62,8 @@ export default function MyLeaveBalanceWidget({ data, meta }) {
 
     if (loading) {
         return (
-            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-                <CardHeader className="border-b border-divider p-4">
+            <Card>
+                <CardHeader className="p-4">
                     <div className="flex items-center gap-2">
                         <CalendarDaysIcon className="w-5 h-5 text-primary" />
                         <Skeleton className="w-24 h-5 rounded" />
@@ -84,8 +83,8 @@ export default function MyLeaveBalanceWidget({ data, meta }) {
 
     if (!balanceData || !balanceData.breakdown || balanceData.breakdown.length === 0) {
         return (
-            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-                <CardHeader className="border-b border-divider p-4">
+            <Card>
+                <CardHeader className="p-4">
                     <div className="flex items-center gap-2">
                         <CalendarDaysIcon className="w-5 h-5 text-primary" />
                         <span className="font-semibold">Leave Balance</span>
@@ -103,12 +102,11 @@ export default function MyLeaveBalanceWidget({ data, meta }) {
 
     return (
         <Card 
-            className="transition-all duration-200 cursor-pointer hover:shadow-md" 
-            style={getThemedCardStyle()}
+            className="cursor-pointer hover:shadow-md" 
             isPressable
             onPress={handleViewDetails}
         >
-            <CardHeader className="border-b border-divider p-4">
+            <CardHeader className="p-4">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                         <CalendarDaysIcon className="w-5 h-5 text-primary" />

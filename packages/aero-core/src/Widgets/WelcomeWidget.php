@@ -60,8 +60,9 @@ class WelcomeWidget extends AbstractDashboardWidget
     /**
      * Get widget data for frontend.
      */
-    public function getData(mixed $user): array
+    public function getData(): array
     {
+        $user = auth()->user();
         $now = Carbon::now();
         $hour = $now->hour;
 
@@ -78,7 +79,7 @@ class WelcomeWidget extends AbstractDashboardWidget
 
         return [
             'greeting' => $greeting,
-            'userName' => $user->name ?? 'User',
+            'userName' => $user?->name ?? 'User',
             'date' => $now->format('l, F j, Y'),
             'time' => $now->format('g:i A'),
         ];

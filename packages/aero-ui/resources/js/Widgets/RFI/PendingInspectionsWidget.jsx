@@ -9,7 +9,6 @@ import {
 import { router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import axios from 'axios';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 /**
  * PendingInspectionsWidget - Shows pending RFIs for inspectors
@@ -48,8 +47,8 @@ export default function PendingInspectionsWidget({ data, meta }) {
 
     if (loading) {
         return (
-            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-                <CardHeader className="border-b border-divider p-4">
+            <Card>
+                <CardHeader className="p-4">
                     <div className="flex items-center gap-2">
                         <ClipboardDocumentCheckIcon className="w-5 h-5 text-warning" />
                         <Skeleton className="w-32 h-5 rounded" />
@@ -69,12 +68,11 @@ export default function PendingInspectionsWidget({ data, meta }) {
 
     return (
         <Card 
-            className="transition-all duration-200 cursor-pointer hover:shadow-md" 
-            style={getThemedCardStyle()}
+            className="cursor-pointer hover:shadow-md" 
             isPressable
             onPress={handleViewAll}
         >
-            <CardHeader className="border-b border-divider p-4">
+            <CardHeader className="p-4">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                         <ClipboardDocumentCheckIcon className="w-5 h-5 text-warning" />
