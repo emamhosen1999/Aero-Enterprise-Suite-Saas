@@ -236,8 +236,8 @@ const Dashboard = () => {
                     </Card>
 
                     {/* Shared with Me */}
-                    <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-                        <CardHeader className="flex justify-between items-center border-b border-divider">
+                    <Card>
+                        <CardHeader className="flex justify-between items-center">
                             <h3 className="text-lg font-semibold">Shared with Me</h3>
                             <Button
                                 size="sm"

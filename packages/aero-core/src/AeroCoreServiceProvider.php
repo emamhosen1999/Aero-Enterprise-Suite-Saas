@@ -195,10 +195,40 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             // Register core navigation from config/module.php
             $this->registerCoreNavigation();
+
+            // Register Core dashboard widgets
+            $this->registerDashboardWidgets();
         } catch (\Throwable $e) {
             // Ignore errors during early boot/package discovery
             // These will be called again when the app is fully booted
         }
+    }
+
+    /**
+     * Register Core widgets for the Dashboard.
+     *
+     * Core widgets are fundamental widgets that appear on every dashboard:
+     * - Welcome/greeting widget
+     * - Quick actions widget
+     * - Active modules widget
+     * - Notifications widget
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        // Only register if the registry is available
+        if (! $this->app->bound(DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(DashboardWidgetRegistry::class);
+
+        // Register Core widgets
+        $registry->registerMany([
+            new \Aero\Core\Widgets\WelcomeWidget(),
+            new \Aero\Core\Widgets\QuickActionsWidget(),
+            new \Aero\Core\Widgets\ActiveModulesWidget(),
+            new \Aero\Core\Widgets\NotificationsWidget(),
+        ]);
     }
 
     /**
