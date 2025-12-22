@@ -15,7 +15,7 @@ class FileManagerController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('Core/FileManager/Index', [
+        return Inertia::render('Pages/Core/FileManager/Index', [
             'title' => 'File Manager',
         ]);
     }

@@ -244,7 +244,7 @@ class SamlController extends Controller
     {
         $tenant = tenant();
 
-        return Inertia::render('Core/Settings/SamlSettings/Index', [
+        return Inertia::render('Settings/SamlSettings', [
             'enabled' => $this->samlService->isEnabled(),
             'providers' => $this->samlService->getAvailableIdps($tenant),
             'currentConfig' => $tenant?->data['saml_idp'] ?? null,

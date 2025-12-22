@@ -10,7 +10,7 @@ class TimeOffController extends Controller
 {
     public function index()
     {
-        return Inertia::render('HRM/TimeOff/Index', [
+        return Inertia::render('Pages/HRM/TimeOff/Index', [
             'title' => 'Time-off Management',
             'timeOffRequests' => [],
         ]);
@@ -18,7 +18,7 @@ class TimeOffController extends Controller
 
     public function calendar()
     {
-        return Inertia::render('HRM/TimeOff/Calendar/Index', [
+        return Inertia::render('Pages/HRM/TimeOff/Calendar', [
             'title' => 'Time-off Calendar',
             'events' => [],
         ]);
@@ -26,7 +26,7 @@ class TimeOffController extends Controller
 
     public function approvals()
     {
-        return Inertia::render('HRM/TimeOff/Approvals/Index', [
+        return Inertia::render('Pages/HRM/TimeOff/Approvals', [
             'title' => 'Time-off Approvals',
             'pendingRequests' => [],
         ]);
@@ -46,7 +46,7 @@ class TimeOffController extends Controller
 
     public function reports()
     {
-        return Inertia::render('HRM/TimeOff/Reports/Index', [
+        return Inertia::render('Pages/HRM/TimeOff/Reports', [
             'title' => 'Time-off Reports',
             'reports' => [],
         ]);
@@ -54,7 +54,7 @@ class TimeOffController extends Controller
 
     public function settings()
     {
-        return Inertia::render('HRM/TimeOff/Settings/Index', [
+        return Inertia::render('Pages/HRM/TimeOff/Settings', [
             'title' => 'Time-off Settings',
             'settings' => [],
         ]);

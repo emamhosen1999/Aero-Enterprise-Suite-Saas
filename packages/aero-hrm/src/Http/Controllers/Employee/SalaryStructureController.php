@@ -29,7 +29,7 @@ class SalaryStructureController extends Controller
             'deductions' => SalaryComponent::where('type', 'deduction')->count(),
         ];
 
-        return Inertia::render('HRM/SalaryStructure/Index', [
+        return Inertia::render('Pages/HRM/SalaryStructure/Index', [
             'title' => 'Salary Structure Management',
             'components' => $components,
             'stats' => $stats,
@@ -188,7 +188,7 @@ class SalaryStructureController extends Controller
             return response()->json($data);
         }
 
-        return Inertia::render('HRM/SalaryStructure/EmployeeSalary/Index', $data);
+        return Inertia::render('Pages/HRM/SalaryStructure/EmployeeSalary', $data);
     }
 
     /**

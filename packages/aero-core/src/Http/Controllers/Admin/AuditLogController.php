@@ -15,7 +15,7 @@ class AuditLogController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('Core/AuditLogs/Index', [
+        return Inertia::render('Pages/Core/AuditLogs/Index', [
             'title' => 'Audit & Activity Logs',
         ]);
     }

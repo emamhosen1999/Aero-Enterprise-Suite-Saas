@@ -38,7 +38,7 @@ class TrainingController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('HRM/Training/Index', [
+        return Inertia::render('Pages/HRM/Training/Index', [
             'trainings' => $trainings,
             'filters' => $request->only(['search', 'status', 'category_id', 'department_id', 'sort_by', 'sort_order']),
             'categories' => TrainingCategory::select('id', 'name')->get(),
@@ -58,7 +58,7 @@ class TrainingController extends Controller
      */
     public function create()
     {
-        return Inertia::render('HRM/Training/Create/Index', [
+        return Inertia::render('Pages/HRM/Training/Create', [
             'categories' => TrainingCategory::where('is_active', true)->get(['id', 'name']),
             'instructors' => User::role(['HR Manager', 'Department Manager', 'Team Lead', 'Senior Employee'])->get(['id', 'name']),
             'departments' => Department::all(['id', 'name']),
@@ -138,7 +138,7 @@ class TrainingController extends Controller
                 ->first();
         }
 
-        return Inertia::render('HRM/Training/Show/Index', [
+        return Inertia::render('Pages/HRM/Training/Show', [
             'training' => $training,
             'userEnrollment' => $userEnrollment,
             'attachments' => $training->getMedia('training_attachments'),
@@ -158,7 +158,7 @@ class TrainingController extends Controller
             'department',
         ])->findOrFail($id);
 
-        return Inertia::render('HRM/Training/Edit/Index', [
+        return Inertia::render('Pages/HRM/Training/Edit', [
             'training' => $training,
             'categories' => TrainingCategory::where('is_active', true)->get(['id', 'name']),
             'instructors' => User::role(['HR Manager', 'Department Manager', 'Team Lead', 'Senior Employee'])->get(['id', 'name']),
@@ -248,7 +248,7 @@ class TrainingController extends Controller
             ->orderBy('name')
             ->paginate(10);
 
-        return Inertia::render('HRM/Training/Categories/Index', [
+        return Inertia::render('Pages/HRM/Training/Categories/Index', [
             'categories' => $categories,
         ]);
     }
@@ -319,7 +319,7 @@ class TrainingController extends Controller
     {
         $training = Training::with('materials')->findOrFail($id);
 
-        return Inertia::render('HRM/Training/Materials/Index', [
+        return Inertia::render('Pages/HRM/Training/Materials/Index', [
             'training' => $training,
             'materials' => $training->materials()->orderBy('order')->paginate(10),
         ]);
@@ -409,7 +409,7 @@ class TrainingController extends Controller
             ->orderBy('enrollment_date')
             ->paginate(15);
 
-        return Inertia::render('HRM/Training/Enrollments/Index', [
+        return Inertia::render('Pages/HRM/Training/Enrollments/Index', [
             'training' => $training,
             'enrollments' => $enrollments,
             'statusOptions' => [

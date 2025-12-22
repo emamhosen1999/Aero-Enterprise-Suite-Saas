@@ -41,11 +41,10 @@ class ModuleController extends Controller
 
     /**
      * Determine the Inertia page path
-     * Uses Core/Modules/Index for shared module management
      */
     protected function getViewPath(): string
     {
-        return 'Core/Modules/Index';
+        return 'Modules/Index';
     }
 
     /**

@@ -25,7 +25,7 @@ class AttendanceSettingController extends Controller
             ]);
         }
 
-        return Inertia::render('HRM/Settings/AttendanceSettings/Index', [
+        return Inertia::render('Pages/HRM/Settings/AttendanceSettings', [
             'title' => 'Attendance Settings',
             'attendanceSettings' => $attendanceSettings,
             'attendanceTypes' => $attendanceTypes,

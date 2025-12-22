@@ -382,17 +382,9 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
 
     /**
      * Check if aero-platform is active (SaaS mode).
-     *
-     * Uses the global helper function for consistency across all packages.
      */
     protected function isPlatformActive(): bool
     {
-        // Use global helper if available (registered by aero-core)
-        if (function_exists('is_saas_mode')) {
-            return is_saas_mode();
-        }
-
-        // Fallback during early boot
         return class_exists(\Aero\Platform\AeroPlatformServiceProvider::class);
     }
 

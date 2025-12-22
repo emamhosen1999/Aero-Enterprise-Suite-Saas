@@ -87,7 +87,7 @@ class AuditLogController extends Controller
             return response()->json($activity);
         }
 
-        return Inertia::render('Platform/Admin/AuditLogs/Show/Index', [
+        return Inertia::render('Platform/Admin/AuditLogs/Show', [
             'activity' => $activity,
         ]);
     }

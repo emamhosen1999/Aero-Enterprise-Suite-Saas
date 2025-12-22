@@ -42,7 +42,7 @@ class DesignationController extends Controller
         $departments = Department::all(['id', 'name']);
         $allDesignations = Designation::with('department')->orderBy('hierarchy_level', 'asc')->get();
 
-        return Inertia::render('HRM/Designations/Index', [
+        return Inertia::render('Designations', [
             'title' => 'Designation Management',
             'designations' => [], // Loaded via frontend API
             'allDesignations' => $allDesignations,

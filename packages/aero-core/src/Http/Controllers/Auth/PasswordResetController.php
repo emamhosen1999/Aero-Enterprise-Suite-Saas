@@ -29,7 +29,7 @@ class PasswordResetController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Shared/Auth/ForgotPassword/Index', [
+        return Inertia::render('Pages/Core/Auth/ForgotPassword', [
             'status' => session('status'),
         ]);
     }
@@ -87,7 +87,7 @@ class PasswordResetController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('Shared/Auth/ResetPassword/Index', [
+        return Inertia::render('Pages/Core/Auth/ResetPassword', [
             'email' => $request->email,
             'token' => $request->token,
         ]);

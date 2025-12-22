@@ -21,7 +21,7 @@ class ConnectorController extends Controller
         // TODO: Fetch connectors from database
         $connectors = [];
 
-        return Inertia::render('Shared/Integrations/Connectors/Index', [
+        return Inertia::render('Pages/Shared/Integrations/Connectors', [
             'title' => 'Integration Connectors',
             'connectors' => $connectors,
         ]);

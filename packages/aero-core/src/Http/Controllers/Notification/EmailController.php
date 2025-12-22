@@ -9,7 +9,7 @@ class EmailController extends Controller
 {
     public function index(): \Inertia\Response
     {
-        return Inertia::render('Core/Emails/Index', [
+        return Inertia::render('Emails', [
             'title' => 'Emails',
         ]);
     }

@@ -26,7 +26,7 @@ class IntegrationDashboardController extends Controller
             'last_sync' => null,
         ];
 
-        return Inertia::render('Shared/Integrations/Dashboard/Index', [
+        return Inertia::render('Pages/Shared/Integrations/Dashboard', [
             'title' => 'Integrations Dashboard',
             'integrations' => $integrations,
             'stats' => $stats,

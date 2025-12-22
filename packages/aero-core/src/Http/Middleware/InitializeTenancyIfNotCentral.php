@@ -7,6 +7,7 @@ namespace Aero\Core\Http\Middleware;
 use Aero\Core\Traits\ParsesHostDomain;
 use Closure;
 use Illuminate\Http\Request;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -22,14 +23,10 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * This prevents the "Tenant could not be identified" error on central domains
  * when routes don't have explicit domain constraints.
- *
- * STANDALONE MODE: When stancl/tenancy is not installed, this middleware
- * simply passes through without any tenancy initialization.
  */
 class InitializeTenancyIfNotCentral
 {
     use ParsesHostDomain;
-
     /**
      * Handle an incoming request.
      *
@@ -37,11 +34,6 @@ class InitializeTenancyIfNotCentral
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // In Standalone mode (stancl/tenancy not installed), just pass through
-        if (!$this->isTenancyPackageInstalled()) {
-            return $next($request);
-        }
-
         // Check if we're on a central domain using trait's helper
         if ($this->isHostOnCentralDomain($request->getHost())) {
             // On central domain - skip tenancy initialization entirely
@@ -49,19 +41,6 @@ class InitializeTenancyIfNotCentral
         }
 
         // Not on central domain - proceed with tenancy initialization
-        // Dynamically resolve the class to avoid hard dependency
-        $initializeTenancyClass = \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class;
-
-        return app($initializeTenancyClass)->handle($request, $next);
-    }
-
-    /**
-     * Check if stancl/tenancy package is installed.
-     *
-     * @return bool
-     */
-    protected function isTenancyPackageInstalled(): bool
-    {
-        return class_exists(\Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class);
+        return app(InitializeTenancyByDomain::class)->handle($request, $next);
     }
 }

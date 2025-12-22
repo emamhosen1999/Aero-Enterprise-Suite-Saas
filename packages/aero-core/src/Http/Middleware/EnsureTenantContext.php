@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aero\Core\Http\Middleware;
 
-use Aero\Core\Contracts\TenantScopeInterface;
 use Aero\Core\Traits\ParsesHostDomain;
 use Closure;
 use Illuminate\Http\Request;
@@ -38,20 +37,11 @@ class EnsureTenantContext
     public function handle(Request $request, Closure $next): Response
     {
         // Standalone Mode: No platform package = no tenancy = passthrough
-        if (! $this->isSaaSMode()) {
+        if (! $this->isPlatformActive()) {
             return $next($request);
         }
 
-        // SaaS Mode: Use TenantScopeInterface if available
-        if (app()->bound(TenantScopeInterface::class)) {
-            $tenantScope = app(TenantScopeInterface::class);
-
-            if ($tenantScope->inTenantContext()) {
-                return $next($request);
-            }
-        }
-
-        // Fallback: Check stancl/tenancy's tenant() helper
+        // SaaS Mode: Require valid tenant context
         if (function_exists('tenant') && tenant()) {
             return $next($request);
         }
@@ -62,18 +52,10 @@ class EnsureTenantContext
     }
 
     /**
-     * Check if running in SaaS mode.
-     *
-     * Uses global helper for consistency.
+     * Check if aero-platform package is active (SaaS mode).
      */
-    protected function isSaaSMode(): bool
+    protected function isPlatformActive(): bool
     {
-        // Use global helper if available
-        if (function_exists('is_saas_mode')) {
-            return is_saas_mode();
-        }
-
-        // Fallback during early boot
         return class_exists(\Aero\Platform\AeroPlatformServiceProvider::class);
     }
 }

@@ -14,7 +14,6 @@ use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Fortify\Fortify;
 
 /**
  * AeroCoreServiceProvider
@@ -30,10 +29,6 @@ class AeroCoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         try {
-            // Disable Fortify's default routes - aero-core defines its own auth routes
-            // This prevents conflicts between Fortify's routes and Core's AuthenticatedSessionController
-            Fortify::ignoreRoutes();
-
             // Override the Migrator to exclude app's migration directory
             // Core and module packages provide all necessary migrations
             $this->app->extend('migrator', function ($migrator, $app) {
@@ -358,12 +353,6 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Register HandleInertiaRequests middleware to web middleware group
             $router->pushMiddlewareToGroup('web', \Aero\Core\Http\Middleware\HandleInertiaRequests::class);
 
-            // Register CheckInstallation middleware for standalone mode (early in the stack)
-            // This redirects to installation wizard if app hasn't been installed
-            if (!$this->isPlatformActive()) {
-                $router->prependMiddlewareToGroup('web', \Aero\Core\Middleware\CheckInstallation::class);
-            }
-
             // Register middleware aliases
             $router->aliasMiddleware('module', \Aero\Core\Http\Middleware\CheckModuleAccess::class);
 
@@ -374,10 +363,7 @@ class AeroCoreServiceProvider extends ServiceProvider
     }
 
     /**
-     * Check if aero-platform is active (SaaS mode).
-     *
-     * Note: This method is used during early boot before helpers are loaded.
-     * Use the global is_saas_mode() helper when available.
+     * Check if aero-platform is active.
      */
     protected function isPlatformActive(): bool
     {
@@ -392,11 +378,6 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Guard against early execution before config is loaded
         if (! $this->app->configurationIsCached() && ! file_exists(config_path('aero.php'))) {
             return false;
-        }
-
-        // Use global helper if available
-        if (function_exists('is_standalone_mode')) {
-            return is_standalone_mode() && config('aero.runtime_loading.enabled', false);
         }
 
         return config('aero.mode', 'saas') === 'standalone' &&

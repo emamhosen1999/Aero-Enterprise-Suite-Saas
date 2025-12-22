@@ -6,13 +6,30 @@
     "version": "1.0.0",
     "description": "Aero Platform - Multi-tenancy orchestration, billing, and SaaS administration",
     "category": "landlord",
+    "frontend": {
+        "entry": "resources/js/app.jsx",
+        "pages": "resources/js/Pages",
+        "components": "resources/js/Components",
+        "css": "resources/css/app.css"
+    },
+    "exports": {
+        "components": [
+            "TenantSwitcher",
+            "BillingCard",
+            "SubscriptionManager"
+        ],
+        "contexts": [
+            "TenantContext",
+            "BillingContext"
+        ]
+    },
     "dependencies": {
         "aero-core": "^1.0"
     },
     "routes": {
         "admin": "routes/admin.php",
-        "web": "routes/web.php",
-        "installation": "routes/installation.php"
+        "platform": "routes/platform.php",
+        "api": "routes/api.php"
     },
     "middleware": [
         "web",

@@ -101,11 +101,48 @@ Modules are defined in `config/modules.php` with hierarchy: **modules → submod
 - **Use HeroUI components exclusively** (`@heroui/react`): `Table`, `Button`, `Card`, `Modal`, `Input`, `Select`, `Chip`, `Tooltip`, `Dropdown`, `Pagination`, `Spinner`, `Switch`, `Badge`, `Skeleton`
 - **Icons:** Use `@heroicons/react/24/outline` consistently
 
+### Card Styling Pattern (CRITICAL)
+All HeroUI Card components **MUST** use the themed card styling for consistency across the application. Use one of these approaches:
+
+**Option 1: Use ThemedCard component (Recommended)**
+```jsx
+import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
+<ThemedCard>
+  <ThemedCardHeader>Title</ThemedCardHeader>
+  <ThemedCardBody>Content</ThemedCardBody>
+</ThemedCard>
+```
+
+**Option 2: Use getThemedCardStyle utility**
+```jsx
+import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
+
+<Card className="transition-all duration-200" style={getThemedCardStyle()}>
+  <CardHeader className="border-b border-divider p-4">Title</CardHeader>
+  <CardBody className="p-4">Content</CardBody>
+</Card>
+```
+
+**Option 3: Use CSS class (for simple cases)**
+```jsx
+<Card className="aero-card">
+  <CardBody>Content</CardBody>
+</Card>
+```
+
+The themed card style applies:
+- Theme-aware border, radius, and font from CSS variables
+- Gradient background using `--theme-content1/2/3` colors
+- Dark mode support
+- Smooth transitions
+
 ### Reference Components for UI Patterns
 When creating new pages, **study and follow these existing patterns exactly:**
 
 | Pattern | Reference Files |
 |---------|-----------------|
+| **Themed Cards** | `packages/aero-ui/resources/js/Components/UI/ThemedCard.jsx` (**primary card reference**) |
 | List pages with tables | `resources/js/Tenant/Pages/UsersList.jsx`, `resources/js/Tables/UsersTable.jsx` |
 | Employee list with filters | `resources/js/Tenant/Pages/Employees/EmployeeList.jsx` (**primary filter reference**) |
 | Data tables | `resources/js/Tables/EmployeeTable.jsx`, `resources/js/Tables/TimeSheetTable.jsx` |

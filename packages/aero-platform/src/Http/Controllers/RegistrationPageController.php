@@ -261,7 +261,7 @@ class RegistrationPageController extends Controller
      */
     public function provisioning(Tenant $tenant): Response
     {
-        return Inertia::render('Platform/Public/Register/Provisioning/Index', [
+        return Inertia::render('Platform/Public/Register/Provisioning', [
             'tenant' => [
                 'id' => $tenant->id,
                 'name' => $tenant->name,

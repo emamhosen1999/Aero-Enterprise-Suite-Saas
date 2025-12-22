@@ -120,21 +120,14 @@ trait AeroTenantable
     }
 
     /**
-     * Check if aero-platform is active (SaaS mode).
-     *
-     * Uses global helper for consistency.
+     * Check if aero-platform is active.
      *
      * @return bool
      */
     protected static function isPlatformActive(): bool
     {
-        // Use global helper if available
-        if (function_exists('is_saas_mode')) {
-            return is_saas_mode();
-        }
-
-        // Fallback during early boot
-        return class_exists('Aero\Platform\AeroPlatformServiceProvider');
+        return class_exists('Aero\Platform\AeroPlatformServiceProvider') &&
+               config('platform.enabled', false);
     }
 
     /**
@@ -144,15 +137,6 @@ trait AeroTenantable
      */
     protected static function getTenantIdFromPlatform(): int|string|null
     {
-        // Try TenantScopeInterface first
-        try {
-            if (app()->bound(\Aero\Core\Contracts\TenantScopeInterface::class)) {
-                return app(\Aero\Core\Contracts\TenantScopeInterface::class)->getCurrentTenantId();
-            }
-        } catch (\Throwable $e) {
-            // App not booted yet
-        }
-
         // Check session for tenant context
         if (function_exists('session') && session()->has('tenant_id')) {
             return session('tenant_id');

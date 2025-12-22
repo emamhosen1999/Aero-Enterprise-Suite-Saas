@@ -26,7 +26,7 @@ class SafetyIncidentController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('HRM/Safety/Incidents/Index', [
+        return Inertia::render('Pages/HRM/Safety/Incidents/Index', [
             'title' => 'Safety Incidents',
             'incidents' => $incidents,
         ]);
@@ -48,7 +48,7 @@ class SafetyIncidentController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HRM/Safety/Incidents/Create/Index', [
+        return Inertia::render('Pages/HRM/Safety/Incidents/Create', [
             'title' => 'Report Safety Incident',
             'employees' => $employees,
             'departments' => $departments,
@@ -135,7 +135,7 @@ class SafetyIncidentController extends Controller
 
         $this->authorize('view', $incident);
 
-        return Inertia::render('HRM/Safety/Incidents/Show/Index', [
+        return Inertia::render('Pages/HRM/Safety/Incidents/Show', [
             'title' => 'Safety Incident Details',
             'incident' => $incident,
         ]);
@@ -160,7 +160,7 @@ class SafetyIncidentController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('HRM/Safety/Incidents/Edit/Index', [
+        return Inertia::render('Pages/HRM/Safety/Incidents/Edit', [
             'title' => 'Edit Safety Incident',
             'incident' => $incident,
             'employees' => $employees,
