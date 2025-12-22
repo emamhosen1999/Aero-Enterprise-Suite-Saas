@@ -4,6 +4,8 @@
  * Provides consistent theming across the application
  */
 
+import { getCardStyle } from './cardStyles';
+
 // HeroUI base theme colors
 export const heroUIThemes = {
   heroui: {
@@ -399,7 +401,6 @@ export const applyThemeToDocument = (theme) => {
     themeColors = theme.customColors;
   } else if (theme.cardStyle) {
     // Get colors from card style
-    const { getCardStyle } = require('./cardStyles');
     const cardStyle = getCardStyle(theme.cardStyle);
     themeColors = cardStyle.theme.colors;
   } else {
@@ -437,7 +438,6 @@ export const applyThemeToDocument = (theme) => {
   // Apply layout properties from card style or theme.layout
   let layoutProps = theme.layout || {};
   if (theme.cardStyle) {
-    const { getCardStyle } = require('./cardStyles');
     const cardStyle = getCardStyle(theme.cardStyle);
     layoutProps = {
       ...cardStyle.theme.layout,
