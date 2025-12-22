@@ -4,6 +4,7 @@ namespace Aero\Core;
 
 use Aero\Core\Contracts\TenantScopeInterface;
 use Aero\Core\Providers\ModuleRouteServiceProvider;
+use Aero\Core\Services\DashboardWidgetRegistry;
 use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Services\ModuleManager;
 use Aero\Core\Services\ModuleRegistry;
@@ -63,6 +64,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             $this->app->singleton(ModuleRegistry::class);
             $this->app->singleton(NavigationRegistry::class);
             $this->app->singleton(UserRelationshipRegistry::class);
+            $this->app->singleton(DashboardWidgetRegistry::class);
 
             // Register Module Access Services (with error handling for missing tables)
             $this->app->singleton(ModuleAccessService::class, function ($app) {

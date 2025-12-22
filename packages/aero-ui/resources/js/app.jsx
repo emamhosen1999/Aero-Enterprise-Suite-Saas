@@ -6,7 +6,7 @@ import {createInertiaApp, router} from '@inertiajs/react';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
 import LoadingIndicator from './Components/LoadingIndicator';
-import UnifiedError from './Shared/Errors/UnifiedError';
+import UnifiedError from '@/Shared/Errors/UnifiedError';
 import { ThemeProvider } from './Context/ThemeContext';
 import { HeroUIProvider } from '@heroui/react';
 import './theme/index.js';

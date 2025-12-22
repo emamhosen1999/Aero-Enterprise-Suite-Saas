@@ -366,6 +366,16 @@ class AeroPlatformServiceProvider extends ServiceProvider
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         });
+
+        // Platform API routes (for domain.com/api/* - public product catalog)
+        // These endpoints expose available products/features for tenant applications
+        Route::group([
+            'middleware' => ['api'],
+            'domain' => $this->getPlatformDomain(),
+            'prefix' => 'api',
+        ], function () {
+            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        });
     }
 
     /**

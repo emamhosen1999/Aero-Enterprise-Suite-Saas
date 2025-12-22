@@ -1,0 +1,127 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aero\Rfi\Widgets;
+
+use Aero\Core\Contracts\AbstractDashboardWidget;
+use Aero\Core\Contracts\CoreWidgetCategory;
+use Aero\Rfi\Models\DailyWork;
+use Illuminate\Support\Facades\Auth;
+
+/**
+ * Pending Inspections Widget for Core Dashboard
+ *
+ * Shows count of RFIs pending inspection/approval.
+ * This is an ALERT widget - needs attention.
+ *
+ * Appears on: Core Dashboard (/dashboard) for inspectors/managers
+ */
+class PendingInspectionsWidget extends AbstractDashboardWidget
+{
+    protected string $position = 'sidebar';
+    protected int $order = 15;
+    protected int|string $span = 1;
+    protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+    protected array $requiredPermissions = ['rfi.inspect', 'rfi.approve'];
+
+    public function getKey(): string
+    {
+        return 'rfi.pending_inspections';
+    }
+
+    public function getComponent(): string
+    {
+        return 'Widgets/RFI/PendingInspectionsWidget';
+    }
+
+    public function getTitle(): string
+    {
+        return 'Pending Inspections';
+    }
+
+    public function getDescription(): string
+    {
+        return 'RFIs awaiting inspection';
+    }
+
+    public function getModuleCode(): string
+    {
+        return 'rfi';
+    }
+
+    /**
+     * Override isEnabled to check permission OR condition.
+     */
+    public function isEnabled(): bool
+    {
+        if (!$this->isModuleActive()) {
+            return false;
+        }
+
+        // User must have either inspect OR approve permission
+        return $this->userHasAnyPermission(['rfi.inspect', 'rfi.approve']);
+    }
+
+    public function getData(): array
+    {
+        return $this->safeResolve(function () {
+            $user = Auth::user();
+            if (!$user) {
+                return $this->getEmptyState();
+            }
+
+            // Count pending inspections
+            $pendingQuery = DailyWork::whereIn('status', [
+                DailyWork::STATUS_PENDING,
+                DailyWork::STATUS_IN_PROGRESS,
+            ])->whereNull('inspection_result');
+
+            // If user is assigned inspector, filter by their assignments
+            if ($user->can('rfi.inspect') && !$user->can('rfi.approve')) {
+                $pendingQuery->where('assigned_user_id', $user->id);
+            }
+
+            $pendingCount = $pendingQuery->count();
+
+            // Urgent = submitted more than 24 hours ago
+            $urgentCount = (clone $pendingQuery)
+                ->where('created_at', '<=', now()->subHours(24))
+                ->count();
+
+            // Today's count
+            $todayCount = DailyWork::whereDate('date', today())
+                ->whereIn('status', [DailyWork::STATUS_PENDING, DailyWork::STATUS_IN_PROGRESS])
+                ->count();
+
+            // Get recent 3 for preview
+            $recentItems = (clone $pendingQuery)
+                ->orderBy('created_at', 'desc')
+                ->take(3)
+                ->get(['id', 'number', 'type', 'status', 'created_at', 'location']);
+
+            return [
+                'count' => $pendingCount,
+                'urgent' => $urgentCount,
+                'today' => $todayCount,
+                'items' => $recentItems->map(fn ($item) => [
+                    'id' => $item->id,
+                    'number' => $item->number,
+                    'type' => $item->type,
+                    'location' => $item->location,
+                    'age' => $item->created_at->diffForHumans(),
+                ])->toArray(),
+            ];
+        }, $this->getEmptyState());
+    }
+
+    private function getEmptyState(): array
+    {
+        return [
+            'count' => 0,
+            'urgent' => 0,
+            'today' => 0,
+            'items' => [],
+        ];
+    }
+}

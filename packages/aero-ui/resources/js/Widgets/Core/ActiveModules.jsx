@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardHeader, CardBody, Chip } from '@heroui/react';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 import {
     CubeIcon,
     HomeIcon,
@@ -55,8 +54,8 @@ const ActiveModules = ({ data = [], isRefreshing = false }) => {
     const enabledCount = filteredProducts.filter(p => p.enabled).length;
 
     return (
-        <Card className="transition-all duration-200" style={getThemedCardStyle()}>
-            <CardHeader className="border-b border-divider p-4">
+        <Card>
+            <CardHeader className="p-4">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                         <SparklesIcon className="w-5 h-5 text-success" />

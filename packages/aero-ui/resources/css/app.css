@@ -7,6 +7,65 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================
+   GLOBAL HEROUI CARD STYLING
+   Applies consistent theming to all Card components
+   ============================================ */
+
+/* Target all HeroUI Card components globally */
+[data-slot="base"].rounded-large,
+.bg-content1[data-slot="base"] {
+    background: linear-gradient(135deg, 
+        var(--theme-content1, var(--heroui-content1, #FAFAFA)) 0%, 
+        var(--theme-content2, var(--heroui-content2, #F4F4F5)) 50%, 
+        var(--theme-content3, var(--heroui-content3, #E4E4E7)) 100%) !important;
+    border: var(--borderWidth, 2px) solid transparent !important;
+    border-radius: var(--borderRadius, 12px) !important;
+    font-family: var(--fontFamily, "Inter") !important;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Dark mode Card styling */
+.dark [data-slot="base"].rounded-large,
+.dark .bg-content1[data-slot="base"] {
+    background: linear-gradient(135deg, 
+        var(--theme-content1, var(--heroui-content1, #18181b)) 0%, 
+        var(--theme-content2, var(--heroui-content2, #27272a)) 50%, 
+        var(--theme-content3, var(--heroui-content3, #3f3f46)) 100%) !important;
+}
+
+/* Card header with border */
+[data-slot="header"] {
+    border-bottom: 1px solid var(--heroui-divider, #e4e4e7);
+}
+
+.dark [data-slot="header"] {
+    border-bottom: 1px solid var(--heroui-divider, #3f3f46);
+}
+
+/* Card footer with border */
+[data-slot="footer"] {
+    border-top: 1px solid var(--heroui-divider, #e4e4e7);
+}
+
+.dark [data-slot="footer"] {
+    border-top: 1px solid var(--heroui-divider, #3f3f46);
+}
+
+/* Optional: Add hover effect to cards */
+[data-slot="base"].rounded-large:hover,
+.bg-content1[data-slot="base"]:hover {
+    transform: scale(var(--scale, 1));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark [data-slot="base"].rounded-large:hover,
+.dark .bg-content1[data-slot="base"]:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================ */
+
 /* Toast z-index fix */
 .Toastify__toast-container {
   z-index: 99999 !important;

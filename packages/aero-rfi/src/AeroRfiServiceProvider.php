@@ -49,6 +49,9 @@ class AeroRfiServiceProvider extends ServiceProvider
         // Register routes
         $this->registerRoutes();
 
+        // Register dashboard widgets for Core Dashboard
+        $this->registerDashboardWidgets();
+
         // Publish configuration
         $this->publishes([
             __DIR__.'/../config/rfi.php' => config_path('rfi.php'),
@@ -56,6 +59,29 @@ class AeroRfiServiceProvider extends ServiceProvider
 
         // NOTE: Frontend is handled by aero/ui package
         // This package is backend-only (controllers, models, services)
+    }
+
+    /**
+     * Register RFI widgets for the Core Dashboard.
+     *
+     * These are ACTION/ALERT/SUMMARY widgets only.
+     * Full analytics stay on RFI Dashboard (/rfi/dashboard).
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        // Only register if the registry is available
+        if (!$this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        // Register RFI widgets for Core Dashboard
+        $registry->registerMany([
+            new \Aero\Rfi\Widgets\MyRfiStatusWidget(),
+            new \Aero\Rfi\Widgets\PendingInspectionsWidget(),
+            new \Aero\Rfi\Widgets\OverdueRfisWidget(),
+        ]);
     }
 
     /**

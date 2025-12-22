@@ -152,6 +152,7 @@ Route::middleware('auth:web')->group(function () {
     // Dashboard Routes
     Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
     Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
+    Route::get('dashboard/widget/{widgetKey}', [DashboardController::class, 'widgetData'])->name('core.dashboard.widget');
     
     // Session & Auth Check Routes
     Route::get('/session-check', function () {

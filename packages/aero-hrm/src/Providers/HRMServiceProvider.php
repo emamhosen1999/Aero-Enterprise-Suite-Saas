@@ -95,6 +95,32 @@ class HRMServiceProvider extends AbstractModuleProvider
 
         // Register console commands
         $this->registerCommands();
+
+        // Register dashboard widgets for Core Dashboard
+        $this->registerDashboardWidgets();
+    }
+
+    /**
+     * Register HRM widgets for the Core Dashboard.
+     *
+     * These are ACTION/ALERT/SUMMARY widgets only.
+     * Full analytics stay on HRM Dashboard (/hrm/dashboard).
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        // Only register if the registry is available
+        if (!$this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        // Register HRM widgets for Core Dashboard
+        $registry->registerMany([
+            new \Aero\HRM\Widgets\PunchStatusWidget(),
+            new \Aero\HRM\Widgets\MyLeaveBalanceWidget(),
+            new \Aero\HRM\Widgets\PendingLeaveApprovalsWidget(),
+        ]);
     }
 
     /**
