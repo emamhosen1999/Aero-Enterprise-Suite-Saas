@@ -29,7 +29,7 @@ class RfiDashboardController extends Controller
         $resolutionRate = $this->rfiService->getObjectionResolutionRate();
         $pendingLocations = $this->rfiService->getLocationsPendingReview();
 
-        return Inertia::render('Rfi/Dashboard', [
+        return Inertia::render('Rfi/Dashboard/Index', [
             'title' => 'RFI Dashboard',
             'stats' => $stats,
             'completionRate' => $completionRate,

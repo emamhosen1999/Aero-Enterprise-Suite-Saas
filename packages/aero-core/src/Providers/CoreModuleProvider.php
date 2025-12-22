@@ -2,6 +2,18 @@
 
 namespace Aero\Core\Providers;
 
+use Aero\Core\Services\DashboardManager;
+use Aero\Core\Widgets\ActiveModulesWidget;
+use Aero\Core\Widgets\ActivityChartWidget;
+use Aero\Core\Widgets\PendingActionsWidget;
+use Aero\Core\Widgets\QuickActionsWidget;
+use Aero\Core\Widgets\RecentActivityWidget;
+use Aero\Core\Widgets\SecurityOverviewWidget;
+use Aero\Core\Widgets\SystemHealthWidget;
+use Aero\Core\Widgets\UsersByRoleWidget;
+use Aero\Core\Widgets\UserStatsWidget;
+use Aero\Core\Widgets\WelcomeWidget;
+
 /**
  * Core Module Provider
  *
@@ -53,6 +65,18 @@ class CoreModuleProvider extends AbstractModuleProvider
      * No subscription required for core.
      */
     protected ?string $minimumPlan = null;
+
+    /**
+     * Register core services.
+     */
+    protected function registerServices(): void
+    {
+        // Register DashboardManager as a Singleton
+        // This ensures all modules share the same instance when registering widgets
+        $this->app->singleton(DashboardManager::class, function ($app) {
+            return new DashboardManager();
+        });
+    }
 
     /**
      * Get the module hierarchy from config.
@@ -128,9 +152,37 @@ class CoreModuleProvider extends AbstractModuleProvider
     {
         // Register middleware
         $this->registerMiddleware();
-        
+
         // Register policies
         $this->registerPolicies();
+
+        // Register core dashboard widgets
+        $this->registerDashboardWidgets();
+    }
+
+    /**
+     * Register core dashboard widgets.
+     *
+     * This demonstrates the Widget Registry Pattern.
+     * Other modules follow this same pattern in their ServiceProviders.
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        /** @var DashboardManager $manager */
+        $manager = $this->app->make(DashboardManager::class);
+
+        $manager->registerMany([
+            new WelcomeWidget(),
+            new UserStatsWidget(),
+            new ActivityChartWidget(),
+            new UsersByRoleWidget(),
+            new QuickActionsWidget(),
+            new ActiveModulesWidget(),
+            new PendingActionsWidget(),
+            new RecentActivityWidget(),
+            new SecurityOverviewWidget(),
+            new SystemHealthWidget(),
+        ]);
     }
 
     /**

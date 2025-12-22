@@ -49,7 +49,7 @@ class DailyWorkSummaryController extends Controller
             $q->where('title', 'Supervision Engineer');
         })->get(['id', 'name']);
 
-        return Inertia::render('Rfi/DailyWorks/Summary', [
+        return Inertia::render('Rfi/DailyWorks/Summary/Index', [
             'summary' => $summaries,
             'workLocations' => WorkLocation::active()->get(['id', 'name']),
             'inCharges' => $inCharges,

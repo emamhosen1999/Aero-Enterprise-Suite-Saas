@@ -11,6 +11,7 @@ use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
 use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
+use Aero\Core\Http\Controllers\Installation\StandaloneInstallationController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
 use Aero\Core\Services\PlatformErrorReporter;
 use Illuminate\Http\Request;
@@ -90,6 +91,51 @@ Route::post('/api/version/check', function (Request $request) {
     Route::get('/', function () {
         return redirect('/dashboard');
     })->middleware(['auth:web']);
+
+// ============================================================================
+// INSTALLATION ROUTES (No Auth - for fresh installations in standalone mode)
+// ============================================================================
+// Robust 6-step installation wizard: Welcome → Requirements → Database → Seeding → Admin → Review/Complete
+Route::prefix('installation')->name('installation.')->withoutMiddleware(['auth'])->group(function () {
+    // Step 1: Welcome
+    Route::get('/', [StandaloneInstallationController::class, 'index'])->name('index');
+    
+    // Step 2: System Requirements Check
+    Route::get('/requirements', [StandaloneInstallationController::class, 'requirements'])->name('requirements');
+    
+    // Step 3: Database Configuration
+    Route::get('/database', [StandaloneInstallationController::class, 'database'])->name('database');
+    Route::post('/database/test-server', [StandaloneInstallationController::class, 'testServerConnection'])->name('database.test-server');
+    Route::post('/database/test', [StandaloneInstallationController::class, 'testDatabaseConnection'])->name('database.test');
+    Route::post('/database/create', [StandaloneInstallationController::class, 'createDatabase'])->name('database.create');
+    Route::post('/database/migrate', [StandaloneInstallationController::class, 'migrate'])->name('migrate');
+    
+    // Step 4: Seed Essential Data
+    Route::get('/seeding', [StandaloneInstallationController::class, 'seeding'])->name('seeding');
+    Route::post('/seeding/run', [StandaloneInstallationController::class, 'seed'])->name('seed');
+    
+    // Step 5: Create Super Administrator
+    Route::get('/admin', [StandaloneInstallationController::class, 'admin'])->name('admin');
+    Route::post('/admin', [StandaloneInstallationController::class, 'createAdmin'])->name('admin.store');
+    
+    // Step 6: Review & Finalize
+    Route::get('/review', [StandaloneInstallationController::class, 'review'])->name('review');
+    Route::post('/finalize', [StandaloneInstallationController::class, 'finalize'])->name('finalize');
+    Route::post('/verify-admin', [StandaloneInstallationController::class, 'verifyAdmin'])->name('verify-admin');
+    
+    // API endpoints for staged installation (used by Review page)
+    Route::post('/api/migrate', [StandaloneInstallationController::class, 'apiMigrate'])->name('api.migrate');
+    Route::post('/api/seed', [StandaloneInstallationController::class, 'apiSeed'])->name('api.seed');
+    
+    // Complete
+    Route::get('/complete', [StandaloneInstallationController::class, 'complete'])->name('complete');
+    
+    // Already Installed
+    Route::get('/already-installed', [StandaloneInstallationController::class, 'alreadyInstalled'])->name('already-installed');
+    
+    // Quick Install (one-step alternative for advanced users)
+    Route::post('/quick', [StandaloneInstallationController::class, 'quickInstall'])->name('quick');
+});
 
 // ============================================================================
 // ADMIN SETUP ROUTES (No Auth - for newly provisioned tenants)

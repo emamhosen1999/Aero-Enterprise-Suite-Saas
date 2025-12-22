@@ -358,6 +358,12 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Register HandleInertiaRequests middleware to web middleware group
             $router->pushMiddlewareToGroup('web', \Aero\Core\Http\Middleware\HandleInertiaRequests::class);
 
+            // Register CheckInstallation middleware for standalone mode (early in the stack)
+            // This redirects to installation wizard if app hasn't been installed
+            if (!$this->isPlatformActive()) {
+                $router->prependMiddlewareToGroup('web', \Aero\Core\Middleware\CheckInstallation::class);
+            }
+
             // Register middleware aliases
             $router->aliasMiddleware('module', \Aero\Core\Http\Middleware\CheckModuleAccess::class);
 

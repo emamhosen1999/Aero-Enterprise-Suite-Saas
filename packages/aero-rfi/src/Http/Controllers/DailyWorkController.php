@@ -58,7 +58,7 @@ class DailyWorkController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Rfi/DailyWorks/Create', [
+        return Inertia::render('Rfi/DailyWorks/Create/Index', [
             'title' => 'Create Daily Work',
             'statuses' => DailyWork::$statuses,
             'types' => DailyWork::$types,
@@ -98,7 +98,7 @@ class DailyWorkController extends Controller
             'submissionOverrideLogs.overriddenByUser',
         ]);
 
-        return Inertia::render('Rfi/DailyWorks/Show', [
+        return Inertia::render('Rfi/DailyWorks/Show/Index', [
             'title' => "Daily Work #{$dailyWork->number}",
             'dailyWork' => $dailyWork,
             'rfiFiles' => $dailyWork->rfi_files,
@@ -114,7 +114,7 @@ class DailyWorkController extends Controller
     {
         $dailyWork->load(['inchargeUser', 'assignedUser', 'workLocation']);
 
-        return Inertia::render('Rfi/DailyWorks/Edit', [
+        return Inertia::render('Rfi/DailyWorks/Edit/Index', [
             'title' => "Edit Daily Work #{$dailyWork->number}",
             'dailyWork' => $dailyWork,
             'statuses' => DailyWork::$statuses,
@@ -273,7 +273,7 @@ class DailyWorkController extends Controller
             'date_to' => $endDate,
         ], 50);
 
-        return Inertia::render('Rfi/DailyWorks/Summary', [
+        return Inertia::render('Rfi/DailyWorks/Summary/Index', [
             'title' => 'Daily Work Summary',
             'summary' => $summary,
             'filters' => [

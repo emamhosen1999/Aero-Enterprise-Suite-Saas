@@ -56,7 +56,7 @@ class ObjectionController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Rfi/Objections/Create', [
+        return Inertia::render('Rfi/Objections/Create/Index', [
             'title' => 'Create Objection',
             'categories' => Objection::$categories,
             'categoryLabels' => Objection::$categoryLabels,
@@ -97,7 +97,7 @@ class ObjectionController extends Controller
             'statusLogs.changedByUser',
         ]);
 
-        return Inertia::render('Rfi/Objections/Show', [
+        return Inertia::render('Rfi/Objections/Show/Index', [
             'title' => "Objection: {$objection->title}",
             'objection' => $objection,
             'files' => $objection->files,
@@ -114,13 +114,13 @@ class ObjectionController extends Controller
     {
         // Only allow editing of draft objections
         if ($objection->status !== Objection::STATUS_DRAFT) {
-            return Inertia::render('Error', [
+            return Inertia::render('Error/Index', [
                 'status' => 403,
                 'message' => 'Only draft objections can be edited.',
             ]);
         }
 
-        return Inertia::render('Rfi/Objections/Edit', [
+        return Inertia::render('Rfi/Objections/Edit/Index', [
             'title' => "Edit Objection: {$objection->title}",
             'objection' => $objection,
             'categories' => Objection::$categories,
@@ -335,7 +335,7 @@ class ObjectionController extends Controller
         $perPage = $request->input('per_page', 15);
         $objections = $this->objectionService->getPendingReview($perPage);
 
-        return Inertia::render('Rfi/Objections/PendingReview', [
+        return Inertia::render('Rfi/Objections/PendingReview/Index', [
             'title' => 'Objections Pending Review',
             'objections' => $objections,
             'categoryLabels' => Objection::$categoryLabels,

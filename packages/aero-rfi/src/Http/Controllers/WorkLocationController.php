@@ -68,7 +68,7 @@ class WorkLocationController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Rfi/WorkLocations/Create', [
+        return Inertia::render('Rfi/WorkLocations/Create/Index', [
             'title' => 'Create Work Location',
             'users' => User::select(['id', 'name'])->orderBy('name')->get(),
         ]);
@@ -93,7 +93,7 @@ class WorkLocationController extends Controller
     {
         $workLocation->load(['inchargeUser']);
 
-        return Inertia::render('Rfi/WorkLocations/Show', [
+        return Inertia::render('Rfi/WorkLocations/Show/Index', [
             'title' => "Work Location: {$workLocation->name}",
             'workLocation' => $workLocation,
             'dailyWorksCount' => $workLocation->dailyWorks()->count(),
@@ -107,7 +107,7 @@ class WorkLocationController extends Controller
      */
     public function edit(WorkLocation $workLocation): Response
     {
-        return Inertia::render('Rfi/WorkLocations/Edit', [
+        return Inertia::render('Rfi/WorkLocations/Edit/Index', [
             'title' => "Edit Work Location: {$workLocation->name}",
             'workLocation' => $workLocation,
             'users' => User::select(['id', 'name'])->orderBy('name')->get(),
@@ -161,7 +161,7 @@ class WorkLocationController extends Controller
             $request->input('per_page', 15)
         );
 
-        return Inertia::render('Rfi/WorkLocations/DailyWorks', [
+        return Inertia::render('Rfi/WorkLocations/DailyWorks/Index', [
             'title' => "Daily Works - {$workLocation->name}",
             'workLocation' => $workLocation,
             'dailyWorks' => $dailyWorks,
