@@ -91,7 +91,7 @@ Route::middleware('admin.domain')->group(function () {
         }
 
         return redirect()->route('admin.login');
-    });
+    })->name('admin.root');
 
 // Session check route for admin domain (uses landlord guard)
 Route::get('/session-check', function () {
