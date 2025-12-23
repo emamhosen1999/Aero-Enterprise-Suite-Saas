@@ -34,22 +34,32 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Handle the incoming request.
-     * Intercepts root route to redirect to dashboard or login.
+     * 
+     * In SaaS mode on central/admin domains, skip this middleware entirely
+     * and let Platform's HandleInertiaRequests handle everything.
+     * 
+     * In standalone mode or on tenant domains, this middleware handles Inertia requests.
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, \Closure $next)
     {
-        // Intercept root route "/" and redirect appropriately
-        // This ensures the package works without modifying host app routes
-        // SKIP this in SaaS mode - Platform's HandleInertiaRequests handles "/" with a landing page
-        if ($request->is('/') || $request->path() === '/') {
-            // In SaaS mode, let Platform's middleware handle root route
-            if (is_saas_mode()) {
-                return parent::handle($request, $next);
+        // In SaaS mode, skip on central/admin domains - Platform handles those
+        if (is_saas_mode() && class_exists('Aero\Platform\Http\Middleware\IdentifyDomainContext')) {
+            $context = $request->attributes->get('domain_context');
+            
+            // On admin/platform domains, let Platform's middleware handle everything
+            // Using constants from Platform's IdentifyDomainContext
+            $adminContext = \Aero\Platform\Http\Middleware\IdentifyDomainContext::CONTEXT_ADMIN;
+            $platformContext = \Aero\Platform\Http\Middleware\IdentifyDomainContext::CONTEXT_PLATFORM;
+            
+            if (in_array($context, [$adminContext, $platformContext], true)) {
+                return $next($request);
             }
+        }
 
-            // In standalone mode, redirect to dashboard or login
+        // Intercept root route "/" and redirect appropriately (standalone mode or tenant context)
+        if ($request->is('/') || $request->path() === '/') {
             if (Auth::check()) {
                 return redirect('/dashboard');
             }

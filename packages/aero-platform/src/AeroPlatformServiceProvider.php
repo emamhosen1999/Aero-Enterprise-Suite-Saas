@@ -119,27 +119,28 @@ class AeroPlatformServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Configure guest redirect for authentication middleware
-        $this->configureGuestRedirect();
+        // ONLY register platform routes, middleware, and features in SaaS mode
+        // In standalone mode, the platform package might be installed but should not interfere
+        if ($this->installed() && $this->isSaasMode()) {
+            // Configure guest redirect for authentication middleware
+            $this->configureGuestRedirect();
 
-        // Load platform migrations for landlord database
+            // Register platform routes (admin + public platform routes)
+            $this->registerRoutes();
+
+            // Register platform middleware (HandleInertiaRequests, IdentifyDomainContext, etc.)
+            $this->registerMiddleware();
+        }
+
+        // Load platform migrations for landlord database (always needed if package is installed)
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        // Register routes
-
-        // Always load installation wizard routes
-        // (routes file handles redirect logic internally, but /install/complete must be accessible post-install)
+        // Always load installation wizard routes (needed during installation)
         $installationRoutes = __DIR__.'/../routes/installation.php';
         if (file_exists($installationRoutes)) {
             \Illuminate\Support\Facades\Route::middleware(['web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class])
                 ->group($installationRoutes);
         }
-
-        // Also register main platform routes
-        $this->registerRoutes();
-
-        // Register middleware (including HandleInertiaRequests which intercepts "/")
-        $this->registerMiddleware();
 
         // Register commands
         if ($this->app->runningInConsole()) {
@@ -639,47 +640,46 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // REMOVED: $this->app['auth']->shouldUse('landlord');
         // This was causing issues - admin routes already use auth:landlord explicitly
 
-        // Configure the Authenticate middleware to redirect to admin.login for landlord guard
+        // Configure the Authenticate middleware to redirect to appropriate login based on domain
         $this->app->resolving(\Illuminate\Auth\Middleware\Authenticate::class, function ($middleware) {
             $middleware->redirectUsing(function ($request) {
                 $host = $request->getHost();
 
-                // Admin subdomain uses admin.login
+                // Admin subdomain → admin.login
                 if (str_starts_with($host, 'admin.')) {
                     return route('admin.login');
                 }
 
-                // Tenant subdomain uses tenant login (if exists)
-                if (Route::has('tenant.login')) {
-                    return route('tenant.login');
-                }
-
-                // Fallback to login route
+                // Tenant/other subdomain → login
                 return route('login');
             });
         });
 
-        // Configure RedirectIfAuthenticated (guest middleware) to redirect to correct dashboard
+        // Configure RedirectIfAuthenticated (guest middleware) to redirect authenticated users
+        // This is called when an authenticated user tries to access login/register pages
         \Illuminate\Auth\Middleware\RedirectIfAuthenticated::redirectUsing(function ($request) {
             $host = $request->getHost();
 
-            // Check if we're on admin subdomain - redirect to admin dashboard
+            // Admin subdomain: Check landlord guard and redirect if authenticated
             if (str_starts_with($host, 'admin.')) {
-                // Check if landlord is authenticated
                 if (\Illuminate\Support\Facades\Auth::guard('landlord')->check()) {
                     return route('admin.dashboard');
                 }
             }
 
-            // For tenant subdomain - redirect to tenant dashboard
+            // Tenant subdomain: Check web guard and redirect if authenticated
             if (\Illuminate\Support\Facades\Auth::guard('web')->check()) {
-                if (Route::has('dashboard')) {
+                // Try core.dashboard first, fallback to dashboard, then /dashboard
+                if (\Illuminate\Support\Facades\Route::has('core.dashboard')) {
+                    return route('core.dashboard');
+                } elseif (\Illuminate\Support\Facades\Route::has('dashboard')) {
                     return route('dashboard');
                 }
+                return '/dashboard';
             }
 
-            // Default fallback
-            return '/';
+            // No redirect - allow access to guest pages (not authenticated)
+            return null;
         });
     }
 

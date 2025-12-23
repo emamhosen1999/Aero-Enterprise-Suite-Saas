@@ -2,7 +2,6 @@
 
 namespace Aero\Core\Http\Middleware;
 
-use Aero\Platform\Http\Middleware\IdentifyDomainContext;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,12 +12,8 @@ class RedirectIfAuthenticated
     /**
      * Handle an incoming request.
      *
-     * Context-aware redirect for authenticated users.
-     * Redirects to /dashboard path, which resolves to the appropriate
-     * route based on domain context:
-     * - Admin domain (admin.domain.com) → admin.dashboard route
-     * - Tenant domain (tenant.domain.com) → core.dashboard route
-     * - Platform domain (domain.com) → may vary
+     * Redirect authenticated users away from guest-only pages (like login).
+     * Uses Laravel's default behavior but respects guard-specific redirects.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -28,9 +23,8 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                // Redirect to /dashboard path - the actual route name varies by context
-                // but the path is consistent across admin, tenant, and platform contexts
-                return redirect('/dashboard');
+                // Use Laravel's default HOME constant or fallback to /dashboard
+                return redirect(config('fortify.home', '/dashboard'));
             }
         }
 
