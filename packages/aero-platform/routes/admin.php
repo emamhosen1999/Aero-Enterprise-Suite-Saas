@@ -16,6 +16,7 @@ use Aero\Platform\Http\Controllers\PlanModuleController;
 use Aero\Platform\Http\Controllers\PlatformSettingController;
 use Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController;
 use Aero\Platform\Http\Controllers\TenantController;
+use Aero\Platform\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -52,7 +53,23 @@ use Inertia\Inertia;
 | This ensures authentication is checked against the landlord_users table
 | in the central database, not the tenant users table.
 |
+| Domain Context Check:
+| - These routes should ONLY be accessible from admin subdomain (admin.domain.com)
+| - IdentifyDomainContext middleware sets the domain context on the request
+| - We check the context and abort with 404 if accessed from wrong domain
+|
 */
+
+// Domain context check - abort if not on admin subdomain
+// This ensures these routes only respond on admin.domain.com
+if (!app()->runningInConsole() && request()) {
+    $context = request()->attributes->get('domain_context');
+    if ($context !== IdentifyDomainContext::CONTEXT_ADMIN) {
+        // Not on admin domain - these routes should not be accessible
+        // Return early to prevent route registration
+        return;
+    }
+}
 
 // =========================================================================
 // LANDLORD AUTHENTICATION ROUTES
