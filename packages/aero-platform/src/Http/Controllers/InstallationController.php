@@ -210,8 +210,6 @@ class InstallationController extends Controller
             ],
             'environmentIssues' => $envCheck['issues'],
         ]);
-            // Ensure runtime uses wizard-provided DB credentials immediately
-            $this->applyRuntimeDatabaseConfig($dbConfig);
 
     }
 
@@ -220,9 +218,21 @@ class InstallationController extends Controller
      */
     public function testServerConnection(Request $request): \Illuminate\Http\JsonResponse
     {
+        $request->validate([
+            'host' => ['required', 'string'],
+            'port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'username' => ['required', 'string'],
+            'password' => ['nullable', 'string'],
+        ]);
+
         try {
-            // Reconnect using the updated runtime configuration
-            DB::reconnect(config('database.default', 'mysql'));
+            $testConnection = $this->installationService->testServerConnection(
+                $request->host,
+                (int) $request->port,
+                $request->username,
+                $request->password
+            );
+
             if ($testConnection['success']) {
                 // Get available databases for user
                 $databases = $this->installationService->listDatabases(
