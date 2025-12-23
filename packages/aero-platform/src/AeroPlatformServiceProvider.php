@@ -119,27 +119,28 @@ class AeroPlatformServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Configure guest redirect for authentication middleware
-        $this->configureGuestRedirect();
+        // ONLY register platform routes, middleware, and features in SaaS mode
+        // In standalone mode, the platform package might be installed but should not interfere
+        if ($this->installed() && $this->isSaasMode()) {
+            // Configure guest redirect for authentication middleware
+            $this->configureGuestRedirect();
 
-        // Load platform migrations for landlord database
+            // Register platform routes (admin + public platform routes)
+            $this->registerRoutes();
+
+            // Register platform middleware (HandleInertiaRequests, IdentifyDomainContext, etc.)
+            $this->registerMiddleware();
+        }
+
+        // Load platform migrations for landlord database (always needed if package is installed)
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        // Register routes
-
-        // Always load installation wizard routes
-        // (routes file handles redirect logic internally, but /install/complete must be accessible post-install)
+        // Always load installation wizard routes (needed during installation)
         $installationRoutes = __DIR__.'/../routes/installation.php';
         if (file_exists($installationRoutes)) {
             \Illuminate\Support\Facades\Route::middleware(['web', \Aero\Platform\Http\Middleware\ForceFileSessionForInstallation::class])
                 ->group($installationRoutes);
         }
-
-        // Also register main platform routes
-        $this->registerRoutes();
-
-        // Register middleware (including HandleInertiaRequests which intercepts "/")
-        $this->registerMiddleware();
 
         // Register commands
         if ($this->app->runningInConsole()) {
