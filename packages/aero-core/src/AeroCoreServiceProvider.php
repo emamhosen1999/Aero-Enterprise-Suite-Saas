@@ -462,6 +462,11 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Register HandleInertiaRequests middleware to web middleware group
             $router->pushMiddlewareToGroup('web', \Aero\Core\Http\Middleware\HandleInertiaRequests::class);
 
+            // In SaaS mode, add tenant.active middleware to web group (after auth)
+            if (is_saas_mode() && class_exists('\Aero\Platform\Http\Middleware\EnsureTenantIsActive')) {
+                $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\EnsureTenantIsActive::class);
+            }
+
             // Register middleware aliases
             $router->aliasMiddleware('module', \Aero\Core\Http\Middleware\CheckModuleAccess::class);
 
