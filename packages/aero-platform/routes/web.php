@@ -12,6 +12,7 @@ use Aero\Platform\Http\Controllers\TenantController;
 use Aero\Platform\Http\Controllers\Webhooks\SslCommerzWebhookController;
 use Aero\Platform\Http\Controllers\Webhooks\StripeWebhookController;
 use Aero\Platform\Http\Middleware\EnsureInstallationVerified;
+use Aero\Platform\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -31,7 +32,23 @@ use Inertia\Inertia;
 | Admin routes are in admin.php (for admin.domain.com).
 | Tenant routes are handled by aero-core and modules (for tenant.domain.com).
 |
+| Domain Context Check:
+| - These routes should ONLY be accessible from platform root domain (domain.com)
+| - IdentifyDomainContext middleware sets the domain context on the request
+| - We check the context and abort with 404 if accessed from wrong domain
+|
 */
+
+// Domain context check - only load these routes on platform domain
+// This ensures these routes only respond on domain.com (not admin.domain.com or tenant.domain.com)
+if (!app()->runningInConsole() && request()) {
+    $context = request()->attributes->get('domain_context');
+    if ($context !== IdentifyDomainContext::CONTEXT_PLATFORM) {
+        // Not on platform domain - these routes should not be accessible
+        // Return early to prevent route registration
+        return;
+    }
+}
 
 // =========================================================================
 // LANDING & ROOT ROUTES
