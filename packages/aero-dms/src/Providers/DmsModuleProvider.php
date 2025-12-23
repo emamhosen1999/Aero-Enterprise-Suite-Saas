@@ -4,6 +4,11 @@ namespace Aero\Dms\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
 use Aero\Core\Contracts\ModuleRegistry;
+use Aero\Core\Services\DashboardWidgetRegistry;
+use Aero\DMS\Widgets\RecentDocumentsWidget;
+use Aero\DMS\Widgets\StorageUsageWidget;
+use Aero\DMS\Widgets\PendingApprovalsWidget;
+use Aero\DMS\Widgets\SharedWithMeWidget;
 
 class DmsModuleProvider extends AbstractModuleProvider
 {
@@ -47,10 +52,28 @@ class DmsModuleProvider extends AbstractModuleProvider
         // Load module views (if any)
         // $this->loadViewsFrom(__DIR__.'/../../resources/views', 'dms');
         
+        // Register dashboard widgets
+        $this->registerDashboardWidgets();
+        
         // Publish module assets
         $this->publishes([
             __DIR__ . '/../../config/module.php' => config_path('modules/dms.php'),
         ], 'dms-config');
+    }
+
+    /**
+     * Register DMS dashboard widgets.
+     */
+    protected function registerDashboardWidgets(): void
+    {
+        $registry = $this->app->make(DashboardWidgetRegistry::class);
+        
+        $registry->registerMany([
+            new RecentDocumentsWidget(),
+            new StorageUsageWidget(),
+            new PendingApprovalsWidget(),
+            new SharedWithMeWidget(),
+        ]);
     }
 
     /**

@@ -59,8 +59,18 @@ class NotificationsWidget extends AbstractDashboardWidget
     /**
      * Get widget data for frontend.
      */
-    public function getData(mixed $user): array
+    public function getData(): array
     {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return [
+                'notifications' => [],
+                'unreadCount' => 0,
+                'hasMore' => false,
+            ];
+        }
+
         // Get recent unread notifications
         $notifications = $user->unreadNotifications()
             ->take(5)

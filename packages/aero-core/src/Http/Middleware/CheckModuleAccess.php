@@ -73,15 +73,20 @@ class CheckModuleAccess
             return $this->handlePlatformAccess($request, $next, $user, $moduleCode, $subModuleCode, $componentCode, $actionCode);
         }
 
-        // Tenant context - check if tenant is properly initialized (from domain routing)
-        $tenant = tenant();
-        if (! $tenant) {
-            return $this->denyAccess(
-                $request,
-                'no_tenant',
-                'Tenant context not found. Please access via tenant subdomain.',
-                401
-            );
+        // In standalone mode, skip tenant check
+        $isStandalone = config('aero.mode') === 'standalone';
+
+        if (! $isStandalone) {
+            // Tenant context - check if tenant is properly initialized (from domain routing)
+            $tenant = tenant();
+            if (! $tenant) {
+                return $this->denyAccess(
+                    $request,
+                    'no_tenant',
+                    'Tenant context not found. Please access via tenant subdomain.',
+                    401
+                );
+            }
         }
 
         // Empty string check - treat empty strings as null
@@ -136,7 +141,7 @@ class CheckModuleAccess
             return $this->denyAccess(
                 $request,
                 $accessCheck['reason'],
-                $accessCheck['message'],
+                $accessCheck['message'] ?? $accessCheck['reason'],
                 $statusCode,
                 [
                     'module' => $moduleCode,
@@ -155,25 +160,34 @@ class CheckModuleAccess
      */
     protected function detectGuard(Request $request): string
     {
+        // In standalone mode, always use 'web' guard
+        if (config('aero.mode') === 'standalone') {
+            return 'web';
+        }
+
+        // Check if landlord guard is defined in auth config
+        $guards = array_keys(config('auth.guards', []));
+        $landlordExists = in_array('landlord', $guards);
+
         // Check if we're on an admin subdomain or route
         $host = $request->getHost();
 
         // Check for admin subdomain pattern
-        if (str_starts_with($host, 'admin.') || str_contains($host, 'admin')) {
+        if ($landlordExists && (str_starts_with($host, 'admin.') || str_contains($host, 'admin'))) {
             return 'landlord';
         }
 
         // Check route middleware for landlord guard
         $route = $request->route();
-        if ($route) {
+        if ($landlordExists && $route) {
             $middleware = $route->middleware();
             if (in_array('auth:landlord', $middleware)) {
                 return 'landlord';
             }
         }
 
-        // Check if landlord guard is already authenticated
-        if (Auth::guard('landlord')->check()) {
+        // Check if landlord guard is already authenticated (only if guard exists)
+        if ($landlordExists && Auth::guard('landlord')->check()) {
             return 'landlord';
         }
 

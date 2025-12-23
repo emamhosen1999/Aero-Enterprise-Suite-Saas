@@ -842,7 +842,6 @@ class InstallationController extends Controller
 
             // Create Super Administrator role for landlord guard (matching LandlordUser's guard_name)
             $role = \Spatie\Permission\Models\Role::firstOrCreate(
-                ['name' => 'Super Administrator', 'guard_name' => 'landlord'],
                 ['name' => 'Super Administrator', 'guard_name' => 'landlord', 'scope' => 'platform']
             );
 

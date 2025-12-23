@@ -117,9 +117,18 @@ class HRMServiceProvider extends AbstractModuleProvider
 
         // Register HRM widgets for Core Dashboard
         $registry->registerMany([
+            // Leave & Attendance widgets
             new \Aero\HRM\Widgets\PunchStatusWidget(),
             new \Aero\HRM\Widgets\MyLeaveBalanceWidget(),
             new \Aero\HRM\Widgets\PendingLeaveApprovalsWidget(),
+            new \Aero\HRM\Widgets\UpcomingHolidaysWidget(),
+            new \Aero\HRM\Widgets\OrganizationInfoWidget(),
+            // Performance Management widgets
+            new \Aero\HRM\Widgets\MyGoalsWidget(),
+            new \Aero\HRM\Widgets\PendingReviewsWidget(),
+            // Manager widgets
+            new \Aero\HRM\Widgets\TeamAttendanceWidget(),
+            new \Aero\HRM\Widgets\PayrollSummaryWidget(),
         ]);
     }
 

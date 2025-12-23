@@ -17,7 +17,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Pages/Core/Auth/Login', [
+        return Inertia::render('Shared/Auth/Login', [
             'canResetPassword' => true,
             'status' => session('status'),
         ]);

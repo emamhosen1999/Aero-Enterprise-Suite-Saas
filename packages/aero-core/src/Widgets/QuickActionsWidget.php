@@ -61,8 +61,9 @@ class QuickActionsWidget extends AbstractDashboardWidget
     /**
      * Get widget data for frontend.
      */
-    public function getData(mixed $user): array
+    public function getData(): array
     {
+        $user = auth()->user();
         $actions = [];
 
         // Core actions available to all users
@@ -75,7 +76,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
         ];
 
         // Add role-based quick actions
-        if ($user->can('users.view')) {
+        if ($user?->can('users.view')) {
             $actions[] = [
                 'key' => 'users',
                 'label' => 'Manage Users',
@@ -85,7 +86,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
             ];
         }
 
-        if ($user->can('roles.view')) {
+        if ($user?->can('roles.view')) {
             $actions[] = [
                 'key' => 'roles',
                 'label' => 'Manage Roles',
@@ -96,7 +97,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
         }
 
         // HRM-specific quick actions (if module is accessible)
-        if ($user->can('attendance.own.punch')) {
+        if ($user?->can('attendance.own.punch')) {
             $actions[] = [
                 'key' => 'punch',
                 'label' => 'Clock In/Out',
@@ -106,7 +107,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
             ];
         }
 
-        if ($user->can('leave.own.apply')) {
+        if ($user?->can('leave.own.apply')) {
             $actions[] = [
                 'key' => 'leave',
                 'label' => 'Apply Leave',

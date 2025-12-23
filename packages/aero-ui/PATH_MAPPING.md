@@ -30,13 +30,13 @@ Pages/
 
 | Old Path | New Path | Status |
 |----------|----------|--------|
-| `Auth/Login` | `Pages/Core/Auth/Login` | ✓ |
-| `Auth/Register` | `Pages/Core/Auth/Register` | ✓ |
-| `Auth/ForgotPassword` | `Pages/Core/Auth/ForgotPassword` | ✓ |
-| `Auth/ResetPassword` | `Pages/Core/Auth/ResetPassword` | ✓ |
-| `Auth/VerifyEmail` | `Pages/Core/Auth/VerifyEmail` | ✓ |
-| `Auth/AcceptInvitation` | `Pages/Core/Auth/AcceptInvitation` | → |
-| `Auth/InvitationExpired` | `Pages/Core/Auth/InvitationExpired` | → |
+| `Auth/Login` | `Shared/Auth/Login` | ✓ |
+| `Auth/Register` | `Shared/Auth/Register` | ✓ |
+| `Auth/ForgotPassword` | `Shared/Auth/ForgotPassword` | ✓ |
+| `Auth/ResetPassword` | `Shared/Auth/ResetPassword` | ✓ |
+| `Auth/VerifyEmail` | `Shared/Auth/VerifyEmail` | ✓ |
+| `Auth/AcceptInvitation` | `Shared/Auth/AcceptInvitation` | → |
+| `Auth/InvitationExpired` | `Shared/Auth/InvitationExpired` | → |
 | `Core/Dashboard` | `Pages/Core/Core/Dashboard` | ✓ |
 | `Core/Extensions/Index` | `Pages/Core/Admin/Extensions/Index` | ✓ |
 | `Core/Extensions/Settings` | `Pages/Core/Admin/Extensions/Settings` | ✓ |

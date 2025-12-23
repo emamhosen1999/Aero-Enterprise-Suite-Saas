@@ -6,6 +6,7 @@ use Aero\Core\Models\Action;
 use Aero\Core\Models\Component;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\SubModule;
+use Closure;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -19,13 +20,63 @@ use Spatie\Permission\Models\Role;
 class RoleModuleAccessService
 {
     /**
+     * Check if the cache store supports tagging.
+     */
+    protected function cacheSupportsTagging(): bool
+    {
+        try {
+            $driver = config('cache.default');
+            $store = config("cache.stores.{$driver}.driver");
+
+            // Only redis, memcached, and dynamodb support tagging
+            return in_array($store, ['redis', 'memcached', 'dynamodb']);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Cache with tags if supported, otherwise fall back to regular cache.
+     *
+     * @param  array<string>  $tags
+     */
+    protected function rememberWithOptionalTags(array $tags, string $key, int $ttl, Closure $callback): mixed
+    {
+        if ($this->cacheSupportsTagging()) {
+            return Cache::tags($tags)->remember($key, $ttl, $callback);
+        }
+
+        // Prefix the key with tags for manual grouping when tagging is not supported
+        $prefixedKey = 'role_access.' . implode('.', $tags) . '.' . $key;
+
+        return Cache::remember($prefixedKey, $ttl, $callback);
+    }
+
+    /**
+     * Flush cache by tags if supported, otherwise no-op for non-tagging stores.
+     *
+     * @param  array<string>  $tags
+     */
+    protected function flushWithOptionalTags(array $tags): void
+    {
+        if ($this->cacheSupportsTagging()) {
+            Cache::tags($tags)->flush();
+
+            return;
+        }
+
+        // For non-tagging cache stores, we can't selectively flush by tags
+        // The cache will naturally expire, or use Cache::flush() to clear all
+    }
+
+    /**
      * Get complete access tree for a role.
      */
     public function getRoleAccessTree(Role $role): array
     {
         $cacheKey = "role.{$role->id}.access_tree";
 
-        return Cache::tags(['role-access', "role-{$role->id}"])->remember($cacheKey, 3600, function () use ($role) {
+        return $this->rememberWithOptionalTags(['role-access', "role-{$role->id}"], $cacheKey, 3600, function () use ($role) {
             $permissions = $role->permissions()->pluck('name')->toArray();
 
             return [
@@ -164,11 +215,11 @@ class RoleModuleAccessService
      */
     public function clearRoleCache(Role $role): void
     {
-        Cache::tags(["role-{$role->id}"])->flush();
+        $this->flushWithOptionalTags(["role-{$role->id}"]);
 
         // Also clear cache for all users with this role
         foreach ($role->users as $user) {
-            Cache::tags(["user-{$user->id}"])->flush();
+            $this->flushWithOptionalTags(["user-{$user->id}"]);
         }
     }
 

@@ -29,6 +29,8 @@ use Aero\HRM\Http\Controllers\Leave\BulkLeaveController;
 use Aero\HRM\Http\Controllers\Leave\LeaveController;
 use Aero\HRM\Http\Controllers\Settings\LeaveSettingController;
 use Aero\HRM\Http\Controllers\Performance\PerformanceReviewController;
+use Aero\HRM\Http\Controllers\Performance\GoalController;
+use Aero\HRM\Http\Controllers\Performance\SkillMatrixController;
 use Aero\HRM\Http\Controllers\Recruitment\RecruitmentController;
 use Aero\HRM\Http\Controllers\Settings\AttendanceSettingController;
 use Aero\HRM\Http\Controllers\Settings\HrmSettingController;
@@ -106,6 +108,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/performance/templates/{id}/edit', [PerformanceReviewController::class, 'editTemplate'])->name('performance.templates.edit');
         Route::put('/performance/templates/{id}', [PerformanceReviewController::class, 'updateTemplate'])->name('performance.templates.update');
         Route::delete('/performance/templates/{id}', [PerformanceReviewController::class, 'destroyTemplate'])->name('performance.templates.destroy');
+
+        // =====================================================================
+        // GOALS (OKR) Management
+        // =====================================================================
+        Route::prefix('goals')->name('goals.')->group(function () {
+            Route::get('/', [GoalController::class, 'index'])->name('index');
+            Route::get('/create', [GoalController::class, 'create'])->name('create');
+            Route::post('/', [GoalController::class, 'store'])->name('store');
+            Route::get('/team', [GoalController::class, 'teamGoals'])->name('team');
+            Route::get('/analytics', [GoalController::class, 'analytics'])->name('analytics');
+            Route::get('/{goalId}', [GoalController::class, 'show'])->name('show');
+            Route::put('/{goalId}', [GoalController::class, 'update'])->name('update');
+            Route::delete('/{goalId}', [GoalController::class, 'destroy'])->name('destroy');
+            Route::post('/{goalId}/check-in', [GoalController::class, 'checkIn'])->name('check-in');
+            Route::put('/{goalId}/key-results/{keyResultId}', [GoalController::class, 'updateKeyResult'])->name('key-results.update');
+        });
+
+        // =====================================================================
+        // COMPETENCIES & SKILL MATRIX
+        // =====================================================================
+        Route::prefix('competencies')->name('competencies.')->group(function () {
+            Route::get('/', [SkillMatrixController::class, 'index'])->name('index');
+            Route::post('/', [SkillMatrixController::class, 'store'])->name('store');
+            Route::put('/{competencyId}', [SkillMatrixController::class, 'update'])->name('update');
+            Route::delete('/{competencyId}', [SkillMatrixController::class, 'destroy'])->name('destroy');
+            Route::get('/role-frameworks', [SkillMatrixController::class, 'roleFrameworks'])->name('role-frameworks');
+            Route::post('/role-frameworks', [SkillMatrixController::class, 'createRoleFramework'])->name('role-frameworks.store');
+            Route::get('/team-matrix', [SkillMatrixController::class, 'teamMatrix'])->name('team-matrix');
+            Route::get('/analytics', [SkillMatrixController::class, 'analytics'])->name('analytics');
+            Route::get('/employees/{employeeId}', [SkillMatrixController::class, 'employeeProfile'])->name('employee-profile');
+            Route::post('/employees/{employeeId}/{competencyId}/assess', [SkillMatrixController::class, 'assessCompetency'])->name('assess');
+            Route::get('/employees/{employeeId}/gap-analysis', [SkillMatrixController::class, 'gapAnalysis'])->name('gap-analysis');
+            Route::post('/employees/{employeeId}/{competencyId}/endorse', [SkillMatrixController::class, 'endorse'])->name('endorse');
+        });
     });
 
     // Training Management

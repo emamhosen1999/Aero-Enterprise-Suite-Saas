@@ -61,8 +61,9 @@ class ActiveModulesWidget extends AbstractDashboardWidget
     /**
      * Get widget data for frontend.
      */
-    public function getData(mixed $user): array
+    public function getData(): array
     {
+        $user = auth()->user();
         $modules = [];
 
         // Get registered modules from ModuleRegistry
@@ -72,7 +73,7 @@ class ActiveModulesWidget extends AbstractDashboardWidget
 
             foreach ($registeredModules as $code => $moduleInfo) {
                 // Check if user has access to this module
-                if ($this->userCanAccessModule($user, $code)) {
+                if ($user && $this->userCanAccessModule($user, $code)) {
                     $modules[] = [
                         'code' => $code,
                         'name' => $moduleInfo['name'] ?? ucfirst($code),

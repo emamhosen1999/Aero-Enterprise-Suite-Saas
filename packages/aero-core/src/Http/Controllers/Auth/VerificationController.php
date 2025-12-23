@@ -19,7 +19,7 @@ class VerificationController extends Controller
     {
         return $request->user()->hasVerifiedEmail()
             ? redirect()->intended(route('dashboard'))
-            : Inertia::render('Pages/Core/Auth/VerifyEmail', ['status' => session('status')]);
+            : Inertia::render('Shared/Auth/VerifyEmail', ['status' => session('status')]);
     }
 
     /**

@@ -73,6 +73,16 @@ enum CoreWidgetCategory: string
     case FEED = 'feed';
 
     /**
+     * DISPLAY - Informational display widget
+     *
+     * Examples:
+     * - Welcome: Greeting and date display
+     * - ActiveModules: Shows available modules
+     * - SystemInfo: System information display
+     */
+    case DISPLAY = 'display';
+
+    /**
      * Check if this category is suitable for Core Dashboard.
      * All categories in this enum are valid for Core.
      */
@@ -92,6 +102,7 @@ enum CoreWidgetCategory: string
             self::SUMMARY => 'Quick Stats',
             self::NAVIGATION => 'Navigation',
             self::FEED => 'Activity Feed',
+            self::DISPLAY => 'Information',
         };
     }
 
@@ -106,6 +117,7 @@ enum CoreWidgetCategory: string
             self::SUMMARY => 'stats_row',
             self::NAVIGATION => 'main_left',
             self::FEED => 'main_right',
+            self::DISPLAY => 'welcome',
         };
     }
 }

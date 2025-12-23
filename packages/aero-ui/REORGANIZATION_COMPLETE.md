@@ -68,7 +68,7 @@ Added from TODO: admin.blade.php, platform.blade.php, attendance PDFs, leave sum
 
 | Package | Controllers Updated | Sample Paths |
 |---------|---------------------|--------------|
-| aero-core | 19 controllers | `Auth/Login` → `Pages/Core/Auth/Login` |
+| aero-core | 19 controllers | `Auth/Login` → `Shared/Auth/Login` |
 | aero-platform | 32 controllers | `Installation/Welcome` → `Pages/Platform/Admin/Installation/Welcome` |
 | aero-hrm | 28 controllers | `AttendanceAdmin` → `Pages/HRM/Attendance/Admin` |
 | aero-finance | 6 controllers | `Tenant/Pages/Finance/Dashboard` → `Pages/Finance/Dashboard` |

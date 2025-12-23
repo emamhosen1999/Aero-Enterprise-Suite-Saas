@@ -7,6 +7,7 @@ use Aero\Core\Models\Component;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\SubModule;
 use Aero\Core\Models\User;
+use Closure;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -23,13 +24,63 @@ use Illuminate\Support\Facades\Cache;
 class ModuleAccessService
 {
     /**
+     * Check if the cache store supports tagging.
+     */
+    protected function cacheSupportsTagging(): bool
+    {
+        try {
+            $driver = config('cache.default');
+            $store = config("cache.stores.{$driver}.driver");
+
+            // Only redis, memcached, and dynamodb support tagging
+            return in_array($store, ['redis', 'memcached', 'dynamodb']);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Cache with tags if supported, otherwise fall back to regular cache.
+     *
+     * @param  array<string>  $tags
+     */
+    protected function rememberWithOptionalTags(array $tags, string $key, int $ttl, Closure $callback): mixed
+    {
+        if ($this->cacheSupportsTagging()) {
+            return Cache::tags($tags)->remember($key, $ttl, $callback);
+        }
+
+        // Prefix the key with tags for manual grouping when tagging is not supported
+        $prefixedKey = 'module_access.' . implode('.', $tags) . '.' . $key;
+
+        return Cache::remember($prefixedKey, $ttl, $callback);
+    }
+
+    /**
+     * Flush cache by tags if supported, otherwise clear matching keys.
+     *
+     * @param  array<string>  $tags
+     */
+    protected function flushWithOptionalTags(array $tags): void
+    {
+        if ($this->cacheSupportsTagging()) {
+            Cache::tags($tags)->flush();
+
+            return;
+        }
+
+        // For non-tagging cache stores, we can't selectively flush by tags
+        // The cache will naturally expire, or use Cache::flush() to clear all
+        // In production, consider using Redis or Memcached for proper tag support
+    }
+    /**
      * Check if user can access a module.
      */
     public function canAccessModule(User $user, string $moduleCode): array
     {
         $cacheKey = "user.{$user->id}.module.{$moduleCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode) {
+        return $this->rememberWithOptionalTags(['module-access', "user-{$user->id}"], $cacheKey, 3600, function () use ($user, $moduleCode) {
             $module = Module::where('code', $moduleCode)->where('is_active', true)->first();
 
             if (! $module) {
@@ -77,7 +128,7 @@ class ModuleAccessService
 
         $cacheKey = "user.{$user->id}.submodule.{$moduleCode}.{$subModuleCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode) {
+        return $this->rememberWithOptionalTags(['module-access', "user-{$user->id}"], $cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode) {
             $subModule = SubModule::whereHas('module', function ($query) use ($moduleCode) {
                 $query->where('code', $moduleCode);
             })
@@ -120,7 +171,7 @@ class ModuleAccessService
 
         $cacheKey = "user.{$user->id}.component.{$moduleCode}.{$subModuleCode}.{$componentCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode) {
+        return $this->rememberWithOptionalTags(['module-access', "user-{$user->id}"], $cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode) {
             $component = Component::whereHas('subModule.module', function ($query) use ($moduleCode) {
                 $query->where('code', $moduleCode);
             })
@@ -166,7 +217,7 @@ class ModuleAccessService
 
         $cacheKey = "user.{$user->id}.action.{$moduleCode}.{$subModuleCode}.{$componentCode}.{$actionCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode, $actionCode) {
+        return $this->rememberWithOptionalTags(['module-access', "user-{$user->id}"], $cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode, $actionCode) {
             $action = Action::whereHas('component.subModule.module', function ($query) use ($moduleCode) {
                 $query->where('code', $moduleCode);
             })
@@ -209,7 +260,7 @@ class ModuleAccessService
     {
         $cacheKey = "user.{$user->id}.accessible_modules";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user) {
+        return $this->rememberWithOptionalTags(['module-access', "user-{$user->id}"], $cacheKey, 3600, function () use ($user) {
             $modules = Module::where('is_active', true)
                 ->with(['activeSubModules.activeComponents.activeActions'])
                 ->ordered()
@@ -228,7 +279,7 @@ class ModuleAccessService
      */
     public function clearUserCache(User $user): void
     {
-        Cache::tags(["user-{$user->id}"])->flush();
+        $this->flushWithOptionalTags(["user-{$user->id}"]);
     }
 
     /**
@@ -236,7 +287,7 @@ class ModuleAccessService
      */
     public function clearAllCache(): void
     {
-        Cache::tags(['module-access'])->flush();
+        $this->flushWithOptionalTags(['module-access']);
     }
 
     /**
