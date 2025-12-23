@@ -1029,12 +1029,12 @@ class ProvisionTenant implements ShouldQueue
                     'note' => 'Admin can retry provisioning or manually delete',
                 ], 'warning');
             } else {
-                // Delete tenant completely to allow re-registration (production)
-                $this->logStep('🔙 Step 3/3: Deleting tenant and domain records', [], 'warning');
-                $this->tenant->domains()->delete();
-                $this->tenant->forceDelete(); // Use forceDelete to bypass soft deletes if enabled
+                // Archive tenant (soft delete) to allow re-registration
+                // Don't use forceDelete - maintain audit trail
+                $this->logStep('🔙 Step 3/3: Archiving failed tenant', [], 'warning');
+                $this->tenant->delete(); // Soft delete instead of force delete
 
-                $this->logStep('✅ COMPLETE ROLLBACK SUCCESSFUL - User can re-register', [], 'warning');
+                $this->logStep('✅ COMPLETE ROLLBACK SUCCESSFUL - Tenant archived, user can re-register', [], 'warning');
             }
         } catch (Throwable $e) {
             $this->logStep('❌ ROLLBACK FAILED: '.$e->getMessage(), [

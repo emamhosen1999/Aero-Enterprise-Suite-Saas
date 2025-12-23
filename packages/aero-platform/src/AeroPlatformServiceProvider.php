@@ -94,6 +94,10 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->app->singleton(ErrorLogService::class);
         $this->app->singleton(SslCommerzService::class);
 
+        // Register tenant lifecycle services
+        $this->app->singleton(\Aero\Platform\Services\Tenant\TenantRetentionService::class);
+        $this->app->singleton(\Aero\Platform\Services\Tenant\TenantPurgeService::class);
+
         // Configure auth guards and providers programmatically
         $this->configureAuth();
 
@@ -144,6 +148,13 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Register middleware (including HandleInertiaRequests which intercepts "/")
         $this->registerMiddleware();
+
+        // Register commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Aero\Platform\Console\Commands\PurgeExpiredTenants::class,
+            ]);
+        }
 
         // Publish assets
         $this->registerPublishing();
@@ -304,6 +315,8 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $router->aliasMiddleware('maintenance', \Aero\Platform\Http\Middleware\CheckMaintenanceMode::class);
         $router->aliasMiddleware('permission', \Aero\Platform\Http\Middleware\PermissionMiddleware::class);
         $router->aliasMiddleware('role', \Aero\Platform\Http\Middleware\EnsureUserHasRole::class);
+        $router->aliasMiddleware('landlord', \Aero\Platform\Http\Middleware\EnsureLandlordGuard::class);
+        $router->aliasMiddleware('tenant.active', \Aero\Platform\Http\Middleware\EnsureTenantIsActive::class);
         $router->aliasMiddleware('platform.super.admin', \Aero\Platform\Http\Middleware\PlatformSuperAdmin::class);
         $router->aliasMiddleware('tenant.super.admin', \Aero\Platform\Http\Middleware\TenantSuperAdmin::class);
         $router->aliasMiddleware('tenant.setup', \Aero\Platform\Http\Middleware\EnsureTenantIsSetup::class);
