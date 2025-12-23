@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { heroUIThemes, applyThemeToDocument, generateHeroUIConfig } from '../theme/index';
+import { getCardStyle, applyCardStyleTheme } from '../theme/cardStyles';
 
 const ThemeContext = createContext();
 
@@ -15,32 +16,19 @@ export const ThemeProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [themeSettings, setThemeSettings] = useState({
     mode: 'light', // 'light' or 'dark'
-    activeTheme: 'heroui', // Current prebuilt theme
-    customColors: {
-      primary: '#006FEE',
-      secondary: '#17C964',
-      success: '#17C964',
-      warning: '#F5A524',
-      danger: '#F31260',
-      content1: '#FFFFFF',
-      content2: '#F4F4F5',
-      content3: '#E4E4E7',
-      content4: '#D4D4D8',
-      background: '#FFFFFF',
-      foreground: '#000000',
-      divider: '#E4E4E7'
-    },
+    cardStyle: 'modern', // Selected card style (replaces activeTheme)
     layout: {
-      fontFamily: 'Inter',
-      borderRadius: '8px',
-      borderWidth: '2px',
-      scale: '100%',
-      disabledOpacity: '0.5'
+      fontFamily: 'Inter' // ONLY user-customizable layout option
     },
     background: {
-      type: 'color', // 'color' only
-      color: '#ffffff' // Background color or gradient
+      type: 'color', // 'color' only (NO images)
+      color: '#ffffff' // Background color or gradient only
     }
+    // customColors REMOVED - auto-generated from cardStyle
+    // borderRadius REMOVED - comes from cardStyle
+    // borderWidth REMOVED - comes from cardStyle
+    // scale REMOVED - fixed at 100%
+    // disabledOpacity REMOVED - fixed at 0.5
   });
 
   // Load theme from localStorage on mount
@@ -89,24 +77,9 @@ export const ThemeProvider = ({ children }) => {
         ...newSettings
       };
 
-      // If activeTheme is being changed, apply the complete prebuilt theme configuration
-      if (newSettings.activeTheme && newSettings.activeTheme !== prev.activeTheme) {
-        const selectedTheme = heroUIThemes[newSettings.activeTheme];
-        if (selectedTheme) {
-          updatedSettings = {
-            ...prev,
-            ...newSettings,
-            layout: selectedTheme.layout ? {
-              ...prev.layout,
-              ...selectedTheme.layout
-            } : prev.layout,
-            background: selectedTheme.background ? {
-              ...prev.background,
-              ...selectedTheme.background
-            } : prev.background,
-            customColors: prev.customColors
-          };
-        }
+      // If cardStyle is being changed, apply the complete card style theme
+      if (newSettings.cardStyle && newSettings.cardStyle !== prev.cardStyle) {
+        updatedSettings = applyCardStyleTheme(newSettings.cardStyle, prev);
       }
 
       return updatedSettings;
@@ -123,27 +96,9 @@ export const ThemeProvider = ({ children }) => {
   const resetTheme = () => {
     setThemeSettings({
       mode: 'light',
-      activeTheme: 'heroui',
-      customColors: {
-        primary: '#006FEE',
-        secondary: '#17C964',
-        success: '#17C964',
-        warning: '#F5A524',
-        danger: '#F31260',
-        content1: '#FFFFFF',
-        content2: '#F4F4F5',
-        content3: '#E4E4E7',
-        content4: '#D4D4D8',
-        background: '#FFFFFF',
-        foreground: '#000000',
-        divider: '#E4E4E7'
-      },
+      cardStyle: 'modern',
       layout: {
-        fontFamily: 'Inter',
-        borderRadius: '8px',
-        borderWidth: '2px',
-        scale: '100%',
-        disabledOpacity: '0.5'
+        fontFamily: 'Inter'
       },
       background: {
         type: 'color',
@@ -152,7 +107,12 @@ export const ThemeProvider = ({ children }) => {
     });
   };
 
-  // Convert heroUIThemes object to array format expected by ThemeSettingDrawer
+  // Get current card style configuration
+  const getCurrentCardStyle = () => {
+    return getCardStyle(themeSettings.cardStyle || 'modern');
+  };
+
+  // Convert heroUIThemes object to array format (kept for backward compatibility)
   const prebuiltThemes = Object.keys(heroUIThemes || {}).map(key => ({
     id: key,
     name: heroUIThemes[key]?.name || key,
@@ -177,6 +137,7 @@ export const ThemeProvider = ({ children }) => {
     toggleMode,
     resetTheme,
     getHeroUITheme,
+    getCurrentCardStyle,
     prebuiltThemes,
     heroUIThemes // Add this so components can access the themes directly
   };

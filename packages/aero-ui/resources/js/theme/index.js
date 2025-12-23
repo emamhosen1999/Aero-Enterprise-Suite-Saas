@@ -4,6 +4,8 @@
  * Provides consistent theming across the application
  */
 
+import { getCardStyle } from './cardStyles';
+
 // HeroUI base theme colors
 export const heroUIThemes = {
   heroui: {
@@ -390,14 +392,20 @@ export const applyThemeToDocument = (theme) => {
   
   // Set data attributes
   root.setAttribute('data-theme', theme.mode);
-  root.setAttribute('data-active-theme', theme.activeTheme);
+  root.setAttribute('data-card-style', theme.cardStyle || 'modern');
   
-  // Get theme colors - use custom colors if activeTheme is 'custom'
+  // Get theme colors from card style or customColors
   let themeColors;
-  if (theme.activeTheme === 'custom' && theme.customColors) {
+  if (theme.customColors) {
+    // Use custom colors if available (for backward compatibility)
     themeColors = theme.customColors;
+  } else if (theme.cardStyle) {
+    // Get colors from card style
+    const cardStyle = getCardStyle(theme.cardStyle);
+    themeColors = cardStyle.theme.colors;
   } else {
-    const baseTheme = getTheme(theme.activeTheme);
+    // Fallback to default heroui theme
+    const baseTheme = getTheme('heroui');
     themeColors = isDark ? { ...baseTheme.colors, ...darkModeColors } : baseTheme.colors;
   }
   
@@ -427,9 +435,19 @@ export const applyThemeToDocument = (theme) => {
   if (themeColors.content3) root.style.setProperty('--theme-content3', themeColors.content3);
   if (themeColors.content4) root.style.setProperty('--theme-content4', themeColors.content4);
   
-  // Apply layout properties
-  if (theme.layout) {
-    Object.entries(theme.layout).forEach(([key, value]) => {
+  // Apply layout properties from card style or theme.layout
+  let layoutProps = theme.layout || {};
+  if (theme.cardStyle) {
+    const cardStyle = getCardStyle(theme.cardStyle);
+    layoutProps = {
+      ...cardStyle.theme.layout,
+      ...layoutProps // User's fontFamily overrides card style
+    };
+  }
+  
+  // Apply layout CSS variables
+  if (layoutProps) {
+    Object.entries(layoutProps).forEach(([key, value]) => {
       root.style.setProperty(`--${key}`, value);
     });
   }
@@ -459,28 +477,8 @@ export const applyThemeToDocument = (theme) => {
         body.style.setProperty('background-color', theme.background.color, 'important');
         body.style.setProperty('background-image', '', 'important');
       }
-    } else if (theme.background.type === 'image' && theme.background.image) {
-      // Reset color properties
-      body.style.setProperty('background-color', '', 'important');
-      
-      // Validate the image URL/data
-      if (theme.background.image.startsWith('data:image/') || 
-          theme.background.image.startsWith('http://') || 
-          theme.background.image.startsWith('https://') ||
-          theme.background.image.startsWith('/') ||
-          theme.background.image.includes('.')) {
-        
-        // Apply image background using individual properties only
-        body.style.setProperty('background-image', `url("${theme.background.image}")`, 'important');
-        body.style.setProperty('background-size', theme.background.size || 'cover', 'important');
-        body.style.setProperty('background-position', theme.background.position || 'center', 'important');
-        body.style.setProperty('background-repeat', theme.background.repeat || 'no-repeat', 'important');
-        body.style.setProperty('background-attachment', 'fixed', 'important');
-      } else {
-        console.error('Invalid image URL/data:', theme.background.image);
-      }
     } else {
-      // Reset to default - clear all background properties
+      // Reset to default - clear all background properties (image support removed)
       body.style.setProperty('background-image', '', 'important');
       body.style.setProperty('background-size', '', 'important');
       body.style.setProperty('background-position', '', 'important');
@@ -491,8 +489,8 @@ export const applyThemeToDocument = (theme) => {
   }
 
   // Set font family
-  if (theme.layout?.fontFamily) {
-    root.style.fontFamily = theme.layout.fontFamily;
+  if (layoutProps?.fontFamily) {
+    root.style.fontFamily = layoutProps.fontFamily;
   }
   
   // Toggle dark class for HeroUI
