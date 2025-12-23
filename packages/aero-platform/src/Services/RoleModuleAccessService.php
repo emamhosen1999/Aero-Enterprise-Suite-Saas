@@ -5,7 +5,7 @@ namespace Aero\Platform\Services;
 use Aero\Platform\Models\Action;
 use Aero\Platform\Models\Component;
 use Aero\Platform\Models\Module;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -24,7 +24,7 @@ class RoleModuleAccessService
     {
         $cacheKey = "role.{$role->id}.access_tree";
 
-        return Cache::tags(['role-access', "role-{$role->id}"])->remember($cacheKey, 3600, function () use ($role) {
+        return TenantCache::tags(['role-access', "role-{$role->id}"])->remember($cacheKey, 3600, function () use ($role) {
             $permissions = $role->permissions()->pluck('name')->toArray();
 
             return [
@@ -163,11 +163,11 @@ class RoleModuleAccessService
      */
     public function clearRoleCache(Role $role): void
     {
-        Cache::tags(["role-{$role->id}"])->flush();
+        TenantCache::tags(["role-{$role->id}"])->flush();
 
         // Also clear cache for all users with this role
         foreach ($role->users as $user) {
-            Cache::tags(["user-{$user->id}"])->flush();
+            TenantCache::tags(["user-{$user->id}"])->flush();
         }
     }
 

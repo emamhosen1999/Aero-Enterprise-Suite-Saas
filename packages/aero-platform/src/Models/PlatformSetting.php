@@ -4,7 +4,7 @@ namespace Aero\Platform\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Crypt;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -110,7 +110,7 @@ class PlatformSetting extends Model implements HasMedia
     {
         // Clear maintenance cache when settings are updated
         static::saved(function (self $setting) {
-            Cache::forget(self::CACHE_KEY_MAINTENANCE);
+            TenantCache::forget(self::CACHE_KEY_MAINTENANCE);
         });
     }
 
@@ -130,7 +130,7 @@ class PlatformSetting extends Model implements HasMedia
      */
     public static function getMaintenanceStatus(): array
     {
-        return Cache::remember(
+        return TenantCache::remember(
             self::CACHE_KEY_MAINTENANCE,
             self::CACHE_TTL_MAINTENANCE,
             function () {
@@ -168,7 +168,7 @@ class PlatformSetting extends Model implements HasMedia
             'maintenance_ends_at' => $endsAt,
         ]);
 
-        Cache::forget(self::CACHE_KEY_MAINTENANCE);
+        TenantCache::forget(self::CACHE_KEY_MAINTENANCE);
 
         return $updated;
     }
@@ -183,7 +183,7 @@ class PlatformSetting extends Model implements HasMedia
             'maintenance_ends_at' => null,
         ]);
 
-        Cache::forget(self::CACHE_KEY_MAINTENANCE);
+        TenantCache::forget(self::CACHE_KEY_MAINTENANCE);
 
         return $updated;
     }

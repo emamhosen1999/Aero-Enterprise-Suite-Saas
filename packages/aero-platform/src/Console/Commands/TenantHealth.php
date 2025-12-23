@@ -4,7 +4,7 @@ namespace Aero\Platform\Console\Commands;
 
 use Aero\Platform\Models\Tenant;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -194,9 +194,9 @@ class TenantHealth extends Command
             $key = "tenant_{$tenant->id}_health_check";
             $value = 'check-'.now()->timestamp;
 
-            Cache::put($key, $value, 60);
-            $retrieved = Cache::get($key);
-            Cache::forget($key);
+            TenantCache::put($key, $value, 60);
+            $retrieved = TenantCache::get($key);
+            TenantCache::forget($key);
 
             if ($retrieved === $value) {
                 return [

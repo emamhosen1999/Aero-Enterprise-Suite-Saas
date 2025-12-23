@@ -8,7 +8,7 @@ use Aero\Core\Models\ModuleComponentAction;
 use Aero\Core\Models\Role;
 use Aero\Core\Models\SubModule;
 use Aero\Core\Models\User;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * Module Access Service
