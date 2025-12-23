@@ -331,8 +331,8 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         $routesPath = __DIR__.'/../routes';
 
-        // Check if aero-platform is active (SaaS mode)
-        if ($this->isPlatformActive()) {
+        // Check if in SaaS mode (file-based detection)
+        if ($this->isSaasMode()) {
             // SaaS Mode: Core routes ONLY on tenant domains (NOT on central/admin domains)
             // AUTO-DETECT from browser request - no .env configuration needed
 
@@ -360,6 +360,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // On central domains: do NOT register core routes (platform owns those)
         } else {
             // Standalone Mode: Routes with standard web middleware on domain.com
+            // NO tenancy middleware in standalone mode
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
@@ -472,10 +473,25 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Check if aero-platform is active.
+     * 
+     * @deprecated Use isSaasMode() instead for mode detection
      */
     protected function isPlatformActive(): bool
     {
         return class_exists('Aero\Platform\AeroPlatformServiceProvider');
+    }
+
+    /**
+     * Check if system is in SaaS mode using file-based detection.
+     * Mode is set during installation and immutable at runtime.
+     * 
+     * This is the ONLY authoritative method for mode detection.
+     * 
+     * @return bool
+     */
+    protected function isSaasMode(): bool
+    {
+        return is_saas_mode();
     }
 
     /**
@@ -488,7 +504,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             return false;
         }
 
-        return config('aero.mode', 'saas') === 'standalone' &&
+        return is_standalone_mode() &&
                config('aero.runtime_loading.enabled', false);
     }
 

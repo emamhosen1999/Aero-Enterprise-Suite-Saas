@@ -243,6 +243,10 @@ class InstallationController extends Controller
             'title' => 'Application Settings',
             'timezones' => timezone_identifiers_list(),
             'licenseEmail' => Session::get('installation.license.email'),
+            'modes' => [
+                ['value' => 'standalone', 'label' => 'Standalone Mode', 'description' => 'Single organization installation'],
+                ['value' => 'saas', 'label' => 'SaaS Mode', 'description' => 'Multi-tenant SaaS platform'],
+            ],
         ]);
     }
     
@@ -255,6 +259,7 @@ class InstallationController extends Controller
             'app_name' => 'required|string|max:255',
             'app_url' => 'required|url',
             'timezone' => 'required|string',
+            'mode' => 'required|in:saas,standalone',
             'company_name' => 'nullable|string|max:255',
             'company_email' => 'nullable|email',
             'company_phone' => 'nullable|string|max:20',
@@ -825,7 +830,7 @@ class InstallationController extends Controller
      * Mark system as installed by creating the installation flag file.
      * 
      * This file is the authoritative source for installation status.
-     * Also stores timestamp and DB settings in system_settings table.
+     * Also stores timestamp, mode, and DB settings in system_settings table.
      */
     private function markAsInstalled(): void
     {
@@ -834,11 +839,26 @@ class InstallationController extends Controller
         File::ensureDirectoryExists(dirname($flagPath));
         File::put($flagPath, now()->toIso8601String());
 
+        // Create the mode flag file (REQUIRED)
+        $appData = Session::get('installation.application', []);
+        $mode = $appData['mode'] ?? 'standalone';
+        $modePath = storage_path('app/aeos.mode');
+        File::ensureDirectoryExists(dirname($modePath));
+        File::put($modePath, $mode);
+
         // Also update system_settings table (for metadata)
         SystemSetting::updateOrCreate(
             ['key' => 'installation_completed'],
             [
                 'value' => now()->toDateTimeString(),
+                'type' => 'system',
+            ]
+        );
+
+        SystemSetting::updateOrCreate(
+            ['key' => 'mode'],
+            [
+                'value' => $mode,
                 'type' => 'system',
             ]
         );

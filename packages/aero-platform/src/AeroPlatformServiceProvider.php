@@ -35,19 +35,20 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register the TenancyBootstrapServiceProvider FIRST
-        // CRITICAL: This registers event listeners for TenancyInitialized which
-        // runs the DatabaseTenancyBootstrapper to switch DB connections
-        $this->app->register(\Aero\Platform\Providers\TenancyBootstrapServiceProvider::class);
-
         // Disable Fortify's default routes - we define auth routes with proper domain restrictions
         // Admin subdomain uses Platform's AuthenticatedSessionController
         // Tenant subdomains use Core's AuthenticatedSessionController
         Fortify::ignoreRoutes();
 
-        // Set aero.mode to 'saas' - Platform is the SaaS orchestrator
-        // This MUST be set before any module checks for mode
-        Config::set('aero.mode', 'saas');
+        // CRITICAL: Only register tenancy if installed AND in SaaS mode
+        // This prevents tenancy from being enabled during installation
+        // or in standalone mode
+        if ($this->installed() && $this->isSaasMode()) {
+            // Register the TenancyBootstrapServiceProvider
+            // CRITICAL: This registers event listeners for TenancyInitialized which
+            // runs the DatabaseTenancyBootstrapper to switch DB connections
+            $this->app->register(\Aero\Platform\Providers\TenancyBootstrapServiceProvider::class);
+        }
 
         // Override Core's migrator to ONLY use platform migrations on landlord database
         // Core, HRM, CRM and other module migrations are for TENANT databases only
@@ -600,5 +601,30 @@ class AeroPlatformServiceProvider extends ServiceProvider
             // Default fallback
             return '/';
         });
+    }
+
+    /**
+     * Check if the system is installed using file-based detection.
+     * 
+     * @return bool
+     */
+    protected function installed(): bool
+    {
+        return file_exists(storage_path('app/aeos.installed'));
+    }
+
+    /**
+     * Check if system is in SaaS mode using file-based detection.
+     * Mode is set during installation and immutable at runtime.
+     * 
+     * @return bool
+     */
+    protected function isSaasMode(): bool
+    {
+        if (!file_exists(storage_path('app/aeos.mode'))) {
+            return false;
+        }
+        
+        return trim(file_get_contents(storage_path('app/aeos.mode'))) === 'saas';
     }
 }

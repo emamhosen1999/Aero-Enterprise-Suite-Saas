@@ -10,6 +10,60 @@
 use Aero\Core\Services\RuntimeLoader;
 use Illuminate\Support\Facades\File;
 
+if (!function_exists('aero_mode')) {
+    /**
+     * Get the current Aero mode (saas or standalone).
+     * Mode is file-based and immutable at runtime.
+     * 
+     * @return string 'saas' or 'standalone'
+     */
+    function aero_mode(): string
+    {
+        static $mode = null;
+        
+        if ($mode === null) {
+            $modePath = storage_path('app/aeos.mode');
+            
+            if (!file_exists($modePath)) {
+                $mode = 'standalone'; // Default to standalone if not set
+            } else {
+                $mode = trim(file_get_contents($modePath));
+                
+                // Validate mode value
+                if (!in_array($mode, ['saas', 'standalone'], true)) {
+                    $mode = 'standalone';
+                }
+            }
+        }
+        
+        return $mode;
+    }
+}
+
+if (!function_exists('is_saas_mode')) {
+    /**
+     * Check if running in SaaS mode.
+     * 
+     * @return bool
+     */
+    function is_saas_mode(): bool
+    {
+        return aero_mode() === 'saas';
+    }
+}
+
+if (!function_exists('is_standalone_mode')) {
+    /**
+     * Check if running in standalone mode.
+     * 
+     * @return bool
+     */
+    function is_standalone_mode(): bool
+    {
+        return aero_mode() === 'standalone';
+    }
+}
+
 if (!function_exists('getRuntimeModules')) {
     /**
      * Get all runtime-loaded modules for injection into Blade templates.
@@ -19,7 +73,7 @@ if (!function_exists('getRuntimeModules')) {
     function getRuntimeModules(): array
     {
         // Only in standalone mode
-        if (config('aero.mode') !== 'standalone') {
+        if (!is_standalone_mode()) {
             return [];
         }
 
