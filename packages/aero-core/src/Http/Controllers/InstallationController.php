@@ -239,15 +239,29 @@ class InstallationController extends Controller
             return redirect()->route('login');
         }
 
+        // Auto-detect mode based on installed packages
+        $detectedMode = $this->detectInstallationMode();
+
         return Inertia::render('Installation/Application', [
             'title' => 'Application Settings',
             'timezones' => timezone_identifiers_list(),
             'licenseEmail' => Session::get('installation.license.email'),
-            'modes' => [
-                ['value' => 'standalone', 'label' => 'Standalone Mode', 'description' => 'Single organization installation'],
-                ['value' => 'saas', 'label' => 'SaaS Mode', 'description' => 'Multi-tenant SaaS platform'],
-            ],
+            'detectedMode' => $detectedMode,
+            'modeDescription' => $detectedMode === 'saas' 
+                ? 'Multi-tenant SaaS platform (Platform package detected)' 
+                : 'Single organization installation (Platform package not detected)',
         ]);
+    }
+    
+    /**
+     * Auto-detect installation mode based on installed packages
+     */
+    protected function detectInstallationMode(): string
+    {
+        // Check if Platform package service provider exists
+        $platformExists = class_exists('Aero\\Platform\\AeroPlatformServiceProvider');
+        
+        return $platformExists ? 'saas' : 'standalone';
     }
     
     /**
@@ -259,7 +273,6 @@ class InstallationController extends Controller
             'app_name' => 'required|string|max:255',
             'app_url' => 'required|url',
             'timezone' => 'required|string',
-            'mode' => 'required|in:saas,standalone',
             'company_name' => 'nullable|string|max:255',
             'company_email' => 'nullable|email',
             'company_phone' => 'nullable|string|max:20',
@@ -282,8 +295,12 @@ class InstallationController extends Controller
             ], 422);
         }
 
+        // Auto-detect and inject mode
+        $data = $request->all();
+        $data['mode'] = $this->detectInstallationMode();
+
         // Store in session
-        Session::put('installation.application', $request->all());
+        Session::put('installation.application', $data);
         
         // Persist config
         $this->persistConfig('application', Session::get('installation.application'));
