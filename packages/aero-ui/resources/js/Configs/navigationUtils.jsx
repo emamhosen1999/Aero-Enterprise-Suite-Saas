@@ -229,13 +229,7 @@ export function useLegacyPages() {
         
         // Debug logging - remove in production
         if (typeof window !== 'undefined' && window.DEBUG_NAV) {
-            console.group('[useLegacyPages] Navigation Debug');
-            console.log('Raw navigation from backend:', rawNavigation);
-            console.log('Processed navigation:', navigation);
-            console.log('Converted to pages:', pages);
-            console.log('First page name:', pages[0]?.name);
-            console.log('First page subMenu:', pages[0]?.subMenu?.map(s => s.name));
-            console.groupEnd();
+            
         }
         
         return pages;

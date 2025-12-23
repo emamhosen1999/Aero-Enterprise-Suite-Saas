@@ -100,6 +100,15 @@ export default function AdminSetup({
         return { score, label, color };
     }, [data.password]);
 
+    // Safe login URL (fallback when Ziggy route list misses login)
+    const loginUrl = useMemo(() => {
+        try {
+            return route('login');
+        } catch (error) {
+            return '/login';
+        }
+    }, []);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         
@@ -324,7 +333,7 @@ export default function AdminSetup({
                     <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
                         Already have an account?{' '}
                         <a 
-                            href={route('login')} 
+                            href={loginUrl} 
                             className="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
                         >
                             Sign in

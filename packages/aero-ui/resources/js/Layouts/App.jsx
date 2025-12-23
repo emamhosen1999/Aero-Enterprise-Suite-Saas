@@ -137,14 +137,7 @@ const App = React.memo(({ children }) => {
   const { auth, app, url, roles, context: domainContext = 'tenant' } = usePage().props;
 
  
-    console.group('=== App.jsx: Auth Debug ===');
-    console.log('Full page props:', usePage().props);
-    console.log('auth object:', auth);
-    console.log('auth.user:', auth?.user);
-    console.log('auth.isAuthenticated:', auth?.isAuthenticated);
-    console.log('domainContext:', domainContext);
-    console.log('url:', url);
-    console.groupEnd();
+ 
  
   
   // Get domain-aware branding

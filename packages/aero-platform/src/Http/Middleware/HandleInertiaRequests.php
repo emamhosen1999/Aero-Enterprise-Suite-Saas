@@ -432,7 +432,22 @@ class HandleInertiaRequests extends Middleware
      */
     protected function shareTenantProps(Request $request): array
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
+        } catch (\Illuminate\Database\QueryException $exception) {
+            // During early tenant setup, the users table may not exist yet on the current connection.
+            // Avoid failing Inertia share; treat as guest and continue.
+            if ($exception->getCode() === '42S02') {
+                \Log::warning('Tenant inertia share: users table missing, continuing as guest', [
+                    'path' => $request->path(),
+                    'host' => $request->getHost(),
+                ]);
+                $user = null;
+            } else {
+                throw $exception;
+            }
+        }
+
         $userWithRelations = $user ? \App\Models\User::with(['designation', 'attendanceType'])->find($user->id) : null;
 
         $systemSetting = $this->systemSetting();

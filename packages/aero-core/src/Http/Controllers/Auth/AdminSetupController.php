@@ -45,11 +45,10 @@ class AdminSetupController extends Controller
 
         // If tenant already has admin user, redirect to login
         if ($this->tenantHasAdminUser()) {
-            return redirect()->route('login')
-                ->with('info', 'Admin account already exists. Please login.');
+            return $this->redirectToLogin('Admin account already exists. Please login.', 'info');
         }
 
-        return Inertia::render('Auth/AdminSetup', [
+        return Inertia::render('Shared/Auth/AdminSetup', [
             'title' => 'Complete Your Account Setup',
             'tenant' => [
                 'id' => $tenant->id,
@@ -72,8 +71,7 @@ class AdminSetupController extends Controller
 
         // Prevent creating duplicate admin users
         if ($this->tenantHasAdminUser()) {
-            return redirect()->route('login')
-                ->with('error', 'Admin account already exists.');
+            return $this->redirectToLogin('Admin account already exists.', 'error');
         }
 
         // Validate admin user data
@@ -226,6 +224,18 @@ class AdminSetupController extends Controller
                 'error' => $e->getMessage(),
             ]);
             // Don't throw - this is just metadata
+        }
+    }
+
+    /**
+     * Redirect to login with a safe fallback when the named route is unavailable.
+     */
+    protected function redirectToLogin(string $message, string $flashKey = 'info'): RedirectResponse
+    {
+        try {
+            return redirect()->route('login')->with($flashKey, $message);
+        } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException) {
+            return redirect('/login')->with($flashKey, $message);
         }
     }
 }

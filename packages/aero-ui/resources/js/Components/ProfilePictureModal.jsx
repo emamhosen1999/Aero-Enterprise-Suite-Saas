@@ -114,15 +114,7 @@ const ProfilePictureModal = ({
         // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
-        // Debug logging
-        console.log('[ProfileUpload] Starting upload:', {
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size,
-            fileType: selectedFile.type,
-            userId: employee.id,
-            csrfToken: csrfToken ? 'present' : 'missing',
-            route: route('profile.image.upload'),
-        });
+       
 
         try {
             const response = await axios.post(
@@ -138,12 +130,12 @@ const ProfilePictureModal = ({
                             (progressEvent.loaded * 100) / progressEvent.total
                         );
                         setUploadProgress(percentCompleted);
-                        console.log('[ProfileUpload] Progress:', percentCompleted + '%');
+                       
                     },
                 }
             );
 
-            console.log('[ProfileUpload] Response:', response.data);
+           
 
             if (response.data.success) {
                 showToast.success(response.data.message || 'Profile picture updated successfully!');
@@ -151,7 +143,7 @@ const ProfilePictureModal = ({
                 // Callback to update the parent component with the new profile image URL
                 if (onImageUpdate) {
                     const newImageUrl = response.data.profile_image_url;
-                    console.log('[ProfileUpload] Calling onImageUpdate with:', { employeeId: employee.id, newImageUrl });
+                   
                     onImageUpdate(employee.id, newImageUrl);
                 }
                 

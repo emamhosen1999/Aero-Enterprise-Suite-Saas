@@ -5,9 +5,11 @@ namespace Aero\Core\Http\Middleware;
 use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Models\SystemSetting;
 use Aero\Core\Services\NavigationRegistry;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
 use Throwable;
@@ -106,7 +108,21 @@ class HandleInertiaRequests extends Middleware
             return parent::share($request);
         }
 
-        $user = $request->user();
+        try {
+            $user = $request->user();
+        } catch (QueryException $exception) {
+            // If the users table is missing on this connection (often during early tenant setup),
+            // avoid crashing Inertia sharing and proceed as unauthenticated.
+            if ($exception->getCode() === '42S02') {
+                Log::warning('Skipping auth user share because users table is missing', [
+                    'path' => $request->path(),
+                    'host' => $request->getHost(),
+                ]);
+                $user = null;
+            } else {
+                throw $exception;
+            }
+        }
 
         $systemSetting = $this->systemSetting();
         $systemSettingsPayload = $systemSetting

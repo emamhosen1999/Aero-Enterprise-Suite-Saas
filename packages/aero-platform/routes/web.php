@@ -192,29 +192,4 @@ Route::prefix('sslcommerz')->name('sslcommerz.')->group(function () {
 Route::post('/checkout/{plan}', [BillingController::class, 'checkout'])
     ->name('platform.checkout');
 
-// =========================================================================
-// PUBLIC API ROUTES (for platform domain)
-// =========================================================================
-
-Route::prefix('api/platform/v1')->name('api.platform.v1.')->group(function () {
-    // Error Reporting API - receives errors from standalone installations
-    Route::post('/error-logs', [ErrorLogController::class, 'receiveRemoteError'])
-        ->name('error-logs.receive')
-        ->middleware('throttle:60,1');
-
-    // Platform health check
-    Route::get('/health', fn () => response()->json([
-        'status' => 'ok',
-        'timestamp' => now()->toIso8601String(),
-    ]))->name('health');
-
-    // Public plans list (for registration page)
-    Route::get('/plans', [PlanController::class, 'publicIndex'])
-        ->name('plans.public');
-
-    // Check subdomain availability
-    Route::post('/check-subdomain', [TenantController::class, 'checkSubdomain'])
-        ->middleware('throttle:30,1')
-        ->name('check-subdomain');
-});
 });

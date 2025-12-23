@@ -16,6 +16,12 @@ class PlatformSetting extends Model implements HasMedia
     use HasFactory;
     use InteractsWithMedia;
 
+    /**
+     * Platform settings are stored in the central (landlord) database.
+     * Ensure tenant requests do not look for this table in the tenant schema.
+     */
+    protected $connection = 'central';
+
     public const DEFAULT_SLUG = 'platform';
 
     public const MEDIA_LOGO = 'platform_logo';
