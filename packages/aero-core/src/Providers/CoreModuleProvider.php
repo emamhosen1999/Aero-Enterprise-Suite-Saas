@@ -63,6 +63,46 @@ class CoreModuleProvider extends AbstractModuleProvider
     }
 
     /**
+     * Register the service provider.
+     * 
+     * This runs BEFORE boot() and before route matching.
+     * We register the global bootstrap middleware here so it intercepts ALL requests first.
+     */
+    public function register(): void
+    {
+        parent::register();
+
+        // In standalone mode, push the global BootstrapGuard middleware
+        // This runs before route matching and handles:
+        // 1. Installation status check
+        // 2. Forcing file-based sessions during installation
+        // 3. Redirecting to /install if not installed
+        if (config('aero.mode') === 'standalone') {
+            $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+            $kernel->pushMiddleware(\Aero\Core\Http\Middleware\BootstrapGuard::class);
+        }
+    }
+
+    /**
+     * Boot the service provider.
+     * 
+     * Conditionally load installation or app routes based on installation status.
+     */
+    public function boot(): void
+    {
+        // In standalone mode, load installation routes if not installed
+        if (config('aero.mode') === 'standalone' && !file_exists(storage_path('installed'))) {
+            // Load installation routes WITHOUT module prefix
+            \Illuminate\Support\Facades\Route::middleware(['web'])
+                ->group(__DIR__.'/../../routes/installation.php');
+        }
+
+        // Call parent boot - it loads views, migrations, and web.php (with module prefix)
+        // The BootstrapGuard middleware will block access to these routes if not installed
+        parent::boot();
+    }
+
+    /**
      * Get navigation items for the core module.
      */
     public function getNavigationItems(): array
@@ -157,19 +197,13 @@ class CoreModuleProvider extends AbstractModuleProvider
     {
         $router = $this->app['router'];
 
-        // Register route middleware
+        // Register route middleware aliases
         $router->aliasMiddleware('auth', \Aero\Core\Http\Middleware\Authenticate::class);
         $router->aliasMiddleware('module.access', \Aero\Core\Http\Middleware\ModuleAccessMiddleware::class);
         $router->aliasMiddleware('permission', \Aero\Core\Http\Middleware\PermissionMiddleware::class);
         $router->aliasMiddleware('role', \Aero\Core\Http\Middleware\EnsureUserHasRole::class);
         $router->aliasMiddleware('ensure.installed', \Aero\Core\Http\Middleware\EnsureInstalled::class);
         $router->aliasMiddleware('prevent.installed', \Aero\Core\Http\Middleware\PreventInstalledAccess::class);
-        
-        // Apply EnsureInstalled middleware globally for standalone mode
-        // Use prepend to run BEFORE session middleware (to avoid sessions table errors)
-        if (config('aero.mode') === 'standalone') {
-            $router->prependMiddlewareToGroup('web', \Aero\Core\Http\Middleware\EnsureInstalled::class);
-        }
     }
 
     /**
