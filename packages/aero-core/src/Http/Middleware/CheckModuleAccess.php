@@ -3,10 +3,10 @@
 namespace Aero\Core\Http\Middleware;
 
 use Aero\Core\Services\ModuleAccessService;
+use Aero\Core\Support\TenantCache;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -265,10 +265,10 @@ class CheckModuleAccess
         // Dynamically resolve Tenant class to avoid hard dependency
         $tenantClass = 'Aero\Platform\Models\Tenant';
 
-        // Cache the tenant's active modules for performance
+        // Cache the tenant's active modules for performance (tenant-aware)
         $cacheKey = "tenant_active_modules:{$tenantId}";
 
-        $activeModules = Cache::remember($cacheKey, 300, function () use ($tenantId, $tenantClass) {
+        $activeModules = TenantCache::remember($cacheKey, 300, function () use ($tenantId, $tenantClass) {
             $tenant = $tenantClass::find($tenantId);
 
             if (! $tenant) {
