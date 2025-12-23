@@ -219,6 +219,8 @@ class InstallationController extends Controller
      * Test database server connection (without database)
      */
     public function testServerConnection(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
             // Reconnect using the updated runtime configuration
             DB::reconnect(config('database.default', 'mysql'));
             if ($testConnection['success']) {
