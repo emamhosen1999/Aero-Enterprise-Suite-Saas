@@ -361,6 +361,14 @@ class AeroCoreServiceProvider extends ServiceProvider
         } else {
             // Standalone Mode: Routes with standard web middleware on domain.com
             // NO tenancy middleware in standalone mode
+            
+            // Even in standalone mode, skip Core routes on admin subdomain
+            // (in case Platform package is installed and provides admin UI)
+            if (request() && $this->isOnAdminDomain(request()->getHost())) {
+                // Skip Core routes on admin subdomain - Platform handles admin domain
+                return;
+            }
+            
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
@@ -484,6 +492,16 @@ class AeroCoreServiceProvider extends ServiceProvider
     protected function isPlatformActive(): bool
     {
         return class_exists('Aero\Platform\AeroPlatformServiceProvider');
+    }
+
+    /**
+     * Check if on admin subdomain (admin.domain.com).
+     * Returns true if host starts with "admin."
+     */
+    protected function isOnAdminDomain(string $host): bool
+    {
+        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
+        return str_starts_with($hostWithoutPort, 'admin.');
     }
 
     /**
