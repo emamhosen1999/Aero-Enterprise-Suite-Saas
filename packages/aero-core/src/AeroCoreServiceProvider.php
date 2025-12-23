@@ -364,10 +364,8 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Standalone Mode: Routes with standard web middleware on domain.com
             // NO tenancy middleware in standalone mode
 
-            // Even in standalone mode, skip Core routes on admin subdomain
-            // (in case Platform package is installed and provides admin UI)
+            // Skip Core routes on admin subdomain to prevent conflicts with Platform's admin routes
             if (request() && $this->isHostAdminDomain(request()->getHost())) {
-                // Skip Core routes on admin subdomain - Platform handles admin domain
                 return;
             }
 
