@@ -75,6 +75,14 @@ Route::get('/', function () {
     return redirect()->route('admin.dashboard');
 })->middleware('auth:landlord');
 
+// Session check route for admin domain (uses landlord guard)
+Route::get('/session-check', function () {
+    return response()->json([
+        'authenticated' => \Illuminate\Support\Facades\Auth::guard('landlord')->check(),
+        'user_id' => \Illuminate\Support\Facades\Auth::guard('landlord')->id(),
+    ]);
+})->name('admin.session-check');
+
 // =========================================================================
 // PROTECTED ADMIN ROUTES (Require Landlord Authentication)
 // =========================================================================

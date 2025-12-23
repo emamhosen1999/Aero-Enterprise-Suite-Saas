@@ -8,15 +8,15 @@ class Kernel extends HttpKernel
      * The application's global HTTP middleware stack.
      */
     protected $middleware = [
-        // \App\Http\Middleware\TrustHosts::class,
-        \App\Http\Middleware\TrustProxies::class,
+        // Aero\Platform\Http\Middleware\TrustHosts::class,
+        Aero\Platform\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
-        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        Aero\Platform\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
-        \App\Http\Middleware\TrimStrings::class,
+        Aero\Platform\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        \App\Http\Middleware\SetDatabaseConnectionFromDomain::class, // Set DB connection based on domain BEFORE sessions
-        \App\Http\Middleware\DeviceAuthMiddleware::class, // Global device authentication
+        Aero\Platform\Http\Middleware\SetDatabaseConnectionFromDomain::class, // Set DB connection based on domain BEFORE sessions
+        Aero\Platform\Http\Middleware\DeviceAuthMiddleware::class, // Global device authentication
     ];
 
     /**
@@ -30,10 +30,10 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\SetLocale::class, // Locale detection before Inertia
-            \App\Http\Middleware\HandleInertiaRequests::class,
+            Aero\Platform\Http\Middleware\SetLocale::class, // Locale detection before Inertia
+            Aero\Platform\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-            \App\Http\Middleware\Cors::class,
+            Aero\Platform\Http\Middleware\Cors::class,
         ],
 
         'api' => [
@@ -47,7 +47,7 @@ class Kernel extends HttpKernel
      * The application's middleware aliases.
      */
     protected $middlewareAliases = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth' => Aero\Platform\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
@@ -63,23 +63,23 @@ class Kernel extends HttpKernel
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         // Custom Security Middleware
-        'api_security' => \App\Http\Middleware\ApiSecurityMiddleware::class,
-        'custom_permission' => \App\Http\Middleware\PermissionMiddleware::class,
-        'role_hierarchy' => \App\Http\Middleware\RoleHierarchyMiddleware::class,
+        'api_security' => Aero\Platform\Http\Middleware\ApiSecurityMiddleware::class,
+        'custom_permission' => Aero\Platform\Http\Middleware\PermissionMiddleware::class,
+        'role_hierarchy' => Aero\Platform\Http\Middleware\RoleHierarchyMiddleware::class,
         // Super Admin Protection Middleware (Compliance: Section 13)
-        'platform.super_admin' => \App\Http\Middleware\PlatformSuperAdmin::class,
-        'tenant.super_admin' => \App\Http\Middleware\TenantSuperAdmin::class,
+        'platform.super_admin' => Aero\Platform\Http\Middleware\PlatformSuperAdmin::class,
+        'tenant.super_admin' => Aero\Platform\Http\Middleware\TenantSuperAdmin::class,
         // Module Permission Registry Middleware
-        'module' => \App\Http\Middleware\CheckModuleAccess::class,
+        'module' => Aero\Platform\Http\Middleware\CheckModuleAccess::class,
         // Device auth is now global middleware - no need for alias
-        'platform.domain' => \App\Http\Middleware\EnsurePlatformDomain::class,
+        'platform.domain' => Aero\Platform\Http\Middleware\EnsurePlatformDomain::class,
         // Subscription Enforcement for Tenant Apps
-        'subscription' => \App\Http\Middleware\EnforceSubscription::class,
+        'subscription' => Aero\Platform\Http\Middleware\EnforceSubscription::class,
         // Tenant Setup Check - ensures admin and onboarding are completed
-        'tenant.setup' => \App\Http\Middleware\EnsureTenantIsSetup::class,
+        'tenant.setup' => Aero\Platform\Http\Middleware\EnsureTenantIsSetup::class,
         // Redirect to admin-setup if no admin user exists
-        'redirect.if.no.admin' => \App\Http\Middleware\RedirectIfNoAdmin::class,
+        'redirect.if.no.admin' => Aero\Platform\Http\Middleware\RedirectIfNoAdmin::class,
         // Maintenance Mode Gatekeeper (Global + Tenant level)
-        'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
+        'maintenance' => Aero\Platform\Http\Middleware\CheckMaintenanceMode::class,
     ];
 }

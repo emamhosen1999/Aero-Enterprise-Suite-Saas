@@ -2,8 +2,10 @@
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Traits\ParsesHostDomain;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -18,6 +20,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ModuleAccessMiddleware
 {
+    use ParsesHostDomain;
+
     /**
      * Handle an incoming request.
      *
@@ -27,11 +31,15 @@ class ModuleAccessMiddleware
      */
     public function handle(Request $request, Closure $next, ?string $moduleCode = null, ?string $subModuleCode = null, ?string $componentCode = null): Response
     {
-        if (! $request->user()) {
+        // Determine which guard to use based on domain
+        $host = $request->getHost();
+        $guard = $this->isHostAdminDomain($host) ? 'landlord' : 'web';
+        
+        $user = Auth::guard($guard)->user();
+        
+        if (! $user) {
             return redirect()->route('login');
         }
-
-        $user = $request->user();
         $service = app(\Aero\Core\Services\ModuleAccessService::class);
 
         // Check module access
