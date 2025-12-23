@@ -198,7 +198,7 @@ class CoreModuleProvider extends AbstractModuleProvider
         $router = $this->app['router'];
 
         // Register route middleware aliases
-        $router->aliasMiddleware('auth', \Aero\Core\Http\Middleware\Authenticate::class);
+        // Note: 'auth' middleware is provided by Laravel by default
         $router->aliasMiddleware('module.access', \Aero\Core\Http\Middleware\ModuleAccessMiddleware::class);
         $router->aliasMiddleware('permission', \Aero\Core\Http\Middleware\PermissionMiddleware::class);
         $router->aliasMiddleware('role', \Aero\Core\Http\Middleware\EnsureUserHasRole::class);
