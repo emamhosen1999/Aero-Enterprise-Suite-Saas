@@ -1,11 +1,21 @@
 <?php
 
-use Aero\Core\Services\PlatformErrorReporter;
+use Aero\Core\Providers\ExceptionHandlerServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Inertia\Inertia;
 
+/**
+ * Aero Enterprise Suite - Standalone Host Bootstrap
+ *
+ * This is a minimal host application bootstrap file.
+ * All routing, middleware, and exception handling logic is provided by packages:
+ * - aero/core: Core functionality, authentication, user management
+ * - aero/ui: Frontend components and layouts
+ * - aero/hrm: Human Resource Management (optional)
+ *
+ * The host application should remain as thin as possible, acting only as a container.
+ */
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -14,231 +24,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Add Inertia middleware
-        $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-        ]);
+        // Inertia middleware is registered by aero-core package automatically
+        // HandleInertiaRequests from \Aero\Core\Http\Middleware is used
 
-        // Exclude error-log API from CSRF verification
+        // Exclude error-log API from CSRF verification (used by frontend error reporting)
         $middleware->validateCsrfTokens(except: [
             'api/error-log',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // =========================================================================
-        // UNIFIED ERROR HANDLING WITH PLATFORM REPORTING
-        // All exceptions are reported to the Aero platform for centralized monitoring
-        // =========================================================================
-
-        /**
-         * Helper to check if request expects JSON/Inertia response
-         */
-        $expectsJson = fn ($request) => $request->expectsJson() ||
-            $request->header('X-Inertia') ||
-            $request->is('api/*') ||
-            $request->ajax();
-
-        // =========================================================================
-        // AUTHENTICATION EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) use ($expectsJson) {
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 401,
-                        'type' => 'AuthenticationException',
-                        'message' => 'Authentication required',
-                    ],
-                ], 401);
-            }
-
-            // Redirect to login for Inertia requests
-            if ($request->header('X-Inertia')) {
-                return Inertia::location('/login');
-            }
-
-            return redirect()->guest('/login')
-                ->with('status', 'Please login to access this page.');
-        });
-
-        // =========================================================================
-        // SESSION/TOKEN MISMATCH EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) use ($expectsJson) {
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 419,
-                        'type' => 'TokenMismatchException',
-                        'message' => 'Session expired',
-                    ],
-                ], 419);
-            }
-
-            if ($request->header('X-Inertia')) {
-                return Inertia::location('/login');
-            }
-
-            return redirect('/login')
-                ->with('status', 'Your session has expired. Please login again.');
-        });
-
-        // =========================================================================
-        // VALIDATION EXCEPTIONS (Don't report these to platform - not errors)
-        // =========================================================================
-        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, $request) use ($expectsJson) {
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 422,
-                        'type' => 'ValidationException',
-                        'message' => 'Validation failed',
-                    ],
-                    'errors' => $e->errors(),
-                    'message' => $e->getMessage(),
-                ], 422);
-            }
-
-            // Let Laravel handle regular validation redirects
-            return null;
-        });
-
-        // =========================================================================
-        // AUTHORIZATION EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) use ($expectsJson) {
-            $reporter = app(PlatformErrorReporter::class);
-            $errorData = $reporter->createErrorResponse($e, $request);
-
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorData,
-                ], 403);
-            }
-
-            return Inertia::render('Errors/UnifiedError', [
-                'error' => $errorData,
-            ])->toResponse($request)->setStatusCode(403);
-        });
-
-        // =========================================================================
-        // MODEL NOT FOUND EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Illuminate\Database\Eloquent\ModelNotFoundException $e, $request) use ($expectsJson) {
-            $reporter = app(PlatformErrorReporter::class);
-            $errorData = $reporter->createErrorResponse($e, $request);
-
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorData,
-                ], 404);
-            }
-
-            return Inertia::render('Errors/UnifiedError', [
-                'error' => $errorData,
-            ])->toResponse($request)->setStatusCode(404);
-        });
-
-        // =========================================================================
-        // HTTP NOT FOUND EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) use ($expectsJson) {
-            $reporter = app(PlatformErrorReporter::class);
-            $errorData = $reporter->createErrorResponse($e, $request);
-
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorData,
-                ], 404);
-            }
-
-            return Inertia::render('Errors/UnifiedError', [
-                'error' => $errorData,
-            ])->toResponse($request)->setStatusCode(404);
-        });
-
-        // =========================================================================
-        // RATE LIMIT EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException $e, $request) use ($expectsJson) {
-            $reporter = app(PlatformErrorReporter::class);
-            $errorData = $reporter->createErrorResponse($e, $request);
-            $errorData['retryAfter'] = $e->getHeaders()['Retry-After'] ?? 60;
-
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorData,
-                ], 429);
-            }
-
-            return Inertia::render('Errors/UnifiedError', [
-                'error' => $errorData,
-            ])->toResponse($request)->setStatusCode(429);
-        });
-
-        // =========================================================================
-        // DATABASE EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Illuminate\Database\QueryException $e, $request) use ($expectsJson) {
-            $reporter = app(PlatformErrorReporter::class);
-            $errorData = $reporter->createErrorResponse($e, $request);
-
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorData,
-                ], 500);
-            }
-
-            return Inertia::render('Errors/UnifiedError', [
-                'error' => $errorData,
-            ])->toResponse($request)->setStatusCode(500);
-        });
-
-        // =========================================================================
-        // GENERIC HTTP EXCEPTIONS
-        // =========================================================================
-        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) use ($expectsJson) {
-            $statusCode = $e->getStatusCode();
-            $reporter = app(PlatformErrorReporter::class);
-            $errorData = $reporter->createErrorResponse($e, $request);
-
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorData,
-                ], $statusCode);
-            }
-
-            return Inertia::render('Errors/UnifiedError', [
-                'error' => $errorData,
-            ])->toResponse($request)->setStatusCode($statusCode);
-        });
-
-        // =========================================================================
-        // CATCH-ALL: ANY OTHER THROWABLE
-        // =========================================================================
-        $exceptions->render(function (\Throwable $e, $request) use ($expectsJson) {
-            $reporter = app(PlatformErrorReporter::class);
-            $errorData = $reporter->createErrorResponse($e, $request);
-
-            if ($expectsJson($request)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorData,
-                ], 500);
-            }
-
-            return Inertia::render('Errors/UnifiedError', [
-                'error' => $errorData,
-            ])->toResponse($request)->setStatusCode(500);
-        });
+        // All exception handling logic is provided by aero-core package
+        // This keeps the host application minimal and ensures consistency across all installations
+        ExceptionHandlerServiceProvider::registerExceptionHandlers($exceptions);
     })->create();
