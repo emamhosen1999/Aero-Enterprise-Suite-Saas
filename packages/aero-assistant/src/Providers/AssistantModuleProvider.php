@@ -53,8 +53,14 @@ class AssistantModuleProvider extends AbstractModuleProvider
      */
     protected function bootModule(): void
     {
-        // Publish configuration
+        // Register console commands
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Aero\Assistant\Console\Commands\IndexKnowledgeBase::class,
+                \Aero\Assistant\Console\Commands\AssistantStats::class,
+            ]);
+
+            // Publish configuration
             $this->publishes([
                 $this->getModulePath('config/assistant.php') => config_path('assistant.php'),
             ], 'assistant-config');
