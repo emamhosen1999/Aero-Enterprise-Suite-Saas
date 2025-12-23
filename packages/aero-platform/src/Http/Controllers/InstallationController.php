@@ -1281,11 +1281,8 @@ class InstallationController extends Controller
      */
     private function applyRuntimeDatabaseConfig(array $dbConfig): void
     {
-        $connection = config('database.default', 'mysql');
-        $existing = config("database.connections.{$connection}", []);
-
-        $merged = array_merge($existing, [
-            'driver' => $existing['driver'] ?? 'mysql',
+        $installerConnection = array_merge(config('database.connections.mysql', []), [
+            'driver' => 'mysql',
             'host' => $dbConfig['host'],
             'port' => $dbConfig['port'],
             'database' => $dbConfig['database'],
@@ -1294,12 +1291,17 @@ class InstallationController extends Controller
         ]);
 
         config([
-            'database.default' => $connection,
-            "database.connections.{$connection}" => $merged,
-            'tenancy.database.central_connection' => $connection,
+            'database.default' => 'installer',
+            'database.connections.installer' => $installerConnection,
+            'database.connections.mysql' => $installerConnection,
+            'database.connections.central' => $installerConnection,
+            'tenancy.database.central_connection' => 'installer',
         ]);
 
-        DB::purge($connection);
+        DB::setDefaultConnection('installer');
+        DB::purge('installer');
+        DB::purge('central');
+        DB::purge('mysql');
     }
 
     /**
