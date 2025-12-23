@@ -86,10 +86,9 @@ Route::post('/api/version/check', function (Request $request) {
 // ============================================================================
 // ROOT ROUTE - Redirect to dashboard or login
 // ============================================================================
-  // Root redirects to dashboard
-    Route::get('/', function () {
-        return redirect('/dashboard');
-    })->middleware(['auth:web']);
+Route::get('/', function () {
+    return redirect('/dashboard');
+})->middleware(['auth:web']);
 
 // ============================================================================
 // ADMIN SETUP ROUTES (No Auth - for newly provisioned tenants)

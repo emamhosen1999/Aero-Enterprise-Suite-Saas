@@ -1,36 +1,46 @@
 <?php
 
+namespace Aero\Core\Providers;
+
 use Aero\Core\Services\PlatformErrorReporter;
-use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
-return Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
-    )
-    ->withMiddleware(function (Middleware $middleware): void {
-        // Add Inertia middleware
-        $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-        ]);
+/**
+ * Exception Handler Service Provider
+ *
+ * Registers exception rendering logic for the application.
+ * This allows the host application to have a minimal bootstrap/app.php
+ * while keeping all exception handling logic in the package.
+ */
+class ExceptionHandlerServiceProvider extends ServiceProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+        //
+    }
 
-        // Exclude error-log API from CSRF verification
-        $middleware->validateCsrfTokens(except: [
-            'api/error-log',
-        ]);
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        // =========================================================================
-        // UNIFIED ERROR HANDLING WITH PLATFORM REPORTING
-        // All exceptions are reported to the Aero platform for centralized monitoring
-        // =========================================================================
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+        //
+    }
 
+    /**
+     * Register exception handlers for the application.
+     * This method is called from the host app's bootstrap/app.php withExceptions() callback.
+     *
+     * @param  \Illuminate\Foundation\Configuration\Exceptions  $exceptions
+     * @return void
+     */
+    public static function registerExceptionHandlers(Exceptions $exceptions): void
+    {
         /**
          * Helper to check if request expects JSON/Inertia response
          */
@@ -241,4 +251,5 @@ return Application::configure(basePath: dirname(__DIR__))
                 'error' => $errorData,
             ])->toResponse($request)->setStatusCode(500);
         });
-    })->create();
+    }
+}
