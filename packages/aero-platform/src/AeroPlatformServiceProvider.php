@@ -667,9 +667,15 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 }
             }
 
-            // Tenant subdomain: Check web guard and redirect if authenticated  
+            // Tenant subdomain: Check web guard and redirect if authenticated
             if (\Illuminate\Support\Facades\Auth::guard('web')->check()) {
-                return route('core.dashboard');
+                // Try core.dashboard first, fallback to dashboard, then /dashboard
+                if (\Illuminate\Support\Facades\Route::has('core.dashboard')) {
+                    return route('core.dashboard');
+                } elseif (\Illuminate\Support\Facades\Route::has('dashboard')) {
+                    return route('dashboard');
+                }
+                return '/dashboard';
             }
 
             // No redirect - allow access to guest pages (not authenticated)

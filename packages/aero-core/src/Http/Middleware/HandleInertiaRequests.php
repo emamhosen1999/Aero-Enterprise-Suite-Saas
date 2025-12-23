@@ -45,11 +45,15 @@ class HandleInertiaRequests extends Middleware
     public function handle(Request $request, \Closure $next)
     {
         // In SaaS mode, skip on central/admin domains - Platform handles those
-        if (is_saas_mode()) {
+        if (is_saas_mode() && class_exists('Aero\Platform\Http\Middleware\IdentifyDomainContext')) {
             $context = $request->attributes->get('domain_context');
             
             // On admin/platform domains, let Platform's middleware handle everything
-            if (in_array($context, ['admin', 'platform'], true)) {
+            // Using constants from Platform's IdentifyDomainContext
+            $adminContext = \Aero\Platform\Http\Middleware\IdentifyDomainContext::CONTEXT_ADMIN;
+            $platformContext = \Aero\Platform\Http\Middleware\IdentifyDomainContext::CONTEXT_PLATFORM;
+            
+            if (in_array($context, [$adminContext, $platformContext], true)) {
                 return $next($request);
             }
         }
