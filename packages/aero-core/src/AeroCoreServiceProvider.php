@@ -66,7 +66,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Merge configuration
             $this->mergeConfigFrom(__DIR__.'/../config/aero.php', 'aero');
             $this->mergeConfigFrom(__DIR__.'/../config/marketplace.php', 'marketplace');
-            $this->mergeConfigFrom(__DIR__.'/../config/modules.php', 'aero-core.modules');
+            // Module definitions are in config/module.php and loaded by ModuleDiscoveryService
             $this->mergeConfigFrom(__DIR__.'/../config/core.php', 'aero.core');
             $this->mergeConfigFrom(__DIR__.'/../config/permission.php', 'permission');
 

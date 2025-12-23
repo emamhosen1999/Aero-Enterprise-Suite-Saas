@@ -34,30 +34,25 @@ use Inertia\Inertia;
 |
 | Domain Context Check:
 | - These routes should ONLY be accessible from platform root domain (domain.com)
-| - IdentifyDomainContext middleware sets the domain context on the request
-| - We check the context and abort with 404 if accessed from wrong domain
+| - Domain restriction is enforced by middleware, not at route registration time
+| - Routes are registered unconditionally, then filtered by request context
 |
 */
 
-// Domain context check - only load these routes on platform domain
-// This ensures these routes only respond on domain.com (not admin.domain.com or tenant.domain.com)
-if (!app()->runningInConsole() && request()) {
-    $context = request()->attributes->get('domain_context');
-    if ($context !== IdentifyDomainContext::CONTEXT_PLATFORM) {
-        // Not on platform domain - these routes should not be accessible
-        // Return early to prevent route registration
-        return;
-    }
-}
+// NOTE: Domain context check moved to middleware layer!
+// WRONG: Checking domain_context at route registration time - middleware hasn't run yet.
+// RIGHT: Register all routes, let middleware filter by domain at request time.
+// IdentifyDomainContext sets context on each request; controllers/middleware enforce domain.
 
-// =========================================================================
-// LANDING & ROOT ROUTES
-// =========================================================================
+Route::middleware('platform.domain')->group(function () {
+    // =========================================================================
+    // LANDING & ROOT ROUTES
+    // =========================================================================
 
-Route::get('/', fn () => Inertia::render('Platform/Public/Landing'))->name('landing');
+    Route::get('/', fn () => Inertia::render('Platform/Public/Landing'))->name('landing');
 
-// Redirect /login to /register (no login on platform domain - login is on tenant/admin domains)
-Route::redirect('login', '/register', 302);
+    // Redirect /login to /register (no login on platform domain - login is on tenant/admin domains)
+    Route::redirect('login', '/register', 302);
 
 // =========================================================================
 // MULTI-STEP TENANT REGISTRATION FLOW
@@ -99,9 +94,7 @@ Route::prefix('register')->name('platform.register.')->group(function () {
         ->name('verify-phone.verify');
 
     // Cancel registration and cleanup pending tenant
-    Route::delete('/cancel', [RegistrationController::class, 'cancelRegistration'])
-        ->name('cancel');
-
+    // =========================================================================
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
     Route::post('/trial', [RegistrationController::class, 'activateTrial'])
         ->middleware('throttle:10,60')
@@ -223,4 +216,5 @@ Route::prefix('api/platform/v1')->name('api.platform.v1.')->group(function () {
     Route::post('/check-subdomain', [TenantController::class, 'checkSubdomain'])
         ->middleware('throttle:30,1')
         ->name('check-subdomain');
+});
 });

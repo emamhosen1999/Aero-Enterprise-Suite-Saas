@@ -820,12 +820,9 @@ class InstallationController extends Controller
             
             $this->trackProgress('seeding', 'completed', 'Seeding completed');
 
-            // Wrap post-migration database operations in a transaction for atomicity
-            DB::beginTransaction();
-
-            try {
-
             // Stage 4: Create admin user
+            // NOTE: Role creation is done BEFORE transaction to avoid lock timeouts
+            // Spatie Permission's syncRoles can cause lock contention if role is created in same transaction
             \Log::info('Installation Stage: admin', ['stage' => 'admin']);
             $this->trackProgress('admin', 'in_progress', 'Creating administrator account');
 
@@ -840,10 +837,16 @@ class InstallationController extends Controller
                 }
             }
 
-            // Create Super Administrator role for landlord guard (matching LandlordUser's guard_name)
+            // Create Super Administrator role BEFORE transaction (prevents lock timeout)
             $role = \Spatie\Permission\Models\Role::firstOrCreate(
                 ['name' => 'Super Administrator', 'guard_name' => 'landlord', 'scope' => 'platform']
             );
+            \Log::info('Super Administrator role ready', ['role_id' => $role->id]);
+
+            // Wrap post-migration database operations in a transaction for atomicity
+            DB::beginTransaction();
+
+            try {
 
             $admin = LandlordUser::updateOrCreate(
                 ['email' => $adminConfig['admin_email']],
@@ -856,31 +859,22 @@ class InstallationController extends Controller
 
             \Log::info('Admin created/updated', ['admin_id' => $admin->id, 'email' => $admin->email]);
 
-            // Assign Super Administrator role (syncRoles to avoid duplicates)
+            // Assign Super Administrator role using direct DB insert to avoid Spatie's internal transactions
+            // This prevents lock contention issues during installation
             try {
-                $admin->syncRoles(['Super Administrator']);
-                \Log::info('Role synced', ['role' => 'Super Administrator']);
+                // Use insertOrIgnore to handle duplicates gracefully
+                DB::table('model_has_roles')->insertOrIgnore([
+                    'role_id' => $role->id,
+                    'model_id' => $admin->id,
+                    'model_type' => \Aero\Platform\Models\LandlordUser::class,
+                ]);
+                \Log::info('Role assigned via direct insert', ['role_id' => $role->id, 'admin_id' => $admin->id]);
+                
+                // Clear Spatie's permission cache to ensure the role is recognized
+                app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
             } catch (\Throwable $e) {
-                // Fall back to direct pivot insert in case of schema differences
-                \Log::warning('syncRoles failed, falling back to direct pivot insert', ['error' => $e->getMessage()]);
-
-                try {
-                    $role = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')
-                        ->where('guard_name', 'landlord')
-                        ->first();
-                    if ($role) {
-                        DB::connection('central')->table('model_has_roles')->insertOrIgnore([
-                            'role_id' => $role->id,
-                            'model_id' => $admin->id,
-                            'model_type' => \Aero\Platform\Models\LandlordUser::class,
-                        ]);
-                        \Log::info('Role pivot inserted (fallback)', ['role_id' => $role->id, 'admin_id' => $admin->id]);
-                    } else {
-                        \Log::warning('Fallback role insert skipped: role not found', []);
-                    }
-                } catch (\Throwable $inner) {
-                    \Log::error('Fallback role insert failed', ['error' => $inner->getMessage()]);
-                }
+                \Log::error('Role assignment failed', ['error' => $e->getMessage()]);
+                throw $e; // Re-throw to trigger rollback
             }
 
             $this->trackProgress('admin', 'completed', 'Administrator account created');
@@ -966,11 +960,17 @@ class InstallationController extends Controller
             // Stage 7: Finalization
             \Log::info('Installation Stage: finalization', ['stage' => 'finalization']);
             $this->trackProgress('finalization', 'in_progress', 'Finalizing installation');
-            File::put(storage_path('app/aeos.installed'), json_encode([
+            $storageDir = storage_path('app');
+            File::ensureDirectoryExists($storageDir);
+
+            File::put($storageDir.'/aeos.installed', json_encode([
                 'installed_at' => now()->toIso8601String(),
                 'version' => config('app.version', '1.0.0'),
                 'admin_email' => $adminConfig['admin_email'],
             ]));
+
+            // Persist the operating mode so platform routes/guards register correctly.
+            File::put($storageDir.'/aeos.mode', 'saas');
 
             // Clear all caches
             Artisan::call('config:clear');
@@ -1184,6 +1184,13 @@ class InstallationController extends Controller
             if (File::exists($lockFile)) {
                 File::delete($lockFile);
                 \Log::info('Rollback: Installation lock file removed');
+            }
+
+            // 4b. Remove mode file if it exists
+            $modeFile = storage_path('app/aeos.mode');
+            if (File::exists($modeFile)) {
+                File::delete($modeFile);
+                \Log::info('Rollback: Mode file removed');
             }
 
             // 5. Restore .env backup if it exists
@@ -1623,19 +1630,22 @@ class InstallationController extends Controller
         \Log::info('Discovered module configs for direct sync', ['count' => count($moduleConfigs)]);
         
         foreach ($moduleConfigs as $packageName => $config) {
-            if (empty($config['modules'])) {
+            // Each config IS the module definition (from config/module.php)
+            // The file returns the module array directly, not wrapped in 'modules' key
+            if (empty($config['code'])) {
+                \Log::debug('Skipping invalid module config', ['package' => $packageName]);
                 continue;
             }
             
-            foreach ($config['modules'] as $moduleData) {
-                // Only sync platform-scoped modules during installation
-                $scope = $moduleData['scope'] ?? 'tenant';
-                if ($scope !== 'platform') {
-                    continue;
-                }
-                
-                $this->syncModuleToDatabase($moduleData);
+            // Only sync platform-scoped modules during installation
+            $scope = $config['scope'] ?? 'tenant';
+            if ($scope !== 'platform') {
+                \Log::debug('Skipping non-platform module', ['code' => $config['code'], 'scope' => $scope]);
+                continue;
             }
+            
+            \Log::info('Syncing platform module', ['code' => $config['code'], 'package' => $packageName]);
+            $this->syncModuleToDatabase($config);
         }
         
         \Log::info('Direct module sync completed');
@@ -1650,6 +1660,7 @@ class InstallationController extends Controller
         $vendorPath = base_path('vendor/aero');
         
         if (!is_dir($vendorPath)) {
+            \Log::warning('Vendor aero path not found', ['path' => $vendorPath]);
             return $configs;
         }
         
@@ -1659,9 +1670,15 @@ class InstallationController extends Controller
                 continue;
             }
             
-            $configPath = $vendorPath . '/' . $package . '/config/modules.php';
+            // Look for config/module.php (singular) - this is the standard module definition file
+            $configPath = $vendorPath . '/' . $package . '/config/module.php';
             if (file_exists($configPath)) {
-                $configs[$package] = require $configPath;
+                try {
+                    $configs[$package] = require $configPath;
+                    \Log::debug('Loaded module config', ['package' => $package, 'path' => $configPath]);
+                } catch (\Throwable $e) {
+                    \Log::warning('Failed to load module config', ['package' => $package, 'error' => $e->getMessage()]);
+                }
             }
         }
         
@@ -1678,33 +1695,46 @@ class InstallationController extends Controller
         $componentModel = config('aero-core.models.module_component', \Aero\Core\Models\ModuleComponent::class);
         $actionModel = config('aero-core.models.module_component_action', \Aero\Core\Models\ModuleComponentAction::class);
         
-        // Create or update module
+        // Create or update module (matches SyncModuleHierarchy command structure)
         $module = $moduleModel::updateOrCreate(
             ['code' => $moduleData['code']],
             [
                 'name' => $moduleData['name'],
+                'scope' => $moduleData['scope'] ?? 'tenant',
                 'description' => $moduleData['description'] ?? null,
                 'icon' => $moduleData['icon'] ?? null,
-                'category' => $moduleData['category'] ?? null,
-                'scope' => $moduleData['scope'] ?? 'tenant',
-                'is_active' => true,
-                'display_order' => $moduleData['display_order'] ?? 0,
+                'route_prefix' => $moduleData['route_prefix'] ?? null,
+                'category' => $moduleData['category'] ?? 'core_system',
+                'priority' => $moduleData['priority'] ?? 100,
+                'is_active' => $moduleData['is_active'] ?? true,
+                'is_core' => $moduleData['is_core'] ?? false,
+                'settings' => $moduleData['settings'] ?? null,
+                'version' => $moduleData['version'] ?? '1.0.0',
+                'min_plan' => $moduleData['min_plan'] ?? null,
+                'license_type' => $moduleData['license_type'] ?? null,
+                'dependencies' => $moduleData['dependencies'] ?? null,
+                'release_date' => $moduleData['release_date'] ?? null,
             ]
         );
         
-        \Log::info('Synced module', ['code' => $moduleData['code'], 'id' => $module->id]);
+        \Log::info('Synced module', ['code' => $moduleData['code'], 'id' => $module->id, 'created' => $module->wasRecentlyCreated]);
         
-        // Sync sub-modules
-        if (!empty($moduleData['sub_modules'])) {
-            foreach ($moduleData['sub_modules'] as $subModuleData) {
+        // Sync submodules (note: config uses 'submodules' not 'sub_modules')
+        $submodules = $moduleData['submodules'] ?? $moduleData['sub_modules'] ?? [];
+        if (!empty($submodules)) {
+            foreach ($submodules as $subModuleData) {
                 $subModule = $subModuleModel::updateOrCreate(
-                    ['code' => $subModuleData['code'], 'module_id' => $module->id],
+                    [
+                        'module_id' => $module->id,
+                        'code' => $subModuleData['code'],
+                    ],
                     [
                         'name' => $subModuleData['name'],
                         'description' => $subModuleData['description'] ?? null,
                         'icon' => $subModuleData['icon'] ?? null,
-                        'is_active' => true,
-                        'display_order' => $subModuleData['display_order'] ?? 0,
+                        'route' => $subModuleData['route'] ?? null,
+                        'priority' => $subModuleData['priority'] ?? 100,
+                        'is_active' => $subModuleData['is_active'] ?? true,
                     ]
                 );
                 
@@ -1712,12 +1742,18 @@ class InstallationController extends Controller
                 if (!empty($subModuleData['components'])) {
                     foreach ($subModuleData['components'] as $componentData) {
                         $component = $componentModel::updateOrCreate(
-                            ['code' => $componentData['code'], 'sub_module_id' => $subModule->id],
+                            [
+                                'module_id' => $module->id,
+                                'sub_module_id' => $subModule->id,
+                                'code' => $componentData['code'],
+                            ],
                             [
                                 'name' => $componentData['name'],
                                 'description' => $componentData['description'] ?? null,
-                                'is_active' => true,
-                                'display_order' => $componentData['display_order'] ?? 0,
+                                'type' => $componentData['type'] ?? 'page',
+                                'route' => $componentData['route'] ?? null,
+                                'priority' => $componentData['priority'] ?? 100,
+                                'is_active' => $componentData['is_active'] ?? true,
                             ]
                         );
                         
@@ -1725,11 +1761,14 @@ class InstallationController extends Controller
                         if (!empty($componentData['actions'])) {
                             foreach ($componentData['actions'] as $actionData) {
                                 $actionModel::updateOrCreate(
-                                    ['code' => $actionData['code'], 'module_component_id' => $component->id],
+                                    [
+                                        'module_component_id' => $component->id,
+                                        'code' => $actionData['code'],
+                                    ],
                                     [
                                         'name' => $actionData['name'],
                                         'description' => $actionData['description'] ?? null,
-                                        'is_active' => true,
+                                        'is_active' => $actionData['is_active'] ?? true,
                                     ]
                                 );
                             }

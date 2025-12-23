@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useLayoutEffect } from 'react';
 import { heroUIThemes, applyThemeToDocument, generateHeroUIConfig } from '../theme/index';
 import { getCardStyle, applyCardStyleTheme } from '../theme/cardStyles';
 
@@ -12,45 +12,62 @@ export const useTheme = () => {
   return context;
 };
 
+const defaultThemeSettings = {
+  mode: 'light', // 'light' or 'dark'
+  cardStyle: 'modern', // Selected card style (replaces activeTheme)
+  layout: {
+    fontFamily: 'Inter' // ONLY user-customizable layout option
+  },
+  background: {
+    type: 'color', // 'color' only (NO images)
+    color: '#ffffff' // Background color or gradient only
+  }
+  // customColors REMOVED - auto-generated from cardStyle
+  // borderRadius REMOVED - comes from cardStyle
+  // borderWidth REMOVED - comes from cardStyle
+  // scale REMOVED - fixed at 100%
+  // disabledOpacity REMOVED - fixed at 0.5
+};
+
+const readStoredTheme = () => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return defaultThemeSettings;
+  }
+
+  try {
+    const savedTheme = localStorage.getItem('heroui-theme-settings');
+    if (!savedTheme) {
+      return defaultThemeSettings;
+    }
+
+    const parsedTheme = JSON.parse(savedTheme);
+    return { ...defaultThemeSettings, ...parsedTheme };
+  } catch (error) {
+    console.warn('Failed to parse saved theme:', error);
+    localStorage.removeItem('heroui-theme-settings');
+    return defaultThemeSettings;
+  }
+};
+
 export const ThemeProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
-  const [themeSettings, setThemeSettings] = useState({
-    mode: 'light', // 'light' or 'dark'
-    cardStyle: 'modern', // Selected card style (replaces activeTheme)
-    layout: {
-      fontFamily: 'Inter' // ONLY user-customizable layout option
-    },
-    background: {
-      type: 'color', // 'color' only (NO images)
-      color: '#ffffff' // Background color or gradient only
-    }
-    // customColors REMOVED - auto-generated from cardStyle
-    // borderRadius REMOVED - comes from cardStyle
-    // borderWidth REMOVED - comes from cardStyle
-    // scale REMOVED - fixed at 100%
-    // disabledOpacity REMOVED - fixed at 0.5
-  });
+  const [themeSettings, setThemeSettings] = useState(readStoredTheme);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load theme from localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('heroui-theme-settings');
-    if (savedTheme) {
-      try {
-        const parsedTheme = JSON.parse(savedTheme);
-        setThemeSettings(prev => ({ ...prev, ...parsedTheme }));
-      } catch (error) {
-        console.warn('Failed to parse saved theme:', error);
-        localStorage.removeItem('heroui-theme-settings');
-      }
-    }
+  // Apply theme before paint to reduce flash and respect stored preference
+  useLayoutEffect(() => {
+    applyThemeToDocument(themeSettings);
     setIsInitialized(true);
   }, []);
 
-  // Apply theme immediately when initialized (for initial load)
+  // Delay hydration flag slightly so loader is visible at least one frame
   useEffect(() => {
-    if (isInitialized) {
-      applyThemeToDocument(themeSettings);
+    if (!isInitialized) {
+      return undefined;
     }
+
+    const timer = setTimeout(() => setIsHydrated(true), 80); // small delay for visible paint
+    return () => clearTimeout(timer);
   }, [isInitialized]);
 
   // Save theme to localStorage and apply when changed (but not during initial load)
@@ -106,6 +123,18 @@ export const ThemeProvider = ({ children }) => {
       }
     });
   };
+
+  // Prevent unthemed flash; show lightweight loader until theme is applied
+  if (!isHydrated) {
+    return (
+      <div className="fixed inset-0 z-[9999] grid place-items-center bg-[var(--theme-content1,#ffffff)] text-[var(--theme-foreground,#11181C)] transition-colors">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--theme-divider,#e4e4e7)] border-t-[var(--theme-primary,#006fee)]" />
+          <span className="text-sm font-medium">Applying theme...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Get current card style configuration
   const getCurrentCardStyle = () => {

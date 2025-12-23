@@ -30,11 +30,7 @@ class AeroHrmServiceProvider extends ServiceProvider
             'hrm'
         );
         
-        // Register module definitions
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/modules.php',
-            'modules'
-        );
+        // Module definitions are in config/module.php and loaded by ModuleDiscoveryService
     }
 
     /**

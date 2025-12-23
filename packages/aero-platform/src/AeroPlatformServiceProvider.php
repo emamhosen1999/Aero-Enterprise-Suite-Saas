@@ -62,7 +62,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->overrideMigratorForLandlord();
 
         // Merge platform configs
-        $this->mergeConfigFrom(__DIR__.'/../config/modules.php', 'aero-platform.modules');
+        // Module definitions are in config/module.php and loaded by ModuleDiscoveryService
         $this->mergeConfigFrom(__DIR__.'/../config/tenancy.php', 'tenancy');
         $this->mergeConfigFrom(__DIR__.'/../config/platform.php', 'platform');
 
@@ -301,6 +301,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $router->aliasMiddleware('module', \Aero\Platform\Http\Middleware\ModuleAccessMiddleware::class);
         $router->aliasMiddleware('check.module', \Aero\Platform\Http\Middleware\CheckModuleAccess::class);
         $router->aliasMiddleware('platform.domain', \Aero\Platform\Http\Middleware\EnsurePlatformDomain::class);
+        $router->aliasMiddleware('admin.domain', \Aero\Platform\Http\Middleware\EnsureAdminDomain::class);
         $router->aliasMiddleware('enforce.subscription', \Aero\Platform\Http\Middleware\EnforceSubscription::class);
         $router->aliasMiddleware('maintenance', \Aero\Platform\Http\Middleware\CheckMaintenanceMode::class);
         $router->aliasMiddleware('permission', \Aero\Platform\Http\Middleware\PermissionMiddleware::class);
@@ -546,7 +547,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
             // Publish config
             $this->publishes([
-                __DIR__.'/../config/modules.php' => config_path('aero-platform-modules.php'),
+                __DIR__.'/../config/platform.php' => config_path('platform.php'),
             ], 'aero-platform-config');
 
             // NOTE: No assets publishing - all frontend is handled by aero/ui package
