@@ -111,7 +111,7 @@ class SetDatabaseConnectionFromDomain
 
     /**
      * Configure authentication to use the landlord guard.
-     * 
+     *
      * This sets the default guard to 'landlord' so that Auth::attempt()
      * and other Auth facade methods use landlord_users table instead of users table.
      */

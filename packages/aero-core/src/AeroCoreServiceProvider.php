@@ -13,6 +13,7 @@ use Aero\Core\Services\RoleModuleAccessService;
 use Aero\Core\Services\RuntimeLoader;
 use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
+use Aero\Core\Traits\ParsesHostDomain;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
@@ -25,6 +26,7 @@ use Laravel\Fortify\Fortify;
  */
 class AeroCoreServiceProvider extends ServiceProvider
 {
+    use ParsesHostDomain;
     /**
      * Register services.
      */
@@ -364,7 +366,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             
             // Even in standalone mode, skip Core routes on admin subdomain
             // (in case Platform package is installed and provides admin UI)
-            if (request() && $this->isOnAdminDomain(request()->getHost())) {
+            if (request() && $this->isHostAdminDomain(request()->getHost())) {
                 // Skip Core routes on admin subdomain - Platform handles admin domain
                 return;
             }
@@ -492,16 +494,6 @@ class AeroCoreServiceProvider extends ServiceProvider
     protected function isPlatformActive(): bool
     {
         return class_exists('Aero\Platform\AeroPlatformServiceProvider');
-    }
-
-    /**
-     * Check if on admin subdomain (admin.domain.com).
-     * Returns true if host starts with "admin."
-     */
-    protected function isOnAdminDomain(string $host): bool
-    {
-        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
-        return str_starts_with($hostWithoutPort, 'admin.');
     }
 
     /**
