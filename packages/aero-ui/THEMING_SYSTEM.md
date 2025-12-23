@@ -130,7 +130,7 @@ The card will **automatically** receive:
 
 // ❌ DON'T DO THIS - ThemedCard component doesn't exist
 import { ThemedCard } from '@/Components/UI/ThemedCard';
-<ThemedCard>...</ThemedCard>
+<Card>...</Card>
 ```
 
 ### Custom Card Styling (When Needed)

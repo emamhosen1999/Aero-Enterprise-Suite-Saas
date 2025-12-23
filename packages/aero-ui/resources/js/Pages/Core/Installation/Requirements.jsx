@@ -6,7 +6,7 @@ import {
     XCircleIcon,
     ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 
 export default function Requirements({ title, checks, canProceed }) {
     const [themeRadius, setThemeRadius] = useState('lg');
@@ -81,8 +81,8 @@ export default function Requirements({ title, checks, canProceed }) {
                     </div>
 
                     {/* Main Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-3">
                                 <ClipboardDocumentCheckIcon className="w-8 h-8 text-primary" />
                                 <div>
@@ -92,8 +92,8 @@ export default function Requirements({ title, checks, canProceed }) {
                                     </p>
                                 </div>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             {isLoading ? (
                                 <div className="flex flex-col items-center justify-center py-12">
                                     <Spinner size="lg" color="primary" />
@@ -210,8 +210,8 @@ export default function Requirements({ title, checks, canProceed }) {
                                     </div>
                                 </div>
                             )}
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </>

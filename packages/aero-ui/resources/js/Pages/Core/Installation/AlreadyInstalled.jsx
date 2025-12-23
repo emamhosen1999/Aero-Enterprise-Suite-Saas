@@ -6,7 +6,7 @@ import {
     ArrowRightIcon,
     ShieldCheckIcon
 } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 
 export default function AlreadyInstalled({ title, appUrl }) {
     const [themeRadius, setThemeRadius] = useState('lg');
@@ -35,8 +35,8 @@ export default function AlreadyInstalled({ title, appUrl }) {
             
             <div className="min-h-screen bg-gradient-to-br from-background via-content1 to-background flex items-center justify-center p-4">
                 <div className="w-full max-w-2xl">
-                    <ThemedCard>
-                        <ThemedCardBody>
+                    <Card>
+                        <CardBody>
                             <div className="text-center py-12 px-4">
                                 <div className="flex justify-center mb-6">
                                     <div className="relative">
@@ -72,8 +72,8 @@ export default function AlreadyInstalled({ title, appUrl }) {
                                     </p>
                                 </div>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Footer */}
                     <div className="text-center mt-8 text-sm text-default-500">

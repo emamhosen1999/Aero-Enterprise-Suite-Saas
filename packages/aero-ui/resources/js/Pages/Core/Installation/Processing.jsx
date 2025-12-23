@@ -6,7 +6,7 @@ import {
     CheckCircleIcon,
     ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
@@ -92,8 +92,8 @@ export default function Processing({ title }) {
                     </div>
 
                     {/* Main Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-3">
                                 {hasError ? (
                                     <ExclamationCircleIcon className="w-8 h-8 text-danger" />
@@ -111,8 +111,8 @@ export default function Processing({ title }) {
                                     </p>
                                 </div>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-8">
                                 {!hasError && (
                                     <>
@@ -226,8 +226,8 @@ export default function Processing({ title }) {
                                     </div>
                                 )}
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </>

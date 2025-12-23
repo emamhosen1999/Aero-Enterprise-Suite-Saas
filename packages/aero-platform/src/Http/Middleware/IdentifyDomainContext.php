@@ -88,12 +88,12 @@ class IdentifyDomainContext
     }
 
     /**
-     * Check if the application file lock exists and DB is accessible.
+     * Check if the application is installed using file-based detection.
      */
     protected function isApplicationInstalled(): bool
     {
         // Check lock file
-        if (! File::exists(storage_path('installed'))) {
+        if (! File::exists(storage_path('app/aeos.installed'))) {
             return false;
         }
 

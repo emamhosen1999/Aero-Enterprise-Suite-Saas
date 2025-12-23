@@ -9,7 +9,7 @@ import {
     ShoppingCartIcon,
     BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
@@ -114,8 +114,8 @@ export default function License({ title, providers, products }) {
                     </div>
 
                     {/* Main Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-3">
                                 <ShieldCheckIcon className="w-8 h-8 text-primary" />
                                 <div>
@@ -125,8 +125,8 @@ export default function License({ title, providers, products }) {
                                     </p>
                                 </div>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-6">
                                 {/* Provider Selection */}
                                 <div>
@@ -239,8 +239,8 @@ export default function License({ title, providers, products }) {
                                     </Button>
                                 </div>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </>

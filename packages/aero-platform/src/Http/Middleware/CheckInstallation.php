@@ -31,7 +31,7 @@ class CheckInstallation
         }
 
         $host = $request->getHost();
-        $installationLockFile = storage_path('installed');
+        $installationLockFile = storage_path('app/aeos.installed');
         $isInstalled = File::exists($installationLockFile);
 
         // Check if database is accessible

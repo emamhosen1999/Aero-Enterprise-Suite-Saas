@@ -33,7 +33,7 @@ class CleanupFailedInstallation extends Command
         $this->line('=====================================');
 
         // Check if actually installed
-        if (File::exists(storage_path('installed'))) {
+        if (File::exists(storage_path('app/aeos.installed'))) {
             $this->warn('⚠️  Platform appears to be successfully installed.');
             
             if (!$this->option('force') && !$this->confirm('Are you sure you want to cleanup? This may break the installation.', false)) {
@@ -231,7 +231,7 @@ class CleanupFailedInstallation extends Command
      */
     private function removeInstalledMarker(): bool
     {
-        $installedFile = storage_path('installed');
+        $installedFile = storage_path('app/aeos.installed');
         
         if (File::exists($installedFile)) {
             if ($this->option('force') || $this->confirm('Remove installation marker?', true)) {

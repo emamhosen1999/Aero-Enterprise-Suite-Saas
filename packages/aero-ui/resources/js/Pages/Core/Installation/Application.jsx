@@ -7,7 +7,7 @@ import {
     EnvelopeIcon,
     BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
@@ -140,8 +140,8 @@ export default function Application({ title, timezones, licenseEmail }) {
                     </div>
 
                     {/* Main Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-3">
                                 <Cog6ToothIcon className="w-8 h-8 text-primary" />
                                 <div>
@@ -151,8 +151,8 @@ export default function Application({ title, timezones, licenseEmail }) {
                                     </p>
                                 </div>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <Tabs 
                                 selectedKey={activeTab} 
                                 onSelectionChange={setActiveTab}
@@ -408,8 +408,8 @@ export default function Application({ title, timezones, licenseEmail }) {
                                     {isSaving ? 'Saving...' : 'Save & Continue'}
                                 </Button>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </>

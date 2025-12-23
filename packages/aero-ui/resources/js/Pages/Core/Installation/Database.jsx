@@ -6,7 +6,7 @@ import {
     CheckCircleIcon,
     ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
@@ -102,8 +102,8 @@ export default function Database({ title, currentConfig }) {
                     </div>
 
                     {/* Main Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-3">
                                 <CircleStackIcon className="w-8 h-8 text-primary" />
                                 <div>
@@ -113,8 +113,8 @@ export default function Database({ title, currentConfig }) {
                                     </p>
                                 </div>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-6">
                                 {/* Database Host & Port */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -261,8 +261,8 @@ export default function Database({ title, currentConfig }) {
                                     </Button>
                                 </div>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </>

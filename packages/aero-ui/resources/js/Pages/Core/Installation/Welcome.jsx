@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Card, CardBody, CardHeader, Button, Chip } from '@heroui/react';
 import { CheckCircleIcon, RocketLaunchIcon } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 
 export default function Welcome({ title, product, version, phpVersion, laravelVersion }) {
     const [themeRadius, setThemeRadius] = useState('lg');
@@ -45,11 +45,11 @@ export default function Welcome({ title, product, version, phpVersion, laravelVe
                     </div>
 
                     {/* Main Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <h2 className="text-2xl font-semibold">Getting Started</h2>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-6">
                                 {/* Product Info */}
                                 <div>
@@ -73,12 +73,15 @@ export default function Welcome({ title, product, version, phpVersion, laravelVe
                                     )}
                                 </div>
 
-                                {/* Included Modules */}
-                                {product?.included_modules && product.included_modules.length > 0 && (
+                                {/* Included Modules - Only show if there are visible modules (excluding core) */}
+                                {product?.included_modules && 
+                                 product.included_modules.filter(m => m !== 'core').length > 0 && (
                                     <div>
                                         <h3 className="text-lg font-semibold mb-3">Included Modules</h3>
                                         <div className="flex flex-wrap gap-2">
-                                            {product.included_modules.map((module) => (
+                                            {product.included_modules
+                                                .filter(module => module !== 'core') // Hide core module
+                                                .map((module) => (
                                                 <Chip
                                                     key={module}
                                                     color="primary"
@@ -150,8 +153,8 @@ export default function Welcome({ title, product, version, phpVersion, laravelVe
                                     </Button>
                                 </div>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Footer */}
                     <div className="text-center mt-8 text-sm text-default-500">

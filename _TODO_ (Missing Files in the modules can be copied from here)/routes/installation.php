@@ -14,14 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Check if already installed and redirect to login
-if (file_exists(storage_path('installed'))) {
-    Route::get('/install', function () {
-        return redirect('/login');
-    });
 
-    return;
-}
 
 Route::prefix('install')->name('installation.')->group(function () {
     // Step 1: Welcome page

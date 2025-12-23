@@ -124,7 +124,7 @@ Route::get('/terms', fn () => redirect('/legal/terms'));
 // INSTALLATION WIZARD
 // =========================================================================
 
-$isInstalled = file_exists(storage_path('installed'));
+$isInstalled = file_exists(storage_path('app/aeos.installed'));
 
 // Complete route (always available - works after installation)
 Route::get('/install/complete', [InstallationController::class, 'complete'])->name('installation.complete');

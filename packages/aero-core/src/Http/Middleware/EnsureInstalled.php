@@ -28,14 +28,8 @@ class EnsureInstalled
             return $next($request);
         }
 
-        $installationLockFile = storage_path('installed');
-        $isInstalled = File::exists($installationLockFile);
-
-        // Check if database is accessible
-        $databaseAccessible = $this->isDatabaseAccessible();
-
-        // If not installed or database not accessible, redirect to /install
-        if (! $isInstalled || ! $databaseAccessible) {
+        // Check if system is installed using the authoritative file-based detection
+        if (!$this->isInstalled()) {
             return redirect('/install');
         }
 
@@ -51,7 +45,7 @@ class EnsureInstalled
      * 
      * @return bool
      */
-    protected function isDatabaseAccessible(): bool
+    protected function isInstalled(): bool
     {
         return file_exists(storage_path('app/aeos.installed'));
     }

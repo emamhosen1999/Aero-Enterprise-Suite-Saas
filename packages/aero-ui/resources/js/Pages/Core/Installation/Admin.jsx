@@ -6,7 +6,7 @@ import {
     CheckCircleIcon,
     ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
+
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 
@@ -107,8 +107,8 @@ export default function Admin({ title, licenseEmail }) {
                     </div>
 
                     {/* Main Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-3">
                                 <UserCircleIcon className="w-8 h-8 text-primary" />
                                 <div>
@@ -118,8 +118,8 @@ export default function Admin({ title, licenseEmail }) {
                                     </p>
                                 </div>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-6">
                                 {/* Admin Name */}
                                 <Input
@@ -224,8 +224,8 @@ export default function Admin({ title, licenseEmail }) {
                                     </Button>
                                 </div>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
         </>

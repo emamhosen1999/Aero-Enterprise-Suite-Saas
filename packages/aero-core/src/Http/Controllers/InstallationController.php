@@ -50,7 +50,7 @@ class InstallationController extends Controller
     {
         // Check if already installed
         if ($this->isInstalled()) {
-            return Inertia::render('Installation/AlreadyInstalled', [
+            return Inertia::render('Core/Installation/AlreadyInstalled', [
                 'title' => 'Already Installed',
                 'appUrl' => config('app.url'),
             ]);
@@ -59,7 +59,7 @@ class InstallationController extends Controller
         // Detect product from composer.json
         $product = $this->detectProduct();
 
-        return Inertia::render('Installation/Welcome', [
+        return Inertia::render('Core/Installation/Welcome', [
             'title' => 'Welcome to ' . ($product['name'] ?? 'Aero Enterprise Suite'),
             'product' => $product,
             'version' => config('app.version', '1.0.0'),
@@ -77,7 +77,7 @@ class InstallationController extends Controller
             return redirect()->route('login');
         }
 
-        return Inertia::render('Installation/License', [
+        return Inertia::render('Core/Installation/License', [
             'title' => 'License Validation',
             'providers' => $this->getAvailableProviders(),
             'products' => config('license.products', []),
@@ -143,7 +143,7 @@ class InstallationController extends Controller
 
         $checks = $this->performRequirementsCheck();
 
-        return Inertia::render('Installation/Requirements', [
+        return Inertia::render('Core/Installation/Requirements', [
             'title' => 'System Requirements',
             'checks' => $checks,
             'canProceed' => $checks['allPassed'],
@@ -159,7 +159,7 @@ class InstallationController extends Controller
             return redirect()->route('login');
         }
 
-        return Inertia::render('Installation/Database', [
+        return Inertia::render('Core/Installation/Database', [
             'title' => 'Database Configuration',
             'currentConfig' => [
                 'connection' => config('database.default'),
@@ -242,7 +242,7 @@ class InstallationController extends Controller
         // Auto-detect mode based on installed packages
         $detectedMode = $this->detectInstallationMode();
 
-        return Inertia::render('Installation/Application', [
+        return Inertia::render('Core/Installation/Application', [
             'title' => 'Application Settings',
             'timezones' => timezone_identifiers_list(),
             'licenseEmail' => Session::get('installation.license.email'),
@@ -375,7 +375,7 @@ class InstallationController extends Controller
             return redirect()->route('login');
         }
 
-        return Inertia::render('Installation/Admin', [
+        return Inertia::render('Core/Installation/Admin', [
             'title' => 'Create Admin User',
             'licenseEmail' => Session::get('installation.license.email'),
         ]);
@@ -906,7 +906,7 @@ class InstallationController extends Controller
     }
     
     /**
-     * Detect product from composer.json
+     * Detect product from installed aero packages
      */
     private function detectProduct(): array
     {
@@ -922,25 +922,59 @@ class InstallationController extends Controller
         }
         
         $composer = json_decode(File::get($composerPath), true);
-        $name = $composer['name'] ?? 'aero/enterprise-suite';
+        $require = $composer['require'] ?? [];
         
-        // Map composer package names to products
-        $productMap = [
-            'aero/hrm' => 'AES-HRM',
-            'aero/crm' => 'AES-CRM',
-            'aero/rfi' => 'AES-RFI',
-            'aero/finance' => 'AES-FIN',
-            'aero/project' => 'AES-PRJ',
+        // Detect installed aero modules from require section
+        $installedModules = [];
+        $modulePackages = [
+            'aero/hrm' => 'hrm',
+            'aero/crm' => 'crm',
+            'aero/rfi' => 'rfi',
+            'aero/finance' => 'finance',
+            'aero/project' => 'project',
+            'aero/ims' => 'ims',
+            'aero/pos' => 'pos',
+            'aero/scm' => 'scm',
+            'aero/quality' => 'quality',
+            'aero/dms' => 'dms',
+            'aero/compliance' => 'compliance',
         ];
         
-        $productCode = $productMap[$name] ?? 'AES-FULL';
+        foreach ($modulePackages as $package => $moduleCode) {
+            if (isset($require[$package])) {
+                $installedModules[] = $moduleCode;
+            }
+        }
         
-        return config("license.products.{$productCode}", [
+        // Check if aero/platform is installed (SaaS mode)
+        $hasPlatform = isset($require['aero/platform']);
+        
+        // Determine product based on installed modules
+        $productName = 'Aero Enterprise Suite';
+        $productDescription = 'ERP System';
+        $productCode = 'AES-CUSTOM';
+        
+        if (empty($installedModules)) {
+            // Only core is installed
+            $productCode = 'AES-CORE';
+            $productDescription = 'Core Platform';
+            $installedModules = []; // Don't show 'core' - it's a hidden system module
+        } elseif (count($installedModules) >= 5) {
+            $productCode = 'AES-FULL';
+            $productDescription = 'Complete ERP Suite';
+        }
+        
+        if ($hasPlatform) {
+            $productName = 'Aero Enterprise Suite - SaaS';
+            $productDescription .= ' (Multi-Tenant)';
+        }
+        
+        return [
             'code' => $productCode,
-            'name' => 'Aero Enterprise Suite',
-            'description' => 'ERP System',
-            'included_modules' => ['core'],
-        ]);
+            'name' => $productName,
+            'description' => $productDescription,
+            'included_modules' => $installedModules,
+        ];
     }
     
     /**

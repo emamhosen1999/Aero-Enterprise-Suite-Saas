@@ -108,10 +108,10 @@ All HeroUI Card components **MUST** use the themed card styling for consistency 
 ```jsx
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
-<ThemedCard>
+<Card>
   <ThemedCardHeader>Title</ThemedCardHeader>
   <ThemedCardBody>Content</ThemedCardBody>
-</ThemedCard>
+</Card>
 ```
 
 **Option 2: Use getThemedCardStyle utility**

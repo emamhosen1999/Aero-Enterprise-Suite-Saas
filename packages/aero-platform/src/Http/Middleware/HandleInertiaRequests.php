@@ -54,11 +54,11 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Check if the application file lock exists and DB is accessible.
+     * Check if the application is installed using file-based detection.
      */
     protected function isApplicationInstalled(): bool
     {
-        $lockFile = storage_path('installed');
+        $lockFile = storage_path('app/aeos.installed');
 
         // Check 1: Installation lock file must exist
         if (! File::exists($lockFile)) {
