@@ -17,12 +17,17 @@ use Symfony\Component\HttpFoundation\Response;
  * This middleware runs GLOBALLY before sessions are started to ensure:
  * 1. The correct database connection is used for session storage
  * 2. Session cookies are isolated between central and tenant domains
+ * 3. The correct authentication guard is used based on domain
  *
  * Session Isolation:
  * - Central domains (platform, admin): Use 'aeos_central_session' cookie
  * - Tenant domains: Use 'aeos_tenant_session' cookie
  *
- * This prevents session bleeding when users navigate between domains.
+ * Auth Guard:
+ * - Admin domain: Use 'landlord' guard (landlord_users table)
+ * - Other domains: Use default 'web' guard (users table)
+ *
+ * This prevents session bleeding and ensures proper authentication when users navigate between domains.
  */
 class SetDatabaseConnectionFromDomain
 {
@@ -41,6 +46,12 @@ class SetDatabaseConnectionFromDomain
         if ($this->isHostOnCentralDomain($host)) {
             $this->useCentralDatabase();
             $this->useCentralSessionCookie();
+
+            // Set default auth guard based on domain
+            if ($this->isHostAdminDomain($host)) {
+                // Admin domain uses landlord guard
+                $this->useLandlordGuard();
+            }
 
             return $next($request);
         }
@@ -96,5 +107,18 @@ class SetDatabaseConnectionFromDomain
         // This ensures tenant1.domain.com and tenant2.domain.com have separate sessions
         $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
         Config::set('session.domain', $hostWithoutPort);
+    }
+
+    /**
+     * Configure authentication to use the landlord guard.
+     *
+     * This should only be called for admin domains (admin.domain.com).
+     * Sets the default guard to 'landlord' so that Auth::attempt()
+     * and other Auth facade methods use landlord_users table instead of users table.
+     */
+    protected function useLandlordGuard(): void
+    {
+        // Set the default guard to landlord
+        Config::set('auth.defaults.guard', 'landlord');
     }
 }

@@ -13,6 +13,7 @@ use Aero\Core\Services\RoleModuleAccessService;
 use Aero\Core\Services\RuntimeLoader;
 use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
+use Aero\Core\Traits\ParsesHostDomain;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
@@ -25,6 +26,7 @@ use Laravel\Fortify\Fortify;
  */
 class AeroCoreServiceProvider extends ServiceProvider
 {
+    use ParsesHostDomain;
     /**
      * Register services.
      */
@@ -361,6 +363,12 @@ class AeroCoreServiceProvider extends ServiceProvider
         } else {
             // Standalone Mode: Routes with standard web middleware on domain.com
             // NO tenancy middleware in standalone mode
+
+            // Skip Core routes on admin subdomain to prevent conflicts with Platform's admin routes
+            if (request() && $this->isHostAdminDomain(request()->getHost())) {
+                return;
+            }
+
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
