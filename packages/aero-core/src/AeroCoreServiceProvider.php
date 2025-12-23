@@ -78,7 +78,19 @@ class AeroCoreServiceProvider extends ServiceProvider
             $this->app->singleton(DashboardWidgetRegistry::class);
 
             // Register Module Access Services (with error handling for missing tables)
+            // These services are lazy-loaded, so they won't cause issues pre-install
             $this->app->singleton(ModuleAccessService::class, function ($app) {
+                // Only instantiate if installed to avoid DB queries pre-install
+                if (!file_exists(storage_path('app/aeos.installed'))) {
+                    return new class
+                    {
+                        public function __call($method, $args)
+                        {
+                            return [];
+                        }
+                    };
+                }
+
                 try {
                     return new ModuleAccessService;
                 } catch (\Throwable $e) {
@@ -93,6 +105,17 @@ class AeroCoreServiceProvider extends ServiceProvider
             });
 
             $this->app->singleton(RoleModuleAccessService::class, function ($app) {
+                // Only instantiate if installed to avoid DB queries pre-install
+                if (!file_exists(storage_path('app/aeos.installed'))) {
+                    return new class
+                    {
+                        public function __call($method, $args)
+                        {
+                            return [];
+                        }
+                    };
+                }
+
                 try {
                     return new RoleModuleAccessService;
                 } catch (\Throwable $e) {

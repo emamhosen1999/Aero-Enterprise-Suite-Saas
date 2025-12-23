@@ -62,10 +62,34 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Platform provides the SaaS implementation using stancl/tenancy
         $this->app->singleton(TenantScopeInterface::class, SaaSTenantScope::class);
 
-        // Register services as singletons
-        $this->app->singleton(ModuleAccessService::class);
-        $this->app->singleton(RoleModuleAccessService::class);
-        $this->app->singleton(PlatformSettingService::class);
+        // Register services as singletons (lazy-loaded to avoid DB access pre-install)
+        $this->app->singleton(ModuleAccessService::class, function ($app) {
+            if (!file_exists(storage_path('app/aeos.installed'))) {
+                return new class {
+                    public function __call($method, $args) { return []; }
+                };
+            }
+            return new ModuleAccessService;
+        });
+
+        $this->app->singleton(RoleModuleAccessService::class, function ($app) {
+            if (!file_exists(storage_path('app/aeos.installed'))) {
+                return new class {
+                    public function __call($method, $args) { return []; }
+                };
+            }
+            return new RoleModuleAccessService;
+        });
+
+        $this->app->singleton(PlatformSettingService::class, function ($app) {
+            if (!file_exists(storage_path('app/aeos.installed'))) {
+                return new class {
+                    public function __call($method, $args) { return null; }
+                };
+            }
+            return new PlatformSettingService;
+        });
+
         $this->app->singleton(ErrorLogService::class);
         $this->app->singleton(SslCommerzService::class);
 
