@@ -305,7 +305,7 @@ class HandleInertiaRequests extends Middleware
             'translations' => fn () => $this->getTranslations(),
             // SaaS Frontend Data - admin context always has full access
             'aero' => [
-                'mode' => config('aero.mode', 'saas'),
+                'mode' => aero_mode() ?? 'saas',
                 'subscriptions' => [], // Admin has access to all modules by default
             ],
             // Navigation from backend NavigationRegistry (module.php driven)
@@ -413,7 +413,7 @@ class HandleInertiaRequests extends Middleware
             'translations' => fn () => $this->getTranslations(),
             // SaaS Frontend Data - platform context for public site
             'aero' => [
-                'mode' => config('aero.mode', 'saas'),
+                'mode' => aero_mode() ?? 'saas',
                 'subscriptions' => [], // Public pages don't need subscriptions
             ],
             'flash' => [
@@ -536,7 +536,7 @@ class HandleInertiaRequests extends Middleware
             'translations' => fn () => $this->getTranslations(),
             // SaaS Frontend Data - enables React to show/hide module links
             'aero' => [
-                'mode' => config('aero.mode', 'saas'),
+                'mode' => aero_mode() ?? 'saas',
                 'subscriptions' => fn () => $this->getTenantSubscribedModules(),
             ],
             // Maintenance mode status for tenant context

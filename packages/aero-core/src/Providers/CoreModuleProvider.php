@@ -167,7 +167,7 @@ class CoreModuleProvider extends AbstractModuleProvider
         
         // Apply EnsureInstalled middleware globally for standalone mode
         // Use prepend to run BEFORE session middleware (to avoid sessions table errors)
-        if (config('aero.mode') === 'standalone') {
+        if (is_standalone_mode()) {
             $router->prependMiddlewareToGroup('web', \Aero\Core\Http\Middleware\EnsureInstalled::class);
         }
     }

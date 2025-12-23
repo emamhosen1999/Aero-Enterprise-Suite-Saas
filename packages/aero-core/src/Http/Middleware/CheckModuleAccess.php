@@ -74,7 +74,7 @@ class CheckModuleAccess
         }
 
         // In standalone mode, skip tenant check
-        $isStandalone = config('aero.mode') === 'standalone';
+        $isStandalone = is_standalone_mode();
 
         if (! $isStandalone) {
             // Tenant context - check if tenant is properly initialized (from domain routing)
@@ -161,7 +161,7 @@ class CheckModuleAccess
     protected function detectGuard(Request $request): string
     {
         // In standalone mode, always use 'web' guard
-        if (config('aero.mode') === 'standalone') {
+        if (is_standalone_mode()) {
             return 'web';
         }
 

@@ -124,6 +124,6 @@ class AeroHrmServiceProvider extends ServiceProvider
      */
     protected function isSaaSMode(): bool
     {
-        return config('aero.mode') === 'saas';
+        return is_saas_mode();
     }
 }

@@ -252,7 +252,7 @@ class ModuleManager
      */
     public function getInjectableModules(): array
     {
-        $mode = config('aero.mode', 'standalone');
+        $mode = aero_mode() ?? 'standalone';
 
         if ($mode !== 'standalone') {
             return [];
