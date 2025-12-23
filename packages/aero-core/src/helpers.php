@@ -143,7 +143,7 @@ if (!function_exists('isModuleActive')) {
     function isModuleActive(string $moduleName): bool
     {
         // In SaaS mode, check Composer packages
-        if (config('aero.mode') === 'saas') {
+        if (is_saas_mode()) {
             return class_exists("Aero\\{$moduleName}\\ServiceProvider") ||
                    class_exists("Aero\\{$moduleName}\\Aero{$moduleName}ServiceProvider");
         }
@@ -162,7 +162,7 @@ if (!function_exists('getActiveModules')) {
      */
     function getActiveModules(): array
     {
-        if (config('aero.mode') === 'saas') {
+        if (is_saas_mode()) {
             // In SaaS mode, modules are composer packages
             return config('modules.installed', []);
         }
@@ -175,14 +175,16 @@ if (!function_exists('getActiveModules')) {
 
 if (!function_exists('isPlatformActive')) {
     /**
-     * Check if aero-platform is active (determines SaaS vs Standalone).
+     * Check if aero-platform is active (SaaS mode).
+     * 
+     * Platform package may be installed but not active if user selected Standalone mode.
+     * Mode file is the authoritative source, not package presence.
      *
      * @return bool
      */
     function isPlatformActive(): bool
     {
-        return class_exists('Aero\Platform\AeroPlatformServiceProvider') ||
-               config('platform.enabled', false);
+        return is_saas_mode();
     }
 }
 
@@ -210,7 +212,7 @@ if (!function_exists('getTenantId')) {
         }
 
         // Standalone default
-        if (config('aero.mode') === 'standalone') {
+        if (is_standalone_mode()) {
             return config('aero.standalone_tenant_id', 1);
         }
 
@@ -230,7 +232,7 @@ if (!function_exists('moduleAsset')) {
     {
         $normalizedPath = ltrim($path, '/');
 
-        if (config('aero.mode') === 'standalone') {
+        if (is_standalone_mode()) {
             return asset("modules/{$moduleName}/{$normalizedPath}");
         }
 
