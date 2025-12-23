@@ -146,6 +146,13 @@ class AeroCoreServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force file-based sessions BEFORE any session driver is instantiated
+        // This allows installation to work without database tables
+        if (config('aero.mode') === 'standalone' && !file_exists(storage_path('installed'))) {
+            // Pre-configure session driver to file (before StartSession middleware runs)
+            config(['session.driver' => 'file', 'cache.default' => 'file']);
+        }
+
         // Load migrations from Core package (takes priority)
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
