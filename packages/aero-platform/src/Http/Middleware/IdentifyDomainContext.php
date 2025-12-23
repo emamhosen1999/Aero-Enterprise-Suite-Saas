@@ -44,23 +44,9 @@ class IdentifyDomainContext
         $context = $this->identifyContext($request);
         $request->attributes->set('domain_context', $context);
 
-        // 2. Only intercept the root path '/'
-        if (! $request->is('/')) {
-            return $next($request);
-        }
-
-        // 3. Handle Admin Domain (admin.domain.com)
-        if ($context === self::CONTEXT_ADMIN) {
-            if (Auth::guard('landlord')->check()) {
-                return redirect()->route('admin.dashboard');
-            }
-
-            return redirect('/login');
-        }
-
-        // 4. Handle Platform Domain (domain.com) - The Landing Page
-        if ($context === self::CONTEXT_PLATFORM) {
-
+        // 2. Only intercept the root path '/' for PLATFORM domain
+        // Admin and Tenant domains have their own route definitions for "/"
+        if ($request->is('/') && $context === self::CONTEXT_PLATFORM) {
             // Check if installed
             if (! $this->isApplicationInstalled()) {
                 return redirect('/install');
@@ -73,17 +59,7 @@ class IdentifyDomainContext
             return Inertia::render('Platform/Public/Landing');
         }
 
-        // 5. Handle Tenant Domain (tenant.domain.com)
-        // Redirect to dashboard if authenticated, or login if not
-        if ($context === self::CONTEXT_TENANT) {
-            if (Auth::guard('web')->check()) {
-                return redirect()->route('tenant.dashboard');
-            }
-
-            return redirect('/login');
-        }
-
-        // Fallback: Pass to next middleware
+        // 3. Pass to next middleware - let routes handle all requests including "/"
         return $next($request);
     }
 
