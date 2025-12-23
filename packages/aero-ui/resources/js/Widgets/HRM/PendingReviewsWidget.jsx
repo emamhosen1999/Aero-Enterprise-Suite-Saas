@@ -55,24 +55,24 @@ export default function PendingReviewsWidget({
 
     return (
         <Card className="aero-card">
-            <CardHeader className="border-b border-divider p-4">
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                        <ClipboardDocumentListIcon className="w-5 h-5 text-primary" />
-                        <h3 className="text-lg font-semibold">{title}</h3>
+            <CardHeader className="border-b border-divider p-3 sm:p-4">
+                <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <ClipboardDocumentListIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
+                        <h3 className="text-base sm:text-lg font-semibold truncate">{title}</h3>
                     </div>
                     {totalPending > 0 && (
-                        <Chip color="warning" variant="flat" size="sm">
+                        <Chip color="warning" variant="flat" size="sm" className="shrink-0">
                             {totalPending} Due
                         </Chip>
                     )}
                 </div>
             </CardHeader>
-            <CardBody className="p-4">
+            <CardBody className="p-3 sm:p-4">
                 {totalPending === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-6 text-center">
-                        <StarIcon className="w-12 h-12 text-default-300 mb-2" />
-                        <p className="text-default-500">No pending reviews</p>
+                    <div className="flex flex-col items-center justify-center py-4 sm:py-6 text-center">
+                        <StarIcon className="w-10 h-10 sm:w-12 sm:h-12 text-default-300 mb-2" />
+                        <p className="text-sm sm:text-base text-default-500">No pending reviews</p>
                         <p className="text-xs text-default-400 mt-1">
                             You're all caught up!
                         </p>

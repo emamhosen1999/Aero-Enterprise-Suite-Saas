@@ -73,18 +73,18 @@ const RecentActivityWidget = ({ data = {} }) => {
 
     return (
         <Card className="border border-divider h-full">
-            <CardHeader className="px-4 py-3 border-b border-divider">
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                        <BoltIcon className="w-5 h-5 text-warning" />
-                        <h2 className="text-lg font-semibold">Recent Activity</h2>
+            <CardHeader className="px-3 sm:px-4 py-2 sm:py-3 border-b border-divider">
+                <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <BoltIcon className="w-4 h-4 sm:w-5 sm:h-5 text-warning shrink-0" />
+                        <h2 className="text-base sm:text-lg font-semibold truncate">Recent Activity</h2>
                     </div>
                     <Chip size="sm" color="default" variant="flat">
                         {totalToday} today
                     </Chip>
                 </div>
             </CardHeader>
-            <CardBody className="p-4">
+            <CardBody className="p-3 sm:p-4">
                 {activities.length === 0 ? (
                     <div className="text-center py-8 text-default-400">
                         <ClockIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />

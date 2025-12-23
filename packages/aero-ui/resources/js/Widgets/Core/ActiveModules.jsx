@@ -55,23 +55,23 @@ const ActiveModules = ({ data = [], isRefreshing = false }) => {
 
     return (
         <Card>
-            <CardHeader className="p-4">
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                        <SparklesIcon className="w-5 h-5 text-success" />
-                        <h2 className="text-lg font-semibold">Products</h2>
+            <CardHeader className="p-3 sm:p-4">
+                <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-success shrink-0" />
+                        <h2 className="text-base sm:text-lg font-semibold truncate">Products</h2>
                     </div>
-                    <Chip size="sm" color="success" variant="flat">
+                    <Chip size="sm" color="success" variant="flat" className="shrink-0">
                         {enabledCount} Active
                     </Chip>
                 </div>
             </CardHeader>
-            <CardBody className="p-4">
-                <div className="grid grid-cols-2 gap-3">
+            <CardBody className="p-3 sm:p-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {filteredProducts.map((product, idx) => (
                         <div 
                             key={idx}
-                            className={`flex items-center gap-2 p-2 rounded-lg border ${
+                            className={`flex items-center gap-2 p-1.5 sm:p-2 rounded-lg border ${
                                 product.enabled 
                                     ? 'border-success/30 bg-success/5' 
                                     : 'border-default-200 bg-default-50 opacity-60'

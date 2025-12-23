@@ -66,13 +66,13 @@ const QuickActionsWidget = ({ data = {} }) => {
 
     return (
         <Card>
-            <CardHeader className="p-4">
+            <CardHeader className="p-3 sm:p-4">
                 <div className="flex items-center gap-2">
-                    <PlusIcon className="w-5 h-5 text-primary" />
-                    <h2 className="text-lg font-semibold">Quick Actions</h2>
+                    <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    <h2 className="text-base sm:text-lg font-semibold">Quick Actions</h2>
                 </div>
             </CardHeader>
-            <CardBody className="p-4 pt-0">
+            <CardBody className="p-3 sm:p-4 pt-0">
                 <div className="flex flex-wrap gap-2">
                     {displayActions.map((action) => (
                         <Tooltip key={action.key} content={action.label}>
@@ -83,9 +83,9 @@ const QuickActionsWidget = ({ data = {} }) => {
                                 variant="flat"
                                 size="sm"
                                 startContent={getIcon(action.icon)}
-                                className="min-w-[120px]"
+                                className="min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm"
                             >
-                                {action.label}
+                                <span className="truncate">{action.label}</span>
                             </Button>
                         </Tooltip>
                     ))}

@@ -56,27 +56,27 @@ const NotificationsWidget = ({ data = {} }) => {
 
     return (
         <Card>
-            <CardHeader className="p-4">
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
+            <CardHeader className="p-3 sm:p-4">
+                <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                         <Badge 
                             content={unreadCount > 99 ? '99+' : unreadCount} 
                             color="danger" 
                             size="sm"
                             isInvisible={unreadCount === 0}
                         >
-                            <BellAlertIcon className="w-5 h-5 text-warning" />
+                            <BellAlertIcon className="w-4 h-4 sm:w-5 sm:h-5 text-warning shrink-0" />
                         </Badge>
-                        <h2 className="text-lg font-semibold">Notifications</h2>
+                        <h2 className="text-base sm:text-lg font-semibold truncate">Notifications</h2>
                     </div>
                     {unreadCount > 0 && (
-                        <Chip size="sm" color="warning" variant="flat">
+                        <Chip size="sm" color="warning" variant="flat" className="shrink-0">
                             {unreadCount} unread
                         </Chip>
                     )}
                 </div>
             </CardHeader>
-            <CardBody className="p-4 pt-0">
+            <CardBody className="p-3 sm:p-4 pt-0">
                 {notifications.length === 0 ? (
                     <div className="text-center py-6 text-default-400">
                         <BellIcon className="w-10 h-10 mx-auto mb-2 opacity-50" />

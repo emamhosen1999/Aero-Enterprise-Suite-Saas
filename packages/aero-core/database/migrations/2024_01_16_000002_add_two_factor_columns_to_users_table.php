@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->text('two_factor_secret')->nullable()->after('password');
-            $table->text('two_factor_recovery_codes')->nullable()->after('two_factor_secret');
-            $table->timestamp('two_factor_enabled_at')->nullable()->after('two_factor_recovery_codes');
+            if (!Schema::hasColumn('users', 'two_factor_secret')) {
+                $table->text('two_factor_secret')->nullable()->after('password');
+            }
+            if (!Schema::hasColumn('users', 'two_factor_recovery_codes')) {
+                $table->text('two_factor_recovery_codes')->nullable()->after('two_factor_secret');
+            }
+            if (!Schema::hasColumn('users', 'two_factor_enabled_at')) {
+                $table->timestamp('two_factor_enabled_at')->nullable()->after('two_factor_recovery_codes');
+            }
         });
     }
 

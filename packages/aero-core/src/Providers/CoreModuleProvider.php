@@ -131,6 +131,23 @@ class CoreModuleProvider extends AbstractModuleProvider
         
         // Register policies
         $this->registerPolicies();
+        
+        // Register commands
+        $this->registerCommands();
+    }
+
+    /**
+     * Register core commands.
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Aero\Core\Console\Commands\SyncModuleHierarchy::class,
+                \Aero\Core\Console\Commands\SeedCommand::class,
+                \Aero\Core\Console\Commands\InstallCommand::class,
+            ]);
+        }
     }
 
     /**

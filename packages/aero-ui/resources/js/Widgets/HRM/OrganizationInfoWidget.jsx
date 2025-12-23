@@ -55,20 +55,20 @@ const OrganizationInfoWidget = ({ data = {} }) => {
 
     return (
         <Card className="border border-divider">
-            <CardHeader className="px-4 py-3 border-b border-divider">
-                <div className="flex items-center gap-2">
-                    <BuildingOfficeIcon className="w-5 h-5 text-primary" />
-                    <h2 className="text-lg font-semibold">Organization</h2>
+            <CardHeader className="px-3 sm:px-4 py-2 sm:py-3 border-b border-divider">
+                <div className="flex items-center gap-2 min-w-0">
+                    <BuildingOfficeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
+                    <h2 className="text-base sm:text-lg font-semibold truncate">Organization</h2>
                 </div>
             </CardHeader>
-            <CardBody className="p-4">
+            <CardBody className="p-3 sm:p-4">
                 {items.length === 0 ? (
                     <div className="text-center py-6 text-default-400">
                         <InformationCircleIcon className="w-10 h-10 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">No organization data</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                         {items.map((item, index) => {
                             const IconComponent = iconMap[item.icon] || InformationCircleIcon;
                             const colorClass = colorClasses[item.color] || colorClasses.default;
@@ -76,18 +76,18 @@ const OrganizationInfoWidget = ({ data = {} }) => {
 
                             return (
                                 <div key={item.key}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-lg ${bgClass}`}>
-                                                <IconComponent className={`w-4 h-4 ${colorClass}`} />
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                            <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${bgClass}`}>
+                                                <IconComponent className={`w-3 h-3 sm:w-4 sm:h-4 ${colorClass}`} />
                                             </div>
-                                            <span className="text-sm text-default-600">{item.label}</span>
+                                            <span className="text-xs sm:text-sm text-default-600 truncate">{item.label}</span>
                                         </div>
-                                        <span className="text-lg font-semibold tabular-nums">
+                                        <span className="text-base sm:text-lg font-semibold tabular-nums shrink-0">
                                             {item.value}
                                         </span>
                                     </div>
-                                    {index < items.length - 1 && <Divider className="my-2" />}
+                                    {index < items.length - 1 && <Divider className="my-1.5 sm:my-2" />}
                                 </div>
                             );
                         })}

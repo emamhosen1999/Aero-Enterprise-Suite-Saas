@@ -56,20 +56,20 @@ const UpcomingHolidaysWidget = ({ data = {} }) => {
 
     return (
         <Card className="border border-divider">
-            <CardHeader className="px-4 py-3 border-b border-divider">
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                        <CalendarDaysIcon className="w-5 h-5 text-success" />
-                        <h2 className="text-lg font-semibold">Upcoming Holidays</h2>
+            <CardHeader className="px-3 sm:px-4 py-2 sm:py-3 border-b border-divider">
+                <div className="flex items-center justify-between w-full gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <CalendarDaysIcon className="w-4 h-4 sm:w-5 sm:h-5 text-success shrink-0" />
+                        <h2 className="text-base sm:text-lg font-semibold truncate">Upcoming Holidays</h2>
                     </div>
                     {count > 0 && !isPlaceholder && (
-                        <Chip size="sm" color="success" variant="flat">
+                        <Chip size="sm" color="success" variant="flat" className="shrink-0">
                             {count}
                         </Chip>
                     )}
                 </div>
             </CardHeader>
-            <CardBody className="p-4">
+            <CardBody className="p-3 sm:p-4">
                 {isPlaceholder ? (
                     <div className="text-center py-6 text-default-400">
                         <CalendarDaysIcon className="w-10 h-10 mx-auto mb-2 opacity-50" />
