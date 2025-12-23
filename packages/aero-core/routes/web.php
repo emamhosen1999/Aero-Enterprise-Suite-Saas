@@ -11,18 +11,13 @@ use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
 use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
-use Aero\Core\Http\Controllers\InstallationController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
-use Aero\Core\Http\Middleware\EnsureInstalled;
 use Aero\Core\Services\PlatformErrorReporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Note: TenantOnboardingController is referenced dynamically if platform package is installed
 // We don't use a 'use' statement here since it may not exist
-
-// NOTE: Installation routes are loaded separately in CoreModuleProvider
-// See: routes/installation.php (loaded with ForceFileSessionForInstallation middleware)
 
 /*
 |--------------------------------------------------------------------------

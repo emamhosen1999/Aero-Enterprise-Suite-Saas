@@ -14,7 +14,7 @@ use Aero\Platform\Http\Middleware\EnsureInstallationVerified;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-$isInstalled = file_exists(storage_path('installed'));
+$isInstalled = file_exists(storage_path('app/aeos.installed'));
 
 // Complete route (always available - works after installation)
 Route::get('/install/complete', [InstallationController::class, 'complete'])->name('installation.complete');

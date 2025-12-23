@@ -3,7 +3,7 @@
 namespace Aero\Platform\Services\Tenant;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -413,7 +413,7 @@ class TenantBackupService
     public function getBackup(string $tenantId, string $backupId): ?array
     {
         $cacheKey = "backup:{$tenantId}:{$backupId}";
-        return Cache::get($cacheKey);
+        return TenantCache::get($cacheKey);
     }
 
     /**
@@ -442,7 +442,7 @@ class TenantBackupService
 
         // Remove from cache/database
         $cacheKey = "backup:{$tenantId}:{$backupId}";
-        Cache::forget($cacheKey);
+        TenantCache::forget($cacheKey);
 
         Log::info('Backup deleted', [
             'backup_id' => $backupId,
@@ -602,14 +602,14 @@ class TenantBackupService
     protected function storeBackupRecord(string $tenantId, array $backup): void
     {
         $cacheKey = "backup:{$tenantId}:{$backup['id']}";
-        Cache::put($cacheKey, $backup, now()->addDays($backup['retention_days'] ?? 30));
+        TenantCache::put($cacheKey, $backup, now()->addDays($backup['retention_days'] ?? 30));
 
         // Update backup list index
         $indexKey = "backup_index:{$tenantId}";
-        $index = Cache::get($indexKey, []);
+        $index = TenantCache::get($indexKey, []);
         if (!in_array($backup['id'], $index)) {
             $index[] = $backup['id'];
-            Cache::put($indexKey, $index, now()->addYear());
+            TenantCache::put($indexKey, $index, now()->addYear());
         }
     }
 
@@ -619,7 +619,7 @@ class TenantBackupService
     protected function getAllBackups(string $tenantId): array
     {
         $indexKey = "backup_index:{$tenantId}";
-        $index = Cache::get($indexKey, []);
+        $index = TenantCache::get($indexKey, []);
 
         $backups = [];
         foreach ($index as $backupId) {
@@ -638,7 +638,7 @@ class TenantBackupService
     protected function storeBackupSchedule(string $tenantId, array $schedule): void
     {
         $cacheKey = "backup_schedule:{$tenantId}";
-        Cache::put($cacheKey, $schedule, now()->addYear());
+        TenantCache::put($cacheKey, $schedule, now()->addYear());
     }
 
     /**
@@ -647,6 +647,6 @@ class TenantBackupService
     protected function getBackupSchedule(string $tenantId): ?array
     {
         $cacheKey = "backup_schedule:{$tenantId}";
-        return Cache::get($cacheKey);
+        return TenantCache::get($cacheKey);
     }
 }

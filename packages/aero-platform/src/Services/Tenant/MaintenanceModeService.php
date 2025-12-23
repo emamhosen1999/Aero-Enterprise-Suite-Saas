@@ -3,7 +3,7 @@
 namespace Aero\Platform\Services\Tenant;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -389,7 +389,7 @@ class MaintenanceModeService
     {
         // In production, fetch from database
         $cacheKey = $this->cachePrefix . 'history:' . $tenantId;
-        $history = Cache::get($cacheKey, []);
+        $history = TenantCache::get($cacheKey, []);
 
         return array_slice($history, 0, $limit);
     }
@@ -480,7 +480,7 @@ class MaintenanceModeService
     protected function storeMaintenanceData(string $tenantId, array $data): void
     {
         $cacheKey = $this->cachePrefix . $tenantId;
-        Cache::put($cacheKey, $data, now()->addDays(7));
+        TenantCache::put($cacheKey, $data, now()->addDays(7));
     }
 
     /**
@@ -489,7 +489,7 @@ class MaintenanceModeService
     protected function getMaintenanceData(string $tenantId): ?array
     {
         $cacheKey = $this->cachePrefix . $tenantId;
-        return Cache::get($cacheKey);
+        return TenantCache::get($cacheKey);
     }
 
     /**
@@ -498,7 +498,7 @@ class MaintenanceModeService
     protected function clearMaintenanceData(string $tenantId): void
     {
         $cacheKey = $this->cachePrefix . $tenantId;
-        Cache::forget($cacheKey);
+        TenantCache::forget($cacheKey);
     }
 
     /**
@@ -507,7 +507,7 @@ class MaintenanceModeService
     protected function storeScheduledMaintenance(string $tenantId, string $scheduleId, array $data): void
     {
         $cacheKey = $this->cachePrefix . 'scheduled:' . $tenantId . ':' . $scheduleId;
-        Cache::put($cacheKey, $data, Carbon::parse($data['scheduled_end'])->addDay());
+        TenantCache::put($cacheKey, $data, Carbon::parse($data['scheduled_end'])->addDay());
     }
 
     /**
@@ -516,7 +516,7 @@ class MaintenanceModeService
     protected function getScheduledMaintenance(string $tenantId, string $scheduleId): ?array
     {
         $cacheKey = $this->cachePrefix . 'scheduled:' . $tenantId . ':' . $scheduleId;
-        return Cache::get($cacheKey);
+        return TenantCache::get($cacheKey);
     }
 
     /**
@@ -525,7 +525,7 @@ class MaintenanceModeService
     protected function removeScheduledMaintenance(string $tenantId, string $scheduleId): void
     {
         $cacheKey = $this->cachePrefix . 'scheduled:' . $tenantId . ':' . $scheduleId;
-        Cache::forget($cacheKey);
+        TenantCache::forget($cacheKey);
     }
 
     /**
@@ -552,10 +552,10 @@ class MaintenanceModeService
     protected function archiveMaintenance(string $tenantId, array $data): void
     {
         $cacheKey = $this->cachePrefix . 'history:' . $tenantId;
-        $history = Cache::get($cacheKey, []);
+        $history = TenantCache::get($cacheKey, []);
         array_unshift($history, $data);
         $history = array_slice($history, 0, 50); // Keep last 50
-        Cache::put($cacheKey, $history, now()->addYear());
+        TenantCache::put($cacheKey, $history, now()->addYear());
     }
 
     /**

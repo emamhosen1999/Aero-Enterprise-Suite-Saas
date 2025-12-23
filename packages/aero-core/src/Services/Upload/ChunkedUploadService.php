@@ -3,7 +3,7 @@
 namespace Aero\Core\Services\Upload;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

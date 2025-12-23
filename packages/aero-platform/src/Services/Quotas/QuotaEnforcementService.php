@@ -7,7 +7,7 @@ namespace Aero\Platform\Services\Quotas;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Models\UsageRecord;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -172,11 +172,11 @@ class QuotaEnforcementService
         $month = now()->format('Y-m');
         $key = "quota:api_calls:{$tenantId}:{$month}";
 
-        Cache::increment($key);
+        TenantCache::increment($key);
 
         // Set expiry to end of next month (to handle month transitions)
-        if (Cache::get($key) === 1) {
-            Cache::put($key, 1, now()->addMonths(2)->startOfMonth());
+        if (TenantCache::get($key) === 1) {
+            TenantCache::put($key, 1, now()->addMonths(2)->startOfMonth());
         }
     }
 
@@ -233,7 +233,7 @@ class QuotaEnforcementService
         $tenantId = $tenant instanceof Tenant ? $tenant->id : $tenant;
         $cacheKey = "quota:usage:{$tenantId}:{$quotaType}";
 
-        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($quotaType) {
+        return TenantCache::remember($cacheKey, $this->cacheTtl, function () use ($quotaType) {
             $modelClass = $this->quotaModels[$quotaType] ?? null;
 
             if (! $modelClass || ! class_exists($modelClass)) {
@@ -255,7 +255,7 @@ class QuotaEnforcementService
         $tenantId = $tenant instanceof Tenant ? $tenant->id : $tenant;
         $cacheKey = "quota:storage:{$tenantId}";
 
-        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($tenantId) {
+        return TenantCache::remember($cacheKey, $this->cacheTtl, function () use ($tenantId) {
             // Calculate storage from tenant's storage directory
             $path = "tenants/{$tenantId}";
 
@@ -279,7 +279,7 @@ class QuotaEnforcementService
         $month = now()->format('Y-m');
         $key = "quota:api_calls:{$tenantId}:{$month}";
 
-        return (int) Cache::get($key, 0);
+        return (int) TenantCache::get($key, 0);
     }
 
     /**
@@ -345,12 +345,12 @@ class QuotaEnforcementService
         $tenantId = $tenant instanceof Tenant ? $tenant->id : $tenant;
 
         if ($quotaType) {
-            Cache::forget("quota:usage:{$tenantId}:{$quotaType}");
+            TenantCache::forget("quota:usage:{$tenantId}:{$quotaType}");
         } else {
             foreach (array_keys($this->quotaModels) as $type) {
-                Cache::forget("quota:usage:{$tenantId}:{$type}");
+                TenantCache::forget("quota:usage:{$tenantId}:{$type}");
             }
-            Cache::forget("quota:storage:{$tenantId}");
+            TenantCache::forget("quota:storage:{$tenantId}");
         }
     }
 

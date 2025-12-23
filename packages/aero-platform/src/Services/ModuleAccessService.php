@@ -7,7 +7,7 @@ use Aero\Platform\Models\Component;
 use Aero\Core\Models\User;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\SubModule;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * Module Access Service
@@ -29,7 +29,7 @@ class ModuleAccessService
     {
         $cacheKey = "user.{$user->id}.module.{$moduleCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode) {
+        return TenantCache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode) {
             $module = Module::where('code', $moduleCode)->where('is_active', true)->first();
 
             if (! $module) {
@@ -77,7 +77,7 @@ class ModuleAccessService
 
         $cacheKey = "user.{$user->id}.submodule.{$moduleCode}.{$subModuleCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode) {
+        return TenantCache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode) {
             $subModule = SubModule::whereHas('module', function ($query) use ($moduleCode) {
                 $query->where('code', $moduleCode);
             })
@@ -120,7 +120,7 @@ class ModuleAccessService
 
         $cacheKey = "user.{$user->id}.component.{$moduleCode}.{$subModuleCode}.{$componentCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode) {
+        return TenantCache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode) {
             $component = Component::whereHas('subModule.module', function ($query) use ($moduleCode) {
                 $query->where('code', $moduleCode);
             })
@@ -166,7 +166,7 @@ class ModuleAccessService
 
         $cacheKey = "user.{$user->id}.action.{$moduleCode}.{$subModuleCode}.{$componentCode}.{$actionCode}";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode, $actionCode) {
+        return TenantCache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user, $moduleCode, $subModuleCode, $componentCode, $actionCode) {
             $action = Action::whereHas('component.subModule.module', function ($query) use ($moduleCode) {
                 $query->where('code', $moduleCode);
             })
@@ -209,7 +209,7 @@ class ModuleAccessService
     {
         $cacheKey = "user.{$user->id}.accessible_modules";
 
-        return Cache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user) {
+        return TenantCache::tags(['module-access', "user-{$user->id}"])->remember($cacheKey, 3600, function () use ($user) {
             $modules = Module::where('is_active', true)
                 ->with(['activeSubModules.activeComponents.activeActions'])
                 ->ordered()
@@ -228,7 +228,7 @@ class ModuleAccessService
      */
     public function clearUserCache(User $user): void
     {
-        Cache::tags(["user-{$user->id}"])->flush();
+        TenantCache::tags(["user-{$user->id}"])->flush();
     }
 
     /**
@@ -236,7 +236,7 @@ class ModuleAccessService
      */
     public function clearAllCache(): void
     {
-        Cache::tags(['module-access'])->flush();
+        TenantCache::tags(['module-access'])->flush();
     }
 
     /**

@@ -6,6 +6,8 @@ namespace Aero\Platform\Http\Controllers;
 
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
+use Aero\Platform\Services\Tenant\TenantPurgeService;
+use Aero\Platform\Services\Tenant\TenantRetentionService;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,9 @@ use Illuminate\Validation\Rule;
 class TenantController extends Controller
 {
     public function __construct(
-        protected TenantProvisioner $provisioner
+        protected TenantProvisioner $provisioner,
+        protected TenantRetentionService $retentionService,
+        protected TenantPurgeService $purgeService
     ) {}
 
     /**
@@ -31,6 +35,9 @@ class TenantController extends Controller
     {
         $query = Tenant::query()
             ->with(['plan', 'domains'])
+            ->when($request->boolean('include_archived'), function ($q) {
+                $q->withTrashed();
+            })
             ->when($request->filled('search'), function ($q) use ($request) {
                 $search = $request->input('search');
                 $q->where(function ($query) use ($search) {
@@ -187,16 +194,107 @@ class TenantController extends Controller
     }
 
     /**
-     * Delete a tenant.
+     * Archive a tenant (soft delete with retention period).
      */
     public function destroy(Request $request, Tenant $tenant): JsonResponse
     {
-        // Soft delete by default
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+            'confirm' => ['required', 'accepted'],
+        ]);
+
+        // Soft delete the tenant
         $tenant->delete();
 
-        return response()->json([
-            'message' => 'Tenant archived successfully.',
+        // Update metadata
+        $tenant->update([
+            'status' => Tenant::STATUS_ARCHIVED,
+            'data' => array_merge($tenant->data?->getArrayCopy() ?? [], [
+                'archived_reason' => $validated['reason'],
+                'archived_by' => auth('landlord')->id(),
+            ]),
         ]);
+
+        $retentionExpiresAt = $this->retentionService->getRetentionExpiresAt($tenant);
+
+        return response()->json([
+            'message' => 'Tenant archived successfully. Can be restored within retention period.',
+            'retention_expires_at' => $retentionExpiresAt?->toIso8601String(),
+            'retention_days' => config('tenancy.retention.days', 30),
+        ]);
+    }
+
+    /**
+     * Restore an archived tenant.
+     */
+    public function restore(Request $request, string $tenantId): JsonResponse
+    {
+        $tenant = Tenant::onlyTrashed()->findOrFail($tenantId);
+
+        // Check if restoration is allowed
+        if (!$this->retentionService->canRestore($tenant)) {
+            return response()->json([
+                'message' => 'Retention period expired. Tenant cannot be restored.',
+            ], 422);
+        }
+
+        // Restore tenant
+        $tenant->restore();
+
+        // Reactivate
+        $tenant->update([
+            'status' => Tenant::STATUS_ACTIVE,
+            'data' => array_merge($tenant->data?->getArrayCopy() ?? [], [
+                'restored_at' => now()->toIso8601String(),
+                'restored_by' => auth('landlord')->id(),
+            ]),
+        ]);
+
+        return response()->json([
+            'data' => $tenant->fresh(),
+            'message' => 'Tenant restored successfully.',
+        ]);
+    }
+
+    /**
+     * Permanently purge a tenant (irreversible).
+     */
+    public function purge(Request $request, string $tenantId): JsonResponse
+    {
+        $tenant = Tenant::onlyTrashed()->findOrFail($tenantId);
+
+        // Verify retention period expired
+        if (!$this->retentionService->canPurge($tenant)) {
+            $expiresAt = $this->retentionService->getRetentionExpiresAt($tenant);
+            
+            return response()->json([
+                'message' => "Retention period not expired. Can purge after {$expiresAt->toDateString()}",
+                'retention_expires_at' => $expiresAt->toIso8601String(),
+                'days_remaining' => $this->retentionService->getDaysUntilPurge($tenant),
+            ], 422);
+        }
+
+        // Require confirmation
+        $validated = $request->validate([
+            'confirm' => ['required', 'accepted'],
+            'confirm_name' => ['required', 'string', function ($attribute, $value, $fail) use ($tenant) {
+                if ($value !== $tenant->name) {
+                    $fail('Tenant name confirmation does not match.');
+                }
+            }],
+        ]);
+
+        try {
+            $this->purgeService->purge($tenant);
+
+            return response()->json([
+                'message' => 'Tenant permanently purged.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to purge tenant: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

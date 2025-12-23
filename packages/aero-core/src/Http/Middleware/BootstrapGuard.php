@@ -4,45 +4,72 @@ namespace Aero\Core\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\File;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * BootstrapGuard Middleware
+ * 
+ * Global middleware that ensures ALL requests are redirected to /install
+ * if the system is not installed. This middleware has route supremacy.
+ * 
+ * Registered globally via AeroCoreServiceProvider::register() to intercept
+ * requests before any routing occurs.
+ */
 class BootstrapGuard
 {
     /**
+     * Installation flag file path
+     */
+    private const INSTALLED_FLAG = 'app/aeos.installed';
+
+    /**
      * Handle an incoming request.
      *
-     * Checks installation status and enforces installation flow.
-     * Also forces file-based sessions during installation (no DB dependency).
-     *
-     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Only in standalone mode; otherwise skip
-        if (config('aero.mode') !== 'standalone') {
+        // Skip check if already on install routes
+        if ($request->is('install*')) {
             return $next($request);
         }
 
-        $isInstalled = file_exists(storage_path('installed'));
+        // Skip check for public assets and health checks
+        if ($request->is('build/*') || 
+            $request->is('storage/*') || 
+            $request->is('aero-core/health') ||
+            $request->is('api/error-log') ||
+            $request->is('api/version/check')) {
+            return $next($request);
+        }
 
-        // Force file-based sessions BEFORE sessions initialize
-        // This must run before StartSession. Because this middleware is
-        // prepended globally, it executes early enough.
-        Config::set('session.driver', 'file');
-        Config::set('cache.default', 'file');
+        // Check if system is installed (file-based detection)
+        if (!$this->installed()) {
+            // If it's an AJAX/API request, return JSON response
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'System not installed. Please run the installation wizard.',
+                    'redirect' => '/install',
+                ], 503);
+            }
 
-        // If not installed, only allow /install routes
-        if (!$isInstalled && !$request->is('install*')) {
+            // Redirect to installation
             return redirect('/install');
         }
 
-        // If installed, redirect /install to dashboard (already installed)
-        if ($isInstalled && $request->is('install*')) {
-            return redirect('/dashboard');
-        }
-
         return $next($request);
+    }
+
+    /**
+     * Check if the system is installed using file-based detection.
+     * 
+     * This is the ONLY authoritative method for checking installation status.
+     * Never use database queries for installation detection.
+     * 
+     * @return bool
+     */
+    protected function installed(): bool
+    {
+        return file_exists(storage_path(self::INSTALLED_FLAG));
     }
 }

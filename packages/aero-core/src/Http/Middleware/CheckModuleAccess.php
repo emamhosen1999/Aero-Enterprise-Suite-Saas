@@ -3,10 +3,10 @@
 namespace Aero\Core\Http\Middleware;
 
 use Aero\Core\Services\ModuleAccessService;
+use Aero\Core\Support\TenantCache;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -74,7 +74,7 @@ class CheckModuleAccess
         }
 
         // In standalone mode, skip tenant check
-        $isStandalone = config('aero.mode') === 'standalone';
+        $isStandalone = is_standalone_mode();
 
         if (! $isStandalone) {
             // Tenant context - check if tenant is properly initialized (from domain routing)
@@ -161,7 +161,7 @@ class CheckModuleAccess
     protected function detectGuard(Request $request): string
     {
         // In standalone mode, always use 'web' guard
-        if (config('aero.mode') === 'standalone') {
+        if (is_standalone_mode()) {
             return 'web';
         }
 
@@ -265,10 +265,10 @@ class CheckModuleAccess
         // Dynamically resolve Tenant class to avoid hard dependency
         $tenantClass = 'Aero\Platform\Models\Tenant';
 
-        // Cache the tenant's active modules for performance
+        // Cache the tenant's active modules for performance (tenant-aware)
         $cacheKey = "tenant_active_modules:{$tenantId}";
 
-        $activeModules = Cache::remember($cacheKey, 300, function () use ($tenantId, $tenantClass) {
+        $activeModules = TenantCache::remember($cacheKey, 300, function () use ($tenantId, $tenantClass) {
             $tenant = $tenantClass::find($tenantId);
 
             if (! $tenant) {

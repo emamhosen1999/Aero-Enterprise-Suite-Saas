@@ -6,7 +6,7 @@ use Aero\Core\Models\User;
 use Aero\Core\Models\UserDevice;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Session;
 
 class DeviceSessionService
@@ -210,8 +210,8 @@ class DeviceSessionService
      */
     protected function clearDeviceCache(UserDevice $device): void
     {
-        Cache::forget("device_session:{$device->device_id}");
-        Cache::forget("user_device:{$device->user_id}:{$device->device_id}");
+        TenantCache::forget("device_session:{$device->device_id}");
+        TenantCache::forget("user_device:{$device->user_id}:{$device->device_id}");
     }
 
     /**
@@ -225,7 +225,7 @@ class DeviceSessionService
 
         // Check cache first
         $cacheKey = "ip_location:{$ip}";
-        $cached = Cache::get($cacheKey);
+        $cached = TenantCache::get($cacheKey);
 
         if ($cached !== null) {
             return $cached;
@@ -265,7 +265,7 @@ class DeviceSessionService
         $device->update(['last_used_at' => now()]);
 
         // Also cache the activity for quick lookups
-        Cache::put(
+        TenantCache::put(
             "device_session:{$device->device_id}",
             [
                 'user_id' => $device->user_id,

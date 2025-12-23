@@ -3,7 +3,7 @@
 namespace Aero\Platform\Services\Upload;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -43,7 +43,7 @@ class ChunkedUploadService
         ];
 
         // Store upload state in cache
-        Cache::put(
+        TenantCache::put(
             "chunked_upload:{$uploadId}",
             $uploadData,
             now()->addHours($this->chunkExpiration)
@@ -111,7 +111,7 @@ class ChunkedUploadService
         }
 
         // Update cache
-        Cache::put(
+        TenantCache::put(
             "chunked_upload:{$uploadId}",
             $uploadData,
             now()->addHours($this->chunkExpiration)
@@ -157,7 +157,7 @@ class ChunkedUploadService
         }
 
         $uploadData['status'] = 'assembling';
-        Cache::put("chunked_upload:{$uploadId}", $uploadData, now()->addHours($this->chunkExpiration));
+        TenantCache::put("chunked_upload:{$uploadId}", $uploadData, now()->addHours($this->chunkExpiration));
 
         // Determine final path
         $finalPath = $destinationPath ?? "uploads/{$uploadData['safe_filename']}";
@@ -198,7 +198,7 @@ class ChunkedUploadService
             $uploadData['status'] = 'completed';
             $uploadData['completed_at'] = now()->toIso8601String();
             $uploadData['final_path'] = $finalPath;
-            Cache::put("chunked_upload:{$uploadId}", $uploadData, now()->addHours(1));
+            TenantCache::put("chunked_upload:{$uploadId}", $uploadData, now()->addHours(1));
 
             Log::info('Chunked upload assembled', [
                 'upload_id' => $uploadId,
@@ -223,7 +223,7 @@ class ChunkedUploadService
 
             $uploadData['status'] = 'failed';
             $uploadData['error'] = $e->getMessage();
-            Cache::put("chunked_upload:{$uploadId}", $uploadData, now()->addHours(1));
+            TenantCache::put("chunked_upload:{$uploadId}", $uploadData, now()->addHours(1));
 
             throw $e;
         }
@@ -300,7 +300,7 @@ class ChunkedUploadService
         }
 
         $this->cleanupChunks($uploadId);
-        Cache::forget("chunked_upload:{$uploadId}");
+        TenantCache::forget("chunked_upload:{$uploadId}");
 
         Log::info('Chunked upload cancelled', ['upload_id' => $uploadId]);
 
@@ -325,7 +325,7 @@ class ChunkedUploadService
             // If no data or expired
             if (! $uploadData || now()->isAfter($uploadData['expires_at'])) {
                 $this->cleanupChunks($uploadId);
-                Cache::forget("chunked_upload:{$uploadId}");
+                TenantCache::forget("chunked_upload:{$uploadId}");
                 $cleaned++;
             }
         }
@@ -344,7 +344,7 @@ class ChunkedUploadService
      */
     protected function getUploadData(string $uploadId): ?array
     {
-        return Cache::get("chunked_upload:{$uploadId}");
+        return TenantCache::get("chunked_upload:{$uploadId}");
     }
 
     /**

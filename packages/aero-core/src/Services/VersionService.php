@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Services;
 
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 
 class VersionService
@@ -53,8 +53,8 @@ class VersionService
      */
     public static function clearVersionCache(): void
     {
-        Cache::forget('app_version_info');
-        Cache::forget('app_version_timestamp');
+        TenantCache::forget('app_version_info');
+        TenantCache::forget('app_version_timestamp');
     }
 
     /**
@@ -62,7 +62,7 @@ class VersionService
      */
     public static function getCachedVersionInfo(): array
     {
-        return Cache::remember('app_version_info', 3600, function () {
+        return TenantCache::remember('app_version_info', 3600, function () {
             return self::getVersionInfo();
         });
     }

@@ -8,7 +8,7 @@ use Aero\Platform\Models\ModuleComponent;
 use Aero\Platform\Models\ModuleComponentAction;
 use Aero\Platform\Models\Role;
 use Aero\Platform\Models\SubModule;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * Module Access Service
@@ -449,7 +449,7 @@ class ModuleAccessService
 
         $cacheKey = "tenant_modules_access:{$tenant->id}";
 
-        $activeModuleCodes = Cache::remember($cacheKey, 300, function () use ($tenant) {
+        $activeModuleCodes = TenantCache::remember($cacheKey, 300, function () use ($tenant) {
             $moduleCodes = [];
 
             // Check 1: Get modules from subscription plan (if plan_id exists)
@@ -497,7 +497,7 @@ class ModuleAccessService
     {
         $cacheKey = "user_accessible_modules:{$user->id}";
 
-        return Cache::remember($cacheKey, 300, function () use ($user) {
+        return TenantCache::remember($cacheKey, 300, function () use ($user) {
             $modules = Module::where('is_active', true)->orderBy('id')->get();
             $accessible = [];
 
@@ -523,11 +523,11 @@ class ModuleAccessService
      */
     public function clearUserCache(LandlordUser $user): void
     {
-        Cache::forget("user_accessible_modules:{$user->id}");
+        TenantCache::forget("user_accessible_modules:{$user->id}");
 
         $tenant = tenant();
         if ($tenant) {
-            Cache::forget("tenant_modules_access:{$tenant->id}");
+            TenantCache::forget("tenant_modules_access:{$tenant->id}");
         }
     }
 }

@@ -168,7 +168,7 @@ class PlatformErrorReporter
         return [
             'php_version' => PHP_VERSION,
             'laravel_version' => app()->version(),
-            'aero_mode' => config('aero.mode', 'standalone'),
+            'aero_mode' => aero_mode() ?? 'standalone',
             'app_env' => config('app.env'),
             'app_debug' => config('app.debug'),
         ];
@@ -197,7 +197,7 @@ class PlatformErrorReporter
     {
         try {
             // In SaaS mode, store directly to database
-            if (config('aero.mode') === 'saas') {
+            if (is_saas_mode()) {
                 $this->storeInCentralDatabase($payload);
 
                 return;
@@ -224,7 +224,7 @@ class PlatformErrorReporter
     {
         try {
             // In SaaS mode, store directly
-            if (config('aero.mode') === 'saas') {
+            if (is_saas_mode()) {
                 $this->storeInCentralDatabase($payload);
 
                 return;

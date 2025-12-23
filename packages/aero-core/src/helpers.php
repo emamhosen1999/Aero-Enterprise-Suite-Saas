@@ -10,6 +10,60 @@
 use Aero\Core\Services\RuntimeLoader;
 use Illuminate\Support\Facades\File;
 
+if (!function_exists('aero_mode')) {
+    /**
+     * Get the current Aero mode (saas or standalone).
+     * Mode is file-based and immutable at runtime.
+     * 
+     * @return string 'saas' or 'standalone'
+     */
+    function aero_mode(): string
+    {
+        static $mode = null;
+        
+        if ($mode === null) {
+            $modePath = storage_path('app/aeos.mode');
+            
+            if (!file_exists($modePath)) {
+                $mode = 'standalone'; // Default to standalone if not set
+            } else {
+                $mode = trim(file_get_contents($modePath));
+                
+                // Validate mode value
+                if (!in_array($mode, ['saas', 'standalone'], true)) {
+                    $mode = 'standalone';
+                }
+            }
+        }
+        
+        return $mode;
+    }
+}
+
+if (!function_exists('is_saas_mode')) {
+    /**
+     * Check if running in SaaS mode.
+     * 
+     * @return bool
+     */
+    function is_saas_mode(): bool
+    {
+        return aero_mode() === 'saas';
+    }
+}
+
+if (!function_exists('is_standalone_mode')) {
+    /**
+     * Check if running in standalone mode.
+     * 
+     * @return bool
+     */
+    function is_standalone_mode(): bool
+    {
+        return aero_mode() === 'standalone';
+    }
+}
+
 if (!function_exists('getRuntimeModules')) {
     /**
      * Get all runtime-loaded modules for injection into Blade templates.
@@ -19,7 +73,7 @@ if (!function_exists('getRuntimeModules')) {
     function getRuntimeModules(): array
     {
         // Only in standalone mode
-        if (config('aero.mode') !== 'standalone') {
+        if (!is_standalone_mode()) {
             return [];
         }
 
@@ -89,7 +143,7 @@ if (!function_exists('isModuleActive')) {
     function isModuleActive(string $moduleName): bool
     {
         // In SaaS mode, check Composer packages
-        if (config('aero.mode') === 'saas') {
+        if (is_saas_mode()) {
             return class_exists("Aero\\{$moduleName}\\ServiceProvider") ||
                    class_exists("Aero\\{$moduleName}\\Aero{$moduleName}ServiceProvider");
         }
@@ -108,7 +162,7 @@ if (!function_exists('getActiveModules')) {
      */
     function getActiveModules(): array
     {
-        if (config('aero.mode') === 'saas') {
+        if (is_saas_mode()) {
             // In SaaS mode, modules are composer packages
             return config('modules.installed', []);
         }
@@ -121,14 +175,16 @@ if (!function_exists('getActiveModules')) {
 
 if (!function_exists('isPlatformActive')) {
     /**
-     * Check if aero-platform is active (determines SaaS vs Standalone).
+     * Check if aero-platform is active (SaaS mode).
+     * 
+     * Platform package may be installed but not active if user selected Standalone mode.
+     * Mode file is the authoritative source, not package presence.
      *
      * @return bool
      */
     function isPlatformActive(): bool
     {
-        return class_exists('Aero\Platform\AeroPlatformServiceProvider') ||
-               config('platform.enabled', false);
+        return is_saas_mode();
     }
 }
 
@@ -156,7 +212,7 @@ if (!function_exists('getTenantId')) {
         }
 
         // Standalone default
-        if (config('aero.mode') === 'standalone') {
+        if (is_standalone_mode()) {
             return config('aero.standalone_tenant_id', 1);
         }
 
@@ -176,7 +232,7 @@ if (!function_exists('moduleAsset')) {
     {
         $normalizedPath = ltrim($path, '/');
 
-        if (config('aero.mode') === 'standalone') {
+        if (is_standalone_mode()) {
             return asset("modules/{$moduleName}/{$normalizedPath}");
         }
 

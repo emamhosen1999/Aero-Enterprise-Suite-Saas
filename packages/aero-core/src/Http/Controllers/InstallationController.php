@@ -239,11 +239,29 @@ class InstallationController extends Controller
             return redirect()->route('login');
         }
 
+        // Auto-detect mode based on installed packages
+        $detectedMode = $this->detectInstallationMode();
+
         return Inertia::render('Installation/Application', [
             'title' => 'Application Settings',
             'timezones' => timezone_identifiers_list(),
             'licenseEmail' => Session::get('installation.license.email'),
+            'detectedMode' => $detectedMode,
+            'modeDescription' => $detectedMode === 'saas' 
+                ? 'Multi-tenant SaaS platform (Platform package detected)' 
+                : 'Single organization installation (Platform package not detected)',
         ]);
+    }
+    
+    /**
+     * Auto-detect installation mode based on installed packages
+     */
+    protected function detectInstallationMode(): string
+    {
+        // Check if Platform package service provider exists
+        $platformExists = class_exists('Aero\\Platform\\AeroPlatformServiceProvider');
+        
+        return $platformExists ? 'saas' : 'standalone';
     }
     
     /**
@@ -277,8 +295,12 @@ class InstallationController extends Controller
             ], 422);
         }
 
+        // Auto-detect and inject mode
+        $data = $request->all();
+        $data['mode'] = $this->detectInstallationMode();
+
         // Store in session
-        Session::put('installation.application', $request->all());
+        Session::put('installation.application', $data);
         
         // Persist config
         $this->persistConfig('application', Session::get('installation.application'));
@@ -811,43 +833,49 @@ class InstallationController extends Controller
     }
 
     /**
-     * Check if already installed
+     * Check if already installed using file-based detection.
+     * 
+     * This is the ONLY authoritative method for checking installation status.
+     * Never use database queries for installation detection.
      */
     private function isInstalled(): bool
     {
-        try {
-            DB::connection()->getPdo();
-            
-            if (!DB::getSchemaBuilder()->hasTable('migrations')) {
-                return false;
-            }
-
-            $requiredTables = ['users', 'roles', 'system_settings', 'modules'];
-            foreach ($requiredTables as $table) {
-                if (!DB::getSchemaBuilder()->hasTable($table)) {
-                    return false;
-                }
-            }
-
-            if (User::count() === 0) {
-                return false;
-            }
-
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
+        return file_exists(storage_path('app/aeos.installed'));
     }
 
     /**
-     * Mark as installed
+     * Mark system as installed by creating the installation flag file.
+     * 
+     * This file is the authoritative source for installation status.
+     * Also stores timestamp, mode, and DB settings in system_settings table.
      */
     private function markAsInstalled(): void
     {
+        // Create the installation flag file (REQUIRED)
+        $flagPath = storage_path('app/aeos.installed');
+        File::ensureDirectoryExists(dirname($flagPath));
+        File::put($flagPath, now()->toIso8601String());
+
+        // Create the mode flag file (REQUIRED)
+        $appData = Session::get('installation.application', []);
+        $mode = $appData['mode'] ?? 'standalone';
+        $modePath = storage_path('app/aeos.mode');
+        File::ensureDirectoryExists(dirname($modePath));
+        File::put($modePath, $mode);
+
+        // Also update system_settings table (for metadata)
         SystemSetting::updateOrCreate(
             ['key' => 'installation_completed'],
             [
                 'value' => now()->toDateTimeString(),
+                'type' => 'system',
+            ]
+        );
+
+        SystemSetting::updateOrCreate(
+            ['key' => 'mode'],
+            [
+                'value' => $mode,
                 'type' => 'system',
             ]
         );

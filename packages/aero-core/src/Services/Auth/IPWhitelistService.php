@@ -6,7 +6,7 @@ namespace Aero\Core\Services\Auth;
 
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -120,7 +120,7 @@ class IPWhitelistService
 
         $cacheKey = "ip_whitelist:tenant:{$tenant->id}";
 
-        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($tenant) {
+        return TenantCache::remember($cacheKey, $this->cacheTtl, function () use ($tenant) {
             $settings = $tenant->settings['ip_access_control'] ?? [];
 
             return array_merge($this->getDefaultConfig(), $settings);
@@ -165,7 +165,7 @@ class IPWhitelistService
 
         $tenant->update(['settings' => $current]);
 
-        Cache::forget("ip_whitelist:tenant:{$tenant->id}");
+        TenantCache::forget("ip_whitelist:tenant:{$tenant->id}");
     }
 
     /**

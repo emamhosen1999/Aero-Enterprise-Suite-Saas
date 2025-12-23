@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * Module Model
@@ -249,7 +249,7 @@ class Module extends Model
      */
     public static function getActiveModulesWithStructure(): Collection
     {
-        return Cache::remember('modules_with_structure', 300, function () {
+        return TenantCache::remember('modules_with_structure', 300, function () {
             return static::active()
                 ->ordered()
                 ->with([
@@ -267,7 +267,7 @@ class Module extends Model
      */
     public static function getCompleteHierarchy(): Collection
     {
-        return Cache::remember('modules_complete_hierarchy', 600, function () {
+        return TenantCache::remember('modules_complete_hierarchy', 600, function () {
             return static::active()
                 ->ordered()
                 ->with([
@@ -294,9 +294,9 @@ class Module extends Model
      */
     public static function clearCache(): void
     {
-        Cache::forget('modules_with_structure');
-        Cache::forget('modules_complete_hierarchy');
-        Cache::forget('user_accessible_modules');
-        Cache::forget('all_modules');
+        TenantCache::forget('modules_with_structure');
+        TenantCache::forget('modules_complete_hierarchy');
+        TenantCache::forget('user_accessible_modules');
+        TenantCache::forget('all_modules');
     }
 }

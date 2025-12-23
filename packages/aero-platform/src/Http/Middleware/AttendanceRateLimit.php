@@ -4,7 +4,7 @@ namespace Aero\Platform\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\RateLimiter;
 
 class AttendanceRateLimit
@@ -23,7 +23,7 @@ class AttendanceRateLimit
         RateLimiter::hit($key, 300); // 5 attempts per 5 minutes
 
         // Check for suspicious location jumps
-        $lastLocation = Cache::get("last_location:{$request->user()->id}");
+        $lastLocation = TenantCache::get("last_location:{$request->user()->id}");
         if ($lastLocation && $request->has(['lat', 'lng'])) {
             $distance = $this->calculateDistance(
                 $lastLocation['lat'], $lastLocation['lng'],
@@ -40,7 +40,7 @@ class AttendanceRateLimit
             }
         }
 
-        Cache::put("last_location:{$request->user()->id}", [
+        TenantCache::put("last_location:{$request->user()->id}", [
             'lat' => $request->lat,
             'lng' => $request->lng,
             'timestamp' => now(),
