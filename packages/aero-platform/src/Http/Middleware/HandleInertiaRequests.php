@@ -12,7 +12,7 @@ use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -889,7 +889,7 @@ class HandleInertiaRequests extends Middleware
         // Cache tenant's active modules for 5 minutes
         $cacheKey = "tenant_active_modules:{$tenant->id}";
 
-        return Cache::remember($cacheKey, 300, function () use ($tenant) {
+        return TenantCache::remember($cacheKey, 300, function () use ($tenant) {
             $subscription = $tenant->currentSubscription;
 
             if (! $subscription || ! $subscription->plan) {
@@ -942,7 +942,7 @@ class HandleInertiaRequests extends Middleware
         // Cache for 5 minutes
         $cacheKey = "tenant_subscribed_modules:{$tenant->id}";
 
-        return Cache::remember($cacheKey, 300, function () use ($tenant) {
+        return TenantCache::remember($cacheKey, 300, function () use ($tenant) {
             $moduleCodes = [];
 
             // Always include core modules
@@ -989,7 +989,7 @@ class HandleInertiaRequests extends Middleware
      */
     protected function getAllModules(): array
     {
-        return Cache::remember('all_modules', 3600, function () {
+        return TenantCache::remember('all_modules', 3600, function () {
             return Module::where('is_active', true)
                 ->orderBy('priority')
                 ->get(['id', 'code', 'name', 'description', 'icon', 'category', 'is_core'])
@@ -1002,7 +1002,7 @@ class HandleInertiaRequests extends Middleware
      */
     protected function getModuleHierarchy(): array
     {
-        return Cache::remember('frontend_module_hierarchy', 600, function () {
+        return TenantCache::remember('frontend_module_hierarchy', 600, function () {
             $modules = Module::active()
                 ->ordered()
                 ->with([
@@ -1071,7 +1071,7 @@ class HandleInertiaRequests extends Middleware
 
         $cacheKey = "landlord_user_module_access:{$user->id}";
 
-        return Cache::remember($cacheKey, 600, function () use ($user) {
+        return TenantCache::remember($cacheKey, 600, function () use ($user) {
             $roleModuleAccessService = app(RoleModuleAccessService::class);
 
             // Get all roles for the user
@@ -1122,7 +1122,7 @@ class HandleInertiaRequests extends Middleware
 
         $cacheKey = "landlord_user_accessible_modules:{$user->id}";
 
-        return Cache::remember($cacheKey, 600, function () use ($user) {
+        return TenantCache::remember($cacheKey, 600, function () use ($user) {
             $roleModuleAccessService = app(RoleModuleAccessService::class);
 
             $roles = $user->roles ?? collect();
@@ -1152,7 +1152,7 @@ class HandleInertiaRequests extends Middleware
      */
     protected function getModulesLookup(): array
     {
-        return Cache::remember('modules_lookup', 3600, function () {
+        return TenantCache::remember('modules_lookup', 3600, function () {
             return Module::where('is_active', true)
                 ->pluck('code', 'id')
                 ->toArray();
@@ -1166,7 +1166,7 @@ class HandleInertiaRequests extends Middleware
      */
     protected function getSubModulesLookup(): array
     {
-        return Cache::remember('sub_modules_lookup', 3600, function () {
+        return TenantCache::remember('sub_modules_lookup', 3600, function () {
             return \App\Models\SubModule::with('module')
                 ->where('is_active', true)
                 ->get()
@@ -1191,7 +1191,7 @@ class HandleInertiaRequests extends Middleware
 
         $cacheKey = "tenant_user_module_access:{$user->id}";
 
-        return Cache::remember($cacheKey, 600, function () use ($user) {
+        return TenantCache::remember($cacheKey, 600, function () use ($user) {
             $roleModuleAccessService = app(RoleModuleAccessService::class);
 
             // Get all roles for the user
@@ -1245,7 +1245,7 @@ class HandleInertiaRequests extends Middleware
 
         $cacheKey = "tenant_user_accessible_modules:{$user->id}";
 
-        return Cache::remember($cacheKey, 600, function () use ($user) {
+        return TenantCache::remember($cacheKey, 600, function () use ($user) {
             $roleModuleAccessService = app(RoleModuleAccessService::class);
 
             $roles = $user->roles ?? collect();
@@ -1285,7 +1285,7 @@ class HandleInertiaRequests extends Middleware
 
         $cacheKey = 'tenant_active_module_ids:'.tenant('id');
 
-        return Cache::remember($cacheKey, 1800, function () {
+        return TenantCache::remember($cacheKey, 1800, function () {
             $activeModules = $this->getTenantActiveModules();
 
             return collect($activeModules)->pluck('id')->toArray();

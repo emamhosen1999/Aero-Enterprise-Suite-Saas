@@ -8,7 +8,7 @@ use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 
 class ModuleAnalyticsController extends Controller
@@ -18,7 +18,7 @@ class ModuleAnalyticsController extends Controller
      */
     public function index()
     {
-        $analytics = Cache::remember('module_analytics_dashboard', 300, function () {
+        $analytics = TenantCache::remember('module_analytics_dashboard', 300, function () {
             return [
                 'overview' => $this->getOverviewStats(),
                 'module_adoption' => $this->getModuleAdoption(),
@@ -162,7 +162,7 @@ class ModuleAnalyticsController extends Controller
      */
     public function show(Module $module)
     {
-        $analytics = Cache::remember("module_analytics_{$module->id}", 300, function () use ($module) {
+        $analytics = TenantCache::remember("module_analytics_{$module->id}", 300, function () use ($module) {
             $module->load(['subModules.components.actions', 'plans.subscriptions']);
 
             $activeTenants = $module->plans()

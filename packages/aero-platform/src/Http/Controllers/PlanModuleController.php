@@ -6,7 +6,7 @@ use Aero\Platform\Models\Module;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 
 class PlanModuleController extends Controller
@@ -73,7 +73,7 @@ class PlanModuleController extends Controller
 
             // Clear caches
             Module::clearCache();
-            Cache::tags(['plans'])->flush();
+            TenantCache::tags(['plans'])->flush();
 
             DB::commit();
 
@@ -107,7 +107,7 @@ class PlanModuleController extends Controller
 
             // Clear caches
             Module::clearCache();
-            Cache::tags(['plans'])->flush();
+            TenantCache::tags(['plans'])->flush();
 
             DB::commit();
 
@@ -143,7 +143,7 @@ class PlanModuleController extends Controller
 
             // Clear caches
             Module::clearCache();
-            Cache::tags(['plans'])->flush();
+            TenantCache::tags(['plans'])->flush();
 
             return response()->json([
                 'success' => true,
@@ -183,7 +183,7 @@ class PlanModuleController extends Controller
 
             // Clear caches
             Module::clearCache();
-            Cache::tags(['plans'])->flush();
+            TenantCache::tags(['plans'])->flush();
 
             DB::commit();
 
