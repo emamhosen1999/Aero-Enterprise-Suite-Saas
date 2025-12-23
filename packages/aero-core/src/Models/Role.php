@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -10,6 +11,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
  * Custom Role model extending Spatie's Role
  *
  * Adds the moduleAccess relationship for the Role-Module Access system.
+ * We override the permissions() method to avoid querying the non-existent permissions table.
  * 
  * @property int $id
  * @property string $name
@@ -33,6 +35,23 @@ class Role extends SpatieRole
     protected $casts = [
         'is_protected' => 'boolean',
     ];
+
+    /**
+     * Override permissions relationship to prevent querying non-existent permissions table.
+     * We use role_module_access instead of permissions.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function permissions(): BelongsToMany
+    {
+        // Return an empty relationship that doesn't query the database
+        return $this->belongsToMany(
+            config('permission.models.permission') ?: \Spatie\Permission\Models\Permission::class,
+            'role_has_permissions',
+            'role_id',
+            'permission_id'
+        )->whereRaw('1 = 0'); // Always empty result
+    }
 
     /**
      * Get all module access entries for this role.
