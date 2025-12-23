@@ -2,15 +2,26 @@
 
 AI-powered assistant with RAG (Retrieval-Augmented Generation) capabilities for intelligent user guidance, task automation, and contextual help across the Aero platform.
 
+## Complete Solution
+
+This package includes everything needed for a self-hosted AI assistant:
+
+1. **Laravel Package** - Backend integration with RAG system
+2. **Training Pipeline** - Scripts to train custom models on your codebase
+3. **AI Server** - FastAPI server for model inference (OpenAI-compatible API)
+4. **React Components** - Pre-built UI components for chat interface
+
 ## Features
 
 - **RAG-Powered Responses**: Context-aware answers using knowledge base from documentation and code
+- **Self-Hosted Model**: Train and deploy your own AI model (no external API dependencies)
 - **Conversational Interface**: Natural language chat interface with conversation history
 - **Floating Assistant Button**: Quick access from any page in the application
 - **Dedicated Assistant Page**: Full-page interface for managing conversation history
 - **Multi-Plan Support**: Feature access based on subscription tier (SaaS) or module installation (Standalone)
 - **Knowledge Base Management**: Dynamic indexing of documentation, code comments, and module content
 - **Usage Analytics**: Track AI usage, token consumption, and response quality
+- **Training Pipeline**: Complete tooling to fine-tune LLMs on your codebase
 
 ## Installation
 
@@ -97,7 +108,43 @@ Run migrations:
 php artisan migrate
 ```
 
-### 6. Index Knowledge Base
+
+### 6. Set Up AI Model Server
+
+**Option A: Quick Start (Development)**
+
+```bash
+# Run setup script
+cd packages/aero-assistant
+./setup.sh
+
+# Choose option 2 or 3 to set up AI server
+```
+
+**Option B: Manual Setup**
+
+See detailed instructions in:
+- **Training**: [`training/README.md`](training/README.md) - Train custom model on your codebase
+- **AI Server**: [`ai-server/README.md`](ai-server/README.md) - Deploy model inference server
+- **Deployment**: [`DEPLOYMENT.md`](DEPLOYMENT.md) - Complete production deployment guide
+
+**Quick Deploy with Docker:**
+
+```bash
+cd ai-server
+
+# Configure environment
+cp .env.example .env
+nano .env  # Set MODEL_NAME, API_KEY, etc.
+
+# Start server
+docker-compose up -d
+
+# Test
+curl http://localhost:8000/health
+```
+
+### 7. Index Knowledge Base
 
 After installation, index your documentation and code:
 
