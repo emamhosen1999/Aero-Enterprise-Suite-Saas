@@ -966,7 +966,7 @@ class InstallationController extends Controller
             // Stage 7: Finalization
             \Log::info('Installation Stage: finalization', ['stage' => 'finalization']);
             $this->trackProgress('finalization', 'in_progress', 'Finalizing installation');
-            File::put(storage_path('installed'), json_encode([
+            File::put(storage_path('app/aeos.installed'), json_encode([
                 'installed_at' => now()->toIso8601String(),
                 'version' => config('app.version', '1.0.0'),
                 'admin_email' => $adminConfig['admin_email'],
@@ -1054,7 +1054,7 @@ class InstallationController extends Controller
      */
     private function isInstalled(): bool
     {
-        return File::exists(storage_path('installed'));
+        return File::exists(storage_path('app/aeos.installed'));
     }
 
     /**
@@ -1180,7 +1180,7 @@ class InstallationController extends Controller
             }
 
             // 4. Remove lock file if it exists
-            $lockFile = storage_path('installed');
+            $lockFile = storage_path('app/aeos.installed');
             if (File::exists($lockFile)) {
                 File::delete($lockFile);
                 \Log::info('Rollback: Installation lock file removed');
@@ -1228,7 +1228,7 @@ class InstallationController extends Controller
     private function validatePreInstallation(): void
     {
         // 1. Check if already installed
-        if (File::exists(storage_path('installed'))) {
+        if (File::exists(storage_path('app/aeos.installed'))) {
             throw new \RuntimeException('Platform is already installed. Remove storage/installed file to reinstall.');
         }
 

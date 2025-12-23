@@ -6,8 +6,22 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureInstalled
+/**
+ * BootstrapGuard Middleware
+ * 
+ * Global middleware that ensures ALL requests are redirected to /install
+ * if the system is not installed. This middleware has route supremacy.
+ * 
+ * Registered globally via AeroCoreServiceProvider::register() to intercept
+ * requests before any routing occurs.
+ */
+class BootstrapGuard
 {
+    /**
+     * Installation flag file path
+     */
+    private const INSTALLED_FLAG = 'app/aeos.installed';
+
     /**
      * Handle an incoming request.
      *
@@ -15,8 +29,8 @@ class EnsureInstalled
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip check for installation routes
-        if ($request->is('install') || $request->is('install/*')) {
+        // Skip check if already on install routes
+        if ($request->is('install*')) {
             return $next($request);
         }
 
@@ -29,18 +43,18 @@ class EnsureInstalled
             return $next($request);
         }
 
-        // Check if system is installed
-        if (!$this->isInstalled()) {
+        // Check if system is installed (file-based detection)
+        if (!$this->installed()) {
             // If it's an AJAX/API request, return JSON response
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'System not installed. Please run the installation wizard.',
-                    'redirect' => route('install.index'),
+                    'redirect' => '/install',
                 ], 503);
             }
 
             // Redirect to installation
-            return redirect()->route('install.index');
+            return redirect('/install');
         }
 
         return $next($request);
@@ -50,13 +64,12 @@ class EnsureInstalled
      * Check if the system is installed using file-based detection.
      * 
      * This is the ONLY authoritative method for checking installation status.
-     * Never use database queries for installation detection as they can fail
-     * before the database is configured.
+     * Never use database queries for installation detection.
      * 
      * @return bool
      */
-    protected function isInstalled(): bool
+    protected function installed(): bool
     {
-        return file_exists(storage_path('app/aeos.installed'));
+        return file_exists(storage_path(self::INSTALLED_FLAG));
     }
 }

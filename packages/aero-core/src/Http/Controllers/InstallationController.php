@@ -811,39 +811,30 @@ class InstallationController extends Controller
     }
 
     /**
-     * Check if already installed
+     * Check if already installed using file-based detection.
+     * 
+     * This is the ONLY authoritative method for checking installation status.
+     * Never use database queries for installation detection.
      */
     private function isInstalled(): bool
     {
-        try {
-            DB::connection()->getPdo();
-            
-            if (!DB::getSchemaBuilder()->hasTable('migrations')) {
-                return false;
-            }
-
-            $requiredTables = ['users', 'roles', 'system_settings', 'modules'];
-            foreach ($requiredTables as $table) {
-                if (!DB::getSchemaBuilder()->hasTable($table)) {
-                    return false;
-                }
-            }
-
-            if (User::count() === 0) {
-                return false;
-            }
-
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
+        return file_exists(storage_path('app/aeos.installed'));
     }
 
     /**
-     * Mark as installed
+     * Mark system as installed by creating the installation flag file.
+     * 
+     * This file is the authoritative source for installation status.
+     * Also stores timestamp and DB settings in system_settings table.
      */
     private function markAsInstalled(): void
     {
+        // Create the installation flag file (REQUIRED)
+        $flagPath = storage_path('app/aeos.installed');
+        File::ensureDirectoryExists(dirname($flagPath));
+        File::put($flagPath, now()->toIso8601String());
+
+        // Also update system_settings table (for metadata)
         SystemSetting::updateOrCreate(
             ['key' => 'installation_completed'],
             [
