@@ -68,10 +68,18 @@ class SetDatabaseConnectionFromDomain
     /**
      * Configure session cookie for central domains.
      * Uses a distinct cookie name to isolate from tenant sessions.
+     * 
+     * IMPORTANT: Sets session.domain to null (not the host) to ensure
+     * the cookie is available on the current domain and subdomains.
+     * This allows admin.domain.com to have a proper session cookie.
      */
     protected function useCentralSessionCookie(): void
     {
         Config::set('session.cookie', 'aeos_central_session');
+        
+        // Set session domain to null to allow cookie on current subdomain
+        // This is critical for admin.domain.com to work properly
+        Config::set('session.domain', null);
     }
 
     /**
