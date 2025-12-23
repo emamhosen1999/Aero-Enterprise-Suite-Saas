@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aero\Core\Services\Auth;
 
 use Aero\Core\Models\User;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -279,7 +279,7 @@ class PasswordPolicyService
         if ($tenant) {
             $cacheKey = "password_policy:tenant:{$tenant->id}";
 
-            return Cache::remember($cacheKey, 3600, function () use ($tenant) {
+            return TenantCache::remember($cacheKey, 3600, function () use ($tenant) {
                 $tenantPolicy = $tenant->settings['password_policy'] ?? [];
 
                 return array_merge($this->defaultPolicy, $tenantPolicy);
@@ -311,7 +311,7 @@ class PasswordPolicyService
 
         $tenant->update(['settings' => $current]);
 
-        Cache::forget("password_policy:tenant:{$tenant->id}");
+        TenantCache::forget("password_policy:tenant:{$tenant->id}");
     }
 
     /**

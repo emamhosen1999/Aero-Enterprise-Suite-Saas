@@ -4,7 +4,7 @@ namespace Aero\Rfi\Traits;
 
 use Aero\Rfi\Models\WorkLocation;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -24,7 +24,7 @@ trait WorkLocationMatcher
     {
         if ($this->cachedWorkLocations === null) {
             // Cache work locations for 5 minutes to reduce DB queries during bulk imports
-            $this->cachedWorkLocations = Cache::remember('work_locations_all', 300, function () {
+            $this->cachedWorkLocations = TenantCache::remember('work_locations_all', 300, function () {
                 return WorkLocation::active()->get();
             });
         }
@@ -38,7 +38,7 @@ trait WorkLocationMatcher
     protected function clearWorkLocationCache(): void
     {
         $this->cachedWorkLocations = null;
-        Cache::forget('work_locations_all');
+        TenantCache::forget('work_locations_all');
     }
 
     /**

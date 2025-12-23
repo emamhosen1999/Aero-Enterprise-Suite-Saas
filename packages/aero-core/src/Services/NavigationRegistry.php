@@ -2,7 +2,7 @@
 
 namespace Aero\Core\Services;
 
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * Navigation Registry Service
@@ -145,8 +145,8 @@ class NavigationRegistry
     public function clearCache(): void
     {
         try {
-            Cache::forget(self::CACHE_KEY);
-            Cache::forget(self::CACHE_KEY.'.frontend');
+            TenantCache::forget(self::CACHE_KEY);
+            TenantCache::forget(self::CACHE_KEY.'.frontend');
         } catch (\Throwable $e) {
             // Cache not available (e.g., outside Laravel context)
         }
@@ -158,7 +158,7 @@ class NavigationRegistry
     public function getCachedFrontend(): array
     {
         try {
-            return Cache::remember(
+            return TenantCache::remember(
                 self::CACHE_KEY.'.frontend',
                 self::CACHE_TTL,
                 fn () => $this->toFrontend()

@@ -7,7 +7,7 @@ use Aero\Core\Models\Component;
 use Aero\Core\Models\Module;
 use Aero\Core\Models\SubModule;
 use Closure;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -43,13 +43,13 @@ class RoleModuleAccessService
     protected function rememberWithOptionalTags(array $tags, string $key, int $ttl, Closure $callback): mixed
     {
         if ($this->cacheSupportsTagging()) {
-            return Cache::tags($tags)->remember($key, $ttl, $callback);
+            return TenantCache::tags($tags)->remember($key, $ttl, $callback);
         }
 
         // Prefix the key with tags for manual grouping when tagging is not supported
         $prefixedKey = 'role_access.' . implode('.', $tags) . '.' . $key;
 
-        return Cache::remember($prefixedKey, $ttl, $callback);
+        return TenantCache::remember($prefixedKey, $ttl, $callback);
     }
 
     /**
@@ -60,13 +60,13 @@ class RoleModuleAccessService
     protected function flushWithOptionalTags(array $tags): void
     {
         if ($this->cacheSupportsTagging()) {
-            Cache::tags($tags)->flush();
+            TenantCache::tags($tags)->flush();
 
             return;
         }
 
         // For non-tagging cache stores, we can't selectively flush by tags
-        // The cache will naturally expire, or use Cache::flush() to clear all
+        // The cache will naturally expire, or use TenantCache::flush() to clear all
     }
 
     /**

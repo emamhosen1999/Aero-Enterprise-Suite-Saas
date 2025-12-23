@@ -4,7 +4,7 @@ namespace Aero\Core\Services;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * ModuleManager
@@ -70,7 +70,7 @@ class ModuleManager
     {
         // Guard against early execution before cache is available
         try {
-            return Cache::remember($this->cacheKey, $this->cacheTtl, function () {
+            return TenantCache::remember($this->cacheKey, $this->cacheTtl, function () {
                 return $this->discoverModules();
             });
         } catch (\Throwable $e) {
@@ -285,7 +285,7 @@ class ModuleManager
     public function clearCache(): void
     {
         try {
-            Cache::forget($this->cacheKey);
+            TenantCache::forget($this->cacheKey);
         } catch (\Throwable $e) {
             // Cache not available, nothing to clear
         }

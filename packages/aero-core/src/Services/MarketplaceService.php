@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aero\Core\Services;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -35,7 +35,7 @@ class MarketplaceService
      */
     public function getAvailableModules(): array
     {
-        return Cache::remember('marketplace.modules', 3600, function () {
+        return TenantCache::remember('marketplace.modules', 3600, function () {
             // Fallback to local configuration if API is unavailable
             return config('marketplace.modules', [
                 [

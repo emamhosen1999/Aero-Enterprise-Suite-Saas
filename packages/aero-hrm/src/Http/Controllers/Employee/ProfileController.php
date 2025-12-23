@@ -13,7 +13,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -120,7 +120,7 @@ class ProfileController extends Controller
             // Cache key for user stats
             $cacheKey = "profile_stats_{$user->id}";
 
-            $stats = Cache::remember($cacheKey, 3600, function () use ($user) {
+            $stats = TenantCache::remember($cacheKey, 3600, function () use ($user) {
                 // Calculate profile completion percentage
                 $sections = [
                     'basic_info' => $user->name && $user->email,
@@ -319,7 +319,7 @@ class ProfileController extends Controller
                 ]);
 
                 // Clear cache to refresh stats
-                Cache::forget("profile_stats_{$user->id}");
+                TenantCache::forget("profile_stats_{$user->id}");
             }
 
             return response()->json(['success' => true]);

@@ -6,7 +6,7 @@ namespace Aero\Rfi\Services;
 
 use Aero\Rfi\Models\Rfi;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
@@ -389,7 +389,7 @@ class RfiEscalationService
 
         $cacheKey = "rfi_escalation_rules:tenant:{$tenant->id}";
 
-        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($tenant) {
+        return TenantCache::remember($cacheKey, $this->cacheTtl, function () use ($tenant) {
             $tenantRules = $tenant->settings['rfi_escalation_rules'] ?? [];
 
             return array_merge($this->defaultRules, $tenantRules);
@@ -415,7 +415,7 @@ class RfiEscalationService
 
         $tenant->update(['settings' => $current]);
 
-        Cache::forget("rfi_escalation_rules:tenant:{$tenant->id}");
+        TenantCache::forget("rfi_escalation_rules:tenant:{$tenant->id}");
     }
 
     /**

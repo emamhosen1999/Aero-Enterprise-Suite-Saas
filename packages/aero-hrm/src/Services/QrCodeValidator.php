@@ -3,7 +3,7 @@
 namespace Aero\HRM\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -142,7 +142,7 @@ class QrCodeValidator extends BaseAttendanceValidator
     {
         $cacheKey = "qr_code_used:{$codeId}";
 
-        return Cache::has($cacheKey);
+        return TenantCache::has($cacheKey);
     }
 
     /**
@@ -153,7 +153,7 @@ class QrCodeValidator extends BaseAttendanceValidator
         $cacheKey = "qr_code_used:{$codeId}";
 
         // Store usage for 30 days
-        Cache::put($cacheKey, [
+        TenantCache::put($cacheKey, [
             'user_id' => $userId,
             'used_at' => now()->toISOString(),
         ], now()->addDays(30));
