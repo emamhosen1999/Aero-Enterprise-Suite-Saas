@@ -17,6 +17,7 @@ use Aero\Platform\Http\Controllers\PlatformSettingController;
 use Aero\Platform\Http\Controllers\SystemMonitoring\AuditLogController;
 use Aero\Platform\Http\Controllers\TenantController;
 use Aero\Platform\Http\Middleware\IdentifyDomainContext;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -83,10 +84,14 @@ Route::middleware('admin.domain')->group(function () {
         ->middleware('auth:landlord')
         ->name('admin.logout');
 
-    // Root redirects to dashboard (or login if not authenticated)
+    // Root redirects based on landlord auth state
     Route::get('/', function () {
-        return redirect()->route('admin.dashboard');
-    })->middleware('auth:landlord');
+        if (Auth::guard('landlord')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('admin.login');
+    });
 
 // Session check route for admin domain (uses landlord guard)
 Route::get('/session-check', function () {
