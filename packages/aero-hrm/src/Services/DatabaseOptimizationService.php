@@ -2,7 +2,7 @@
 
 namespace Aero\HRM\Services;
 
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -19,7 +19,7 @@ class DatabaseOptimizationService
     {
         $cacheKey = 'users_'.md5(serialize($filters));
 
-        return Cache::remember($cacheKey, 300, function () use ($filters) {
+        return TenantCache::remember($cacheKey, 300, function () use ($filters) {
             $query = DB::table('users')
                 ->leftJoin('departments', 'users.department', '=', 'departments.id')
                 ->leftJoin('designations', 'users.designation', '=', 'designations.id')
@@ -53,7 +53,7 @@ class DatabaseOptimizationService
     {
         $cacheKey = "attendance_stats_{$userId}_{$startDate}_{$endDate}";
 
-        return Cache::remember($cacheKey, 600, function () use ($userId, $startDate, $endDate) {
+        return TenantCache::remember($cacheKey, 600, function () use ($userId, $startDate, $endDate) {
             $query = DB::table('attendances')
                 ->select(
                     DB::raw('DATE(created_at) as date'),

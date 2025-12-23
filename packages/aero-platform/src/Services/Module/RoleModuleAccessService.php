@@ -7,7 +7,7 @@ use Aero\Platform\Models\ModuleComponent;
 use Aero\Platform\Models\ModuleComponentAction;
 use Aero\Platform\Models\RoleModuleAccess;
 use Aero\Platform\Models\SubModule;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -68,7 +68,7 @@ class RoleModuleAccessService
     {
         $cacheKey = "role_access:{$role->id}:{$level}:{$id}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($role, $level, $id) {
+        return TenantCache::remember($cacheKey, self::CACHE_TTL, function () use ($role, $level, $id) {
             // Check direct access
             $query = RoleModuleAccess::where('role_id', $role->id);
 
@@ -239,7 +239,7 @@ class RoleModuleAccessService
     {
         $cacheKey = "role_accessible_modules:{$role->id}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($role) {
+        return TenantCache::remember($cacheKey, self::CACHE_TTL, function () use ($role) {
             $access = RoleModuleAccess::where('role_id', $role->id)->get();
 
             $moduleIds = collect();
@@ -304,7 +304,7 @@ class RoleModuleAccessService
     public function clearRoleCache(Role $role): void
     {
         // Clear the accessible modules cache
-        Cache::forget("role_accessible_modules:{$role->id}");
+        TenantCache::forget("role_accessible_modules:{$role->id}");
 
         // We can't easily clear all action/component/etc caches without knowing all IDs
         // In production, use tagged caching or Redis for better cache invalidation

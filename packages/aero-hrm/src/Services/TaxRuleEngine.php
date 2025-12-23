@@ -3,7 +3,7 @@
 namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\TaxSlab;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -280,7 +280,7 @@ class TaxRuleEngine
     {
         $cacheKey = "tax_slabs_{$regime}_".tenant('id');
 
-        return Cache::remember($cacheKey, self::CACHE_DURATION, function () use ($regime) {
+        return TenantCache::remember($cacheKey, self::CACHE_DURATION, function () use ($regime) {
             return TaxSlab::where('is_active', true)
                 ->where('regime', $regime)
                 ->orderBy('min_income')
@@ -296,7 +296,7 @@ class TaxRuleEngine
         $tenantId = tenant('id');
         $cacheKey = "tax_config_{$tenantId}";
 
-        $config = Cache::remember($cacheKey, self::CACHE_DURATION, function () {
+        $config = TenantCache::remember($cacheKey, self::CACHE_DURATION, function () {
             return [
                 'regime' => 'new', // 'old' or 'new'
                 'financial_year' => date('Y').'-'.(date('Y') + 1),
@@ -386,9 +386,9 @@ class TaxRuleEngine
     public function clearCache(): void
     {
         $tenantId = tenant('id');
-        Cache::forget("tax_config_{$tenantId}");
-        Cache::forget("tax_slabs_old_{$tenantId}");
-        Cache::forget("tax_slabs_new_{$tenantId}");
+        TenantCache::forget("tax_config_{$tenantId}");
+        TenantCache::forget("tax_slabs_old_{$tenantId}");
+        TenantCache::forget("tax_slabs_new_{$tenantId}");
     }
 
     /**

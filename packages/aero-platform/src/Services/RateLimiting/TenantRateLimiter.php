@@ -7,7 +7,7 @@ namespace Aero\Platform\Services\RateLimiting;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Tenant;
 use Illuminate\Cache\RateLimiter;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Http\Request;
 
 /**
@@ -74,13 +74,13 @@ class TenantRateLimiter
         $limit = $this->getLimit($tenant, $action);
         $key = $this->getCacheKey($tenantId, $action);
 
-        $current = (int) Cache::get($key, 0);
+        $current = (int) TenantCache::get($key, 0);
 
         if ($current >= $limit) {
             return false;
         }
 
-        Cache::put($key, $current + 1, now()->addMinute());
+        TenantCache::put($key, $current + 1, now()->addMinute());
 
         return true;
     }
@@ -98,7 +98,7 @@ class TenantRateLimiter
         $limit = $this->getLimit($tenant, $action);
         $key = $this->getCacheKey($tenantId, $action);
 
-        return (int) Cache::get($key, 0) >= $limit;
+        return (int) TenantCache::get($key, 0) >= $limit;
     }
 
     /**
@@ -114,7 +114,7 @@ class TenantRateLimiter
         $limit = $this->getLimit($tenant, $action);
         $key = $this->getCacheKey($tenantId, $action);
 
-        $current = (int) Cache::get($key, 0);
+        $current = (int) TenantCache::get($key, 0);
 
         return max(0, $limit - $current);
     }
@@ -230,10 +230,10 @@ class TenantRateLimiter
         $minute = now()->format('Y-m-d-H-i');
 
         if ($action) {
-            Cache::forget("{$this->cachePrefix}{$tenantId}:{$action}:{$minute}");
+            TenantCache::forget("{$this->cachePrefix}{$tenantId}:{$action}:{$minute}");
         } else {
             foreach (array_keys($this->endpointMultipliers) as $act) {
-                Cache::forget("{$this->cachePrefix}{$tenantId}:{$act}:{$minute}");
+                TenantCache::forget("{$this->cachePrefix}{$tenantId}:{$act}:{$minute}");
             }
         }
     }
@@ -265,7 +265,7 @@ class TenantRateLimiter
 
         foreach (array_keys($this->endpointMultipliers) as $action) {
             $key = "{$this->cachePrefix}{$tenantId}:{$action}:{$minute}";
-            $current = (int) Cache::get($key, 0);
+            $current = (int) TenantCache::get($key, 0);
             $limit = $this->getLimit($tenant, $action);
 
             $stats[$action] = [

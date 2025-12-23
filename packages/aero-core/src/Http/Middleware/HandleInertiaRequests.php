@@ -45,7 +45,7 @@ class HandleInertiaRequests extends Middleware
         // SKIP this in SaaS mode - Platform's HandleInertiaRequests handles "/" with a landing page
         if ($request->is('/') || $request->path() === '/') {
             // In SaaS mode, let Platform's middleware handle root route
-            if (config('aero.mode') === 'saas') {
+            if (is_saas_mode()) {
                 return parent::handle($request, $next);
             }
 
@@ -88,7 +88,7 @@ class HandleInertiaRequests extends Middleware
         // - Admin context: Platform's HandleInertiaRequests provides everything
         // - Tenant context: Core provides tenant navigation, Platform provides tenant-specific props
         $context = $request->attributes->get('domain_context', 'tenant');
-        $isSaaSMode = config('aero.mode') === 'saas';
+        $isSaaSMode = is_saas_mode();
         
         // Skip sharing props for admin/platform contexts in SaaS mode
         // Platform's HandleInertiaRequests handles those contexts completely

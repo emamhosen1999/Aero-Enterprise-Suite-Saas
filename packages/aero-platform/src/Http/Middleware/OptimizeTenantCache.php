@@ -4,7 +4,7 @@ namespace Aero\Platform\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -77,12 +77,12 @@ class OptimizeTenantCache
         $cacheWarmKey = "tenant_{$tenantId}_cache_warmed";
 
         // Check if cache is already warmed (TTL: 1 hour)
-        if (Cache::has($cacheWarmKey)) {
+        if (TenantCache::has($cacheWarmKey)) {
             return;
         }
 
         // Mark as warmed to prevent repeated warming
-        Cache::put($cacheWarmKey, true, now()->addHour());
+        TenantCache::put($cacheWarmKey, true, now()->addHour());
 
         // Warm permissions cache
         $this->warmPermissionsCache($tenantId);
@@ -175,11 +175,11 @@ class OptimizeTenantCache
     protected function taggedCache(string $tenantId)
     {
         if (config('cache.default') === 'redis') {
-            return Cache::tags(["tenant-{$tenantId}", 'tenant-cache']);
+            return TenantCache::tags(["tenant-{$tenantId}", 'tenant-cache']);
         }
 
         // Fallback for non-Redis drivers (no tag support)
-        return Cache::store();
+        return TenantCache::store();
     }
 
     /**
@@ -188,14 +188,14 @@ class OptimizeTenantCache
     public static function flushTenantCache(string $tenantId): void
     {
         if (config('cache.default') === 'redis') {
-            Cache::tags(["tenant-{$tenantId}"])->flush();
+            TenantCache::tags(["tenant-{$tenantId}"])->flush();
         } else {
             // For non-Redis, manually clear known keys
-            Cache::forget("tenant_{$tenantId}_cache_warmed");
-            Cache::forget("tenant_{$tenantId}_all_permissions");
-            Cache::forget("tenant_{$tenantId}_all_roles");
-            Cache::forget("tenant_{$tenantId}_enabled_modules");
-            Cache::forget("tenant_{$tenantId}_system_settings");
+            TenantCache::forget("tenant_{$tenantId}_cache_warmed");
+            TenantCache::forget("tenant_{$tenantId}_all_permissions");
+            TenantCache::forget("tenant_{$tenantId}_all_roles");
+            TenantCache::forget("tenant_{$tenantId}_enabled_modules");
+            TenantCache::forget("tenant_{$tenantId}_system_settings");
         }
     }
 
@@ -205,10 +205,10 @@ class OptimizeTenantCache
     public static function flushPermissionsCache(string $tenantId): void
     {
         if (config('cache.default') === 'redis') {
-            Cache::tags(["tenant-{$tenantId}", 'tenant-perms'])->flush();
+            TenantCache::tags(["tenant-{$tenantId}", 'tenant-perms'])->flush();
         } else {
-            Cache::forget("tenant_{$tenantId}_all_permissions");
-            Cache::forget("tenant_{$tenantId}_all_roles");
+            TenantCache::forget("tenant_{$tenantId}_all_permissions");
+            TenantCache::forget("tenant_{$tenantId}_all_roles");
         }
     }
 }

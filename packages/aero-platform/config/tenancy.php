@@ -222,4 +222,39 @@ return [
         '--class' => 'Database\\Seeders\\TenantDatabaseSeeder',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Tenant Retention Policy
+    |--------------------------------------------------------------------------
+    |
+    | When a tenant is archived (soft deleted), it enters a retention window
+    | where it can be restored. After the retention period expires, it can
+    | be permanently purged.
+    |
+    | This ensures compliance with data retention regulations and provides
+    | a safety net for accidental deletions.
+    |
+    */
+    'retention' => [
+        'enabled' => env('TENANT_RETENTION_ENABLED', true),
+        'days' => env('TENANT_RETENTION_DAYS', 30),
+        'auto_purge' => env('TENANT_AUTO_PURGE', false),
+        'notify_before_purge_days' => env('TENANT_NOTIFY_BEFORE_PURGE', 7),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tenant Deletion Policy
+    |--------------------------------------------------------------------------
+    |
+    | Controls what happens when a tenant is deleted.
+    |
+    */
+    'deletion' => [
+        'require_confirmation' => true,
+        'require_reason' => true,
+        'notify_tenant' => true,
+        'backup_before_purge' => true,
+    ],
+
 ];

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aero\Core\Services\Auth;
 
 use Aero\Core\Models\User;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -81,7 +81,7 @@ class TwoFactorAuthService
         $secret = $this->google2fa->generateSecretKey();
 
         // Store temporarily until user confirms setup
-        Cache::put(
+        TenantCache::put(
             "2fa_pending_secret:{$user->id}",
             Crypt::encryptString($secret),
             now()->addMinutes(10)
@@ -150,7 +150,7 @@ class TwoFactorAuthService
      */
     public function verifyPendingCode(User $user, string $code): bool
     {
-        $encryptedSecret = Cache::get("2fa_pending_secret:{$user->id}");
+        $encryptedSecret = TenantCache::get("2fa_pending_secret:{$user->id}");
 
         if (! $encryptedSecret) {
             return false;
@@ -169,7 +169,7 @@ class TwoFactorAuthService
      */
     public function enable(User $user): array
     {
-        $encryptedSecret = Cache::get("2fa_pending_secret:{$user->id}");
+        $encryptedSecret = TenantCache::get("2fa_pending_secret:{$user->id}");
 
         if (! $encryptedSecret) {
             throw new \RuntimeException('No pending 2FA setup found. Please start the setup again.');
@@ -188,7 +188,7 @@ class TwoFactorAuthService
         ]);
 
         // Clear pending secret
-        Cache::forget("2fa_pending_secret:{$user->id}");
+        TenantCache::forget("2fa_pending_secret:{$user->id}");
 
         return $recoveryCodes;
     }
@@ -289,7 +289,7 @@ class TwoFactorAuthService
     public function trustDevice(User $user, string $deviceId): void
     {
         $key = "2fa_trusted_device:{$user->id}:{$deviceId}";
-        Cache::put($key, true, now()->addDays($this->trustedDeviceDays));
+        TenantCache::put($key, true, now()->addDays($this->trustedDeviceDays));
     }
 
     /**
@@ -301,7 +301,7 @@ class TwoFactorAuthService
      */
     public function isDeviceTrusted(User $user, string $deviceId): bool
     {
-        return Cache::get("2fa_trusted_device:{$user->id}:{$deviceId}", false);
+        return TenantCache::get("2fa_trusted_device:{$user->id}:{$deviceId}", false);
     }
 
     /**

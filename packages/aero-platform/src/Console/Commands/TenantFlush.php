@@ -5,7 +5,7 @@ namespace Aero\Platform\Console\Commands;
 use Aero\Platform\Models\Tenant;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 class TenantFlush extends Command
 {
@@ -91,7 +91,7 @@ class TenantFlush extends Command
 
             // Clear tenant-tagged cache
             try {
-                Cache::tags([$cacheKey])->flush();
+                TenantCache::tags([$cacheKey])->flush();
                 $flushed[] = 'cache';
             } catch (\Exception $e) {
                 // Tag-based caching not supported, flush by prefix
@@ -101,7 +101,7 @@ class TenantFlush extends Command
 
             // Clear tenant permissions cache
             try {
-                Cache::tags(["tenant-{$tenant->id}-permissions"])->flush();
+                TenantCache::tags(["tenant-{$tenant->id}-permissions"])->flush();
             } catch (\Exception $e) {
                 // Ignore if not supported
             }
@@ -129,7 +129,7 @@ class TenantFlush extends Command
 
         // For Redis with prefix
         if (config('cache.default') === 'redis') {
-            $redis = Cache::getRedis();
+            $redis = TenantCache::getRedis();
             $keys = $redis->keys(config('cache.prefix').$prefix.'*');
             if (! empty($keys)) {
                 $redis->del($keys);

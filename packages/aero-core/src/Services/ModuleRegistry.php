@@ -4,7 +4,7 @@ namespace Aero\Core\Services;
 
 use Aero\Core\Contracts\ModuleProviderInterface;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * Module Registry Service
@@ -148,7 +148,7 @@ class ModuleRegistry
     public function getNavigationItems(): array
     {
         try {
-            return Cache::remember(
+            return TenantCache::remember(
                 self::CACHE_KEY . '.navigation',
                 self::CACHE_TTL,
                 function () {
@@ -185,7 +185,7 @@ class ModuleRegistry
     public function getModuleHierarchy(): array
     {
         try {
-            return Cache::remember(
+            return TenantCache::remember(
                 self::CACHE_KEY . '.hierarchy',
                 self::CACHE_TTL,
                 function () {
@@ -333,8 +333,8 @@ class ModuleRegistry
     public function clearCache(): void
     {
         try {
-            Cache::forget(self::CACHE_KEY . '.navigation');
-            Cache::forget(self::CACHE_KEY . '.hierarchy');
+            TenantCache::forget(self::CACHE_KEY . '.navigation');
+            TenantCache::forget(self::CACHE_KEY . '.hierarchy');
         } catch (\Throwable $e) {
             // Cache not available during early boot, ignore
         }

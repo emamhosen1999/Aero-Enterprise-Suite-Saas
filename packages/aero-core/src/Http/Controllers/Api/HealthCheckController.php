@@ -3,8 +3,8 @@
 namespace Aero\Core\Http\Controllers\Api;
 
 use Aero\Core\Http\Controllers\Controller;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
@@ -122,9 +122,9 @@ class HealthCheckController extends Controller
     {
         try {
             $key = 'health_check_'.uniqid();
-            Cache::put($key, 'test', 10);
-            $value = Cache::get($key);
-            Cache::forget($key);
+            TenantCache::put($key, 'test', 10);
+            $value = TenantCache::get($key);
+            TenantCache::forget($key);
 
             return $value === 'test';
         } catch (Throwable) {
@@ -140,9 +140,9 @@ class HealthCheckController extends Controller
         try {
             $start = microtime(true);
             $key = 'health_check_'.uniqid();
-            Cache::put($key, 'test', 10);
-            $value = Cache::get($key);
-            Cache::forget($key);
+            TenantCache::put($key, 'test', 10);
+            $value = TenantCache::get($key);
+            TenantCache::forget($key);
             $latency = round((microtime(true) - $start) * 1000, 2);
 
             if ($value !== 'test') {

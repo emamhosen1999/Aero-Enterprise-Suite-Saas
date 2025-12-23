@@ -35,19 +35,20 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register the TenancyBootstrapServiceProvider FIRST
-        // CRITICAL: This registers event listeners for TenancyInitialized which
-        // runs the DatabaseTenancyBootstrapper to switch DB connections
-        $this->app->register(\Aero\Platform\Providers\TenancyBootstrapServiceProvider::class);
-
         // Disable Fortify's default routes - we define auth routes with proper domain restrictions
         // Admin subdomain uses Platform's AuthenticatedSessionController
         // Tenant subdomains use Core's AuthenticatedSessionController
         Fortify::ignoreRoutes();
 
-        // Set aero.mode to 'saas' - Platform is the SaaS orchestrator
-        // This MUST be set before any module checks for mode
-        Config::set('aero.mode', 'saas');
+        // CRITICAL: Only register tenancy if installed AND in SaaS mode
+        // This prevents tenancy from being enabled during installation
+        // or in standalone mode
+        if ($this->installed() && $this->isSaasMode()) {
+            // Register the TenancyBootstrapServiceProvider
+            // CRITICAL: This registers event listeners for TenancyInitialized which
+            // runs the DatabaseTenancyBootstrapper to switch DB connections
+            $this->app->register(\Aero\Platform\Providers\TenancyBootstrapServiceProvider::class);
+        }
 
         // Override Core's migrator to ONLY use platform migrations on landlord database
         // Core, HRM, CRM and other module migrations are for TENANT databases only
@@ -62,12 +63,40 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Platform provides the SaaS implementation using stancl/tenancy
         $this->app->singleton(TenantScopeInterface::class, SaaSTenantScope::class);
 
-        // Register services as singletons
-        $this->app->singleton(ModuleAccessService::class);
-        $this->app->singleton(RoleModuleAccessService::class);
-        $this->app->singleton(PlatformSettingService::class);
+        // Register services as singletons (lazy-loaded to avoid DB access pre-install)
+        $this->app->singleton(ModuleAccessService::class, function ($app) {
+            if (!file_exists(storage_path('app/aeos.installed'))) {
+                return new class {
+                    public function __call($method, $args) { return []; }
+                };
+            }
+            return new ModuleAccessService;
+        });
+
+        $this->app->singleton(RoleModuleAccessService::class, function ($app) {
+            if (!file_exists(storage_path('app/aeos.installed'))) {
+                return new class {
+                    public function __call($method, $args) { return []; }
+                };
+            }
+            return new RoleModuleAccessService;
+        });
+
+        $this->app->singleton(PlatformSettingService::class, function ($app) {
+            if (!file_exists(storage_path('app/aeos.installed'))) {
+                return new class {
+                    public function __call($method, $args) { return null; }
+                };
+            }
+            return new PlatformSettingService;
+        });
+
         $this->app->singleton(ErrorLogService::class);
         $this->app->singleton(SslCommerzService::class);
+
+        // Register tenant lifecycle services
+        $this->app->singleton(\Aero\Platform\Services\Tenant\TenantRetentionService::class);
+        $this->app->singleton(\Aero\Platform\Services\Tenant\TenantPurgeService::class);
 
         // Configure auth guards and providers programmatically
         $this->configureAuth();
@@ -119,6 +148,13 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Register middleware (including HandleInertiaRequests which intercepts "/")
         $this->registerMiddleware();
+
+        // Register commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Aero\Platform\Console\Commands\PurgeExpiredTenants::class,
+            ]);
+        }
 
         // Publish assets
         $this->registerPublishing();
@@ -279,6 +315,8 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $router->aliasMiddleware('maintenance', \Aero\Platform\Http\Middleware\CheckMaintenanceMode::class);
         $router->aliasMiddleware('permission', \Aero\Platform\Http\Middleware\PermissionMiddleware::class);
         $router->aliasMiddleware('role', \Aero\Platform\Http\Middleware\EnsureUserHasRole::class);
+        $router->aliasMiddleware('landlord', \Aero\Platform\Http\Middleware\EnsureLandlordGuard::class);
+        $router->aliasMiddleware('tenant.active', \Aero\Platform\Http\Middleware\EnsureTenantIsActive::class);
         $router->aliasMiddleware('platform.super.admin', \Aero\Platform\Http\Middleware\PlatformSuperAdmin::class);
         $router->aliasMiddleware('tenant.super.admin', \Aero\Platform\Http\Middleware\TenantSuperAdmin::class);
         $router->aliasMiddleware('tenant.setup', \Aero\Platform\Http\Middleware\EnsureTenantIsSetup::class);
@@ -576,5 +614,30 @@ class AeroPlatformServiceProvider extends ServiceProvider
             // Default fallback
             return '/';
         });
+    }
+
+    /**
+     * Check if the system is installed using file-based detection.
+     * 
+     * @return bool
+     */
+    protected function installed(): bool
+    {
+        return file_exists(storage_path('app/aeos.installed'));
+    }
+
+    /**
+     * Check if system is in SaaS mode using file-based detection.
+     * Mode is set during installation and immutable at runtime.
+     * 
+     * @return bool
+     */
+    protected function isSaasMode(): bool
+    {
+        if (!file_exists(storage_path('app/aeos.mode'))) {
+            return false;
+        }
+        
+        return trim(file_get_contents(storage_path('app/aeos.mode'))) === 'saas';
     }
 }

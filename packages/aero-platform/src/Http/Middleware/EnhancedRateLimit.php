@@ -5,7 +5,7 @@ namespace Aero\Platform\Http\Middleware;
 use Aero\Platform\Services\Logging\ApplicationLogger;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -87,7 +87,7 @@ class EnhancedRateLimit
         }
 
         // Cache user limits
-        return Cache::remember("rate_limits_user_{$user->id}", 300, function () use ($user) {
+        return TenantCache::remember("rate_limits_user_{$user->id}", 300, function () use ($user) {
             if ($user->hasRole('Super Administrator')) {
                 return ['requests_per_minute' => 200];
             }

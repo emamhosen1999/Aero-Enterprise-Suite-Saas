@@ -5,7 +5,7 @@ namespace Aero\Platform\Services\Monitoring\Billing;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Models\UsageRecord;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -125,7 +125,7 @@ class MeteredBillingService
     {
         $cacheKey = $this->getUsageCacheKey($tenant->id, $metricName);
 
-        return Cache::get($cacheKey, function () use ($tenant, $metricName) {
+        return TenantCache::get($cacheKey, function () use ($tenant, $metricName) {
             $period = UsageRecord::getCurrentBillingPeriod();
 
             return (float) UsageRecord::forTenant($tenant->id)
@@ -492,8 +492,8 @@ class MeteredBillingService
     protected function updateUsageCache(string $tenantId, string $metricName, float $increment): void
     {
         $key = $this->getUsageCacheKey($tenantId, $metricName);
-        $current = Cache::get($key, 0);
-        Cache::put($key, $current + $increment, now()->endOfMonth());
+        $current = TenantCache::get($key, 0);
+        TenantCache::put($key, $current + $increment, now()->endOfMonth());
     }
 
     /**
@@ -502,6 +502,6 @@ class MeteredBillingService
     protected function setUsageCache(string $tenantId, string $metricName, float $value): void
     {
         $key = $this->getUsageCacheKey($tenantId, $metricName);
-        Cache::put($key, $value, now()->endOfMonth());
+        TenantCache::put($key, $value, now()->endOfMonth());
     }
 }

@@ -31,13 +31,11 @@ class AeroCoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         try {
-            // Register global BootstrapGuard middleware in standalone mode
-            // Use prepend to ensure it runs before other global middleware
-            // so we can switch session driver before StartSession initializes.
-            if (config('aero.mode') === 'standalone') {
-                $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
-                $kernel->prependMiddleware(\Aero\Core\Http\Middleware\BootstrapGuard::class);
-            }
+            // CRITICAL: Inject global BootstrapGuard middleware FIRST
+            // This ensures ALL requests are intercepted before routing
+            // to redirect to /install if system is not installed
+            $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+            $kernel->pushMiddleware(\Aero\Core\Http\Middleware\BootstrapGuard::class);
 
             // Disable Fortify's default routes - Core provides its own auth routes
             // with Inertia.js rendering instead of Fortify's view responses
@@ -80,7 +78,19 @@ class AeroCoreServiceProvider extends ServiceProvider
             $this->app->singleton(DashboardWidgetRegistry::class);
 
             // Register Module Access Services (with error handling for missing tables)
+            // These services are lazy-loaded, so they won't cause issues pre-install
             $this->app->singleton(ModuleAccessService::class, function ($app) {
+                // Only instantiate if installed to avoid DB queries pre-install
+                if (!file_exists(storage_path('app/aeos.installed'))) {
+                    return new class
+                    {
+                        public function __call($method, $args)
+                        {
+                            return [];
+                        }
+                    };
+                }
+
                 try {
                     return new ModuleAccessService;
                 } catch (\Throwable $e) {
@@ -95,6 +105,17 @@ class AeroCoreServiceProvider extends ServiceProvider
             });
 
             $this->app->singleton(RoleModuleAccessService::class, function ($app) {
+                // Only instantiate if installed to avoid DB queries pre-install
+                if (!file_exists(storage_path('app/aeos.installed'))) {
+                    return new class
+                    {
+                        public function __call($method, $args)
+                        {
+                            return [];
+                        }
+                    };
+                }
+
                 try {
                     return new RoleModuleAccessService;
                 } catch (\Throwable $e) {
@@ -156,7 +177,7 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         // Force file-based sessions BEFORE any session driver is instantiated
         // This allows installation to work without database tables
-        if (config('aero.mode') === 'standalone' && !file_exists(storage_path('installed'))) {
+        if (!$this->installed()) {
             // Pre-configure session driver to file (before StartSession middleware runs)
             config(['session.driver' => 'file', 'cache.default' => 'file']);
         }
@@ -189,7 +210,7 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'aero-core');
 
-        // Register routes
+        // Register routes - conditional on installation status
         $this->registerRoutes();
 
         // Register Inertia middleware - must be after routes
@@ -213,11 +234,14 @@ class AeroCoreServiceProvider extends ServiceProvider
                 $this->registerCommands();
             }
 
-            // Register core navigation from config/module.php
-            $this->registerCoreNavigation();
+            // Only register navigation and widgets if installed
+            if ($this->installed()) {
+                // Register core navigation from config/module.php
+                $this->registerCoreNavigation();
 
-            // Register Core dashboard widgets
-            $this->registerDashboardWidgets();
+                // Register Core dashboard widgets
+                $this->registerDashboardWidgets();
+            }
         } catch (\Throwable $e) {
             // Ignore errors during early boot/package discovery
             // These will be called again when the app is fully booted
@@ -271,14 +295,11 @@ class AeroCoreServiceProvider extends ServiceProvider
      *
      * Route Architecture:
      * -------------------
-     * aero-core has exactly 1 route file: web.php
-     * Contains all routes including:
-     * - Authentication (login, logout)
-     * - Dashboard, User Management, Roles
-     * - Settings, Profile
-     * - API endpoints (under /api prefix within the file)
+     * Core routes are conditionally loaded based on installation status:
+     * - NOT installed: ONLY load install.php routes
+     * - Installed: Load runtime routes (web.php) based on mode
      *
-     * Domain-based routing:
+     * Domain-based routing (when installed):
      * - In SaaS mode: Routes ONLY on tenant domains (tenant.domain.com)
      * - In Standalone mode: Routes on all domains (domain.com)
      * - Public API routes (/api/version/check, /api/error-log) on ALL domains
@@ -290,8 +311,28 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Always register public API routes on all domains (version check, error logging)
         $this->registerPublicApiRoutes();
 
-        // Check if aero-platform is active (SaaS mode)
-        if ($this->isPlatformActive()) {
+        if (!$this->installed()) {
+            // System NOT installed - ONLY load installation routes
+            // These work on ANY domain (platform, tenant, or standalone)
+            Route::middleware(['web'])
+                ->group($routesPath.'/install.php');
+            return;
+        }
+
+        // System IS installed - load runtime routes based on mode
+        $this->loadRuntimeRoutes();
+    }
+
+    /**
+     * Load runtime routes after installation is complete.
+     * Handles both SaaS and standalone modes.
+     */
+    protected function loadRuntimeRoutes(): void
+    {
+        $routesPath = __DIR__.'/../routes';
+
+        // Check if in SaaS mode (file-based detection)
+        if ($this->isSaasMode()) {
             // SaaS Mode: Core routes ONLY on tenant domains (NOT on central/admin domains)
             // AUTO-DETECT from browser request - no .env configuration needed
 
@@ -319,6 +360,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // On central domains: do NOT register core routes (platform owns those)
         } else {
             // Standalone Mode: Routes with standard web middleware on domain.com
+            // NO tenancy middleware in standalone mode
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
@@ -420,6 +462,11 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Register HandleInertiaRequests middleware to web middleware group
             $router->pushMiddlewareToGroup('web', \Aero\Core\Http\Middleware\HandleInertiaRequests::class);
 
+            // In SaaS mode, add tenant.active middleware to web group (after auth)
+            if (is_saas_mode() && class_exists('\Aero\Platform\Http\Middleware\EnsureTenantIsActive')) {
+                $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\EnsureTenantIsActive::class);
+            }
+
             // Register middleware aliases
             $router->aliasMiddleware('module', \Aero\Core\Http\Middleware\CheckModuleAccess::class);
 
@@ -431,10 +478,25 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Check if aero-platform is active.
+     * 
+     * @deprecated Use isSaasMode() instead for mode detection
      */
     protected function isPlatformActive(): bool
     {
         return class_exists('Aero\Platform\AeroPlatformServiceProvider');
+    }
+
+    /**
+     * Check if system is in SaaS mode using file-based detection.
+     * Mode is set during installation and immutable at runtime.
+     * 
+     * This is the ONLY authoritative method for mode detection.
+     * 
+     * @return bool
+     */
+    protected function isSaasMode(): bool
+    {
+        return is_saas_mode();
     }
 
     /**
@@ -447,7 +509,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             return false;
         }
 
-        return config('aero.mode', 'saas') === 'standalone' &&
+        return is_standalone_mode() &&
                config('aero.runtime_loading.enabled', false);
     }
 
@@ -703,5 +765,18 @@ class AeroCoreServiceProvider extends ServiceProvider
                 \Aero\Core\Exceptions\Handler::class
             );
         }
+    }
+
+    /**
+     * Check if the system is installed using file-based detection.
+     * 
+     * This is the ONLY authoritative method for checking installation status.
+     * Never use database queries for installation detection.
+     * 
+     * @return bool
+     */
+    protected function installed(): bool
+    {
+        return file_exists(storage_path('app/aeos.installed'));
     }
 }

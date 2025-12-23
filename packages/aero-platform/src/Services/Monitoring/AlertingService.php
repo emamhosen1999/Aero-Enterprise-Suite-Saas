@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Services\Monitoring;
 
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -228,7 +228,7 @@ class AlertingService
         $alerts[$alertId]['acknowledged_by'] = $acknowledgedBy;
         $alerts[$alertId]['acknowledgment_comment'] = $comment;
 
-        Cache::put('platform:alerts', $alerts, now()->addDays(7));
+        TenantCache::put('platform:alerts', $alerts, now()->addDays(7));
 
         Log::info("Alert {$alertId} acknowledged by {$acknowledgedBy}");
 
@@ -256,7 +256,7 @@ class AlertingService
         $alerts[$alertId]['resolved_by'] = $resolvedBy;
         $alerts[$alertId]['resolution'] = $resolution;
 
-        Cache::put('platform:alerts', $alerts, now()->addDays(7));
+        TenantCache::put('platform:alerts', $alerts, now()->addDays(7));
 
         // Send resolution notification
         $this->sendResolutionNotification($alerts[$alertId]);
@@ -717,7 +717,7 @@ class AlertingService
             return false;
         }
 
-        return Cache::has($this->rateLimitPrefix . $alertKey);
+        return TenantCache::has($this->rateLimitPrefix . $alertKey);
     }
 
     /**
@@ -735,7 +735,7 @@ class AlertingService
             default => 600,               // 10 minutes for info
         };
 
-        Cache::put(
+        TenantCache::put(
             $this->rateLimitPrefix . $alertKey,
             true,
             now()->addSeconds($interval)
@@ -802,7 +802,7 @@ class AlertingService
             $alerts = array_slice($alerts, -1000, null, true);
         }
 
-        Cache::put('platform:alerts', $alerts, now()->addDays(7));
+        TenantCache::put('platform:alerts', $alerts, now()->addDays(7));
     }
 
     /**
@@ -812,7 +812,7 @@ class AlertingService
      */
     protected function getStoredAlerts(): array
     {
-        return Cache::get('platform:alerts', []);
+        return TenantCache::get('platform:alerts', []);
     }
 
     /**

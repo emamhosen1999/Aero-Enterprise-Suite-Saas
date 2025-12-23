@@ -5,7 +5,7 @@ namespace Aero\Platform\Http\Controllers\SystemMonitoring;
 use Aero\Platform\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -40,7 +40,7 @@ class SystemMonitoringController extends Controller
      */
     public function getSystemOverview()
     {
-        return Cache::remember('system_overview', 300, function () {
+        return TenantCache::remember('system_overview', 300, function () {
             return [
                 'performance_summary' => $this->getPerformanceSummary(),
                 'error_summary' => $this->getErrorSummary(),
@@ -222,9 +222,9 @@ class SystemMonitoringController extends Controller
     {
         try {
             $testKey = 'health_check_'.now()->timestamp;
-            Cache::put($testKey, 'test', 10);
-            $retrieved = Cache::get($testKey);
-            Cache::forget($testKey);
+            TenantCache::put($testKey, 'test', 10);
+            $retrieved = TenantCache::get($testKey);
+            TenantCache::forget($testKey);
 
             return [
                 'status' => $retrieved === 'test' ? 'healthy' : 'warning',
@@ -1307,7 +1307,7 @@ class SystemMonitoringController extends Controller
 
             return [
                 'system_uptime_hours' => $uptime ? round($uptime / 3600, 2) : null,
-                'application_start_time' => Cache::get('app_start_time', now()->toISOString()),
+                'application_start_time' => TenantCache::get('app_start_time', now()->toISOString()),
                 'last_restart' => $this->getLastRestartTime(),
                 'availability_percentage' => $this->calculateAvailabilityPercentage(),
             ];
@@ -1319,7 +1319,7 @@ class SystemMonitoringController extends Controller
     private function getLastRestartTime()
     {
         // This would typically come from system logs or deployment tracking
-        return Cache::get('last_restart_time', 'Unknown');
+        return TenantCache::get('last_restart_time', 'Unknown');
     }
 
     private function calculateAvailabilityPercentage()
@@ -1528,7 +1528,7 @@ class SystemMonitoringController extends Controller
     private function checkUserAccessReviewCompliance()
     {
         try {
-            $lastAccessReview = Cache::get('last_user_access_review');
+            $lastAccessReview = TenantCache::get('last_user_access_review');
             $reviewCompliant = $lastAccessReview && Carbon::parse($lastAccessReview)->isAfter(now()->subMonths(3));
 
             return [

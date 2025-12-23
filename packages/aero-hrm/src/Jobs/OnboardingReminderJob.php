@@ -11,10 +11,18 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Stancl\Tenancy\Contracts\Tenant;
 
 class OnboardingReminderJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    /**
+     * The tenant instance (for SaaS mode).
+     *
+     * @var \Stancl\Tenancy\Contracts\Tenant|null
+     */
+    public ?Tenant $tenant = null;
 
     /**
      * Number of days before sending reminder
@@ -23,10 +31,27 @@ class OnboardingReminderJob implements ShouldQueue
 
     /**
      * Create a new job instance.
+     *
+     * @param \Stancl\Tenancy\Contracts\Tenant|null $tenant
      */
-    public function __construct()
+    public function __construct(?Tenant $tenant = null)
     {
-        //
+        // Store tenant for SaaS mode
+        if (is_saas_mode() && $tenant) {
+            $this->tenant = $tenant;
+        } elseif (is_saas_mode() && tenancy()->initialized) {
+            $this->tenant = tenant();
+        }
+    }
+
+    /**
+     * Get the middleware the job should pass through.
+     *
+     * @return array
+     */
+    public function middleware(): array
+    {
+        return [\Aero\Core\Jobs\Middleware\InitializeTenantForJob::class];
     }
 
     /**

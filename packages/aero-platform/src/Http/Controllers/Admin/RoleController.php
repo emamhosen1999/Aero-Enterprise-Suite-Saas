@@ -7,7 +7,7 @@ use Aero\Core\Models\User;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -435,8 +435,8 @@ class RoleController extends Controller
     protected function clearCache(): void
     {
         try {
-            Cache::forget('roles_list');
-            Cache::forget('roles_with_users');
+            TenantCache::forget('roles_list');
+            TenantCache::forget('roles_with_users');
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         } catch (\Exception $e) {
             Log::warning('Cache clear failed: '.$e->getMessage());

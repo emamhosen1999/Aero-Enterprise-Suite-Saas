@@ -3,7 +3,7 @@
 namespace Aero\Core\Services;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -305,7 +305,7 @@ class LicenseValidationService
         $cacheKey = 'license_validation:' . md5($licenseKey);
         $cacheDuration = config('license.cache_duration', 86400); // 24 hours default
         
-        Cache::put($cacheKey, $data, $cacheDuration);
+        TenantCache::put($cacheKey, $data, $cacheDuration);
     }
     
     /**
@@ -318,8 +318,8 @@ class LicenseValidationService
     {
         $cacheKey = 'license_validation:' . md5($licenseKey);
         
-        if (Cache::has($cacheKey)) {
-            $cachedData = Cache::get($cacheKey);
+        if (TenantCache::has($cacheKey)) {
+            $cachedData = TenantCache::get($cacheKey);
             
             return $this->successResponse(
                 $cachedData,

@@ -7,7 +7,7 @@ use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -77,7 +77,7 @@ class MaintenanceController extends Controller
         $setting->update($validated);
 
         // Clear the maintenance cache so changes take effect immediately
-        Cache::forget(PlatformSetting::CACHE_KEY_MAINTENANCE);
+        TenantCache::forget(PlatformSetting::CACHE_KEY_MAINTENANCE);
 
         if ($request->wantsJson()) {
             return response()->json([

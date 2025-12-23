@@ -148,6 +148,6 @@ class AeroRfiServiceProvider extends ServiceProvider
             return is_saas_mode();
         }
 
-        return config('aero.mode') === 'saas';
+        return is_saas_mode();
     }
 }

@@ -7,7 +7,7 @@ namespace Aero\HRM\Services;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -90,7 +90,7 @@ class LeaveCalendarService
 
         $cacheKey = $this->getCacheKey('calendar', $departmentIds, $month, $options);
 
-        return Cache::remember($cacheKey, now()->addMinutes($this->cacheDuration), function () use (
+        return TenantCache::remember($cacheKey, now()->addMinutes($this->cacheDuration), function () use (
             $departmentIds,
             $startDate,
             $endDate,

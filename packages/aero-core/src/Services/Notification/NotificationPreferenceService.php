@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aero\Core\Services\Notification;
 
 use Aero\Core\Models\User;
-use Illuminate\Support\Facades\Cache;
+use Aero\Core\Support\TenantCache;
 
 /**
  * Notification Preference Service
@@ -140,7 +140,7 @@ class NotificationPreferenceService
     {
         $cacheKey = "notification_prefs:{$user->id}";
 
-        return Cache::remember($cacheKey, $this->cacheTtl, function () use ($user) {
+        return TenantCache::remember($cacheKey, $this->cacheTtl, function () use ($user) {
             $stored = $user->notification_preferences ?? [];
 
             return array_merge($this->getDefaultPreferences(), $stored);
@@ -192,7 +192,7 @@ class NotificationPreferenceService
         $user->update(['notification_preferences' => $merged]);
 
         // Clear cache
-        Cache::forget("notification_prefs:{$user->id}");
+        TenantCache::forget("notification_prefs:{$user->id}");
     }
 
     /**
@@ -403,6 +403,6 @@ class NotificationPreferenceService
     public function resetToDefaults(User $user): void
     {
         $user->update(['notification_preferences' => null]);
-        Cache::forget("notification_prefs:{$user->id}");
+        TenantCache::forget("notification_prefs:{$user->id}");
     }
 }
