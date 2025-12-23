@@ -829,9 +829,26 @@ class InstallationController extends Controller
             }
 
             // Create Super Administrator role BEFORE transaction (prevents lock timeout)
-            $role = \Spatie\Permission\Models\Role::firstOrCreate(
-                ['name' => 'Super Administrator', 'guard_name' => 'landlord', 'scope' => 'platform']
-            );
+            // Search only on the unique index columns to avoid duplicate-key errors when scope differs.
+            $role = \Spatie\Permission\Models\Role::where([
+                'name' => 'Super Administrator',
+                'guard_name' => 'landlord',
+            ])->first();
+
+            if (! $role) {
+                $role = \Spatie\Permission\Models\Role::create([
+                    'name' => 'Super Administrator',
+                    'guard_name' => 'landlord',
+                    'scope' => 'platform',
+                ]);
+            } else {
+                // Ensure scope is set if it was missing from previous runs
+                if (empty($role->scope)) {
+                    $role->scope = 'platform';
+                    $role->save();
+                }
+            }
+
             \Log::info('Super Administrator role ready', ['role_id' => $role->id]);
 
             // Wrap post-migration database operations in a transaction for atomicity
