@@ -46,7 +46,7 @@ class SetDatabaseConnectionFromDomain
         if ($this->isHostOnCentralDomain($host)) {
             $this->useCentralDatabase();
             $this->useCentralSessionCookie();
-            
+
             // Set default auth guard based on domain
             if ($this->isHostAdminDomain($host)) {
                 // Admin domain uses landlord guard

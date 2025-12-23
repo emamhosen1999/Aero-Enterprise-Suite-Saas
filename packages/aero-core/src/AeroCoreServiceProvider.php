@@ -363,14 +363,14 @@ class AeroCoreServiceProvider extends ServiceProvider
         } else {
             // Standalone Mode: Routes with standard web middleware on domain.com
             // NO tenancy middleware in standalone mode
-            
+
             // Even in standalone mode, skip Core routes on admin subdomain
             // (in case Platform package is installed and provides admin UI)
             if (request() && $this->isHostAdminDomain(request()->getHost())) {
                 // Skip Core routes on admin subdomain - Platform handles admin domain
                 return;
             }
-            
+
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
