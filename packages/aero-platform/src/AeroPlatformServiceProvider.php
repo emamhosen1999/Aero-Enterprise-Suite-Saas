@@ -567,10 +567,15 @@ class AeroPlatformServiceProvider extends ServiceProvider
      *
      * Redirects unauthenticated users to the appropriate login page
      * based on domain context (admin vs tenant).
+     * 
+     * IMPORTANT: Do NOT set a global default guard with shouldUse().
+     * The default guard should remain 'web' for tenant domains.
+     * Admin routes explicitly use 'auth:landlord' middleware.
      */
     protected function configureGuestRedirect(): void
     {
-        $this->app['auth']->shouldUse('landlord');
+        // REMOVED: $this->app['auth']->shouldUse('landlord');
+        // This was causing issues - admin routes already use auth:landlord explicitly
 
         // Configure the Authenticate middleware to redirect to admin.login for landlord guard
         $this->app->resolving(\Illuminate\Auth\Middleware\Authenticate::class, function ($middleware) {
@@ -587,8 +592,8 @@ class AeroPlatformServiceProvider extends ServiceProvider
                     return route('tenant.login');
                 }
 
-                // Fallback to admin.login
-                return route('admin.login');
+                // Fallback to login route
+                return route('login');
             });
         });
 
