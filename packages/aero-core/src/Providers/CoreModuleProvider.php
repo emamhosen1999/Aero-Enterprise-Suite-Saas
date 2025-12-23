@@ -202,12 +202,10 @@ class CoreModuleProvider extends AbstractModuleProvider
         $router->aliasMiddleware('module.access', \Aero\Core\Http\Middleware\ModuleAccessMiddleware::class);
         $router->aliasMiddleware('permission', \Aero\Core\Http\Middleware\PermissionMiddleware::class);
         $router->aliasMiddleware('role', \Aero\Core\Http\Middleware\EnsureUserHasRole::class);
-        $router->aliasMiddleware('ensure.installed', \Aero\Core\Http\Middleware\EnsureInstalled::class);
         $router->aliasMiddleware('prevent.installed', \Aero\Core\Http\Middleware\PreventInstalledAccess::class);
         
-        // Note: BootstrapGuard is already registered globally in register() method
-        // for standalone mode, so we don't need to add EnsureInstalled to web group.
-        // The alias is kept for explicit route usage if needed.
+        // Note: BootstrapGuard is registered globally in register() method for standalone mode.
+        // No additional installation middleware is needed in the web group.
     }
 
     /**
