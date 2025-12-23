@@ -265,12 +265,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/skills/{id}', [SkillsController::class, 'update'])->name('skills.update');
         Route::delete('/skills/{id}', [SkillsController::class, 'destroy'])->name('skills.destroy');
 
-        // Competencies
-        Route::get('/competencies', [SkillsController::class, 'competencies'])->name('competencies.index');
-        Route::post('/competencies', [SkillsController::class, 'storeCompetency'])->name('competencies.store');
-        Route::put('/competencies/{id}', [SkillsController::class, 'updateCompetency'])->name('competencies.update');
-        Route::delete('/competencies/{id}', [SkillsController::class, 'destroyCompetency'])->name('competencies.destroy');
-
         // Employee Skills
         Route::get('/employee-skills/{employeeId}', [SkillsController::class, 'employeeSkills'])->name('employee.skills.index');
         Route::post('/employee-skills/{employeeId}', [SkillsController::class, 'storeEmployeeSkill'])->name('employee.skills.store');

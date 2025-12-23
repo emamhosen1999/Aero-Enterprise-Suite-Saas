@@ -210,28 +210,17 @@ class InstallationController extends Controller
             ],
             'environmentIssues' => $envCheck['issues'],
         ]);
+            // Ensure runtime uses wizard-provided DB credentials immediately
+            $this->applyRuntimeDatabaseConfig($dbConfig);
+
     }
 
     /**
      * Test database server connection (without database)
      */
     public function testServerConnection(Request $request): \Illuminate\Http\JsonResponse
-    {
-        $request->validate([
-            'host' => ['required', 'string'],
-            'port' => ['required', 'integer', 'min:1', 'max:65535'],
-            'username' => ['required', 'string'],
-            'password' => ['nullable', 'string'],
-        ]);
-
-        try {
-            $testConnection = $this->installationService->testServerConnection(
-                $request->host,
-                $request->port,
-                $request->username,
-                $request->password
-            );
-
+            // Reconnect using the updated runtime configuration
+            DB::reconnect(config('database.default', 'mysql'));
             if ($testConnection['success']) {
                 // Get available databases for user
                 $databases = $this->installationService->listDatabases(
@@ -762,28 +751,18 @@ class InstallationController extends Controller
                 'password' => $dbPassword,
             ];
 
+            // Apply the wizard-provided DB config to the in-memory connections so we never
+            // fall back to stale .env defaults during installation steps.
+            $this->applyRuntimeDatabaseConfig($dbConfig);
+
             // Stage 1: Update environment file
             \Log::info('Installation Stage: environment', ['stage' => 'environment']);
             $this->trackProgress('environment', 'in_progress', 'Updating environment configuration');
             $this->installationService->updateEnvironmentFile($dbConfig, $platformConfig);
             $this->trackProgress('environment', 'completed', 'Environment updated');
 
-            // Reconnect to use new database configuration
-            DB::purge('mysql');
-            config(['database.connections.mysql' => [
-                'driver' => 'mysql',
-                'host' => $dbConfig['host'],
-                'port' => $dbConfig['port'],
-                'database' => $dbConfig['database'],
-                'username' => $dbConfig['username'],
-                'password' => $dbConfig['password'],
-                'charset' => 'utf8mb4',
-                'collation' => 'utf8mb4_unicode_ci',
-                'prefix' => '',
-                'strict' => true,
-                'engine' => null,
-            ]]);
-            DB::reconnect('mysql');
+            // Reconnect using the in-memory DB config (already merged above)
+            DB::reconnect(config('database.default', 'mysql'));
 
             // Verify database connection after reconnect
             try {
@@ -1266,6 +1245,32 @@ class InstallationController extends Controller
         }
 
         \Log::info('Pre-flight validation passed');
+    }
+
+    /**
+     * Push wizard-provided DB settings into the runtime config so we don't rely on stale .env values.
+     */
+    private function applyRuntimeDatabaseConfig(array $dbConfig): void
+    {
+        $connection = config('database.default', 'mysql');
+        $existing = config("database.connections.{$connection}", []);
+
+        $merged = array_merge($existing, [
+            'driver' => $existing['driver'] ?? 'mysql',
+            'host' => $dbConfig['host'],
+            'port' => $dbConfig['port'],
+            'database' => $dbConfig['database'],
+            'username' => $dbConfig['username'],
+            'password' => $dbConfig['password'] ?? '',
+        ]);
+
+        config([
+            'database.default' => $connection,
+            "database.connections.{$connection}" => $merged,
+            'tenancy.database.central_connection' => $connection,
+        ]);
+
+        DB::purge($connection);
     }
 
     /**
