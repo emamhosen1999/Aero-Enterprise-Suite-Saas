@@ -31,6 +31,14 @@ class AeroCoreServiceProvider extends ServiceProvider
     public function register(): void
     {
         try {
+            // Register global BootstrapGuard middleware in standalone mode
+            // Use prepend to ensure it runs before other global middleware
+            // so we can switch session driver before StartSession initializes.
+            if (config('aero.mode') === 'standalone') {
+                $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+                $kernel->prependMiddleware(\Aero\Core\Http\Middleware\BootstrapGuard::class);
+            }
+
             // Disable Fortify's default routes - Core provides its own auth routes
             // with Inertia.js rendering instead of Fortify's view responses
             Fortify::ignoreRoutes();
