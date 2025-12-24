@@ -158,7 +158,7 @@ class HandleInertiaRequests extends Middleware
                 'darkMode' => data_get($branding, 'dark_mode', false),
                 'animations' => data_get($branding, 'animations', true),
             ],
-            'url' => $request->getPathInfo(),
+            'url' => $request->fullUrl(),
             'csrfToken' => csrf_token(),
             'locale' => App::getLocale(),
             'translations' => fn () => $this->getTranslations(),
