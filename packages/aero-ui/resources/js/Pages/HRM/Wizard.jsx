@@ -157,7 +157,15 @@ export default function EmployeeOnboardingWizard({
                 return;
         }
 
-        form.post(route(route_name, employee.id), {
+        // Validate route exists
+        if (!hasRoute(route_name)) {
+            console.error(`Route ${route_name} not found`);
+            showToast.error('Navigation route not found. Please contact support.');
+            return;
+        }
+
+        const url = route(route_name, employee.id);
+        form.post(url, {
             preserveScroll: true,
             onSuccess: () => {
                 setCompletedSteps([...completedSteps, currentStep]);

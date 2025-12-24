@@ -195,7 +195,15 @@ export default function OnboardingWizard({
     // Form submit handlers
     const handleCompanySubmit = (e) => {
         e.preventDefault();
-        companyForm.post(route('onboarding.company'), {
+        
+        if (!hasRoute('onboarding.company')) {
+            console.error('Route onboarding.company not found');
+            showToast.error('Navigation route not found. Please contact support.');
+            return;
+        }
+        
+        const url = route('onboarding.company');
+        companyForm.post(url, {
             preserveScroll: true,
             onSuccess: () => {
                 showToast.success('Company information saved!');
@@ -206,7 +214,15 @@ export default function OnboardingWizard({
 
     const handleBrandingSubmit = (e) => {
         e.preventDefault();
-        brandingForm.post(route('onboarding.branding'), {
+        
+        if (!hasRoute('onboarding.branding')) {
+            console.error('Route onboarding.branding not found');
+            showToast.error('Navigation route not found. Please contact support.');
+            return;
+        }
+        
+        const url = route('onboarding.branding');
+        brandingForm.post(url, {
             preserveScroll: true,
             onSuccess: () => {
                 showToast.success('Branding settings saved!');

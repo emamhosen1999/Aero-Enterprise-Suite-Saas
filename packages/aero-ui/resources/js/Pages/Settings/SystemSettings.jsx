@@ -21,6 +21,7 @@ import {
 } from '@heroui/react';
 import { EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
+import { hasRoute } from '@/utils/routeUtils';
 
 const fieldClass = 'grid grid-cols-1 md:grid-cols-2 gap-4';
 
@@ -329,7 +330,14 @@ const SystemSettings = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        form.post(route('settings.system.update'), {
+        if (!hasRoute('settings.system.update')) {
+            console.error('Route settings.system.update not found');
+            showToast.error('Navigation route not found. Please contact support.');
+            return;
+        }
+
+        const url = route('settings.system.update');
+        form.post(url, {
             method: 'put',
             forceFormData: true,
             onSuccess: () => {

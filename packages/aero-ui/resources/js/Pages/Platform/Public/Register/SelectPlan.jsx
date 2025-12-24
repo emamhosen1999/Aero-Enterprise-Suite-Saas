@@ -77,7 +77,15 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
       return;
     }
     
-    post(route('platform.register.plan.store'));
+    // Validate route exists before submission
+    if (!hasRoute('platform.register.plan.store')) {
+      console.error('Route platform.register.plan.store not found');
+      showToast.error('Navigation route not found. Please contact support.');
+      return;
+    }
+    
+    const url = route('platform.register.plan.store');
+    post(url);
   };
 
   const { themeSettings } = useTheme();

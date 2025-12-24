@@ -1,7 +1,3 @@
-
-import { Link } from '@inertiajs/react';
-
-
 import React, { useMemo } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
@@ -9,6 +5,8 @@ import AuthCard from '@/Components/UI/AuthCard.jsx'
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx'
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding';
+import { hasRoute } from '@/utils/routeUtils';
+import { showToast } from '@/utils/toastUtils';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
 const accountOptions = [
@@ -55,7 +53,16 @@ export default function AccountType({ steps = [], currentStep, savedData = {}, t
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    post(route('platform.register.account-type.store'));
+    
+    // Validate route exists before submission
+    if (!hasRoute('platform.register.account-type.store')) {
+      console.error('Route platform.register.account-type.store not found');
+      showToast.error('Navigation route not found. Please contact support.');
+      return;
+    }
+    
+    const url = route('platform.register.account-type.store');
+    post(url);
   };
 
   return (
