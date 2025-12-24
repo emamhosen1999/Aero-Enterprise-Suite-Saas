@@ -69,6 +69,30 @@ const fetchStatus = useCallback(async () => {
 }, [dependencies]);
 ```
 
+### For Silent User Actions (Individual Notification Reads)
+**Use axios wrapped in promise but without showToast.promise():**
+
+```javascript
+const markAsRead = async (notificationId) => {
+  const promise = new Promise(async (resolve, reject) => {
+    try {
+      const response = await axios.post(route('api.mark-read', notificationId));
+      if (response.status === 200) {
+        // Update UI state
+        updateNotificationState(notificationId);
+        resolve([response.data.message]);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      reject([error.response?.data?.message || 'Failed']);
+    }
+  });
+  
+  // Silent operation - suppress unhandled rejection
+  promise.catch(() => {});
+};
+```
+
 ### For Real-Time Validation (Subdomain Check, Email Validation)
 **Use axios without toast for instant feedback:**
 

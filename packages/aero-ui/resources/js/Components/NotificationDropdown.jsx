@@ -25,6 +25,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
 import { formatDistanceToNow } from 'date-fns';
+import axios from 'axios';
+import { showToast } from '@/utils/toastUtils';
 
 /**
  * NotificationDropdown Component
@@ -110,44 +112,57 @@ const NotificationDropdown = ({
     // Mark single notification as read
     const markAsRead = async (notificationId) => {
         setActionLoading(notificationId);
-        try {
-            await fetch(`/api/notifications/${notificationId}/read`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                },
-                credentials: 'same-origin',
-            });
 
-            setNotifications(prev => 
-                prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
-            );
-            setUnreadCount(prev => Math.max(0, prev - 1));
-        } catch (err) {
-            console.error('Error marking notification as read:', err);
-        } finally {
-            setActionLoading(null);
-        }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(`/api/notifications/${notificationId}/read`);
+                
+                if (response.status === 200) {
+                    setNotifications(prev => 
+                        prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
+                    );
+                    setUnreadCount(prev => Math.max(0, prev - 1));
+                    resolve([response.data.message || 'Notification marked as read']);
+                }
+            } catch (err) {
+                console.error('Error marking notification as read:', err);
+                reject([err.response?.data?.message || 'Failed to mark notification as read']);
+            } finally {
+                setActionLoading(null);
+            }
+        });
+
+        // Silent operation - no toast feedback needed for individual notification reads
+        promise.catch(() => {}); // Suppress unhandled rejection
     };
 
     // Mark all as read
     const markAllAsRead = async () => {
         setActionLoading('all');
-        try {
-            await fetch('/api/notifications/read-all', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                },
-                credentials: 'same-origin',
-            });
 
-            setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
-            setUnreadCount(0);
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post('/api/notifications/read-all');
+                
+                if (response.status === 200) {
+                    setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
+                    setUnreadCount(0);
+                    resolve([response.data.message || 'All notifications marked as read']);
+                }
+            } catch (err) {
+                console.error('Error marking all as read:', err);
+                reject([err.response?.data?.message || 'Failed to mark all as read']);
+            } finally {
+                setActionLoading(null);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Marking all as read...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
+    };
         } catch (err) {
             console.error('Error marking all as read:', err);
         } finally {
