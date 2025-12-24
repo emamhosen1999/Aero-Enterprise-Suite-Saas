@@ -84,92 +84,42 @@ const AddUserForm = ({user, allUsers, departments, designations,setUser, open, c
             if (['image/jpeg', 'image/jpg', 'image/png'].includes(fileType)) {
                 formData.append('profile_image', selectedImageFile);
             } else {
-                showToast.error('Invalid file type. Only JPEG and PNG are allowed.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary
-                    }
-                });
+                showToast.error('Invalid file type. Only JPEG and PNG are allowed.');
                 setProcessing(false);
                 return;
             }
         }
 
-        try {
-            const response = await axios.post(route('addUser'), formData );
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('addUser'), formData);
 
-            if (response.status === 200) {
-                setUser(response.data.user);
-                showToast.success(response.data.messages?.length > 0
-                    ? response.data.messages.join(' ')
-                    : 'Profile information updated successfully', {
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-                closeModal();
+                if (response.status === 200) {
+                    setUser(response.data.user);
+                    closeModal();
+                    resolve([response.data.messages?.length > 0
+                        ? response.data.messages.join(' ')
+                        : 'User added successfully']);
+                }
+            } catch (error) {
+                if (error.response?.status === 422) {
+                    setErrors(error.response.data.errors || {});
+                    reject([error.response.data.error || 'Validation failed. Please check your input.']);
+                } else if (error.request) {
+                    reject(['No response from server. Check your connection.']);
+                } else {
+                    reject([error.response?.data?.message || 'Failed to add user']);
+                }
+            } finally {
+                setProcessing(false);
             }
-        } catch (error) {
-            setProcessing(false);
-            handleErrorResponse(error);
-        } finally {
-            setProcessing(false);
-        }
-    };
+        });
 
-// Error handling for different scenarios
-    const handleErrorResponse = (error) => {
-        if (error.response) {
-            if (error.response.status === 422) {
-                setErrors(error.response.data.errors || {});
-                showToast.error(error.response.data.error || 'Failed to update profile information.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-            } else {
-                showToast.error('An unexpected error occurred. Please try again later.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-            }
-        } else if (error.request) {
-            showToast.error('No response received from the server. Please check your internet connection.', {
-                icon: '🔴',
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard.background,
-                    border: theme.glassCard.border,
-                    color: theme.palette.text.primary,
-                }
-            });
-        } else {
-            showToast.error('An error occurred while setting up the request.', {
-                icon: '🔴',
-                style: {
-                    backdropFilter: 'blur(16px) saturate(200%)',
-                    background: theme.glassCard.background,
-                    border: theme.glassCard.border,
-                    color: theme.palette.text.primary,
-                }
-            });
-        }
+        showToast.promise(promise, {
+            loading: 'Adding user...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
 // Handle file change for profile image preview and submission

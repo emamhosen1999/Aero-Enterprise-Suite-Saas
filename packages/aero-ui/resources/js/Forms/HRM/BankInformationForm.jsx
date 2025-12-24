@@ -76,85 +76,42 @@ const BankInformationForm = ({ user, setUser, open, closeModal }) => {
         event.preventDefault();
         setProcessing(true);
 
-        try {
-            const response = await axios.post(route('profile.update'), {
-                ruleSet: 'bank',
-                ...initialUserData,
-            });
-
-            if (response.status === 200) {
-                setUser(response.data.user);
-                setErrors({});
-                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Bank information updated successfully', {
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)',
-                    }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('profile.update'), {
+                    ruleSet: 'bank',
+                    ...initialUserData,
                 });
-                closeModal();
-            }
-        } catch (error) {
-            setProcessing(false);
 
-            if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                if (error.response.status === 422) {
-                    // Handle validation errors
-                    setErrors(error.response.data.errors || {});
-                    showToast.error(error.response.data.error || 'Failed to update bank information.', {
-                        icon: '🔴',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)',
-                        }
-                    });
-                } else {
-                    // Handle other HTTP errors
-                    showToast.error('An unexpected error occurred. Please try again later.', {
-                        icon: '🔴',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)',
-                        }
-                    });
+                if (response.status === 200) {
+                    setUser(response.data.user);
+                    setErrors({});
+                    closeModal();
+                    resolve([response.data.messages?.length > 0 
+                        ? response.data.messages.join(' ') 
+                        : 'Bank information updated successfully']);
                 }
-                console.error(error.response.data);
-            } else if (error.request) {
-                // The request was made but no response was received
-                showToast.error('No response received from the server. Please check your internet connection.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)',
-                    }
-                });
-                console.error(error.request);
-            } else {
-                // Something happened in setting up the request that triggered an Error
-                showToast.error('An error occurred while setting up the request.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)',
-                    }
-                });
-                console.error('Error', error.message);
+            } catch (error) {
+                console.error('Bank info update error:', error);
+                
+                if (error.response?.status === 422) {
+                    setErrors(error.response.data.errors || {});
+                    reject([error.response.data.error || 'Validation failed. Please check your input.']);
+                } else if (error.request) {
+                    reject(['No response from server. Check your connection.']);
+                } else {
+                    reject([error.response?.data?.message || 'Failed to update bank information']);
+                }
+            } finally {
+                setProcessing(false);
             }
-        } finally {
-            setProcessing(false);
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Updating bank information...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     return (
