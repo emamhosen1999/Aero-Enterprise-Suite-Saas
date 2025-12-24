@@ -3,6 +3,7 @@
 namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
+use Aero\Core\Support\SafeRedirect;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,7 +50,7 @@ class NewPasswordController extends Controller
         );
 
         return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('core.login')->with('status', __($status))
-                    : back()->withErrors(['email' => __($status)]);
+                    ? SafeRedirect::withSuccess('core.login', __($status), [])
+                    : SafeRedirect::backWithError(__($status), 'core.login');
     }
 }

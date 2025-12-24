@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
@@ -41,7 +43,7 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
       {/* Desktop Header */}
       <header className={`hidden md:block relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href={route('landing')} className="flex items-center gap-3">
+          <SafeLink route="landing" className="flex items-center gap-3">
             {squareLogo ? (
               <img src={squareLogo} alt={siteName || 'Logo'} className="h-12 w-12 object-contain rounded-lg" />
             ) : (
@@ -54,14 +56,14 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
               <p className="font-semibold text-lg">{siteName || 'Enterprise Suite'}</p>
               <p className={`text-xs ${palette.muted}`}>Create your workspace</p>
             </div>
-          </Link>
+          </SafeLink>
           <div className="flex items-center gap-4">
-            <Link href={route('support')} className={`text-sm transition-colors hover:underline ${palette.muted}`}>
+            <SafeLink route="support" className={`text-sm transition-colors hover:underline ${palette.muted}`}>
               Need help?
-            </Link>
-            <Link href={route('landing')} className="text-sm font-semibold text-blue-500 hover:text-blue-600">
+            </SafeLink>
+            <SafeLink route="landing" className="text-sm font-semibold text-blue-500 hover:text-blue-600">
               Back to site
-            </Link>
+            </SafeLink>
           </div>
         </div>
       </header>
@@ -69,9 +71,9 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
       {/* Mobile Header */}
       <header className={`md:hidden relative z-10 border-b ${palette.border} ${palette.headerBg} backdrop-blur-xl`}>
         <div className="px-4 py-3 flex items-center justify-between">
-          <Link href={route('landing')} className="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <SafeLink route="landing" className="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <ArrowLeftIcon className="w-5 h-5" />
-          </Link>
+          </SafeLink>
           
           {logo ? (
             <img src={logo} alt={siteName || 'Logo'} className="h-8 w-auto object-contain" />
@@ -88,9 +90,9 @@ export default function RegisterLayout({ children, mainClassName = 'py-8 sm:py-1
             </div>
           )}
           
-          <Link href={route('support')} className={`text-xs font-medium ${palette.muted} hover:text-blue-500 transition-colors`}>
+          <SafeLink route="support" className={`text-xs font-medium ${palette.muted} hover:text-blue-500 transition-colors`}>
             Need help?
-          </Link>
+          </SafeLink>
         </div>
       </header>
 

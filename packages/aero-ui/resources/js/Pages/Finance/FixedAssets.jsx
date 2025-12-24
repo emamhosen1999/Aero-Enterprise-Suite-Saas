@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import { 
     Table, 
@@ -149,7 +150,7 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
     };
 
     const handleEdit = (id) => {
-        router.visit(route('finance.fixed-assets.edit', id));
+        safeNavigate('finance.fixed-assets.edit', id);
     };
 
     const handleDelete = (id) => {
@@ -249,7 +250,7 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
                             <Button
                                 color="primary"
                                 startContent={<PlusIcon className="w-4 h-4" />}
-                                onPress={() => router.visit(route('finance.fixed-assets.create'))}
+                                onPress={() => safeNavigate('finance.fixed-assets.create')}
                                 radius={themeRadius}
                             >
                                 Add Asset

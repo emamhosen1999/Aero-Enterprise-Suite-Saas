@@ -1,5 +1,6 @@
 import React from 'react';
 import {Head, router, useForm} from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {
     Avatar,
     Button,
@@ -70,7 +71,7 @@ export default function CandidateEvaluation({ auth, application, evaluation, cri
         method(url, {
             onSuccess: () => {
                 showToast('Evaluation saved successfully', 'success');
-                router.visit(route('hr.recruitment.applicants.show', application.id));
+                safeNavigate('hr.recruitment.applicants.show', application.id);
             },
             onError: () => showToast('Failed to save evaluation', 'error'),
         });
@@ -93,7 +94,7 @@ export default function CandidateEvaluation({ auth, application, evaluation, cri
                     <Button
                         variant="flat"
                         startContent={<ArrowLeftIcon className="h-5 w-5" />}
-                        onPress={() => router.visit(route('hr.recruitment.applicants.show', application.id))}
+                        onPress={() => safeNavigate('hr.recruitment.applicants.show', application.id)}
                     >
                         Back
                     </Button>
@@ -355,7 +356,7 @@ export default function CandidateEvaluation({ auth, application, evaluation, cri
                             <div className="flex justify-end gap-3">
                                 <Button
                                     variant="flat"
-                                    onPress={() => router.visit(route('hr.recruitment.applicants.show', application.id))}
+                                    onPress={() => safeNavigate('hr.recruitment.applicants.show', application.id)}
                                 >
                                     Cancel
                                 </Button>

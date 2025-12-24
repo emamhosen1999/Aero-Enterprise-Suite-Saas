@@ -1,5 +1,7 @@
 ﻿import React, { useMemo } from 'react';
 import { Link, Head } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import { useBranding } from '@/Hooks/useBranding';
 import {
@@ -164,7 +166,7 @@ const About = () => {
               <Chip color="secondary" variant="flat" className="mb-1 md:mb-3 text-[10px] md:text-xs">Leadership</Chip>
               <h2 className="text-xl md:text-4xl font-semibold">People shaping the platform.</h2>
             </div>
-            <Link href={route('careers')} className={`${palette.mutedText} hover:text-current text-xs md:text-base`}>Meet the wider team â†’</Link>
+            <SafeLink route="careers" className={`${palette.mutedText} hover:text-current text-xs md:text-base`}>Meet the wider team â†’</SafeLink>
           </div>
           <div className="grid md:grid-cols-2 gap-2 md:gap-6">
             {leadershipTeam.map((leader) => (

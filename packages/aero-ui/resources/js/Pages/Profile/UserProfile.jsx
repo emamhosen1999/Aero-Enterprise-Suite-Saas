@@ -49,6 +49,7 @@ import {
     ArrowPathIcon
 } from "@heroicons/react/24/outline";
 import {Head, usePage, router} from "@inertiajs/react";
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from "@/Layouts/App.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
@@ -737,7 +738,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                             <Button
                                 color="primary"
                                 variant="bordered"
-                                onPress={() => router.visit(route('hr.salary-structure.employee.salary', user.id))}
+                                onPress={() => safeNavigate('hr.salary-structure.employee.salary', user.id)}
                                 startContent={<CurrencyDollarIcon className="w-4 h-4" />}
                             >
                                 Manage Salary Structure
@@ -867,7 +868,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                         <Button
                             color="primary"
                             variant="bordered"
-                            onPress={() => router.visit(route('hr.salary-structure.employee.salary', user.id))}
+                            onPress={() => safeNavigate('hr.salary-structure.employee.salary', user.id)}
                             startContent={<CurrencyDollarIcon className="w-4 h-4" />}
                         >
                             Manage Salary Structure

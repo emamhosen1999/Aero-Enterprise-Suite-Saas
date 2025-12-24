@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -179,7 +180,7 @@ const ComplianceDashboard = ({ stats = {}, policies = [], audits = [], risks = [
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('compliance.policies'))}
+                                    onPress={() => safeNavigate('compliance.policies')}
                                     radius={getThemeRadius()}
                                 >
                                     View All
@@ -223,7 +224,7 @@ const ComplianceDashboard = ({ stats = {}, policies = [], audits = [], risks = [
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('compliance.risks'))}
+                                    onPress={() => safeNavigate('compliance.risks')}
                                     radius={getThemeRadius()}
                                 >
                                     View All
@@ -355,7 +356,7 @@ const ComplianceDashboard = ({ stats = {}, policies = [], audits = [], risks = [
                         <Button
                             color="primary"
                             startContent={<DocumentTextIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('compliance.policies.create'))}
+                            onPress={() => safeNavigate('compliance.policies.create')}
                             radius={getThemeRadius()}
                         >
                             New Policy
@@ -364,7 +365,7 @@ const ComplianceDashboard = ({ stats = {}, policies = [], audits = [], risks = [
                             color="warning"
                             variant="flat"
                             startContent={<ExclamationTriangleIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('compliance.risks.create'))}
+                            onPress={() => safeNavigate('compliance.risks.create')}
                             radius={getThemeRadius()}
                         >
                             Report Risk
@@ -373,7 +374,7 @@ const ComplianceDashboard = ({ stats = {}, policies = [], audits = [], risks = [
                             color="default"
                             variant="flat"
                             startContent={<ChartBarSquareIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('compliance.reports'))}
+                            onPress={() => safeNavigate('compliance.reports')}
                             radius={getThemeRadius()}
                         >
                             View Reports

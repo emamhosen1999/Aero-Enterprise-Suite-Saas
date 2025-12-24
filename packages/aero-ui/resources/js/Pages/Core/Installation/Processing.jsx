@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Progress, Spinner } from '@heroui/react';
 import { 
     CogIcon,
@@ -190,7 +191,7 @@ export default function Processing({ title }) {
                                                         Try Again
                                                     </button>
                                                     <button
-                                                        onClick={() => router.visit(route('install.index'))}
+                                                        onClick={() => safeNavigate('install.index')}
                                                         className="px-4 py-2 bg-default-200 text-foreground rounded-lg hover:bg-default-300 transition-colors"
                                                     >
                                                         Start Over

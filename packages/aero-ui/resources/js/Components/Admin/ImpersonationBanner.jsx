@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePage, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Button } from '@heroui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,7 +16,7 @@ const ImpersonationBanner = () => {
   const isActive = impersonation?.active ?? false;
 
   const handleEndSession = () => {
-    router.post(route('impersonate.end'), {}, {
+    safePost('impersonate.end', {}, {
       onSuccess: () => {
         // Session will be invalidated, user will be redirected to login
       },

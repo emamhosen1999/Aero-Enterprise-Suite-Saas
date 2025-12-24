@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import axios from 'axios';
 import { 
     Card, CardBody, CardHeader, Button, Chip, Table, TableHeader, 
@@ -96,11 +97,11 @@ const Index = ({ auth }) => {
                 let response;
                 switch (action) {
                     case 'view':
-                        router.visit(route('admin.tenants.show', tenant.id));
+                        safeNavigate('admin.tenants.show', tenant.id);
                         resolve(['Navigating...']);
                         return;
                     case 'edit':
-                        router.visit(route('admin.tenants.edit', tenant.id));
+                        safeNavigate('admin.tenants.edit', tenant.id);
                         resolve(['Navigating...']);
                         return;
                     case 'suspend':
@@ -302,7 +303,7 @@ const Index = ({ auth }) => {
                     <Button
                         color="primary"
                         startContent={<PlusIcon className="w-4 h-4" />}
-                        onPress={() => router.visit(route('admin.tenants.create'))}
+                        onPress={() => safeNavigate('admin.tenants.create')}
                         radius={getThemeRadius()}
                     >
                         Create Tenant

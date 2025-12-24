@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {
     Grid,
     Card,
@@ -200,7 +201,7 @@ const ProjectAnalyticsView = ({
                 {canView('create') && (
                     <Button
                         color="primary"
-                        onPress={() => router.visit(route('project-management.projects.create'))}
+                        onPress={() => safeNavigate('project-management.projects.create')}
                     >
                         Create New Project
                     </Button>
@@ -224,7 +225,7 @@ const ProjectAnalyticsView = ({
                                 size="sm"
                                 variant="bordered"
                                 startContent={<DocumentTextIcon className="w-4 h-4" />}
-                                onPress={() => router.visit(route('project-management.reports.index'))}
+                                onPress={() => safeNavigate('project-management.reports.index')}
                                 disabled={!canView('reports')}
                             >
                                 Full Reports
@@ -233,7 +234,7 @@ const ProjectAnalyticsView = ({
                                 size="sm"
                                 variant="bordered"
                                 startContent={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
-                                onPress={() => router.visit(route('project-management.dashboard'))}
+                                onPress={() => safeNavigate('project-management.dashboard')}
                             >
                                 Dashboard
                             </Button>

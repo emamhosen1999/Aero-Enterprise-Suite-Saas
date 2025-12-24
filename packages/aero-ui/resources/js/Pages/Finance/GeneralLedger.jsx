@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Table,
@@ -180,7 +181,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                                     <DropdownItem
                                         key="edit"
                                         startContent={<PencilIcon className="w-4 h-4" />}
-                                        onPress={() => router.visit(route('finance.general-ledger.edit', entry.id))}
+                                        onPress={() => safeNavigate('finance.general-ledger.edit', entry.id)}
                                     >
                                         Edit
                                     </DropdownItem>
@@ -205,7 +206,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this entry?')) {
-            router.delete(route('finance.general-ledger.destroy', id));
+            safeDelete('finance.general-ledger.destroy', { id });
         }
     };
 
@@ -227,7 +228,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                             <Button
                                 color="primary"
                                 startContent={<PlusIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('finance.general-ledger.create'))}
+                                onPress={() => safeNavigate('finance.general-ledger.create')}
                                 radius={themeRadius}
                             >
                                 New Entry
@@ -287,7 +288,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                             <Button
                                 variant="flat"
                                 startContent={<DocumentArrowDownIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('finance.general-ledger.export', filters))}
+                                onPress={() => safeNavigate('finance.general-ledger.export', filters)}
                                 radius={themeRadius}
                             >
                                 Export

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import PageHeader from '@/Components/PageHeader';
 import {
@@ -213,7 +214,7 @@ const ExtensionsIndex = ({ installedModules = [], marketplaceModules = [], purch
                                 <Button
                                     isIconOnly
                                     variant="flat"
-                                    onPress={() => router.visit(route('core.extensions.settings', module.code))}
+                                    onPress={() => safeNavigate('core.extensions.settings', module.code)}
                                     radius={themeRadius}
                                 >
                                     <Cog6ToothIcon className="w-5 h-5" />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -179,7 +180,7 @@ const QualityDashboard = ({ stats = {}, inspections = [], ncrs = [], auth }) => 
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('quality.inspections'))}
+                                    onPress={() => safeNavigate('quality.inspections')}
                                     radius={getThemeRadius()}
                                 >
                                     View All
@@ -226,7 +227,7 @@ const QualityDashboard = ({ stats = {}, inspections = [], ncrs = [], auth }) => 
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('quality.ncrs'))}
+                                    onPress={() => safeNavigate('quality.ncrs')}
                                     radius={getThemeRadius()}
                                 >
                                     View All
@@ -318,7 +319,7 @@ const QualityDashboard = ({ stats = {}, inspections = [], ncrs = [], auth }) => 
                         <Button
                             color="primary"
                             startContent={<BeakerIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('quality.inspections.create'))}
+                            onPress={() => safeNavigate('quality.inspections.create')}
                             radius={getThemeRadius()}
                         >
                             New Inspection
@@ -327,7 +328,7 @@ const QualityDashboard = ({ stats = {}, inspections = [], ncrs = [], auth }) => 
                             color="warning"
                             variant="flat"
                             startContent={<ExclamationTriangleIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('quality.ncrs.create'))}
+                            onPress={() => safeNavigate('quality.ncrs.create')}
                             radius={getThemeRadius()}
                         >
                             Report NCR
@@ -336,7 +337,7 @@ const QualityDashboard = ({ stats = {}, inspections = [], ncrs = [], auth }) => 
                             color="default"
                             variant="flat"
                             startContent={<ChartBarSquareIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('quality.analytics'))}
+                            onPress={() => safeNavigate('quality.analytics')}
                             radius={getThemeRadius()}
                         >
                             View Analytics

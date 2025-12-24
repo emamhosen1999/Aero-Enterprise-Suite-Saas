@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {Head, router} from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {
     Button,
     Card,
@@ -116,7 +117,7 @@ export default function EmployeeSalary({ title, employee, salaryStructures, allC
             effective_from: effectiveDate,
         }));
 
-        router.post(route('hr.salary-structure.assign'), {
+        safePost('hr.salary-structure.assign', {
             user_id: employee.id,
             components: componentsWithDate,
         }, {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -209,7 +210,7 @@ const CRMDashboard = ({ stats = {}, recentLeads = [], deals = [], activities = [
                                         variant="flat"
                                         color="primary"
                                         radius={getThemeRadius()}
-                                        onPress={() => router.visit(route('crm.leads.index'))}
+                                        onPress={() => safeNavigate('crm.leads.index')}
                                     >
                                         View All
                                     </Button>
@@ -253,7 +254,7 @@ const CRMDashboard = ({ stats = {}, recentLeads = [], deals = [], activities = [
                                         variant="flat"
                                         color="primary"
                                         radius={getThemeRadius()}
-                                        onPress={() => router.visit(route('crm.deals.index'))}
+                                        onPress={() => safeNavigate('crm.deals.index')}
                                     >
                                         View Pipeline
                                     </Button>
@@ -312,7 +313,7 @@ const CRMDashboard = ({ stats = {}, recentLeads = [], deals = [], activities = [
                                     variant="flat"
                                     color="primary"
                                     radius={getThemeRadius()}
-                                    onPress={() => router.visit(route('crm.activities.index'))}
+                                    onPress={() => safeNavigate('crm.activities.index')}
                                 >
                                     View All
                                 </Button>

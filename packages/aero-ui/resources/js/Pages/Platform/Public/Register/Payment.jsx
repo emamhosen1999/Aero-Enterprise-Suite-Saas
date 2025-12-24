@@ -1,5 +1,7 @@
 import React, { useMemo, useEffect } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Button, Card, CardBody, Chip, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
@@ -184,9 +186,9 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-              <Link href={route('platform.register.plan')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
+              <SafeLink route="platform.register.plan" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
                 ← Back to modules
-              </Link>
+              </SafeLink>
               <Button type="submit" color="success" className="px-6 w-full sm:w-auto" isLoading={processing}>
                 Launch trial workspace
               </Button>

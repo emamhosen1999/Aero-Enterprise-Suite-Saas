@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
   Button,
@@ -169,7 +170,7 @@ const FinanceDashboard = ({
                 <Button
                   size="sm"
                   color="primary"
-                  onClick={() => router.visit(route('finance.reports.index'))}
+                  onClick={() => safeNavigate('finance.reports.index')}
                 >
                   View Reports
                 </Button>
@@ -266,7 +267,7 @@ const FinanceDashboard = ({
                     size="sm"
                     variant="light"
                     color="primary"
-                    onClick={() => router.visit(route('finance.receivables.index'))}
+                    onClick={() => safeNavigate('finance.receivables.index')}
                   >
                     View All
                   </Button>
@@ -326,7 +327,7 @@ const FinanceDashboard = ({
                   size="sm"
                   variant="light"
                   color="primary"
-                  onClick={() => router.visit(route('finance.transactions.index'))}
+                  onClick={() => safeNavigate('finance.transactions.index')}
                 >
                   View All
                 </Button>
@@ -387,7 +388,7 @@ const FinanceDashboard = ({
                   size="sm"
                   variant="light"
                   color="primary"
-                  onClick={() => router.visit(route('finance.invoices.index'))}
+                  onClick={() => safeNavigate('finance.invoices.index')}
                 >
                   View All
                 </Button>

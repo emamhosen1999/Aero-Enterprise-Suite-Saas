@@ -3,6 +3,7 @@
 namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
+use Aero\Core\Support\SafeRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/dashboard');
+        return SafeRedirect::intended('dashboard', true);
     }
 
     /**
@@ -55,6 +56,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return SafeRedirect::toRoute('login', [], 'login');
     }
 }

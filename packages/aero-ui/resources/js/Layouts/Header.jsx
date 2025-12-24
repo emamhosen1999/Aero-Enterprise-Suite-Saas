@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { showToast } from '@/utils/toastUtils';
 import {
@@ -760,8 +761,8 @@ const DesktopHeader = React.memo(({
     }
     
     try {
-      // Using Inertia.js for SPA navigation with proper state management
-      router.visit(route(pageRoute), {
+      // Using safe navigation for SPA with proper state management
+      safeNavigate(pageRoute, {}, {
         method: method,
         preserveState: false, // Ensure fresh state for each module
         preserveScroll: false, // Reset scroll position for better UX

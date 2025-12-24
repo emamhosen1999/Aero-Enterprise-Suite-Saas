@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -39,25 +40,25 @@ const ObjectionsShow = ({
     categoryLabels = {},
 }) => {
     const handleBack = () => {
-        router.visit(route('rfi.objections.index'));
+        safeNavigate('rfi.objections.index');
     };
 
     const handleEdit = () => {
-        router.visit(route('rfi.objections.edit', objection.id));
+        safeNavigate('rfi.objections.edit', objection.id);
     };
 
     const handleResolve = () => {
-        router.post(route('rfi.objections.resolve', objection.id), {}, {
+        safePost('rfi.objections.resolve', {}, {
             onSuccess: () => showToast.success('Objection resolved'),
             onError: () => showToast.error('Failed to resolve objection'),
-        });
+        }));
     };
 
     const handleReject = () => {
-        router.post(route('rfi.objections.reject', objection.id), {}, {
+        safePost('rfi.objections.reject', {}, {
             onSuccess: () => showToast.success('Objection rejected'),
             onError: () => showToast.error('Failed to reject objection'),
-        });
+        }));
     };
 
     return (

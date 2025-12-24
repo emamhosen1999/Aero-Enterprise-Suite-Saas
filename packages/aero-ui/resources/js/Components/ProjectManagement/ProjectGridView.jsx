@@ -1,5 +1,6 @@
 import React from 'react';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {
     Grid,
     Card,
@@ -69,7 +70,7 @@ const ProjectGridView = ({
                 {canView('create') && (
                     <Button
                         color="primary"
-                        onPress={() => router.visit(route('project-management.projects.create'))}
+                        onPress={() => safeNavigate('project-management.projects.create')}
                     >
                         Create New Project
                     </Button>

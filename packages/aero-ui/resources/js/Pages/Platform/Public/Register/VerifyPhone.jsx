@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { 
   Button, 
   Modal, 
@@ -158,7 +159,7 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
       
       // Redirect to plan selection
       setTimeout(() => {
-        router.visit(route('platform.register.plan'));
+        safeNavigate('platform.register.plan');
       }, 500);
     } catch (error) {
       console.error('Verification failed:', error);
@@ -199,7 +200,7 @@ export default function VerifyPhone({ steps = [], currentStep, savedData = {}, p
   const confirmSkip = () => {
     onSkipClose();
     showToast.info('Phone verification skipped. You can verify later from settings.');
-    router.visit(route('platform.register.plan'));
+    safeNavigate('platform.register.plan');
   };
 
   return (

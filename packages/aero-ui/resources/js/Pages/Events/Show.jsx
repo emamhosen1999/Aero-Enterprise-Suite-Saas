@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Button,
@@ -107,7 +108,7 @@ const ShowEvent = ({ event, analytics }) => {
     };
     
     const handleDuplicate = () => {
-        router.post(route('events.duplicate', event.id));
+        safePost('events.duplicate', { id: event.id });
     };
 
     return (

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { Button } from '@heroui/react';
+import { hasRoute, safeRoute, safeNavigate } from '@/utils/routeUtils';
 import axios from 'axios';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
@@ -67,7 +68,12 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
 
     setIsSending(true);
     try {
-      const response = await axios.post(route('platform.register.verify-email.send'));
+      // Validate route exists before making request
+      if (!hasRoute('platform.register.verify-email.send')) {
+        throw new Error('Verification route not available');
+      }
+      
+      const response = await axios.post(safeRoute('platform.register.verify-email.send'));
       showToast.success(response.data.message || 'Verification code sent to your email');
       setCountdown(60);
       setCodeExpiration(600); // Reset to 10 minutes
@@ -160,15 +166,20 @@ export default function VerifyEmail({ steps = [], currentStep, savedData = {}, e
 
     setIsVerifying(true);
     try {
-      const response = await axios.post(route('platform.register.verify-email.verify'), {
+      // Validate route exists before making request
+      if (!hasRoute('platform.register.verify-email.verify')) {
+        throw new Error('Verification route not available');
+      }
+      
+      const response = await axios.post(safeRoute('platform.register.verify-email.verify'), {
         code: verificationCode,
       });
       
       showToast.success(response.data.message || 'Email verified successfully');
       
-      // Redirect to phone verification
+      // Safe redirect to phone verification
       setTimeout(() => {
-        router.visit(route('platform.register.verify-phone'));
+        safeNavigate('platform.register.verify-phone');
       }, 500);
     } catch (error) {
       console.error('Verification failed:', error);

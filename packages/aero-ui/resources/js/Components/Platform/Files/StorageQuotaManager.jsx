@@ -1,5 +1,6 @@
 import React from 'react';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Progress, Button, Chip } from '@heroui/react';
 import { ArrowUpTrayIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
@@ -261,7 +262,7 @@ export default function StorageQuotaManager({ storageStats, onAction }) {
                         <Button
                             color="primary"
                             className="w-full"
-                            onPress={() => router.visit(route('admin.plans.index'))}
+                            onPress={() => safeNavigate('admin.plans.index')}
                         >
                             Upgrade Storage Plan
                         </Button>

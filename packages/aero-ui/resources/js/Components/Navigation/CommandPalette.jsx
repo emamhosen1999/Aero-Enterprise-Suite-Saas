@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { router, usePage, Link } from '@inertiajs/react';
+import { hasRoute, safeNavigate } from '@/utils/routeUtils';
 import {
   Modal,
   ModalContent,
@@ -156,8 +157,8 @@ const CommandPalette = ({ isOpen, onClose, pages = [] }) => {
   const handleSelect = useCallback((item) => {
     if (item.path) {
       addToRecent(item);
-      // Use Inertia router with direct path
-      router.visit(item.path, {
+      // Use safe navigation with validation
+      safeNavigate(item.path, {}, {
         method: item.method || 'get',
         preserveState: false,
         preserveScroll: false

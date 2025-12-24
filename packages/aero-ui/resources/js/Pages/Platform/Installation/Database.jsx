@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import InstallationLayout from '@/Layouts/InstallationLayout';
 import { Card, CardHeader, CardBody, CardFooter, Button, Input, Chip, Divider, Tooltip } from '@heroui/react';
 import { CircleStackIcon, CheckCircleIcon, XCircleIcon, ServerIcon, PlusCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
@@ -126,7 +127,7 @@ export default function Database({ dbConfig = {}, environmentIssues = [] }) {
 
         // Database config is already saved in session during test
         // Just navigate to the next step
-        router.visit(route('installation.platform'));
+        safeNavigate('installation.platform');
     };
 
     return (

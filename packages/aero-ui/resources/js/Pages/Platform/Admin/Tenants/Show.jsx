@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Button, Chip, Tabs, Tab } from "@heroui/react";
 import { BuildingOfficeIcon, PencilIcon } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
@@ -67,7 +68,7 @@ const Show = ({ auth, tenantId }) => {
                     <Button
                         color="primary"
                         startContent={<PencilIcon className="w-4 h-4" />}
-                        onPress={() => router.visit(route('admin.tenants.edit', tenantId))}
+                        onPress={() => safeNavigate('admin.tenants.edit', tenantId)}
                         radius={getThemeRadius()}
                     >
                         Edit Tenant

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -188,7 +189,7 @@ const SupportDashboard = ({ stats = {}, recentTickets = [], slaMetrics = [], age
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('support.tickets.index'))}
+                                    onPress={() => safeNavigate('support.tickets.index')}
                                     radius={themeRadius}
                                 >
                                     View All
@@ -291,7 +292,7 @@ const SupportDashboard = ({ stats = {}, recentTickets = [], slaMetrics = [], age
                                 size="sm"
                                 variant="flat"
                                 color="primary"
-                                onPress={() => router.visit(route('support.agents.index'))}
+                                onPress={() => safeNavigate('support.agents.index')}
                                 radius={themeRadius}
                             >
                                 View All Agents
@@ -351,7 +352,7 @@ const SupportDashboard = ({ stats = {}, recentTickets = [], slaMetrics = [], age
                             color="primary"
                             variant="shadow"
                             size="lg"
-                            onPress={() => router.visit(route('support.analytics'))}
+                            onPress={() => safeNavigate('support.analytics')}
                             radius={themeRadius}
                             startContent={<ChartBarIcon className="w-5 h-5" />}
                         >

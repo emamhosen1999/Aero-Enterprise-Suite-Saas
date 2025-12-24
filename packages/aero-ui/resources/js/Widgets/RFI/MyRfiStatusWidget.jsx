@@ -9,6 +9,7 @@ import {
     ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { route } from 'ziggy-js';
 import axios from 'axios';
 
@@ -44,11 +45,11 @@ export default function MyRfiStatusWidget({ data, meta }) {
     };
 
     const handleViewAll = () => {
-        router.visit(route('rfi.my-work'));
+        safeNavigate('rfi.my-work');
     };
 
     const handleNewRfi = () => {
-        router.visit(route('rfi.create'));
+        safeNavigate('rfi.create');
     };
 
     if (loading) {

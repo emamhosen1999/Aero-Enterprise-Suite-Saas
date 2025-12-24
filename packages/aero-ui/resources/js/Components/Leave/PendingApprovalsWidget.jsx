@@ -8,6 +8,7 @@ import {
     ArrowRightIcon 
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { route } from 'ziggy-js';
 import axios from 'axios';
 
@@ -35,7 +36,7 @@ export default function PendingApprovalsWidget() {
     };
 
     const handleViewAll = () => {
-        router.visit(route('leaves'));
+        safeNavigate('leaves');
     };
 
     if (loading) {
@@ -96,7 +97,7 @@ export default function PendingApprovalsWidget() {
                             <div 
                                 key={leave.id}
                                 className="p-3 border border-divider rounded-lg hover:bg-default-50 dark:hover:bg-default-100 transition-colors cursor-pointer"
-                                onClick={() => router.visit(route('leaves'))}
+                                onClick={() => safeNavigate('leaves')}
                             >
                                 <div className="flex justify-between items-start mb-1">
                                     <p className="text-sm font-semibold text-foreground truncate">

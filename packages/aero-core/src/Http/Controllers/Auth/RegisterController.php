@@ -5,6 +5,7 @@ namespace Aero\Core\Http\Controllers\Auth;
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Aero\Core\Services\Auth\ModernAuthenticationService;
+use Aero\Core\Support\SafeRedirect;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -113,7 +114,13 @@ class RegisterController extends Controller
             // Update login stats for initial login
             $this->authService->updateLoginStats($user, $request);
 
-            return redirect(route('dashboard'));
+            // Use SafeRedirect to ensure dashboard route exists and is accessible
+            // This also validates domain context in multi-tenant environments
+            return SafeRedirect::withSuccess(
+                'dashboard',
+                'Welcome! Your account has been created successfully.',
+                []
+            );
 
         } catch (\Exception $e) {
             RateLimiter::hit($key, 300); // 5 minutes decay for errors

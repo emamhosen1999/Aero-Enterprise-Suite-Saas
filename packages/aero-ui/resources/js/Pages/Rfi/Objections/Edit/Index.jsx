@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -46,7 +47,7 @@ const ObjectionsEdit = ({
     };
 
     const handleBack = () => {
-        router.visit(route('rfi.objections.show', objection.id));
+        safeNavigate('rfi.objections.show', objection.id);
     };
 
     return (

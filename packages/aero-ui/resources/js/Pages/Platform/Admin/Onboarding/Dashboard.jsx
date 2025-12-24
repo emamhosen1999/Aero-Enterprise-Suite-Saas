@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -339,7 +340,7 @@ const Dashboard = ({ stats, registrations, trials, provisioningQueue, auth }) =>
                         <Button
                             color="primary"
                             startContent={<CheckCircleIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('admin.onboarding.pending'))}
+                            onPress={() => safeNavigate('admin.onboarding.pending')}
                             radius={getThemeRadius()}
                         >
                             Approve Registrations
@@ -350,7 +351,7 @@ const Dashboard = ({ stats, registrations, trials, provisioningQueue, auth }) =>
                             variant="flat"
                             color="primary"
                             startContent={<CalendarIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('admin.onboarding.trials'))}
+                            onPress={() => safeNavigate('admin.onboarding.trials')}
                             radius={getThemeRadius()}
                         >
                             Extend Trials
@@ -361,7 +362,7 @@ const Dashboard = ({ stats, registrations, trials, provisioningQueue, auth }) =>
                             variant="flat"
                             color="default"
                             startContent={<ServerStackIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('admin.onboarding.provisioning'))}
+                            onPress={() => safeNavigate('admin.onboarding.provisioning')}
                             radius={getThemeRadius()}
                         >
                             View Queue

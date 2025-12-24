@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Head, router} from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {closestCorners, DndContext, DragOverlay, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {Button, Card, CardBody, Chip, Input, Select, SelectItem,} from '@heroui/react';
 import {
@@ -187,10 +188,10 @@ const RecruitmentKanban = ({ job, hiringStages, applicationsByStage, departments
 
     // View candidate details
     const viewCandidate = (application) => {
-        router.visit(route('hr.recruitment.applications.show', {
+        safeNavigate('hr.recruitment.applications.show', {
             job: job.id,
             application: application.id,
-        }));
+        });
     };
 
     // Stage colors
@@ -240,7 +241,7 @@ const RecruitmentKanban = ({ job, hiringStages, applicationsByStage, departments
                                 size="sm"
                                 color="primary"
                                 startContent={<PlusIcon className="w-4 h-4" />}
-                                onPress={() => router.visit(route('hr.recruitment.applications.create', job.id))}
+                                onPress={() => safeNavigate('hr.recruitment.applications.create', job.id)}
                                 radius={themeRadius}
                             >
                                 Add Candidate

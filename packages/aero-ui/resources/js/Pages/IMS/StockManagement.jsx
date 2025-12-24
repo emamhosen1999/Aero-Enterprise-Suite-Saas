@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Table,
@@ -212,14 +213,14 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
                                     <DropdownItem
                                         key="edit"
                                         startContent={<PencilIcon className="w-4 h-4" />}
-                                        onPress={() => router.visit(route('inventory.stock.edit', item.id))}
+                                        onPress={() => safeNavigate('inventory.stock.edit', item.id)}
                                     >
                                         Edit
                                     </DropdownItem>
                                     <DropdownItem
                                         key="adjust"
                                         startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                        onPress={() => router.visit(route('inventory.stock.adjust', item.id))}
+                                        onPress={() => safeNavigate('inventory.stock.adjust', item.id)}
                                     >
                                         Adjust Stock
                                     </DropdownItem>
@@ -244,7 +245,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this item?')) {
-            router.delete(route('inventory.stock.destroy', id));
+            safeDelete('inventory.stock.destroy', { id });
         }
     };
 
@@ -277,7 +278,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
                             <Button
                                 color="primary"
                                 startContent={<PlusIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('inventory.stock.create'))}
+                                onPress={() => safeNavigate('inventory.stock.create')}
                                 radius={themeRadius}
                             >
                                 Add Item
@@ -379,7 +380,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
                             <Button
                                 variant="flat"
                                 startContent={<DocumentArrowDownIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('inventory.stock.export', filters))}
+                                onPress={() => safeNavigate('inventory.stock.export', filters)}
                                 radius={themeRadius}
                             >
                                 Export

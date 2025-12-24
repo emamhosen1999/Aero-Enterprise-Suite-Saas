@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Button, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
@@ -141,9 +143,9 @@ export default function AdminDetails({ steps = [], currentStep, savedData = {}, 
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 pt-2">
-              <Link href={route('platform.register.details')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
+              <SafeLink route="platform.register.details" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
                 ← Back to company details
-              </Link>
+              </SafeLink>
               <Button 
                 type="submit" 
                 color="primary" 

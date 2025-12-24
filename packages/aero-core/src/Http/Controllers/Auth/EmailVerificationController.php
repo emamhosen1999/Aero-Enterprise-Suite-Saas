@@ -4,6 +4,7 @@ namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Services\Auth\ModernAuthenticationService;
+use Aero\Core\Support\SafeRedirect;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class EmailVerificationController extends Controller
     public function prompt(Request $request): Response
     {
         return $request->user()->hasVerifiedEmail()
-                ? redirect()->intended(route('dashboard'))
+                ? SafeRedirect::intended('dashboard')
                 : Inertia::render('Shared/Auth/VerifyEmail', ['status' => session('status')]);
     }
 
@@ -35,7 +36,10 @@ class EmailVerificationController extends Controller
     public function verify(EmailVerificationRequest $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard').'?verified=1');
+            $dashboardUrl = SafeRedirect::routeExists('dashboard') 
+                ? route('dashboard').'?verified=1' 
+                : '/?verified=1';
+            return redirect($dashboardUrl);
         }
 
         if ($request->user()->markEmailAsVerified()) {
@@ -49,7 +53,10 @@ class EmailVerificationController extends Controller
             );
         }
 
-        return redirect()->intended(route('dashboard').'?verified=1');
+        $dashboardUrl = SafeRedirect::routeExists('dashboard') 
+            ? route('dashboard').'?verified=1' 
+            : '/?verified=1';
+        return redirect($dashboardUrl);
     }
 
     /**
@@ -58,7 +65,7 @@ class EmailVerificationController extends Controller
     public function send(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard'));
+            return SafeRedirect::intended('dashboard');
         }
 
         $request->user()->sendEmailVerificationNotification();
@@ -70,6 +77,6 @@ class EmailVerificationController extends Controller
             $request
         );
 
-        return back()->with('status', 'verification-link-sent');
+        return SafeRedirect::back('dashboard')->with('status', 'verification-link-sent');
     }
 }

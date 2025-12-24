@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, router, usePage } from "@inertiajs/react";
+import { hasRoute, safeRoute, safeNavigate } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import { 
   Button,
@@ -492,7 +493,7 @@ const UsersList = ({
                 <DropdownItem
                   key="view-devices"
                   startContent={<DevicePhoneMobileIcon className="w-3 h-3" />}
-                  onPress={() => router.visit(route(routes.devices, { userId: user.id }))}
+                  onPress={() => safeNavigate(routes.devices, { userId: user.id })}
                   className="text-xs"
                 >
                   Device History

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Button, Input, Spinner } from '@heroui/react';
 import { 
     CircleStackIcon, 
@@ -81,7 +82,7 @@ export default function Database({ title, currentConfig }) {
             showToast.error('Please test the database connection first');
             return;
         }
-        router.visit(route('install.application'));
+        safeNavigate('install.application');
     };
 
     return (
@@ -245,7 +246,7 @@ export default function Database({ title, currentConfig }) {
                                     <Button
                                         variant="flat"
                                         radius={themeRadius}
-                                        onPress={() => router.visit(route('install.requirements'))}
+                                        onPress={() => safeNavigate('install.requirements')}
                                         isDisabled={isTesting}
                                     >
                                         Back

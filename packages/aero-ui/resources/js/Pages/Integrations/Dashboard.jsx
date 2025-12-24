@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -252,7 +253,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('integrations.logs'))}
+                                    onPress={() => safeNavigate('integrations.logs')}
                                     radius={getThemeRadius()}
                                 >
                                     View All Logs
@@ -293,7 +294,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                         <Button
                             color="primary"
                             startContent={<KeyIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('integrations.api-keys'))}
+                            onPress={() => safeNavigate('integrations.api-keys')}
                             radius={getThemeRadius()}
                         >
                             Manage API Keys
@@ -304,7 +305,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                             variant="flat"
                             color="primary"
                             startContent={<CogIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('integrations.webhooks'))}
+                            onPress={() => safeNavigate('integrations.webhooks')}
                             radius={getThemeRadius()}
                         >
                             Configure Webhooks
@@ -315,7 +316,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                             variant="flat"
                             color="default"
                             startContent={<DocumentTextIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('integrations.documentation'))}
+                            onPress={() => safeNavigate('integrations.documentation')}
                             radius={getThemeRadius()}
                         >
                             View Documentation

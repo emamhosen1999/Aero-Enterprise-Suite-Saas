@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {
     Modal,
     ModalContent,
@@ -234,7 +235,7 @@ const BulkActionModal = ({
             };
 
             // Route to appropriate bulk action endpoint
-            await router.post(route('project-management.projects.bulk-action'), payload, {
+            await safePost('project-management.projects.bulk-action', payload, {
                 onSuccess: (response) => {
                     showToast.success(`Successfully performed ${selectedAction.label} on ${selectedProjects.length} projects`);
                     onBulkAction?.(payload);

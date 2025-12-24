@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -46,28 +47,28 @@ const PendingReviewIndex = ({
     }, []);
 
     const handleView = (objection) => {
-        router.visit(route('rfi.objections.show', objection.id));
+        safeNavigate('rfi.objections.show', objection.id);
     };
 
     const handleStartReview = (objection) => {
-        router.post(route('rfi.objections.start-review', objection.id), {}, {
+        safePost('rfi.objections.start-review', {}, {
             onSuccess: () => showToast.success('Review started'),
             onError: () => showToast.error('Failed to start review'),
-        });
+        }));
     };
 
     const handleResolve = (objection) => {
-        router.post(route('rfi.objections.resolve', objection.id), {}, {
+        safePost('rfi.objections.resolve', {}, {
             onSuccess: () => showToast.success('Objection resolved'),
             onError: () => showToast.error('Failed to resolve'),
-        });
+        }));
     };
 
     const handleReject = (objection) => {
-        router.post(route('rfi.objections.reject', objection.id), {}, {
+        safePost('rfi.objections.reject', {}, {
             onSuccess: () => showToast.success('Objection rejected'),
             onError: () => showToast.error('Failed to reject'),
-        });
+        }));
     };
 
     const columns = [

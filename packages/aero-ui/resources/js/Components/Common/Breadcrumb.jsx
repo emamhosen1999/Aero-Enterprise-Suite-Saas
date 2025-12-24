@@ -4,6 +4,7 @@ import { HomeIcon } from '@heroicons/react/24/outline';
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { getDashboardUrl } from '@/utils/moduleAccessUtils';
+import { hasRoute, safeRoute } from '@/utils/routeUtils';
 import { getPages } from '@/Props/pages.jsx';
 import { getSettingsPages } from '@/Props/settings.jsx';
 
@@ -100,13 +101,7 @@ const Breadcrumb = () => {
                 breadcrumbs.push({
                     label: pageData.subParent.name,
                     icon: React.cloneElement(pageData.subParent.icon, { className: "w-4 h-4" }),
-                    href: pageData.subParent.route ? (() => {
-                        try {
-                            return route(pageData.subParent.route);
-                        } catch {
-                            return null;
-                        }
-                    })() : null,
+                    href: pageData.subParent.route ? safeRoute(pageData.subParent.route, {}, null) : null,
                     key: 'subparent'
                 });
                 breadcrumbs.push({
@@ -120,13 +115,7 @@ const Breadcrumb = () => {
                 breadcrumbs.push({
                     label: pageData.parent.name,
                     icon: React.cloneElement(pageData.parent.icon, { className: "w-4 h-4" }),
-                    href: pageData.parent.route ? (() => {
-                        try {
-                            return route(pageData.parent.route);
-                        } catch {
-                            return null;
-                        }
-                    })() : null,
+                    href: pageData.parent.route ? safeRoute(pageData.parent.route, {}, null) : null,
                     key: 'parent'
                 });
                 breadcrumbs.push({

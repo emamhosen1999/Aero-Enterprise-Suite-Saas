@@ -6,6 +6,7 @@ import {
     ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { route } from 'ziggy-js';
 import axios from 'axios';
 
@@ -41,7 +42,7 @@ export default function OverdueRfisWidget({ data, meta }) {
     };
 
     const handleViewAll = () => {
-        router.visit(route('rfi.index', { filter: 'overdue' }));
+        safeNavigate('rfi.index', { filter: 'overdue' });
     };
 
     if (loading) {

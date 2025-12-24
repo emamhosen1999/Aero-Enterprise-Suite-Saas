@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -207,7 +208,7 @@ const AnalyticsDashboard = ({ stats = {}, topPages = [], traffic = [], conversio
                                         variant="flat"
                                         color="primary"
                                         radius={getThemeRadius()}
-                                        onPress={() => router.visit(route('analytics.pages.index'))}
+                                        onPress={() => safeNavigate('analytics.pages.index')}
                                     >
                                         View All
                                     </Button>

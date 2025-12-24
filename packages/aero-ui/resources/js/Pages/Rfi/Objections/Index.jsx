@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -103,17 +104,17 @@ const ObjectionsIndex = ({
     }, [filters]);
 
     const handleView = (objection) => {
-        router.visit(route('rfi.objections.show', objection.id));
+        safeNavigate('rfi.objections.show', objection.id);
     };
 
     const handleEdit = (objection) => {
-        router.visit(route('rfi.objections.edit', objection.id));
+        safeNavigate('rfi.objections.edit', objection.id);
     };
 
     const handleDelete = async (objection) => {
         if (!confirm('Are you sure you want to delete this objection?')) return;
 
-        router.delete(route('rfi.objections.destroy', objection.id), {
+        safeDelete('rfi.objections.destroy', { id: objection.id }, {
             onSuccess: () => showToast.success('Objection deleted successfully'),
             onError: () => showToast.error('Failed to delete objection'),
         });
@@ -244,7 +245,7 @@ const ObjectionsIndex = ({
                             <Button
                                 color="primary"
                                 startContent={<PlusIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('rfi.objections.create'))}
+                                onPress={() => safeNavigate('rfi.objections.create')}
                             >
                                 New Objection
                             </Button>
