@@ -37,17 +37,10 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Handle the incoming request.
-<<<<<<< Updated upstream
      * 
      * In SaaS mode on central/admin domains, skip this middleware entirely
      * and let Platform's HandleInertiaRequests handle everything.
      * 
-=======
-     *
-     * In SaaS mode on central/admin domains, skip this middleware entirely
-     * and let Platform's HandleInertiaRequests handle everything.
-     *
->>>>>>> Stashed changes
      * In standalone mode or on tenant domains, this middleware handles Inertia requests.
      *
      * @return \Symfony\Component\HttpFoundation\Response
@@ -55,7 +48,6 @@ class HandleInertiaRequests extends Middleware
     public function handle(Request $request, \Closure $next)
     {
         // In SaaS mode, skip on central/admin domains - Platform handles those
-<<<<<<< Updated upstream
         if (is_saas_mode() && class_exists('Aero\Platform\Http\Middleware\IdentifyDomainContext')) {
             $context = $request->attributes->get('domain_context');
             
@@ -69,18 +61,6 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
-=======
-        if (is_saas_mode()) {
-            $context = $request->attributes->get('domain_context');
-
-            // On admin/platform domains, let Platform's middleware handle everything
-            // Using constants from Core's DomainContextContract (no Platform dependency)
-            if (in_array($context, [DomainContextContract::CONTEXT_ADMIN, DomainContextContract::CONTEXT_PLATFORM], true)) {
-                return $next($request);
-            }
-        }
-
->>>>>>> Stashed changes
         // Intercept root route "/" and redirect appropriately (standalone mode or tenant context)
         if ($request->is('/') || $request->path() === '/') {
             if (Auth::check()) {
@@ -122,11 +102,7 @@ class HandleInertiaRequests extends Middleware
         // - Tenant context: Core provides tenant navigation, Platform provides tenant-specific props
         $context = $request->attributes->get('domain_context', 'tenant');
         $isSaaSMode = is_saas_mode();
-<<<<<<< Updated upstream
         
-=======
-
->>>>>>> Stashed changes
         // Skip sharing props for admin/platform contexts in SaaS mode
         // Platform's HandleInertiaRequests handles those contexts completely
         if ($isSaaSMode && ($context === 'admin' || $context === 'platform')) {

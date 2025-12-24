@@ -27,10 +27,6 @@ use Laravel\Fortify\Fortify;
 class AeroCoreServiceProvider extends ServiceProvider
 {
     use ParsesHostDomain;
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
     /**
      * Register services.
      */
@@ -40,19 +36,8 @@ class AeroCoreServiceProvider extends ServiceProvider
             // CRITICAL: Inject global BootstrapGuard middleware FIRST
             // This ensures ALL requests are intercepted before routing
             // to redirect to /install if system is not installed
-<<<<<<< Updated upstream
             $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
             $kernel->pushMiddleware(\Aero\Core\Http\Middleware\BootstrapGuard::class);
-=======
-            //
-            // NOTE: Skip registration if Platform package is installed
-            // Platform has its own BootstrapGuard that handles multi-domain scenarios
-            // (redirecting tenant subdomains to platform domain for installation)
-            if (! class_exists(\Aero\Platform\AeroPlatformServiceProvider::class)) {
-                $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
-                $kernel->pushMiddleware(\Aero\Core\Http\Middleware\BootstrapGuard::class);
-            }
->>>>>>> Stashed changes
 
             // Disable Fortify's default routes - Core provides its own auth routes
             // with Inertia.js rendering instead of Fortify's view responses
@@ -104,11 +89,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // These services are lazy-loaded, so they won't cause issues pre-install
             $this->app->singleton(ModuleAccessService::class, function ($app) {
                 // Only instantiate if installed to avoid DB queries pre-install
-<<<<<<< Updated upstream
                 if (!file_exists(storage_path('app/aeos.installed'))) {
-=======
-                if (! file_exists(storage_path('app/aeos.installed'))) {
->>>>>>> Stashed changes
                     return new class
                     {
                         public function __call($method, $args)
@@ -133,11 +114,7 @@ class AeroCoreServiceProvider extends ServiceProvider
 
             $this->app->singleton(RoleModuleAccessService::class, function ($app) {
                 // Only instantiate if installed to avoid DB queries pre-install
-<<<<<<< Updated upstream
                 if (!file_exists(storage_path('app/aeos.installed'))) {
-=======
-                if (! file_exists(storage_path('app/aeos.installed'))) {
->>>>>>> Stashed changes
                     return new class
                     {
                         public function __call($method, $args)
@@ -208,11 +185,7 @@ class AeroCoreServiceProvider extends ServiceProvider
     {
         // Force file-based sessions BEFORE any session driver is instantiated
         // This allows installation to work without database tables
-<<<<<<< Updated upstream
         if (!$this->installed()) {
-=======
-        if (! $this->installed()) {
->>>>>>> Stashed changes
             // Pre-configure session driver to file (before StartSession middleware runs)
             config(['session.driver' => 'file', 'cache.default' => 'file']);
         }
@@ -346,38 +319,11 @@ class AeroCoreServiceProvider extends ServiceProvider
         // Always register public API routes on all domains (version check, error logging)
         $this->registerPublicApiRoutes();
 
-<<<<<<< Updated upstream
         if (!$this->installed()) {
-=======
-        if (! $this->installed()) {
->>>>>>> Stashed changes
             // System NOT installed - ONLY load installation routes
             // These work on ANY domain (platform, tenant, or standalone)
             Route::middleware(['web'])
                 ->group($routesPath.'/install.php');
-<<<<<<< Updated upstream
-            return;
-        }
-
-        // System IS installed - load runtime routes based on mode
-        $this->loadRuntimeRoutes();
-    }
-
-    /**
-     * Load runtime routes after installation is complete.
-     * Handles both SaaS and standalone modes.
-     */
-    protected function loadRuntimeRoutes(): void
-    {
-        $routesPath = __DIR__.'/../routes';
-
-        // Check if in SaaS mode (file-based detection)
-        if ($this->isSaasMode()) {
-            // SaaS Mode: Core routes ONLY on tenant domains (NOT on central/admin domains)
-            // AUTO-DETECT from browser request - no .env configuration needed
-=======
->>>>>>> Stashed changes
-
             return;
         }
 
@@ -409,7 +355,6 @@ class AeroCoreServiceProvider extends ServiceProvider
                 'tenant',
             ])->group($routesPath.'/web.php');
         } else {
-<<<<<<< Updated upstream
             // Standalone Mode: Routes with standard web middleware on domain.com
             // NO tenancy middleware in standalone mode
 
@@ -418,10 +363,6 @@ class AeroCoreServiceProvider extends ServiceProvider
                 return;
             }
 
-=======
-            // Standalone Mode: Routes with standard web middleware
-            // NO tenancy middleware in standalone mode
->>>>>>> Stashed changes
             Route::middleware(['web'])
                 ->group($routesPath.'/web.php');
         }
@@ -539,11 +480,7 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Check if aero-platform is active.
-<<<<<<< Updated upstream
      * 
-=======
-     *
->>>>>>> Stashed changes
      * @deprecated Use isSaasMode() instead for mode detection
      */
     protected function isPlatformActive(): bool
@@ -554,15 +491,10 @@ class AeroCoreServiceProvider extends ServiceProvider
     /**
      * Check if system is in SaaS mode using file-based detection.
      * Mode is set during installation and immutable at runtime.
-<<<<<<< Updated upstream
      * 
      * This is the ONLY authoritative method for mode detection.
      * 
      * @return bool
-=======
-     *
-     * This is the ONLY authoritative method for mode detection.
->>>>>>> Stashed changes
      */
     protected function isSaasMode(): bool
     {
@@ -839,17 +771,11 @@ class AeroCoreServiceProvider extends ServiceProvider
 
     /**
      * Check if the system is installed using file-based detection.
-<<<<<<< Updated upstream
      * 
      * This is the ONLY authoritative method for checking installation status.
      * Never use database queries for installation detection.
      * 
      * @return bool
-=======
-     *
-     * This is the ONLY authoritative method for checking installation status.
-     * Never use database queries for installation detection.
->>>>>>> Stashed changes
      */
     protected function installed(): bool
     {
