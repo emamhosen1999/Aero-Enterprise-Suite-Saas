@@ -140,7 +140,8 @@ class HandleInertiaRequests extends Middleware
             'siteName' => $companyName,
         ]);
 
-        return [
+        // Build base props
+        $props = [
             ...parent::share($request),
             'auth' => $this->getAuthProps($user),
             'app' => [
@@ -148,6 +149,7 @@ class HandleInertiaRequests extends Middleware
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
             ],
+            'context' => 'tenant',
             'systemSettings' => $systemSettingsPayload,
             'branding' => $branding,
             'theme' => [
@@ -168,6 +170,22 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
             ],
         ];
+
+        // Add SaaS-specific props when running in SaaS mode with tenancy
+        if ($isSaaSMode && function_exists('tenant') && tenant()) {
+            $props['tenant'] = [
+                'id' => tenant('id'),
+                'name' => tenant('name'),
+                'subdomain' => tenant('subdomain'),
+                'status' => tenant('status'),
+                'modules' => tenant('modules') ?? [],
+            ];
+            $props['aero'] = [
+                'mode' => 'saas',
+            ];
+        }
+
+        return $props;
     }
 
     /**
