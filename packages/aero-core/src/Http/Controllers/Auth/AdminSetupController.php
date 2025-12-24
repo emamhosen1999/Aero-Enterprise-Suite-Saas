@@ -139,7 +139,7 @@ class AdminSetupController extends Controller
             // Otherwise redirect to dashboard (standalone mode)
             $redirectRoute = class_exists('Aero\Platform\Http\Controllers\TenantOnboardingController')
                 ? 'onboarding.index'
-                : 'core.dashboard';
+                : 'dashboard';
 
             return redirect()->route($redirectRoute)
                 ->with('success', 'Welcome! Your admin account has been created.');
