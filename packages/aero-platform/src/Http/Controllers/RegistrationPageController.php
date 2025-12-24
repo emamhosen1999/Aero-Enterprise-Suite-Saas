@@ -50,10 +50,12 @@ class RegistrationPageController extends Controller
         }
 
         $account = $this->registrationSession->get()['account'] ?? [];
+        $details = $this->registrationSession->get()['details'] ?? [];
 
         return $this->render('Platform/Public/Register/Details', 'details', [
             'accountType' => $account['type'] ?? null,
             'baseDomain' => config('platform.central_domain'),
+            'existingSubdomain' => $details['subdomain'] ?? null, // Pass existing subdomain to skip check
         ]);
     }
 

@@ -360,8 +360,8 @@ class TenantController extends Controller
     /**
      * Check subdomain availability.
      * 
-     * Handles multi-step registration flow by allowing subdomains that belong
-     * to the current registration session (PENDING/FAILED status).
+     * Public API endpoint - no session required.
+     * Only checks if subdomain is taken by an active tenant.
      */
     public function checkSubdomain(Request $request): JsonResponse
     {
@@ -388,45 +388,14 @@ class TenantController extends Controller
             ]);
         }
 
-        // Check if subdomain exists
-        $tenant = Tenant::where('subdomain', $subdomain)->first();
+        // Check if subdomain is taken by any tenant (active, pending, or failed)
+        // Note: We show as "taken" even for pending/failed to prevent conflicts
+        // The actual registration submission will handle re-claiming abandoned registrations
+        $exists = Tenant::where('subdomain', $subdomain)->exists();
 
-        if (!$tenant) {
-            // Subdomain is available
-            return response()->json([
-                'available' => true,
-                'message' => 'Subdomain is available.',
-            ]);
-        }
-
-        // Subdomain exists - check if it belongs to current registration session
-        $registrationSession = $request->session()->get('tenant_registration', []);
-        $sessionTenantId = $registrationSession['verification']['tenant_id'] ?? null;
-        $sessionEmail = $registrationSession['details']['email'] ?? null;
-
-        // If this tenant belongs to current session, it's available for them
-        if ($sessionTenantId && $tenant->id === $sessionTenantId) {
-            return response()->json([
-                'available' => true,
-                'message' => 'Reserved for your registration.',
-            ]);
-        }
-
-        // Check if tenant is in PENDING/FAILED status and matches session email
-        // This handles the case where user is resuming their registration
-        if ($sessionEmail 
-            && $tenant->email === $sessionEmail 
-            && in_array($tenant->status, [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED], true)) {
-            return response()->json([
-                'available' => true,
-                'message' => 'Reserved for your registration.',
-            ]);
-        }
-
-        // Subdomain is taken by someone else or an active tenant
         return response()->json([
-            'available' => false,
-            'message' => 'This subdomain is already taken.',
+            'available' => ! $exists,
+            'message' => $exists ? 'This subdomain is already taken.' : 'Subdomain is available.',
         ]);
     }
 }

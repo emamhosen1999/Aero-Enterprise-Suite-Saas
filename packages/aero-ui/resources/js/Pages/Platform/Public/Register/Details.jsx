@@ -11,7 +11,7 @@ import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import ProgressSteps from './components/ProgressSteps.jsx';
 
-export default function Details({ steps = [], currentStep, savedData = {}, accountType = 'company', baseDomain = 'platform.test' }) {
+export default function Details({ steps = [], currentStep, savedData = {}, accountType = 'company', baseDomain = 'platform.test', existingSubdomain = null }) {
   const details = savedData?.details ?? {};
   const { data, setData, post, processing, errors } = useForm({
     name: details.name ?? '',
@@ -49,6 +49,16 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
       return;
     }
 
+    // Skip check if this is the user's existing subdomain (from their session)
+    if (existingSubdomain && subdomain === existingSubdomain.toLowerCase()) {
+      setSubdomainStatus({
+        checking: false,
+        available: true,
+        message: 'Reserved for your registration'
+      });
+      return;
+    }
+
     // Debounce the API call
     const timer = setTimeout(async () => {
       setSubdomainStatus({ checking: true, available: null, message: '' });
@@ -69,7 +79,7 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
     setSubdomainCheckTimer(timer);
 
     return () => clearTimeout(timer);
-  }, [data.subdomain]);
+  }, [data.subdomain, existingSubdomain]);
 
   const handleSubmit = (event) => {
     event.preventDefault();

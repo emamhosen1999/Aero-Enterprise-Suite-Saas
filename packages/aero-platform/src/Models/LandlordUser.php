@@ -187,6 +187,15 @@ class LandlordUser extends Authenticatable
     }
 
     /**
+     * Check if the user is a super administrator.
+     * Super administrators bypass all module access checks.
+     */
+    public function getIsSuperAdminAttribute(): bool
+    {
+        return $this->hasRole('Super Administrator');
+    }
+
+    /**
      * Check if the user account is active.
      */
     public function isActive(): bool

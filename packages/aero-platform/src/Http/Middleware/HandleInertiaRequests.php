@@ -1,855 +1,459 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\Platform\Http\Middleware;
 
 use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Services\NavigationRegistry;
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\SystemSetting;
+use Aero\Platform\Models\SubModule;
 use Aero\Platform\Services\Module\RoleModuleAccessService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use Aero\Core\Support\TenantCache;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
-use Inertia\Inertia;
 use Inertia\Middleware;
 use Throwable;
+
+// Ensure this matches your actual class location
+use Aero\Platform\Http\Middleware\IdentifyDomainContext; 
 
 class HandleInertiaRequests extends Middleware
 {
     /**
      * The root template that is loaded on the first page visit.
-     *
-     * @var string
      */
     protected $rootView = 'aero-ui::app';
 
-    protected bool $resolvedSystemSetting = false;
-
+    /**
+     * Cache for settings to prevent multiple DB queries per request.
+     */
     protected ?SystemSetting $cachedSystemSetting = null;
-
-    protected bool $resolvedPlatformSetting = false;
-
     protected ?PlatformSetting $cachedPlatformSetting = null;
 
     /**
-     * Handle the incoming request.
-     *
-     * Root "/" handling is delegated to IdentifyDomainContext middleware
-     * which runs before this and handles domain-specific redirects.
-     * This middleware focuses solely on Inertia response handling.
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function handle(Request $request, Closure $next)
-    {
-        // Delegate all Inertia response handling to parent
-        return parent::handle($request, $next);
-    }
-
-    /**
-     * Check if the application is installed using file-based detection.
-     */
-    protected function isApplicationInstalled(): bool
-    {
-        $lockFile = storage_path('app/aeos.installed');
-
-        // Check 1: Installation lock file must exist
-        if (! File::exists($lockFile)) {
-            return false;
-        }
-
-        // Check 2: Database must be accessible
-        try {
-            DB::connection()->getPdo();
-        } catch (\Throwable $e) {
-            \Log::warning('Installation check: Database connection failed', ['error' => $e->getMessage()]);
-
-            return false;
-        }
-
-        // Check 3: Required tables must exist
-        try {
-            if (! Schema::hasTable('tenants')) {
-                \Log::warning('Installation check: tenants table not found');
-
-                return false;
-            }
-        } catch (\Throwable $e) {
-            \Log::warning('Installation check: Schema check failed', ['error' => $e->getMessage()]);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Determine the root template based on domain context.
-     * All views come from aero-ui package.
      */
     public function rootView(Request $request): string
     {
-        // Both central and tenant contexts use the same aero-ui view
         return 'aero-ui::app';
     }
 
     /**
-     * Determine the current asset version.
-     */
-    public function version(Request $request): ?string
-    {
-        return parent::version($request);
-    }
-
-    /**
      * Define the props that are shared by default.
-     *
-     * @return array<string, mixed>
      */
     public function share(Request $request): array
     {
         $context = $this->getDomainContext($request);
 
-        // In tenant context, let Core's HandleInertiaRequests handle everything
-        // Core provides navigation and tenant-specific props
-        if ($context === IdentifyDomainContext::CONTEXT_TENANT) {
-            return parent::share($request);
-        }
+        // Shared Props (CSRF, Flash, etc.) available in all contexts
+        $sharedProps = $this->getSharedProps($request);
 
-        \Log::info('=== HandleInertiaRequests::share START ===', [
-            'url' => $request->fullUrl(),
-            'method' => $request->method(),
-            'context' => $context,
-            'session_id' => $request->hasSession() ? $request->session()->getId() : 'NO_SESSION',
-            'session_started' => $request->hasSession() && $request->session()->isStarted(),
-        ]);
-
-        // Share context-specific data (admin and platform only)
-        $result = match ($context) {
-            IdentifyDomainContext::CONTEXT_ADMIN => $this->shareAdminProps($request),
-            IdentifyDomainContext::CONTEXT_PLATFORM => $this->sharePlatformProps($request),
-            default => $this->sharePlatformProps($request),
+        // Context-specific Data hydration
+        $contextProps = match ($context) {
+            IdentifyDomainContext::CONTEXT_ADMIN => $this->buildAdminProps($request),
+            IdentifyDomainContext::CONTEXT_TENANT => $this->buildTenantProps($request),
+            default => $this->buildPlatformProps($request), // Default to platform (public)
         };
 
-        \Log::info('=== HandleInertiaRequests::share END ===', [
-            'context' => $context,
-            'auth_user_id' => $result['auth']['user']['id'] ?? 'NULL',
-            'auth_isAuthenticated' => $result['auth']['isAuthenticated'] ?? false,
-        ]);
-
-        return $result;
+        return array_merge(parent::share($request), $sharedProps, $contextProps);
     }
 
-    /**
-     * Get the domain context from the request.
-     */
-    protected function getDomainContext(Request $request): string
-    {
-        return $request->attributes->get('domain_context', IdentifyDomainContext::CONTEXT_PLATFORM);
-    }
+    // =========================================================================
+    // CONTEXT BUILDERS
+    // =========================================================================
 
     /**
-     * Share props for admin panel (admin.platform.com).
-     *
-     * Uses the LANDLORD guard to get the authenticated super admin user.
-     *
-     * @return array<string, mixed>
+     * Build props for the Super Admin Panel (landlord guard).
      */
-    protected function shareAdminProps(Request $request): array
+    protected function buildAdminProps(Request $request): array
     {
-        // Skip database queries if installation is not complete
-        if ($request->routeIs('installation.*') || $request->is('install*')) {
-            // Use .env values for installation context - null for logos so frontend shows letter fallback
-            View::share([
-                'logoUrl' => null,
-                'logoLightUrl' => null,
-                'logoDarkUrl' => null,
-                'faviconUrl' => null,
-                'siteName' => config('app.name', 'aeos365'),
-            ]);
-
-            return [
-                ...parent::share($request),
-                'auth' => ['user' => null, 'isAuthenticated' => false],
-                'context' => 'installation',
-                'app' => [
-                    'name' => config('app.name', 'aeos365'),
-                    'version' => config('app.version', '1.0.0'),
-                    'environment' => config('app.env', 'production'),
-                ],
-                'platformSettings' => [
-                    'branding' => [
-                        'logo' => null,
-                        'logo_light' => null,
-                        'logo_dark' => null,
-                        'favicon' => null,
-                        'primary_color' => '#006FEE',
-                        'border_radius' => '12px',
-                        'border_width' => '2px',
-                        'font_family' => 'Inter',
-                    ],
-                    'site' => [
-                        'name' => config('app.name', 'aeos365'),
-                    ],
-                ],
-            ];
+        // 1. Check Installation State
+        if ($this->isInstallationRoute($request)) {
+            return $this->getInstallationProps();
         }
 
-        // IMPORTANT: Use landlord guard, not default web guard
-        /** @var \App\Models\LandlordUser|null $user */
+        // 2. Authenticate User (Landlord Guard)
         $user = null;
-        $platformSetting = null;
-        $platformSettingsPayload = null;
-
-        \Log::info('=== shareAdminProps: Starting auth check ===', [
-            'session_id' => $request->hasSession() ? $request->session()->getId() : 'NO_SESSION',
-            'session_started' => $request->hasSession() && $request->session()->isStarted(),
-            'cookie_session_id' => $request->cookies->get(config('session.cookie')),
-        ]);
-
         try {
-            // Check session data directly
-            if ($request->hasSession()) {
-                $sessionData = $request->session()->all();
-                $landlordKey = collect(array_keys($sessionData))->first(fn($k) => str_starts_with($k, 'login_landlord_'));
-                
-                \Log::info('=== shareAdminProps: Session data ===', [
-                    'session_keys' => array_keys($sessionData),
-                    'landlord_key' => $landlordKey,
-                    'landlord_user_id_in_session' => $landlordKey ? $sessionData[$landlordKey] : null,
-                ]);
-            }
-
-            $user = \Illuminate\Support\Facades\Auth::guard('landlord')->user();
-            
-            \Log::info('=== shareAdminProps: Auth guard result ===', [
-                'guard_check' => \Illuminate\Support\Facades\Auth::guard('landlord')->check(),
-                'user_id' => $user?->id,
-                'user_name' => $user?->name,
-                'user_email' => $user?->email,
-            ]);
+            $user = Auth::guard('landlord')->user();
         } catch (\Exception $e) {
-            // Database might not be set up yet, skip user loading
-            \Log::warning('HandleInertiaRequests - Auth error', ['error' => $e->getMessage()]);
+            // DB might be missing during initial setup, ignore
         }
 
-        try {
-            $platformSetting = $this->platformSetting();
-        } catch (\Exception $e) {
-            // Database might not be set up yet
-        }
-        $platformSettingsPayload = $platformSetting
-            ? PlatformSettingResource::make($platformSetting)->resolve($request)
-            : null;
+        // 3. Load Platform Settings
+        $settings = $this->resolvePlatformSettings($request);
+        $this->shareBrandingWithBlade($settings['branding'] ?? [], null);
 
-        // Share branding with blade template - use null fallback to show letter fallback
-        $branding = $platformSettingsPayload['branding'] ?? [];
-        View::share([
-            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
-            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
-            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? null,
-            'faviconUrl' => $branding['favicon'] ?? null,
-            'siteName' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
-        ]);
+        // 4. Construct Auth Data
+        $authData = [
+            'user' => $user ? $this->mapAdminUser($user) : null,
+            'isAuthenticated' => (bool) $user,
+            'isSuperAdmin' => $user?->isSuperAdmin() ?? false,
+            'isAdmin' => $user?->isAdmin() ?? false,
+            // Compliance Flags
+            'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
+            'isTenantSuperAdmin' => false,
+        ];
 
         return [
-            ...parent::share($request),
-            'auth' => [
-                'user' => $user ? [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'avatar_url' => $user->avatar_url,
-                    'initials' => $user->initials,
-                    // Module access data for non-super-admin users
-                    'module_access' => $user && ! $user->isSuperAdmin()
-                        ? $this->getUserModuleAccess($user)
-                        : null,
-                    'accessible_modules' => $user && ! $user->isSuperAdmin()
-                        ? $this->getUserAccessibleModules($user)
-                        : null,
-                    'modules_lookup' => $user && ! $user->isSuperAdmin()
-                        ? $this->getModulesLookup()
-                        : null,
-                    'sub_modules_lookup' => $user && ! $user->isSuperAdmin()
-                        ? $this->getSubModulesLookup()
-                        : null,
-                    'is_super_admin' => $user?->isSuperAdmin() ?? false,
-                    'is_platform_super_admin' => $user?->hasRole('Super Administrator') ?? false,
-                ] : null,
-                'isAuthenticated' => (bool) $user,
-                'sessionValid' => $user && $request->hasSession() && $request->session()->isStarted(),
-                'isSuperAdmin' => $user?->isSuperAdmin() ?? false,
-                'isAdmin' => $user?->isAdmin() ?? false,
-                'role' => $user?->role,
-                // Compliance: Section 10 - Frontend Super Admin flags
-                'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
-                'isTenantSuperAdmin' => false, // Admin context = platform only
-            ],
             'context' => 'admin',
+            'auth' => $authData,
             'app' => [
-                'name' => ($platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365')).' - Admin',
+                'name' => ($settings['site']['name'] ?? config('app.name', 'aeos365')).' - Admin',
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
-                'debug' => config('app.debug', false),
             ],
-            'platformSettings' => $platformSettingsPayload,
-            // Maintenance mode status for admin context
+            'platformSettings' => $settings,
             'maintenance' => fn () => $this->getAdminMaintenanceStatus(),
-            'url' => $request->fullUrl(),
-            'csrfToken' => csrf_token(),
-            'locale' => App::getLocale(),
-            'translations' => fn () => $this->getTranslations(),
-            // SaaS Frontend Data - admin context always has full access
+            // Navigation is heavy, keep it lazy
+            'navigation' => fn () => $this->getNavigationProps($user),
             'aero' => [
                 'mode' => aero_mode() ?? 'saas',
-                'subscriptions' => [], // Admin has access to all modules by default
-            ],
-            // Navigation from backend NavigationRegistry (module.php driven)
-            'navigation' => fn () => $this->getNavigationProps($user),
-            'flash' => [
-                'success' => $request->hasSession() ? $request->session()->get('success') : null,
-                'error' => $request->hasSession() ? $request->session()->get('error') : null,
-                'warning' => $request->hasSession() ? $request->session()->get('warning') : null,
-                'info' => $request->hasSession() ? $request->session()->get('info') : null,
+                'subscriptions' => [], // Admin accesses everything
             ],
         ];
     }
 
     /**
-     * Share props for platform/public site (platform.com).
-     *
-     * @return array<string, mixed>
+     * Build props for the Public Platform (Landing page, registration).
      */
-    protected function sharePlatformProps(Request $request): array
+    protected function buildPlatformProps(Request $request): array
     {
-        // Skip database queries if installation is not complete
-        if ($request->routeIs('installation.*') || $request->is('install*')) {
-            // Use null for logos so frontend shows letter fallback
-            View::share([
-                'logoUrl' => null,
-                'logoLightUrl' => null,
-                'logoDarkUrl' => null,
-                'faviconUrl' => null,
-                'siteName' => config('app.name', 'aeos365'),
-            ]);
-
-            return [
-                ...parent::share($request),
-                'context' => 'platform',
-                'auth' => ['user' => null, 'isAuthenticated' => false],
-                'app' => [
-                    'name' => config('app.name', 'aeos365'),
-                    'version' => config('app.version', '1.0.0'),
-                    'environment' => config('app.env', 'production'),
-                ],
-                'platformSettings' => [
-                    'branding' => [
-                        'logo' => null,
-                        'logo_light' => null,
-                        'logo_dark' => null,
-                        'favicon' => null,
-                        'primary_color' => '#006FEE',
-                        'border_radius' => '12px',
-                        'border_width' => '2px',
-                        'font_family' => 'Inter',
-                    ],
-                    'site' => [
-                        'name' => config('app.name', 'aeos365'),
-                    ],
-                ],
-            ];
+        if ($this->isInstallationRoute($request)) {
+            return $this->getInstallationProps();
         }
 
-        $platformSetting = $this->platformSetting();
-        $platformSettingsPayload = $platformSetting
-            ? PlatformSettingResource::make($platformSetting)->resolve($request)
-            : null;
-
-        // Share branding with blade template - use null fallback to show letter fallback
-        $branding = $platformSettingsPayload['branding'] ?? [];
-        View::share([
-            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
-            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
-            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? null,
-            'faviconUrl' => $branding['favicon'] ?? null,
-            'siteName' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
-        ]);
-
-        // Get maintenance status for platform context
-        $maintenanceStatus = PlatformSetting::getMaintenanceStatus();
-        $isDebugMode = config('app.debug', false);
+        $settings = $this->resolvePlatformSettings($request);
+        $this->shareBrandingWithBlade($settings['branding'] ?? [], null);
+        
+        $maintenance = PlatformSetting::getMaintenanceStatus();
+        $isDebug = config('app.debug', false);
 
         return [
-            ...parent::share($request),
-            'auth' => [
-                'user' => null,
-                'isAuthenticated' => false,
-            ],
             'context' => 'platform',
+            'auth' => ['user' => null, 'isAuthenticated' => false],
             'app' => [
-                'name' => $platformSettingsPayload['site']['name'] ?? config('app.name', 'aeos365'),
+                'name' => $settings['site']['name'] ?? config('app.name', 'aeos365'),
                 'version' => config('app.version', '1.0.0'),
                 'environment' => config('app.env', 'production'),
-                'debug' => $isDebugMode,
+                'debug' => $isDebug,
             ],
-            'platformSettings' => $platformSettingsPayload,
+            'platformSettings' => $settings,
             'platform' => [
-                'modules' => $this->getAvailableModules(),
-                'plans' => $this->getSubscriptionPlans(),
+                'modules' => fn() => $this->getAvailableModules(),
+                'plans' => fn() => $this->getSubscriptionPlans(),
             ],
             'maintenance' => [
-                'enabled' => $maintenanceStatus['enabled'],
-                'message' => $maintenanceStatus['message'],
-                'endsAt' => $maintenanceStatus['ends_at'],
-                'skipVerification' => $maintenanceStatus['enabled'] || $isDebugMode,
+                'enabled' => $maintenance['enabled'],
+                'message' => $maintenance['message'],
+                'ends_at' => $maintenance['ends_at'],
+                'skipVerification' => $maintenance['enabled'] || $isDebug,
             ],
-            'url' => $request->fullUrl(),
-            'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
-            'locale' => App::getLocale(),
-            'translations' => fn () => $this->getTranslations(),
-            // SaaS Frontend Data - platform context for public site
             'aero' => [
                 'mode' => aero_mode() ?? 'saas',
-                'subscriptions' => [], // Public pages don't need subscriptions
-            ],
-            'flash' => [
-                'success' => $request->hasSession() ? $request->session()->get('success') : null,
-                'error' => $request->hasSession() ? $request->session()->get('error') : null,
-                'warning' => $request->hasSession() ? $request->session()->get('warning') : null,
-                'info' => $request->hasSession() ? $request->session()->get('info') : null,
+                'subscriptions' => [],
             ],
         ];
     }
 
     /**
-     * Share props for tenant application ({tenant}.platform.com).
-     *
-     * @return array<string, mixed>
+     * Build props for the Tenant Application.
      */
-    protected function shareTenantProps(Request $request): array
+    protected function buildTenantProps(Request $request): array
     {
-        try {
-            $user = $request->user();
-        } catch (\Illuminate\Database\QueryException $exception) {
-            // During early tenant setup, the users table may not exist yet on the current connection.
-            // Avoid failing Inertia share; treat as guest and continue.
-            if ($exception->getCode() === '42S02') {
-                \Log::warning('Tenant inertia share: users table missing, continuing as guest', [
-                    'path' => $request->path(),
-                    'host' => $request->getHost(),
-                ]);
-                $user = null;
-            } else {
-                throw $exception;
-            }
-        }
+        // 1. Authenticate User (Safely)
+        $user = $this->getTenantUserSafe($request);
 
-        // Load user with optional HRM relations (gracefully handle missing tables)
-        $userWithRelations = null;
-        if ($user) {
-            try {
-                $userWithRelations = \Aero\Core\Models\User::with(['designation', 'attendanceType'])->find($user->id);
-            } catch (\Illuminate\Database\QueryException $e) {
-                // HRM tables may not exist - fall back to basic user
-                if ($e->getCode() === '42S02') {
-                    $userWithRelations = $user;
-                } else {
-                    throw $e;
-                }
-            }
-        }
+        // 2. Load System Settings (Tenant Scope)
+        $settings = $this->resolveSystemSettings($request);
+        $branding = $settings['branding'] ?? [];
+        $companyName = $settings['organization']['company_name'] ?? config('app.name', 'aeos365');
+        
+        $this->shareBrandingWithBlade($branding, $companyName);
 
-        $systemSetting = $this->systemSetting();
-        $systemSettingsPayload = $systemSetting
-            ? SystemSettingResource::make($systemSetting)->resolve($request)
-            : null;
-        $organization = $systemSettingsPayload['organization'] ?? [];
-        $companyName = $organization['company_name'] ?? config('app.name', 'aeos365');
-        $branding = $systemSettingsPayload['branding'] ?? [];
-        $legacyCompanySettings = $this->formatLegacyCompanySettings($organization);
-
-        // Share branding with blade template (tenant uses logo_light for main logo) - use null fallback
-        View::share([
-            'logoUrl' => $branding['logo_light'] ?? null,
-            'logoLightUrl' => $branding['logo_light'] ?? null,
-            'logoDarkUrl' => $branding['logo_dark'] ?? null,
-            'faviconUrl' => $branding['favicon'] ?? null,
-            'siteName' => $organization['company_name'] ?? config('app.name', 'aeos365'),
-        ]);
-
-        // Get tenant plan limits for feature gating
-        $tenantPlanLimits = $this->getTenantPlanLimits();
-
-        // Check if user is tenant super admin (bypasses module access checks)
+        // 3. Determine User Roles & Access
         $isTenantSuperAdmin = $user?->hasRole('tenant_super_administrator') ?? false;
+        
+        $authData = [
+            'user' => $user ? $this->mapTenantUser($user, $isTenantSuperAdmin) : null,
+            'isAuthenticated' => (bool) $user,
+            'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
+            // Compliance Flags
+            'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
+            'isTenantSuperAdmin' => $isTenantSuperAdmin,
+            'isSuperAdmin' => $isTenantSuperAdmin,
+        ];
 
         return [
-            ...parent::share($request),
-            'auth' => [
-                'user' => $userWithRelations ? [
-                    ...$userWithRelations->toArray(),
-                    'attendance_type' => $userWithRelations->attendanceType ? [
-                        'id' => $userWithRelations->attendanceType->id,
-                        'name' => $userWithRelations->attendanceType->name,
-                        'slug' => $userWithRelations->attendanceType->slug,
-                    ] : null,
-                    // Module access data for dynamic access checking
-                    'module_access' => $user && ! $isTenantSuperAdmin
-                        ? $this->getTenantUserModuleAccess($user)
-                        : null,
-                    'accessible_modules' => $user && ! $isTenantSuperAdmin
-                        ? $this->getTenantUserAccessibleModules($user)
-                        : null,
-                    'modules_lookup' => $user && ! $isTenantSuperAdmin
-                        ? $this->getModulesLookup()
-                        : null,
-                    'sub_modules_lookup' => $user && ! $isTenantSuperAdmin
-                        ? $this->getSubModulesLookup()
-                        : null,
-                    'is_super_admin' => $isTenantSuperAdmin,
-                    'is_tenant_super_admin' => $isTenantSuperAdmin,
-                ] : null,
-                'isAuthenticated' => (bool) $user,
-                'sessionValid' => $user && $request->session()->isStarted(),
-                'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
-                'designation' => $userWithRelations?->designation?->title,
-
-                // Compliance: Section 10 - Frontend Super Admin flags
-                'isPlatformSuperAdmin' => $user?->hasRole('Super Administrator') ?? false,
-                'isTenantSuperAdmin' => $isTenantSuperAdmin,
-                'isSuperAdmin' => $isTenantSuperAdmin, // Tenant context: Super Admin = Tenant Super Admin
-            ],
             'context' => 'tenant',
+            'auth' => $authData,
             'tenant' => [
                 'id' => tenant('id'),
                 'name' => tenant('name'),
                 'subdomain' => tenant('subdomain'),
                 'status' => tenant('status'),
-                'modules' => tenant('modules') ?? [],
-                'activeModules' => fn () => $this->getTenantActiveModules(),
                 'onTrial' => tenant()?->isOnTrial() ?? false,
                 'trialEndsAt' => tenant('trial_ends_at'),
             ],
-            'modules' => fn () => $this->getAllModules(),
-            'moduleHierarchy' => fn () => $this->getModuleHierarchy(),
-            'planLimits' => $tenantPlanLimits,
-            'impersonation' => [
-                'active' => $request->session()->has('impersonated_by_platform'),
-                'started_at' => $request->session()->get('impersonation_started_at'),
+            'app' => [
+                'name' => $companyName,
+                'version' => config('app.version', '1.0.0'),
+                'environment' => config('app.env', 'production'),
             ],
-            'companySettings' => $legacyCompanySettings,
-            'systemSettings' => $systemSettingsPayload,
+            'companySettings' => $this->formatLegacyCompanySettings($settings['organization'] ?? []),
+            'systemSettings' => $settings,
             'branding' => $branding,
             'theme' => [
                 'defaultTheme' => 'OCEAN',
                 'defaultBackground' => data_get($branding, 'login_background', 'pattern-1'),
                 'darkMode' => data_get($branding, 'dark_mode', false),
-                'animations' => data_get($branding, 'animations', true),
             ],
-            'app' => [
-                'name' => $companyName,
-                'version' => config('app.version', '1.0.0'),
-                'debug' => config('app.debug', false),
-                'environment' => config('app.env', 'production'),
-            ],
-            'url' => $request->fullUrl(),
-            'csrfToken' => $request->hasSession() ? session('csrfToken') : null,
-            'locale' => App::getLocale(),
-            'fallbackLocale' => config('app.fallback_locale', 'en'),
-            'supportedLocales' => SetLocale::getSupportedLocales(),
-            'translations' => fn () => $this->getTranslations(),
-            // SaaS Frontend Data - enables React to show/hide module links
+            // Lazy Load Heavy Props
+            'modules' => fn () => $this->getAllModules(),
+            'moduleHierarchy' => fn () => $this->getModuleHierarchy(),
+            'planLimits' => fn () => $this->getTenantPlanLimits(),
+            'maintenance' => fn () => $this->getTenantMaintenanceStatus(),
             'aero' => [
                 'mode' => aero_mode() ?? 'saas',
                 'subscriptions' => fn () => $this->getTenantSubscribedModules(),
             ],
-            // Maintenance mode status for tenant context
-            'maintenance' => fn () => $this->getTenantMaintenanceStatus(),
+            'impersonation' => [
+                'active' => $request->session()->has('impersonated_by_platform'),
+                'started_at' => $request->session()->get('impersonation_started_at'),
+            ],
+        ];
+    }
+
+    // =========================================================================
+    // SHARED LOGIC
+    // =========================================================================
+
+    private function getSharedProps(Request $request): array
+    {
+        return [
+            'url' => $request->fullUrl(),
+            'csrfToken' => csrf_token(),
+            'locale' => App::getLocale(),
+            'fallbackLocale' => config('app.fallback_locale', 'en'),
+            // Lazy load translations to avoid parsing JSON/PHP files on every partial reload
+            'translations' => fn () => $this->getTranslations(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
                 'warning' => $request->session()->get('warning'),
                 'info' => $request->session()->get('info'),
+                // Specific to invitations/actions
                 'email_results' => $request->session()->get('email_results'),
                 'invitation_errors' => $request->session()->get('invitation_errors'),
             ],
         ];
     }
 
-    /**
-     * Get maintenance mode status for tenant context.
-     *
-     * Checks both platform-level and tenant-level maintenance mode.
-     *
-     * @return array<string, mixed>
-     */
-    protected function getTenantMaintenanceStatus(): array
+    private function getDomainContext(Request $request): string
     {
-        $isDebugMode = config('app.debug', false);
-        $tenant = tenant();
-        
-        // Check platform-level maintenance
-        $platformMaintenance = PlatformSetting::getMaintenanceStatus();
-        $platformMaintenanceEnabled = $platformMaintenance['enabled'] ?? false;
-        
-        // Check tenant-level maintenance
-        $tenantMaintenanceEnabled = $tenant && method_exists($tenant, 'isInMaintenanceMode') 
-            ? $tenant->isInMaintenanceMode() 
-            : false;
-        
-        $isMaintenanceMode = $platformMaintenanceEnabled || $tenantMaintenanceEnabled;
-        
+        return $request->attributes->get('domain_context', IdentifyDomainContext::CONTEXT_PLATFORM);
+    }
+
+    private function isInstallationRoute(Request $request): bool
+    {
+        return $request->routeIs('installation.*') || $request->is('install*');
+    }
+
+    private function getInstallationProps(): array
+    {
+        View::share(['logoUrl' => null, 'siteName' => config('app.name', 'aeos365')]);
         return [
-            'enabled' => $isMaintenanceMode,
-            'platformEnabled' => $platformMaintenanceEnabled,
-            'tenantEnabled' => $tenantMaintenanceEnabled,
-            'message' => $isMaintenanceMode 
-                ? ($tenantMaintenanceEnabled ? 'Workspace is in maintenance mode' : $platformMaintenance['message'])
-                : null,
-            'endsAt' => $platformMaintenance['ends_at'] ?? null,
-            'skipVerification' => $isMaintenanceMode || $isDebugMode,
+            'context' => 'installation',
+            'auth' => ['user' => null],
+            'app' => ['name' => config('app.name', 'aeos365')],
         ];
     }
 
-    /**
-     * Get maintenance mode status for admin context.
-     *
-     * Admin context only checks platform-level maintenance mode.
-     *
-     * @return array<string, mixed>
-     */
-    protected function getAdminMaintenanceStatus(): array
+    private function shareBrandingWithBlade(array $branding, ?string $siteName): void
     {
-        $isDebugMode = config('app.debug', false);
-        $platformMaintenance = PlatformSetting::getMaintenanceStatus();
-        $isMaintenanceMode = $platformMaintenance['enabled'] ?? false;
+        View::share([
+            'logoUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoLightUrl' => $branding['logo_light'] ?? $branding['logo'] ?? null,
+            'logoDarkUrl' => $branding['logo_dark'] ?? $branding['logo'] ?? null,
+            'faviconUrl' => $branding['favicon'] ?? null,
+            'siteName' => $siteName ?? config('app.name', 'aeos365'),
+        ]);
+    }
+
+    // =========================================================================
+    // DATA MAPPERS & RESOLVERS
+    // =========================================================================
+
+    private function mapAdminUser($user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'avatar_url' => $user->avatar_url,
+            'initials' => $user->initials,
+            'module_access' => ! $user->isSuperAdmin() ? $this->getUserModuleAccess($user) : null,
+            'accessible_modules' => ! $user->isSuperAdmin() ? $this->getUserAccessibleModules($user) : null,
+            'modules_lookup' => ! $user->isSuperAdmin() ? $this->getModulesLookup() : null,
+            'sub_modules_lookup' => ! $user->isSuperAdmin() ? $this->getSubModulesLookup() : null,
+        ];
+    }
+
+    private function mapTenantUser($user, bool $isSuperAdmin): array
+    {
+        $userData = $user->toArray();
+        $designation = $user->designation?->title ?? null;
         
-        return [
-            'enabled' => $isMaintenanceMode,
-            'message' => $platformMaintenance['message'] ?? null,
-            'endsAt' => $platformMaintenance['ends_at'] ?? null,
-            'skipVerification' => $isMaintenanceMode || $isDebugMode,
-        ];
+        return array_merge($userData, [
+            'attendance_type' => $user->attendanceType ? [
+                'id' => $user->attendanceType->id,
+                'name' => $user->attendanceType->name,
+                'slug' => $user->attendanceType->slug,
+            ] : null,
+            'designation' => $designation,
+            'module_access' => ! $isSuperAdmin ? $this->getTenantUserModuleAccess($user) : null,
+            'accessible_modules' => ! $isSuperAdmin ? $this->getTenantUserAccessibleModules($user) : null,
+            'modules_lookup' => ! $isSuperAdmin ? $this->getModulesLookup() : null,
+            'sub_modules_lookup' => ! $isSuperAdmin ? $this->getSubModulesLookup() : null,
+        ]);
     }
 
     /**
-     * Get tenant plan limits for feature gating.
-     *
-     * Returns an array of feature limits based on the tenant's subscription plan.
-     *
-     * @return array<string, mixed>
+     * Safely retrieve the tenant user, handling missing tables during setup.
      */
-    protected function getTenantPlanLimits(): array
+    private function getTenantUserSafe(Request $request)
     {
-        if (! tenant()) {
-            return [];
-        }
-
-        $tenant = tenant();
-        $plan = $tenant->plan;
-
-        // Default limits if no plan
-        $defaultLimits = [
-            'max_users' => 5,
-            'max_storage_gb' => 1,
-            'max_projects' => 3,
-            'max_documents' => 100,
-            'features' => [
-                'api_access' => false,
-                'custom_branding' => false,
-                'priority_support' => false,
-                'audit_logs' => true,
-                'two_factor_auth' => true,
-                'sso' => false,
-                'webhooks' => false,
-                'custom_domains' => false,
-            ],
-        ];
-
-        if (! $plan) {
-            return $defaultLimits;
-        }
-
-        // Get plan-specific limits from plan features
-        $planFeatures = $plan->features ?? [];
-
-        return [
-            'max_users' => $planFeatures['max_users'] ?? $defaultLimits['max_users'],
-            'max_storage_gb' => $planFeatures['max_storage_gb'] ?? $defaultLimits['max_storage_gb'],
-            'max_projects' => $planFeatures['max_projects'] ?? $defaultLimits['max_projects'],
-            'max_documents' => $planFeatures['max_documents'] ?? $defaultLimits['max_documents'],
-            'features' => array_merge($defaultLimits['features'], $planFeatures['features'] ?? []),
-            'plan_name' => $plan->name,
-            'plan_id' => $plan->id,
-            'billing_cycle' => $tenant->subscription_plan,
-        ];
-    }
-
-    /**
-     * Get available modules for the platform.
-     *
-     * @return array<string, mixed>
-     */
-    protected function getAvailableModules(): array
-    {
-        // Return available modules for registration
-        return [
-            ['id' => 'hr', 'name' => 'HR Management', 'price' => 20, 'description' => 'Complete HR solution'],
-            ['id' => 'project', 'name' => 'Project Management', 'price' => 20, 'description' => 'Project & task tracking'],
-            ['id' => 'finance', 'name' => 'Finance', 'price' => 20, 'description' => 'Financial management'],
-            ['id' => 'crm', 'name' => 'CRM', 'price' => 20, 'description' => 'Customer relationship management'],
-            ['id' => 'inventory', 'name' => 'Inventory', 'price' => 20, 'description' => 'Stock management'],
-            ['id' => 'pos', 'name' => 'POS', 'price' => 20, 'description' => 'Point of sale'],
-            ['id' => 'dms', 'name' => 'Document Management', 'price' => 20, 'description' => 'Document storage & workflow'],
-            ['id' => 'quality', 'name' => 'Quality Management', 'price' => 20, 'description' => 'Quality control & assurance'],
-            ['id' => 'analytics', 'name' => 'Analytics', 'price' => 20, 'description' => 'Business intelligence'],
-            ['id' => 'compliance', 'name' => 'Compliance', 'price' => 20, 'description' => 'Regulatory compliance'],
-        ];
-    }
-
-    /**
-     * Get subscription plans.
-     *
-     * @return array<string, mixed>
-     */
-    protected function getSubscriptionPlans(): array
-    {
-        return [
-            [
-                'id' => 'monthly',
-                'name' => 'Monthly',
-                'price_per_module' => 20,
-                'billing_cycle' => 'monthly',
-                'discount' => 0,
-            ],
-            [
-                'id' => 'yearly',
-                'name' => 'Yearly',
-                'price_per_module' => 200,
-                'billing_cycle' => 'yearly',
-                'discount' => 17, // ~17% discount (12 months for price of 10)
-            ],
-        ];
-    }
-
-    /**
-     * Get navigation items from NavigationRegistry.
-     * Returns a flat array of navigation items ready for frontend.
-     *
-     * @param  mixed  $user  The authenticated user (LandlordUser or null)
-     */
-    protected function getNavigationProps($user): array
-    {
-        if (! $user) {
-            return [];
-        }
-
         try {
-            if (app()->bound(NavigationRegistry::class)) {
-                $registry = app(NavigationRegistry::class);
-
-                // Platform context: only return platform-scoped navigation
-                return $registry->toFrontend('platform');
+            $user = $request->user();
+            if ($user) {
+                // Eager load relationships if table exists
+                return \Aero\Core\Models\User::with(['designation', 'attendanceType'])->find($user->id);
             }
-        } catch (\Throwable $e) {
-            \Log::error('Navigation error: '.$e->getMessage());
+        } catch (\Illuminate\Database\QueryException $e) {
+            // 42S02 = Table not found. Common during new tenant provisioning.
+            if ($e->getCode() !== '42S02') {
+                throw $e;
+            }
+            Log::warning('Tenant user load skipped: Tables missing.');
         }
-
-        return [];
+        return null;
     }
 
-    /**
-     * Get translations for the current locale.
-     *
-     * Translations are loaded lazily to avoid performance impact on every request.
-     * Only the necessary namespaces are loaded based on the current route.
-     *
-     * @return array<string, mixed>
-     */
+    private function resolvePlatformSettings(Request $request): ?array
+    {
+        try {
+            if (!$this->cachedPlatformSetting) {
+                $this->cachedPlatformSetting = PlatformSetting::current();
+            }
+            return $this->cachedPlatformSetting 
+                ? PlatformSettingResource::make($this->cachedPlatformSetting)->resolve($request) 
+                : null;
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    private function resolveSystemSettings(Request $request): ?array
+    {
+        try {
+            if (!$this->cachedSystemSetting) {
+                $this->cachedSystemSetting = SystemSetting::current();
+            }
+            return $this->cachedSystemSetting
+                ? SystemSettingResource::make($this->cachedSystemSetting)->resolve($request)
+                : null;
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    // =========================================================================
+    // HELPERS (Settings, Navigation, Translation, Modules)
+    // =========================================================================
+
     protected function getTranslations(): array
     {
         $locale = App::getLocale();
         $translations = [];
 
-        // Always load common translations
         $namespaces = ['common', 'navigation', 'validation'];
-
-        // Add route-specific translations
+        
+        // Intelligent namespace loading based on route
         $routeName = request()->route()?->getName() ?? '';
-        if (str_contains($routeName, 'dashboard')) {
-            $namespaces[] = 'dashboard';
-        }
-        if (str_contains($routeName, 'employee') || str_contains($routeName, 'department') || str_contains($routeName, 'designation') || str_contains($routeName, 'leave') || str_contains($routeName, 'attendance')) {
+        if (str_contains($routeName, 'dashboard')) $namespaces[] = 'dashboard';
+        if (str_contains($routeName, 'hr') || str_contains($routeName, 'employee') || str_contains($routeName, 'department') || str_contains($routeName, 'leave') || str_contains($routeName, 'attendance')) {
             $namespaces[] = 'hr';
         }
-        if (str_contains($routeName, 'device')) {
-            $namespaces[] = 'device';
-        }
+        if (str_contains($routeName, 'device')) $namespaces[] = 'device';
 
-        // Load PHP translation files
         foreach ($namespaces as $namespace) {
             $path = lang_path("{$locale}/{$namespace}.php");
             if (file_exists($path)) {
                 $translations[$namespace] = require $path;
             }
         }
-
-        // Load JSON translations (flat keys for simple lookups)
+        
+        // Load main JSON file
         $jsonPath = lang_path("{$locale}.json");
         if (file_exists($jsonPath)) {
-            $jsonTranslations = json_decode(file_get_contents($jsonPath), true);
-            if ($jsonTranslations) {
-                $translations = array_merge($translations, $jsonTranslations);
-            }
+            $translations = array_merge($translations, json_decode(file_get_contents($jsonPath), true) ?? []);
         }
 
         return $translations;
     }
 
-    /**
-     * Check if the current route is public (doesn't require authentication).
-     */
-    protected function isPublicRoute(Request $request): bool
+    protected function getNavigationProps($user): array
     {
-        $publicRoutes = [
-            'login',
-            'register',
-            'password.request',
-            'password.reset',
-            'password.email',
-            'password.update',
-            'verification.notice',
+        if (!$user || !app()->bound(NavigationRegistry::class)) return [];
+        return app(NavigationRegistry::class)->toFrontend('platform');
+    }
+
+    protected function getAdminMaintenanceStatus(): array
+    {
+        $status = PlatformSetting::getMaintenanceStatus();
+        $enabled = $status['enabled'] ?? false;
+        return [
+            'enabled' => $enabled,
+            'message' => $status['message'] ?? null,
+            'endsAt' => $status['ends_at'] ?? null,
+            'skipVerification' => $enabled || config('app.debug'),
         ];
+    }
 
-        $currentRoute = $request->route();
+    protected function getTenantMaintenanceStatus(): array
+    {
+        $tenant = tenant();
+        $platformStatus = PlatformSetting::getMaintenanceStatus();
+        $tenantEnabled = $tenant && method_exists($tenant, 'isInMaintenanceMode') && $tenant->isInMaintenanceMode();
+        
+        $enabled = $platformStatus['enabled'] || $tenantEnabled;
 
-        if (! $currentRoute) {
-            return false;
-        }
-
-        $routeName = $currentRoute->getName();
-
-        return in_array($routeName, $publicRoutes) ||
-               str_starts_with($request->path(), 'login') ||
-               str_starts_with($request->path(), 'register') ||
-               str_starts_with($request->path(), 'forgot-password') ||
-               str_starts_with($request->path(), 'reset-password');
+        return [
+            'enabled' => $enabled,
+            'platformEnabled' => $platformStatus['enabled'],
+            'tenantEnabled' => $tenantEnabled,
+            'message' => $enabled 
+                ? ($tenantEnabled ? 'Workspace is in maintenance mode' : $platformStatus['message'])
+                : null,
+            'skipVerification' => $enabled || config('app.debug'),
+        ];
     }
 
     protected function formatLegacyCompanySettings(array $organization): array
     {
-        if (empty($organization)) {
-            return [];
-        }
+        if (empty($organization)) return [];
 
         $address = trim(implode(' ', array_filter([
             $organization['address_line1'] ?? null,
@@ -872,456 +476,244 @@ class HandleInertiaRequests extends Middleware
         ], static fn ($value) => $value !== null && $value !== '');
     }
 
-    protected function systemSetting(): ?SystemSetting
-    {
-        if ($this->resolvedSystemSetting) {
-            return $this->cachedSystemSetting;
-        }
+    // =========================================================================
+    // MODULE & ACCESS LOGIC (Cached)
+    // =========================================================================
 
-        $this->resolvedSystemSetting = true;
-
-        try {
-            $this->cachedSystemSetting = SystemSetting::current();
-        } catch (Throwable $exception) {
-            $this->cachedSystemSetting = null;
-        }
-
-        return $this->cachedSystemSetting;
-    }
-
-    protected function platformSetting(): ?PlatformSetting
-    {
-        if ($this->resolvedPlatformSetting) {
-            return $this->cachedPlatformSetting;
-        }
-
-        $this->resolvedPlatformSetting = true;
-
-        try {
-            $this->cachedPlatformSetting = PlatformSetting::current();
-        } catch (Throwable $exception) {
-            $this->cachedPlatformSetting = null;
-        }
-
-        return $this->cachedPlatformSetting;
-    }
-
-    /**
-     * Get tenant's active modules based on subscription.
-     *
-     * @return array<int, array{id: int, code: string, name: string, icon: string, limits: mixed}>
-     */
-    protected function getTenantActiveModules(): array
-    {
-        $tenant = tenant();
-
-        if (! $tenant) {
-            return [];
-        }
-
-        // Cache tenant's active modules for 5 minutes
-        $cacheKey = "tenant_active_modules:{$tenant->id}";
-
-        return TenantCache::remember($cacheKey, 300, function () use ($tenant) {
-            $subscription = $tenant->currentSubscription;
-
-            if (! $subscription || ! $subscription->plan) {
-                // Return only core modules if no subscription
-                return Module::where('is_core', true)
-                    ->where('is_active', true)
-                    ->get(['id', 'code', 'name', 'icon'])
-                    ->map(fn ($module) => [
-                        'id' => $module->id,
-                        'code' => $module->code,
-                        'name' => $module->name,
-                        'icon' => $module->icon,
-                        'limits' => null,
-                    ])
-                    ->toArray();
-            }
-
-            // Get modules from subscription plan
-            return $subscription->plan
-                ->modules()
-                ->where('is_active', true)
-                ->get(['modules.id', 'modules.code', 'modules.name', 'modules.icon', 'plan_module.limits'])
-                ->map(fn ($module) => [
-                    'id' => $module->id,
-                    'code' => $module->code,
-                    'name' => $module->name,
-                    'icon' => $module->icon,
-                    'limits' => $module->pivot->limits ?? null,
-                ])
-                ->toArray();
-        });
-    }
-
-    /**
-     * Get a simple array of module codes the tenant is subscribed to.
-     *
-     * This is used by the frontend to determine which module links to show.
-     * Returns module codes like: ['hrm', 'crm', 'core']
-     *
-     * @return array<string>
-     */
-    protected function getTenantSubscribedModules(): array
-    {
-        $tenant = tenant();
-
-        if (! $tenant) {
-            return [];
-        }
-
-        // Cache for 5 minutes
-        $cacheKey = "tenant_subscribed_modules:{$tenant->id}";
-
-        return TenantCache::remember($cacheKey, 300, function () use ($tenant) {
-            $moduleCodes = [];
-
-            // Always include core modules
-            $coreModules = Module::where('is_core', true)
-                ->where('is_active', true)
-                ->pluck('code')
-                ->toArray();
-            $moduleCodes = array_merge($moduleCodes, $coreModules);
-
-            // Get modules from subscription plan
-            $subscription = $tenant->currentSubscription;
-            if ($subscription && $subscription->plan) {
-                $planModules = $subscription->plan
-                    ->modules()
-                    ->where('is_active', true)
-                    ->pluck('modules.code')
-                    ->toArray();
-                $moduleCodes = array_merge($moduleCodes, $planModules);
-            }
-
-            // Also check direct plan relationship (legacy)
-            if ($tenant->plan) {
-                $directPlanModules = $tenant->plan
-                    ->modules()
-                    ->where('is_active', true)
-                    ->pluck('modules.code')
-                    ->toArray();
-                $moduleCodes = array_merge($moduleCodes, $directPlanModules);
-            }
-
-            // Check tenant's custom modules array (manual grants)
-            if (! empty($tenant->modules) && is_array($tenant->modules)) {
-                $moduleCodes = array_merge($moduleCodes, $tenant->modules);
-            }
-
-            return array_unique($moduleCodes);
-        });
-    }
-
-    /**
-     * Get all available modules in the system.
-     *
-     * @return array<int, array{id: int, code: string, name: string, description: string, icon: string, category: string, is_core: bool}>
-     */
-    protected function getAllModules(): array
-    {
-        return TenantCache::remember('all_modules', 3600, function () {
-            return Module::where('is_active', true)
-                ->orderBy('priority')
-                ->get(['id', 'code', 'name', 'description', 'icon', 'category', 'is_core'])
-                ->toArray();
-        });
-    }
-
-    /**
-     * Get complete module hierarchy for frontend (modules → submodules → components → actions).
-     */
     protected function getModuleHierarchy(): array
     {
         return TenantCache::remember('frontend_module_hierarchy', 600, function () {
-            $modules = Module::active()
-                ->ordered()
-                ->with([
-                    'subModules' => fn ($q) => $q->where('is_active', true)->orderBy('priority'),
-                    'subModules.components' => fn ($q) => $q->where('is_active', true),
-                    'subModules.components.actions',
-                ])
-                ->get();
-
-            return $modules->map(function ($module) {
-                return [
-                    'id' => $module->id,
-                    'code' => $module->code,
-                    'name' => $module->name,
-                    'description' => $module->description,
-                    'icon' => $module->icon,
-                    'category' => $module->category,
-                    'is_core' => $module->is_core,
-                    'route_prefix' => $module->route_prefix,
-                    'submodules' => $module->subModules->map(function ($subModule) {
-                        return [
-                            'id' => $subModule->id,
-                            'code' => $subModule->code,
-                            'name' => $subModule->name,
-                            'description' => $subModule->description,
-                            'icon' => $subModule->icon,
-                            'route' => $subModule->route,
-                            'components' => $subModule->components->map(function ($component) {
-                                return [
-                                    'id' => $component->id,
-                                    'code' => $component->code,
-                                    'name' => $component->name,
-                                    'description' => $component->description,
-                                    'type' => $component->type,
-                                    'route' => $component->route,
-                                    'actions' => $component->actions->map(function ($action) {
-                                        return [
-                                            'id' => $action->id,
-                                            'code' => $action->code,
-                                            'name' => $action->name,
-                                            'description' => $action->description,
-                                        ];
-                                    })->values()->toArray(),
-                                ];
-                            })->values()->toArray(),
-                        ];
-                    })->values()->toArray(),
-                ];
-            })->toArray();
+            return Module::active()->ordered()
+                ->with(['subModules' => fn($q) => $q->active()->ordered()->with(['components' => fn($q) => $q->active()->with('actions')])])
+                ->get()
+                ->map(fn($m) => $this->transformModuleForHierarchy($m))
+                ->toArray();
         });
     }
 
-    /**
-     * Get user's module access tree (for admin/landlord users).
-     *
-     * Returns the access tree structure for frontend access checking.
-     *
-     * @param  \App\Models\LandlordUser  $user
-     * @return array<string, array>
-     */
+    private function transformModuleForHierarchy($module): array
+    {
+        return [
+            'id' => $module->id,
+            'code' => $module->code,
+            'name' => $module->name,
+            'description' => $module->description,
+            'icon' => $module->icon,
+            'category' => $module->category,
+            'is_core' => $module->is_core,
+            'route_prefix' => $module->route_prefix,
+            'submodules' => $module->subModules->map(fn($sm) => [
+                'id' => $sm->id,
+                'code' => $sm->code,
+                'name' => $sm->name,
+                'description' => $sm->description,
+                'icon' => $sm->icon,
+                'route' => $sm->route,
+                'components' => $sm->components->map(fn($c) => [
+                    'id' => $c->id,
+                    'code' => $c->code,
+                    'name' => $c->name,
+                    'description' => $c->description,
+                    'type' => $c->type,
+                    'route' => $c->route,
+                    'actions' => $c->actions->map(fn($a) => [
+                        'id' => $a->id, 
+                        'code' => $a->code,
+                        'name' => $a->name,
+                        'description' => $a->description
+                    ])->values()->toArray()
+                ])->values()->toArray()
+            ])->values()->toArray()
+        ];
+    }
+
+    protected function getAllModules(): array
+    {
+        return TenantCache::remember('all_modules', 3600, fn() => 
+            Module::active()->ordered()->get(['id', 'code', 'name', 'description', 'icon', 'category', 'is_core'])->toArray()
+        );
+    }
+
+    protected function getTenantSubscribedModules(): array
+    {
+        if (!tenant()) return [];
+        return TenantCache::remember("tenant_subscribed_modules:".tenant('id'), 300, function () {
+            $modules = Module::where('is_core', true)->where('is_active', true)->pluck('code')->toArray();
+            
+            $subscription = tenant()->currentSubscription;
+            if ($subscription && $subscription->plan) {
+                $planModules = $subscription->plan->modules()->where('is_active', true)->pluck('modules.code')->toArray();
+                $modules = array_merge($modules, $planModules);
+            }
+            
+            // Legacy/Direct plan check
+            if (tenant()->plan) {
+                $directPlanModules = tenant()->plan->modules()->where('is_active', true)->pluck('modules.code')->toArray();
+                $modules = array_merge($modules, $directPlanModules);
+            }
+
+            if (!empty(tenant()->modules) && is_array(tenant()->modules)) {
+                $modules = array_merge($modules, tenant()->modules);
+            }
+            return array_unique($modules);
+        });
+    }
+
+    // --- Access Helpers ---
+
     protected function getUserModuleAccess($user): array
     {
-        if (! $user) {
-            return [];
-        }
+        if (!$user) return [];
+        
+        return TenantCache::remember("landlord_user_module_access:{$user->id}", 600, function () use ($user) {
+            $service = app(RoleModuleAccessService::class);
+            $access = ['modules' => [], 'sub_modules' => [], 'components' => [], 'actions' => []];
+            
+            if (empty($user->roles)) return $access;
 
-        $cacheKey = "landlord_user_module_access:{$user->id}";
-
-        return TenantCache::remember($cacheKey, 600, function () use ($user) {
-            $roleModuleAccessService = app(RoleModuleAccessService::class);
-
-            // Get all roles for the user
-            $roles = $user->roles ?? collect();
-            if ($roles->isEmpty()) {
-                return [
-                    'modules' => [],
-                    'sub_modules' => [],
-                    'components' => [],
-                    'actions' => [],
-                ];
+            foreach ($user->roles as $role) {
+                $tree = $service->getRoleAccessTree($role);
+                $access['modules'] = array_merge($access['modules'], $tree['modules'] ?? []);
+                $access['sub_modules'] = array_merge($access['sub_modules'], $tree['sub_modules'] ?? []);
+                $access['components'] = array_merge($access['components'], $tree['components'] ?? []);
+                $access['actions'] = array_merge($access['actions'], $tree['actions'] ?? []);
             }
-
-            // Aggregate access from all roles
-            $allModuleIds = collect();
-            $allSubModuleIds = collect();
-            $allComponentIds = collect();
-            $allActions = collect();
-
-            foreach ($roles as $role) {
-                $accessTree = $roleModuleAccessService->getRoleAccessTree($role);
-                $allModuleIds = $allModuleIds->merge($accessTree['modules'] ?? []);
-                $allSubModuleIds = $allSubModuleIds->merge($accessTree['sub_modules'] ?? []);
-                $allComponentIds = $allComponentIds->merge($accessTree['components'] ?? []);
-                $allActions = $allActions->merge($accessTree['actions'] ?? []);
-            }
-
-            return [
-                'modules' => $allModuleIds->unique()->values()->toArray(),
-                'sub_modules' => $allSubModuleIds->unique()->values()->toArray(),
-                'components' => $allComponentIds->unique()->values()->toArray(),
-                'actions' => $allActions->unique(fn ($a) => $a['id'])->values()->toArray(),
-            ];
+            
+            return array_map(fn($arr) => array_values(array_unique($arr, SORT_REGULAR)), $access);
         });
     }
 
-    /**
-     * Get accessible modules for the user (for admin/landlord users).
-     *
-     * @param  \App\Models\LandlordUser  $user
-     * @return array<int, array{id: int, code: string, name: string}>
-     */
+    protected function getTenantUserModuleAccess($user): array
+    {
+        if (!$user) return [];
+
+        return TenantCache::remember("tenant_user_module_access:{$user->id}", 600, function () use ($user) {
+            $access = $this->getUserModuleAccess($user);
+            $tenantActiveIds = $this->getTenantActiveModuleIds();
+            
+            // Filter modules by what the tenant actually owns
+            $access['modules'] = array_values(array_intersect($access['modules'], $tenantActiveIds));
+            return $access;
+        });
+    }
+
+    protected function getTenantActiveModuleIds(): array
+    {
+        if (!tenant()) return [];
+        return TenantCache::remember('tenant_active_module_ids:'.tenant('id'), 1800, function () {
+            // Get module objects based on subscribed codes
+            $subscribedCodes = $this->getTenantSubscribedModules();
+            return Module::whereIn('code', $subscribedCodes)->pluck('id')->toArray();
+        });
+    }
+
     protected function getUserAccessibleModules($user): array
     {
-        if (! $user) {
-            return [];
-        }
-
-        $cacheKey = "landlord_user_accessible_modules:{$user->id}";
-
-        return TenantCache::remember($cacheKey, 600, function () use ($user) {
-            $roleModuleAccessService = app(RoleModuleAccessService::class);
-
-            $roles = $user->roles ?? collect();
-            if ($roles->isEmpty()) {
-                return [];
-            }
-
-            $allModuleIds = collect();
-            foreach ($roles as $role) {
-                $moduleIds = $roleModuleAccessService->getAccessibleModuleIds($role);
-                $allModuleIds = $allModuleIds->merge($moduleIds);
-            }
-
-            $uniqueModuleIds = $allModuleIds->unique()->values()->toArray();
-
-            return Module::whereIn('id', $uniqueModuleIds)
-                ->where('is_active', true)
-                ->get(['id', 'code', 'name'])
-                ->toArray();
-        });
+        $access = $this->getUserModuleAccess($user);
+        if (empty($access['modules'])) return [];
+        
+        return Module::whereIn('id', $access['modules'])->where('is_active', true)->get(['id', 'code', 'name'])->toArray();
     }
 
-    /**
-     * Get modules lookup (id => code mapping).
-     *
-     * @return array<int, string>
-     */
+    protected function getTenantUserAccessibleModules($user): array
+    {
+        $access = $this->getTenantUserModuleAccess($user);
+        if (empty($access['modules'])) return [];
+
+        return Module::whereIn('id', $access['modules'])->where('is_active', true)->get(['id', 'code', 'name'])->toArray();
+    }
+
     protected function getModulesLookup(): array
     {
-        return TenantCache::remember('modules_lookup', 3600, function () {
-            return Module::where('is_active', true)
-                ->pluck('code', 'id')
-                ->toArray();
-        });
+        return TenantCache::remember('modules_lookup', 3600, fn() => Module::where('is_active', true)->pluck('code', 'id')->toArray());
     }
 
-    /**
-     * Get submodules lookup (id => "module.submodule" mapping).
-     *
-     * @return array<int, string>
-     */
     protected function getSubModulesLookup(): array
     {
         return TenantCache::remember('sub_modules_lookup', 3600, function () {
-            return \Aero\Platform\Models\SubModule::with('module')
-                ->where('is_active', true)
-                ->get()
-                ->mapWithKeys(function ($subModule) {
-                    return [$subModule->id => $subModule->module->code.'.'.$subModule->code];
-                })
+            return SubModule::with('module')->where('is_active', true)->get()
+                ->mapWithKeys(fn($sm) => [$sm->id => $sm->module->code.'.'.$sm->code])
                 ->toArray();
         });
     }
 
-    /**
-     * Get module access for a tenant user.
-     *
-     * @param  \Aero\Core\Models\User  $user
-     * @return array<string, array>
-     */
-    protected function getTenantUserModuleAccess($user): array
-    {
-        if (! $user || ! tenant()) {
-            return [];
-        }
-
-        $cacheKey = "tenant_user_module_access:{$user->id}";
-
-        return TenantCache::remember($cacheKey, 600, function () use ($user) {
-            $roleModuleAccessService = app(RoleModuleAccessService::class);
-
-            // Get all roles for the user
-            $roles = $user->roles ?? collect();
-            if ($roles->isEmpty()) {
-                return [
-                    'modules' => [],
-                    'sub_modules' => [],
-                    'components' => [],
-                    'actions' => [],
-                ];
-            }
-
-            // Aggregate access from all roles
-            $allModuleIds = collect();
-            $allSubModuleIds = collect();
-            $allComponentIds = collect();
-            $allActions = collect();
-
-            foreach ($roles as $role) {
-                $accessTree = $roleModuleAccessService->getRoleAccessTree($role);
-                $allModuleIds = $allModuleIds->merge($accessTree['modules'] ?? []);
-                $allSubModuleIds = $allSubModuleIds->merge($accessTree['sub_modules'] ?? []);
-                $allComponentIds = $allComponentIds->merge($accessTree['components'] ?? []);
-                $allActions = $allActions->merge($accessTree['actions'] ?? []);
-            }
-
-            // Filter by tenant's active modules
-            $tenantActiveModuleIds = $this->getTenantActiveModuleIds();
-
-            return [
-                'modules' => $allModuleIds->unique()->filter(fn ($id) => in_array($id, $tenantActiveModuleIds))->values()->toArray(),
-                'sub_modules' => $allSubModuleIds->unique()->values()->toArray(),
-                'components' => $allComponentIds->unique()->values()->toArray(),
-                'actions' => $allActions->unique(fn ($a) => $a['id'])->values()->toArray(),
-            ];
-        });
-    }
-
-    /**
-     * Get accessible modules for a tenant user.
-     *
-     * @param  \Aero\Core\Models\User  $user
-     * @return array<int, array{id: int, code: string, name: string}>
-     */
-    protected function getTenantUserAccessibleModules($user): array
-    {
-        if (! $user || ! tenant()) {
-            return [];
-        }
-
-        $cacheKey = "tenant_user_accessible_modules:{$user->id}";
-
-        return TenantCache::remember($cacheKey, 600, function () use ($user) {
-            $roleModuleAccessService = app(RoleModuleAccessService::class);
-
-            $roles = $user->roles ?? collect();
-            if ($roles->isEmpty()) {
-                return [];
-            }
-
-            $allModuleIds = collect();
-            foreach ($roles as $role) {
-                $moduleIds = $roleModuleAccessService->getAccessibleModuleIds($role);
-                $allModuleIds = $allModuleIds->merge($moduleIds);
-            }
-
-            $uniqueModuleIds = $allModuleIds->unique()->values()->toArray();
-
-            // Filter by tenant's active modules
-            $tenantActiveModuleIds = $this->getTenantActiveModuleIds();
-            $filteredModuleIds = array_intersect($uniqueModuleIds, $tenantActiveModuleIds);
-
-            return Module::whereIn('id', $filteredModuleIds)
-                ->where('is_active', true)
-                ->get(['id', 'code', 'name'])
-                ->toArray();
-        });
-    }
-
-    /**
-     * Get tenant's active module IDs.
-     *
-     * @return array<int>
-     */
-    protected function getTenantActiveModuleIds(): array
+    protected function getTenantPlanLimits(): array
     {
         if (! tenant()) {
             return [];
         }
 
-        $cacheKey = 'tenant_active_module_ids:'.tenant('id');
+        $tenant = tenant();
+        $plan = $tenant->plan;
 
-        return TenantCache::remember($cacheKey, 1800, function () {
-            $activeModules = $this->getTenantActiveModules();
+        $defaultLimits = [
+            'max_users' => 5,
+            'max_storage_gb' => 1,
+            'max_projects' => 3,
+            'max_documents' => 100,
+            'features' => [
+                'api_access' => false,
+                'custom_branding' => false,
+                'priority_support' => false,
+                'audit_logs' => true,
+                'two_factor_auth' => true,
+                'sso' => false,
+                'webhooks' => false,
+                'custom_domains' => false,
+            ],
+        ];
 
-            return collect($activeModules)->pluck('id')->toArray();
-        });
+        if (! $plan) {
+            return $defaultLimits;
+        }
+
+        $planFeatures = $plan->features ?? [];
+
+        return [
+            'max_users' => $planFeatures['max_users'] ?? $defaultLimits['max_users'],
+            'max_storage_gb' => $planFeatures['max_storage_gb'] ?? $defaultLimits['max_storage_gb'],
+            'max_projects' => $planFeatures['max_projects'] ?? $defaultLimits['max_projects'],
+            'max_documents' => $planFeatures['max_documents'] ?? $defaultLimits['max_documents'],
+            'features' => array_merge($defaultLimits['features'], $planFeatures['features'] ?? []),
+            'plan_name' => $plan->name,
+            'plan_id' => $plan->id,
+            'billing_cycle' => $tenant->subscription_plan,
+        ];
+    }
+
+    protected function getAvailableModules(): array
+    {
+        return [
+            ['id' => 'hr', 'name' => 'HR Management', 'price' => 20, 'description' => 'Complete HR solution'],
+            ['id' => 'project', 'name' => 'Project Management', 'price' => 20, 'description' => 'Project & task tracking'],
+            ['id' => 'finance', 'name' => 'Finance', 'price' => 20, 'description' => 'Financial management'],
+            ['id' => 'crm', 'name' => 'CRM', 'price' => 20, 'description' => 'Customer relationship management'],
+            ['id' => 'inventory', 'name' => 'Inventory', 'price' => 20, 'description' => 'Stock management'],
+            ['id' => 'pos', 'name' => 'POS', 'price' => 20, 'description' => 'Point of sale'],
+            ['id' => 'dms', 'name' => 'Document Management', 'price' => 20, 'description' => 'Document storage & workflow'],
+            ['id' => 'quality', 'name' => 'Quality Management', 'price' => 20, 'description' => 'Quality control & assurance'],
+            ['id' => 'analytics', 'name' => 'Analytics', 'price' => 20, 'description' => 'Business intelligence'],
+            ['id' => 'compliance', 'name' => 'Compliance', 'price' => 20, 'description' => 'Regulatory compliance'],
+        ];
+    }
+
+    protected function getSubscriptionPlans(): array
+    {
+        return [
+            [
+                'id' => 'monthly',
+                'name' => 'Monthly',
+                'price_per_module' => 20,
+                'billing_cycle' => 'monthly',
+                'discount' => 0,
+            ],
+            [
+                'id' => 'yearly',
+                'name' => 'Yearly',
+                'price_per_module' => 200,
+                'billing_cycle' => 'yearly',
+                'discount' => 17, // ~17% discount
+            ],
+        ];
     }
 }
