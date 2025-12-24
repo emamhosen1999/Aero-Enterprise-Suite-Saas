@@ -57,7 +57,7 @@ class DealStageHistory extends Model
      */
     public function changedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'changed_by');
+        return $this->belongsTo(\Aero\Core\Models\User::class, 'changed_by');
     }
 
     /**

@@ -98,6 +98,9 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Register event listeners for tenant lifecycle
         $this->registerEventListeners();
+
+        // Configure trusted hosts for security (prevent Host header spoofing)
+        $this->configureTrustedHosts();
     }
 
     /**
@@ -107,12 +110,18 @@ class AeroPlatformServiceProvider extends ServiceProvider
     {
         // Override tenancy bootstrappers after all providers registered
         // FilesystemTenancyBootstrapper disabled - causes "Undefined array key 'local'" error
-        // CacheTenancyBootstrapper disabled - file/database cache drivers don't support tagging
+        // Using custom CachePrefixTenancyBootstrapper instead of stancl's CacheTenancyBootstrapper
+        // because file/database cache drivers don't support tagging
         Config::set('tenancy.bootstrappers', [
             \Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
-            // \Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class, // Requires Redis/Memcached
+            \Aero\Platform\Bootstrappers\CachePrefixTenancyBootstrapper::class, // Works with all cache drivers
             \Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
         ]);
+
+        // CRITICAL: Override central_domains to include the platform domain and admin subdomain
+        // This ensures stancl/tenancy recognizes these as central (non-tenant) domains
+        // Host app's config/tenancy.php may have hardcoded values that need to be overridden
+        $this->configureCentralDomains();
 
         // Force HTTPS for all generated URLs when APP_URL uses https
         if (str_starts_with(config('app.url', ''), 'https://')) {
@@ -268,8 +277,14 @@ class AeroPlatformServiceProvider extends ServiceProvider
     protected function registerMiddleware(): void
     {
         // Use the booted callback to ensure app is fully initialized (same as Core)
+        // This is required because middleware groups are compiled during kernel bootstrap
         $this->app->booted(function () {
             $router = $this->app->make('router');
+            $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+
+            // Register TrustHosts middleware globally (prevents Host header spoofing)
+            // This must run very early, before any domain-based logic
+            $kernel->prependMiddleware(\Aero\Platform\Http\Middleware\TrustHosts::class);
 
             // CRITICAL: Register Database Firewall middleware FIRST (before sessions)
             // This ensures correct database connection for session storage on central domains
@@ -291,7 +306,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
             $router->pushMiddlewareToGroup('web', \Aero\Platform\Http\Middleware\HandleInertiaRequests::class);
         });
 
-        $router = $this->app['router'];
+        $router = $this->app->make('router');
 
         // Register domain middleware aliases for manual use in routes
         $router->aliasMiddleware('identify.domain', \Aero\Platform\Http\Middleware\IdentifyDomainContext::class);
@@ -346,6 +361,108 @@ class AeroPlatformServiceProvider extends ServiceProvider
             'expire' => 60,
             'throttle' => 60,
         ]);
+    }
+
+    /**
+     * Configure central domains for stancl/tenancy.
+     * 
+     * AUTO-DETECTION: Automatically detects from the current HTTP request.
+     * Extracts the root domain from the browser request (e.g., aeos365.test)
+     * and automatically includes admin subdomain (admin.aeos365.test).
+     *
+     * This overrides any hardcoded values in the host app's config/tenancy.php.
+     */
+    protected function configureCentralDomains(): void
+    {
+        // Build dynamic central domains list
+        $centralDomains = ['localhost', '127.0.0.1'];
+
+        // In web context, detect domain from current request
+        if (!app()->runningInConsole() && request()) {
+            $currentHost = request()->getHost();
+            $hostWithoutPort = preg_replace('/:\d+$/', '', $currentHost);
+
+            // Extract root domain (remove subdomain if present)
+            $parts = explode('.', $hostWithoutPort);
+
+            if (count($parts) > 2) {
+                // It's a subdomain (e.g., tenant.aeos365.test or admin.aeos365.test)
+                // Extract the root domain (aeos365.test)
+                $rootDomain = implode('.', array_slice($parts, 1));
+            } else {
+                // Already a root domain (e.g., aeos365.test)
+                $rootDomain = $hostWithoutPort;
+            }
+
+            // Add root domain and admin subdomain
+            $centralDomains = array_merge([
+                $rootDomain,              // e.g., aeos365.test
+                'admin.'.$rootDomain,     // e.g., admin.aeos365.test
+            ], $centralDomains);
+        } else {
+            // Console context: use env vars
+            $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+            if ($platformDomain && $platformDomain !== 'localhost') {
+                $centralDomains = array_merge([
+                    $platformDomain,
+                    'admin.'.$platformDomain,
+                ], $centralDomains);
+            }
+        }
+
+        // Remove duplicates and re-index
+        $centralDomains = array_values(array_unique($centralDomains));
+
+        // Override the config
+        Config::set('tenancy.central_domains', $centralDomains);
+    }
+
+    /**
+     * Configure trusted hosts to prevent Host header spoofing attacks.
+     *
+     * This ensures only legitimate domain patterns are accepted for:
+     * - Platform domain (e.g., aeos365.com)
+     * - Admin subdomain (e.g., admin.aeos365.com)
+     * - Tenant subdomains (e.g., *.aeos365.com)
+     *
+     * SECURITY: Without this, attackers can spoof the Host header to:
+     * - Bypass domain-based access controls
+     * - Generate malicious URLs in emails
+     * - Cause cache poisoning attacks
+     */
+    protected function configureTrustedHosts(): void
+    {
+        // Build trusted host patterns
+        $trustedPatterns = [];
+
+        // Always trust localhost for development
+        $trustedPatterns[] = '^localhost$';
+        $trustedPatterns[] = '^127\.0\.0\.1$';
+
+        // Get platform domain from .env or auto-detect
+        $platformDomain = env('PLATFORM_DOMAIN');
+
+        if ($platformDomain) {
+            // Escape dots for regex
+            $escapedDomain = preg_quote($platformDomain, '/');
+
+            // Trust exact platform domain
+            $trustedPatterns[] = '^' . $escapedDomain . '$';
+
+            // Trust admin subdomain
+            $trustedPatterns[] = '^admin\.' . $escapedDomain . '$';
+
+            // Trust any tenant subdomain
+            $trustedPatterns[] = '^[a-z0-9]([a-z0-9-]*[a-z0-9])?\.' . $escapedDomain . '$';
+        } else {
+            // No platform domain configured - trust .test and .local TLDs for development
+            $trustedPatterns[] = '^[a-z0-9.-]+\.test$';
+            $trustedPatterns[] = '^[a-z0-9.-]+\.local$';
+        }
+
+        // Configure Laravel's trusted hosts
+        // This is applied via TrustHosts middleware
+        Config::set('app.trusted_hosts', $trustedPatterns);
     }
 
     /**
@@ -453,19 +570,28 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     protected function registerRoutes(): void
     {
-        // Admin routes (for admin.domain.com - landlord guard)
-        // These routes are always registered but will check domain context via middleware
-        Route::group([
-            'middleware' => ['web'],
-        ], function () {
-            $this->loadRoutesFrom(__DIR__.'/../routes/admin.php');
-        });
+        // Get domains from environment variables
+        // Note: We use env() here because this runs at boot time before config is fully loaded
+        $platformDomain = env('PLATFORM_DOMAIN', env('APP_DOMAIN', 'localhost'));
+        $adminDomain = env('ADMIN_DOMAIN', 'admin.'.$platformDomain);
 
         // Platform web routes (for domain.com ONLY - public pages, registration)
+        // Uses explicit domain constraint to prevent matching on admin/tenant subdomains
         Route::group([
             'middleware' => ['web'],
+            'domain' => $platformDomain,
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        });
+
+        // Admin routes (for admin.domain.com - landlord guard)
+        // Uses explicit domain constraint for proper route matching
+        // This ensures admin.domain.com/login is distinct from domain.com/login
+        Route::group([
+            'middleware' => ['web'],
+            'domain' => $adminDomain,
+        ], function () {
+            $this->loadRoutesFrom(__DIR__.'/../routes/admin.php');
         });
 
         // Platform API routes (for domain.com/api/* - public product catalog)

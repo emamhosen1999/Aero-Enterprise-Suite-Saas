@@ -154,7 +154,7 @@ class ImpersonationController extends Controller
             return redirect('/dashboard');
         }
 
-        /** @var \App\Models\User|null $user */
+        /** @var \Aero\Core\Models\User|null $user */
         $user = Auth::user();
 
         // Log the end of impersonation

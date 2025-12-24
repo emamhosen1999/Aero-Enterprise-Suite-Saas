@@ -33,6 +33,6 @@ class Grade extends Model
      */
     public function employees(): HasMany
     {
-        return $this->hasMany(\App\Models\User::class, 'grade_id');
+        return $this->hasMany(\Aero\Core\Models\User::class, 'grade_id');
     }
 }

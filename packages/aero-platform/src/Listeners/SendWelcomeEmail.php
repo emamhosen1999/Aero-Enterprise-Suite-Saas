@@ -40,7 +40,7 @@ class SendWelcomeEmail implements ShouldQueue
         }
 
         // Notify HR team about new employee
-        $hrUsers = \App\Models\User::role(['HR Manager', 'HR Admin'])->get();
+        $hrUsers = \Aero\Core\Models\User::role(['HR Manager', 'HR Admin'])->get();
         Notification::send($hrUsers, new WelcomeEmployeeNotification($employee));
     }
 

@@ -38,14 +38,14 @@ class NotifyRecruiterOfApplication implements ShouldQueue
         }
 
         // Notify recruiters and hiring managers
-        $recruiters = \App\Models\User::role(['Recruiter', 'HR Manager'])->get();
+        $recruiters = \Aero\Core\Models\User::role(['Recruiter', 'HR Manager'])->get();
         foreach ($recruiters as $recruiter) {
             $recruiter->notify(new NewApplicationNotification($application));
         }
 
         // Notify job owner if specified
         if ($job && $job->created_by) {
-            $jobOwner = \App\Models\User::find($job->created_by);
+            $jobOwner = \Aero\Core\Models\User::find($job->created_by);
             if ($jobOwner) {
                 $jobOwner->notify(new NewApplicationNotification($application));
             }

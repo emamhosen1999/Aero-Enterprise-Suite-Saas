@@ -43,7 +43,7 @@ class NotifyManagerOfLeaveRequest implements ShouldQueue
         }
 
         // Also notify HR team for transparency
-        $hrUsers = \App\Models\User::role(['HR Manager', 'HR Admin'])->get();
+        $hrUsers = \Aero\Core\Models\User::role(['HR Manager', 'HR Admin'])->get();
         foreach ($hrUsers as $hrUser) {
             $hrUser->notify(new LeaveRequestNotification($leave));
         }

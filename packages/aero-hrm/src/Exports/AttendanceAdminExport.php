@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Exports;
+namespace Aero\HRM\Exports;
 
 use Aero\HRM\Models\Holiday;
 use Aero\HRM\Models\LeaveSetting;
-use App\Models\User;
+use Aero\Core\Models\User;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;

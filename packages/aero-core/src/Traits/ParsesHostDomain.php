@@ -78,29 +78,86 @@ trait ParsesHostDomain
      * Check if a host is on a central domain.
      *
      * Central domains are:
-     * - Root domains (no subdomain): domain.com, aeos365.test
-     * - Admin subdomain: admin.domain.com
+     * - Explicitly configured central domains (config/tenancy.php)
+     * - Admin subdomain of configured domains: admin.domain.com
      * - localhost, 127.0.0.1
      *
      * Tenant domains are:
-     * - Any other subdomain: tenant1.domain.com, acme.aeos365.test
+     * - Any subdomain not matching admin: tenant1.domain.com
+     * - Custom domains registered in the domains table: customerbusiness.com
+     *
+     * IMPORTANT: Custom tenant domains (like customerbusiness.com) must NOT
+     * be treated as central domains, even though they have no subdomain.
+     * We check the domains table to distinguish custom tenant domains.
      */
     protected function isHostOnCentralDomain(string $host): bool
     {
         $parsed = $this->parseHost($host);
 
-        // No subdomain = platform/central domain
-        if ($parsed['subdomain'] === null) {
+        // Admin subdomain is always central
+        if ($parsed['subdomain'] === 'admin') {
             return true;
         }
 
-        // Admin subdomain = central domain
-        if ($parsed['subdomain'] === 'admin') {
+        // Check against explicitly configured central domains
+        $centralDomains = $this->getConfiguredCentralDomains();
+        if (in_array($host, $centralDomains, true)) {
+            return true;
+        }
+
+        // For root domains (no subdomain), check if it's a custom tenant domain
+        // by looking it up in the tenant domains table
+        if ($parsed['subdomain'] === null) {
+            // If Platform package is active, check if this is a registered tenant domain
+            if ($this->isRegisteredTenantDomain($host)) {
+                return false; // It's a custom tenant domain, NOT central
+            }
+
+            // Default: root domain without subdomain is central (platform domain)
             return true;
         }
 
         // Any other subdomain = tenant domain
         return false;
+    }
+
+    /**
+     * Get configured central domains from tenancy config.
+     *
+     * @return array<string>
+     */
+    protected function getConfiguredCentralDomains(): array
+    {
+        try {
+            return config('tenancy.central_domains', ['localhost', '127.0.0.1']);
+        } catch (\Throwable $e) {
+            return ['localhost', '127.0.0.1'];
+        }
+    }
+
+    /**
+     * Check if a domain is registered as a tenant domain in the database.
+     *
+     * This is used to identify custom tenant domains (like customerbusiness.com)
+     * that don't follow the subdomain pattern but are valid tenant domains.
+     *
+     * @param  string  $host  The domain to check
+     * @return bool True if this domain is registered to a tenant
+     */
+    protected function isRegisteredTenantDomain(string $host): bool
+    {
+        // Only check if Platform package is installed
+        if (! class_exists('Aero\Platform\Models\Domain')) {
+            return false;
+        }
+
+        try {
+            // Check if this domain exists in the tenant domains table
+            return \Aero\Platform\Models\Domain::where('domain', $host)->exists();
+        } catch (\Throwable $e) {
+            // Database not available (during install, testing, etc.)
+            return false;
+        }
     }
 
     /**
@@ -115,22 +172,34 @@ trait ParsesHostDomain
 
     /**
      * Check if a host is the platform/root domain (no subdomain).
+     *
+     * Note: This only checks subdomain structure. For custom tenant domains
+     * (root domains registered to tenants), use isHostOnCentralDomain() instead.
      */
     protected function isHostPlatformDomain(string $host): bool
     {
         $parsed = $this->parseHost($host);
 
-        return $parsed['subdomain'] === null;
+        // Check if it's the actual platform domain (no subdomain + is central)
+        if ($parsed['subdomain'] !== null) {
+            return false;
+        }
+
+        // Must also not be a custom tenant domain
+        return $this->isHostOnCentralDomain($host);
     }
 
     /**
-     * Check if a host is a tenant subdomain.
+     * Check if a host is a tenant domain (subdomain or custom domain).
+     *
+     * Tenant domains include:
+     * - Subdomain-based: tenant1.domain.com, acme.aeos365.test
+     * - Custom domains: customerbusiness.com (registered in domains table)
      */
     protected function isHostTenantDomain(string $host): bool
     {
-        $parsed = $this->parseHost($host);
-
-        return $parsed['subdomain'] !== null && $parsed['subdomain'] !== 'admin';
+        // A host is a tenant domain if it's NOT a central domain
+        return ! $this->isHostOnCentralDomain($host);
     }
 
     /**
@@ -158,7 +227,7 @@ trait ParsesHostDomain
     {
         $baseDomain = $this->getPlatformDomainFromHost($host);
 
-        return 'admin.' . $baseDomain;
+        return 'admin.'.$baseDomain;
     }
 
     /**
@@ -170,7 +239,7 @@ trait ParsesHostDomain
     {
         $baseDomain = $this->getPlatformDomainFromHost($host);
 
-        return $tenantSlug . '.' . $baseDomain;
+        return $tenantSlug.'.'.$baseDomain;
     }
 
     /**

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Contracts\DomainContextContract;
 use Aero\Core\Traits\ParsesHostDomain;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -16,14 +16,17 @@ use Inertia\Inertia;
 class IdentifyDomainContext
 {
     use ParsesHostDomain;
+
     /**
-     * Domain context constants.
+     * Domain context constants - aliased from Core's DomainContextContract for backward compatibility.
      */
-    public const CONTEXT_ADMIN = 'admin';
+    public const CONTEXT_ADMIN = DomainContextContract::CONTEXT_ADMIN;
 
-    public const CONTEXT_PLATFORM = 'platform';
+    public const CONTEXT_PLATFORM = DomainContextContract::CONTEXT_PLATFORM;
 
-    public const CONTEXT_TENANT = 'tenant';
+    public const CONTEXT_TENANT = DomainContextContract::CONTEXT_TENANT;
+
+    public const CONTEXT_STANDALONE = DomainContextContract::CONTEXT_STANDALONE;
 
     /**
      * Handle an incoming request.

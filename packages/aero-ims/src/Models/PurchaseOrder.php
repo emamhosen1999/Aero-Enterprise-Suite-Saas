@@ -83,7 +83,7 @@ class PurchaseOrder extends Model
      */
     public function requester()
     {
-        return $this->belongsTo(\App\Models\User::class, 'requested_by');
+        return $this->belongsTo(\Aero\Core\Models\User::class, 'requested_by');
     }
 
     /**
@@ -91,7 +91,7 @@ class PurchaseOrder extends Model
      */
     public function approver()
     {
-        return $this->belongsTo(\App\Models\User::class, 'approved_by');
+        return $this->belongsTo(\Aero\Core\Models\User::class, 'approved_by');
     }
 
     /**
@@ -99,7 +99,7 @@ class PurchaseOrder extends Model
      */
     public function receiver()
     {
-        return $this->belongsTo(\App\Models\User::class, 'received_by');
+        return $this->belongsTo(\Aero\Core\Models\User::class, 'received_by');
     }
 
     /**

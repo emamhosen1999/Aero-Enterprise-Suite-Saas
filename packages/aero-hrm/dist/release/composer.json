@@ -1,0 +1,59 @@
+
+{
+  "name": "aero/hrm",
+  "version": "1.0.0",
+  "description": "Human Resource Management Module for Aero Enterprise Suite",
+  "type": "library",
+  "license": "proprietary",
+  "keywords": ["laravel", "hrm", "payroll", "attendance", "leave"],
+  "authors": [
+    {
+      "name": "Aero Development Team",
+      "email": "dev@aeos365.com"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "laravel/framework": "^11.0|^12.0",
+    "aero/core": "*",
+    "inertiajs/inertia-laravel": "^2.0",
+    "spatie/laravel-permission": "^6.20",
+    "spatie/laravel-activitylog": "^4.10",
+    "maatwebsite/excel": "^3.1",
+    "barryvdh/laravel-dompdf": "^3.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.0",
+    "orchestra/testbench": "^9.0",
+    "mockery/mockery": "^1.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "Aero\\HRM\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Aero\\HRM\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Aero\\HRM\\AeroHrmServiceProvider"
+      ]
+    },
+    "aero": {
+      "package": "hrm",
+      "version": "1.0.0",
+      "category": "business",
+      "description": "Complete HR management system with employee records, attendance, leave, payroll, performance reviews, and recruitment"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "sort-packages": true,
+    "optimize-autoloader": true
+  }
+}

@@ -56,9 +56,10 @@ class SetDatabaseConnectionFromDomain
             return $next($request);
         }
 
-        // Tenant subdomains use tenant session cookie
-        // Database connection is handled by tenancy package
+        // Tenant subdomains: Initialize tenancy BEFORE session starts
+        // This ensures the correct database is used when loading the authenticated user
         $this->useTenantSessionCookie($host);
+        $this->initializeTenancy($host);
 
         return $next($request);
     }
@@ -120,5 +121,46 @@ class SetDatabaseConnectionFromDomain
     {
         // Set the default guard to landlord
         Config::set('auth.defaults.guard', 'landlord');
+    }
+
+    /**
+     * Initialize tenancy for the given host.
+     *
+     * This MUST be called BEFORE the session starts to ensure the correct
+     * database connection is used when loading the authenticated user from session.
+     *
+     * Without this, the auth middleware would try to load User::find($id) from
+     * the central database instead of the tenant database, causing "table not found" errors.
+     */
+    protected function initializeTenancy(string $host): void
+    {
+        // Skip if tenancy is already initialized
+        if (function_exists('tenant') && tenant()) {
+            return;
+        }
+
+        // Resolve tenant by domain
+        $domainModel = config('tenancy.domain_model');
+        if (! $domainModel || ! class_exists($domainModel)) {
+            return;
+        }
+
+        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
+        $domain = $domainModel::where('domain', $hostWithoutPort)->first();
+
+        if (! $domain || ! $domain->tenant) {
+            return;
+        }
+
+        // Initialize tenancy - this switches the database connection
+        try {
+            tenancy()->initialize($domain->tenant);
+        } catch (\Throwable $e) {
+            // Log but don't fail - the route middleware will handle the error
+            \Illuminate\Support\Facades\Log::warning('Early tenancy initialization failed', [
+                'host' => $host,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

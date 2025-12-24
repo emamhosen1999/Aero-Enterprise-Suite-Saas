@@ -11,7 +11,7 @@ class UpdateUserStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $user = \App\Models\User::findOrFail($this->route('id'));
+        $user = \Aero\Core\Models\User::findOrFail($this->route('id'));
 
         return $this->user()->can('toggleStatus', $user);
     }

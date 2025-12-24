@@ -27,6 +27,6 @@ class JobType extends Model
      */
     public function employees(): HasMany
     {
-        return $this->hasMany(\App\Models\User::class, 'job_type_id');
+        return $this->hasMany(\Aero\Core\Models\User::class, 'job_type_id');
     }
 }

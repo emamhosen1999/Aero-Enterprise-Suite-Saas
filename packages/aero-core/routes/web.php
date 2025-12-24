@@ -1,9 +1,8 @@
 <?php
 
-use Aero\Core\Http\Controllers\Admin\RoleController;
 use Aero\Core\Http\Controllers\Admin\CoreUserController;
 use Aero\Core\Http\Controllers\Admin\ModuleController;
-use Aero\Core\Http\Controllers\Admin\ExtensionsController;
+use Aero\Core\Http\Controllers\Admin\RoleController;
 use Aero\Core\Http\Controllers\Auth\AdminSetupController;
 use Aero\Core\Http\Controllers\Auth\AuthenticatedSessionController;
 use Aero\Core\Http\Controllers\Auth\DeviceController;
@@ -62,7 +61,7 @@ Route::get('/aero-core/health', function () {
 Route::post('/api/error-log', function (Request $request) {
     $reporter = app(PlatformErrorReporter::class);
     $traceId = $reporter->reportFrontendError($request->all());
-    
+
     return response()->json([
         'success' => true,
         'trace_id' => $traceId,
@@ -74,7 +73,7 @@ Route::post('/api/error-log', function (Request $request) {
 Route::post('/api/version/check', function (Request $request) {
     $clientVersion = $request->input('version', '1.0.0');
     $serverVersion = config('app.version', '1.0.0');
-    
+
     return response()->json([
         'version_match' => $clientVersion === $serverVersion,
         'client_version' => $clientVersion,
@@ -147,12 +146,14 @@ Route::middleware('auth:web')->group(function () {
     Route::post('email/verification-notification', [EmailVerificationController::class, 'send'])
         ->middleware(['throttle:6,1'])
         ->name('core.verification.send');
-    
+
     // Dashboard Routes
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
+    // Named 'dashboard' for backward compatibility (previously 'core.dashboard')
+    // This allows route('dashboard') to work for tenant login redirects
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
     Route::get('dashboard/widget/{widgetKey}', [DashboardController::class, 'widgetData'])->name('core.dashboard.widget');
-    
+
     // Session & Auth Check Routes
     Route::get('/session-check', function () {
         return response()->json(['authenticated' => auth()->check()]);
@@ -174,7 +175,7 @@ Route::middleware('auth:web')->group(function () {
 
         return response()->noContent();
     })->name('core.locale.update');
-    
+
     // ========================================================================
     // USER MANAGEMENT ROUTES
     // ========================================================================
@@ -183,41 +184,41 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/', [CoreUserController::class, 'index'])->name('index');
         Route::get('/paginate', [CoreUserController::class, 'paginate'])->name('paginate');
         Route::get('/stats', [CoreUserController::class, 'stats'])->name('stats');
-        
+
         // Create
         Route::post('/', [CoreUserController::class, 'store'])
             ->middleware(['precognitive'])
             ->name('store');
-        
+
         // Update
         Route::put('/{id}', [CoreUserController::class, 'update'])
             ->middleware(['precognitive'])
             ->name('update');
         Route::put('/{id}/toggle-status', [CoreUserController::class, 'toggleStatus'])->name('toggleStatus');
         Route::post('/{id}/roles', [CoreUserController::class, 'updateUserRole'])->name('updateRole');
-        
+
         // Delete
         Route::delete('/{id}', [CoreUserController::class, 'destroy'])->name('destroy');
-        
+
         // Bulk operations
         Route::post('/bulk/toggle-status', [CoreUserController::class, 'bulkToggleStatus'])->name('bulk.toggleStatus');
         Route::post('/bulk/assign-roles', [CoreUserController::class, 'bulkAssignRoles'])->name('bulk.assignRoles');
         Route::post('/bulk/delete', [CoreUserController::class, 'bulkDelete'])->name('bulk.delete');
-        
+
         // Export
         Route::post('/export', [CoreUserController::class, 'exportUsers'])->name('export');
-        
+
         // Restore
         Route::post('/{id}/restore', [CoreUserController::class, 'restoreUser'])->name('restore');
-        
+
         // Account Security
         Route::post('/{id}/lock', [CoreUserController::class, 'lockAccount'])->name('lock');
         Route::post('/{id}/unlock', [CoreUserController::class, 'unlockAccount'])->name('unlock');
         Route::post('/{id}/force-password-reset', [CoreUserController::class, 'forcePasswordReset'])->name('forcePasswordReset');
-        
+
         // Email Verification
         Route::post('/{id}/resend-verification', [CoreUserController::class, 'resendEmailVerification'])->name('resendVerification');
-        
+
         // Invitations
         Route::post('/invite', [CoreUserController::class, 'sendInvitation'])->name('invite');
         Route::get('/invitations/pending', [CoreUserController::class, 'pendingInvitations'])->name('invitations.pending');
@@ -231,7 +232,7 @@ Route::middleware('auth:web')->group(function () {
     // User's own devices
     Route::get('/my-devices', [DeviceController::class, 'index'])->name('core.devices.index');
     Route::delete('/my-devices/{deviceId}', [DeviceController::class, 'deactivateDevice'])->name('core.devices.deactivate');
-    
+
     // Admin device management
     Route::prefix('users/{userId}/devices')->name('core.devices.admin.')->group(function () {
         Route::get('/', [DeviceController::class, 'getUserDevices'])->name('list');
@@ -239,7 +240,7 @@ Route::middleware('auth:web')->group(function () {
         Route::post('/toggle', [DeviceController::class, 'toggleSingleDeviceLogin'])->name('toggle');
         Route::delete('/{deviceId}', [DeviceController::class, 'adminDeactivateDevice'])->name('deactivate');
     });
-    
+
     // ========================================================================
     // ROLE & PERMISSIONS MANAGEMENT
     // ========================================================================
@@ -249,18 +250,18 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/export', [RoleController::class, 'exportRoles'])->name('export');
         Route::get('/permissions', [RoleController::class, 'getRolesAndPermissions'])->name('permissions');
         Route::get('/refresh', [RoleController::class, 'refreshData'])->name('refresh');
-        
+
         // Create
         Route::post('/', [RoleController::class, 'storeRole'])->name('store');
-        
+
         // Update
         Route::put('/{id}', [RoleController::class, 'updateRole'])->name('update');
         Route::post('/assign-user', [RoleController::class, 'assignRolesToUser'])->name('assign-user');
-        
+
         // Delete
         Route::delete('/{id}', [RoleController::class, 'deleteRole'])->name('delete');
     });
-    
+
     // ========================================================================
     // MODULE REGISTRY MANAGEMENT
     // ========================================================================
@@ -270,17 +271,17 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/api', [ModuleController::class, 'apiIndex'])->name('api.index');
         Route::post('/check-access', [ModuleController::class, 'checkAccess'])->name('check-access');
         Route::get('/{moduleCode}/requirements', [ModuleController::class, 'getModuleRequirements'])->name('requirements');
-        
+
         // Role Access Management
         Route::get('/role-access/{roleId}', [ModuleController::class, 'getRoleAccess'])->name('role-access.show');
         Route::post('/role-access/{roleId}', [ModuleController::class, 'syncRoleAccess'])->name('role-access.sync');
-        
+
         // Permission Sync
         Route::post('/{module}/sync-permissions', [ModuleController::class, 'syncModulePermissions'])->name('sync-permissions');
         Route::post('/sub-modules/{subModule}/sync-permissions', [ModuleController::class, 'syncSubModulePermissions'])->name('sub-modules.sync-permissions');
         Route::post('/components/{component}/sync-permissions', [ModuleController::class, 'syncComponentPermissions'])->name('components.sync-permissions');
     });
-    
+
     // ========================================================================
     // AUDIT LOGS
     // ========================================================================
@@ -292,7 +293,7 @@ Route::middleware('auth:web')->group(function () {
         Route::post('/activity/export', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'exportActivityLogs'])->name('activity.export');
         Route::post('/security/export', [\Aero\Core\Http\Controllers\Admin\AuditLogController::class, 'exportSecurityLogs'])->name('security.export');
     });
-    
+
     // ========================================================================
     // NOTIFICATIONS MANAGEMENT
     // ========================================================================
@@ -303,7 +304,7 @@ Route::middleware('auth:web')->group(function () {
         Route::post('/read-all', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'markAllAsRead'])->name('read-all');
         Route::delete('/{id}', [\Aero\Core\Http\Controllers\Notification\NotificationController::class, 'destroy'])->name('destroy');
     });
-    
+
     // ========================================================================
     // FILE MANAGER
     // ========================================================================
@@ -314,7 +315,7 @@ Route::middleware('auth:web')->group(function () {
         Route::delete('/{id}', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'destroy'])->name('destroy');
         Route::get('/stats', [\Aero\Core\Http\Controllers\Upload\FileManagerController::class, 'stats'])->name('stats');
     });
-    
+
     // ========================================================================
     // SYSTEM SETTINGS
     // ========================================================================
@@ -324,7 +325,7 @@ Route::middleware('auth:web')->group(function () {
         Route::put('/system', [SystemSettingController::class, 'update'])->name('system.update');
         Route::post('/system/test-email', [SystemSettingController::class, 'sendTestEmail'])->name('system.test-email');
         Route::post('/system/test-sms', [SystemSettingController::class, 'sendTestSms'])->name('system.test-sms');
-        
+
         // Domain Management (SaaS mode only - requires aero-platform)
         Route::prefix('domains')->name('domains.')->group(function () {
             // Only register domain routes if Platform is installed
@@ -342,18 +343,19 @@ Route::middleware('auth:web')->group(function () {
                 })->name('index');
             }
         });
-        
+
         // Usage & Billing (if Platform package installed)
         Route::prefix('usage')->name('usage.')->group(function () {
             Route::get('/', function () {
                 if (class_exists('Aero\Platform\Http\Controllers\SystemMonitoring\UsageController')) {
                     return app('Aero\Platform\Http\Controllers\SystemMonitoring\UsageController')->index();
                 }
+
                 return response()->json(['message' => 'Usage tracking not available'], 404);
             })->name('index');
         });
     });
-    
+
     // ========================================================================
     // PROFILE ROUTES
     // ========================================================================
@@ -365,17 +367,18 @@ Route::middleware('auth:web')->group(function () {
             ]);
         })->name('index');
     });
-    
+
     // ========================================================================
     // API ROUTES (for dropdowns, lookups, etc.)
     // ========================================================================
     Route::prefix('api')->name('core.api.')->group(function () {
         // User Managers List
         Route::get('/users/managers/list', function () {
-            if (!class_exists('App\Models\User')) {
+            if (! class_exists('Aero\Core\Models\User')) {
                 return response()->json([]);
             }
-            return response()->json(\App\Models\User::whereHas('roles', function ($query) {
+
+            return response()->json(\Aero\Core\Models\User::whereHas('roles', function ($query) {
                 $query->whereIn('name', [
                     'Super Administrator',
                     'Administrator',
@@ -388,7 +391,7 @@ Route::middleware('auth:web')->group(function () {
                 ->select('id', 'name')
                 ->get());
         })->name('users.managers.list');
-        
+
         // Role Management API (Merged from api.php)
         Route::prefix('roles')->name('roles.')->group(function () {
             Route::get('/', [RoleController::class, 'index'])->name('index');
@@ -401,7 +404,7 @@ Route::middleware('auth:web')->group(function () {
             Route::get('/export', [RoleController::class, 'exportRoles'])->name('export');
         });
     });
-    
+
     // ========================================================================
     // EXTENSIONS MARKETPLACE
     // ========================================================================
@@ -412,10 +415,7 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/check-updates', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'checkUpdates'])->name('checkUpdates');
         Route::get('/{moduleCode}/settings', [\Aero\Core\Http\Controllers\Admin\ExtensionsController::class, 'settings'])->name('settings');
     });
-    
-    
+
     // FCM Token Update
     Route::post('/update-fcm-token', [CoreUserController::class, 'updateFcmToken'])->name('core.updateFcmToken');
 });
-
-

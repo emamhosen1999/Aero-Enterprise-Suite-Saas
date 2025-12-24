@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Events;
+namespace Aero\HRM\Events;
 
-use App\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;

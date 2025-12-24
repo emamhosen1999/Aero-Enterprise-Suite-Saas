@@ -56,7 +56,7 @@ class Transaction extends Model
      */
     public function processedBy()
     {
-        return $this->belongsTo(\App\Models\User::class, 'processed_by');
+        return $this->belongsTo(\Aero\Core\Models\User::class, 'processed_by');
     }
 
     /**

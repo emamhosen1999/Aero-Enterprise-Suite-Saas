@@ -272,7 +272,7 @@ class LoginController extends Controller
 
             if ($deviceId) {
                 // Find and deactivate the device
-                $device = \App\Models\UserDevice::where('user_id', $user->id)
+                $device = \Aero\Core\Models\UserDevice::where('user_id', $user->id)
                     ->where('device_id', $deviceId)
                     ->first();
 

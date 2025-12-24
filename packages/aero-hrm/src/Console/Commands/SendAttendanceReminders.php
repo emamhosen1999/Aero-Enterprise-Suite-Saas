@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Aero\HRM\Console\Commands;
 
 use Aero\HRM\Jobs\SendAttendanceReminder;
 use Aero\HRM\Models\AttendanceSetting;
-use App\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 

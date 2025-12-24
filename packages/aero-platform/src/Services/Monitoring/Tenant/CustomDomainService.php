@@ -19,6 +19,7 @@ class CustomDomainService
 {
     /**
      * Reserved/blocked domain patterns that cannot be used.
+     * These are checked against the first segment of the domain.
      */
     protected array $blockedPatterns = [
         'admin',
@@ -41,6 +42,26 @@ class CustomDomainService
         'staging',
         'dev',
         'test',
+        'platform',
+        'register',
+        'login',
+        'dashboard',
+        'install',
+    ];
+
+    /**
+     * Blocked subdomain prefixes for custom domains.
+     * Custom domains cannot start with these prefixes as they conflict
+     * with platform infrastructure (e.g., admin.customerdomain.com would
+     * be misidentified as platform admin).
+     */
+    protected array $blockedSubdomainPrefixes = [
+        'admin.',
+        'api.',
+        'www.',
+        'mail.',
+        'ftp.',
+        'cdn.',
     ];
 
     /**
@@ -294,7 +315,7 @@ class CustomDomainService
     }
 
     /**
-     * Validate domain format.
+     * Validate domain format and check against blocked patterns.
      *
      * @throws ValidationException
      */
@@ -314,12 +335,22 @@ class CustomDomainService
             ]);
         }
 
-        // Check blocked patterns
+        // Check blocked first segment patterns
         $firstPart = explode('.', $domain)[0];
         if (in_array($firstPart, $this->blockedPatterns, true)) {
             throw ValidationException::withMessages([
                 'domain' => ['This domain pattern is reserved.'],
             ]);
+        }
+
+        // Check blocked subdomain prefixes (e.g., admin.customerdomain.com)
+        // These would conflict with platform infrastructure
+        foreach ($this->blockedSubdomainPrefixes as $prefix) {
+            if (str_starts_with($domain, $prefix)) {
+                throw ValidationException::withMessages([
+                    'domain' => ["Custom domains cannot start with '{$prefix}' as this conflicts with platform infrastructure."],
+                ]);
+            }
         }
     }
 

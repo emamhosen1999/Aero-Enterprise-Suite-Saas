@@ -36,7 +36,7 @@ class ShiftSchedule extends Model
      */
     public function employees(): BelongsToMany
     {
-        return $this->belongsToMany(\App\Models\User::class, 'employee_shift_schedule')
+        return $this->belongsToMany(\Aero\Core\Models\User::class, 'employee_shift_schedule')
             ->withPivot(['effective_from', 'effective_to'])
             ->withTimestamps();
     }

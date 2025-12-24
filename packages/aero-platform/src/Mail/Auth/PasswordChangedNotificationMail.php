@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Mail\Auth;
+namespace Aero\Platform\Mail\Auth;
 
-use App\Models\User;
+use Aero\Core\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;

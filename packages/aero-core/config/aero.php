@@ -271,4 +271,53 @@ return [
         // Notify admin on these error types
         'notify_on' => ['ServerException', 'DatabaseException', 'TenantNotFoundException'],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reserved Route Prefixes
+    |--------------------------------------------------------------------------
+    |
+    | These route prefixes are reserved for specific packages and should NOT
+    | be used by other modules to prevent routing conflicts.
+    |
+    | When creating new modules, use your module's name as prefix:
+    | - /hrm/* - Reserved for aero-hrm
+    | - /crm/* - Reserved for aero-crm
+    | - /api/{module}/* - Module-specific APIs
+    |
+    | Violation of reserved prefixes will cause RouteConflictTest to fail.
+    |
+    */
+
+    'routing' => [
+        // Reserved API prefixes (used by RouteConflictTest)
+        'reserved_api_prefixes' => [
+            'api/platform/' => 'aero-platform',   // Platform public/admin APIs
+            'api/admin/' => 'aero-platform',      // Platform admin APIs (deprecated, use api/platform/)
+            'api/v1/' => 'aero-core',             // Core versioned APIs
+        ],
+
+        // Reserved web route prefixes by package
+        'reserved_web_prefixes' => [
+            'install' => ['aero-core', 'aero-platform'],
+            'register' => 'aero-platform',
+            'admin-setup' => 'aero-core',
+            'onboarding' => 'aero-core',
+        ],
+
+        // Module route prefixes (each module should use its own prefix)
+        'module_prefixes' => [
+            'hrm' => 'aero-hrm',
+            'crm' => 'aero-crm',
+            'finance' => 'aero-finance',
+            'project' => 'aero-project',
+            'ims' => 'aero-ims',
+            'pos' => 'aero-pos',
+            'scm' => 'aero-scm',
+            'quality' => 'aero-quality',
+            'dms' => 'aero-dms',
+            'compliance' => 'aero-compliance',
+            'rfi' => 'aero-rfi',
+        ],
+    ],
 ];

@@ -25,47 +25,24 @@ return [
     | Domains that should not be handled by tenancy (central app domains).
     | This includes the main platform domain and admin subdomain.
     |
-    | AUTO-DETECTION: Automatically detects from the current HTTP request.
-    | Extracts the root domain from the browser request (e.g., aeos365.test)
-    | and automatically includes admin subdomain (admin.aeos365.test).
+    | IMPORTANT: This is a static fallback list. The actual central domains
+    | are dynamically configured at runtime by AeroPlatformServiceProvider::configureCentralDomains()
+    | which auto-detects from the current HTTP request.
     |
-    | NO MANUAL CONFIGURATION REQUIRED.
+    | These static values are used only during:
+    | - config:cache generation
+    | - Console/artisan commands
+    | - Queue workers
+    |
+    | For production, set PLATFORM_DOMAIN in .env to your actual domain.
     |
     */
 
-    'central_domains' => (function () {
-        // Get current request domain from browser
-        if (app()->runningInConsole() || !request()) {
-            // In console, use fallback
-            return [
-                env('PLATFORM_DOMAIN', 'localhost'),
-                'admin.'.env('PLATFORM_DOMAIN', 'localhost'),
-            ];
-        }
-
-        $currentHost = request()->getHost();
-        $hostWithoutPort = preg_replace('/:\d+$/', '', $currentHost);
-        
-        // Extract root domain (remove subdomain if present)
-        $parts = explode('.', $hostWithoutPort);
-        
-        // If it's a subdomain (e.g., tenant.aeos365.test or admin.aeos365.test)
-        // Extract the root domain (aeos365.test)
-        if (count($parts) > 2) {
-            // Remove first part (subdomain), keep domain.tld
-            $rootDomain = implode('.', array_slice($parts, 1));
-        } else {
-            // Already a root domain (e.g., aeos365.test)
-            $rootDomain = $hostWithoutPort;
-        }
-        
-        return [
-            $rootDomain,              // e.g., aeos365.test
-            'admin.'.$rootDomain,     // e.g., admin.aeos365.test
-            'localhost',              // Always include for local dev
-            '127.0.0.1',              // IP address support
-        ];
-    })(),
+    'central_domains' => [
+        'localhost',
+        'admin.localhost',
+        '127.0.0.1',
+    ],
 
     /*
     |--------------------------------------------------------------------------

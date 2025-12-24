@@ -96,7 +96,7 @@ class EnhancedRateLimit
                 return ['requests_per_minute' => 150];
             }
 
-            $userWithDesignation = \App\Models\User::with('designation')->find($user->id);
+            $userWithDesignation = \Aero\Core\Models\User::with('designation')->find($user->id);
             $userDesignationTitle = $userWithDesignation->designation?->title;
 
             if ($userDesignationTitle === 'Supervision Engineer') {

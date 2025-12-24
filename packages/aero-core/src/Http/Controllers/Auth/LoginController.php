@@ -3,10 +3,10 @@
 namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
-use App\Http\Middleware\IdentifyDomainContext;
 use Aero\Core\Models\User;
 use Aero\Core\Services\Auth\DeviceAuthService;
 use Aero\Core\Services\Auth\ModernAuthenticationService;
+use App\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -272,7 +272,7 @@ class LoginController extends Controller
 
             if ($deviceId) {
                 // Find and deactivate the device
-                $device = \App\Models\UserDevice::where('user_id', $user->id)
+                $device = \Aero\Core\Models\UserDevice::where('user_id', $user->id)
                     ->where('device_id', $deviceId)
                     ->first();
 

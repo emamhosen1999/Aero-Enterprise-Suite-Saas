@@ -479,9 +479,16 @@ class ProvisionTenant implements ShouldQueue
             }
         }
 
-        // Get modules from tenant's plan
+        // Get modules from tenant's plan using module_codes attribute (discovered from packages)
         if ($this->tenant->plan) {
-            $planModules = $this->tenant->plan->modules()->pluck('code')->toArray();
+            // Use module_codes attribute which contains the list of module codes for this plan
+            // This is set in PlanSeeder and doesn't require modules to be registered in central DB
+            $planModules = $this->tenant->plan->module_codes ?? [];
+
+            // Ensure it's an array (it's cast as array in Plan model)
+            if (is_string($planModules)) {
+                $planModules = json_decode($planModules, true) ?? [];
+            }
 
             $this->logStep('   → Plan modules: ' . implode(', ', $planModules), [
                 'modules' => $planModules,
@@ -798,6 +805,23 @@ class ProvisionTenant implements ShouldQueue
                         'is_protected' => $roleData['is_protected'] ?? false,
                     ]
                 );
+            }
+
+            // Grant full module access to Super Administrator role
+            $superAdminRole = \Spatie\Permission\Models\Role::where('name', 'Super Administrator')->first();
+            if ($superAdminRole) {
+                $subModuleIds = DB::table('sub_modules')->pluck('id');
+                foreach ($subModuleIds as $subModuleId) {
+                    DB::table('role_module_access')->insertOrIgnore([
+                        'role_id' => $superAdminRole->id,
+                        'sub_module_id' => $subModuleId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                $this->logStep('   → Granted full module access to Super Administrator', [
+                    'submodules_count' => $subModuleIds->count(),
+                ]);
             }
 
             $this->logStep('   → Default roles seeded successfully', []);

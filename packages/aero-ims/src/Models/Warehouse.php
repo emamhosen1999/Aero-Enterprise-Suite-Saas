@@ -42,7 +42,7 @@ class Warehouse extends Model
      */
     public function manager()
     {
-        return $this->belongsTo(\App\Models\User::class, 'manager_id');
+        return $this->belongsTo(\Aero\Core\Models\User::class, 'manager_id');
     }
 
     /**

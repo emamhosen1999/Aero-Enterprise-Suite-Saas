@@ -2,9 +2,9 @@
 
 namespace Aero\Platform\Http\Middleware;
 
+use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Services\NavigationRegistry;
 use Aero\Platform\Http\Resources\PlatformSettingResource;
-use Aero\Platform\Http\Resources\SystemSettingResource;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\PlatformSetting;
 use Aero\Platform\Models\SystemSetting;
@@ -117,6 +117,12 @@ class HandleInertiaRequests extends Middleware
     {
         $context = $this->getDomainContext($request);
 
+        // In tenant context, let Core's HandleInertiaRequests handle everything
+        // Core provides navigation and tenant-specific props
+        if ($context === IdentifyDomainContext::CONTEXT_TENANT) {
+            return parent::share($request);
+        }
+
         \Log::info('=== HandleInertiaRequests::share START ===', [
             'url' => $request->fullUrl(),
             'method' => $request->method(),
@@ -125,11 +131,10 @@ class HandleInertiaRequests extends Middleware
             'session_started' => $request->hasSession() && $request->session()->isStarted(),
         ]);
 
-        // Share context-specific data
+        // Share context-specific data (admin and platform only)
         $result = match ($context) {
             IdentifyDomainContext::CONTEXT_ADMIN => $this->shareAdminProps($request),
             IdentifyDomainContext::CONTEXT_PLATFORM => $this->sharePlatformProps($request),
-            IdentifyDomainContext::CONTEXT_TENANT => $this->shareTenantProps($request),
             default => $this->sharePlatformProps($request),
         };
 
@@ -448,7 +453,20 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
-        $userWithRelations = $user ? \App\Models\User::with(['designation', 'attendanceType'])->find($user->id) : null;
+        // Load user with optional HRM relations (gracefully handle missing tables)
+        $userWithRelations = null;
+        if ($user) {
+            try {
+                $userWithRelations = \Aero\Core\Models\User::with(['designation', 'attendanceType'])->find($user->id);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // HRM tables may not exist - fall back to basic user
+                if ($e->getCode() === '42S02') {
+                    $userWithRelations = $user;
+                } else {
+                    throw $e;
+                }
+            }
+        }
 
         $systemSetting = $this->systemSetting();
         $systemSettingsPayload = $systemSetting
@@ -1182,7 +1200,7 @@ class HandleInertiaRequests extends Middleware
     protected function getSubModulesLookup(): array
     {
         return TenantCache::remember('sub_modules_lookup', 3600, function () {
-            return \App\Models\SubModule::with('module')
+            return \Aero\Platform\Models\SubModule::with('module')
                 ->where('is_active', true)
                 ->get()
                 ->mapWithKeys(function ($subModule) {
@@ -1195,7 +1213,7 @@ class HandleInertiaRequests extends Middleware
     /**
      * Get module access for a tenant user.
      *
-     * @param  \App\Models\User  $user
+     * @param  \Aero\Core\Models\User  $user
      * @return array<string, array>
      */
     protected function getTenantUserModuleAccess($user): array
@@ -1249,7 +1267,7 @@ class HandleInertiaRequests extends Middleware
     /**
      * Get accessible modules for a tenant user.
      *
-     * @param  \App\Models\User  $user
+     * @param  \Aero\Core\Models\User  $user
      * @return array<int, array{id: int, code: string, name: string}>
      */
     protected function getTenantUserAccessibleModules($user): array

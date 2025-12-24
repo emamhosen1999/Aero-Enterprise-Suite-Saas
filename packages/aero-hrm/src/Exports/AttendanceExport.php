@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Exports;
+namespace Aero\HRM\Exports;
 
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use App\Models\User;
+use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;

@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Http\Middleware;
 
+use Aero\Core\Contracts\DomainContextContract;
 use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Models\SystemSetting;
 use Aero\Core\Services\NavigationRegistry;
@@ -36,10 +37,10 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Handle the incoming request.
-     * 
+     *
      * In SaaS mode on central/admin domains, skip this middleware entirely
      * and let Platform's HandleInertiaRequests handle everything.
-     * 
+     *
      * In standalone mode or on tenant domains, this middleware handles Inertia requests.
      *
      * @return \Symfony\Component\HttpFoundation\Response
@@ -47,15 +48,12 @@ class HandleInertiaRequests extends Middleware
     public function handle(Request $request, \Closure $next)
     {
         // In SaaS mode, skip on central/admin domains - Platform handles those
-        if (is_saas_mode() && class_exists('Aero\Platform\Http\Middleware\IdentifyDomainContext')) {
+        if (is_saas_mode()) {
             $context = $request->attributes->get('domain_context');
-            
+
             // On admin/platform domains, let Platform's middleware handle everything
-            // Using constants from Platform's IdentifyDomainContext
-            $adminContext = \Aero\Platform\Http\Middleware\IdentifyDomainContext::CONTEXT_ADMIN;
-            $platformContext = \Aero\Platform\Http\Middleware\IdentifyDomainContext::CONTEXT_PLATFORM;
-            
-            if (in_array($context, [$adminContext, $platformContext], true)) {
+            // Using constants from Core's DomainContextContract (no Platform dependency)
+            if (in_array($context, [DomainContextContract::CONTEXT_ADMIN, DomainContextContract::CONTEXT_PLATFORM], true)) {
                 return $next($request);
             }
         }
@@ -101,7 +99,7 @@ class HandleInertiaRequests extends Middleware
         // - Tenant context: Core provides tenant navigation, Platform provides tenant-specific props
         $context = $request->attributes->get('domain_context', 'tenant');
         $isSaaSMode = is_saas_mode();
-        
+
         // Skip sharing props for admin/platform contexts in SaaS mode
         // Platform's HandleInertiaRequests handles those contexts completely
         if ($isSaaSMode && ($context === 'admin' || $context === 'platform')) {

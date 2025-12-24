@@ -122,8 +122,8 @@ class ProjectController extends Controller
                 'resourceUtilization' => $resourceUtilization,
                 'onTimeDeliveryRate' => round($onTimeDeliveryRate, 1),
             ],
-            'departments' => \App\Models\HRM\Department::all(['id', 'name']),
-            'users' => \App\Models\User::all(['id', 'name']),
+            'departments' => \Aero\HRM\Models\Department::all(['id', 'name']),
+            'users' => \Aero\Core\Models\User::all(['id', 'name']),
             'statusOptions' => [
                 ['id' => 'not_started', 'name' => 'Not Started'],
                 ['id' => 'in_progress', 'name' => 'In Progress'],

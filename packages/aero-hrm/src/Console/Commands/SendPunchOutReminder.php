@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Aero\HRM\Console\Commands;
 
-use App\Http\Controllers\NotificationController;
-use App\Models\User;
+use Aero\Core\Http\Controllers\NotificationController;
+use Aero\Core\Models\User;
 use Illuminate\Console\Command;
 
 class SendPunchOutReminder extends Command
