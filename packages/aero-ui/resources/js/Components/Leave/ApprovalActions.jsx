@@ -26,31 +26,39 @@ export default function ApprovalActions({ leave, onApprovalComplete }) {
         setProcessing(true);
         setErrors({});
 
-        try {
-            const response = await axios.post(route('leaves.approve', leave.id), {
-                comments: comments || null
-            });
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('leaves.approve', leave.id), {
+                    comments: comments || null
+                });
 
-            if (response.data.success) {
-                showToast.success(response.data.message || 'Leave approved successfully');
-                onApproveClose();
-                setComments('');
-                if (onApprovalComplete) {
-                    onApprovalComplete(response.data);
+                if (response.status === 200 && response.data.success) {
+                    onApproveClose();
+                    setComments('');
+                    if (onApprovalComplete) {
+                        onApprovalComplete(response.data);
+                    }
+                    resolve([response.data.message || 'Leave approved successfully']);
+                } else {
+                    reject([response.data.message || 'Failed to approve leave']);
                 }
-            } else {
-                showToast.error(response.data.message || 'Failed to approve leave');
+            } catch (error) {
+                console.error('Approval error:', error);
+                if (error.response?.data?.message) {
+                    reject([error.response.data.message]);
+                } else {
+                    reject(['An error occurred while approving the leave']);
+                }
+            } finally {
+                setProcessing(false);
             }
-        } catch (error) {
-            console.error('Approval error:', error);
-            if (error.response?.data?.message) {
-                showToast.error(error.response.data.message);
-            } else {
-                showToast.error('An error occurred while approving the leave');
-            }
-        } finally {
-            setProcessing(false);
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Approving leave...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     const handleReject = async () => {
@@ -63,33 +71,42 @@ export default function ApprovalActions({ leave, onApprovalComplete }) {
             return;
         }
 
-        try {
-            const response = await axios.post(route('leaves.reject', leave.id), {
-                reason: rejectionReason
-            });
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('leaves.reject', leave.id), {
+                    reason: rejectionReason
+                });
 
-            if (response.data.success) {
-                showToast.success(response.data.message || 'Leave rejected successfully');
-                onRejectClose();
-                setRejectionReason('');
-                if (onApprovalComplete) {
-                    onApprovalComplete(response.data);
+                if (response.status === 200 && response.data.success) {
+                    onRejectClose();
+                    setRejectionReason('');
+                    if (onApprovalComplete) {
+                        onApprovalComplete(response.data);
+                    }
+                    resolve([response.data.message || 'Leave rejected successfully']);
+                } else {
+                    reject([response.data.message || 'Failed to reject leave']);
                 }
-            } else {
-                showToast.error(response.data.message || 'Failed to reject leave');
+            } catch (error) {
+                console.error('Rejection error:', error);
+                if (error.response?.status === 422) {
+                    setErrors(error.response.data.errors || {});
+                    reject([Object.values(error.response.data.errors || {}).flat().join(', ')]);
+                } else if (error.response?.data?.message) {
+                    reject([error.response.data.message]);
+                } else {
+                    reject(['An error occurred while rejecting the leave']);
+                }
+            } finally {
+                setProcessing(false);
             }
-        } catch (error) {
-            console.error('Rejection error:', error);
-            if (error.response?.status === 422) {
-                setErrors(error.response.data.errors || {});
-            } else if (error.response?.data?.message) {
-                showToast.error(error.response.data.message);
-            } else {
-                showToast.error('An error occurred while rejecting the leave');
-            }
-        } finally {
-            setProcessing(false);
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Rejecting leave...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     return (

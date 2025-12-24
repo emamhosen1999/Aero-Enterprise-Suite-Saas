@@ -83,19 +83,31 @@ const PendingInvitationsPanel = ({ onInvitationChange }) => {
     // Resend invitation
     const handleResend = async (invitation) => {
         setActionLoading(`resend-${invitation.id}`);
-        try {
-            const response = await axios.post(
-                route('users.invitations.resend', { invitation: invitation.id })
-            );
-            showToast.success(`Invitation resent to ${invitation.email}`);
-            fetchInvitations();
-            onInvitationChange?.();
-        } catch (error) {
-            console.error('Error resending invitation:', error);
-            showToast.error(error.response?.data?.message || 'Failed to resend invitation');
-        } finally {
-            setActionLoading(null);
-        }
+
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(
+                    route('users.invitations.resend', { invitation: invitation.id })
+                );
+                
+                if (response.status === 200) {
+                    fetchInvitations();
+                    onInvitationChange?.();
+                    resolve([response.data.message || `Invitation resent to ${invitation.email}`]);
+                }
+            } catch (error) {
+                console.error('Error resending invitation:', error);
+                reject([error.response?.data?.message || 'Failed to resend invitation']);
+            } finally {
+                setActionLoading(null);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Resending invitation...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     // Cancel invitation
@@ -103,20 +115,32 @@ const PendingInvitationsPanel = ({ onInvitationChange }) => {
         if (!deleteModal.invitation) return;
 
         setActionLoading(`cancel-${deleteModal.invitation.id}`);
-        try {
-            await axios.delete(
-                route('users.invitations.cancel', { invitation: deleteModal.invitation.id })
-            );
-            showToast.success(`Invitation to ${deleteModal.invitation.email} cancelled`);
-            setDeleteModal({ open: false, invitation: null });
-            fetchInvitations();
-            onInvitationChange?.();
-        } catch (error) {
-            console.error('Error canceling invitation:', error);
-            showToast.error('Failed to cancel invitation');
-        } finally {
-            setActionLoading(null);
-        }
+
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.delete(
+                    route('users.invitations.cancel', { invitation: deleteModal.invitation.id })
+                );
+                
+                if (response.status === 200) {
+                    setDeleteModal({ open: false, invitation: null });
+                    fetchInvitations();
+                    onInvitationChange?.();
+                    resolve([response.data.message || `Invitation to ${deleteModal.invitation.email} cancelled`]);
+                }
+            } catch (error) {
+                console.error('Error canceling invitation:', error);
+                reject([error.response?.data?.message || 'Failed to cancel invitation']);
+            } finally {
+                setActionLoading(null);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Canceling invitation...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     // Get status color
