@@ -35,6 +35,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { hasRoute } from '@/utils/routeUtils';
 
 // Consistent styling from existing admin pages
 const mainCardStyle = {
@@ -129,7 +130,14 @@ const Maintenance = () => {
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
     
-    form.put(route('admin.developer.maintenance.update'), {
+    if (!hasRoute('admin.developer.maintenance.update')) {
+      console.error('Route admin.developer.maintenance.update not found');
+      showToast.error('Navigation route not found. Please contact support.');
+      return;
+    }
+    
+    const url = route('admin.developer.maintenance.update');
+    form.put(url, {
       preserveScroll: true,
       onSuccess: () => {
         showToast.success('Maintenance settings updated successfully.');
