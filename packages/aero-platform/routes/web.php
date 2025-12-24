@@ -94,6 +94,8 @@ Route::prefix('register')->name('platform.register.')->group(function () {
         ->name('verify-phone.verify');
 
     // Cancel registration and cleanup pending tenant
+    Route::post('/cancel', [RegistrationController::class, 'cancelRegistration'])
+        ->name('cancel');
     // =========================================================================
     Route::post('/plan', [RegistrationController::class, 'storePlan'])->name('plan.store');
     Route::post('/trial', [RegistrationController::class, 'activateTrial'])
