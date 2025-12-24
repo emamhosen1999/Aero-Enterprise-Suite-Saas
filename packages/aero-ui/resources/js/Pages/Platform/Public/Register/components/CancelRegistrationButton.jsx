@@ -31,28 +31,38 @@ export default function CancelRegistrationButton({
     const handleCancel = async () => {
         setIsCanceling(true);
         
-        try {
-            // Validate route exists before making request
-            if (!hasRoute('platform.register.cancel')) {
-                throw new Error('Cancel route not available');
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                // Validate route exists before making request
+                if (!hasRoute('platform.register.cancel')) {
+                    throw new Error('Cancel route not available');
+                }
+                
+                const response = await axios.delete(safeRoute('platform.register.cancel'));
+                
+                if (response.status === 200) {
+                    onClose();
+                    
+                    // Safe redirect to landing page after a brief delay
+                    setTimeout(() => {
+                        safeNavigate('landing', {}, { replace: true });
+                    }, 1000);
+                    
+                    resolve([response.data.message || 'Registration cancelled. You can start over anytime.']);
+                }
+            } catch (error) {
+                console.error('Failed to cancel registration:', error);
+                reject([error.response?.data?.message || 'Failed to cancel registration. Please try again.']);
+            } finally {
+                setIsCanceling(false);
             }
-            
-            await axios.delete(safeRoute('platform.register.cancel'));
-            
-            showToast.success('Registration cancelled. You can start over anytime.');
-            
-            onClose();
-            
-            // Safe redirect to landing page after a brief delay
-            setTimeout(() => {
-                safeNavigate('landing', {}, { replace: true });
-            }, 1000);
-        } catch (error) {
-            console.error('Failed to cancel registration:', error);
-            showToast.error('Failed to cancel registration. Please try again.');
-        } finally {
-            setIsCanceling(false);
-        }
+        });
+        
+        showToast.promise(promise, {
+            loading: 'Canceling registration...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     return (

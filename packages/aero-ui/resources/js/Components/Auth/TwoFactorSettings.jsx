@@ -66,19 +66,31 @@ export default function TwoFactorSettings({ enabled = false, remainingCodes = 0 
         }
 
         setLoading(true);
-        try {
-            const response = await axios.post(route('auth.two-factor.confirm'), {
-                code: verificationCode,
-            });
-            setRecoveryCodes(response.data.recovery_codes);
-            setSetupStep(2);
-            setIsEnabled(true);
-            showToast.success('Two-factor authentication enabled!');
-        } catch (error) {
-            showToast.error(error.response?.data?.error || 'Invalid verification code');
-        } finally {
-            setLoading(false);
-        }
+
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('auth.two-factor.confirm'), {
+                    code: verificationCode,
+                });
+                
+                if (response.status === 200) {
+                    setRecoveryCodes(response.data.recovery_codes);
+                    setSetupStep(2);
+                    setIsEnabled(true);
+                    resolve([response.data.message || 'Two-factor authentication enabled!']);
+                }
+            } catch (error) {
+                reject([error.response?.data?.error || 'Invalid verification code']);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Verifying code...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     const handleDisable = async () => {
@@ -88,17 +100,29 @@ export default function TwoFactorSettings({ enabled = false, remainingCodes = 0 
         }
 
         setLoading(true);
-        try {
-            await axios.post(route('auth.two-factor.disable'), { password });
-            setIsEnabled(false);
-            setShowDisableModal(false);
-            setPassword('');
-            showToast.success('Two-factor authentication disabled');
-        } catch (error) {
-            showToast.error(error.response?.data?.error || 'Failed to disable 2FA');
-        } finally {
-            setLoading(false);
-        }
+
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('auth.two-factor.disable'), { password });
+                
+                if (response.status === 200) {
+                    setIsEnabled(false);
+                    setShowDisableModal(false);
+                    setPassword('');
+                    resolve([response.data.message || 'Two-factor authentication disabled']);
+                }
+            } catch (error) {
+                reject([error.response?.data?.error || 'Failed to disable 2FA']);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Disabling 2FA...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     const handleRegenerateCodes = async () => {
@@ -108,18 +132,30 @@ export default function TwoFactorSettings({ enabled = false, remainingCodes = 0 
         }
 
         setLoading(true);
-        try {
-            const response = await axios.post(route('auth.two-factor.regenerate-codes'), {
-                password,
-            });
-            setRecoveryCodes(response.data.recovery_codes);
-            setPassword('');
-            showToast.success('Recovery codes regenerated');
-        } catch (error) {
-            showToast.error(error.response?.data?.error || 'Failed to regenerate codes');
-        } finally {
-            setLoading(false);
-        }
+
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('auth.two-factor.regenerate-codes'), {
+                    password,
+                });
+                
+                if (response.status === 200) {
+                    setRecoveryCodes(response.data.recovery_codes);
+                    setPassword('');
+                    resolve([response.data.message || 'Recovery codes regenerated']);
+                }
+            } catch (error) {
+                reject([error.response?.data?.error || 'Failed to regenerate codes']);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Regenerating codes...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     const copyToClipboard = (text, index = null) => {

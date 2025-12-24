@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Button, Card, CardBody, Chip, Spinner, Progress } from '@heroui/react';
+import axios from 'axios';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Context/ThemeContext.jsx';
@@ -114,16 +115,10 @@ export default function Provisioning({
       // If tenant is already active, fetch the redirect URL
       if (tenant.status === 'active') {
         try {
-          const response = await fetch(
-            route('platform.register.provisioning.status', { tenant: tenant.id }),
-            {
-              headers: {
-                Accept: 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-              },
-            }
+          const response = await axios.get(
+            route('platform.register.provisioning.status', { tenant: tenant.id })
           );
-          const data = await response.json();
+          const data = response.data;
           if (data.is_ready && data.login_url) {
             setLoginUrl(data.login_url);
             setIsRedirecting(true);
@@ -156,21 +151,11 @@ export default function Provisioning({
     }
 
     try {
-      const response = await fetch(
-        route('platform.register.provisioning.status', { tenant: tenant.id }),
-        {
-          headers: {
-            Accept: 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-        }
+      const response = await axios.get(
+        route('platform.register.provisioning.status', { tenant: tenant.id })
       );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch status');
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       setStatus(data.status);
       setProvisioningStep(data.provisioning_step);
@@ -321,21 +306,26 @@ export default function Provisioning({
                   <Button
                     color="primary"
                     onPress={() => {
-                      // Call retry endpoint
-                      fetch(route('platform.register.provisioning.retry', { tenant: tenant.id }), {
-                        method: 'POST',
-                        headers: {
-                          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                          'Accept': 'application/json',
-                        },
-                      })
-                      .then(() => {
-                        showToast.success('Retrying provisioning...');
-                        setStatus('provisioning');
-                        setError(null);
-                      })
-                      .catch((err) => {
-                        showToast.error('Failed to retry. Please contact support.');
+                      // Call retry endpoint using axios + toastUtils
+                      const promise = new Promise(async (resolve, reject) => {
+                        try {
+                          const response = await axios.post(
+                            route('platform.register.provisioning.retry', { tenant: tenant.id })
+                          );
+                          if (response.status === 200) {
+                            setStatus('provisioning');
+                            setError(null);
+                            resolve([response.data.message || 'Retrying provisioning...']);
+                          }
+                        } catch (err) {
+                          reject([err.response?.data?.message || 'Failed to retry. Please contact support.']);
+                        }
+                      });
+
+                      showToast.promise(promise, {
+                        loading: 'Retrying provisioning...',
+                        success: (data) => data[0],
+                        error: (data) => data[0],
                       });
                     }}
                     className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto"
