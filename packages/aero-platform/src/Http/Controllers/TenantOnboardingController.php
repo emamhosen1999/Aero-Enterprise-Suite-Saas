@@ -274,7 +274,7 @@ class TenantOnboardingController extends Controller
         ];
         $this->updateTenantData($data);
 
-        return redirect()->route('core.dashboard')->with('success', 'Welcome! Your organization is all set up.');
+        return redirect()->route('dashboard')->with('success', 'Welcome! Your organization is all set up.');
     }
 
     /**
@@ -291,7 +291,7 @@ class TenantOnboardingController extends Controller
         ];
         $this->updateTenantData($data);
 
-        return redirect()->route('core.dashboard')->with('info', 'You can complete the setup later in Settings.');
+        return redirect()->route('dashboard')->with('info', 'You can complete the setup later in Settings.');
     }
 
     /**
