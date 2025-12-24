@@ -55,12 +55,70 @@ class MailService
 
     protected bool $forcePlatformContext = false;
 
+    protected bool $shouldQueue = false;
+
+    protected ?string $queue = null;
+
+    protected ?int $delay = null;
+
+    protected int $maxRetries = 3;
+
+    protected array $templateVariables = [];
+
+    protected ?string $templateName = null;
+
     /**
      * Create a new MailService instance (fluent builder pattern).
      */
     public static function make(): static
     {
         return new static;
+    }
+
+    /**
+     * Queue the email for background sending.
+     */
+    public function queue(?string $queueName = null, ?int $delaySeconds = null): static
+    {
+        $this->shouldQueue = true;
+        $this->queue = $queueName;
+        $this->delay = $delaySeconds;
+
+        return $this;
+    }
+
+    /**
+     * Set maximum retry attempts for failed sends.
+     */
+    public function retry(int $maxRetries): static
+    {
+        $this->maxRetries = $maxRetries;
+
+        return $this;
+    }
+
+    /**
+     * Use a pre-defined email template with variables.
+     *
+     * @param  string  $templateName  Template identifier
+     * @param  array  $variables  Template variables for replacement
+     */
+    public function template(string $templateName, array $variables = []): static
+    {
+        $this->templateName = $templateName;
+        $this->templateVariables = $variables;
+
+        return $this;
+    }
+
+    /**
+     * Set template variables for rendering.
+     */
+    public function with(array $variables): static
+    {
+        $this->templateVariables = array_merge($this->templateVariables, $variables);
+
+        return $this;
     }
 
     /**
@@ -168,13 +226,150 @@ class MailService
      */
     public function send(): array
     {
+        // Render template if specified
+        if ($this->templateName) {
+            $rendered = $this->renderTemplate($this->templateName, $this->templateVariables);
+            $this->htmlBody = $rendered['html'];
+            $this->textBody = $rendered['text'] ?? $this->textBody;
+            $this->subject = $this->subject ?: ($rendered['subject'] ?? '');
+        }
+
+        // Queue if requested
+        if ($this->shouldQueue) {
+            return $this->queueMail();
+        }
+
         return $this->sendMail($this->to, $this->subject, $this->htmlBody, $this->textBody, [
             'cc' => $this->cc,
             'bcc' => $this->bcc,
             'replyTo' => $this->replyTo,
             'attachments' => $this->attachments,
             'forcePlatformContext' => $this->forcePlatformContext,
+            'maxRetries' => $this->maxRetries,
         ]);
+    }
+
+    /**
+     * Queue the email for background processing.
+     */
+    protected function queueMail(): array
+    {
+        try {
+            $job = new \Aero\Platform\Jobs\SendEmailJob([
+                'to' => $this->to,
+                'cc' => $this->cc,
+                'bcc' => $this->bcc,
+                'replyTo' => $this->replyTo,
+                'subject' => $this->subject,
+                'htmlBody' => $this->htmlBody,
+                'textBody' => $this->textBody,
+                'attachments' => $this->attachments,
+                'forcePlatformContext' => $this->forcePlatformContext,
+                'maxRetries' => $this->maxRetries,
+            ]);
+
+            if ($this->delay) {
+                $job->delay($this->delay);
+            }
+
+            if ($this->queue) {
+                dispatch($job)->onQueue($this->queue);
+            } else {
+                dispatch($job);
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Email queued for sending',
+            ];
+        } catch (\Throwable $e) {
+            Log::error('MailService: Failed to queue email', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to queue email: '.$e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Render an email template with variables.
+     *
+     * @return array{html: string, text: ?string, subject: ?string}
+     */
+    protected function renderTemplate(string $templateName, array $variables): array
+    {
+        // Get tenant branding if available
+        $branding = $this->getTenantBranding();
+        $variables = array_merge($branding, $variables);
+
+        // Load template
+        $templatePath = resource_path("views/emails/{$templateName}.blade.php");
+        
+        if (!file_exists($templatePath)) {
+            Log::warning("MailService: Template not found: {$templateName}");
+            return [
+                'html' => $variables['message'] ?? '',
+                'text' => null,
+                'subject' => null,
+            ];
+        }
+
+        try {
+            $html = view("emails.{$templateName}", $variables)->render();
+            
+            // Extract plain text version if exists
+            $textPath = resource_path("views/emails/{$templateName}-text.blade.php");
+            $text = file_exists($textPath) ? view("emails.{$templateName}-text", $variables)->render() : null;
+
+            // Extract subject if template defines it
+            $subject = $variables['subject'] ?? null;
+
+            return [
+                'html' => $html,
+                'text' => $text,
+                'subject' => $subject,
+            ];
+        } catch (\Throwable $e) {
+            Log::error("MailService: Failed to render template {$templateName}", [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'html' => $variables['message'] ?? '',
+                'text' => null,
+                'subject' => null,
+            ];
+        }
+    }
+
+    /**
+     * Get tenant branding for email templates.
+     */
+    protected function getTenantBranding(): array
+    {
+        $branding = [
+            'app_name' => config('app.name'),
+            'app_url' => config('app.url'),
+            'logo_url' => null,
+            'primary_color' => '#4F46E5',
+            'company_name' => config('app.name'),
+        ];
+
+        if ($this->isTenantContext()) {
+            try {
+                $tenant = tenant();
+                $branding['company_name'] = $tenant->name ?? $branding['company_name'];
+                $branding['logo_url'] = $tenant->logo_url ?? null;
+                $branding['primary_color'] = $tenant->primary_color ?? $branding['primary_color'];
+            } catch (\Throwable $e) {
+                Log::warning('MailService: Failed to get tenant branding', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return $branding;
     }
 
     /**
