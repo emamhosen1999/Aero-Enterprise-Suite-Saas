@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Button, Input, Chip, Spinner } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { hasRoute, safeRoute } from '@/utils/routeUtils';
+import SafeLink from '@/Components/Common/SafeLink';
 import axios from 'axios';
 import AuthCard from '@/Components/UI/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
@@ -71,7 +73,14 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    post(route('platform.register.details.store'));
+    
+    // Validate route exists before submitting
+    if (!hasRoute('platform.register.details.store')) {
+      console.error('Registration route not available');
+      return;
+    }
+    
+    post(safeRoute('platform.register.details.store'));
   };
 
   const personaLabel = accountType === 'individual' ? 'Your name' : 'Organization name';
@@ -182,9 +191,12 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-              <Link href={route('platform.register.index')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
+              <SafeLink 
+                route="platform.register.index" 
+                className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}
+              >
                 ← Back to account type
-              </Link>
+              </SafeLink>
               <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={processing}>
                 Continue to modules
               </Button>

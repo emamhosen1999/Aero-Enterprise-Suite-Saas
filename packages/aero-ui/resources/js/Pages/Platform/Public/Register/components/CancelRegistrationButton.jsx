@@ -1,5 +1,6 @@
 import React from 'react';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate } from '@/utils/routeUtils';
 import { 
     Button, 
     Modal, 
@@ -31,15 +32,20 @@ export default function CancelRegistrationButton({
         setIsCanceling(true);
         
         try {
-            await axios.delete(route('platform.register.cancel'));
+            // Validate route exists before making request
+            if (!hasRoute('platform.register.cancel')) {
+                throw new Error('Cancel route not available');
+            }
+            
+            await axios.delete(safeRoute('platform.register.cancel'));
             
             showToast.success('Registration cancelled. You can start over anytime.');
             
             onClose();
             
-            // Redirect to landing page after a brief delay
+            // Safe redirect to landing page after a brief delay
             setTimeout(() => {
-                router.visit(route('landing'));
+                safeNavigate('landing', {}, { replace: true });
             }, 1000);
         } catch (error) {
             console.error('Failed to cancel registration:', error);
