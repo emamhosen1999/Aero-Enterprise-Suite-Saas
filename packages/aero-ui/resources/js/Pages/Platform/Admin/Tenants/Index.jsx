@@ -97,11 +97,11 @@ const Index = ({ auth }) => {
                 let response;
                 switch (action) {
                     case 'view':
-                        router.visit(route('admin.tenants.show', tenant.id));
+                        safeNavigate('admin.tenants.show', tenant.id);
                         resolve(['Navigating...']);
                         return;
                     case 'edit':
-                        router.visit(route('admin.tenants.edit', tenant.id));
+                        safeNavigate('admin.tenants.edit', tenant.id);
                         resolve(['Navigating...']);
                         return;
                     case 'suspend':

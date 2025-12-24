@@ -150,7 +150,7 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
     };
 
     const handleEdit = (id) => {
-        router.visit(route('finance.fixed-assets.edit', id));
+        safeNavigate('finance.fixed-assets.edit', id);
     };
 
     const handleDelete = (id) => {

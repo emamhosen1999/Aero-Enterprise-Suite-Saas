@@ -213,14 +213,14 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
                                     <DropdownItem
                                         key="edit"
                                         startContent={<PencilIcon className="w-4 h-4" />}
-                                        onPress={() => router.visit(route('inventory.stock.edit', item.id))}
+                                        onPress={() => safeNavigate('inventory.stock.edit', item.id)}
                                     >
                                         Edit
                                     </DropdownItem>
                                     <DropdownItem
                                         key="adjust"
                                         startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                        onPress={() => router.visit(route('inventory.stock.adjust', item.id))}
+                                        onPress={() => safeNavigate('inventory.stock.adjust', item.id)}
                                     >
                                         Adjust Stock
                                     </DropdownItem>
@@ -380,7 +380,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
                             <Button
                                 variant="flat"
                                 startContent={<DocumentArrowDownIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('inventory.stock.export', filters))}
+                                onPress={() => safeNavigate('inventory.stock.export', filters)}
                                 radius={themeRadius}
                             >
                                 Export

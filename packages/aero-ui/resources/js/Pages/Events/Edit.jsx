@@ -85,7 +85,7 @@ const EditEvent = ({ event }) => {
                 });
 
                 if (response.status === 200 || response.status === 201) {
-                    router.visit(route('events.show', event.id));
+                    safeNavigate('events.show', event.id);
                     resolve('Event updated successfully!');
                 } else {
                     reject(`Unexpected response status: ${response.status}`);

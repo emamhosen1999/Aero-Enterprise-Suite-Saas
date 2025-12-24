@@ -47,7 +47,7 @@ const ObjectionsEdit = ({
     };
 
     const handleBack = () => {
-        router.visit(route('rfi.objections.show', objection.id));
+        safeNavigate('rfi.objections.show', objection.id);
     };
 
     return (

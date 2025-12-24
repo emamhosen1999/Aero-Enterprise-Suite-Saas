@@ -181,7 +181,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                                     <DropdownItem
                                         key="edit"
                                         startContent={<PencilIcon className="w-4 h-4" />}
-                                        onPress={() => router.visit(route('finance.general-ledger.edit', entry.id))}
+                                        onPress={() => safeNavigate('finance.general-ledger.edit', entry.id)}
                                     >
                                         Edit
                                     </DropdownItem>
@@ -288,7 +288,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                             <Button
                                 variant="flat"
                                 startContent={<DocumentArrowDownIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('finance.general-ledger.export', filters))}
+                                onPress={() => safeNavigate('finance.general-ledger.export', filters)}
                                 radius={themeRadius}
                             >
                                 Export

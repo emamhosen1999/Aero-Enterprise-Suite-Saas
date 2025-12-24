@@ -108,7 +108,7 @@ const ShowEvent = ({ event, analytics }) => {
     };
     
     const handleDuplicate = () => {
-        router.post(route('events.duplicate', event.id));
+        safePost('events.duplicate', { id: event.id });
     };
 
     return (

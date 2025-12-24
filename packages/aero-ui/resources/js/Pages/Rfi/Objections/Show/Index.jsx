@@ -44,21 +44,21 @@ const ObjectionsShow = ({
     };
 
     const handleEdit = () => {
-        router.visit(route('rfi.objections.edit', objection.id));
+        safeNavigate('rfi.objections.edit', objection.id);
     };
 
     const handleResolve = () => {
-        router.post(route('rfi.objections.resolve', objection.id), {}, {
+        safePost('rfi.objections.resolve', {}, {
             onSuccess: () => showToast.success('Objection resolved'),
             onError: () => showToast.error('Failed to resolve objection'),
-        });
+        }));
     };
 
     const handleReject = () => {
-        router.post(route('rfi.objections.reject', objection.id), {}, {
+        safePost('rfi.objections.reject', {}, {
             onSuccess: () => showToast.success('Objection rejected'),
             onError: () => showToast.error('Failed to reject objection'),
-        });
+        }));
     };
 
     return (

@@ -104,11 +104,11 @@ const ObjectionsIndex = ({
     }, [filters]);
 
     const handleView = (objection) => {
-        router.visit(route('rfi.objections.show', objection.id));
+        safeNavigate('rfi.objections.show', objection.id);
     };
 
     const handleEdit = (objection) => {
-        router.visit(route('rfi.objections.edit', objection.id));
+        safeNavigate('rfi.objections.edit', objection.id);
     };
 
     const handleDelete = async (objection) => {

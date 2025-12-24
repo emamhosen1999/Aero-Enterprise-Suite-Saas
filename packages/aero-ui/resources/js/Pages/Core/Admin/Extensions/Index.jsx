@@ -214,7 +214,7 @@ const ExtensionsIndex = ({ installedModules = [], marketplaceModules = [], purch
                                 <Button
                                     isIconOnly
                                     variant="flat"
-                                    onPress={() => router.visit(route('core.extensions.settings', module.code))}
+                                    onPress={() => safeNavigate('core.extensions.settings', module.code)}
                                     radius={themeRadius}
                                 >
                                     <Cog6ToothIcon className="w-5 h-5" />

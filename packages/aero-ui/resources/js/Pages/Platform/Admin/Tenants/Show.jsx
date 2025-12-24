@@ -68,7 +68,7 @@ const Show = ({ auth, tenantId }) => {
                     <Button
                         color="primary"
                         startContent={<PencilIcon className="w-4 h-4" />}
-                        onPress={() => router.visit(route('admin.tenants.edit', tenantId))}
+                        onPress={() => safeNavigate('admin.tenants.edit', tenantId)}
                         radius={getThemeRadius()}
                     >
                         Edit Tenant

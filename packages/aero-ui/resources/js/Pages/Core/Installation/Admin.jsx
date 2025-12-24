@@ -77,12 +77,12 @@ export default function Admin({ title, licenseEmail }) {
     };
 
     const startInstallation = () => {
-        router.visit(route('install.process'), {
+        safeNavigate('install.process', {}, {
             method: 'post',
             preserveState: true,
             onSuccess: () => {
                 // Will be handled by Processing component
-            },
+            }),
             onError: (errors) => {
                 setIsSaving(false);
                 showToast.error(errors.message || 'Installation failed');

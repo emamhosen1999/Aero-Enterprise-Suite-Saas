@@ -186,11 +186,11 @@ export default function EmployeeOnboardingWizard({
     };
 
     const handleSubmit = () => {
-        router.post(route('hr.onboarding.complete', employee.id), {}, {
+        safePost('hr.onboarding.complete', {}, {
             onSuccess: () => {
                 showToast.success('Onboarding completed successfully!');
                 safeNavigate('hr.onboarding.index');
-            },
+            }),
             onError: () => {
                 showToast.error('Failed to complete onboarding. Please try again.');
             }

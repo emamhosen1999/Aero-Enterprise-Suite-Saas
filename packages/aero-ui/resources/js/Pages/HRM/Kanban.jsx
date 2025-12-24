@@ -241,7 +241,7 @@ const RecruitmentKanban = ({ job, hiringStages, applicationsByStage, departments
                                 size="sm"
                                 color="primary"
                                 startContent={<PlusIcon className="w-4 h-4" />}
-                                onPress={() => router.visit(route('hr.recruitment.applications.create', job.id))}
+                                onPress={() => safeNavigate('hr.recruitment.applications.create', job.id)}
                                 radius={themeRadius}
                             >
                                 Add Candidate
