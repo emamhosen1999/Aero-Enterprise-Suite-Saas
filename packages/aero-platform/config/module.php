@@ -203,7 +203,19 @@ return [
                         ['code' => 'create', 'name' => 'Create Plan'],
                         ['code' => 'edit', 'name' => 'Edit Plan'],
                         ['code' => 'delete', 'name' => 'Delete Plan'],
-                        ['code' => 'toggle_active', 'name' => 'Toggle Active Status'],
+                        ['code' => 'archive', 'name' => 'Archive Plan'],
+                        ['code' => 'clone', 'name' => 'Clone Plan'],
+                    ],
+                ],
+                [
+                    'code' => 'plan_details',
+                    'name' => 'Plan Details',
+                    'route' => '/plans/{id}',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Plan Details'],
+                        ['code' => 'view_subscribers', 'name' => 'View Subscribers'],
+                        ['code' => 'view_revenue', 'name' => 'View Revenue Metrics'],
+                        ['code' => 'export', 'name' => 'Export Reports'],
                     ],
                 ],
                 [
@@ -220,7 +232,52 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 5. Billing & Subscriptions
+        | 5. Quota Management
+        |--------------------------------------------------------------------------
+        */
+        [
+            'code' => 'quota_management',
+            'name' => 'Quota Management',
+            'description' => 'Monitor and configure quota enforcement across all tenants',
+            'icon' => 'ChartPieIcon',
+            'route' => '/quotas',
+            'priority' => 5,
+
+            'components' => [
+                [
+                    'code' => 'quota_dashboard',
+                    'name' => 'Quota Monitor',
+                    'route' => '/quotas',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Quota Dashboard'],
+                        ['code' => 'override', 'name' => 'Override Tenant Quotas'],
+                        ['code' => 'dismiss_warnings', 'name' => 'Dismiss Warnings'],
+                    ],
+                ],
+                [
+                    'code' => 'quota_settings',
+                    'name' => 'Enforcement Settings',
+                    'route' => '/quotas/settings',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Enforcement Settings'],
+                        ['code' => 'edit', 'name' => 'Edit Enforcement Settings'],
+                    ],
+                ],
+                [
+                    'code' => 'quota_analytics',
+                    'name' => 'Usage Analytics',
+                    'route' => '/quotas/analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Usage Analytics'],
+                        ['code' => 'export', 'name' => 'Export Reports'],
+                    ],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | 6. Billing & Subscriptions
         |--------------------------------------------------------------------------
         */
         [
@@ -229,7 +286,7 @@ return [
             'description' => 'Manage subscriptions, invoices, and payments',
             'icon' => 'CreditCardIcon',
             'route' => '/billing',
-            'priority' => 5,
+            'priority' => 6,
 
             'components' => [
                 [
@@ -275,7 +332,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 6. Modules Marketplace
+        | 7. Modules Marketplace
         |--------------------------------------------------------------------------
         */
         [
@@ -284,7 +341,7 @@ return [
             'description' => 'Manage available modules and marketplace',
             'icon' => 'CubeIcon',
             'route' => '/modules',
-            'priority' => 6,
+            'priority' => 7,
 
             'components' => [
                 [
@@ -311,7 +368,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 7. Error Monitoring
+        | 8. Error Monitoring
         |--------------------------------------------------------------------------
         */
         [
@@ -320,7 +377,7 @@ return [
             'description' => 'Monitor errors from all installations',
             'icon' => 'ExclamationTriangleIcon',
             'route' => '/error-logs',
-            'priority' => 7,
+            'priority' => 8,
 
             'components' => [
                 [
@@ -346,7 +403,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 8. Platform Users (Landlord)
+        | 9. Platform Users (Landlord)
         |--------------------------------------------------------------------------
         */
         [
@@ -355,7 +412,7 @@ return [
             'description' => 'Manage platform administrators',
             'icon' => 'UserGroupIcon',
             'route' => '/users',
-            'priority' => 8,
+            'priority' => 9,
 
             'components' => [
                 [
@@ -392,7 +449,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 9. Integrations
+        | 10. Integrations
         |--------------------------------------------------------------------------
         */
         [
@@ -401,7 +458,7 @@ return [
             'description' => 'Manage API keys, webhooks, and connectors',
             'icon' => 'LinkIcon',
             'route' => '/integrations',
-            'priority' => 9,
+            'priority' => 10,
 
             'components' => [
                 [
@@ -437,7 +494,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 10. Platform Settings
+        | 11. Platform Settings
         |--------------------------------------------------------------------------
         */
         [
@@ -446,7 +503,7 @@ return [
             'description' => 'Platform configuration and settings',
             'icon' => 'Cog6ToothIcon',
             'route' => '/settings',
-            'priority' => 10,
+            'priority' => 11,
 
             'components' => [
                 [
@@ -500,7 +557,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 11. Developer Tools
+        | 12. Developer Tools
         |--------------------------------------------------------------------------
         */
         [
@@ -509,7 +566,7 @@ return [
             'description' => 'Developer tools and system monitoring',
             'icon' => 'CommandLineIcon',
             'route' => '/developer',
-            'priority' => 11,
+            'priority' => 12,
 
             'components' => [
                 [
@@ -552,7 +609,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 12. Audit Logs
+        | 13. Audit Logs
         |--------------------------------------------------------------------------
         */
         [
@@ -561,7 +618,7 @@ return [
             'description' => 'Platform activity and audit trail',
             'icon' => 'ClipboardDocumentListIcon',
             'route' => '/audit-logs',
-            'priority' => 12,
+            'priority' => 13,
 
             'components' => [
                 [
@@ -578,7 +635,7 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | 13. Analytics & Reports
+        | 14. Analytics & Reports
         |--------------------------------------------------------------------------
         */
         [
@@ -587,7 +644,7 @@ return [
             'description' => 'Platform analytics and reports',
             'icon' => 'ChartBarIcon',
             'route' => '/analytics',
-            'priority' => 13,
+            'priority' => 14,
 
             'components' => [
                 [
