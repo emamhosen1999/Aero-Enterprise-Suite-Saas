@@ -3,8 +3,22 @@ import { attachDeviceId, handleDeviceMismatch } from './utils/deviceAuth';
 
 window.axios = axios;
 
-// Note: route() helper is provided by @routes directive in app.blade.php
-// It's injected globally by Ziggy via the Blade directive
+/**
+ * Ziggy Route Helper
+ * 
+ * The route() function is provided by the @routes directive in app.blade.php.
+ * It's injected globally by Ziggy via the Blade directive and must be available
+ * before any React components mount.
+ * 
+ * Usage:
+ *   route('route.name')                    // Get route URL
+ *   route('route.name', { id: 1 })        // Get route URL with params
+ *   route().has('route.name')             // Check if route exists
+ *   route().current('route.name')         // Check if current route matches
+ * 
+ * IMPORTANT: Always check if route exists using hasRoute() from routeUtils
+ * before calling route() to avoid undefined errors in Inertia.js v2.
+ */
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 window.axios.defaults.withCredentials = true; // Ensure cookies are sent with requests

@@ -4,6 +4,33 @@
  * Provides safe wrappers around Ziggy's route() helper to prevent
  * undefined errors and navigation failures in multi-domain environments.
  * 
+ * WHY THESE UTILITIES ARE NECESSARY:
+ * 
+ * In Inertia.js v2, when using the useForm hook, the post/put/delete methods
+ * expect a valid URL string. If route() returns undefined (because the route
+ * doesn't exist or Ziggy hasn't loaded), Inertia tries to call .toString() 
+ * on undefined, causing: "Cannot read properties of undefined (reading 'toString')"
+ * 
+ * These utilities solve this by:
+ * 1. Checking route existence before use
+ * 2. Providing fallback values
+ * 3. Showing user-friendly error messages
+ * 4. Preventing application crashes
+ * 
+ * USAGE PATTERNS:
+ * 
+ * BAD (can cause errors):
+ *   post(route('users.store'))  // Crashes if route undefined
+ * 
+ * GOOD (safe with validation):
+ *   if (hasRoute('users.store')) {
+ *     const url = route('users.store');
+ *     post(url);
+ *   }
+ * 
+ * BETTER (automatic error handling):
+ *   safePost('users.store', formData);
+ * 
  * @package aero-ui
  */
 
