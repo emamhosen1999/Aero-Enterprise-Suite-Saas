@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { showToast } from '@/utils/toastUtils';
 import {

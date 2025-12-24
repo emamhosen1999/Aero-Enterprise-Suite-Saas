@@ -3,6 +3,7 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, 
 import { MagnifyingGlassIcon, FunnelIcon, ArrowPathIcon, EllipsisVerticalIcon, DocumentArrowDownIcon, EyeIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import axios from 'axios';
 
 export default function DeliveryLogsTable({ logs = [], pagination = {}, filters: initialFilters = {} }) {

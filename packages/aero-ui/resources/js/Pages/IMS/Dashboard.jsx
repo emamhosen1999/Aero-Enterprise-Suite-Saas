@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
   Button,
@@ -164,7 +165,7 @@ const InventoryDashboard = ({
                 <Button
                   size="sm"
                   color="primary"
-                  onClick={() => router.visit(route('inventory.reports.index'))}
+                  onClick={() => safeNavigate('inventory.reports.index')}
                 >
                   View Reports
                 </Button>
@@ -256,7 +257,7 @@ const InventoryDashboard = ({
                     size="sm"
                     variant="light"
                     color="primary"
-                    onClick={() => router.visit(route('inventory.warehouses.index'))}
+                    onClick={() => safeNavigate('inventory.warehouses.index')}
                   >
                     View All
                   </Button>
@@ -310,7 +311,7 @@ const InventoryDashboard = ({
                   size="sm"
                   variant="light"
                   color="primary"
-                  onClick={() => router.visit(route('inventory.movements.index'))}
+                  onClick={() => safeNavigate('inventory.movements.index')}
                 >
                   View All
                 </Button>
@@ -399,7 +400,7 @@ const InventoryDashboard = ({
                   size="sm"
                   variant="light"
                   color="primary"
-                  onClick={() => router.visit(route('inventory.items.index'))}
+                  onClick={() => safeNavigate('inventory.items.index')}
                 >
                   View All
                 </Button>

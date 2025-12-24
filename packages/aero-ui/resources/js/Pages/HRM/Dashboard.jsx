@@ -1,5 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Head, router} from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {Button, Card, CardBody, CardHeader, Chip, Divider, Progress} from "@heroui/react";
 import {useTheme} from '@/Context/ThemeContext';
 
@@ -97,21 +98,21 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
       label: "Request Time Off",
       icon: <PlusIcon className="w-4 h-4" />,
       color: "primary",
-      onClick: () => router.visit(route('leaves-employee')),
+      onClick: () => safeNavigate('leaves-employee'),
       description: "Submit new request"
     },
     {
       label: "Admin Panel",
       icon: <UserGroupIcon className="w-4 h-4" />,
       color: "secondary", 
-      onClick: () => router.visit(route('leaves')),
+      onClick: () => safeNavigate('leaves'),
       description: "Manage all leaves"
     },
     {
       label: "Leave Reports",
       icon: <ChartBarIcon className="w-4 h-4" />,
       color: "success",
-      onClick: () => router.visit(route('leave-summary')),
+      onClick: () => safeNavigate('leave-summary'),
       description: "Analytics & insights"
     }
   ];
@@ -132,7 +133,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                 {
                   label: isMobile ? "Request" : "Request Time Off",
                   icon: <PlusIcon className="w-4 h-4" />,
-                  onClick: () => router.visit(route('leaves-employee')),
+                  onClick: () => safeNavigate('leaves-employee'),
                   className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
                 }
               ]}
@@ -245,7 +246,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                         <Button
                           size="sm"
                           variant="light"
-                          onPress={() => router.visit(route('holidays'))}
+                          onPress={() => safeNavigate('holidays')}
                         >
                           View All
                         </Button>
@@ -299,7 +300,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                         <Button
                           size="sm"
                           variant="light"
-                          onPress={() => router.visit(route('leaves-employee'))}
+                          onPress={() => safeNavigate('leaves-employee')}
                         >
                           View All
                         </Button>
@@ -365,7 +366,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                           variant="flat"
                           color="primary"
                           startContent={<UserGroupIcon className="w-4 h-4" />}
-                          onPress={() => router.visit(route('leaves'))}
+                          onPress={() => safeNavigate('leaves')}
                           className="h-16 flex-col"
                         >
                           <span className="font-medium">Leave Requests</span>
@@ -376,7 +377,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                           variant="flat"
                           color="secondary"
                           startContent={<ChartBarIcon className="w-4 h-4" />}
-                          onPress={() => router.visit(route('leave-summary'))}
+                          onPress={() => safeNavigate('leave-summary')}
                           className="h-16 flex-col"
                         >
                           <span className="font-medium">Leave Summary</span>
@@ -387,7 +388,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                           variant="flat"
                           color="success"
                           startContent={<GlobeAltIcon className="w-4 h-4" />}
-                          onPress={() => router.visit(route('holidays'))}
+                          onPress={() => safeNavigate('holidays')}
                           className="h-16 flex-col"
                         >
                           <span className="font-medium">Holidays</span>
@@ -398,7 +399,7 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
                           variant="flat"
                           color="warning"
                           startContent={<CogIcon className="w-4 h-4" />}
-                          onPress={() => router.visit(route('settings.leave'))}
+                          onPress={() => safeNavigate('settings.leave')}
                           className="h-16 flex-col"
                         >
                           <span className="font-medium">Settings</span>

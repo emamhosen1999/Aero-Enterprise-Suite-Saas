@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import PageHeader from '@/Components/PageHeader';
 import {

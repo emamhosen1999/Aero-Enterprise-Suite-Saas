@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -188,7 +189,7 @@ const ProjectsDashboard = ({ stats = {}, recentProjects = [], upcomingTasks = []
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('projects.index'))}
+                                    onPress={() => safeNavigate('projects.index')}
                                     radius={themeRadius}
                                 >
                                     View All
@@ -245,7 +246,7 @@ const ProjectsDashboard = ({ stats = {}, recentProjects = [], upcomingTasks = []
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    onPress={() => router.visit(route('projects.tasks.index'))}
+                                    onPress={() => safeNavigate('projects.tasks.index')}
                                     radius={themeRadius}
                                 >
                                     View All
@@ -339,7 +340,7 @@ const ProjectsDashboard = ({ stats = {}, recentProjects = [], upcomingTasks = []
                             color="primary"
                             variant="shadow"
                             size="lg"
-                            onPress={() => router.visit(route('projects.reports'))}
+                            onPress={() => safeNavigate('projects.reports')}
                             radius={themeRadius}
                             startContent={<ChartBarIcon className="w-5 h-5" />}
                         >

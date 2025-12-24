@@ -1,5 +1,7 @@
 ﻿import React, { useMemo } from 'react';
 import { Link, Head } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import { useBranding } from '@/Hooks/useBranding';
 import {

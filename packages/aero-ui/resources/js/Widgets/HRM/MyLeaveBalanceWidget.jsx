@@ -6,6 +6,7 @@ import {
     ExclamationTriangleIcon 
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { route } from 'ziggy-js';
 import axios from 'axios';
 
@@ -45,7 +46,7 @@ export default function MyLeaveBalanceWidget({ data, meta }) {
     };
 
     const handleViewDetails = () => {
-        router.visit(route('leaves.employee'));
+        safeNavigate('leaves.employee');
     };
 
     const getTypeColor = (type) => {

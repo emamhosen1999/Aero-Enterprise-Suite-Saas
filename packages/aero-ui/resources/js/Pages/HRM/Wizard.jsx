@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {Head, router, useForm} from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {AnimatePresence, motion} from 'framer-motion';
 import {
     Button,
@@ -188,7 +189,7 @@ export default function EmployeeOnboardingWizard({
         router.post(route('hr.onboarding.complete', employee.id), {}, {
             onSuccess: () => {
                 showToast.success('Onboarding completed successfully!');
-                router.visit(route('hr.onboarding.index'));
+                safeNavigate('hr.onboarding.index');
             },
             onError: () => {
                 showToast.error('Failed to complete onboarding. Please try again.');

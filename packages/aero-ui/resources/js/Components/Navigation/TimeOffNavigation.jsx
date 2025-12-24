@@ -1,5 +1,6 @@
 import React from 'react';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate } from '@/utils/routeUtils';
 import {
   CalendarDaysIcon,
   GlobeAltIcon,
@@ -77,7 +78,10 @@ const TimeOffNavigation = ({ currentRoute, permissions = [] }) => {
   };
 
   const handleNavigation = (route) => {
-    router.visit(route);
+    // Use safe navigation with route validation
+    if (typeof route === 'string') {
+      safeNavigate(route);
+    }
   };
 
   const isActive = (route) => {

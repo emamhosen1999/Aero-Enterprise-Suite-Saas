@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Button, Chip } from '@heroui/react';
 import { CheckCircleIcon, RocketLaunchIcon } from '@heroicons/react/24/outline';
 
@@ -22,7 +23,7 @@ export default function Welcome({ title, product, version, phpVersion, laravelVe
     }, []);
 
     const handleStart = () => {
-        router.visit(route('install.license'));
+        safeNavigate('install.license');
     };
 
     return (

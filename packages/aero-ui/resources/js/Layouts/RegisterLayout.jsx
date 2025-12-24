@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useBranding } from '@/Hooks/useBranding.js';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';

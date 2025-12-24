@@ -3,6 +3,7 @@
 namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
+use Aero\Core\Support\SafeRedirect;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,7 @@ class VerificationController extends Controller
     public function notice(Request $request): Response|RedirectResponse
     {
         return $request->user()->hasVerifiedEmail()
-            ? redirect()->intended(route('dashboard'))
+            ? SafeRedirect::intended('dashboard')
             : Inertia::render('Shared/Auth/VerifyEmail', ['status' => session('status')]);
     }
 
@@ -28,14 +29,21 @@ class VerificationController extends Controller
     public function verify(EmailVerificationRequest $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard').'?verified=1');
+            // Use SafeRedirect with intended URL and append query parameter
+            $dashboardUrl = SafeRedirect::routeExists('dashboard') 
+                ? route('dashboard').'?verified=1' 
+                : '/?verified=1';
+            return redirect($dashboardUrl);
         }
 
         if ($request->user()->markEmailAsVerified()) {
             event(new Verified($request->user()));
         }
 
-        return redirect()->intended(route('dashboard').'?verified=1');
+        $dashboardUrl = SafeRedirect::routeExists('dashboard') 
+            ? route('dashboard').'?verified=1' 
+            : '/?verified=1';
+        return redirect($dashboardUrl);
     }
 
     /**
@@ -44,11 +52,11 @@ class VerificationController extends Controller
     public function resend(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard'));
+            return SafeRedirect::intended('dashboard');
         }
 
         $request->user()->sendEmailVerificationNotification();
 
-        return back()->with('status', 'verification-link-sent');
+        return SafeRedirect::back('dashboard')->with('status', 'verification-link-sent');
     }
 }

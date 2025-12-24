@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Button,
@@ -81,7 +82,7 @@ const CreateEvent = () => {
 
                 if (response.status === 200 || response.status === 201) {
                     // Redirect to events index or show page
-                    router.visit(route('events.index'));
+                    safeNavigate('events.index');
                     resolve('Event created successfully!');
                 } else {
                     reject(`Unexpected response status: ${response.status}`);

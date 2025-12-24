@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Button, Input, Select, SelectItem, Tabs, Tab } from '@heroui/react';
 import { 
     Cog6ToothIcon, 
@@ -100,7 +101,7 @@ export default function Application({ title, timezones, licenseEmail }) {
                 if (response.data.success) {
                     resolve([response.data.message]);
                     setTimeout(() => {
-                        router.visit(route('install.admin'));
+                        safeNavigate('install.admin');
                     }, 1000);
                 } else {
                     reject([response.data.message]);
@@ -393,7 +394,7 @@ export default function Application({ title, timezones, licenseEmail }) {
                                 <Button
                                     variant="flat"
                                     radius={themeRadius}
-                                    onPress={() => router.visit(route('install.database'))}
+                                    onPress={() => safeNavigate('install.database')}
                                     isDisabled={isSaving}
                                 >
                                     Back

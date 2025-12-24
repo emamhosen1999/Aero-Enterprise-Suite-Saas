@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Button, Input } from '@heroui/react';
 import AuthCard from '@/Components/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';

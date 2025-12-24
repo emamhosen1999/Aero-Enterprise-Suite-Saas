@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import {
     Table,
@@ -227,7 +228,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                             <Button
                                 color="primary"
                                 startContent={<PlusIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('finance.general-ledger.create'))}
+                                onPress={() => safeNavigate('finance.general-ledger.create')}
                                 radius={themeRadius}
                             >
                                 New Entry

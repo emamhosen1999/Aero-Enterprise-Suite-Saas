@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion } from 'framer-motion';
 import App from '@/Layouts/App';
 import {

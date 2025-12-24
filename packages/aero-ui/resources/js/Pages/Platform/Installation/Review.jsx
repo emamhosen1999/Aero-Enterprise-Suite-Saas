@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Head, useForm, Link, router } from '@inertiajs/react';
+import SafeLink from '@/Components/Common/SafeLink';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import InstallationLayout from '@/Layouts/InstallationLayout';
 import { Card, CardHeader, CardBody, CardFooter, Button, Divider, Progress, Chip } from '@heroui/react';
 import { ClipboardDocumentCheckIcon, CircleStackIcon, Cog6ToothIcon, UserCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
@@ -83,7 +85,7 @@ export default function Review({ dbConfig, platformConfig, adminConfig }) {
             // The warning is now disabled via the global function above
             setTimeout(() => {
                 console.log('🔄 Navigating to Complete page...');
-                router.visit(route('installation.complete'));
+                safeNavigate('installation.complete');
             }, 1500);
 
         } catch (error) {

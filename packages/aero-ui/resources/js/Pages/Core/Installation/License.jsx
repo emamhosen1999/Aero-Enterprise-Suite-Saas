@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Button, Input, Select, SelectItem, Spinner } from '@heroui/react';
 import { 
     ShieldCheckIcon, 
@@ -74,7 +75,7 @@ export default function License({ title, providers, products }) {
                     resolve([response.data.message]);
                     // Navigate to next step after short delay
                     setTimeout(() => {
-                        router.visit(route('install.requirements'));
+                        safeNavigate('install.requirements');
                     }, 1000);
                 } else {
                     reject([response.data.message]);
@@ -223,7 +224,7 @@ export default function License({ title, providers, products }) {
                                     <Button
                                         variant="flat"
                                         radius={themeRadius}
-                                        onPress={() => router.visit(route('install.index'))}
+                                        onPress={() => safeNavigate('install.index')}
                                         isDisabled={isValidating}
                                     >
                                         Back

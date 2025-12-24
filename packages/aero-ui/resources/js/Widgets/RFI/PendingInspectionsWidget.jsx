@@ -7,6 +7,7 @@ import {
     ClockIcon
 } from '@heroicons/react/24/outline';
 import { router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { route } from 'ziggy-js';
 import axios from 'axios';
 
@@ -42,7 +43,7 @@ export default function PendingInspectionsWidget({ data, meta }) {
     };
 
     const handleViewAll = () => {
-        router.visit(route('rfi.index', { status: 'pending' }));
+        safeNavigate('rfi.index', { status: 'pending' });
     };
 
     if (loading) {

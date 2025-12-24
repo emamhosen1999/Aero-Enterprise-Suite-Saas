@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -39,7 +40,7 @@ const ObjectionsShow = ({
     categoryLabels = {},
 }) => {
     const handleBack = () => {
-        router.visit(route('rfi.objections.index'));
+        safeNavigate('rfi.objections.index');
     };
 
     const handleEdit = () => {

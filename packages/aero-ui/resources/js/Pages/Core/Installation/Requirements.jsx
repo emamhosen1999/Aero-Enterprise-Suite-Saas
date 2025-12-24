@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { Card, CardBody, CardHeader, Button, Chip, Spinner } from '@heroui/react';
 import { 
     CheckCircleIcon, 
@@ -30,11 +31,11 @@ export default function Requirements({ title, checks, canProceed }) {
     }, []);
 
     const handleContinue = () => {
-        router.visit(route('install.database'));
+        safeNavigate('install.database');
     };
 
     const handleBack = () => {
-        router.visit(route('install.license'));
+        safeNavigate('install.license');
     };
 
     const renderCheckItem = (check) => (

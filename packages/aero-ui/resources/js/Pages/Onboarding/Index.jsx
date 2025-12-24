@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Button,
@@ -172,7 +173,7 @@ export default function OnboardingWizard({
         setActiveStep(step);
         // Only sync with server when explicitly needed (e.g., manual step navigation)
         if (syncWithServer) {
-            router.post(route('onboarding.step'), { step }, { preserveState: true, preserveScroll: true });
+            safePost('onboarding.step', { step }, { preserveState: true, preserveScroll: true });
         }
     };
 
@@ -226,7 +227,7 @@ export default function OnboardingWizard({
             return;
         }
         
-        router.post(route('onboarding.team'), {
+        safePost('onboarding.team', {
             invitations: validInvites,
         }, {
             preserveScroll: true,
@@ -280,7 +281,7 @@ export default function OnboardingWizard({
 
     const handleModulesSubmit = (e) => {
         e.preventDefault();
-        router.post(route('onboarding.modules'), {
+        safePost('onboarding.modules', {
             enabled_modules: ['hr', 'project'], // Default modules
         }, {
             preserveScroll: true,
@@ -291,7 +292,7 @@ export default function OnboardingWizard({
     };
 
     const handleComplete = () => {
-        router.post(route('onboarding.complete'), {}, {
+        safePost('onboarding.complete', {}, {
             // Let Inertia handle the redirect from the backend
             onError: () => {
                 showToast.error('Something went wrong. Please try again.');
@@ -300,7 +301,7 @@ export default function OnboardingWizard({
     };
 
     const handleSkip = () => {
-        router.post(route('onboarding.skip'), {}, {
+        safePost('onboarding.skip', {}, {
             // Let Inertia handle the redirect from the backend
             onError: () => {
                 showToast.error('Something went wrong. Please try again.');

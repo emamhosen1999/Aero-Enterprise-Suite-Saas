@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -244,7 +245,7 @@ const ObjectionsIndex = ({
                             <Button
                                 color="primary"
                                 startContent={<PlusIcon className="w-5 h-5" />}
-                                onPress={() => router.visit(route('rfi.objections.create'))}
+                                onPress={() => safeNavigate('rfi.objections.create')}
                             >
                                 New Objection
                             </Button>

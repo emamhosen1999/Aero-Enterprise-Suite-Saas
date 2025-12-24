@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import {
     Card,
@@ -45,7 +46,7 @@ const ObjectionsCreate = ({
     };
 
     const handleBack = () => {
-        router.visit(route('rfi.objections.index'));
+        safeNavigate('rfi.objections.index');
     };
 
     return (

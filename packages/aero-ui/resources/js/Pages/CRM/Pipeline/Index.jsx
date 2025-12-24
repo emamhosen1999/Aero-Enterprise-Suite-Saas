@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -48,7 +49,7 @@ export default function Index({
     const handlePipelineChange = (pipelineId) => {
         setSelectedPipelineId(pipelineId);
         // Navigate to the selected pipeline
-        router.visit(route('crm.pipeline', { pipeline: pipelineId }));
+        safeNavigate('crm.pipeline', { pipeline: pipelineId });
     };
 
     return (
