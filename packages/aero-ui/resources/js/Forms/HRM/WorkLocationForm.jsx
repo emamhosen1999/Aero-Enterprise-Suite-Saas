@@ -13,6 +13,7 @@ import {
 } from "@heroui/react";
 import {DocumentTextIcon, MapPinIcon, UserIcon} from "@heroicons/react/24/outline";
 import {showToast} from "@/utils/toastUtils";
+import axios from 'axios';
 
 const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, users }) => {
     const [formData, setFormData] = useState({
@@ -93,40 +94,39 @@ const WorkLocationForm = ({ modalType, open, closeModal, setData, currentRow, us
 
         setLoading(true);
         const url = modalType === 'add' ? '/work-locations/add' : '/work-locations/update';
-        const method = 'POST';
         
         const requestData = modalType === 'update' 
             ? { ...formData, id: currentRow.id }
             : formData;
 
-        try {
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify(requestData),
-            });
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(url, requestData);
 
-            const result = await response.json();
-
-            if (response.ok) {
-                setData(result.work_locations);
-                showToast.success(result.message || `Work location ${modalType === 'add' ? 'added' : 'updated'} successfully!`);
-                closeModal();
-            } else {
-                if (result.error && typeof result.error === 'object') {
-                    setErrors(result.error);
-                } else {
-                    showToast.error(result.error || 'An error occurred');
+                if (response.status === 200) {
+                    setData(response.data.work_locations);
+                    closeModal();
+                    resolve([response.data.message || `Work location ${modalType === 'add' ? 'added' : 'updated'} successfully!`]);
                 }
+            } catch (error) {
+                console.error('Work location error:', error);
+                
+                if (error.response?.data?.error && typeof error.response.data.error === 'object') {
+                    setErrors(error.response.data.error);
+                    reject([Object.values(error.response.data.error).flat().join(', ')]);
+                } else {
+                    reject([error.response?.data?.error || error.response?.data?.message || 'An error occurred']);
+                }
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            showToast.error('Network error occurred. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: `${modalType === 'add' ? 'Adding' : 'Updating'} work location...`,
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     const handleClose = () => {

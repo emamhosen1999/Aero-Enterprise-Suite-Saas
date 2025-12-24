@@ -122,29 +122,40 @@ const AddEditTrainingForm = ({ open, onClose, training = null, fetchData, curren
         
         setLoading(true);
         
-        try {
-            let response;
-            
-            if (isEditing) {
-                response = await axios.put(route('hr.training.update', training.id), formData);
-            } else {
-                response = await axios.post(route('hr.training.store'), formData);
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                let response;
+                
+                if (isEditing) {
+                    response = await axios.put(route('hr.training.update', training.id), formData);
+                } else {
+                    response = await axios.post(route('hr.training.store'), formData);
+                }
+                
+                if (response.status === 200) {
+                    onClose();
+                    fetchData(currentPage, perPage, filterData);
+                    resolve([response.data.message || `Training ${isEditing ? 'updated' : 'created'} successfully!`]);
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                
+                if (error.response?.data?.errors) {
+                    setErrors(error.response.data.errors);
+                    reject([Object.values(error.response.data.errors).flat().join(', ')]);
+                } else {
+                    reject([error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} training session.`]);
+                }
+            } finally {
+                setLoading(false);
             }
-            
-            showToast.success(response.data.message || `Training ${isEditing ? 'updated' : 'created'} successfully!`);
-            onClose();
-            fetchData(currentPage, perPage, filterData);
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            
-            if (error.response && error.response.data && error.response.data.errors) {
-                setErrors(error.response.data.errors);
-            } else {
-                showToast.error(`Failed to ${isEditing ? 'update' : 'create'} training session.`);
-            }
-        } finally {
-            setLoading(false);
-        }
+        });
+        
+        showToast.promise(promise, {
+            loading: `${isEditing ? 'Updating' : 'Creating'} training session...`,
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
     
     return (

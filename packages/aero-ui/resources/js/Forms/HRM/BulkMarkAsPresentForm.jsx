@@ -149,33 +149,47 @@ const BulkMarkAsPresentForm = ({
                 location: formData.location
             };
 
-            const response = await axios.post(route('attendance.bulk-mark-as-present'), submitData);
+            const promise = new Promise(async (resolve, reject) => {
+                try {
+                    const response = await axios.post(route('attendance.bulk-mark-as-present'), submitData);
 
-            if (response.status === 200) {
-                const { data } = response.data;
-                const { summary } = response.data;
-                
-                // Show detailed results
-                if (summary.successful > 0) {
-                    showToast.success(`Successfully marked ${summary.successful} employees as present!`);
+                    if (response.status === 200) {
+                        const { data, summary } = response.data;
+                        
+                        refreshTimeSheet();
+                        closeModal();
+                        
+                        // Build summary message
+                        const messages = [];
+                        if (summary.successful > 0) {
+                            messages.push(`Successfully marked ${summary.successful} employees as present`);
+                        }
+                        if (summary.failed > 0) {
+                            messages.push(`${summary.failed} failed`);
+                        }
+                        if (summary.skipped > 0) {
+                            messages.push(`${summary.skipped} skipped (already present)`);
+                        }
+                        
+                        resolve([messages.join('. ')]);
+                    }
+                } catch (error) {
+                    if (error.response?.status === 422) {
+                        setErrors(error.response.data.errors || {});
+                        reject([error.response.data.message || 'Please check the form for errors']);
+                    } else {
+                        reject([error.response?.data?.message || 'Failed to bulk mark users as present']);
+                    }
                 }
-                if (summary.failed > 0) {
-                    showToast.warning(`${summary.failed} employees failed to be marked present.`);
-                }
-                if (summary.skipped > 0) {
-                    showToast.info(`${summary.skipped} employees were skipped (already have attendance).`);
-                }
-                
-                refreshTimeSheet();
-                closeModal();
-            }
+            });
+
+            showToast.promise(promise, {
+                loading: 'Marking employees as present...',
+                success: (data) => data[0],
+                error: (data) => data[0],
+            });
         } catch (error) {
-            if (error.response?.status === 422) {
-                setErrors(error.response.data.errors || {});
-                showToast.error(error.response.data.message || 'Please check the form for errors');
-            } else {
-                showToast.error(error.response?.data?.message || 'Failed to bulk mark users as present');
-            }
+            console.error('Bulk mark present error:', error);
         } finally {
             setProcessing(false);
         }
