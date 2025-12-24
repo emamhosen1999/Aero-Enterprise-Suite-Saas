@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Platform\Http\Controllers;
 
 use Aero\Core\Services\Module\ModuleDiscoveryService;
+use Aero\Core\Support\SafeRedirect;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantRegistrationSession;
 use Aero\Platform\Http\Controllers\Controller;
@@ -44,7 +45,8 @@ class RegistrationPageController extends Controller
     public function details(): Response|RedirectResponse
     {
         if (! $this->registrationSession->hasStep('account')) {
-            return to_route('platform.register.index');
+            // Use SafeRedirect for safe navigation in public registration flow
+            return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
         $account = $this->registrationSession->get()['account'] ?? [];
@@ -62,7 +64,7 @@ class RegistrationPageController extends Controller
     {
         // Only require account and details (admin setup moved to after provisioning)
         if (! $this->registrationSession->ensureSteps(['account', 'details'])) {
-            return to_route('platform.register.index');
+            return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
         $details = $this->registrationSession->get()['details'] ?? [];
@@ -80,7 +82,7 @@ class RegistrationPageController extends Controller
     {
         // Require verification step to have been started
         if (! $this->registrationSession->ensureSteps(['account', 'details', 'verification'])) {
-            return to_route('platform.register.index');
+            return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
         $details = $this->registrationSession->get()['details'] ?? [];
@@ -95,7 +97,7 @@ class RegistrationPageController extends Controller
     {
         // Only require account and details (admin setup moved to after provisioning)
         if (! $this->registrationSession->ensureSteps(['account', 'details'])) {
-            return to_route('platform.register.index');
+            return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
         // Fetch all sellable modules from installed Composer packages
@@ -179,7 +181,7 @@ class RegistrationPageController extends Controller
     {
         // Only require account, details, and plan (admin setup moved to after provisioning)
         if (! $this->registrationSession->ensureSteps(['account', 'details', 'plan'])) {
-            return to_route('platform.register.index');
+            return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
         // Get plan data and validate that user has selected something
@@ -187,8 +189,11 @@ class RegistrationPageController extends Controller
         $hasSelection = ! empty($planData['plan_id']) || ! empty($planData['modules']);
 
         if (! $hasSelection) {
-            return to_route('platform.register.plan')
-                ->with('error', 'Please select a plan or modules before continuing.');
+            return SafeRedirect::withError(
+                'platform.register.plan',
+                'Please select a plan or modules before continuing.',
+                []
+            );
         }
 
         // Fetch all sellable modules from installed Composer packages
@@ -320,7 +325,7 @@ class RegistrationPageController extends Controller
         $result = $this->registrationSession->pullSuccess();
 
         if ($result === null) {
-            return to_route('platform.register.index');
+            return SafeRedirect::toRoute('platform.register.index', [], 'platform.register.index');
         }
 
         return $this->render('Platform/Public/Register/Success', 'success', [

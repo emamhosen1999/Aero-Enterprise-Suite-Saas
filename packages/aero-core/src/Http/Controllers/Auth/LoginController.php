@@ -6,6 +6,7 @@ use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Aero\Core\Services\Auth\DeviceAuthService;
 use Aero\Core\Services\Auth\ModernAuthenticationService;
+use Aero\Core\Support\SafeRedirect;
 use App\Http\Middleware\IdentifyDomainContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -256,7 +257,8 @@ class LoginController extends Controller
 
         $redirectTo = $this->determineRedirectPath($request, $user);
 
-        return redirect()->intended($redirectTo);
+        // Use SafeRedirect for secure, domain-validated redirect
+        return SafeRedirect::intended($redirectTo, true);
     }
 
     /**
@@ -304,7 +306,8 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        // Use SafeRedirect to ensure login route exists
+        return SafeRedirect::toRoute('login', [], 'login');
     }
 
     /**

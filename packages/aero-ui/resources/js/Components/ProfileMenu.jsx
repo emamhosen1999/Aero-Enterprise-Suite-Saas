@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { getDashboardUrl } from '@/utils/moduleAccessUtils';
+import { hasRoute, safeRoute, safePost } from '@/utils/routeUtils';
 import {
   Dropdown,
   DropdownTrigger,
@@ -15,6 +16,7 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 import ProfileAvatar from '@/Components/ProfileAvatar';
+import { showToast } from '@/utils/toastUtils';
 
 // Simple Profile Menu with HeroUI Dropdown
 const ProfileMenu = ({ children }) => {
@@ -35,10 +37,21 @@ const ProfileMenu = ({ children }) => {
   
   const handleLogout = async () => {
     setIsLoggingOut(true);
+    
+    // Use safe logout with route validation
+    if (!hasRoute('logout')) {
+      console.error('Logout route not found');
+      showToast.error('Logout failed: Route not available');
+      setIsLoggingOut(false);
+      return;
+    }
+    
     try {
-      await router.post('/logout');
+      // Use safePost for logout (validates route exists)
+      await router.post(safeRoute('logout'));
     } catch (error) {
       console.error('Logout failed:', error);
+      showToast.error('Logout failed. Please try again.');
       setIsLoggingOut(false);
     }
   };
