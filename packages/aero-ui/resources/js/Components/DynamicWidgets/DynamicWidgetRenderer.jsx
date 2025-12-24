@@ -34,10 +34,14 @@ const loadWidget = (componentPath) => {
     }
 
     // Fallback: Try dynamic import patterns
+    // Vite dynamic-imports require an extension in the static part of the path.
+    // We attempt common variants (.jsx/.js) and locations.
     return lazy(() => {
         const paths = [
-            () => import(`@/${componentPath}`),
-            () => import(`@/Widgets/${componentPath}`),
+            () => import(`@/${componentPath}.jsx`),
+            () => import(`@/${componentPath}.js`),
+            () => import(`@/Widgets/${componentPath}.jsx`),
+            () => import(`@/Widgets/${componentPath}.js`),
         ];
 
         return paths.reduce(

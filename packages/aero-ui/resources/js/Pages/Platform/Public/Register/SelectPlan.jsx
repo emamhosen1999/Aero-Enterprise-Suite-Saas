@@ -83,8 +83,9 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
       showToast.error('Navigation route not found. Please contact support.');
       return;
     }
-    
-    const url = route('platform.register.plan.store');
+
+    // Resolve to a safe URL string to avoid Inertia hrefToUrl errors
+    const url = safeRoute('platform.register.plan.store');
     post(url);
   };
 

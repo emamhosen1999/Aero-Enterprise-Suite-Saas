@@ -196,13 +196,13 @@ export default function OnboardingWizard({
     const handleCompanySubmit = (e) => {
         e.preventDefault();
         
-        if (!hasRoute('onboarding.company')) {
-            console.error('Route onboarding.company not found');
+        if (!hasRoute('onboarding.company.save')) {
+            console.error('Route onboarding.company.save not found');
             showToast.error('Navigation route not found. Please contact support.');
             return;
         }
         
-        const url = route('onboarding.company');
+        const url = route('onboarding.company.save');
         companyForm.post(url, {
             preserveScroll: true,
             onSuccess: () => {
@@ -215,13 +215,13 @@ export default function OnboardingWizard({
     const handleBrandingSubmit = (e) => {
         e.preventDefault();
         
-        if (!hasRoute('onboarding.branding')) {
-            console.error('Route onboarding.branding not found');
+        if (!hasRoute('onboarding.branding.save')) {
+            console.error('Route onboarding.branding.save not found');
             showToast.error('Navigation route not found. Please contact support.');
             return;
         }
         
-        const url = route('onboarding.branding');
+        const url = route('onboarding.branding.save');
         brandingForm.post(url, {
             preserveScroll: true,
             onSuccess: () => {
@@ -243,7 +243,7 @@ export default function OnboardingWizard({
             return;
         }
         
-        safePost('onboarding.team', {
+        safePost('onboarding.team.save', {
             invitations: validInvites,
         }, {
             preserveScroll: true,
@@ -297,7 +297,7 @@ export default function OnboardingWizard({
 
     const handleModulesSubmit = (e) => {
         e.preventDefault();
-        safePost('onboarding.modules', {
+        safePost('onboarding.modules.save', {
             enabled_modules: ['hr', 'project'], // Default modules
         }, {
             preserveScroll: true,
