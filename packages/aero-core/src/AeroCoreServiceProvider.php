@@ -335,10 +335,10 @@ class AeroCoreServiceProvider extends ServiceProvider
      * Load runtime routes after installation is complete.
      * Handles both SaaS and standalone modes.
      *
-     * IMPORTANT: Following stancl/tenancy default pattern:
-     * - Register ALL routes unconditionally
-     * - Use middleware to control access (InitializeTenancyByDomain, PreventAccessFromCentralDomains)
-     * - This ensures routes exist for route() helper calls even when request is on different domain
+     * IMPORTANT: In SaaS mode, Core routes are ONLY for tenant subdomains.
+     * On central domains (admin.domain.com, domain.com), Platform handles all routes.
+     * We skip Core route registration entirely on central domains to prevent
+     * route matching conflicts with Platform's admin routes.
      */
     protected function loadRuntimeRoutes(): void
     {
@@ -346,9 +346,15 @@ class AeroCoreServiceProvider extends ServiceProvider
 
         // Check if in SaaS mode (file-based detection)
         if ($this->isSaasMode()) {
-            // SaaS Mode: Register core routes with tenant middleware
-            // Routes are registered unconditionally - middleware handles access control
-            // This follows stancl/tenancy's recommended pattern from their quickstart guide
+            // SaaS Mode: Core routes ONLY on tenant subdomains
+            // Skip registration entirely on central domains to prevent route conflicts
+            if (request() && $this->isHostOnCentralDomain(request()->getHost())) {
+                // On central domains (admin.domain.com, domain.com), Platform handles everything
+                // Do NOT register Core routes - this prevents route matching conflicts
+                return;
+            }
+
+            // On tenant subdomains, register Core routes with tenant middleware
             Route::middleware([
                 'web',
                 \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,

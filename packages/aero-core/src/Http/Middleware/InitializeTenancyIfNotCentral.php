@@ -17,16 +17,17 @@ use Symfony\Component\HttpFoundation\Response;
  * tenancy when the request is NOT on a central domain.
  *
  * Auto-detects domain type from URL structure (no .env required):
- * - admin.domain.com → Skip tenancy (central)
- * - domain.com → Skip tenancy (central/platform)
+ * - admin.domain.com → Skip tenancy (central) - routes not registered here
+ * - domain.com → Skip tenancy (central/platform) - routes not registered here
  * - {tenant}.domain.com → Initialize tenancy
  *
- * This prevents the "Tenant could not be identified" error on central domains
- * when routes don't have explicit domain constraints.
+ * Note: Core routes are NOT registered on central domains (handled in AeroCoreServiceProvider).
+ * This middleware serves as a safety net and for initializing tenancy on tenant subdomains.
  */
 class InitializeTenancyIfNotCentral
 {
     use ParsesHostDomain;
+
     /**
      * Handle an incoming request.
      *
@@ -36,7 +37,9 @@ class InitializeTenancyIfNotCentral
     {
         // Check if we're on a central domain using trait's helper
         if ($this->isHostOnCentralDomain($request->getHost())) {
-            // On central domain - skip tenancy initialization entirely
+            // On central domain - skip tenancy initialization
+            // Core routes shouldn't reach here (not registered on central domains)
+            // but if they do, just pass through without tenancy
             return $next($request);
         }
 

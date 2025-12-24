@@ -100,7 +100,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
                 <span className={`text-sm md:text-base font-semibold hidden sm:inline ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{siteName}</span>
               </>
             )}
-          </Link>
+          </SafeLink>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">

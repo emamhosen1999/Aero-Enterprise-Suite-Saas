@@ -51,14 +51,14 @@ const ObjectionsShow = ({
         safePost('rfi.objections.resolve', {}, {
             onSuccess: () => showToast.success('Objection resolved'),
             onError: () => showToast.error('Failed to resolve objection'),
-        }));
+        });
     };
 
     const handleReject = () => {
         safePost('rfi.objections.reject', {}, {
             onSuccess: () => showToast.success('Objection rejected'),
             onError: () => showToast.error('Failed to reject objection'),
-        }));
+        });
     };
 
     return (

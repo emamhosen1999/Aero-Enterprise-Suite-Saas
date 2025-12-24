@@ -190,7 +190,7 @@ export default function EmployeeOnboardingWizard({
             onSuccess: () => {
                 showToast.success('Onboarding completed successfully!');
                 safeNavigate('hr.onboarding.index');
-            }),
+            },
             onError: () => {
                 showToast.error('Failed to complete onboarding. Please try again.');
             }

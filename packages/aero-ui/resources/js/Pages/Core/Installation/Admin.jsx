@@ -82,7 +82,7 @@ export default function Admin({ title, licenseEmail }) {
             preserveState: true,
             onSuccess: () => {
                 // Will be handled by Processing component
-            }),
+            },
             onError: (errors) => {
                 setIsSaving(false);
                 showToast.error(errors.message || 'Installation failed');

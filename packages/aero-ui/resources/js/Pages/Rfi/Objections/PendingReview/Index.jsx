@@ -54,21 +54,21 @@ const PendingReviewIndex = ({
         safePost('rfi.objections.start-review', {}, {
             onSuccess: () => showToast.success('Review started'),
             onError: () => showToast.error('Failed to start review'),
-        }));
+        });
     };
 
     const handleResolve = (objection) => {
         safePost('rfi.objections.resolve', {}, {
             onSuccess: () => showToast.success('Objection resolved'),
             onError: () => showToast.error('Failed to resolve'),
-        }));
+        });
     };
 
     const handleReject = (objection) => {
         safePost('rfi.objections.reject', {}, {
             onSuccess: () => showToast.success('Objection rejected'),
             onError: () => showToast.error('Failed to reject'),
-        }));
+        });
     };
 
     const columns = [
