@@ -51,87 +51,49 @@ const CompanyInformationForm = ({settings, setSettings}) => {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        try {
-            // Assuming the route for updating company settings is 'company-settings.update'
-            const response = await axios.put(route('update-company-settings'), {
-                // Include all the necessary form data for updating settings
-                companyName: formData.companyName || '',
-                contactPerson: formData.contactPerson || '',
-                address: formData.address || '',
-                country: formData.country || '',
-                city: formData.city || '',
-                state: formData.state || '',
-                postalCode: formData.postalCode || '',
-                email: formData.email || '',
-                phoneNumber: formData.phoneNumber || '',
-                mobileNumber: formData.mobileNumber || '',
-                fax: formData.fax || '',
-                websiteUrl: formData.websiteUrl || '',
-            });
-
-            if (response.status === 200) {
-                setSettings(response.data.companySettings);
-                setErrors({});
-                showToast.success(response.data.messages?.length > 0 ? response.data.messages.join(' ') : 'Company settings updated successfully', {
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.put(route('update-company-settings'), {
+                    companyName: formData.companyName || '',
+                    contactPerson: formData.contactPerson || '',
+                    address: formData.address || '',
+                    country: formData.country || '',
+                    city: formData.city || '',
+                    state: formData.state || '',
+                    postalCode: formData.postalCode || '',
+                    email: formData.email || '',
+                    phoneNumber: formData.phoneNumber || '',
+                    mobileNumber: formData.mobileNumber || '',
+                    fax: formData.fax || '',
+                    websiteUrl: formData.websiteUrl || '',
                 });
-            }
-        } catch (error) {
 
-            if (error.response) {
-                if (error.response.status === 422) {
-                    setErrors(error.response.data.errors || {});
-                    showToast.error(error.response.data.error || 'Failed to update company settings.', {
-                        icon: '🔴',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
-                        }
-                    });
-                } else {
-                    showToast.error('An unexpected error occurred. Please try again later.', {
-                        icon: '🔴',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: theme.glassCard.background,
-                            border: theme.glassCard.border,
-                            color: theme.palette.text.primary,
-                        }
-                    });
+                if (response.status === 200) {
+                    setSettings(response.data.companySettings);
+                    setErrors({});
+                    resolve([response.data.messages?.length > 0 
+                        ? response.data.messages.join(' ') 
+                        : 'Company settings updated successfully']);
                 }
-                console.error(error.response.data);
-            } else if (error.request) {
-                showToast.error('No response received from the server. Please check your internet connection.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-                console.error(error.request);
-            } else {
-                showToast.error('An error occurred while setting up the request.', {
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: theme.glassCard.background,
-                        border: theme.glassCard.border,
-                        color: theme.palette.text.primary,
-                    }
-                });
-                console.error('Error', error.message);
+            } catch (error) {
+                console.error('Company settings update error:', error);
+                
+                if (error.response?.status === 422) {
+                    setErrors(error.response.data.errors || {});
+                    reject([error.response.data.error || 'Validation failed. Please check your input.']);
+                } else if (error.request) {
+                    reject(['No response from server. Check your connection.']);
+                } else {
+                    reject([error.response?.data?.message || 'Failed to update company settings']);
+                }
             }
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Updating company settings...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
 
