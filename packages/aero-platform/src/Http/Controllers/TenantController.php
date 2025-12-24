@@ -405,7 +405,7 @@ class TenantController extends Controller
         $sessionEmail = $registrationSession['details']['email'] ?? null;
 
         // If this tenant belongs to current session, it's available for them
-        if ($sessionTenantId && $tenant->id == $sessionTenantId) {
+        if ($sessionTenantId && $tenant->id === $sessionTenantId) {
             return response()->json([
                 'available' => true,
                 'message' => 'Reserved for your registration.',
@@ -414,9 +414,9 @@ class TenantController extends Controller
 
         // Check if tenant is in PENDING/FAILED status and matches session email
         // This handles the case where user is resuming their registration
-        if ($sessionEmail && 
-            $tenant->email === $sessionEmail && 
-            in_array($tenant->status, [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED])) {
+        if ($sessionEmail 
+            && $tenant->email === $sessionEmail 
+            && in_array($tenant->status, [Tenant::STATUS_PENDING, Tenant::STATUS_FAILED], true)) {
             return response()->json([
                 'available' => true,
                 'message' => 'Reserved for your registration.',
