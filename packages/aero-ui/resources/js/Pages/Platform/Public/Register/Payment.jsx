@@ -186,9 +186,9 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-              <Link href={route('platform.register.plan')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
+              <SafeLink route="platform.register.plan" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
                 ← Back to modules
-              </Link>
+              </SafeLink>
               <Button type="submit" color="success" className="px-6 w-full sm:w-auto" isLoading={processing}>
                 Launch trial workspace
               </Button>

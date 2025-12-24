@@ -329,9 +329,9 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
               />
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-                <Link href={route('platform.register.details')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
+                <SafeLink route="platform.register.details" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
                   ← Back to details
-                </Link>
+                </SafeLink>
                 <Button 
                   type="submit" 
                   color="primary" 

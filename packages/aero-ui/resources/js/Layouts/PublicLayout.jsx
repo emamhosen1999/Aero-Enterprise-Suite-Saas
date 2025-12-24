@@ -89,7 +89,7 @@ export default function PublicLayout({ children, extraNavLinks = [], mainClassNa
           </button>
 
           {/* Logo - centered on mobile, left on desktop */}
-          <Link href={route('landing')} className="flex items-center gap-2 md:gap-3 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
+          <SafeLink route="landing" className="flex items-center gap-2 md:gap-3 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
             {logo ? (
               <img src={logo} alt={siteName} className="h-8 md:h-10 w-auto" />
             ) : (

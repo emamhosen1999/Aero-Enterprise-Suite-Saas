@@ -206,7 +206,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this entry?')) {
-            router.delete(route('finance.general-ledger.destroy', id));
+            safeDelete('finance.general-ledger.destroy', { id });
         }
     };
 

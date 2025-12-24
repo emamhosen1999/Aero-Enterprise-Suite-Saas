@@ -245,7 +245,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this item?')) {
-            router.delete(route('inventory.stock.destroy', id));
+            safeDelete('inventory.stock.destroy', { id });
         }
     };
 

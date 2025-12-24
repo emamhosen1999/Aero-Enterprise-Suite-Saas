@@ -143,9 +143,9 @@ export default function AdminDetails({ steps = [], currentStep, savedData = {}, 
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 pt-2">
-              <Link href={route('platform.register.details')} className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
+              <SafeLink route="platform.register.details" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
                 ← Back to company details
-              </Link>
+              </SafeLink>
               <Button 
                 type="submit" 
                 color="primary" 

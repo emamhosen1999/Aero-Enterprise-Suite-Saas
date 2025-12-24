@@ -114,7 +114,7 @@ const ObjectionsIndex = ({
     const handleDelete = async (objection) => {
         if (!confirm('Are you sure you want to delete this objection?')) return;
 
-        router.delete(route('rfi.objections.destroy', objection.id), {
+        safeDelete('rfi.objections.destroy', { id: objection.id }, {
             onSuccess: () => showToast.success('Objection deleted successfully'),
             onError: () => showToast.error('Failed to delete objection'),
         });
