@@ -113,98 +113,99 @@ const ProfilePictureModal = ({
 
         // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        
-       
 
-        try {
-            const response = await axios.post(
-                route('profile.image.upload'), 
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'X-CSRF-TOKEN': csrfToken,
-                    },
-                    onUploadProgress: (progressEvent) => {
-                        const percentCompleted = Math.round(
-                            (progressEvent.loaded * 100) / progressEvent.total
-                        );
-                        setUploadProgress(percentCompleted);
-                       
-                    },
-                }
-            );
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(
+                    route('profile.image.upload'), 
+                    formData,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        onUploadProgress: (progressEvent) => {
+                            const percentCompleted = Math.round(
+                                (progressEvent.loaded * 100) / progressEvent.total
+                            );
+                            setUploadProgress(percentCompleted);
+                        },
+                    }
+                );
 
-           
-
-            if (response.data.success) {
-                showToast.success(response.data.message || 'Profile picture updated successfully!');
-                
-                // Callback to update the parent component with the new profile image URL
-                if (onImageUpdate) {
-                    const newImageUrl = response.data.profile_image_url;
-                   
-                    onImageUpdate(employee.id, newImageUrl);
-                }
-                
-                handleClose();
-            } else {
-                throw new Error(response.data.message || 'Upload failed');
-            }
-        } catch (error) {
-            // Comprehensive error logging
-            console.error('[ProfileUpload] Error details:', {
-                message: error.message,
-                status: error.response?.status,
-                statusText: error.response?.statusText,
-                responseData: error.response?.data,
-                errors: error.response?.data?.errors,
-                headers: error.response?.headers,
-            });
-            
-            let errorMessage = 'Failed to upload profile picture';
-            let errorDetails = '';
-            
-            if (error.response?.status === 419) {
-                errorMessage = 'Session expired (CSRF token mismatch). Please refresh the page.';
-                errorDetails = 'CSRF Token Error';
-            } else if (error.response?.status === 413) {
-                errorMessage = 'File too large. Please choose a smaller image.';
-                errorDetails = 'File Size Error';
-            } else if (error.response?.status === 422) {
-                // Validation errors
-                const errors = error.response.data?.errors;
-                if (errors) {
-                    const errorMessages = Object.values(errors).flat().join(', ');
-                    errorMessage = errorMessages || error.response.data.message || 'Validation failed';
+                if (response.status === 200 && response.data.success) {
+                    // Callback to update the parent component with the new profile image URL
+                    if (onImageUpdate) {
+                        const newImageUrl = response.data.profile_image_url;
+                        onImageUpdate(employee.id, newImageUrl);
+                    }
+                    
+                    handleClose();
+                    resolve([response.data.message || 'Profile picture updated successfully!']);
                 } else {
-                    errorMessage = error.response.data.message || 'Validation failed';
+                    reject([response.data.message || 'Upload failed']);
                 }
-                errorDetails = 'Validation Error';
-            } else if (error.response?.status === 403) {
-                errorMessage = error.response.data?.message || 'Unauthorized to upload profile image';
-                errorDetails = 'Authorization Error';
-            } else if (error.response?.status === 500) {
-                errorMessage = error.response.data?.message || 'Server error during upload';
-                errorDetails = 'Server Error: ' + (error.response.data?.exception || 'Unknown');
-            } else if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
-                errorDetails = `HTTP ${error.response.status}`;
-            } else if (error.message) {
-                errorMessage = error.message;
-                errorDetails = 'Network/Client Error';
+            } catch (error) {
+                // Comprehensive error logging
+                console.error('[ProfileUpload] Error details:', {
+                    message: error.message,
+                    status: error.response?.status,
+                    statusText: error.response?.statusText,
+                    responseData: error.response?.data,
+                    errors: error.response?.data?.errors,
+                    headers: error.response?.headers,
+                });
+                
+                let errorMessage = 'Failed to upload profile picture';
+                let errorDetails = '';
+                
+                if (error.response?.status === 419) {
+                    errorMessage = 'Session expired (CSRF token mismatch). Please refresh the page.';
+                    errorDetails = 'CSRF Token Error';
+                } else if (error.response?.status === 413) {
+                    errorMessage = 'File too large. Please choose a smaller image.';
+                    errorDetails = 'File Size Error';
+                } else if (error.response?.status === 422) {
+                    // Validation errors
+                    const errors = error.response.data?.errors;
+                    if (errors) {
+                        const errorMessages = Object.values(errors).flat().join(', ');
+                        errorMessage = errorMessages || error.response.data.message || 'Validation failed';
+                    } else {
+                        errorMessage = error.response.data.message || 'Validation failed';
+                    }
+                    errorDetails = 'Validation Error';
+                } else if (error.response?.status === 403) {
+                    errorMessage = error.response.data?.message || 'Unauthorized to upload profile image';
+                    errorDetails = 'Authorization Error';
+                } else if (error.response?.status === 500) {
+                    errorMessage = error.response.data?.message || 'Server error during upload';
+                    errorDetails = 'Server Error: ' + (error.response.data?.exception || 'Unknown');
+                } else if (error.response?.data?.message) {
+                    errorMessage = error.response.data.message;
+                    errorDetails = `HTTP ${error.response.status}`;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                    errorDetails = 'Network/Client Error';
+                }
+                
+                // Show detailed error in console
+                console.error(`[ProfileUpload] ${errorDetails}:`, errorMessage);
+                
+                // Set error for UI display
+                setError(`${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`);
+                reject([errorMessage]);
+            } finally {
+                setUploading(false);
+                setUploadProgress(0);
             }
-            
-            // Show detailed error in console
-            console.error(`[ProfileUpload] ${errorDetails}:`, errorMessage);
-            
-            // Set error for UI display
-            setError(`${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}`);
-            showToast.error(errorMessage);
-        } finally {
-            setUploading(false);
-            setUploadProgress(0);
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Uploading profile picture...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     // Handle remove profile picture
@@ -217,39 +218,46 @@ const ProfilePictureModal = ({
         // Get CSRF token from meta tag as fallback
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        try {
-            const response = await axios.delete(
-                route('profile.image.remove'), 
-                {
-                    data: { user_id: employee.id },
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                    },
-                }
-            );
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.delete(
+                    route('profile.image.remove'), 
+                    {
+                        data: { user_id: employee.id },
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                    }
+                );
 
-            if (response.data.success) {
-                showToast.success(response.data.message || 'Profile picture removed successfully!');
-                
-                // Callback to update the parent component
-                if (onImageUpdate) {
-                    // Use the explicit profile_image_url from response (should be null after removal)
-                    const newImageUrl = response.data.profile_image_url;
-                    onImageUpdate(employee.id, newImageUrl);
+                if (response.status === 200 && response.data.success) {
+                    // Callback to update the parent component
+                    if (onImageUpdate) {
+                        // Use the explicit profile_image_url from response (should be null after removal)
+                        const newImageUrl = response.data.profile_image_url;
+                        onImageUpdate(employee.id, newImageUrl);
+                    }
+                    
+                    handleClose();
+                    resolve([response.data.message || 'Profile picture removed successfully!']);
+                } else {
+                    reject([response.data.message || 'Remove failed']);
                 }
-                
-                handleClose();
-            } else {
-                throw new Error(response.data.message || 'Remove failed');
+            } catch (error) {
+                console.error('Remove error:', error);
+                const errorMessage = error.response?.data?.message || error.message || 'Failed to remove profile picture';
+                setError(errorMessage);
+                reject([errorMessage]);
+            } finally {
+                setUploading(false);
             }
-        } catch (error) {
-            console.error('Remove error:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to remove profile picture';
-            setError(errorMessage);
-            showToast.error(errorMessage);
-        } finally {
-            setUploading(false);
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Removing profile picture...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     // Handle close

@@ -82,20 +82,30 @@ const StatusUpdateModal = ({
         e.preventDefault();
         setIsLoading(true);
 
-        try {
-            const response = await axios.post(route('dailyWorks.updateStatus'), {
-                id: dailyWork.id,
-                ...formData
-            });
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('dailyWorks.updateStatus'), {
+                    id: dailyWork.id,
+                    ...formData
+                });
 
-            showToast.success('Status updated successfully');
-            onStatusUpdated(response.data.dailyWork);
-            closeModal();
-        } catch (error) {
-            showToast.error(error.response?.data?.error || 'Failed to update status');
-        } finally {
-            setIsLoading(false);
-        }
+                if (response.status === 200) {
+                    onStatusUpdated(response.data.dailyWork);
+                    closeModal();
+                    resolve([response.data.message || 'Status updated successfully']);
+                }
+            } catch (error) {
+                reject([error.response?.data?.error || 'Failed to update status']);
+            } finally {
+                setIsLoading(false);
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Updating status...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     };
 
     const getCurrentStatusInfo = () => {
