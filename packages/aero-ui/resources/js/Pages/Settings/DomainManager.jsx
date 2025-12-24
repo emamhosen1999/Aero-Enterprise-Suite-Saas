@@ -192,54 +192,73 @@ const DomainManager = () => {
         
         setIsSubmitting(true);
         
-        try {
-            const response = await axios.post(route('settings.domains.store'), {
-                domain: newDomain.trim(),
-            });
-            
-            showToast.success('Domain added successfully! Please configure DNS settings.');
-            setNewDomain('');
-            onAddClose();
-            
-            // Show instructions for the new domain
-            setSelectedDomain(response.data.domain);
-            onInstructionsOpen();
-            
-            // Refresh the page to get updated domains list
-            router.reload({ only: ['domains'] });
-        } catch (error) {
-            const message = error.response?.data?.message || error.response?.data?.errors?.domain?.[0] || 'Failed to add domain.';
-            showToast.error(message);
-        } finally {
-            setIsSubmitting(false);
-        }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('settings.domains.store'), {
+                    domain: newDomain.trim(),
+                });
+                
+                if (response.status === 200) {
+                    setNewDomain('');
+                    onAddClose();
+                    
+                    // Show instructions for the new domain
+                    setSelectedDomain(response.data.domain);
+                    onInstructionsOpen();
+                    
+                    // Refresh the page to get updated domains list
+                    router.reload({ only: ['domains'] });
+                    
+                    resolve([response.data.message || 'Domain added successfully! Please configure DNS settings.']);
+                }
+            } catch (error) {
+                const message = error.response?.data?.message || error.response?.data?.errors?.domain?.[0] || 'Failed to add domain.';
+                reject([message]);
+            } finally {
+                setIsSubmitting(false);
+            }
+        });
+        
+        showToast.promise(promise, {
+            loading: 'Adding domain...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     }, [newDomain, onAddClose, onInstructionsOpen]);
     
     // Verify domain handler
     const handleVerifyDomain = useCallback(async (domain) => {
         setVerifyingDomainId(domain.id);
         
-        try {
-            const response = await axios.post(route('settings.domains.verify', { domain: domain.id }));
-            
-            if (response.data.success) {
-                showToast.success(response.data.message || 'Domain verified successfully!');
-                router.reload({ only: ['domains'] });
-            } else {
-                showToast.error(response.data.message || 'DNS verification failed. Please check your DNS settings.');
-                // Show instructions modal with errors
-                setSelectedDomain({
-                    ...domain,
-                    verification_errors: response.data.errors,
-                    instructions: response.data.instructions,
-                });
-                onInstructionsOpen();
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('settings.domains.verify', { domain: domain.id }));
+                
+                if (response.data.success) {
+                    router.reload({ only: ['domains'] });
+                    resolve([response.data.message || 'Domain verified successfully!']);
+                } else {
+                    // Show instructions modal with errors
+                    setSelectedDomain({
+                        ...domain,
+                        verification_errors: response.data.errors,
+                        instructions: response.data.instructions,
+                    });
+                    onInstructionsOpen();
+                    reject([response.data.message || 'DNS verification failed. Please check your DNS settings.']);
+                }
+            } catch (error) {
+                reject([error.response?.data?.message || 'Verification failed. Please try again.']);
+            } finally {
+                setVerifyingDomainId(null);
             }
-        } catch (error) {
-            showToast.error(error.response?.data?.message || 'Verification failed. Please try again.');
-        } finally {
-            setVerifyingDomainId(null);
-        }
+        });
+        
+        showToast.promise(promise, {
+            loading: 'Verifying domain...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     }, [onInstructionsOpen]);
     
     // Delete domain handler
@@ -248,28 +267,50 @@ const DomainManager = () => {
         
         setIsSubmitting(true);
         
-        try {
-            await axios.delete(route('settings.domains.destroy', { domain: selectedDomain.id }));
-            showToast.success('Domain removed successfully.');
-            onDeleteClose();
-            setSelectedDomain(null);
-            router.reload({ only: ['domains'] });
-        } catch (error) {
-            showToast.error(error.response?.data?.message || 'Failed to remove domain.');
-        } finally {
-            setIsSubmitting(false);
-        }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.delete(route('settings.domains.destroy', { domain: selectedDomain.id }));
+                
+                if (response.status === 200) {
+                    onDeleteClose();
+                    setSelectedDomain(null);
+                    router.reload({ only: ['domains'] });
+                    resolve([response.data.message || 'Domain removed successfully.']);
+                }
+            } catch (error) {
+                reject([error.response?.data?.message || 'Failed to remove domain.']);
+            } finally {
+                setIsSubmitting(false);
+            }
+        });
+        
+        showToast.promise(promise, {
+            loading: 'Removing domain...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     }, [selectedDomain, onDeleteClose]);
     
     // Set primary domain handler
     const handleSetPrimary = useCallback(async (domain) => {
-        try {
-            await axios.post(route('settings.domains.set-primary', { domain: domain.id }));
-            showToast.success('Primary domain updated!');
-            router.reload({ only: ['domains'] });
-        } catch (error) {
-            showToast.error(error.response?.data?.message || 'Failed to set primary domain.');
-        }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('settings.domains.set-primary', { domain: domain.id }));
+                
+                if (response.status === 200) {
+                    router.reload({ only: ['domains'] });
+                    resolve([response.data.message || 'Primary domain updated!']);
+                }
+            } catch (error) {
+                reject([error.response?.data?.message || 'Failed to set primary domain.']);
+            }
+        });
+        
+        showToast.promise(promise, {
+            loading: 'Setting primary domain...',
+            success: (data) => data[0],
+            error: (data) => data[0],
+        });
     }, []);
     
     // Show instructions for domain
