@@ -148,6 +148,11 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Platform/Admin/Tenants/Databases');
         })->middleware(['module:tenants,databases'])->name('databases');
 
+        // Tenant Management (bulk operations)
+        Route::get('/management', function () {
+            return Inertia::render('Platform/Admin/Tenants/TenantManagement');
+        })->middleware(['module:tenants,tenant-list'])->name('management');
+
         // Tenant Impersonation
         Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'impersonate'])
             ->middleware(['module:tenants,tenant-list,tenant-management,impersonate'])
@@ -545,8 +550,12 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->middleware(['module:developer-tools,api-management'])->name('api');
 
         Route::get('/webhooks', function () {
-            return Inertia::render('Platform/Admin/Developer/Webhooks');
+            return Inertia::render('Platform/Admin/Webhooks/WebhookManager');
         })->middleware(['module:developer-tools,webhooks'])->name('webhooks');
+
+        Route::get('/rate-limits', function () {
+            return Inertia::render('Platform/Admin/RateLimit/RateLimitConfig');
+        })->middleware(['module:developer-tools,api-management'])->name('rate-limits');
 
         Route::get('/debug', function () {
             return Inertia::render('Platform/Admin/Developer/Debug');
@@ -951,6 +960,45 @@ Route::middleware(['auth:landlord'])->group(function () {
             Route::delete('/{errorLog}', [ErrorLogController::class, 'destroy'])->name('destroy');
             Route::post('/bulk-resolve', [ErrorLogController::class, 'bulkResolve'])->name('bulk-resolve');
             Route::post('/bulk-destroy', [ErrorLogController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+        // Webhook Management API
+        Route::prefix('webhooks')->name('webhooks.')->group(function () {
+            Route::get('/', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'index'])->name('index');
+            Route::post('/', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'store'])->name('store');
+            Route::put('/{id}', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'destroy'])->name('destroy');
+            Route::put('/{id}/toggle', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'toggle'])->name('toggle');
+            Route::post('/{id}/test', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'test'])->name('test');
+            Route::get('/{id}/logs', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'logs'])->name('logs');
+            Route::get('/{id}/stats', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'stats'])->name('stats');
+            Route::get('/events', [\Aero\Platform\Http\Controllers\Integrations\WebhookController::class, 'events'])->name('events');
+        });
+
+        // Bulk Tenant Operations API
+        Route::prefix('bulk-tenant-operations')->name('bulk-tenant-operations.')->group(function () {
+            Route::post('/', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'execute'])->name('execute');
+            Route::post('/suspend', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'suspend'])->name('suspend');
+            Route::post('/activate', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'activate'])->name('activate');
+            Route::post('/delete', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'delete'])->name('delete');
+            Route::post('/update-plan', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'updatePlan'])->name('update-plan');
+            Route::post('/reset-quota', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'resetQuota'])->name('reset-quota');
+            Route::post('/preview', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'preview'])->name('preview');
+            Route::get('/history', [\Aero\Platform\Http\Controllers\Admin\BulkTenantOperationsController::class, 'history'])->name('history');
+        });
+
+        // Rate Limit Configuration API
+        Route::prefix('rate-limit-configs')->name('rate-limit-configs.')->group(function () {
+            Route::get('/', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'index'])->name('index');
+            Route::get('/defaults', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'defaults'])->name('defaults');
+            Route::get('/stats', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'stats'])->name('stats');
+            Route::get('/{id}', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'show'])->name('show');
+            Route::post('/', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'store'])->name('store');
+            Route::put('/{id}', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'destroy'])->name('destroy');
+            Route::put('/{id}/toggle', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'toggle'])->name('toggle');
+            Route::post('/{id}/test', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'test'])->name('test');
+            Route::post('/bulk-update', [\Aero\Platform\Http\Controllers\Admin\RateLimitConfigController::class, 'bulkUpdate'])->name('bulk-update');
         });
     });
 });
