@@ -599,6 +599,16 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Platform/Admin/Analytics/Reports');
         })->middleware(['module:platform-analytics,platform-reports'])->name('reports');
 
+        // Advanced Analytics Dashboard (Phase 3 Week 6)
+        Route::get('/advanced', function () {
+            return Inertia::render('Platform/Admin/Analytics/AdvancedAnalytics');
+        })->middleware(['module:platform-analytics,revenue-analytics'])->name('advanced');
+
+        // Report Builder (Phase 3 Week 6)
+        Route::get('/report-builder', function () {
+            return Inertia::render('Platform/Admin/Reports/ReportBuilder');
+        })->middleware(['module:platform-analytics,platform-reports'])->name('report-builder');
+
         // Module Analytics API
         Route::get('/modules', [ModuleAnalyticsController::class, 'index'])
             ->middleware(['module:platform-analytics,usage-analytics'])
@@ -609,6 +619,42 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/modules-trends', [ModuleAnalyticsController::class, 'trends'])
             ->middleware(['module:platform-analytics,usage-analytics,feature-usage,view'])
             ->name('modules.trends');
+    });
+
+    // =========================================================================
+    // REPORT MANAGEMENT API (Phase 3 Week 6)
+    // =========================================================================
+    Route::middleware(['module:platform-analytics'])->prefix('reports')->name('admin.reports.')->group(function () {
+        Route::get('/', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'index'])
+            ->middleware(['module:platform-analytics,platform-reports'])
+            ->name('index');
+        Route::post('/', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'store'])
+            ->middleware(['module:platform-analytics,platform-reports,report-list,create'])
+            ->name('store');
+        Route::get('/templates', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'templates'])
+            ->middleware(['module:platform-analytics,platform-reports'])
+            ->name('templates');
+        Route::post('/generate', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'generate'])
+            ->middleware(['module:platform-analytics,platform-reports'])
+            ->name('generate');
+        Route::get('/{id}', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'show'])
+            ->middleware(['module:platform-analytics,platform-reports,report-list,view'])
+            ->name('show');
+        Route::put('/{id}', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'update'])
+            ->middleware(['module:platform-analytics,platform-reports,report-list,update'])
+            ->name('update');
+        Route::delete('/{id}', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'destroy'])
+            ->middleware(['module:platform-analytics,platform-reports,report-list,delete'])
+            ->name('destroy');
+        Route::post('/{id}/run', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'run'])
+            ->middleware(['module:platform-analytics,platform-reports,report-list,execute'])
+            ->name('run');
+        Route::post('/{id}/duplicate', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'duplicate'])
+            ->middleware(['module:platform-analytics,platform-reports,report-list,create'])
+            ->name('duplicate');
+        Route::get('/{id}/executions', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'executions'])
+            ->middleware(['module:platform-analytics,platform-reports,report-list,view'])
+            ->name('executions');
     });
 
     // =========================================================================
