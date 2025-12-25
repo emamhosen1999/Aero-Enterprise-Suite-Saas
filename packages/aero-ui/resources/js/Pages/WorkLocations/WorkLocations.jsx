@@ -63,41 +63,27 @@ const WorkLocations = React.memo(({ auth, title, jurisdictions, users }) => {
     const handleDelete = () => {
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await fetch(`/work-locations/delete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({
-                        id: locationIdToDelete,
-                    }),
+                const response = await axios.post('/work-locations/delete', {
+                    id: locationIdToDelete,
                 });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    setData(result.work_locations);
-                    resolve('Work location deleted successfully!');
-                } else {
-                    reject('Failed to delete work location. Please try again.');
+                if (response.status === 200) {
+                    setData(response.data.work_locations);
+                    resolve(['Work location deleted successfully!']);
                 }
             } catch (error) {
-                reject('Failed to delete work location. Please try again.');
+                if (error.response?.status === 422) {
+                    reject(error.response.data.errors || ['Validation failed']);
+                } else {
+                    reject([error.response?.data?.message || 'Failed to delete work location. Please try again.']);
+                }
             }
         });
 
         showToast.promise(promise, {
-            pending: 'Deleting work location...',
-            success: {
-                render({ data }) {
-                    return <>{data}</>;
-                },
-            },
-            error: {
-                render({ data }) {
-                    return <>{data}</>;
-                },
-            },
+            loading: 'Deleting work location...',
+            success: (data) => data[0],
+            error: (data) => Array.isArray(data) ? data[0] : data,
         });
     };
 

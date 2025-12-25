@@ -32,7 +32,7 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
     // Handle plan selection
     const handleSelectPlan = (plan) => {
         if (plan.id === currentPlan?.id) {
-            showToast('info', 'This is your current plan');
+            showToast.info('This is your current plan');
             return;
         }
 
@@ -43,10 +43,10 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
             billing_cycle: billingCycle
         }, {
             onSuccess: () => {
-                showToast('success', 'Plan updated successfully');
+                showToast.success('Plan updated successfully');
             },
             onError: (errors) => {
-                showToast('error', errors.message || 'Failed to update plan');
+                showToast.error(errors.message || 'Failed to update plan');
             },
             onFinish: () => setLoading(null)
         });

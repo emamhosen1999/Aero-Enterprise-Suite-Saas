@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import axios from 'axios';
 import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner} from '@heroui/react';
 import {GraduationCap, Plus, X} from 'lucide-react';
 import {showToast} from '@/utils/toastUtils';
@@ -77,88 +78,39 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
         if (removedEducation.id) {
             const promise = new Promise(async (resolve, reject) => {
                 try {
-                    const response = await fetch('/education/delete', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-                        },
-                        body: JSON.stringify({ id: removedEducation.id, user_id: user.id }),
+                    const response = await axios.delete('/education/delete', {
+                        data: { id: removedEducation.id, user_id: user.id }
                     });
 
-                    const data = await response.json();
-
-                    if (response.ok) {
+                    if (response.status === 200) {
                         // Update the user state with the returned educations from the server
                         setUpdatedUser(prevUser => ({
                             ...prevUser,
-                            educations: data.educations,
+                            educations: response.data.educations,
                         }));
 
                         setUser(prevUser => ({
                             ...prevUser,
-                            educations: data.educations,
+                            educations: response.data.educations,
                         }));
 
                         // Resolve with the message returned from the server
-                        resolve(data.message || 'Education record deleted successfully.');
-                    } else {
-                        setErrors(data.errors);
-                        console.error(data.errors);
-                        reject(data.error || 'Failed to delete education record.');
+                        resolve([response.data.message || 'Education record deleted successfully.']);
                     }
                 } catch (error) {
+                    if (error.response?.status === 422) {
+                        setErrors(error.response.data.errors);
+                    }
                     // Reject with a generic error message
-                    reject(error);
+                    reject([error.response?.data?.error || error.response?.data?.message || 'Failed to delete education record.']);
                 }
             });
 
-            showToast.promise(
-                promise,
-                {
-                    pending: {
-                        render() {
-                            return (
-                                <div className="flex items-center">
-                                    <Spinner size="sm" />
-                                    <span className="ml-2">Deleting education record ...</span>
-                                </div>
-                            );
-                        },
-                        icon: false,
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)'
-                        }
-                    },
-                    success: {
-                        render({ data }) {
-                            return <>{data}</>;
-                        },
-                        icon: '🟢',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)'
-                        }
-                    },
-                    error: {
-                        render({ data }) {
-                            return <>{data}</>;
-                        },
-                        icon: '🔴',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)'
-                        }
-                    }
-                }
-            );
+            showToast.promise(promise, {
+                loading: 'Deleting education record...',
+                success: (data) => data[0],
+                error: (data) => Array.isArray(data) ? data[0] : data,
+            });
         }
     };
 
@@ -170,90 +122,34 @@ const EducationInformationDialog = ({ user, open, closeModal, setUser }) => {
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await fetch('/education/update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ educations: educationList.map(entry => ({ ...entry, user_id: user.id })) }),
+                const response = await axios.post('/education/update', {
+                    educations: educationList.map(entry => ({ ...entry, user_id: user.id }))
                 });
 
-                const data = await response.json();
-
-                if (response.ok) {
+                if (response.status === 200) {
                     // Update the user state with the returned educations from the server
                     setUser(prevUser => ({
                         ...prevUser,
-                        educations: data.educations,
+                        educations: response.data.educations,
                     }));
-                    setProcessing(false);
                     closeModal();
-                    resolve([...data.messages]);
-                } else {
-                    setProcessing(false);
-                    setErrors(data.errors);
-                    console.error(data.errors);
-                    reject(data.error || 'Failed to update education records.');
+                    resolve(response.data.messages || ['Education records updated successfully.']);
                 }
             } catch (error) {
+                if (error.response?.status === 422) {
+                    setErrors(error.response.data.errors);
+                }
+                reject([error.response?.data?.error || error.response?.data?.message || 'Failed to update education records.']);
+            } finally {
                 setProcessing(false);
-                reject(error.message || 'An unexpected error occurred while updating education records.');
             }
         });
 
-        showToast.promise(
-            promise,
-            {
-                pending: {
-                    render() {
-                        return (
-                            <div className="flex items-center">
-                                <Spinner size="sm" />
-                                <span className="ml-2">Updating education records ...</span>
-                            </div>
-                        );
-                    },
-                    icon: false,
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)'
-                    }
-                },
-                success: {
-                    render({ data }) {
-                        return (
-                            <>
-                                {data.map((message, index) => (
-                                    <div key={index}>{message}</div>
-                                ))}
-                            </>
-                        );
-                    },
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)',
-                    },
-                },
-                error: {
-                    render({ data }) {
-                        return <>{data}</>;
-                    },
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)'
-                    }
-                }
-            }
-        );
+        showToast.promise(promise, {
+            loading: 'Updating education records...',
+            success: (data) => Array.isArray(data) ? data.join(', ') : data,
+            error: (data) => Array.isArray(data) ? data[0] : data,
+        });
     };
 
 

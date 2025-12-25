@@ -61,7 +61,7 @@ export default function SubscriptionInvoices({ invoices, pagination }) {
     // Handle invoice download
     const handleDownload = (invoice) => {
         window.open(`/subscription/invoices/${invoice.id}/download`, '_blank');
-        showToast('info', 'Downloading invoice...');
+        showToast.info('Downloading invoice...');
     };
 
     // Handle invoice view

@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import axios from 'axios';
 import {Button, Card, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner} from '@heroui/react';
 import {Briefcase, Plus, X} from 'lucide-react';
 import {showToast} from '@/utils/toastUtils';
@@ -75,86 +76,38 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
         if (removedExperience.id) {
             const promise = new Promise(async (resolve, reject) => {
                 try {
-                    const response = await fetch('/experience/delete', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-                        },
-                        body: JSON.stringify({ id: removedExperience.id, user_id: user.id }),
+                    const response = await axios.delete('/experience/delete', {
+                        data: { id: removedExperience.id, user_id: user.id }
                     });
 
-                    const data = await response.json();
-
-                    if (response.ok) {
+                    if (response.status === 200) {
                         // Update the user state with the returned experiences from the server
                         setUpdatedUser(prevUser => ({
                             ...prevUser,
-                            experiences: data.experiences,
+                            experiences: response.data.experiences,
                         }));
 
                         setUser(prevUser => ({
                             ...prevUser,
-                            experiences: data.experiences,
+                            experiences: response.data.experiences,
                         }));
 
-                        resolve(data.message || 'Experience record deleted successfully.');
+                        resolve([response.data.message || 'Experience record deleted successfully.']);
                         closeModal();
-                    } else {
-                        setErrors([...data.errors]);
-                        reject(data.error || 'Failed to delete experience record.');
                     }
                 } catch (error) {
-                    reject(error);
+                    if (error.response?.status === 422) {
+                        setErrors([...(error.response.data.errors || [])]);
+                    }
+                    reject([error.response?.data?.error || error.response?.data?.message || 'Failed to delete experience record.']);
                 }
             });
 
-            showToast.promise(
-                promise,
-                {
-                    pending: {
-                        render() {
-                            return (
-                                <div className="flex items-center">
-                                    <Spinner size="sm" />
-                                    <span className="ml-2">Deleting experience record ...</span>
-                                </div>
-                            );
-                        },
-                        icon: false,
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)'
-                        }
-                    },
-                    success: {
-                        render({ data }) {
-                            return <>{data}</>;
-                        },
-                        icon: '🟢',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)'
-                        }
-                    },
-                    error: {
-                        render({ data }) {
-                            return <>{data}</>;
-                        },
-                        icon: '🔴',
-                        style: {
-                            backdropFilter: 'blur(16px) saturate(200%)',
-                            background: 'var(--theme-content1)',
-                            border: '1px solid var(--theme-divider)',
-                            color: 'var(--theme-primary)'
-                        }
-                    }
-                }
-            );
+            showToast.promise(promise, {
+                loading: 'Deleting experience record...',
+                success: (data) => data[0],
+                error: (data) => Array.isArray(data) ? data[0] : data,
+            });
         }
     };
 
@@ -164,89 +117,33 @@ const ExperienceInformationForm = ({ user, open, closeModal, setUser }) => {
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await fetch('/experience/update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({ experiences: experienceList.map(entry => ({ ...entry, user_id: user.id })) }),
+                const response = await axios.post('/experience/update', {
+                    experiences: experienceList.map(entry => ({ ...entry, user_id: user.id }))
                 });
 
-                const data = await response.json();
-
-                if (response.ok) {
+                if (response.status === 200) {
                     setUser(prevUser => ({
                         ...prevUser,
-                        experiences: data.experiences,
+                        experiences: response.data.experiences,
                     }));
-                    setProcessing(false);
                     closeModal();
-                    resolve([...data.messages]);
-                } else {
-                    setProcessing(false);
-                    setErrors(data.errors);
-                    console.error(data.errors);
-                    reject(data.error || 'Failed to update experience records.');
+                    resolve(response.data.messages || ['Experience records updated successfully.']);
                 }
             } catch (error) {
+                if (error.response?.status === 422) {
+                    setErrors(error.response.data.errors);
+                }
+                reject([error.response?.data?.error || error.response?.data?.message || 'Failed to update experience records.']);
+            } finally {
                 setProcessing(false);
-                reject(error.message || 'An unexpected error occurred while updating experience records.');
             }
         });
 
-        showToast.promise(
-            promise,
-            {
-                pending: {
-                    render() {
-                        return (
-                            <div className="flex items-center">
-                                <Spinner size="sm" />
-                                <span className="ml-2">Updating experience records ...</span>
-                            </div>
-                        );
-                    },
-                    icon: false,
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)'
-                    }
-                },
-                success: {
-                    render({ data }) {
-                        return (
-                            <>
-                                {data.map((message, index) => (
-                                    <div key={index}>{message}</div>
-                                ))}
-                            </>
-                        );
-                    },
-                    icon: '🟢',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)',
-                    },
-                },
-                error: {
-                    render({ data }) {
-                        return <>{data}</>;
-                    },
-                    icon: '🔴',
-                    style: {
-                        backdropFilter: 'blur(16px) saturate(200%)',
-                        background: 'var(--theme-content1)',
-                        border: '1px solid var(--theme-divider)',
-                        color: 'var(--theme-primary)'
-                    }
-                }
-            }
-        );
+        showToast.promise(promise, {
+            loading: 'Updating experience records...',
+            success: (data) => Array.isArray(data) ? data.join(', ') : data,
+            error: (data) => Array.isArray(data) ? data[0] : data,
+        });
     };
 
     const handleAddMore = async () => {

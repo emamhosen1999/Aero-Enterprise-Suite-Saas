@@ -61,13 +61,13 @@ const InvoiceBrandingSettings = () => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) {
-                showToast('Logo file must be less than 2MB', 'error');
+                showToast.error('Logo file must be less than 2MB');
                 return;
             }
             
             const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'];
             if (!allowedTypes.includes(file.type)) {
-                showToast('Logo must be a JPG, PNG, GIF, or SVG file', 'error');
+                showToast.error('Logo must be a JPG, PNG, GIF, or SVG file');
                 return;
             }
 
@@ -106,10 +106,10 @@ const InvoiceBrandingSettings = () => {
         post(route('settings.invoice-branding.save'), {
             forceFormData: true,
             onSuccess: () => {
-                showToast('Invoice branding settings saved successfully', 'success');
+                showToast.success('Invoice branding settings saved successfully');
             },
             onError: () => {
-                showToast('Failed to save settings', 'error');
+                showToast.error('Failed to save settings');
             },
         });
     };

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
 import { 
@@ -277,25 +278,21 @@ const UsersTable = ({
     setLoading(userId, 'delete', true);
     const promise = new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch(route(routes.profileDelete, { user: userId }), {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-          },
-          body: JSON.stringify({ user_id: userId }),
+        const response = await axios.delete(route(routes.profileDelete, { user: userId }), {
+          data: { user_id: userId }
         });
-        const data = await response.json();
-        if (response.ok) {
+        if (response.status === 200) {
           if (deleteUserOptimized) {
             deleteUserOptimized(userId);
           }
-          resolve([data.message]);
-        } else {
-          reject([data.message]);
+          resolve([response.data.message || 'User deleted successfully']);
         }
       } catch (error) {
-        reject(['An error occurred while deleting user. Please try again.']);
+        if (error.response?.status === 422) {
+          reject(error.response.data.errors || ['Validation failed']);
+        } else {
+          reject([error.response?.data?.message || 'An error occurred while deleting user. Please try again.']);
+        }
       } finally {
         setLoading(userId, 'delete', false);
       }

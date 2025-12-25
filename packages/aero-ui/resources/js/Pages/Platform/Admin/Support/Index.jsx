@@ -152,11 +152,7 @@ const SupportIndex = () => {
                   variant="solid"
                   startContent={<LifebuoyIcon className="h-4 w-4" />}
                   onPress={() =>
-                    showToast({
-                      type: 'info',
-                      title: 'Escalation logged',
-                      message: 'Automation will open a pager thread once workflow hooks are connected.',
-                    })
+                    showToast.info('Escalation logged - Automation will open a pager thread once workflow hooks are connected.')
                   }
                 >
                   Log escalation

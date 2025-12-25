@@ -81,10 +81,10 @@ const VersionHistoryModal = ({
         setActionLoading(version.id);
         try {
             await onRollback(document.id, version.id);
-            showToast(`Rolled back to version ${version.version}`, 'success');
+            showToast.success(`Rolled back to version ${version.version}`);
             onClose();
         } catch (error) {
-            showToast('Failed to rollback to this version', 'error');
+            showToast.error('Failed to rollback to this version');
         } finally {
             setActionLoading(null);
         }
@@ -97,7 +97,7 @@ const VersionHistoryModal = ({
         try {
             await onDownloadVersion(document.id, version.id);
         } catch (error) {
-            showToast('Failed to download version', 'error');
+            showToast.error('Failed to download version');
         } finally {
             setActionLoading(null);
         }
@@ -105,7 +105,7 @@ const VersionHistoryModal = ({
 
     const handleCompare = () => {
         if (selectedVersions.length !== 2) {
-            showToast('Please select exactly 2 versions to compare', 'warning');
+            showToast.warning('Please select exactly 2 versions to compare');
             return;
         }
         if (onCompareVersions) {

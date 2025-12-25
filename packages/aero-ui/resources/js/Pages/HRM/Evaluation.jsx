@@ -70,10 +70,10 @@ export default function CandidateEvaluation({ auth, application, evaluation, cri
 
         method(url, {
             onSuccess: () => {
-                showToast('Evaluation saved successfully', 'success');
+                showToast.success('Evaluation saved successfully');
                 safeNavigate('hr.recruitment.applicants.show', application.id);
             },
-            onError: () => showToast('Failed to save evaluation', 'error'),
+            onError: () => showToast.error('Failed to save evaluation'),
         });
     };
 

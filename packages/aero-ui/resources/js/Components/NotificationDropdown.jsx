@@ -62,27 +62,21 @@ const NotificationDropdown = ({
     const fetchNotifications = useCallback(async () => {
         try {
             setError(null);
-            const response = await fetch('/api/notifications?' + new URLSearchParams({
-                limit: maxItems,
-                unread_only: showUnreadOnly ? '1' : '0',
-            }), {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin',
+            const response = await axios.get('/api/notifications', {
+                params: {
+                    limit: maxItems,
+                    unread_only: showUnreadOnly ? '1' : '0',
+                }
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch notifications');
+            if (response.status === 200) {
+                const data = response.data;
+                setNotifications(data.data || data.notifications || []);
+                setUnreadCount(data.unread_count ?? data.data?.filter(n => !n.read_at)?.length ?? 0);
             }
-
-            const data = await response.json();
-            setNotifications(data.data || data.notifications || []);
-            setUnreadCount(data.unread_count ?? data.data?.filter(n => !n.read_at)?.length ?? 0);
         } catch (err) {
             console.error('Error fetching notifications:', err);
-            setError(err.message);
+            setError(err.response?.data?.message || err.message);
         } finally {
             setLoading(false);
         }
@@ -163,37 +157,33 @@ const NotificationDropdown = ({
             error: (data) => data[0],
         });
     };
-        } catch (err) {
-            console.error('Error marking all as read:', err);
-        } finally {
-            setActionLoading(null);
-        }
-    };
 
     // Delete notification
     const deleteNotification = async (notificationId) => {
         setActionLoading(notificationId);
-        try {
-            await fetch(`/api/notifications/${notificationId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                },
-                credentials: 'same-origin',
-            });
-
-            const removedNotification = notifications.find(n => n.id === notificationId);
-            setNotifications(prev => prev.filter(n => n.id !== notificationId));
-            if (removedNotification && !removedNotification.read_at) {
-                setUnreadCount(prev => Math.max(0, prev - 1));
+        
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.delete(`/api/notifications/${notificationId}`);
+                
+                if (response.status === 200) {
+                    const removedNotification = notifications.find(n => n.id === notificationId);
+                    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+                    if (removedNotification && !removedNotification.read_at) {
+                        setUnreadCount(prev => Math.max(0, prev - 1));
+                    }
+                    resolve([response.data.message || 'Notification deleted']);
+                }
+            } catch (err) {
+                console.error('Error deleting notification:', err);
+                reject([err.response?.data?.message || 'Failed to delete notification']);
+            } finally {
+                setActionLoading(null);
             }
-        } catch (err) {
-            console.error('Error deleting notification:', err);
-        } finally {
-            setActionLoading(null);
-        }
+        });
+
+        // Silent operation - no toast feedback for individual deletions
+        promise.catch(() => {}); // Suppress unhandled rejection
     };
 
     // Handle notification click

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Button, Input, Chip, Spinner } from '@heroui/react';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { hasRoute, safeRoute } from '@/utils/routeUtils';
 import SafeLink from '@/Components/Common/SafeLink';
 import axios from 'axios';
+import { showToast } from '@/utils/toastUtils';
 import AuthCard from '@/Components/UI/AuthCard.jsx';
 import RegisterLayout from '@/Layouts/RegisterLayout.jsx';
 import { useTheme } from '@/Context/ThemeContext.jsx';
@@ -13,13 +14,14 @@ import ProgressSteps from './components/ProgressSteps.jsx';
 
 export default function Details({ steps = [], currentStep, savedData = {}, accountType = 'company', baseDomain = 'platform.test', existingSubdomain = null }) {
   const details = savedData?.details ?? {};
-  const { data, setData, post, processing, errors } = useForm({
+  const { data, setData, processing, errors, setError, clearErrors } = useForm({
     name: details.name ?? '',
     email: details.email ?? '',
     phone: details.phone ?? '',
     subdomain: details.subdomain ?? '',
     team_size: details.team_size ?? '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Subdomain availability check state
   const [subdomainStatus, setSubdomainStatus] = useState({ checking: false, available: null, message: '' });
@@ -86,11 +88,43 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
     
     // Validate route exists before submitting
     if (!hasRoute('platform.register.details.store')) {
-      console.error('Registration route not available');
+      showToast.error('Registration route not available');
       return;
     }
-    
-    post(safeRoute('platform.register.details.store'));
+
+    clearErrors();
+    setIsSubmitting(true);
+
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const response = await axios.post(safeRoute('platform.register.details.store'), data);
+        if (response.status === 200 || response.status === 201) {
+          resolve([response.data.message || 'Details saved successfully']);
+          // Navigate to next step
+          if (response.data.redirect) {
+            router.visit(response.data.redirect);
+          } else {
+            router.visit(safeRoute('platform.register.modules'));
+          }
+        }
+      } catch (error) {
+        if (error.response?.status === 422) {
+          const validationErrors = error.response.data.errors || {};
+          Object.keys(validationErrors).forEach(key => {
+            setError(key, validationErrors[key][0] || validationErrors[key]);
+          });
+        }
+        reject([error.response?.data?.message || 'Failed to save details']);
+      } finally {
+        setIsSubmitting(false);
+      }
+    });
+
+    showToast.promise(promise, {
+      loading: 'Saving details...',
+      success: (data) => data[0],
+      error: (data) => data[0],
+    });
   };
 
   const personaLabel = accountType === 'individual' ? 'Your name' : 'Organization name';
@@ -207,7 +241,7 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
               >
                 ← Back to account type
               </SafeLink>
-              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={processing}>
+              <Button color="primary" className="bg-gradient-to-r from-blue-500 to-purple-600 w-full sm:w-auto" type="submit" isLoading={isSubmitting}>
                 Continue to modules
               </Button>
             </div>

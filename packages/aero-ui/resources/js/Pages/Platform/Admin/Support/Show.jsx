@@ -87,11 +87,7 @@ const SupportShow = () => {
   };
 
   const handleReply = () => {
-    showToast({
-      type: 'info',
-      title: 'Reply queued',
-      message: 'Conversation update will dispatch via preferred channel.',
-    });
+    showToast.info('Reply queued - Conversation update will dispatch via preferred channel.');
   };
 
   return (

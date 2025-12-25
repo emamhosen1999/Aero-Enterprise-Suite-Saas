@@ -61,10 +61,10 @@ export default function SubscriptionIndex({
             setLoading(true);
             router.post('/subscription/cancel', {}, {
                 onSuccess: () => {
-                    showToast('success', 'Subscription cancelled', 'Your subscription will remain active until the end of the billing period.');
+                    showToast.success('Subscription cancelled. Your subscription will remain active until the end of the billing period.');
                 },
                 onError: () => {
-                    showToast('error', 'Failed to cancel subscription');
+                    showToast.error('Failed to cancel subscription');
                 },
                 onFinish: () => setLoading(false)
             });
@@ -76,10 +76,10 @@ export default function SubscriptionIndex({
         setLoading(true);
         router.post('/subscription/resume', {}, {
             onSuccess: () => {
-                showToast('success', 'Subscription resumed');
+                showToast.success('Subscription resumed');
             },
             onError: () => {
-                showToast('error', 'Failed to resume subscription');
+                showToast.error('Failed to resume subscription');
             },
             onFinish: () => setLoading(false)
         });

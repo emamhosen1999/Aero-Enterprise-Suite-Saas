@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Card, CardHeader, CardBody, Input, Slider, Switch, Select, SelectItem, Button } from '@heroui/react';
 import { showToast } from '@/utils/toastUtils';
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
+
 import PageHeader from '@/Components/PageHeader';
 
 export default function Settings({ title, settings: initialSettings }) {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
+import axios from 'axios';
 import App from '@/Layouts/App';
 import {
     Button,
@@ -52,18 +53,18 @@ const SamlSettings = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        showToast('Copied to clipboard', 'success');
+        showToast.success('Copied to clipboard');
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route('settings.saml.save'), {
             onSuccess: () => {
-                showToast('SAML configuration saved successfully', 'success');
+                showToast.success('SAML configuration saved successfully');
                 setTestResult(null);
             },
             onError: () => {
-                showToast('Failed to save configuration', 'error');
+                showToast.error('Failed to save configuration');
             },
         });
     };
@@ -72,29 +73,32 @@ const SamlSettings = () => {
         setTesting(true);
         setTestResult(null);
 
-        try {
-            const response = await fetch(route('settings.saml.test'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            });
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('settings.saml.test'));
 
-            const result = await response.json();
-            setTestResult(result);
-
-            if (result.success) {
-                showToast('Configuration is valid', 'success');
-            } else {
-                showToast(result.message || 'Configuration validation failed', 'error');
+                if (response.status === 200) {
+                    setTestResult(response.data);
+                    if (response.data.success) {
+                        resolve(['Configuration is valid']);
+                    } else {
+                        reject([response.data.message || 'Configuration validation failed']);
+                    }
+                }
+            } catch (error) {
+                const errorMessage = error.response?.data?.message || error.message || 'Failed to test configuration';
+                setTestResult({ success: false, message: errorMessage });
+                reject([errorMessage]);
+            } finally {
+                setTesting(false);
             }
-        } catch (error) {
-            setTestResult({ success: false, message: error.message });
-            showToast('Failed to test configuration', 'error');
-        } finally {
-            setTesting(false);
-        }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Testing configuration...',
+            success: (data) => data[0],
+            error: (data) => Array.isArray(data) ? data[0] : data,
+        });
     };
 
     return (

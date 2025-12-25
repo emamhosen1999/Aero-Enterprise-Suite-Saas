@@ -333,11 +333,11 @@ Route::middleware(['auth:landlord'])->group(function () {
     // Subscription Plans
     Route::middleware(['module:subscriptions'])->prefix('plans')->name('admin.plans.')->group(function () {
         Route::get('/', function () {
-            return Inertia::render('Platform/Admin/Plans/Index');
+            return Inertia::render('Platform/Admin/Plans/PlanList');
         })->middleware(['module:subscriptions,plans'])->name('index');
 
         Route::get('/create', function () {
-            return Inertia::render('Platform/Admin/Plans/Create');
+            return Inertia::render('Platform/Admin/Plans/PlanForm');
         })->middleware(['module:subscriptions,plans,plan-list,create'])->name('create');
 
         // Plan-Module Management API

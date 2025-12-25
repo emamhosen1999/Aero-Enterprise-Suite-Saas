@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import axios from 'axios';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -1099,19 +1100,18 @@ const UserLocationsCard = React.memo(({ updateMap, selectedDate }) => {
                 setLastUpdate(new Date());
                 return;
             }
-            const response = await fetch(endpoint);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Failed to refresh user locations`);
+            const response = await axios.get(endpoint);
+            if (response.status === 200) {
+                const data = response.data;
+                const locations = Array.isArray(data.locations) ? data.locations : [];
+                const typeConfigs = Array.isArray(data.attendance_type_configs) ? data.attendance_type_configs : [];
+                setUsers(locations);
+                setAttendanceTypeConfigs(typeConfigs);
+                prevUsersRef.current = locations;
+                setMapKey(prev => prev + 1);
+                setLastChecked(new Date());
+                setLastUpdate(new Date());
             }
-            const data = await response.json();
-            const locations = Array.isArray(data.locations) ? data.locations : [];
-            const typeConfigs = Array.isArray(data.attendance_type_configs) ? data.attendance_type_configs : [];
-            setUsers(locations);
-            setAttendanceTypeConfigs(typeConfigs);
-            prevUsersRef.current = locations;
-            setMapKey(prev => prev + 1);
-            setLastChecked(new Date());
-            setLastUpdate(new Date());
         } catch (error) {
             console.error('Error refreshing map:', error);
             setUsers([]);
@@ -1152,24 +1152,22 @@ const UserLocationsCard = React.memo(({ updateMap, selectedDate }) => {
                 date: selectedDate.split('T')[0] // Ensure YYYY-MM-DD format
             });
             
-            const response = await fetch(endpoint);
+            const response = await axios.get(endpoint);
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Failed to check for updates`);
-            }
-
-            const data = await response.json();
-            
-            // Only update if we have a new update timestamp
-            if (data.success && data.last_updated !== prevUpdateRef.current) {
-                if (data.last_updated) {
-                    prevUpdateRef.current = data.last_updated;
-                    handleRefresh();
-                    setLastUpdate(new Date());
+            if (response.status === 200) {
+                const data = response.data;
+                
+                // Only update if we have a new update timestamp
+                if (data.success && data.last_updated !== prevUpdateRef.current) {
+                    if (data.last_updated) {
+                        prevUpdateRef.current = data.last_updated;
+                        handleRefresh();
+                        setLastUpdate(new Date());
+                    }
                 }
+                
+                setLastChecked(new Date());
             }
-            
-            setLastChecked(new Date());
         } catch (error) {
             console.error('Error checking for updates:', error);
             setLoading(false); // Ensure loading is set to false in case of error

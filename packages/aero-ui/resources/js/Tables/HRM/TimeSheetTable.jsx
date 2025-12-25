@@ -123,25 +123,22 @@ const TimeSheetTable = ({ handleDateChange, selectedDate, updateTimeSheet, exter
                 month: filterData.currentMonth
             });
             
-            const response = await fetch(endpoint);
+            const response = await axios.get(endpoint);
             
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(`HTTP ${response.status}: ${errorData.message || 'Failed to check for updates'}`);
-            }
-
-            const data = await response.json();
-            
-            // Only update if we have a new update timestamp
-            if (data.success && data.last_updated !== prevUpdateRef.current) {
-                if (data.last_updated) {
-                    prevUpdateRef.current = data.last_updated;
-                    await handleRefresh(); // This now updates both present and absent users
-                    setLastUpdate(new Date());
+            if (response.status === 200) {
+                const data = response.data;
+                
+                // Only update if we have a new update timestamp
+                if (data.success && data.last_updated !== prevUpdateRef.current) {
+                    if (data.last_updated) {
+                        prevUpdateRef.current = data.last_updated;
+                        await handleRefresh(); // This now updates both present and absent users
+                        setLastUpdate(new Date());
+                    }
                 }
+                
+                setLastChecked(new Date());
             }
-            
-            setLastChecked(new Date());
         } catch (error) {
             console.error('Error checking for timesheet updates:', error);
             // Don't set an error state here to avoid disrupting the UI on background checks
