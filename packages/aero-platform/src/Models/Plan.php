@@ -55,6 +55,7 @@ class Plan extends Model
     protected $fillable = [
         'name',
         'slug',
+        'tier',
         'description',
         'monthly_price',
         'yearly_price',
@@ -66,6 +67,7 @@ class Plan extends Model
         'sort_order',
         'is_active',
         'is_featured',
+        'visibility',
         'duration_in_months',
         'max_users',
         'max_storage_gb',
@@ -216,4 +218,186 @@ class Plan extends Model
 
         return $this->monthly_price;
     }
+
+    // =========================================================================
+    // COMPUTED ATTRIBUTES (ACCESSORS)
+    // =========================================================================
+
+    /**
+     * Get the count of active subscribers on this plan.
+     */
+    public function getSubscribersCountAttribute(): int
+    {
+        return $this->subscriptions()
+            ->where('status', 'active')
+            ->count();
+    }
+
+    /**
+     * Get the count of all subscribers (including trial/cancelled).
+     */
+    public function getTotalSubscribersCountAttribute(): int
+    {
+        return $this->subscriptions()->count();
+    }
+
+    /**
+     * Get the count of subscribers currently in trial period.
+     */
+    public function getTrialCountAttribute(): int
+    {
+        return $this->subscriptions()
+            ->where('status', 'trialing')
+            ->count();
+    }
+
+    /**
+     * Get the count of cancelled subscriptions.
+     */
+    public function getCancelledCountAttribute(): int
+    {
+        return $this->subscriptions()
+            ->where('status', 'cancelled')
+            ->count();
+    }
+
+    /**
+     * Get the Monthly Recurring Revenue (MRR) for this plan.
+     * Calculated from all active subscriptions paying monthly.
+     */
+    public function getMrrAttribute(): string
+    {
+        $activeSubscriptions = $this->subscriptions()
+            ->where('status', 'active')
+            ->get();
+
+        // Calculate MRR: monthly subscribers pay monthly_price, yearly pay yearly_price/12
+        $mrr = 0;
+        foreach ($activeSubscriptions as $subscription) {
+            if ($subscription->billing_period === 'yearly') {
+                $mrr += (float) $this->yearly_price / 12;
+            } else {
+                $mrr += (float) $this->monthly_price;
+            }
+        }
+
+        return number_format($mrr, 2, '.', '');
+    }
+
+    /**
+     * Get the Annual Recurring Revenue (ARR) for this plan.
+     */
+    public function getArrAttribute(): string
+    {
+        return number_format((float) $this->mrr * 12, 2, '.', '');
+    }
+
+    /**
+     * Get the count of features included in this plan.
+     */
+    public function getFeaturesCountAttribute(): int
+    {
+        $features = $this->features;
+
+        if (is_string($features)) {
+            $features = json_decode($features, true);
+        }
+
+        return is_array($features) ? count($features) : 0;
+    }
+
+    /**
+     * Get the count of modules included in this plan.
+     */
+    public function getModulesCountAttribute(): int
+    {
+        return $this->modules()->count();
+    }
+
+    /**
+     * Get the formatted monthly price with currency.
+     */
+    public function getFormattedMonthlyPriceAttribute(): string
+    {
+        $currency = $this->currency ?? 'USD';
+        $symbol = $this->getCurrencySymbol($currency);
+
+        return $symbol.number_format((float) $this->monthly_price, 2);
+    }
+
+    /**
+     * Get the formatted yearly price with currency.
+     */
+    public function getFormattedYearlyPriceAttribute(): string
+    {
+        $currency = $this->currency ?? 'USD';
+        $symbol = $this->getCurrencySymbol($currency);
+
+        return $symbol.number_format((float) $this->yearly_price, 2);
+    }
+
+    /**
+     * Get the yearly savings compared to monthly billing.
+     */
+    public function getYearlySavingsAttribute(): string
+    {
+        $monthlyTotal = (float) $this->monthly_price * 12;
+        $yearlyTotal = (float) $this->yearly_price;
+
+        return number_format($monthlyTotal - $yearlyTotal, 2, '.', '');
+    }
+
+    /**
+     * Get the yearly savings percentage.
+     */
+    public function getYearlySavingsPercentAttribute(): int
+    {
+        $monthlyTotal = (float) $this->monthly_price * 12;
+        $yearlyTotal = (float) $this->yearly_price;
+
+        if ($monthlyTotal === 0.0) {
+            return 0;
+        }
+
+        return (int) round((($monthlyTotal - $yearlyTotal) / $monthlyTotal) * 100);
+    }
+
+    /**
+     * Check if this plan is a free plan.
+     */
+    public function getIsFreeAttribute(): bool
+    {
+        return (float) $this->monthly_price === 0.0;
+    }
+
+    /**
+     * Get currency symbol for a currency code.
+     */
+    protected function getCurrencySymbol(string $currency): string
+    {
+        $symbols = [
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+            'BDT' => '৳',
+            'JPY' => '¥',
+            'INR' => '₹',
+            'AUD' => 'A$',
+            'CAD' => 'C$',
+        ];
+
+        return $symbols[$currency] ?? $currency.' ';
+    }
+
+    /**
+     * Define the attributes that should be appended to model arrays/JSON.
+     */
+    protected $appends = [
+        'subscribers_count',
+        'features_count',
+        'modules_count',
+        'formatted_monthly_price',
+        'formatted_yearly_price',
+        'is_free',
+    ];
 }

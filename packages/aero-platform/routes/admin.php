@@ -332,13 +332,62 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     // Subscription Plans
     Route::middleware(['module:subscriptions'])->prefix('plans')->name('admin.plans.')->group(function () {
+        // Plan List Page
         Route::get('/', function () {
             return Inertia::render('Platform/Admin/Plans/PlanList');
         })->middleware(['module:subscriptions,plans'])->name('index');
 
+        // Create Plan Page
         Route::get('/create', function () {
             return Inertia::render('Platform/Admin/Plans/PlanForm');
         })->middleware(['module:subscriptions,plans,plan-list,create'])->name('create');
+
+        // View Plan Details Page
+        Route::get('/{plan}', function (\Aero\Platform\Models\Plan $plan) {
+            $plan->load(['modules', 'subscriptions.tenant']);
+            return Inertia::render('Platform/Admin/Plans/PlanShow', [
+                'plan' => $plan,
+                'stats' => [
+                    'subscribers_count' => $plan->subscriptions()->where('status', 'active')->count(),
+                    'mrr' => $plan->subscriptions()->where('status', 'active')->sum('amount'),
+                    'features_count' => is_array($plan->features) ? count($plan->features) : 0,
+                ],
+            ]);
+        })->middleware(['module:subscriptions,plans,plan-list,view'])->name('show');
+
+        // Edit Plan Page
+        Route::get('/{plan}/edit', function (\Aero\Platform\Models\Plan $plan) {
+            $plan->load(['modules']);
+            return Inertia::render('Platform/Admin/Plans/PlanForm', [
+                'plan' => $plan,
+            ]);
+        })->middleware(['module:subscriptions,plans,plan-list,update'])->name('edit');
+
+        // Clone Plan Page (pre-fill form with existing plan data)
+        Route::get('/{plan}/clone', function (\Aero\Platform\Models\Plan $plan) {
+            $plan->load(['modules']);
+            $cloneData = $plan->replicate();
+            $cloneData->name = $plan->name . ' (Copy)';
+            $cloneData->slug = $plan->slug . '-copy';
+            return Inertia::render('Platform/Admin/Plans/PlanForm', [
+                'plan' => $cloneData,
+                'isClone' => true,
+            ]);
+        })->middleware(['module:subscriptions,plans,plan-list,create'])->name('clone');
+
+        // Plan CRUD API Endpoints
+        Route::post('/', [PlanController::class, 'store'])
+            ->middleware(['module:subscriptions,plans,plan-list,create'])
+            ->name('store');
+        Route::put('/{plan}', [PlanController::class, 'update'])
+            ->middleware(['module:subscriptions,plans,plan-list,update'])
+            ->name('update');
+        Route::delete('/{plan}', [PlanController::class, 'destroy'])
+            ->middleware(['module:subscriptions,plans,plan-list,delete'])
+            ->name('destroy');
+        Route::post('/{plan}/archive', [PlanController::class, 'archive'])
+            ->middleware(['module:subscriptions,plans,plan-list,update'])
+            ->name('archive');
 
         // Plan-Module Management API
         Route::get('/{plan}/modules', [PlanModuleController::class, 'getPlanModules'])
@@ -356,6 +405,11 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::put('/{plan}/modules/{module}', [PlanModuleController::class, 'updateModuleConfig'])
             ->middleware(['module:subscriptions,plans,plan-list,update'])
             ->name('modules.update');
+
+        // Plan Statistics API
+        Route::get('/{plan}/stats', [PlanController::class, 'stats'])
+            ->middleware(['module:subscriptions,plans,plan-list,view'])
+            ->name('stats');
     });
 
     // Plans API

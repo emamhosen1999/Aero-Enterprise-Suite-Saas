@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('rate_limit_configs')) {
+            return;
+        }
+
         Schema::create('rate_limit_configs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id')->nullable()->index();

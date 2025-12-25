@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers;
 
-use Aero\Platform\Models\Plan;
 use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Http\Requests\StorePlanRequest;
+use Aero\Platform\Http\Requests\UpdatePlanRequest;
+use Aero\Platform\Models\Plan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class PlanController extends Controller
 {
@@ -102,23 +103,9 @@ class PlanController extends Controller
     /**
      * Store a new plan.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StorePlanRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('plans', 'slug')],
-            'description' => ['nullable', 'string'],
-            'monthly_price' => ['required', 'numeric', 'min:0'],
-            'yearly_price' => ['nullable', 'numeric', 'min:0'],
-            'trial_days' => ['nullable', 'integer', 'min:0', 'max:90'],
-            'is_active' => ['boolean'],
-            'is_featured' => ['boolean'],
-            'features' => ['nullable', 'array'],
-            'limits' => ['nullable', 'array'],
-            'sort_order' => ['nullable', 'integer'],
-            'stripe_monthly_price_id' => ['nullable', 'string'],
-            'stripe_yearly_price_id' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validated();
 
         $plan = Plan::create([
             ...$validated,
@@ -126,9 +113,15 @@ class PlanController extends Controller
             'limits' => isset($validated['limits']) ? json_encode($validated['limits']) : null,
         ]);
 
+        // Sync modules if provided
+        if (isset($validated['module_codes']) && is_array($validated['module_codes'])) {
+            $modules = \Aero\Platform\Models\Module::whereIn('code', $validated['module_codes'])->pluck('id');
+            $plan->modules()->sync($modules);
+        }
+
         return response()->json([
             'success' => true,
-            'plan' => $plan,
+            'plan' => $plan->load('modules'),
             'message' => 'Plan created successfully.',
         ], 201);
     }
@@ -136,23 +129,9 @@ class PlanController extends Controller
     /**
      * Update a plan.
      */
-    public function update(Request $request, Plan $plan): JsonResponse
+    public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255', Rule::unique('plans', 'slug')->ignore($plan->id)],
-            'description' => ['nullable', 'string'],
-            'monthly_price' => ['sometimes', 'numeric', 'min:0'],
-            'yearly_price' => ['nullable', 'numeric', 'min:0'],
-            'trial_days' => ['nullable', 'integer', 'min:0', 'max:90'],
-            'is_active' => ['boolean'],
-            'is_featured' => ['boolean'],
-            'features' => ['nullable', 'array'],
-            'limits' => ['nullable', 'array'],
-            'sort_order' => ['nullable', 'integer'],
-            'stripe_monthly_price_id' => ['nullable', 'string'],
-            'stripe_yearly_price_id' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validated();
 
         if (isset($validated['features'])) {
             $validated['features'] = json_encode($validated['features']);
@@ -163,9 +142,15 @@ class PlanController extends Controller
 
         $plan->update($validated);
 
+        // Sync modules if provided
+        if (isset($validated['module_codes']) && is_array($validated['module_codes'])) {
+            $modules = \Aero\Platform\Models\Module::whereIn('code', $validated['module_codes'])->pluck('id');
+            $plan->modules()->sync($modules);
+        }
+
         return response()->json([
             'success' => true,
-            'plan' => $plan->fresh(),
+            'plan' => $plan->fresh(['modules']),
             'message' => 'Plan updated successfully.',
         ]);
     }
@@ -190,6 +175,54 @@ class PlanController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Plan deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Archive/Unarchive a plan.
+     * 
+     * Archived plans are hidden from public pricing pages but still available
+     * for existing subscribers. Uses is_active field to toggle visibility.
+     */
+    public function archive(Request $request, Plan $plan): JsonResponse
+    {
+        $validated = $request->validate([
+            'archived' => ['required', 'boolean'],
+        ]);
+
+        // Toggle is_active (archived = !is_active)
+        $plan->update([
+            'is_active' => !$validated['archived'],
+        ]);
+
+        $status = $validated['archived'] ? 'archived' : 'activated';
+
+        return response()->json([
+            'success' => true,
+            'plan' => $plan->fresh(),
+            'message' => "Plan {$status} successfully.",
+        ]);
+    }
+
+    /**
+     * Get plan statistics.
+     */
+    public function stats(Plan $plan): JsonResponse
+    {
+        $activeSubscriptions = $plan->subscriptions()
+            ->where('status', 'active')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'subscribers_count' => $activeSubscriptions->count(),
+                'mrr' => $activeSubscriptions->sum('amount'),
+                'trial_count' => $plan->subscriptions()->where('status', 'trialing')->count(),
+                'cancelled_count' => $plan->subscriptions()->where('status', 'cancelled')->count(),
+                'features_count' => is_array($plan->features) ? count($plan->features) : 0,
+                'modules_count' => $plan->modules()->count(),
+            ],
         ]);
     }
 }

@@ -101,6 +101,22 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Configure trusted hosts for security (prevent Host header spoofing)
         $this->configureTrustedHosts();
+
+        // Register platform model policies
+        $this->registerPolicies();
+    }
+
+    /**
+     * Register platform model policies.
+     */
+    protected function registerPolicies(): void
+    {
+        if (class_exists('\Illuminate\Support\Facades\Gate')) {
+            \Illuminate\Support\Facades\Gate::policy(
+                \Aero\Platform\Models\Plan::class,
+                \Aero\Platform\Policies\PlanPolicy::class
+            );
+        }
     }
 
     /**
