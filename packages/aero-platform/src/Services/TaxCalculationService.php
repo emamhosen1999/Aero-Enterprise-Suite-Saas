@@ -1,6 +1,6 @@
 <?php
 
-namespace LinkingDots\AeroPlatform\Services;
+namespace Aero\Platform\Services;
 
 class TaxCalculationService
 {

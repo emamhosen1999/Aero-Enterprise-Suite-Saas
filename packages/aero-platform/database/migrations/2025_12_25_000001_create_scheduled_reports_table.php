@@ -32,7 +32,7 @@ return new class extends Migration
             $table->enum('frequency', ['daily', 'weekly', 'monthly', 'custom'])->default('weekly');
             $table->json('schedule_config'); // Day/time configuration for schedule
             $table->json('recipients'); // Array of email addresses
-            $table->json('export_formats')->default('["pdf"]'); // ['pdf', 'csv', 'excel', 'json']
+            $table->json('export_formats')->nullable(); // ['pdf', 'csv', 'excel', 'json'] - defaults set in code
             $table->boolean('is_active')->default(true)->index();
             $table->timestamp('last_run_at')->nullable()->index();
             $table->timestamp('next_run_at')->nullable()->index();

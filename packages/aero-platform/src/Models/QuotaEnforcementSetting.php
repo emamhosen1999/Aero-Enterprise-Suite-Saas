@@ -1,6 +1,6 @@
 <?php
 
-namespace LinkingDots\AeroPlatform\Models;
+namespace Aero\Platform\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

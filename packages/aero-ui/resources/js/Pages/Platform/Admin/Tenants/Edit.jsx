@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import axios from 'axios';
 import {
     Card,
@@ -24,15 +25,40 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
-const Edit = ({ auth, tenantId }) => {
+const Edit = ({ auth, tenantId, title }) => {
+    // Theme radius helper (REQUIRED)
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    // Responsive breakpoints (REQUIRED)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
     const [tenant, setTenant] = useState(null);
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [themeRadius, setThemeRadius] = useState('lg');
     
     const [formData, setFormData] = useState({
         name: '',
@@ -44,17 +70,6 @@ const Edit = ({ auth, tenantId }) => {
     });
     
     const [errors, setErrors] = useState({});
-
-    useEffect(() => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) setThemeRadius('none');
-        else if (radiusValue <= 4) setThemeRadius('sm');
-        else if (radiusValue <= 8) setThemeRadius('md');
-        else if (radiusValue <= 12) setThemeRadius('lg');
-        else setThemeRadius('xl');
-    }, []);
 
     const fetchTenant = useCallback(async () => {
         setLoading(true);
@@ -144,29 +159,71 @@ const Edit = ({ auth, tenantId }) => {
         return (
             <>
                 <Head title="Edit Tenant" />
-                <PageHeader
-                    title="Edit Tenant"
-                    subtitle="Loading tenant details..."
-                    icon={<PencilIcon className="w-8 h-8" />}
-                />
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-6">
-                        <ThemedCard>
-                            <ThemedCardBody>
-                                <div className="space-y-4">
-                                    <Skeleton className="h-10 rounded-lg" />
-                                    <Skeleton className="h-10 rounded-lg" />
-                                    <Skeleton className="h-10 rounded-lg" />
-                                </div>
-                            </ThemedCardBody>
-                        </ThemedCard>
-                    </div>
-                    <div>
-                        <ThemedCard>
-                            <ThemedCardBody>
-                                <Skeleton className="h-32 rounded-lg" />
-                            </ThemedCardBody>
-                        </ThemedCard>
+                <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Edit Tenant">
+                    <div className="space-y-4">
+                        <div className="w-full">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <Card
+                                    className="transition-all duration-200"
+                                    style={{
+                                        border: `var(--borderWidth, 2px) solid transparent`,
+                                        borderRadius: `var(--borderRadius, 12px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                        background: `linear-gradient(135deg, 
+                                            var(--theme-content1, #FAFAFA) 20%, 
+                                            var(--theme-content2, #F4F4F5) 10%, 
+                                            var(--theme-content3, #F1F3F4) 20%)`,
+                                    }}
+                                >
+                                    <CardHeader
+                                        className="border-b p-0"
+                                        style={{
+                                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                                            background: `linear-gradient(135deg, 
+                                                color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                                color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                        }}
+                                    >
+                                        <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                            <div className="flex items-center gap-4">
+                                                <Skeleton className="w-10 h-10 rounded-lg" />
+                                                <Skeleton className="w-14 h-14 rounded-xl" />
+                                                <div className="flex-1 space-y-2">
+                                                    <Skeleton className="h-7 w-48 rounded" />
+                                                    <Skeleton className="h-4 w-64 rounded" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardBody className="p-6">
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            <div className="lg:col-span-2 space-y-6">
+                                                <ThemedCard>
+                                                    <ThemedCardBody>
+                                                        <div className="space-y-4">
+                                                            <Skeleton className="h-10 rounded-lg" />
+                                                            <Skeleton className="h-10 rounded-lg" />
+                                                            <Skeleton className="h-10 rounded-lg" />
+                                                        </div>
+                                                    </ThemedCardBody>
+                                                </ThemedCard>
+                                            </div>
+                                            <div>
+                                                <ThemedCard>
+                                                    <ThemedCardBody>
+                                                        <Skeleton className="h-32 rounded-lg" />
+                                                    </ThemedCardBody>
+                                                </ThemedCard>
+                                            </div>
+                                        </div>
+                                    </CardBody>
+                                </Card>
+                            </motion.div>
+                        </div>
                     </div>
                 </div>
             </>
@@ -175,79 +232,152 @@ const Edit = ({ auth, tenantId }) => {
 
     return (
         <>
-            <Head title={`Edit ${tenant?.name || 'Tenant'}`} />
-            <PageHeader
-                title={`Edit: ${tenant?.name}`}
-                subtitle="Update tenant configuration and settings"
-                icon={<PencilIcon className="w-8 h-8" />}
-                actions={
-                    <div className="flex gap-2">
-                        <Button
-                            variant="flat"
-                            startContent={<ArrowLeftIcon className="w-4 h-4" />}
-                            radius={themeRadius}
-                            onPress={() => router.visit(route('admin.tenants.show', { tenant: tenantId }))}
-                        >
-                            View Details
-                        </Button>
-                        <Button
-                            variant="flat"
-                            radius={themeRadius}
-                            onPress={() => router.visit(route('admin.tenants.index'))}
-                        >
-                            Back to List
-                        </Button>
-                    </div>
-                }
-            />
+            <Head title={title || `Edit ${tenant?.name || 'Tenant'}`} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Form */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Company Information */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
-                            <div className="flex items-center gap-2">
-                                <BuildingOfficeIcon className="w-5 h-5 text-primary" />
-                                <h3 className="text-lg font-semibold">Company Information</h3>
-                            </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input
-                                    label="Company Name"
-                                    placeholder="Enter company name"
-                                    value={formData.name}
-                                    onValueChange={(v) => handleChange('name', v)}
-                                    isInvalid={!!errors.name}
-                                    errorMessage={errors.name}
-                                    isRequired
-                                    radius={themeRadius}
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
-                                <Input
-                                    label="Email"
-                                    type="email"
-                                    placeholder="company@example.com"
-                                    value={formData.email}
-                                    onValueChange={(v) => handleChange('email', v)}
-                                    isInvalid={!!errors.email}
-                                    errorMessage={errors.email}
-                                    isRequired
-                                    radius={themeRadius}
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
-                                <Input
-                                    label="Phone"
-                                    placeholder="+1 234 567 8900"
-                                    value={formData.phone}
-                                    onValueChange={(v) => handleChange('phone', v)}
-                                    radius={themeRadius}
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
-                            </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+            {/* Main content wrapper */}
+            <div
+                className="flex flex-col w-full h-full p-4"
+                role="main"
+                aria-label="Edit Tenant"
+            >
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {/* Main Card with theme styling */}
+                            <Card
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                {/* Card Header with title + action buttons */}
+                                <CardHeader
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section with icon */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <Button
+                                                    isIconOnly
+                                                    variant="light"
+                                                    radius={getThemeRadius()}
+                                                    onPress={() => router.visit(route('admin.tenants.show', { tenant: tenantId }))}
+                                                    className="shrink-0"
+                                                >
+                                                    <ArrowLeftIcon className="w-5 h-5" />
+                                                </Button>
+                                                <div
+                                                    className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl flex items-center justify-center`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                        borderWidth: `var(--borderWidth, 2px)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <PencilIcon
+                                                        className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`}
+                                                        style={{ color: 'var(--theme-primary)' }}
+                                                    />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4
+                                                        className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold text-foreground ${isMobile ? 'truncate' : ''}`}
+                                                        style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                    >
+                                                        Edit: {tenant?.name}
+                                                    </h4>
+                                                    <p
+                                                        className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500 ${isMobile ? 'truncate' : ''}`}
+                                                        style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                    >
+                                                        Update tenant configuration and settings
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2 flex-wrap">
+                                                <Button
+                                                    variant="flat"
+                                                    radius={getThemeRadius()}
+                                                    onPress={() => router.visit(route('admin.tenants.index'))}
+                                                    size={isMobile ? "sm" : "md"}
+                                                >
+                                                    Back to List
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardBody className="p-6">
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Main Form */}
+                                        <div className="lg:col-span-2 space-y-6">
+                                            {/* Company Information */}
+                                            <ThemedCard>
+                                                <ThemedCardHeader>
+                                                    <div className="flex items-center gap-2">
+                                                        <BuildingOfficeIcon className="w-5 h-5 text-primary" />
+                                                        <h3 className="text-lg font-semibold">Company Information</h3>
+                                                    </div>
+                                                </ThemedCardHeader>
+                                                <ThemedCardBody>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <Input
+                                                            label="Company Name"
+                                                            placeholder="Enter company name"
+                                                            value={formData.name}
+                                                            onValueChange={(v) => handleChange('name', v)}
+                                                            isInvalid={!!errors.name}
+                                                            errorMessage={errors.name}
+                                                            isRequired
+                                                            radius={getThemeRadius()}
+                                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                                        />
+                                                        <Input
+                                                            label="Email"
+                                                            type="email"
+                                                            placeholder="company@example.com"
+                                                            value={formData.email}
+                                                            onValueChange={(v) => handleChange('email', v)}
+                                                            isInvalid={!!errors.email}
+                                                            errorMessage={errors.email}
+                                                            isRequired
+                                                            radius={getThemeRadius()}
+                                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                                        />
+                                                        <Input
+                                                            label="Phone"
+                                                            placeholder="+1 234 567 8900"
+                                                            value={formData.phone}
+                                                            onValueChange={(v) => handleChange('phone', v)}
+                                                            radius={getThemeRadius()}
+                                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                                        />
+                                                    </div>
+                                                </ThemedCardBody>
+                                            </ThemedCard>
 
                     {/* Domain Info (Read-only) */}
                     <ThemedCard>
@@ -264,7 +394,7 @@ const Edit = ({ auth, tenantId }) => {
                                     value={tenant?.subdomain || ''}
                                     isReadOnly
                                     description="Subdomain cannot be changed after creation"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-50" }}
                                 />
                                 <div className="flex flex-wrap gap-2">
@@ -294,7 +424,7 @@ const Edit = ({ auth, tenantId }) => {
                                     placeholder="Select plan"
                                     selectedKeys={formData.plan_id ? [formData.plan_id] : []}
                                     onSelectionChange={(keys) => handleChange('plan_id', Array.from(keys)[0])}
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ trigger: "bg-default-100" }}
                                 >
                                     {plans.map(plan => (
@@ -309,7 +439,7 @@ const Edit = ({ auth, tenantId }) => {
                                     value={formData.trial_ends_at}
                                     onChange={(e) => handleChange('trial_ends_at', e.target.value)}
                                     description="Leave empty for no trial"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
@@ -318,7 +448,7 @@ const Edit = ({ auth, tenantId }) => {
                                     value={formData.subscription_ends_at}
                                     onChange={(e) => handleChange('subscription_ends_at', e.target.value)}
                                     description="Leave empty for ongoing subscription"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
@@ -373,7 +503,7 @@ const Edit = ({ auth, tenantId }) => {
                                     color="primary"
                                     className="w-full"
                                     size="lg"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     onPress={handleSubmit}
                                     isLoading={saving}
                                     startContent={!saving && <CheckIcon className="w-5 h-5" />}
@@ -383,7 +513,7 @@ const Edit = ({ auth, tenantId }) => {
                                 <Button
                                     variant="flat"
                                     className="w-full"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     onPress={() => router.visit(route('admin.tenants.index'))}
                                 >
                                     Cancel
@@ -411,6 +541,12 @@ const Edit = ({ auth, tenantId }) => {
                             </ThemedCardBody>
                         </ThemedCard>
                     )}
+                                        </div>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
                 </div>
             </div>
         </>

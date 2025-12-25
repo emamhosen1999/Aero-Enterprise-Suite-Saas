@@ -1,14 +1,14 @@
 <?php
 
-namespace LinkingDots\AeroPlatform\Jobs;
+namespace Aero\Platform\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use LinkingDots\AeroPlatform\Models\ScheduledReport;
-use LinkingDots\AeroPlatform\Services\ReportScheduler;
+use Aero\Platform\Models\ScheduledReport;
+use Aero\Platform\Services\ReportScheduler;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -87,7 +87,7 @@ class GenerateScheduledReportsJob implements ShouldQueue
             $cutoffDate = now()->subDays($retentionDays);
 
             // Get old executions
-            $oldExecutions = \LinkingDots\AeroPlatform\Models\ReportExecution::where('created_at', '<', $cutoffDate)
+            $oldExecutions = \Aero\Platform\Models\ReportExecution::where('created_at', '<', $cutoffDate)
                 ->whereNotNull('file_path')
                 ->get();
 

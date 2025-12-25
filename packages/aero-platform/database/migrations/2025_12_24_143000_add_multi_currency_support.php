@@ -24,7 +24,13 @@ return new class extends Migration
             Schema::table('tenants', function (Blueprint $table) {
                 $table->string('currency', 3)->default('USD')->after('trial_ends_at');
                 $table->decimal('exchange_rate_at_signup', 10, 6)->default(1.000000)->after('currency');
-                $table->json('notification_branding')->nullable()->after('metadata'); // Custom branding for notifications
+            });
+        }
+
+        // Add notification branding columns (separate check in case currency already exists)
+        if (!Schema::hasColumn('tenants', 'notification_branding')) {
+            Schema::table('tenants', function (Blueprint $table) {
+                $table->json('notification_branding')->nullable()->after('data'); // Custom branding for notifications
                 $table->boolean('sms_notifications_enabled')->default(false)->after('notification_branding');
                 $table->string('notification_phone', 20)->nullable()->after('sms_notifications_enabled');
             });

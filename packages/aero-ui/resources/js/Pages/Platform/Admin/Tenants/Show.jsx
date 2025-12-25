@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import axios from 'axios';
 import {
     Card,
@@ -42,27 +43,41 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 import StatsCards from '@/Components/StatsCards';
 
-const Show = ({ auth, tenantId }) => {
+const Show = ({ auth, tenantId, title }) => {
+    // Theme radius helper (REQUIRED)
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    // Responsive breakpoints (REQUIRED)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
     const [tenant, setTenant] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedTab, setSelectedTab] = useState('overview');
     const [actionModal, setActionModal] = useState({ open: false, action: null });
-    const [themeRadius, setThemeRadius] = useState('lg');
-
-    useEffect(() => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) setThemeRadius('none');
-        else if (radiusValue <= 4) setThemeRadius('sm');
-        else if (radiusValue <= 8) setThemeRadius('md');
-        else if (radiusValue <= 12) setThemeRadius('lg');
-        else setThemeRadius('xl');
-    }, []);
 
     const fetchTenant = useCallback(async () => {
         setLoading(true);
@@ -126,150 +141,293 @@ const Show = ({ auth, tenantId }) => {
         archived: ArchiveBoxIcon,
     };
 
+    // Stats data for StatsCards component (MUST be before any early returns)
+    const statsData = useMemo(() => [
+        { 
+            title: 'Plan', 
+            value: tenant?.plan?.name || 'No Plan', 
+            color: 'text-primary',
+            iconBg: 'bg-primary/20',
+            icon: <CreditCardIcon className="w-5 h-5" />,
+        },
+        { 
+            title: 'Status', 
+            value: tenant?.status || 'Unknown', 
+            color: `text-${statusColorMap[tenant?.status] || 'default'}`,
+            iconBg: `bg-${statusColorMap[tenant?.status] || 'default'}/20`,
+            icon: <CheckCircleIcon className="w-5 h-5" />,
+        },
+        { 
+            title: 'Users', 
+            value: `${tenant?.current_users || 0} / ${tenant?.max_users || '∞'}`, 
+            color: 'text-secondary',
+            iconBg: 'bg-secondary/20',
+            icon: <UsersIcon className="w-5 h-5" />,
+        },
+        { 
+            title: 'Domains', 
+            value: tenant?.domains?.length || 0, 
+            color: 'text-success',
+            iconBg: 'bg-success/20',
+            icon: <GlobeAltIcon className="w-5 h-5" />,
+        },
+    ], [tenant, statusColorMap]);
+
+    const StatusIcon = statusIconMap[tenant?.status] || CheckCircleIcon;
+
     if (loading) {
         return (
             <>
                 <Head title="Tenant Details" />
-                <PageHeader
-                    title="Loading..."
-                    subtitle="Fetching tenant details"
-                    icon={<BuildingOfficeIcon className="w-8 h-8" />}
-                />
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        {[...Array(4)].map((_, i) => (
-                            <ThemedCard key={i}>
-                                <ThemedCardBody>
-                                    <Skeleton className="h-6 w-24 mb-2 rounded" />
-                                    <Skeleton className="h-8 w-32 rounded" />
-                                </ThemedCardBody>
-                            </ThemedCard>
-                        ))}
+                <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Tenant Details">
+                    <div className="space-y-4">
+                        <div className="w-full">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <Card
+                                    className="transition-all duration-200"
+                                    style={{
+                                        border: `var(--borderWidth, 2px) solid transparent`,
+                                        borderRadius: `var(--borderRadius, 12px)`,
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                        background: `linear-gradient(135deg, 
+                                            var(--theme-content1, #FAFAFA) 20%, 
+                                            var(--theme-content2, #F4F4F5) 10%, 
+                                            var(--theme-content3, #F1F3F4) 20%)`,
+                                    }}
+                                >
+                                    <CardHeader
+                                        className="border-b p-0"
+                                        style={{
+                                            borderColor: `var(--theme-divider, #E4E4E7)`,
+                                            background: `linear-gradient(135deg, 
+                                                color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                                color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                        }}
+                                    >
+                                        <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                            <div className="flex items-center gap-4">
+                                                <Skeleton className="w-10 h-10 rounded-lg" />
+                                                <Skeleton className="w-14 h-14 rounded-xl" />
+                                                <div className="flex-1 space-y-2">
+                                                    <Skeleton className="h-7 w-48 rounded" />
+                                                    <Skeleton className="h-4 w-64 rounded" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardBody className="p-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                            {[...Array(4)].map((_, i) => (
+                                                <ThemedCard key={i}>
+                                                    <ThemedCardBody>
+                                                        <Skeleton className="h-6 w-24 mb-2 rounded" />
+                                                        <Skeleton className="h-8 w-32 rounded" />
+                                                    </ThemedCardBody>
+                                                </ThemedCard>
+                                            ))}
+                                        </div>
+                                        <ThemedCard>
+                                            <ThemedCardBody>
+                                                <Skeleton className="h-64 rounded-lg" />
+                                            </ThemedCardBody>
+                                        </ThemedCard>
+                                    </CardBody>
+                                </Card>
+                            </motion.div>
+                        </div>
                     </div>
-                    <ThemedCard>
-                        <ThemedCardBody>
-                            <Skeleton className="h-64 rounded-lg" />
-                        </ThemedCardBody>
-                    </ThemedCard>
                 </div>
             </>
         );
     }
 
-    const statsData = [
-        { 
-            label: 'Plan', 
-            value: tenant?.plan?.name || 'No Plan', 
-            color: 'primary',
-            icon: CreditCardIcon,
-        },
-        { 
-            label: 'Status', 
-            value: tenant?.status, 
-            color: statusColorMap[tenant?.status] || 'default',
-            icon: statusIconMap[tenant?.status] || CheckCircleIcon,
-        },
-        { 
-            label: 'Users', 
-            value: `${tenant?.current_users || 0} / ${tenant?.max_users || '∞'}`, 
-            color: 'secondary',
-            icon: UsersIcon,
-        },
-        { 
-            label: 'Domains', 
-            value: tenant?.domains?.length || 0, 
-            color: 'success',
-            icon: GlobeAltIcon,
-        },
-    ];
-
-    const StatusIcon = statusIconMap[tenant?.status] || CheckCircleIcon;
-
     return (
         <>
-            <Head title={`Tenant: ${tenant?.name}`} />
-            <PageHeader
-                title={tenant?.name}
-                subtitle={
-                    <div className="flex items-center gap-2">
-                        <span>{tenant?.subdomain}.{window.location.hostname.split('.').slice(-2).join('.')}</span>
-                        <Chip 
-                            color={statusColorMap[tenant?.status]} 
-                            variant="flat" 
-                            size="sm"
-                            startContent={<StatusIcon className="w-3 h-3" />}
-                        >
-                            {tenant?.status}
-                        </Chip>
-                    </div>
-                }
-                icon={<BuildingOfficeIcon className="w-8 h-8" />}
-                actions={
-                    <div className="flex gap-2">
-                        <Button
-                            variant="flat"
-                            startContent={<ArrowLeftIcon className="w-4 h-4" />}
-                            radius={themeRadius}
-                            onPress={() => router.visit(route('admin.tenants.index'))}
-                        >
-                            Back
-                        </Button>
-                        <Button
-                            color="primary"
-                            startContent={<PencilIcon className="w-4 h-4" />}
-                            onPress={() => router.visit(route('admin.tenants.edit', { tenant: tenantId }))}
-                            radius={themeRadius}
-                        >
-                            Edit
-                        </Button>
-                    </div>
-                }
-            />
+            <Head title={title || `Tenant: ${tenant?.name}`} />
             
-            <div className="space-y-6">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {statsData.map((stat, idx) => (
-                        <ThemedCard key={idx}>
-                            <ThemedCardBody>
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg bg-${stat.color}/10`}>
-                                        <stat.icon className={`w-5 h-5 text-${stat.color}`} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-default-500">{stat.label}</p>
-                                        <p className="text-lg font-semibold capitalize">{stat.value}</p>
-                                    </div>
-                                </div>
-                            </ThemedCardBody>
-                        </ThemedCard>
-                    ))}
-                </div>
+            {/* Action Confirmation Modal */}
+            <Modal
+                isOpen={actionModal.open}
+                onOpenChange={(open) => !open && setActionModal({ open: false, action: null })}
+                size="md"
+            >
+                <ModalContent>
+                    <ModalHeader>
+                        Confirm {actionModal.action?.charAt(0).toUpperCase() + actionModal.action?.slice(1)}
+                    </ModalHeader>
+                    <ModalBody>
+                        <p>
+                            Are you sure you want to {actionModal.action} <strong>{tenant?.name}</strong>?
+                        </p>
+                        {actionModal.action === 'suspend' && (
+                            <p className="text-warning text-sm mt-2">
+                                Suspended tenants will not be able to access their workspace.
+                            </p>
+                        )}
+                        {actionModal.action === 'archive' && (
+                            <p className="text-default-500 text-sm mt-2">
+                                Archived tenants will be removed from active lists but data will be preserved.
+                            </p>
+                        )}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button 
+                            variant="flat" 
+                            onPress={() => setActionModal({ open: false, action: null })}
+                            radius={getThemeRadius()}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            color={actionModal.action === 'activate' ? 'success' : 'warning'}
+                            onPress={() => handleAction(actionModal.action)}
+                            radius={getThemeRadius()}
+                        >
+                            {actionModal.action?.charAt(0).toUpperCase() + actionModal.action?.slice(1)}
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
 
-                {/* Quick Actions */}
-                <ThemedCard>
-                    <ThemedCardHeader>
-                        <h3 className="text-lg font-semibold">Quick Actions</h3>
-                    </ThemedCardHeader>
-                    <ThemedCardBody>
-                        <div className="flex flex-wrap gap-3">
-                            {tenant?.status !== 'suspended' && tenant?.status !== 'archived' && (
-                                <Button
-                                    color="warning"
-                                    variant="flat"
-                                    startContent={<PauseIcon className="w-4 h-4" />}
-                                    radius={themeRadius}
-                                    onPress={() => setActionModal({ open: true, action: 'suspend' })}
+            {/* Main content wrapper */}
+            <div
+                className="flex flex-col w-full h-full p-4"
+                role="main"
+                aria-label="Tenant Details"
+            >
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {/* Main Card with theme styling */}
+                            <Card
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                {/* Card Header with title + action buttons */}
+                                <CardHeader
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
                                 >
-                                    Suspend Tenant
-                                </Button>
-                            )}
-                            {tenant?.status === 'suspended' && (
-                                <Button
-                                    color="success"
-                                    variant="flat"
-                                    startContent={<PlayIcon className="w-4 h-4" />}
-                                    radius={themeRadius}
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section with icon */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <Button
+                                                    isIconOnly
+                                                    variant="light"
+                                                    radius={getThemeRadius()}
+                                                    onPress={() => router.visit(route('admin.tenants.index'))}
+                                                    className="shrink-0"
+                                                >
+                                                    <ArrowLeftIcon className="w-5 h-5" />
+                                                </Button>
+                                                <div
+                                                    className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl flex items-center justify-center`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                        borderWidth: `var(--borderWidth, 2px)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <BuildingOfficeIcon
+                                                        className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`}
+                                                        style={{ color: 'var(--theme-primary)' }}
+                                                    />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4
+                                                        className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold text-foreground ${isMobile ? 'truncate' : ''}`}
+                                                        style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                    >
+                                                        {tenant?.name}
+                                                    </h4>
+                                                    <div className="flex items-center gap-2">
+                                                        <p
+                                                            className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}
+                                                            style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                        >
+                                                            {tenant?.subdomain}.{window.location.hostname.split('.').slice(-2).join('.')}
+                                                        </p>
+                                                        <Chip 
+                                                            color={statusColorMap[tenant?.status]} 
+                                                            variant="flat" 
+                                                            size="sm"
+                                                            startContent={<StatusIcon className="w-3 h-3" />}
+                                                        >
+                                                            {tenant?.status}
+                                                        </Chip>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2 flex-wrap">
+                                                <Button
+                                                    color="primary"
+                                                    startContent={<PencilIcon className="w-4 h-4" />}
+                                                    onPress={() => router.visit(route('admin.tenants.edit', { tenant: tenantId }))}
+                                                    radius={getThemeRadius()}
+                                                    size={isMobile ? "sm" : "md"}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardBody className="p-6">
+                                    {/* Stats Cards */}
+                                    <StatsCards stats={statsData} className="mb-6" />
+
+                                    {/* Quick Actions */}
+                                    <ThemedCard className="mb-6">
+                                        <ThemedCardHeader>
+                                            <h3 className="text-lg font-semibold">Quick Actions</h3>
+                                        </ThemedCardHeader>
+                                        <ThemedCardBody>
+                                            <div className="flex flex-wrap gap-3">
+                                                {tenant?.status !== 'suspended' && tenant?.status !== 'archived' && (
+                                                    <Button
+                                                        color="warning"
+                                                        variant="flat"
+                                                        startContent={<PauseIcon className="w-4 h-4" />}
+                                                        radius={getThemeRadius()}
+                                                        onPress={() => setActionModal({ open: true, action: 'suspend' })}
+                                                    >
+                                                        Suspend Tenant
+                                                    </Button>
+                                                )}
+                                                {tenant?.status === 'suspended' && (
+                                                    <Button
+                                                        color="success"
+                                                        variant="flat"
+                                                        startContent={<PlayIcon className="w-4 h-4" />}
+                                    radius={getThemeRadius()}
                                     onPress={() => setActionModal({ open: true, action: 'activate' })}
                                 >
                                     Activate Tenant
@@ -279,7 +437,7 @@ const Show = ({ auth, tenantId }) => {
                                 <Button
                                     variant="flat"
                                     startContent={<ArchiveBoxIcon className="w-4 h-4" />}
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     onPress={() => setActionModal({ open: true, action: 'archive' })}
                                 >
                                     Archive Tenant
@@ -288,7 +446,7 @@ const Show = ({ auth, tenantId }) => {
                             <Button
                                 variant="flat"
                                 startContent={<ArrowPathIcon className="w-4 h-4" />}
-                                radius={themeRadius}
+                                radius={getThemeRadius()}
                                 onPress={fetchTenant}
                             >
                                 Refresh Data
@@ -303,7 +461,7 @@ const Show = ({ auth, tenantId }) => {
                         <Tabs 
                             selectedKey={selectedTab} 
                             onSelectionChange={setSelectedTab}
-                            radius={themeRadius}
+                            radius={getThemeRadius()}
                             variant="underlined"
                         >
                             <Tab key="overview" title={
@@ -502,7 +660,7 @@ const Show = ({ auth, tenantId }) => {
                                                             : 0}
                                                         color="primary"
                                                         size="sm"
-                                                        radius={themeRadius}
+                                                        radius={getThemeRadius()}
                                                     />
                                                 </div>
                                             </div>
@@ -524,7 +682,7 @@ const Show = ({ auth, tenantId }) => {
                                         <Button 
                                             color="primary" 
                                             className="mt-4"
-                                            radius={themeRadius}
+                                            radius={getThemeRadius()}
                                             onPress={() => router.visit(route('admin.tenants.edit', { tenant: tenantId }))}
                                         >
                                             Assign Plan
@@ -555,54 +713,14 @@ const Show = ({ auth, tenantId }) => {
                                 </div>
                             </div>
                         )}
-                    </ThemedCardBody>
-                </ThemedCard>
+                                        </ThemedCardBody>
+                                    </ThemedCard>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
             </div>
-
-            {/* Action Confirmation Modal */}
-            <Modal
-                isOpen={actionModal.open}
-                onOpenChange={(open) => !open && setActionModal({ open: false, action: null })}
-                size="md"
-                radius={themeRadius}
-            >
-                <ModalContent>
-                    <ModalHeader>
-                        Confirm {actionModal.action?.charAt(0).toUpperCase() + actionModal.action?.slice(1)}
-                    </ModalHeader>
-                    <ModalBody>
-                        <p>
-                            Are you sure you want to {actionModal.action} <strong>{tenant?.name}</strong>?
-                        </p>
-                        {actionModal.action === 'suspend' && (
-                            <p className="text-warning text-sm mt-2">
-                                Suspended tenants will not be able to access their workspace.
-                            </p>
-                        )}
-                        {actionModal.action === 'archive' && (
-                            <p className="text-default-500 text-sm mt-2">
-                                Archived tenants will be removed from active lists but data will be preserved.
-                            </p>
-                        )}
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button 
-                            variant="flat" 
-                            onPress={() => setActionModal({ open: false, action: null })}
-                            radius={themeRadius}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            color={actionModal.action === 'activate' ? 'success' : 'warning'}
-                            onPress={() => handleAction(actionModal.action)}
-                            radius={themeRadius}
-                        >
-                            {actionModal.action?.charAt(0).toUpperCase() + actionModal.action?.slice(1)}
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
         </>
     );
 };

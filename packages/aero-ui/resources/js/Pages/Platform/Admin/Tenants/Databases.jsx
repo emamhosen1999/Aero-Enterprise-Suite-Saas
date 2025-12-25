@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import axios from 'axios';
 import {
     Card,
@@ -34,25 +35,39 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
-const Databases = ({ auth }) => {
-    const [databases, setDatabases] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [themeRadius, setThemeRadius] = useState('lg');
-
-    useEffect(() => {
+const Databases = ({ auth, title }) => {
+    // Theme radius helper (REQUIRED)
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
         const rootStyles = getComputedStyle(document.documentElement);
         const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
         const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) setThemeRadius('none');
-        else if (radiusValue <= 4) setThemeRadius('sm');
-        else if (radiusValue <= 8) setThemeRadius('md');
-        else if (radiusValue <= 12) setThemeRadius('lg');
-        else setThemeRadius('xl');
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    // Responsive breakpoints (REQUIRED)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
+
+    const [databases, setDatabases] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const fetchDatabases = useCallback(async () => {
         setLoading(true);
@@ -101,32 +116,36 @@ const Databases = ({ auth }) => {
     const pendingDatabases = databases.filter(d => d.status === 'pending').length;
     const errorDatabases = databases.filter(d => d.status === 'error').length;
 
-    const statsData = [
+    const statsData = useMemo(() => [
         {
-            label: 'Total Databases',
+            title: 'Total Databases',
             value: totalDatabases,
-            color: 'primary',
-            icon: CircleStackIcon,
+            color: 'text-primary',
+            iconBg: 'bg-primary/20',
+            icon: <CircleStackIcon className="w-5 h-5" />,
         },
         {
-            label: 'Healthy',
+            title: 'Healthy',
             value: healthyDatabases,
-            color: 'success',
-            icon: CheckCircleIcon,
+            color: 'text-success',
+            iconBg: 'bg-success/20',
+            icon: <CheckCircleIcon className="w-5 h-5" />,
         },
         {
-            label: 'Provisioning',
+            title: 'Provisioning',
             value: pendingDatabases,
-            color: 'warning',
-            icon: ArrowPathIcon,
+            color: 'text-warning',
+            iconBg: 'bg-warning/20',
+            icon: <ArrowPathIcon className="w-5 h-5" />,
         },
         {
-            label: 'Issues',
+            title: 'Issues',
             value: errorDatabases,
-            color: 'danger',
-            icon: ExclamationCircleIcon,
+            color: 'text-danger',
+            iconBg: 'bg-danger/20',
+            icon: <ExclamationCircleIcon className="w-5 h-5" />,
         },
-    ];
+    ], [totalDatabases, healthyDatabases, pendingDatabases, errorDatabases]);
 
     const columns = [
         { uid: "database", name: "DATABASE" },
@@ -219,136 +238,209 @@ const Databases = ({ auth }) => {
 
     return (
         <>
-            <Head title="Database Management" />
-            <PageHeader
-                title="Database Management"
-                subtitle="Monitor tenant databases and their status"
-                icon={<CircleStackIcon className="w-8 h-8" />}
-                actions={
-                    <Button
-                        variant="flat"
-                        startContent={<ArrowPathIcon className="w-4 h-4" />}
-                        radius={themeRadius}
-                        onPress={fetchDatabases}
-                    >
-                        Refresh
-                    </Button>
-                }
-            />
+            <Head title={title || "Database Management"} />
             
-            <div className="space-y-6">
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {statsData.map((stat, idx) => (
-                        <ThemedCard key={idx}>
-                            <ThemedCardBody>
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg bg-${stat.color}/10`}>
-                                        <stat.icon className={`w-5 h-5 text-${stat.color}`} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-default-500">{stat.label}</p>
-                                        <p className="text-lg font-semibold">{stat.value}</p>
-                                    </div>
-                                </div>
-                            </ThemedCardBody>
-                        </ThemedCard>
-                    ))}
-                </div>
-
-                {/* Database List */}
-                <ThemedCard>
-                    <ThemedCardHeader>
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
-                            <h3 className="text-lg font-semibold">Tenant Databases</h3>
-                            <Input
-                                placeholder="Search databases..."
-                                value={searchQuery}
-                                onValueChange={setSearchQuery}
-                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                radius={themeRadius}
-                                classNames={{ inputWrapper: "bg-default-100" }}
-                                className="w-64"
-                            />
-                        </div>
-                    </ThemedCardHeader>
-                    <ThemedCardBody>
-                        {loading ? (
-                            <div className="space-y-3">
-                                {[...Array(5)].map((_, i) => (
-                                    <Skeleton key={i} className="h-12 rounded-lg" />
-                                ))}
-                            </div>
-                        ) : (
-                            <Table
-                                aria-label="Databases table"
-                                classNames={{
-                                    wrapper: "shadow-none",
-                                    th: "bg-default-100 text-default-600 font-semibold",
+            {/* Main content wrapper */}
+            <div
+                className="flex flex-col w-full h-full p-4"
+                role="main"
+                aria-label="Database Management"
+            >
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {/* Main Card with theme styling */}
+                            <Card
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
                                 }}
                             >
-                                <TableHeader columns={columns}>
-                                    {(column) => (
-                                        <TableColumn key={column.uid}>
-                                            {column.name}
-                                        </TableColumn>
-                                    )}
-                                </TableHeader>
-                                <TableBody items={filteredDatabases} emptyContent="No databases found">
-                                    {(item) => (
-                                        <TableRow key={item.id}>
-                                            {(columnKey) => (
-                                                <TableCell>{renderCell(item, columnKey)}</TableCell>
-                                            )}
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        )}
-                    </ThemedCardBody>
-                </ThemedCard>
+                                {/* Card Header with title + action buttons */}
+                                <CardHeader
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section with icon */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <div
+                                                    className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl flex items-center justify-center`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                        borderWidth: `var(--borderWidth, 2px)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <CircleStackIcon
+                                                        className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`}
+                                                        style={{ color: 'var(--theme-primary)' }}
+                                                    />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4
+                                                        className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold text-foreground ${isMobile ? 'truncate' : ''}`}
+                                                        style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                    >
+                                                        Database Management
+                                                    </h4>
+                                                    <p
+                                                        className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500 ${isMobile ? 'truncate' : ''}`}
+                                                        style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                    >
+                                                        Monitor tenant databases and their status
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2 flex-wrap">
+                                                <Button
+                                                    variant="flat"
+                                                    startContent={<ArrowPathIcon className="w-4 h-4" />}
+                                                    radius={getThemeRadius()}
+                                                    onPress={fetchDatabases}
+                                                    size={isMobile ? "sm" : "md"}
+                                                >
+                                                    Refresh
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
 
-                {/* System Overview */}
-                <ThemedCard>
-                    <ThemedCardHeader>
-                        <h3 className="text-lg font-semibold">System Overview</h3>
-                    </ThemedCardHeader>
-                    <ThemedCardBody>
-                        <div className="space-y-4">
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm">Healthy Databases</span>
-                                    <span className="text-sm text-default-500">
-                                        {healthyDatabases} / {totalDatabases}
-                                    </span>
-                                </div>
-                                <Progress 
-                                    value={totalDatabases > 0 ? (healthyDatabases / totalDatabases) * 100 : 0} 
-                                    color="success" 
-                                    size="sm"
-                                    radius={themeRadius}
-                                />
-                            </div>
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-sm">Active Tenants</span>
-                                    <span className="text-sm text-default-500">
-                                        {databases.filter(d => d.tenant_status === 'active').length} / {totalDatabases}
-                                    </span>
-                                </div>
-                                <Progress 
-                                    value={totalDatabases > 0 
-                                        ? (databases.filter(d => d.tenant_status === 'active').length / totalDatabases) * 100 
-                                        : 0
-                                    } 
-                                    color="primary" 
-                                    size="sm"
-                                    radius={themeRadius}
-                                />
-                            </div>
-                        </div>
-                    </ThemedCardBody>
-                </ThemedCard>
+                                <CardBody className="p-6">
+                                    {/* Stats Cards (we'll use StatsCards component) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                        {statsData.map((stat, idx) => (
+                                            <ThemedCard key={idx}>
+                                                <ThemedCardBody>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={stat.iconBg}>
+                                                            {stat.icon}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-default-500">{stat.title}</p>
+                                                            <p className={`text-lg font-semibold ${stat.color}`}>{stat.value}</p>
+                                                        </div>
+                                                    </div>
+                                                </ThemedCardBody>
+                                            </ThemedCard>
+                                        ))}
+                                    </div>
+                                    
+                                    {/* Filter Section */}
+                                    <div className="mb-6">
+                                        <Input
+                                            placeholder="Search databases..."
+                                            value={searchQuery}
+                                            onValueChange={setSearchQuery}
+                                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                                            radius={getThemeRadius()}
+                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                        />
+                                    </div>
+                                    
+                                    {/* Database List */}
+                                    {loading ? (
+                                        <div className="space-y-3">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Skeleton key={i} className="h-12 rounded-lg" />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <Table
+                                            aria-label="Databases table"
+                                            classNames={{
+                                                wrapper: "shadow-none border border-divider rounded-lg",
+                                                th: "bg-default-100 text-default-600 font-semibold",
+                                                td: "py-3"
+                                            }}
+                                        >
+                                            <TableHeader columns={columns}>
+                                                {(column) => (
+                                                    <TableColumn key={column.uid}>
+                                                        {column.name}
+                                                    </TableColumn>
+                                                )}
+                                            </TableHeader>
+                                            <TableBody items={filteredDatabases} emptyContent="No databases found">
+                                                {(item) => (
+                                                    <TableRow key={item.id}>
+                                                        {(columnKey) => (
+                                                            <TableCell>{renderCell(item, columnKey)}</TableCell>
+                                                        )}
+                                                    </TableRow>
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    )}
+                                    
+                                    {/* System Overview */}
+                                    <ThemedCard className="mt-6">
+                                        <ThemedCardHeader>
+                                            <h3 className="text-lg font-semibold">System Overview</h3>
+                                        </ThemedCardHeader>
+                                        <ThemedCardBody>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <div className="flex justify-between mb-2">
+                                                        <span className="text-sm">Healthy Databases</span>
+                                                        <span className="text-sm text-default-500">
+                                                            {healthyDatabases} / {totalDatabases}
+                                                        </span>
+                                                    </div>
+                                                    <Progress 
+                                                        value={totalDatabases > 0 ? (healthyDatabases / totalDatabases) * 100 : 0} 
+                                                        color="success" 
+                                                        size="sm"
+                                                        radius={getThemeRadius()}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <div className="flex justify-between mb-2">
+                                                        <span className="text-sm">Active Tenants</span>
+                                                        <span className="text-sm text-default-500">
+                                                            {databases.filter(d => d.tenant_status === 'active').length} / {totalDatabases}
+                                                        </span>
+                                                    </div>
+                                                    <Progress 
+                                                        value={totalDatabases > 0 
+                                                            ? (databases.filter(d => d.tenant_status === 'active').length / totalDatabases) * 100 
+                                                            : 0
+                                                        } 
+                                                        color="primary" 
+                                                        size="sm"
+                                                        radius={getThemeRadius()}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </ThemedCardBody>
+                                    </ThemedCard>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
+                </div>
             </div>
         </>
     );

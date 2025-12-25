@@ -33,8 +33,8 @@ class PlanController extends Controller
                     'trial_days' => $plan->trial_days,
                     'is_active' => $plan->is_active,
                     'is_featured' => $plan->is_featured,
-                    'features' => $plan->features ? json_decode($plan->features, true) : [],
-                    'limits' => $plan->limits ? json_decode($plan->limits, true) : [],
+                    'features' => $plan->features ?? [],
+                    'limits' => $plan->limits ?? [],
                     'modules' => $plan->modules->map(fn ($m) => [
                         'id' => $m->id,
                         'code' => $m->code,
@@ -72,7 +72,7 @@ class PlanController extends Controller
                     'yearly_price' => $plan->yearly_price,
                     'trial_days' => $plan->trial_days,
                     'is_featured' => $plan->is_featured,
-                    'features' => $plan->features ? json_decode($plan->features, true) : [],
+                    'features' => $plan->features ?? [],
                     'modules' => $plan->modules->map(fn ($m) => [
                         'code' => $m->code,
                         'name' => $m->name,

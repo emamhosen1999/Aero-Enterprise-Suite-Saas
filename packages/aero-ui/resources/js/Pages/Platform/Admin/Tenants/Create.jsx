@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 import {
     Card,
     CardBody,
@@ -24,15 +25,40 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
-const Create = ({ auth }) => {
+const Create = ({ auth, title }) => {
+    // 1. Theme radius helper (REQUIRED)
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+
+    // 2. Responsive breakpoints (REQUIRED)
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsMobile(window.innerWidth < 640);
+            setIsTablet(window.innerWidth < 768);
+        };
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(false);
     const [subdomainChecking, setSubdomainChecking] = useState(false);
     const [subdomainAvailable, setSubdomainAvailable] = useState(null);
-    const [themeRadius, setThemeRadius] = useState('lg');
     
     const [formData, setFormData] = useState({
         name: '',
@@ -48,17 +74,6 @@ const Create = ({ auth }) => {
     });
     
     const [errors, setErrors] = useState({});
-
-    useEffect(() => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) setThemeRadius('none');
-        else if (radiusValue <= 4) setThemeRadius('sm');
-        else if (radiusValue <= 8) setThemeRadius('md');
-        else if (radiusValue <= 12) setThemeRadius('lg');
-        else setThemeRadius('xl');
-    }, []);
 
     useEffect(() => {
         fetchPlans();
@@ -164,89 +179,160 @@ const Create = ({ auth }) => {
         { key: 'enterprise', label: 'Enterprise', description: 'Large organization, full features' },
     ];
 
+    // RENDER STRUCTURE (CRITICAL - Follow LeavesAdmin.jsx exactly)
     return (
         <>
-            <Head title="Create Tenant" />
-            <PageHeader
-                title="Create New Tenant"
-                subtitle="Provision a new tenant with database and configuration"
-                icon={<PlusIcon className="w-8 h-8" />}
-                actions={
-                    <Button
-                        variant="flat"
-                        startContent={<ArrowLeftIcon className="w-4 h-4" />}
-                        radius={themeRadius}
-                        onPress={() => router.visit(route('admin.tenants.index'))}
-                    >
-                        Back to List
-                    </Button>
-                }
-            />
+            <Head title={title || "Create Tenant"} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Form */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Company Information */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
-                            <div className="flex items-center gap-2">
-                                <BuildingOfficeIcon className="w-5 h-5 text-primary" />
-                                <h3 className="text-lg font-semibold">Company Information</h3>
-                            </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input
-                                    label="Company Name"
-                                    placeholder="Enter company name"
-                                    value={formData.name}
-                                    onValueChange={(v) => handleChange('name', v)}
-                                    isInvalid={!!errors.name}
-                                    errorMessage={errors.name}
-                                    isRequired
-                                    radius={themeRadius}
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
-                                <Input
-                                    label="Email"
-                                    type="email"
-                                    placeholder="company@example.com"
-                                    value={formData.email}
-                                    onValueChange={(v) => handleChange('email', v)}
-                                    isInvalid={!!errors.email}
-                                    errorMessage={errors.email}
-                                    isRequired
-                                    radius={themeRadius}
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
-                                <Input
-                                    label="Phone"
-                                    placeholder="+1 234 567 8900"
-                                    value={formData.phone}
-                                    onValueChange={(v) => handleChange('phone', v)}
-                                    radius={themeRadius}
-                                    classNames={{ inputWrapper: "bg-default-100" }}
-                                />
-                                <Select
-                                    label="Tenant Type"
-                                    placeholder="Select type"
-                                    selectedKeys={formData.type ? [formData.type] : []}
-                                    onSelectionChange={(keys) => handleChange('type', Array.from(keys)[0])}
-                                    isInvalid={!!errors.type}
-                                    errorMessage={errors.type}
-                                    isRequired
-                                    radius={themeRadius}
-                                    classNames={{ trigger: "bg-default-100" }}
+            {/* Main content wrapper */}
+            <div
+                className="flex flex-col w-full h-full p-4"
+                role="main"
+                aria-label="Create Tenant"
+            >
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            {/* Main Card with theme styling */}
+                            <Card
+                                className="transition-all duration-200"
+                                style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
+                                    borderRadius: `var(--borderRadius, 12px)`,
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
+                                }}
+                            >
+                                {/* Card Header with title + action buttons */}
+                                <CardHeader
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
                                 >
-                                    {tenantTypes.map(type => (
-                                        <SelectItem key={type.key} description={type.description}>
-                                            {type.label}
-                                        </SelectItem>
-                                    ))}
-                                </Select>
-                            </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section with icon */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <Button
+                                                    isIconOnly
+                                                    variant="light"
+                                                    radius={getThemeRadius()}
+                                                    onPress={() => router.visit(route('admin.tenants.index'))}
+                                                    className="shrink-0"
+                                                >
+                                                    <ArrowLeftIcon className="w-5 h-5" />
+                                                </Button>
+                                                <div
+                                                    className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl flex items-center justify-center`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
+                                                        borderWidth: `var(--borderWidth, 2px)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <PlusIcon
+                                                        className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`}
+                                                        style={{ color: 'var(--theme-primary)' }}
+                                                    />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4
+                                                        className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold text-foreground ${isMobile ? 'truncate' : ''}`}
+                                                        style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                    >
+                                                        Create New Tenant
+                                                    </h4>
+                                                    <p
+                                                        className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500 ${isMobile ? 'truncate' : ''}`}
+                                                        style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+                                                    >
+                                                        Provision a new tenant with database and configuration
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardBody className="p-6">
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Main Form */}
+                                        <div className="lg:col-span-2 space-y-6">
+                                            {/* Company Information */}
+                                            <ThemedCard>
+                                                <ThemedCardHeader>
+                                                    <div className="flex items-center gap-2">
+                                                        <BuildingOfficeIcon className="w-5 h-5 text-primary" />
+                                                        <h3 className="text-lg font-semibold">Company Information</h3>
+                                                    </div>
+                                                </ThemedCardHeader>
+                                                <ThemedCardBody>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <Input
+                                                            label="Company Name"
+                                                            placeholder="Enter company name"
+                                                            value={formData.name}
+                                                            onValueChange={(v) => handleChange('name', v)}
+                                                            isInvalid={!!errors.name}
+                                                            errorMessage={errors.name}
+                                                            isRequired
+                                                            radius={getThemeRadius()}
+                                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                                        />
+                                                        <Input
+                                                            label="Email"
+                                                            type="email"
+                                                            placeholder="company@example.com"
+                                                            value={formData.email}
+                                                            onValueChange={(v) => handleChange('email', v)}
+                                                            isInvalid={!!errors.email}
+                                                            errorMessage={errors.email}
+                                                            isRequired
+                                                            radius={getThemeRadius()}
+                                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                                        />
+                                                        <Input
+                                                            label="Phone"
+                                                            placeholder="+1 234 567 8900"
+                                                            value={formData.phone}
+                                                            onValueChange={(v) => handleChange('phone', v)}
+                                                            radius={getThemeRadius()}
+                                                            classNames={{ inputWrapper: "bg-default-100" }}
+                                                        />
+                                                        <Select
+                                                            label="Tenant Type"
+                                                            placeholder="Select type"
+                                                            selectedKeys={formData.type ? [formData.type] : []}
+                                                            onSelectionChange={(keys) => handleChange('type', Array.from(keys)[0])}
+                                                            isInvalid={!!errors.type}
+                                                            errorMessage={errors.type}
+                                                            isRequired
+                                                            radius={getThemeRadius()}
+                                                            classNames={{ trigger: "bg-default-100" }}
+                                                        >
+                                                            {tenantTypes.map(type => (
+                                                                <SelectItem key={type.key} description={type.description}>
+                                                                    {type.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </Select>
+                                                    </div>
+                                                </ThemedCardBody>
+                                            </ThemedCard>
 
                     {/* Subdomain Configuration */}
                     <ThemedCard>
@@ -266,7 +352,7 @@ const Create = ({ auth }) => {
                                     isInvalid={!!errors.subdomain || subdomainAvailable === false}
                                     errorMessage={errors.subdomain || (subdomainAvailable === false ? 'Subdomain is already taken' : null)}
                                     isRequired
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                     description={`Your tenant will be accessible at: ${formData.subdomain || 'subdomain'}.yourdomain.com`}
                                     endContent={
@@ -306,7 +392,7 @@ const Create = ({ auth }) => {
                                     isInvalid={!!errors.admin_name}
                                     errorMessage={errors.admin_name}
                                     isRequired
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
@@ -318,7 +404,7 @@ const Create = ({ auth }) => {
                                     isInvalid={!!errors.admin_email}
                                     errorMessage={errors.admin_email}
                                     isRequired
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                                 <Input
@@ -328,7 +414,7 @@ const Create = ({ auth }) => {
                                     value={formData.admin_password}
                                     onValueChange={(v) => handleChange('admin_password', v)}
                                     description="If left empty, a secure password will be generated and emailed"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
@@ -352,7 +438,7 @@ const Create = ({ auth }) => {
                                     isInvalid={!!errors.plan_id}
                                     errorMessage={errors.plan_id}
                                     isRequired
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ trigger: "bg-default-100" }}
                                 >
                                     {plans.map(plan => (
@@ -371,7 +457,7 @@ const Create = ({ auth }) => {
                                     min={0}
                                     max={90}
                                     description="Number of days before billing starts"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
@@ -386,7 +472,7 @@ const Create = ({ auth }) => {
                                     color="primary"
                                     className="w-full"
                                     size="lg"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     onPress={handleSubmit}
                                     isLoading={loading}
                                     startContent={!loading && <PlusIcon className="w-5 h-5" />}
@@ -396,7 +482,7 @@ const Create = ({ auth }) => {
                                 <Button
                                     variant="flat"
                                     className="w-full"
-                                    radius={themeRadius}
+                                    radius={getThemeRadius()}
                                     onPress={() => router.visit(route('admin.tenants.index'))}
                                 >
                                     Cancel
@@ -419,6 +505,12 @@ const Create = ({ auth }) => {
                             </div>
                         </ThemedCardBody>
                     </ThemedCard>
+                                        </div>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </motion.div>
+                    </div>
                 </div>
             </div>
         </>

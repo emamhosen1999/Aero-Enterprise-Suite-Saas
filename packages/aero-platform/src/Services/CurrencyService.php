@@ -1,8 +1,8 @@
 <?php
 
-namespace LinkingDots\AeroPlatform\Services;
+namespace Aero\Platform\Services;
 
-use LinkingDots\AeroPlatform\Models\ExchangeRate;
+use Aero\Platform\Models\ExchangeRate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

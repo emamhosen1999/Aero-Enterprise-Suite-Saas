@@ -130,6 +130,22 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Platform/Admin/Tenants/Create');
         })->middleware(['module:tenants,tenant-list,tenant-management,create'])->name('create');
 
+        // Domain Management (MUST be before /{tenant} to avoid being matched as tenant ID)
+        Route::get('/domains', function () {
+            return Inertia::render('Platform/Admin/Tenants/Domains');
+        })->middleware(['module:tenants,domains'])->name('domains');
+
+        // Database Management (MUST be before /{tenant} to avoid being matched as tenant ID)
+        Route::get('/databases', function () {
+            return Inertia::render('Platform/Admin/Tenants/Databases');
+        })->middleware(['module:tenants,databases'])->name('databases');
+
+        // Tenant Management (bulk operations) (MUST be before /{tenant} to avoid being matched as tenant ID)
+        Route::get('/management', function () {
+            return Inertia::render('Platform/Admin/Tenants/TenantManagement');
+        })->middleware(['module:tenants,tenant-list'])->name('management');
+
+        // Dynamic routes with {tenant} parameter MUST come after static routes
         Route::get('/{tenant}', function ($tenant) {
             return Inertia::render('Platform/Admin/Tenants/Show', ['tenantId' => $tenant]);
         })->middleware(['module:tenants,tenant-list,tenant-management,view'])->name('show');
@@ -137,21 +153,6 @@ Route::middleware(['auth:landlord'])->group(function () {
         Route::get('/{tenant}/edit', function ($tenant) {
             return Inertia::render('Platform/Admin/Tenants/Edit', ['tenantId' => $tenant]);
         })->middleware(['module:tenants,tenant-list,tenant-management,update'])->name('edit');
-
-        // Domain Management
-        Route::get('/domains', function () {
-            return Inertia::render('Platform/Admin/Tenants/Domains');
-        })->middleware(['module:tenants,domains'])->name('domains');
-
-        // Database Management
-        Route::get('/databases', function () {
-            return Inertia::render('Platform/Admin/Tenants/Databases');
-        })->middleware(['module:tenants,databases'])->name('databases');
-
-        // Tenant Management (bulk operations)
-        Route::get('/management', function () {
-            return Inertia::render('Platform/Admin/Tenants/TenantManagement');
-        })->middleware(['module:tenants,tenant-list'])->name('management');
 
         // Tenant Impersonation
         Route::post('/{tenant}/impersonate', [ImpersonationController::class, 'impersonate'])
@@ -688,34 +689,34 @@ Route::middleware(['auth:landlord'])->group(function () {
     // REPORT MANAGEMENT API (Phase 3 Week 6)
     // =========================================================================
     Route::middleware(['module:platform-analytics'])->prefix('reports')->name('admin.reports.')->group(function () {
-        Route::get('/', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'index'])
+        Route::get('/', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'index'])
             ->middleware(['module:platform-analytics,platform-reports'])
             ->name('index');
-        Route::post('/', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'store'])
+        Route::post('/', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'store'])
             ->middleware(['module:platform-analytics,platform-reports,report-list,create'])
             ->name('store');
-        Route::get('/templates', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'templates'])
+        Route::get('/templates', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'templates'])
             ->middleware(['module:platform-analytics,platform-reports'])
             ->name('templates');
-        Route::post('/generate', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'generate'])
+        Route::post('/generate', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'generate'])
             ->middleware(['module:platform-analytics,platform-reports'])
             ->name('generate');
-        Route::get('/{id}', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'show'])
+        Route::get('/{id}', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'show'])
             ->middleware(['module:platform-analytics,platform-reports,report-list,view'])
             ->name('show');
-        Route::put('/{id}', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'update'])
+        Route::put('/{id}', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'update'])
             ->middleware(['module:platform-analytics,platform-reports,report-list,update'])
             ->name('update');
-        Route::delete('/{id}', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'destroy'])
+        Route::delete('/{id}', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'destroy'])
             ->middleware(['module:platform-analytics,platform-reports,report-list,delete'])
             ->name('destroy');
-        Route::post('/{id}/run', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'run'])
+        Route::post('/{id}/run', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'run'])
             ->middleware(['module:platform-analytics,platform-reports,report-list,execute'])
             ->name('run');
-        Route::post('/{id}/duplicate', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'duplicate'])
+        Route::post('/{id}/duplicate', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'duplicate'])
             ->middleware(['module:platform-analytics,platform-reports,report-list,create'])
             ->name('duplicate');
-        Route::get('/{id}/executions', [\LinkingDots\AeroPlatform\Http\Controllers\Admin\ReportController::class, 'executions'])
+        Route::get('/{id}/executions', [\Aero\Platform\Http\Controllers\Admin\ReportController::class, 'executions'])
             ->middleware(['module:platform-analytics,platform-reports,report-list,view'])
             ->name('executions');
     });

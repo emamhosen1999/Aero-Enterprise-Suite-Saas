@@ -1,9 +1,9 @@
 <?php
 
-namespace LinkingDots\AeroPlatform\Services;
+namespace Aero\Platform\Services;
 
-use LinkingDots\AeroPlatform\Models\ScheduledReport;
-use LinkingDots\AeroPlatform\Models\ReportExecution;
+use Aero\Platform\Models\ScheduledReport;
+use Aero\Platform\Models\ReportExecution;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;

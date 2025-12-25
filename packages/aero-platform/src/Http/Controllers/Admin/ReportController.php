@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace LinkingDots\AeroPlatform\Http\Controllers\Admin;
+namespace Aero\Platform\Http\Controllers\Admin;
 
-use LinkingDots\AeroPlatform\Http\Controllers\Controller;
-use LinkingDots\AeroPlatform\Models\ScheduledReport;
-use LinkingDots\AeroPlatform\Services\ReportScheduler;
+use Aero\Platform\Http\Controllers\Controller;
+use Aero\Platform\Models\ScheduledReport;
+use Aero\Platform\Services\ReportScheduler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
