@@ -96,7 +96,19 @@ const TenantManagement = ({ title }) => {
         search: '',
         status: [],
         plan: 'all',
+        trialStatus: 'all', // all, on_trial, trial_expired, not_trial
     });
+    
+    // Debounced search value for API calls (prevents excessive requests)
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    
+    // Debounce search input (300ms delay)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(filters.search);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [filters.search]);
 
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -174,7 +186,11 @@ const TenantManagement = ({ title }) => {
     ], [stats]);
 
     // Permission checks
-    const canCreate = auth?.permissions?.includes('tenants.create') || true;
+    const canCreate = auth?.permissions?.includes('tenants.create') || auth?.permissions?.includes('tenants.tenant-list.create') || false;
+    const canEdit = auth?.permissions?.includes('tenants.edit') || auth?.permissions?.includes('tenants.tenant-list.edit') || false;
+    const canDelete = auth?.permissions?.includes('tenants.delete') || auth?.permissions?.includes('tenants.tenant-list.delete') || false;
+    const canSuspend = auth?.permissions?.includes('tenants.suspend') || auth?.permissions?.includes('tenants.tenant-list.suspend') || false;
+    const canActivate = auth?.permissions?.includes('tenants.activate') || auth?.permissions?.includes('tenants.tenant-list.activate') || false;
 
     // Filter change handler
     const handleFilterChange = useCallback((filterKey, filterValue) => {
@@ -195,9 +211,10 @@ const TenantManagement = ({ title }) => {
                 params: {
                     page: pagination.currentPage,
                     per_page: pagination.perPage,
-                    search: filters.search || undefined,
+                    search: debouncedSearch || undefined,
                     status: filters.status !== 'all' ? filters.status : undefined,
                     plan: filters.plan !== 'all' ? filters.plan : undefined,
+                    trial_status: filters.trialStatus !== 'all' ? filters.trialStatus : undefined,
                 },
             });
             setTenants(response.data.data || []);
@@ -211,7 +228,7 @@ const TenantManagement = ({ title }) => {
         } finally {
             setLoading(false);
         }
-    }, [pagination.currentPage, pagination.perPage, filters]);
+    }, [pagination.currentPage, pagination.perPage, debouncedSearch, filters.status, filters.plan, filters.trialStatus]);
 
     const fetchStats = useCallback(async () => {
         setStatsLoading(true);
@@ -403,6 +420,32 @@ const TenantManagement = ({ title }) => {
                 );
             case 'plan':
                 return tenant.plan?.name || 'No Plan';
+            case 'trial':
+                if (!tenant.trial_ends_at) {
+                    return <span className="text-default-400 text-sm">-</span>;
+                }
+                const trialEndsAt = new Date(tenant.trial_ends_at);
+                const now = new Date();
+                const isExpired = trialEndsAt <= now;
+                const daysRemaining = Math.ceil((trialEndsAt - now) / (1000 * 60 * 60 * 24));
+                
+                if (isExpired) {
+                    return (
+                        <Chip color="danger" size="sm" variant="flat" radius={getThemeRadius()}>
+                            Expired
+                        </Chip>
+                    );
+                }
+                return (
+                    <Chip 
+                        color={daysRemaining <= 3 ? "warning" : "success"} 
+                        size="sm" 
+                        variant="flat" 
+                        radius={getThemeRadius()}
+                    >
+                        {daysRemaining}d left
+                    </Chip>
+                );
             case 'users':
                 return `${tenant.current_users || 0} / ${tenant.max_users || '∞'}`;
             case 'created_at':
@@ -479,6 +522,7 @@ const TenantManagement = ({ title }) => {
         { key: 'select', label: <Checkbox isSelected={selectedTenants.size === tenants.length} onValueChange={handleSelectAll} radius={getThemeRadius()} /> },
         { key: 'name', label: 'Tenant' },
         { key: 'status', label: 'Status' },
+        { key: 'trial', label: 'Trial' },
         { key: 'plan', label: 'Plan' },
         { key: 'users', label: 'Users' },
         { key: 'created_at', label: 'Created' },
@@ -796,6 +840,29 @@ const TenantManagement = ({ title }) => {
                                                         {plans.map(plan => (
                                                             <SelectItem key={plan.id}>{plan.name}</SelectItem>
                                                         ))}
+                                                    </Select>
+
+                                                    <Select
+                                                        label="Trial Status"
+                                                        placeholder="Select trial status..."
+                                                        selectedKeys={filters.trialStatus !== 'all' ? [filters.trialStatus] : []}
+                                                        onSelectionChange={(keys) => handleFilterChange('trialStatus', Array.from(keys)[0] || 'all')}
+                                                        variant="bordered"
+                                                        size="sm"
+                                                        radius={getThemeRadius()}
+                                                        className="w-full"
+                                                        classNames={{
+                                                            trigger: "text-sm",
+                                                        }}
+                                                        style={{
+                                                            fontFamily: `var(--fontFamily, "Inter")`,
+                                                        }}
+                                                        aria-label="Filter by trial status"
+                                                    >
+                                                        <SelectItem key="all">All</SelectItem>
+                                                        <SelectItem key="on_trial">On Trial</SelectItem>
+                                                        <SelectItem key="trial_expired">Trial Expired</SelectItem>
+                                                        <SelectItem key="not_trial">Not on Trial</SelectItem>
                                                     </Select>
                                                 </div>
                                             </div>

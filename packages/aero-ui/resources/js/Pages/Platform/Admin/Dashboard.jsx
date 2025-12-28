@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import axios from 'axios';
 import App from '@/Layouts/App';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -268,7 +269,20 @@ const DiagonalAccent = ({ color = 'var(--theme-primary)' }) => (
 );
 
 // Platform Status Hero
-const PlatformStatusHero = ({ stats, loading, themeRadius }) => (
+const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing, systemStatus }) => {
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'operational': return { color: 'success', label: 'All Systems Operational', icon: SignalIcon };
+      case 'degraded': return { color: 'warning', label: 'Performance Degraded', icon: ExclamationTriangleIcon };
+      case 'critical': return { color: 'danger', label: 'System Issues Detected', icon: XCircleIcon };
+      default: return { color: 'success', label: 'All Systems Operational', icon: SignalIcon };
+    }
+  };
+  
+  const statusConfig = getStatusConfig(systemStatus);
+  const StatusIcon = statusConfig.icon;
+  
+  return (
   <Card className="relative overflow-hidden" style={getCardStyle('var(--theme-primary)')}>
     <DiagonalAccent color="var(--theme-primary)" />
     <CardHeader className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 border-b p-4 sm:p-6" style={getHeaderStyle()}>
@@ -285,8 +299,8 @@ const PlatformStatusHero = ({ stats, loading, themeRadius }) => (
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground truncate">Platform Command Center</h1>
-            <Chip color="success" variant="flat" size="sm" startContent={<SignalIcon className="h-3 w-3" />} className="flex-shrink-0">
-              All Systems Operational
+            <Chip color={statusConfig.color} variant="flat" size="sm" startContent={<StatusIcon className="h-3 w-3" />} className="flex-shrink-0">
+              {statusConfig.label}
             </Chip>
           </div>
           <p className="text-xs sm:text-sm text-default-500 truncate">
@@ -295,6 +309,17 @@ const PlatformStatusHero = ({ stats, loading, themeRadius }) => (
         </div>
       </div>
       <div className="flex gap-2 flex-wrap flex-shrink-0">
+        <Button 
+          variant="flat" 
+          radius={themeRadius} 
+          size="sm" 
+          className="sm:size-md"
+          isLoading={refreshing}
+          onPress={onRefresh}
+          startContent={!refreshing && <ArrowPathIcon className="h-4 w-4" />}
+        >
+          {refreshing ? 'Refreshing...' : 'Refresh'}
+        </Button>
         <Button as={Link} href={route('admin.analytics.index')} color="primary" radius={themeRadius} size="sm" className="sm:size-md" startContent={<ChartBarIcon className="h-4 w-4" />}>
           Analytics
         </Button>
@@ -312,17 +337,17 @@ const PlatformStatusHero = ({ stats, loading, themeRadius }) => (
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Active Tenants</p>
             <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.activeTenants}</p>
             <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
-              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span className="truncate">+6 this week</span>
+              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span className="truncate">+{stats.newThisWeek ?? 0} this week</span>
             </p>
           </div>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
-            <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Active Users</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.activeUsers.toLocaleString()}</p>
-            <p className="text-[10px] sm:text-xs text-default-400 mt-1 truncate">{((stats.activeUsers/stats.totalUsers)*100).toFixed(1)}% of total</p>
+            <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Platform Admins</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.totalAdmins ?? stats.activeUsers?.toLocaleString() ?? 0}</p>
+            <p className="text-[10px] sm:text-xs text-default-400 mt-1 truncate">{stats.activeAdmins ?? 0} active</p>
           </div>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle('var(--theme-success)')}>
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Monthly Revenue</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-success">${(stats.mrr/1000).toFixed(0)}K</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-success">{stats.formatted?.mrr ?? `$${(stats.mrr/1000).toFixed(0)}K`}</p>
             <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
               <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span>+{stats.mrrGrowth}%</span>
             </p>
@@ -336,19 +361,20 @@ const PlatformStatusHero = ({ stats, loading, themeRadius }) => (
       )}
     </CardBody>
   </Card>
-);
+  );
+};
 
 // Key Metrics Grid
-const KeyMetricsGrid = ({ stats, loading }) => {
+const KeyMetricsGrid = ({ stats, loading, canViewBilling = true }) => {
   const metrics = [
-    { label: 'Total Tenants', value: stats.totalTenants, icon: BuildingOffice2Icon, color: 'var(--theme-primary)', suffix: '', change: '+8.2%', trend: 'up' },
-    { label: 'Total Users', value: stats.totalUsers.toLocaleString(), icon: UsersIcon, color: '#0ea5e9', suffix: '', change: '+12.5%', trend: 'up' },
-    { label: 'ARR', value: `$${(stats.arr/1000000).toFixed(1)}M`, icon: CurrencyDollarIcon, color: '#10b981', suffix: '', change: '+15.3%', trend: 'up' },
-    { label: 'Churn Rate', value: stats.churnRate, icon: ArrowTrendingDownIcon, color: '#ef4444', suffix: '%', change: '-0.3%', trend: 'down' },
-    { label: 'Avg Revenue/Tenant', value: `$${stats.avgRevenuePerTenant}`, icon: ChartPieIcon, color: '#8b5cf6', suffix: '', change: '+5.2%', trend: 'up' },
-    { label: 'API Calls (30d)', value: stats.apiCalls, icon: BoltIcon, color: '#f59e0b', suffix: '', change: '+22.1%', trend: 'up' },
-    { label: 'Storage Used', value: stats.totalStorage, icon: CircleStackIcon, color: '#06b6d4', suffix: '', change: '+8.4%', trend: 'up' },
-    { label: 'Active Sessions', value: '2,847', icon: SignalIcon, color: '#ec4899', suffix: '', change: '+3.1%', trend: 'up' },
+    { label: 'Total Tenants', value: stats.totalTenants, icon: BuildingOffice2Icon, color: 'var(--theme-primary)', suffix: '', change: '+8.2%', trend: 'up', requiresBilling: false },
+    { label: 'Total Users', value: stats.totalUsers.toLocaleString(), icon: UsersIcon, color: '#0ea5e9', suffix: '', change: '+12.5%', trend: 'up', requiresBilling: false },
+    { label: 'ARR', value: canViewBilling ? `$${(stats.arr/1000000).toFixed(1)}M` : '—', icon: CurrencyDollarIcon, color: '#10b981', suffix: '', change: canViewBilling ? '+15.3%' : '', trend: 'up', requiresBilling: true },
+    { label: 'Churn Rate', value: canViewBilling ? stats.churnRate : '—', icon: ArrowTrendingDownIcon, color: '#ef4444', suffix: canViewBilling ? '%' : '', change: canViewBilling ? '-0.3%' : '', trend: 'down', requiresBilling: true },
+    { label: 'Avg Revenue/Tenant', value: canViewBilling ? `$${stats.avgRevenuePerTenant}` : '—', icon: ChartPieIcon, color: '#8b5cf6', suffix: '', change: canViewBilling ? '+5.2%' : '', trend: 'up', requiresBilling: true },
+    { label: 'API Calls (30d)', value: stats.apiCalls, icon: BoltIcon, color: '#f59e0b', suffix: '', change: '+22.1%', trend: 'up', requiresBilling: false },
+    { label: 'Storage Used', value: stats.totalStorage, icon: CircleStackIcon, color: '#06b6d4', suffix: '', change: '+8.4%', trend: 'up', requiresBilling: false },
+    { label: 'Active Sessions', value: '2,847', icon: SignalIcon, color: '#ec4899', suffix: '', change: '+3.1%', trend: 'up', requiresBilling: false },
   ];
 
   return (
@@ -376,15 +402,17 @@ const KeyMetricsGrid = ({ stats, loading }) => {
                   >
                     <metric.icon className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: metric.color }} />
                   </div>
-                  <Chip 
-                    size="sm" 
-                    variant="flat" 
-                    className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2"
-                    color={metric.trend === 'up' ? 'success' : metric.trend === 'down' && metric.label === 'Churn Rate' ? 'success' : 'danger'}
-                    startContent={metric.trend === 'up' ? <ArrowTrendingUpIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <ArrowTrendingDownIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
-                  >
-                    {metric.change}
-                  </Chip>
+                  {metric.change && (
+                    <Chip 
+                      size="sm" 
+                      variant="flat" 
+                      className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2"
+                      color={metric.trend === 'up' ? 'success' : metric.trend === 'down' && metric.label === 'Churn Rate' ? 'success' : 'danger'}
+                      startContent={metric.trend === 'up' ? <ArrowTrendingUpIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <ArrowTrendingDownIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
+                    >
+                      {metric.change}
+                    </Chip>
+                  )}
                 </div>
                 <p className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground truncate">{metric.value}{metric.suffix}</p>
                 <p className="text-[10px] sm:text-xs text-default-500 mt-1 truncate">{metric.label}</p>
@@ -888,23 +916,62 @@ const BillingOverviewCard = ({ billing, loading, themeRadius }) => (
 // MAIN DASHBOARD COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const Dashboard = () => {
-  const { adminDashboard = {} } = usePage().props;
+const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' }) => {
+  const { auth } = usePage().props;
   
-  // Use props or defaults
-  const platformStats = adminDashboard.platformStats ?? defaultPlatformStats;
-  const modules = adminDashboard.modules ?? defaultModules;
-  const subscriptionPlans = adminDashboard.subscriptionPlans ?? defaultSubscriptionPlans;
-  const tenantsByRegion = adminDashboard.tenantsByRegion ?? defaultTenantsByRegion;
-  const recentTenants = adminDashboard.recentTenants ?? defaultRecentTenants;
-  const systemHealth = adminDashboard.systemHealth ?? defaultSystemHealth;
-  const recentActivity = adminDashboard.recentActivity ?? defaultRecentActivity;
-  const alerts = adminDashboard.alerts ?? defaultAlerts;
-  const billingOverview = adminDashboard.billingOverview ?? defaultBillingOverview;
-  const quickActions = adminDashboard.quickActions ?? defaultQuickActions;
+  // Role-based visibility checks
+  const isSuperAdmin = auth?.user?.roles?.some(role => 
+    role.name === 'super-admin' || role.name === 'Super Administrator'
+  ) ?? false;
+  const canViewBilling = isSuperAdmin || (auth?.permissions?.includes('platform.view_billing') ?? false);
+  const canViewSystemHealth = isSuperAdmin || (auth?.permissions?.includes('platform.view_system_health') ?? false);
+  
+  // Extract widget data from dynamicWidgets (following Core Dashboard pattern)
+  // Keys use dots to match widget getKey() format (e.g., 'platform.stats')
+  const platformStatsWidget = dynamicWidgets['platform.stats'] ?? {};
+  const recentTenantsWidget = dynamicWidgets['platform.recent_tenants'] ?? {};
+  const systemAlertsWidget = dynamicWidgets['platform.system_alerts'] ?? {};
+  const welcomeWidget = dynamicWidgets['platform.welcome'] ?? {};
+  const subscriptionWidget = dynamicWidgets['platform.subscription_distribution'] ?? {};
+  const quickActionsWidget = dynamicWidgets['platform.quick_actions'] ?? {};
+  const systemHealthWidget = dynamicWidgets['platform.system_health'] ?? {};
+  const recentActivityWidget = dynamicWidgets['platform.recent_activity'] ?? {};
+  const billingOverviewWidget = dynamicWidgets['platform.billing_overview'] ?? {};
+  const moduleUsageWidget = dynamicWidgets['platform.module_usage'] ?? {};
+  
+  // Build platform stats from controller data with fallback to defaults
+  const platformStats = {
+    totalTenants: stats.totalTenants ?? platformStatsWidget.data?.totalTenants ?? defaultPlatformStats.totalTenants,
+    activeTenants: stats.activeTenants ?? platformStatsWidget.data?.activeTenants ?? defaultPlatformStats.activeTenants,
+    totalUsers: stats.totalUsers ?? platformStatsWidget.data?.totalUsers ?? defaultPlatformStats.totalUsers,
+    activeUsers: stats.activeUsers ?? platformStatsWidget.data?.activeUsers ?? defaultPlatformStats.activeUsers,
+    mrr: stats.mrr ?? platformStatsWidget.data?.mrr ?? defaultPlatformStats.mrr,
+    arr: stats.arr ?? platformStatsWidget.data?.arr ?? defaultPlatformStats.arr,
+    mrrGrowth: stats.mrrGrowth ?? platformStatsWidget.data?.mrrGrowth ?? defaultPlatformStats.mrrGrowth,
+    churnRate: stats.churnRate ?? defaultPlatformStats.churnRate,
+    avgRevenuePerTenant: stats.avgRevenuePerTenant ?? platformStatsWidget.data?.avgRevenuePerTenant ?? defaultPlatformStats.avgRevenuePerTenant,
+    totalStorage: stats.totalStorage ?? defaultPlatformStats.totalStorage,
+    apiCalls: stats.apiCalls ?? defaultPlatformStats.apiCalls,
+    uptime: stats.uptime ?? defaultPlatformStats.uptime,
+  };
+
+  // Map widget data to component props - now using real widget data with fallbacks
+  const modules = moduleUsageWidget.data?.modules ?? defaultModules;
+  const subscriptionPlans = subscriptionWidget.data?.plans ?? defaultSubscriptionPlans;
+  const tenantsByRegion = defaultTenantsByRegion; // TODO: Create TenantGeographyWidget
+  const recentTenants = recentTenantsWidget.data?.tenants ?? defaultRecentTenants;
+  const systemHealth = systemHealthWidget.data ?? defaultSystemHealth;
+  const recentActivity = recentActivityWidget.data?.activities ?? defaultRecentActivity;
+  const alerts = systemAlertsWidget.data?.alerts ?? defaultAlerts;
+  const billingOverview = billingOverviewWidget.data ?? defaultBillingOverview;
+  const quickActions = quickActionsWidget.data?.actions ?? defaultQuickActions;
+  
+  // System status from health widget or stats
+  const systemStatus = systemHealth?.status ?? stats.systemStatus ?? 'operational';
 
   const [themeRadius, setThemeRadius] = useState('lg');
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -920,6 +987,20 @@ const Dashboard = () => {
       setRefreshKey((prev) => prev + 1);
     }, 300000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Manual refresh handler
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await axios.post(route('admin.dashboard.refresh'));
+      // Use Inertia to reload the page data
+      router.reload({ only: ['stats', 'dynamicWidgets'], preserveScroll: true });
+    } catch (error) {
+      console.error('Failed to refresh dashboard:', error);
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
 
   // Animation variants
@@ -948,12 +1029,19 @@ const Dashboard = () => {
       >
         {/* Platform Status Hero */}
         <motion.div variants={itemVariants}>
-          <PlatformStatusHero stats={platformStats} loading={loading} themeRadius={themeRadius} />
+          <PlatformStatusHero 
+            stats={platformStats} 
+            loading={loading} 
+            themeRadius={themeRadius}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
+            systemStatus={systemStatus}
+          />
         </motion.div>
 
         {/* Key Metrics Grid */}
         <motion.div variants={itemVariants}>
-          <KeyMetricsGrid stats={platformStats} loading={loading} />
+          <KeyMetricsGrid stats={platformStats} loading={loading} canViewBilling={canViewBilling} />
         </motion.div>
 
         {/* Two Column Layout: Modules + Subscriptions */}
@@ -984,7 +1072,18 @@ const Dashboard = () => {
         <motion.div variants={itemVariants}>
           <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             <GeographicDistributionCard regions={tenantsByRegion} loading={loading} />
-            <BillingOverviewCard billing={billingOverview} loading={loading} themeRadius={themeRadius} />
+            {canViewBilling ? (
+              <BillingOverviewCard billing={billingOverview} loading={loading} themeRadius={themeRadius} />
+            ) : (
+              <Card className="border border-divider">
+                <CardBody className="flex items-center justify-center h-full py-12">
+                  <div className="text-center text-default-400">
+                    <CurrencyDollarIcon className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Billing data requires elevated permissions</p>
+                  </div>
+                </CardBody>
+              </Card>
+            )}
             <QuickActionsCard actions={quickActions} themeRadius={themeRadius} />
           </div>
         </motion.div>

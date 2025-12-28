@@ -36,7 +36,9 @@ import {
     X,
     Sparkles,
     SkipForward,
+    CubeIcon,
 } from 'lucide-react';
+import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 import { showToast, toastStyles } from '@/utils/toastUtils';
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import { ToastContainer } from 'react-toastify';
@@ -73,6 +75,10 @@ export default function OnboardingWizard({
     currentStep,
     completedSteps,
     tenant,
+    systemSettings,
+    user,
+    roles = [],
+    availableModules = [],
     systemSettings,
     user,
     roles = [],
@@ -1094,6 +1100,19 @@ export default function OnboardingWizard({
                 );
 
             case 'modules':
+                // Icon mapping for dynamic modules from backend
+                const moduleIconMap = {
+                    UserGroupIcon: Users,
+                    FolderIcon: Building2,
+                    CubeIcon: Puzzle,
+                    Users: Users,
+                    Puzzle: Puzzle,
+                    Building2: Building2,
+                };
+                
+                // Use dynamic modules from props, or fallback to empty if not available
+                const displayModules = availableModules.length > 0 ? availableModules : [];
+                
                 return (
                     <motion.div
                         key="modules"
@@ -1107,39 +1126,39 @@ export default function OnboardingWizard({
                                 These modules are included in your plan. You can enable or disable them anytime.
                             </p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {[
-                                    { id: 'hr', name: 'HR Management', description: 'Employee management, leaves, attendance', icon: Users },
-                                    { id: 'project', name: 'Project Management', description: 'Tasks, projects, timelines', icon: Puzzle },
-                                    { id: 'dms', name: 'Document Management', description: 'File storage and sharing', icon: Building2 },
-                                    { id: 'crm', name: 'CRM', description: 'Customer relationship management', icon: Users },
-                                ].map((module) => (
-                                    <Card
-                                        key={module.id}
-                                        className="transition-all duration-200"
-                                        style={{
-                                            border: `var(--borderWidth, 2px) solid transparent`,
-                                            borderRadius: `var(--borderRadius, 12px)`,
-                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                            background: `linear-gradient(135deg, 
-                                                var(--theme-content1, #FAFAFA) 20%, 
-                                                var(--theme-content2, #F4F4F5) 10%, 
-                                                var(--theme-content3, #F1F3F4) 20%)`,
-                                        }}
-                                    >
-                                        <CardBody className="flex flex-row items-center gap-4">
-                                            <div className="p-3 rounded-lg bg-primary/10">
-                                                <module.icon className="w-6 h-6 text-primary" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="font-medium text-foreground">{module.name}</h4>
-                                                <p className="text-sm text-default-500">{module.description}</p>
-                                            </div>
-                                            <Switch defaultSelected />
-                                        </CardBody>
-                                    </Card>
-                                ))}
-                            </div>
+                            {displayModules.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {displayModules.map((module) => {
+                                        const IconComponent = moduleIconMap[module.icon] || Puzzle;
+                                        return (
+                                            <Card
+                                                key={module.code}
+                                                className="transition-all duration-200"
+                                                style={getThemedCardStyle()}
+                                            >
+                                                <CardBody className="flex flex-row items-center gap-4">
+                                                    <div className="p-3 rounded-lg bg-primary/10">
+                                                        <IconComponent className="w-6 h-6 text-primary" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-medium text-foreground">{module.name}</h4>
+                                                        <p className="text-sm text-default-500">{module.description}</p>
+                                                    </div>
+                                                    <Switch defaultSelected />
+                                                </CardBody>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+                                    <CardBody className="text-center py-8">
+                                        <Puzzle className="w-12 h-12 text-default-300 mx-auto mb-4" />
+                                        <p className="text-default-500">No additional modules available.</p>
+                                        <p className="text-sm text-default-400">Core features are already included in your subscription.</p>
+                                    </CardBody>
+                                </Card>
+                            )}
 
                             <div className="flex justify-between pt-6">
                                 <Button

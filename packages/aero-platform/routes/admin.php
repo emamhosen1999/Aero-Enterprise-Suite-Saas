@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use Aero\Platform\Http\Controllers\Admin\AdminDashboardController;
+use Aero\Platform\Http\Controllers\Admin\AdminOnboardingController;
 use Aero\Platform\Http\Controllers\Admin\ModuleController;
 use Aero\Platform\Http\Controllers\Admin\RoleController;
 use Aero\Platform\Http\Controllers\Admin\UserController;
 use Aero\Platform\Http\Controllers\Auth\AuthenticatedSessionController;
 use Aero\Platform\Http\Controllers\Auth\ImpersonationController;
 use Aero\Platform\Http\Controllers\Billing\BillingController;
+use Aero\Platform\Http\Controllers\DomainController;
 use Aero\Platform\Http\Controllers\ErrorLogController;
 use Aero\Platform\Http\Controllers\MaintenanceController;
 use Aero\Platform\Http\Controllers\ModuleAnalyticsController;
@@ -110,9 +113,21 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     // 1. DASHBOARD MODULE (platform-dashboard)
     // =========================================================================
-    Route::get('/dashboard', function () {
-        return Inertia::render('Platform/Admin/Dashboard');
-    })->middleware(['module:platform-dashboard,overview'])->name('admin.dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+        ->middleware(['module:platform-dashboard,overview'])
+        ->name('admin.dashboard');
+
+    Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats'])
+        ->middleware(['module:platform-dashboard,overview'])
+        ->name('admin.dashboard.stats');
+
+    Route::get('/dashboard/widget/{widgetKey}', [AdminDashboardController::class, 'widgetData'])
+        ->middleware(['module:platform-dashboard,overview'])
+        ->name('admin.dashboard.widget');
+
+    Route::post('/dashboard/refresh', [AdminDashboardController::class, 'refresh'])
+        ->middleware(['module:platform-dashboard,overview'])
+        ->name('admin.dashboard.refresh');
 
     Route::get('/system-health', function () {
         return Inertia::render('Platform/Admin/SystemHealth');
@@ -948,33 +963,63 @@ Route::middleware(['auth:landlord'])->group(function () {
     // 14. PLATFORM ONBOARDING MODULE (platform-onboarding)
     // =========================================================================
     Route::middleware(['module:platform-onboarding'])->prefix('onboarding')->name('admin.onboarding.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Platform/Admin/Onboarding/Dashboard');
-        })->middleware(['module:platform-onboarding,registration-dashboard'])->name('dashboard');
+        // Page routes
+        Route::get('/', [AdminOnboardingController::class, 'dashboard'])
+            ->middleware(['module:platform-onboarding,onboarding_dashboard,view'])
+            ->name('dashboard');
 
-        Route::get('/pending', function () {
-            return Inertia::render('Platform/Admin/Onboarding/Pending');
-        })->middleware(['module:platform-onboarding,pending-registrations'])->name('pending');
+        Route::get('/pending', [AdminOnboardingController::class, 'pending'])
+            ->middleware(['module:platform-onboarding,pending_approvals,view'])
+            ->name('pending');
 
-        Route::get('/provisioning', function () {
-            return Inertia::render('Platform/Admin/Onboarding/Provisioning');
-        })->middleware(['module:platform-onboarding,provisioning-queue'])->name('provisioning');
+        Route::get('/provisioning', [AdminOnboardingController::class, 'provisioning'])
+            ->middleware(['module:platform-onboarding,provisioning,view'])
+            ->name('provisioning');
 
-        Route::get('/trials', function () {
-            return Inertia::render('Platform/Admin/Onboarding/Trials');
-        })->middleware(['module:platform-onboarding,trial-management'])->name('trials');
+        Route::get('/trials', [AdminOnboardingController::class, 'trials'])
+            ->middleware(['module:platform-onboarding,trials,view'])
+            ->name('trials');
 
-        Route::get('/automation', function () {
-            return Inertia::render('Platform/Admin/Onboarding/Automation');
-        })->middleware(['module:platform-onboarding,welcome-automation'])->name('automation');
+        Route::get('/analytics', [AdminOnboardingController::class, 'analytics'])
+            ->middleware(['module:platform-onboarding,onboarding_analytics,view'])
+            ->name('analytics');
 
-        Route::get('/analytics', function () {
-            return Inertia::render('Platform/Admin/Onboarding/Analytics');
-        })->middleware(['module:platform-onboarding,onboarding-analytics'])->name('analytics');
+        Route::get('/automation', [AdminOnboardingController::class, 'automation'])
+            ->middleware(['module:platform-onboarding,onboarding_automation,view'])
+            ->name('automation');
 
-        Route::get('/settings', function () {
-            return Inertia::render('Platform/Admin/Onboarding/Settings');
-        })->middleware(['module:platform-onboarding,onboarding-settings'])->name('settings');
+        Route::get('/settings', [AdminOnboardingController::class, 'settings'])
+            ->middleware(['module:platform-onboarding,onboarding_settings,view'])
+            ->name('settings');
+
+        // API action routes
+        Route::post('/registrations/{tenant}/approve', [AdminOnboardingController::class, 'approve'])
+            ->middleware(['module:platform-onboarding,pending_approvals,approve'])
+            ->name('approve');
+
+        Route::post('/registrations/{tenant}/reject', [AdminOnboardingController::class, 'reject'])
+            ->middleware(['module:platform-onboarding,pending_approvals,reject'])
+            ->name('reject');
+
+        Route::post('/provisioning/{tenant}/retry', [AdminOnboardingController::class, 'retryProvisioning'])
+            ->middleware(['module:platform-onboarding,provisioning,retry'])
+            ->name('provisioning.retry');
+
+        Route::post('/trials/{tenant}/extend', [AdminOnboardingController::class, 'extendTrial'])
+            ->middleware(['module:platform-onboarding,trials,extend'])
+            ->name('trials.extend');
+
+        Route::post('/trials/{tenant}/convert', [AdminOnboardingController::class, 'convertToPaid'])
+            ->middleware(['module:platform-onboarding,trials,convert'])
+            ->name('trials.convert');
+
+        Route::post('/settings', [AdminOnboardingController::class, 'updateSettings'])
+            ->middleware(['module:platform-onboarding,onboarding_settings,update'])
+            ->name('settings.update');
+
+        Route::post('/automation/toggle', [AdminOnboardingController::class, 'toggleAutomation'])
+            ->middleware(['module:platform-onboarding,onboarding_automation,manage'])
+            ->name('automation.toggle');
     });
 
     // =========================================================================
@@ -984,16 +1029,53 @@ Route::middleware(['auth:landlord'])->group(function () {
 
     Route::prefix('api/v1')->name('api.v1.')->group(function () {
         // Tenant Management API
-        Route::prefix('tenants')->name('tenants.')->group(function () {
-            Route::get('/', [TenantController::class, 'index'])->name('index');
-            Route::get('/stats', [TenantController::class, 'stats'])->name('stats');
-            Route::get('/{tenant}', [TenantController::class, 'show'])->name('show');
-            Route::post('/', [TenantController::class, 'store'])->name('store');
-            Route::put('/{tenant}', [TenantController::class, 'update'])->name('update');
-            Route::delete('/{tenant}', [TenantController::class, 'destroy'])->name('destroy');
-            Route::post('/{tenant}/suspend', [TenantController::class, 'suspend'])->name('suspend');
-            Route::post('/{tenant}/activate', [TenantController::class, 'activate'])->name('activate');
-            Route::post('/{tenant}/archive', [TenantController::class, 'archive'])->name('archive');
+        Route::prefix('tenants')->name('tenants.')->middleware(['module:tenants'])->group(function () {
+            Route::get('/', [TenantController::class, 'index'])
+                ->middleware(['module:tenants,tenant-list,view'])
+                ->name('index');
+            Route::get('/stats', [TenantController::class, 'stats'])
+                ->middleware(['module:tenants,tenant-list,view'])
+                ->name('stats');
+            Route::get('/{tenant}', [TenantController::class, 'show'])
+                ->middleware(['module:tenants,tenant-list,view'])
+                ->name('show');
+            Route::post('/', [TenantController::class, 'store'])
+                ->middleware(['module:tenants,tenant-list,create'])
+                ->name('store');
+            Route::put('/{tenant}', [TenantController::class, 'update'])
+                ->middleware(['module:tenants,tenant-list,edit'])
+                ->name('update');
+            Route::delete('/{tenant}', [TenantController::class, 'destroy'])
+                ->middleware(['module:tenants,tenant-list,delete'])
+                ->name('destroy');
+            Route::post('/{tenant}/suspend', [TenantController::class, 'suspend'])
+                ->middleware(['module:tenants,tenant-list,suspend'])
+                ->name('suspend');
+            Route::post('/{tenant}/activate', [TenantController::class, 'activate'])
+                ->middleware(['module:tenants,tenant-list,activate'])
+                ->name('activate');
+            Route::post('/{tenant}/archive', [TenantController::class, 'archive'])
+                ->middleware(['module:tenants,tenant-list,delete'])
+                ->name('archive');
+        });
+
+        // Domain Management API
+        Route::prefix('domains')->name('domains.')->group(function () {
+            Route::get('/', [DomainController::class, 'index'])
+                ->middleware(['module:tenants,domains,view'])
+                ->name('index');
+            Route::get('/stats', [DomainController::class, 'stats'])
+                ->middleware(['module:tenants,domains,view'])
+                ->name('stats');
+            Route::get('/{domain}', [DomainController::class, 'show'])
+                ->middleware(['module:tenants,domains,view'])
+                ->name('show');
+            Route::post('/{domain}/verify', [DomainController::class, 'verify'])
+                ->middleware(['module:tenants,domains,manage'])
+                ->name('verify');
+            Route::post('/{domain}/ssl', [DomainController::class, 'provisionSsl'])
+                ->middleware(['module:tenants,domains,manage'])
+                ->name('ssl');
         });
 
         // Plans Management API

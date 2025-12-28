@@ -70,38 +70,75 @@ const Domains = ({ auth, title }) => {
 
     const [domains, setDomains] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [stats, setStats] = useState({
+        total: 0,
+        custom: 0,
+        subdomains: 0,
+        verified: 0,
+        pending: 0,
+        ssl_active: 0,
+        ssl_pending: 0,
+    });
     const [filters, setFilters] = useState({
         search: '',
         type: 'all',
         ssl_status: 'all',
     });
+    
+    // Debounced search value for API calls (prevents excessive requests)
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    
+    // Debounce search input (300ms delay)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(filters.search);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [filters.search]);
+    
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        perPage: 30,
+        total: 0,
+        lastPage: 1,
+    });
 
     const fetchDomains = useCallback(async () => {
         setLoading(true);
         try {
-            // Fetch all tenants with their domains
-            const response = await axios.get(route('api.v1.tenants.index'), {
-                params: { per_page: 100, with_domains: true },
+            const response = await axios.get(route('api.v1.domains.index'), {
+                params: { 
+                    page: pagination.currentPage,
+                    per_page: pagination.perPage,
+                    search: debouncedSearch || undefined,
+                    type: filters.type !== 'all' ? filters.type : undefined,
+                    ssl_status: filters.ssl_status !== 'all' ? filters.ssl_status : undefined,
+                },
             });
             
-            // Flatten domains from all tenants
-            const allDomains = [];
-            (response.data.data || []).forEach(tenant => {
-                (tenant.domains || []).forEach(domain => {
-                    allDomains.push({
-                        ...domain,
-                        tenant_id: tenant.id,
-                        tenant_name: tenant.name,
-                        tenant_status: tenant.status,
-                    });
-                });
-            });
-            
-            setDomains(allDomains);
+            setDomains(response.data.data || []);
+            setPagination(prev => ({
+                ...prev,
+                total: response.data.meta?.total || 0,
+                lastPage: response.data.meta?.last_page || 1,
+            }));
         } catch (error) {
             showToast.error('Failed to load domains');
         } finally {
             setLoading(false);
+        }
+    }, [pagination.currentPage, pagination.perPage, debouncedSearch, filters.type, filters.ssl_status]);
+
+    const fetchStats = useCallback(async () => {
+        setStatsLoading(true);
+        try {
+            const response = await axios.get(route('api.v1.domains.stats'));
+            setStats(response.data.data);
+        } catch (error) {
+            console.error('Failed to fetch domain stats:', error);
+        } finally {
+            setStatsLoading(false);
         }
     }, []);
 
@@ -109,52 +146,52 @@ const Domains = ({ auth, title }) => {
         fetchDomains();
     }, [fetchDomains]);
 
-    const filteredDomains = domains.filter(domain => {
-        if (filters.search && !domain.domain.toLowerCase().includes(filters.search.toLowerCase()) &&
-            !domain.tenant_name?.toLowerCase().includes(filters.search.toLowerCase())) {
-            return false;
-        }
-        if (filters.type !== 'all') {
-            const isCustom = !domain.domain.includes('.') || domain.is_custom;
-            if (filters.type === 'custom' && !isCustom) return false;
-            if (filters.type === 'subdomain' && isCustom) return false;
-        }
-        if (filters.ssl_status !== 'all' && domain.ssl_status !== filters.ssl_status) {
-            return false;
-        }
-        return true;
-    });
+    useEffect(() => {
+        fetchStats();
+    }, [fetchStats]);
+
+    // Filter change handler
+    const handleFilterChange = useCallback((filterKey, filterValue) => {
+        setFilters(prev => ({
+            ...prev,
+            [filterKey]: filterValue
+        }));
+        setPagination(prev => ({
+            ...prev,
+            currentPage: 1
+        }));
+    }, []);
 
     const statsData = useMemo(() => [
         { 
             title: 'Total Domains', 
-            value: domains.length, 
+            value: stats.total, 
             color: 'text-primary',
             iconBg: 'bg-primary/20',
             icon: <GlobeAltIcon className="w-5 h-5" />,
         },
         { 
             title: 'SSL Active', 
-            value: domains.filter(d => d.ssl_enabled || d.ssl_status === 'valid').length, 
+            value: stats.ssl_active, 
             color: 'text-success',
             iconBg: 'bg-success/20',
             icon: <ShieldCheckIcon className="w-5 h-5" />,
         },
         { 
             title: 'Custom Domains', 
-            value: domains.filter(d => d.is_custom || d.is_primary === false).length, 
+            value: stats.custom, 
             color: 'text-secondary',
             iconBg: 'bg-secondary/20',
             icon: <GlobeAltIcon className="w-5 h-5" />,
         },
         { 
-            title: 'Pending DNS', 
-            value: domains.filter(d => d.dns_status === 'pending' || d.verification_status === 'pending').length, 
+            title: 'Pending Verification', 
+            value: stats.pending, 
             color: 'text-warning',
             iconBg: 'bg-warning/20',
             icon: <ClockIcon className="w-5 h-5" />,
         },
-    ], [domains]);
+    ], [stats]);
 
     const columns = [
         { uid: "domain", name: "DOMAIN" },
@@ -372,14 +409,14 @@ const Domains = ({ auth, title }) => {
 
                                 <CardBody className="p-6">
                                     {/* Stats Cards */}
-                                    <StatsCards stats={statsData} className="mb-6" />
+                                    <StatsCards stats={statsData} isLoading={statsLoading} className="mb-6" />
                                     
                                     {/* Filters Section */}
                                     <div className="flex flex-col sm:flex-row gap-3 mb-6">
                                         <Input
                                             placeholder="Search domains..."
                                             value={filters.search}
-                                            onValueChange={(v) => setFilters(prev => ({ ...prev, search: v }))}
+                                            onValueChange={(v) => handleFilterChange('search', v)}
                                             startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                             radius={getThemeRadius()}
                                             classNames={{ inputWrapper: "bg-default-100" }}
@@ -388,7 +425,7 @@ const Domains = ({ auth, title }) => {
                                         <Select
                                             placeholder="All Types"
                                             selectedKeys={[filters.type]}
-                                            onSelectionChange={(keys) => setFilters(prev => ({ ...prev, type: Array.from(keys)[0] }))}
+                                            onSelectionChange={(keys) => handleFilterChange('type', Array.from(keys)[0] || 'all')}
                                             radius={getThemeRadius()}
                                             classNames={{ trigger: "bg-default-100" }}
                                             className="w-full sm:w-36"
@@ -396,6 +433,19 @@ const Domains = ({ auth, title }) => {
                                             <SelectItem key="all">All Types</SelectItem>
                                             <SelectItem key="subdomain">Subdomain</SelectItem>
                                             <SelectItem key="custom">Custom</SelectItem>
+                                        </Select>
+                                        <Select
+                                            placeholder="SSL Status"
+                                            selectedKeys={[filters.ssl_status]}
+                                            onSelectionChange={(keys) => handleFilterChange('ssl_status', Array.from(keys)[0] || 'all')}
+                                            radius={getThemeRadius()}
+                                            classNames={{ trigger: "bg-default-100" }}
+                                            className="w-full sm:w-36"
+                                        >
+                                            <SelectItem key="all">All SSL</SelectItem>
+                                            <SelectItem key="active">SSL Active</SelectItem>
+                                            <SelectItem key="pending">SSL Pending</SelectItem>
+                                            <SelectItem key="failed">SSL Failed</SelectItem>
                                         </Select>
                                     </div>
                                     
@@ -422,7 +472,7 @@ const Domains = ({ auth, title }) => {
                                                     </TableColumn>
                                                 )}
                                             </TableHeader>
-                                            <TableBody items={filteredDomains} emptyContent="No domains found">
+                                            <TableBody items={domains} emptyContent="No domains found">
                                                 {(item) => (
                                                     <TableRow key={item.id || item.domain}>
                                                         {(columnKey) => (
@@ -432,6 +482,20 @@ const Domains = ({ auth, title }) => {
                                                 )}
                                             </TableBody>
                                         </Table>
+                                    )}
+
+                                    {/* Pagination */}
+                                    {!loading && pagination.lastPage > 1 && (
+                                        <div className="flex justify-center mt-4">
+                                            <Pagination
+                                                total={pagination.lastPage}
+                                                page={pagination.currentPage}
+                                                onChange={(page) => setPagination(prev => ({ ...prev, currentPage: page }))}
+                                                color="primary"
+                                                showControls
+                                                radius={getThemeRadius()}
+                                            />
+                                        </div>
                                     )}
                                 </CardBody>
                             </Card>

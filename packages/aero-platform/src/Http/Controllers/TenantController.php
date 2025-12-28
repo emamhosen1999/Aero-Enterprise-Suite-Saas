@@ -11,6 +11,7 @@ use Aero\Platform\Services\Tenant\TenantRetentionService;
 use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -52,8 +53,20 @@ class TenantController extends Controller
             ->when($request->filled('plan_id'), function ($q) use ($request) {
                 $q->where('plan_id', $request->input('plan_id'));
             })
+            ->when($request->filled('plan'), function ($q) use ($request) {
+                $q->where('plan_id', $request->input('plan'));
+            })
             ->when($request->filled('type'), function ($q) use ($request) {
                 $q->where('type', $request->input('type'));
+            })
+            ->when($request->filled('trial_status'), function ($q) use ($request) {
+                $trialStatus = $request->input('trial_status');
+                match ($trialStatus) {
+                    'on_trial' => $q->whereNotNull('trial_ends_at')->where('trial_ends_at', '>', now()),
+                    'trial_expired' => $q->whereNotNull('trial_ends_at')->where('trial_ends_at', '<=', now()),
+                    'not_trial' => $q->whereNull('trial_ends_at'),
+                    default => null,
+                };
             });
 
         // Sorting
@@ -76,22 +89,35 @@ class TenantController extends Controller
 
     /**
      * Get tenant statistics.
+     *
+     * Stats are cached for 2 minutes to improve performance at scale.
      */
     public function stats(Request $request): JsonResponse
     {
-        $stats = [
-            'total' => Tenant::count(),
-            'active' => Tenant::where('status', Tenant::STATUS_ACTIVE)->count(),
-            'pending' => Tenant::where('status', Tenant::STATUS_PENDING)->count(),
-            'suspended' => Tenant::where('status', Tenant::STATUS_SUSPENDED)->count(),
-            'archived' => Tenant::where('status', Tenant::STATUS_ARCHIVED)->count(),
-            'on_trial' => Tenant::whereNotNull('trial_ends_at')
-                ->where('trial_ends_at', '>', now())
-                ->count(),
-            'new_this_month' => Tenant::whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->count(),
-        ];
+        $cacheKey = 'tenant_stats_' . now()->format('Y-m-d_H-i');
+        $cacheTtl = 120; // 2 minutes
+
+        $stats = Cache::remember($cacheKey, $cacheTtl, function () {
+            return [
+                'total' => Tenant::count(),
+                'active' => Tenant::where('status', Tenant::STATUS_ACTIVE)->count(),
+                'pending' => Tenant::where('status', Tenant::STATUS_PENDING)->count(),
+                'suspended' => Tenant::where('status', Tenant::STATUS_SUSPENDED)->count(),
+                'archived' => Tenant::where('status', Tenant::STATUS_ARCHIVED)->count(),
+                'provisioning' => Tenant::where('status', Tenant::STATUS_PROVISIONING)->count(),
+                'failed' => Tenant::where('status', Tenant::STATUS_FAILED)->count(),
+                'on_trial' => Tenant::whereNotNull('trial_ends_at')
+                    ->where('trial_ends_at', '>', now())
+                    ->count(),
+                'trial_expired' => Tenant::whereNotNull('trial_ends_at')
+                    ->where('trial_ends_at', '<=', now())
+                    ->where('status', '!=', Tenant::STATUS_ACTIVE)
+                    ->count(),
+                'new_this_month' => Tenant::whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year)
+                    ->count(),
+            ];
+        });
 
         return response()->json(['data' => $stats]);
     }

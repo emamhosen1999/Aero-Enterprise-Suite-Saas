@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Textarea, Checkbox, Progress, Card, CardBody, Chip } from "@heroui/react";
 import { CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
+import { TIMEZONES } from '@/utils/timezones';
 import { showToast } from '@/utils/toastUtils';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
@@ -292,7 +294,7 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
                             </Select>
                             
                             {selectedPlan && (
-                                <Card>
+                                <Card className="transition-all duration-200" style={getThemedCardStyle()}>
                                     <CardBody>
                                         <h4 className="font-semibold mb-2">Plan Products</h4>
                                         <ul className="space-y-1 text-sm">
@@ -364,11 +366,9 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
                                 radius={themeRadius}
                                 classNames={{ trigger: "bg-default-100" }}
                             >
-                                <SelectItem key="UTC">UTC</SelectItem>
-                                <SelectItem key="America/New_York">Eastern Time</SelectItem>
-                                <SelectItem key="America/Chicago">Central Time</SelectItem>
-                                <SelectItem key="America/Denver">Mountain Time</SelectItem>
-                                <SelectItem key="America/Los_Angeles">Pacific Time</SelectItem>
+                                {TIMEZONES.map((tz) => (
+                                    <SelectItem key={tz.key}>{tz.label}</SelectItem>
+                                ))}
                             </Select>
                             
                             <div className="grid grid-cols-2 gap-4">
@@ -446,7 +446,7 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
                     {/* Step 5: Review */}
                     {currentStep === 5 && (
                         <div className="space-y-4">
-                            <Card>
+                            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
                                 <CardBody className="space-y-3">
                                     <h4 className="font-semibold">Basic Information</h4>
                                     <div className="grid grid-cols-2 gap-2 text-sm">
@@ -462,7 +462,7 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
                                 </CardBody>
                             </Card>
                             
-                            <Card>
+                            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
                                 <CardBody className="space-y-3">
                                     <h4 className="font-semibold">Plan & Billing</h4>
                                     <div className="grid grid-cols-2 gap-2 text-sm">
@@ -478,7 +478,7 @@ export default function OnboardingWizard({ open, onClose, plans = [], templates 
                                 </CardBody>
                             </Card>
                             
-                            <Card>
+                            <Card className="transition-all duration-200" style={getThemedCardStyle()}>
                                 <CardBody className="space-y-3">
                                     <h4 className="font-semibold">Resources</h4>
                                     <div className="grid grid-cols-2 gap-2 text-sm">

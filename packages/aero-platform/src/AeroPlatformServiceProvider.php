@@ -199,6 +199,58 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Register platform navigation with NavigationRegistry
         // This allows HandleInertiaRequests to share navigation via Inertia props
         $this->registerPlatformNavigation();
+
+        // Register Platform dashboard widgets
+        // These appear on the Admin Dashboard following the Core pattern
+        $this->registerPlatformDashboardWidgets();
+    }
+
+    /**
+     * Register Platform widgets for the Admin Dashboard.
+     *
+     * Platform widgets are widgets that appear on the admin dashboard:
+     * - Welcome widget (position: welcome)
+     * - Platform stats widget (position: stats_row)
+     * - Recent tenants widget (position: main_left)
+     * - Module usage widget (position: main_left)
+     * - Recent activity widget (position: main_left)
+     * - Quick actions widget (position: main_left)
+     * - System alerts widget (position: sidebar)
+     * - Subscription distribution widget (position: sidebar)
+     * - System health widget (position: sidebar)
+     * - Billing overview widget (position: main_right)
+     */
+    protected function registerPlatformDashboardWidgets(): void
+    {
+        // Only register if the registry is available
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        // Register Platform widgets (order matters for display)
+        $registry->registerMany([
+            // Welcome header (full width)
+            new \Aero\Platform\Widgets\PlatformWelcomeWidget,
+
+            // Stats row (full width grid)
+            new \Aero\Platform\Widgets\PlatformStatsWidget,
+
+            // Main content area (left 2/3)
+            new \Aero\Platform\Widgets\RecentTenantsWidget,
+            new \Aero\Platform\Widgets\ModuleUsageWidget,
+            new \Aero\Platform\Widgets\RecentActivityWidget,
+            new \Aero\Platform\Widgets\QuickActionsWidget,
+
+            // Main content area (right 1/3)
+            new \Aero\Platform\Widgets\BillingOverviewWidget,
+
+            // Sidebar area
+            new \Aero\Platform\Widgets\SystemAlertsWidget,
+            new \Aero\Platform\Widgets\SubscriptionDistributionWidget,
+            new \Aero\Platform\Widgets\SystemHealthWidget,
+        ]);
     }
 
     /**

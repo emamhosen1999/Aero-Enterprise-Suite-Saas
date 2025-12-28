@@ -177,6 +177,34 @@ return [
                         ['code' => 'convert', 'name' => 'Convert to Paid'],
                     ],
                 ],
+                [
+                    'code' => 'onboarding_analytics',
+                    'name' => 'Analytics',
+                    'route' => '/onboarding/analytics',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Analytics'],
+                        ['code' => 'export', 'name' => 'Export Reports'],
+                    ],
+                ],
+                [
+                    'code' => 'onboarding_automation',
+                    'name' => 'Automation',
+                    'route' => '/onboarding/automation',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Automation'],
+                        ['code' => 'manage', 'name' => 'Manage Rules'],
+                        ['code' => 'execute', 'name' => 'Execute Actions'],
+                    ],
+                ],
+                [
+                    'code' => 'onboarding_settings',
+                    'name' => 'Settings',
+                    'route' => '/onboarding/settings',
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View Settings'],
+                        ['code' => 'update', 'name' => 'Update Settings'],
+                    ],
+                ],
             ],
         ],
 

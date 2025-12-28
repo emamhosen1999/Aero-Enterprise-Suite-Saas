@@ -3,6 +3,7 @@
 namespace Aero\Platform\Http\Controllers;
 
 use Aero\Core\Models\User;
+use Aero\Core\Services\Module\ModuleDiscoveryService;
 use Aero\Platform\Models\TenantInvitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,25 @@ use Spatie\Permission\Models\Role;
  */
 class TenantOnboardingController extends Controller
 {
+    /**
+     * Foundation packages to exclude from module discovery.
+     * These are hidden infrastructure packages, not user-facing modules.
+     */
+    protected const FOUNDATION_PACKAGES = ['platform', 'core', 'ui'];
+
+    /**
+     * Module discovery service instance.
+     */
+    protected ModuleDiscoveryService $moduleDiscovery;
+
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(ModuleDiscoveryService $moduleDiscovery)
+    {
+        $this->moduleDiscovery = $moduleDiscovery;
+    }
+
     /**
      * Onboarding steps configuration.
      */
@@ -96,6 +116,7 @@ class TenantOnboardingController extends Controller
                 'name' => $role->name,
                 'guard_name' => $role->guard_name,
             ]),
+            'availableModules' => $this->getAvailableModules(),
         ]);
     }
 
@@ -381,5 +402,38 @@ class TenantOnboardingController extends Controller
             ->table('tenants')
             ->where('id', $tenant->id)
             ->update(['data' => json_encode($data)]);
+    }
+
+    /**
+     * Get available modules from installed packages.
+     *
+     * Excludes foundation packages (platform, core, ui) which are
+     * hidden infrastructure layers, not user-facing modules.
+     *
+     * @return array<int, array{code: string, name: string, description: string, icon: string}>
+     */
+    protected function getAvailableModules(): array
+    {
+        $modules = $this->moduleDiscovery->getModuleDefinitions()
+            ->filter(function ($module) {
+                // Filter out foundation packages
+                $code = $module['code'] ?? '';
+
+                return ! in_array($code, self::FOUNDATION_PACKAGES, true);
+            })
+            ->map(function ($module) {
+                return [
+                    'code' => $module['code'] ?? '',
+                    'name' => $module['name'] ?? ucfirst($module['code'] ?? ''),
+                    'description' => $module['description'] ?? '',
+                    'icon' => $module['icon'] ?? 'CubeIcon',
+                    'category' => $module['category'] ?? 'general',
+                    'is_core' => $module['is_core'] ?? false,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return $modules;
     }
 }
