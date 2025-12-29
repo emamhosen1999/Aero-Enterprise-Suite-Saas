@@ -7,6 +7,10 @@ namespace Aero\Core\Widgets;
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
 use Aero\Core\Models\User;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -20,6 +24,7 @@ use Spatie\Permission\Models\Role;
  * - New users this month
  *
  * This is a SUMMARY widget - provides data overview.
+ * Uses query optimization and 5-minute caching for performance.
  */
 class SystemStatsWidget extends AbstractDashboardWidget
 {
@@ -27,7 +32,7 @@ class SystemStatsWidget extends AbstractDashboardWidget
     protected int $order = 1;
     protected int|string $span = 'full';
     protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
-    protected array $requiredPermissions = [];
+    protected array $requiredPermissions = ['dashboard.view_stats'];
 
     public function getKey(): string
     {
@@ -64,50 +69,120 @@ class SystemStatsWidget extends AbstractDashboardWidget
 
     /**
      * Get widget data for frontend.
+     * 
+     * Uses optimized single query for user stats and 5-minute caching.
      */
     public function getData(): array
     {
-        // User statistics
-        $totalUsers = User::count();
-        $activeUsers = User::where('active', true)->count();
-        $inactiveUsers = User::where('active', false)->count();
-        $newUsersThisMonth = User::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
+        // Cache stats for 5 minutes to reduce database load
+        return Cache::remember('dashboard.system_stats.' . auth()->id(), 300, function () {
+            return $this->fetchStats();
+        });
+    }
 
-        // Role statistics
-        $totalRoles = Role::count();
-
-        // Department statistics (try to get from HRM if available)
-        $departmentsCount = 0;
-        $designationsCount = 0;
-        
+    /**
+     * Fetch system statistics from database.
+     */
+    protected function fetchStats(): array
+    {
         try {
-            // Check if departments table exists
-            if (\Schema::hasTable('departments')) {
-                $departmentsCount = \DB::table('departments')->count();
-            }
-            
-            // Check if designations table exists
-            if (\Schema::hasTable('designations')) {
-                $designationsCount = \DB::table('designations')->count();
-            }
+            // OPTIMIZED: Single query with conditional aggregation for user stats
+            $userStats = User::selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) as inactive,
+                SUM(CASE WHEN MONTH(created_at) = ? AND YEAR(created_at) = ? THEN 1 ELSE 0 END) as new_this_month
+            ', [now()->month, now()->year])->first();
+
+            $totalUsers = $userStats->total ?? 0;
+            $activeUsers = $userStats->active ?? 0;
+            $inactiveUsers = $userStats->inactive ?? 0;
+            $newUsersThisMonth = $userStats->new_this_month ?? 0;
         } catch (\Throwable $e) {
-            // Silently ignore if tables don't exist
+            Log::warning('SystemStatsWidget: Failed to fetch user statistics', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
+            $totalUsers = $activeUsers = $inactiveUsers = $newUsersThisMonth = 0;
         }
 
-        // Online users (active sessions in last 15 minutes)
-        $onlineUsers = 0;
+        // Role statistics with error handling
         try {
-            if (\Schema::hasTable('sessions')) {
-                $onlineUsers = \DB::table('sessions')
+            $totalRoles = Role::count();
+        } catch (\Throwable $e) {
+            Log::warning('SystemStatsWidget: Failed to fetch role count', ['error' => $e->getMessage()]);
+            $totalRoles = 0;
+        }
+
+        // Department and designation statistics (HRM module)
+        $departmentsCount = $this->getTableCount('departments');
+        $designationsCount = $this->getTableCount('designations');
+
+        // Online users (active sessions in last 15 minutes)
+        $onlineUsers = $this->getOnlineUsersCount($activeUsers);
+
+        return $this->formatStatsData(
+            $totalUsers,
+            $activeUsers,
+            $inactiveUsers,
+            $onlineUsers,
+            $totalRoles,
+            $departmentsCount,
+            $newUsersThisMonth,
+            $designationsCount
+        );
+    }
+
+    /**
+     * Get count from a table if it exists and has proper structure.
+     */
+    protected function getTableCount(string $tableName): int
+    {
+        try {
+            if (Schema::hasTable($tableName)) {
+                return DB::table($tableName)->count();
+            }
+        } catch (\Throwable $e) {
+            Log::warning("SystemStatsWidget: Failed to count {$tableName} table", [
+                'error' => $e->getMessage(),
+                'table' => $tableName
+            ]);
+        }
+        return 0;
+    }
+
+    /**
+     * Get online users count from sessions table.
+     */
+    protected function getOnlineUsersCount(int $fallbackActiveUsers): int
+    {
+        try {
+            if (Schema::hasTable('sessions')) {
+                return DB::table('sessions')
                     ->where('last_activity', '>', now()->subMinutes(15)->timestamp)
                     ->count();
             }
         } catch (\Throwable $e) {
-            $onlineUsers = $activeUsers > 0 ? min(5, $activeUsers) : 0;
+            Log::warning('SystemStatsWidget: Failed to count online users', ['error' => $e->getMessage()]);
+            // Fallback: estimate 40% of active users as online
+            return $fallbackActiveUsers > 0 ? (int) ceil($fallbackActiveUsers * 0.4) : 0;
         }
+        return 0;
+    }
 
+    /**
+     * Format statistics data for frontend.
+     */
+    protected function formatStatsData(
+        int $totalUsers,
+        int $activeUsers,
+        int $inactiveUsers,
+        int $onlineUsers,
+        int $totalRoles,
+        int $departmentsCount,
+        int $newUsersThisMonth,
+        int $designationsCount
+    ): array {
         return [
             'stats' => [
                 [

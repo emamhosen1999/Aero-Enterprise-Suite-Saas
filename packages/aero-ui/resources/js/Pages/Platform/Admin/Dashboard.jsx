@@ -144,114 +144,93 @@ const getItemStyle = (accentColor = 'var(--theme-primary)') => ({
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DEFAULT DATA
+// MODULE DEFINITIONS - Based on actual package configs
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PLATFORM_MODULES = [
+  { code: 'hrm', name: 'Human Resources', icon: UserGroupIcon, color: '#0ea5e9', category: 'Operations', scope: 'tenant', priority: 10 },
+  { code: 'finance', name: 'Finance & Accounting', icon: BanknotesIcon, color: '#10b981', category: 'Business', scope: 'tenant', priority: 12 },
+  { code: 'project', name: 'Project Management', icon: ClipboardDocumentCheckIcon, color: '#8b5cf6', category: 'Operations', scope: 'tenant', priority: 11 },
+  { code: 'ims', name: 'Inventory Management', icon: CubeIcon, color: '#f59e0b', category: 'Operations', scope: 'tenant', priority: 13 },
+  { code: 'pos', name: 'Point of Sale', icon: CreditCardIcon, color: '#ec4899', category: 'Sales', scope: 'tenant', priority: 14 },
+  { code: 'scm', name: 'Supply Chain Management', icon: TruckIcon, color: '#f97316', category: 'Operations', scope: 'tenant', priority: 15 },
+  { code: 'quality', name: 'Quality Management', icon: BeakerIcon, color: '#ef4444', category: 'Operations', scope: 'tenant', priority: 16 },
+  { code: 'dms', name: 'Document Management', icon: DocumentTextIcon, color: '#06b6d4', category: 'Business', scope: 'tenant', priority: 17 },
+  { code: 'compliance', name: 'Compliance Management', icon: ShieldCheckIcon, color: '#14b8a6', category: 'Business', scope: 'tenant', priority: 18 },
+  { code: 'rfi', name: 'Request for Information', icon: InboxStackIcon, color: '#6366f1', category: 'Business', scope: 'tenant', priority: 19 },
+  { code: 'platform', name: 'Platform Management', icon: ServerStackIcon, color: '#a855f7', category: 'System', scope: 'landlord', priority: 1 },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEFAULT DATA (Server-provided fallbacks only)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const defaultPlatformStats = {
-  totalTenants: 156,
-  activeTenants: 148,
-  totalUsers: 12840,
-  activeUsers: 9650,
-  mrr: 428500,
-  arr: 5142000,
-  mrrGrowth: 12.5,
-  churnRate: 2.1,
-  avgRevenuePerTenant: 2748,
-  totalStorage: '2.8 TB',
-  apiCalls: '48.2M',
-  uptime: 99.98,
+  totalTenants: 0,
+  activeTenants: 0,
+  totalUsers: 0,
+  activeUsers: 0,
+  mrr: 0,
+  arr: 0,
+  mrrGrowth: 0,
+  churnRate: 0,
+  avgRevenuePerTenant: 0,
+  totalStorage: '0 GB',
+  apiCalls: '0',
+  uptime: 100,
+  newThisWeek: 0,
+  totalAdmins: 0,
+  activeAdmins: 0,
 };
 
-const defaultModules = [
-  { id: 'hr', name: 'HR Management', icon: UserGroupIcon, activeCount: 142, color: '#0ea5e9', status: 'active' },
-  { id: 'project', name: 'Project Management', icon: ClipboardDocumentCheckIcon, activeCount: 128, color: '#8b5cf6', status: 'active' },
-  { id: 'crm', name: 'CRM', icon: UsersIcon, activeCount: 98, color: '#10b981', status: 'active' },
-  { id: 'dms', name: 'Document Management', icon: DocumentTextIcon, activeCount: 134, color: '#f59e0b', status: 'active' },
-  { id: 'quality', name: 'Quality Control', icon: BeakerIcon, activeCount: 76, color: '#ef4444', status: 'active' },
-  { id: 'compliance', name: 'Compliance', icon: ShieldCheckIcon, activeCount: 89, color: '#06b6d4', status: 'active' },
-  { id: 'finance', name: 'Finance & Accounting', icon: BanknotesIcon, activeCount: 112, color: '#84cc16', status: 'active' },
-  { id: 'scm', name: 'Supply Chain', icon: TruckIcon, activeCount: 67, color: '#f97316', status: 'active' },
-  { id: 'pos', name: 'Point of Sale', icon: CreditCardIcon, activeCount: 45, color: '#ec4899', status: 'active' },
-  { id: 'lms', name: 'Learning Management', icon: AcademicCapIcon, activeCount: 54, color: '#6366f1', status: 'beta' },
-  { id: 'helpdesk', name: 'Helpdesk', icon: LifebuoyIcon, activeCount: 82, color: '#14b8a6', status: 'active' },
-  { id: 'analytics', name: 'Analytics', icon: ChartBarIcon, activeCount: 156, color: '#a855f7', status: 'active' },
-];
-
 const defaultSubscriptionPlans = [
-  { name: 'Starter', count: 45, mrr: 22500, color: '#94a3b8', price: 500 },
-  { name: 'Growth', count: 62, mrr: 124000, color: '#0ea5e9', price: 2000 },
-  { name: 'Professional', count: 38, mrr: 190000, color: '#8b5cf6', price: 5000 },
-  { name: 'Enterprise', count: 11, mrr: 110000, color: '#f59e0b', price: 10000 },
+  { name: 'Starter', count: 0, mrr: 0, color: '#94a3b8', price: 500 },
+  { name: 'Growth', count: 0, mrr: 0, color: '#0ea5e9', price: 2000 },
+  { name: 'Professional', count: 0, mrr: 0, color: '#8b5cf6', price: 5000 },
+  { name: 'Enterprise', count: 0, mrr: 0, color: '#f59e0b', price: 10000 },
 ];
 
 const defaultTenantsByRegion = [
-  { region: 'Asia Pacific', count: 68, percentage: 43.6, growth: 18.2 },
-  { region: 'North America', count: 42, percentage: 26.9, growth: 12.5 },
-  { region: 'Europe', count: 31, percentage: 19.9, growth: 8.7 },
-  { region: 'Middle East', count: 10, percentage: 6.4, growth: 24.3 },
-  { region: 'Others', count: 5, percentage: 3.2, growth: 5.1 },
+  { region: 'Asia Pacific', count: 0, percentage: 0, growth: 0 },
+  { region: 'North America', count: 0, percentage: 0, growth: 0 },
+  { region: 'Europe', count: 0, percentage: 0, growth: 0 },
+  { region: 'Middle East', count: 0, percentage: 0, growth: 0 },
+  { region: 'Others', count: 0, percentage: 0, growth: 0 },
 ];
 
-const defaultRecentTenants = [
-  { id: 1, name: 'Nexus Technologies', domain: 'nexus', plan: 'Enterprise', status: 'active', users: 245, createdAt: '2 hours ago', logo: null },
-  { id: 2, name: 'Global Logistics Inc', domain: 'globallog', plan: 'Professional', status: 'trial', users: 89, createdAt: '5 hours ago', logo: null },
-  { id: 3, name: 'HealthCare Plus', domain: 'hcplus', plan: 'Growth', status: 'active', users: 156, createdAt: '1 day ago', logo: null },
-  { id: 4, name: 'EduTech Solutions', domain: 'edutech', plan: 'Starter', status: 'pending', users: 34, createdAt: '2 days ago', logo: null },
-  { id: 5, name: 'FinServ Corp', domain: 'finserv', plan: 'Enterprise', status: 'active', users: 312, createdAt: '3 days ago', logo: null },
-];
+const defaultRecentTenants = [];
 
 const defaultSystemHealth = {
-  cpu: 42,
-  memory: 68,
-  disk: 54,
-  network: 23,
-  database: 31,
-  cache: 45,
-  queue: 12,
-  services: [
-    { name: 'API Gateway', status: 'healthy', latency: '23ms' },
-    { name: 'Authentication', status: 'healthy', latency: '15ms' },
-    { name: 'Database Cluster', status: 'healthy', latency: '8ms' },
-    { name: 'Cache Server', status: 'healthy', latency: '2ms' },
-    { name: 'Queue Worker', status: 'healthy', latency: '45ms' },
-    { name: 'File Storage', status: 'warning', latency: '156ms' },
-    { name: 'Email Service', status: 'healthy', latency: '89ms' },
-    { name: 'Search Engine', status: 'healthy', latency: '34ms' },
-  ],
+  cpu: 0,
+  memory: 0,
+  disk: 0,
+  network: 0,
+  database: 0,
+  cache: 0,
+  queue: 0,
+  services: [],
 };
 
-const defaultRecentActivity = [
-  { type: 'tenant_created', message: 'New tenant "Nexus Technologies" registered', time: '2 hours ago', icon: BuildingOffice2Icon, color: 'success' },
-  { type: 'subscription_upgraded', message: 'Global Logistics upgraded to Professional plan', time: '4 hours ago', icon: ArrowTrendingUpIcon, color: 'primary' },
-  { type: 'alert', message: 'High API usage detected for tenant "DataFlow"', time: '6 hours ago', icon: ExclamationTriangleIcon, color: 'warning' },
-  { type: 'maintenance', message: 'Scheduled maintenance completed successfully', time: '8 hours ago', icon: WrenchScrewdriverIcon, color: 'secondary' },
-  { type: 'subscription_cancelled', message: 'Tenant "OldCorp" subscription ended', time: '1 day ago', icon: XCircleIcon, color: 'danger' },
-  { type: 'module_enabled', message: 'LMS module enabled for 12 tenants', time: '1 day ago', icon: CubeIcon, color: 'primary' },
-];
+const defaultRecentActivity = [];
 
-const defaultAlerts = [
-  { id: 1, severity: 'critical', title: 'Database Connection Pool Near Limit', description: 'Connection pool at 85% capacity', time: '5 min ago' },
-  { id: 2, severity: 'warning', title: 'Storage Usage High', description: 'Tenant "DataFlow" using 95% of allocated storage', time: '15 min ago' },
-  { id: 3, severity: 'info', title: 'Scheduled Maintenance', description: 'System maintenance scheduled for Dec 03, 02:00 UTC', time: '1 hour ago' },
-];
+const defaultAlerts = [];
 
 const defaultBillingOverview = {
-  totalRevenue: 5142000,
-  pendingPayments: 45600,
-  failedPayments: 12300,
-  refunds: 8500,
-  invoicesPending: 23,
-  invoicesOverdue: 5,
+  totalRevenue: 0,
+  pendingPayments: 0,
+  failedPayments: 0,
+  refunds: 0,
+  invoicesPending: 0,
+  invoicesOverdue: 0,
 };
 
 const defaultQuickActions = [
   { label: 'Create Tenant', icon: BuildingOffice2Icon, href: '/admin/tenants/create', color: 'primary' },
-  { label: 'View Tickets', icon: LifebuoyIcon, href: '/admin/support', color: 'warning' },
-  { label: 'System Logs', icon: CommandLineIcon, href: '/admin/logs', color: 'secondary' },
-  { label: 'Billing', icon: CreditCardIcon, href: '/admin/billing', color: 'success' },
-  { label: 'Analytics', icon: ChartBarIcon, href: '/admin/analytics', color: 'primary' },
-  { label: 'Settings', icon: Cog6ToothIcon, href: '/admin/settings', color: 'default' },
+  { label: 'Manage Plans', icon: TagIcon, href: '/admin/plans', color: 'secondary' },
+  { label: 'View Modules', icon: CubeIcon, href: '/admin/modules', color: 'success' },
+  { label: 'System Settings', icon: Cog6ToothIcon, href: '/admin/settings', color: 'warning' },
 ];
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPONENTS

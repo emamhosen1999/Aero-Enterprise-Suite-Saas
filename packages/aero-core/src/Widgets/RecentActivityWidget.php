@@ -6,7 +6,9 @@ namespace Aero\Core\Widgets;
 
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -19,6 +21,7 @@ use Illuminate\Support\Facades\Schema;
  * - User management actions
  *
  * This is a FEED widget - activity stream.
+ * Uses optimized single query with UNION and 3-minute caching.
  */
 class RecentActivityWidget extends AbstractDashboardWidget
 {
@@ -26,7 +29,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
     protected int $order = 3;
     protected int|string $span = 2;
     protected CoreWidgetCategory $category = CoreWidgetCategory::FEED;
-    protected array $requiredPermissions = [];
+    protected array $requiredPermissions = ['dashboard.view_activity'];
 
     public function getKey(): string
     {

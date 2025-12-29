@@ -43,6 +43,8 @@ class CoreUserController extends Controller
      */
     public function index(Request $request): Response
     {
+        $this->authorize('viewAny', User::class);
+
         $query = User::query()
             ->with(['roles'])
             ->when($request->search, function ($q, $search) {
@@ -84,6 +86,8 @@ class CoreUserController extends Controller
      */
     public function paginate(Request $request)
     {
+        $this->authorize('viewAny', User::class);
+
         try {
             $perPage = $request->input('perPage', 10);
             $page = $request->input('page', 1);
@@ -138,29 +142,38 @@ class CoreUserController extends Controller
 
     /**
      * Get user statistics
+     * 
+     * Optimized to use a single query with conditional aggregation
+     * to reduce database round trips from 10+ queries to 2.
      */
     public function stats(Request $request)
     {
         try {
-            $totalUsers = User::count();
-            $activeUsers = User::where('active', true)->count();
-            $inactiveUsers = User::where('active', false)->count();
-            $deletedUsers = User::onlyTrashed()->count();
-            
-            // Verified/Unverified users
-            $verifiedUsers = User::whereNotNull('email_verified_at')->count();
-            $unverifiedUsers = User::whereNull('email_verified_at')->count();
-            
-            // Locked accounts
-            $lockedAccounts = User::whereNotNull('account_locked_at')->count();
-            
-            // Users with/without roles
+            // Single query with conditional aggregation for all user stats
+            $userStats = User::query()
+                ->selectRaw('COUNT(*) as total_users')
+                ->selectRaw('SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active_users')
+                ->selectRaw('SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) as inactive_users')
+                ->selectRaw('SUM(CASE WHEN email_verified_at IS NOT NULL THEN 1 ELSE 0 END) as verified_users')
+                ->selectRaw('SUM(CASE WHEN email_verified_at IS NULL THEN 1 ELSE 0 END) as unverified_users')
+                ->selectRaw('SUM(CASE WHEN account_locked_at IS NOT NULL THEN 1 ELSE 0 END) as locked_accounts')
+                ->selectRaw('SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as recent_users', [now()->subDays(30)])
+                ->first();
+
+            // Separate queries for role-related stats (requires join)
             $usersWithRoles = User::has('roles')->count();
             $usersWithoutRoles = User::doesntHave('roles')->count();
+
+            // Soft deleted users count
+            $deletedUsers = User::onlyTrashed()->count();
             
-            // Recent registrations (last 30 days)
-            $recentUsers = User::where('created_at', '>=', now()->subDays(30))->count();
-            
+            // Total roles count
+            $totalRoles = Role::count();
+
+            $totalUsers = (int) $userStats->total_users;
+            $activeUsers = (int) $userStats->active_users;
+            $verifiedUsers = (int) $userStats->verified_users;
+
             // Calculate percentages
             $activePercentage = $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0;
             $verifiedPercentage = $totalUsers > 0 ? round(($verifiedUsers / $totalUsers) * 100, 1) : 0;
@@ -170,18 +183,18 @@ class CoreUserController extends Controller
                 'stats' => [
                     'total_users' => $totalUsers,
                     'active_users' => $activeUsers,
-                    'inactive_users' => $inactiveUsers,
+                    'inactive_users' => (int) $userStats->inactive_users,
                     'deleted_users' => $deletedUsers,
                     'verified_users' => $verifiedUsers,
-                    'unverified_users' => $unverifiedUsers,
-                    'locked_accounts' => $lockedAccounts,
+                    'unverified_users' => (int) $userStats->unverified_users,
+                    'locked_accounts' => (int) $userStats->locked_accounts,
                     'users_with_roles' => $usersWithRoles,
                     'users_without_roles' => $usersWithoutRoles,
-                    'recent_users_30_days' => $recentUsers,
+                    'recent_users_30_days' => (int) $userStats->recent_users,
                     'active_percentage' => $activePercentage,
                     'verified_percentage' => $verifiedPercentage,
                     'roles_coverage' => $rolesCoverage,
-                    'total_roles' => Role::count(),
+                    'total_roles' => $totalRoles,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -214,6 +227,8 @@ class CoreUserController extends Controller
      */
     public function create(): Response
     {
+        $this->authorize('create', User::class);
+
         return Inertia::render('Pages/Core/Users/Create', [
             'title' => 'Create User',
             'roles' => Role::all(['id', 'name']),
@@ -225,6 +240,8 @@ class CoreUserController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', User::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -286,6 +303,8 @@ class CoreUserController extends Controller
      */
     public function show(User $user): Response
     {
+        $this->authorize('view', $user);
+
         $user->load(['roles', 'permissions']);
 
         return Inertia::render('Pages/Core/Users/Show', [
@@ -299,6 +318,8 @@ class CoreUserController extends Controller
      */
     public function edit(User $user): Response
     {
+        $this->authorize('update', $user);
+
         $user->load(['roles']);
 
         return Inertia::render('Pages/Core/Users/Edit', [
@@ -315,6 +336,8 @@ class CoreUserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        
+        $this->authorize('update', $user);
         
         // Store old values for audit
         $oldValues = $user->only(['name', 'email', 'user_name', 'phone', 'active']);
@@ -380,6 +403,8 @@ class CoreUserController extends Controller
     {
         $user = User::findOrFail($id);
         
+        $this->authorize('delete', $user);
+        
         // Prevent self-deletion
         if ($user->id === auth()->id()) {
             return response()->json([
@@ -414,6 +439,8 @@ class CoreUserController extends Controller
     public function toggleStatus(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        
+        $this->authorize('toggleStatus', $user);
         
         // Prevent self-deactivation
         if ($user->id === auth()->id()) {
@@ -458,6 +485,8 @@ class CoreUserController extends Controller
     public function updateUserRole(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        
+        $this->authorize('updateRoles', $user);
 
         $request->validate([
             'roles' => 'required|array',
@@ -486,6 +515,8 @@ class CoreUserController extends Controller
      */
     public function sendInvitation(Request $request)
     {
+        $this->authorize('invite', User::class);
+
         $validated = $request->validate([
             'email' => 'required|email',
             'name' => 'required|string|max:255',
@@ -581,6 +612,8 @@ class CoreUserController extends Controller
      */
     public function bulkToggleStatus(Request $request)
     {
+        $this->authorize('bulkToggleStatus', User::class);
+
         $validated = $request->validate([
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,id',
@@ -629,6 +662,8 @@ class CoreUserController extends Controller
      */
     public function bulkAssignRoles(Request $request)
     {
+        $this->authorize('bulkAssignRoles', User::class);
+
         $validated = $request->validate([
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,id',
@@ -637,18 +672,23 @@ class CoreUserController extends Controller
         ]);
 
         try {
-            $users = User::whereIn('id', $validated['user_ids'])->get();
-
-            foreach ($users as $user) {
-                $user->syncRoles($validated['roles']);
-            }
+            $totalCount = 0;
+            
+            // Use chunking to prevent memory issues with large user sets
+            User::whereIn('id', $validated['user_ids'])
+                ->chunk(100, function ($users) use ($validated, &$totalCount) {
+                    foreach ($users as $user) {
+                        $user->syncRoles($validated['roles']);
+                        $totalCount++;
+                    }
+                });
 
             // Log bulk action
-            $this->auditService->logBulkRoleAssignment($users->count(), $validated['roles']);
+            $this->auditService->logBulkRoleAssignment($totalCount, $validated['roles']);
 
             return response()->json([
-                'message' => "Roles assigned to {$users->count()} users successfully.",
-                'count' => $users->count(),
+                'message' => "Roles assigned to {$totalCount} users successfully.",
+                'count' => $totalCount,
             ]);
         } catch (\Exception $e) {
             report($e);
@@ -665,6 +705,8 @@ class CoreUserController extends Controller
      */
     public function bulkDelete(Request $request)
     {
+        $this->authorize('bulkDelete', User::class);
+
         $validated = $request->validate([
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,id',
@@ -974,6 +1016,82 @@ class CoreUserController extends Controller
 
             return response()->json([
                 'error' => 'Failed to resend verification email.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Start impersonating a user.
+     */
+    public function startImpersonation(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $this->authorize('impersonate', $user);
+
+        try {
+            $impersonationService = app(\Aero\Core\Services\Auth\UserImpersonationService::class);
+            
+            $reason = $request->input('reason', 'Administrative support');
+            $duration = $request->input('duration', 60);
+            
+            $impersonationService->impersonate($user, $reason, $duration);
+
+            // Log the action
+            $this->auditService->log('user.impersonation.started', [
+                'target_user_id' => $user->id,
+                'target_user_email' => $user->email,
+                'reason' => $reason,
+                'duration_minutes' => $duration,
+            ]);
+
+            return response()->json([
+                'message' => "Now impersonating {$user->name}.",
+                'redirect' => route('dashboard'),
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to start impersonation.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Stop impersonating and return to original user.
+     */
+    public function stopImpersonation(Request $request)
+    {
+        try {
+            $impersonationService = app(\Aero\Core\Services\Auth\UserImpersonationService::class);
+            
+            if (!$impersonationService->isImpersonating()) {
+                return response()->json([
+                    'error' => 'Not currently impersonating any user.',
+                ], 400);
+            }
+
+            $targetUser = auth()->user();
+            $impersonationService->stopImpersonating();
+
+            // Log the action
+            $this->auditService->log('user.impersonation.stopped', [
+                'target_user_id' => $targetUser->id,
+                'target_user_email' => $targetUser->email,
+            ]);
+
+            return response()->json([
+                'message' => 'Returned to your original account.',
+                'redirect' => route('core.users.index'),
+            ]);
+        } catch (\Exception $e) {
+            report($e);
+
+            return response()->json([
+                'error' => 'Failed to stop impersonation.',
                 'message' => $e->getMessage(),
             ], 500);
         }

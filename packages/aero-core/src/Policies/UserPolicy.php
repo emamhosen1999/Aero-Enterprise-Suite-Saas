@@ -19,8 +19,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.view
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'view');
+        // Check module access: core.user_management.users.view
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'view');
     }
 
     /**
@@ -39,7 +39,7 @@ class UserPolicy
         }
 
         // Check module access with scope
-        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'view', $model);
+        return $this->canPerformActionWithScope($user, 'core', 'user_management', 'users', 'view', $model);
     }
 
     /**
@@ -52,8 +52,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.create
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'create');
+        // Check module access: core.user_management.users.create
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'create');
     }
 
 
@@ -72,8 +72,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $model);
+        // Check module access: core.user_management.users.edit
+        return $this->canPerformActionWithScope($user, 'core', 'user_management', 'users', 'edit', $model);
     }
 
     /**
@@ -165,8 +165,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.delete (same as delete)
-        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'delete', $model);
+        // Check module access: core.user_management.users.delete (same as delete)
+        return $this->canPerformActionWithScope($user, 'core', 'user_management', 'users', 'delete', $model);
     }
 
     /**
@@ -200,8 +200,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
+        // Check module access: core.user_management.users.edit
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'edit');
     }
 
     /**
@@ -219,8 +219,9 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.change-status
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'change-status');
+        // Check module access: core.user_management.users.activate or deactivate
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'activate')
+            || $this->canPerformAction($user, 'core', 'user_management', 'users', 'deactivate');
     }
 
     /**
@@ -238,8 +239,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformActionWithScope($user, 'hrm', 'employees', 'employee-directory', 'update', $model);
+        // Check module access: core.user_management.users.edit
+        return $this->canPerformActionWithScope($user, 'core', 'user_management', 'users', 'edit', $model);
     }
 
     /**
@@ -252,8 +253,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
+        // Check module access: core.user_management.users.edit
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'edit');
     }
 
     /**
@@ -266,8 +267,8 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
+        // Check module access: core.user_management.users.edit
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'edit');
     }
 
     /**
@@ -280,7 +281,82 @@ class UserPolicy
             return true;
         }
 
-        // Check module access: hrm.employees.employee-directory.update
-        return $this->canPerformAction($user, 'hrm', 'employees', 'employee-directory', 'update');
+        // Check module access: core.user_management.users.edit
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'edit');
+    }
+
+    /**
+     * Determine whether the user can invite users.
+     */
+    public function invite(User $user): bool
+    {
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: core.user_management.user_invitations.invite
+        return $this->canPerformAction($user, 'core', 'user_management', 'user_invitations', 'invite');
+    }
+
+    /**
+     * Determine whether the user can impersonate users.
+     */
+    public function impersonate(User $user, User $model): bool
+    {
+        // Cannot impersonate yourself
+        if ($user->id === $model->id) {
+            return false;
+        }
+
+        // Only Super Admins can impersonate
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: core.user_management.users.impersonate
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'impersonate');
+    }
+
+    /**
+     * Determine whether the user can bulk toggle status.
+     */
+    public function bulkToggleStatus(User $user): bool
+    {
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: core.user_management.users.bulk_toggle_status
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'bulk_toggle_status');
+    }
+
+    /**
+     * Determine whether the user can bulk assign roles.
+     */
+    public function bulkAssignRoles(User $user): bool
+    {
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: core.user_management.users.bulk_assign_roles
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'bulk_assign_roles');
+    }
+
+    /**
+     * Determine whether the user can bulk delete users.
+     */
+    public function bulkDelete(User $user): bool
+    {
+        // Super Admin bypass
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        // Check module access: core.user_management.users.bulk_delete
+        return $this->canPerformAction($user, 'core', 'user_management', 'users', 'bulk_delete');
     }
 }

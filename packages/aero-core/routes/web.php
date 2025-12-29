@@ -229,7 +229,13 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/invitations/pending', [CoreUserController::class, 'pendingInvitations'])->name('invitations.pending');
         Route::post('/invitations/{invitation}/resend', [CoreUserController::class, 'resendInvitation'])->name('invitations.resend');
         Route::delete('/invitations/{invitation}', [CoreUserController::class, 'cancelInvitation'])->name('invitations.cancel');
+
+        // Impersonation
+        Route::post('/{id}/impersonate', [CoreUserController::class, 'startImpersonation'])->name('impersonate');
     });
+
+    // Impersonation Stop (separate from user management group - needs to work while impersonating)
+    Route::post('/impersonation/stop', [CoreUserController::class, 'stopImpersonation'])->name('core.impersonation.stop');
 
     // ========================================================================
     // DEVICE MANAGEMENT ROUTES (Security)
