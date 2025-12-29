@@ -23,7 +23,7 @@ class ActiveModulesWidget extends AbstractDashboardWidget
     protected int $order = 10;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
-    protected array $requiredPermissions = [];
+    protected array $requiredPermissions = []; // No permissions needed - shows available modules only
 
     public function getKey(): string
     {

@@ -66,112 +66,188 @@ class RecentActivityWidget extends AbstractDashboardWidget
 
     /**
      * Get widget data for frontend.
+     * 
+     * Uses optimized UNION query and 3-minute caching for activity feed.
      */
     public function getData(): array
     {
+        // Cache activity feed for 3 minutes
+        return Cache::remember('dashboard.recent_activity.' . auth()->id(), 180, function () {
+            return $this->fetchRecentActivities();
+        });
+    }
+
+    /**
+     * Fetch recent activities using optimized UNION query.
+     */
+    protected function fetchRecentActivities(): array
+    {
         $activities = [];
 
-        // Get authentication events
         try {
-            if (Schema::hasTable('authentication_events')) {
-                $authEvents = DB::table('authentication_events')
-                    ->join('users', 'authentication_events.user_id', '=', 'users.id')
-                    ->select([
-                        'authentication_events.id',
-                        'authentication_events.event_type',
-                        'authentication_events.created_at',
-                        'authentication_events.ip_address',
-                        'users.name as user_name',
-                    ])
-                    ->orderByDesc('authentication_events.created_at')
-                    ->limit(10)
-                    ->get();
-
-                foreach ($authEvents as $event) {
-                    $activities[] = [
-                        'id' => 'auth_' . $event->id,
-                        'type' => $this->mapEventType($event->event_type),
-                        'icon' => $this->getEventIcon($event->event_type),
-                        'color' => $this->getEventColor($event->event_type),
-                        'message' => $this->formatEventMessage($event),
-                        'user' => $event->user_name,
-                        'timestamp' => $event->created_at,
-                        'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
-                    ];
-                }
+            // OPTIMIZED: Use UNION to combine auth and audit events in single query
+            if (Schema::hasTable('authentication_events') && Schema::hasTable('audit_logs')) {
+                $activities = $this->fetchCombinedActivities();
+            } elseif (Schema::hasTable('authentication_events')) {
+                $activities = $this->fetchAuthenticationEvents();
+            } elseif (Schema::hasTable('audit_logs')) {
+                $activities = $this->fetchAuditEvents();
             }
         } catch (\Throwable $e) {
-            // Silently ignore
+            Log::warning('RecentActivityWidget: Failed to fetch activities', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
         }
-
-        // Get audit log events if available
-        try {
-            if (Schema::hasTable('audit_logs')) {
-                $auditEvents = DB::table('audit_logs')
-                    ->leftJoin('users', 'audit_logs.user_id', '=', 'users.id')
-                    ->select([
-                        'audit_logs.id',
-                        'audit_logs.action',
-                        'audit_logs.auditable_type',
-                        'audit_logs.created_at',
-                        'users.name as user_name',
-                    ])
-                    ->orderByDesc('audit_logs.created_at')
-                    ->limit(10)
-                    ->get();
-
-                foreach ($auditEvents as $event) {
-                    $activities[] = [
-                        'id' => 'audit_' . $event->id,
-                        'type' => $event->action,
-                        'icon' => $this->getAuditIcon($event->action),
-                        'color' => $this->getAuditColor($event->action),
-                        'message' => $this->formatAuditMessage($event),
-                        'user' => $event->user_name ?? 'System',
-                        'timestamp' => $event->created_at,
-                        'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
-                    ];
-                }
-            }
-        } catch (\Throwable $e) {
-            // Silently ignore
-        }
-
-        // Sort by timestamp and take most recent 8
-        usort($activities, function ($a, $b) {
-            return strtotime($b['timestamp']) - strtotime($a['timestamp']);
-        });
-
-        $activities = array_slice($activities, 0, 8);
 
         // If no activities, show placeholder
         if (empty($activities)) {
-            $activities = [
-                [
-                    'id' => 'placeholder_1',
-                    'type' => 'info',
-                    'icon' => 'InformationCircleIcon',
-                    'color' => 'default',
-                    'message' => 'No recent activity to display',
-                    'user' => 'System',
-                    'timestamp' => now()->toDateTimeString(),
-                    'timeAgo' => 'just now',
-                ],
-            ];
+            $activities = [[
+                'id' => 'placeholder_1',
+                'type' => 'info',
+                'icon' => 'InformationCircleIcon',
+                'color' => 'default',
+                'message' => 'No recent activity to display',
+                'user' => 'System',
+                'timestamp' => now()->toDateTimeString(),
+                'timeAgo' => 'just now',
+            ]];
         }
 
         return [
-            'activities' => $activities,
+            'activities' => array_slice($activities, 0, 8),
             'totalToday' => count($activities),
             'viewAllRoute' => 'audit.logs',
         ];
     }
 
     /**
+     * Fetch combined activities using UNION for optimal performance.
+     */
+    protected function fetchCombinedActivities(): array
+    {
+        $results = DB::select("
+            (SELECT 
+                CONCAT('auth_', ae.id) as id,
+                ae.event_type as type,
+                ae.created_at,
+                ae.ip_address,
+                u.name as user_name,
+                'auth' as source
+            FROM authentication_events ae
+            INNER JOIN users u ON ae.user_id = u.id
+            ORDER BY ae.created_at DESC
+            LIMIT 10)
+            
+            UNION ALL
+            
+            (SELECT 
+                CONCAT('audit_', al.id) as id,
+                al.action as type,
+                al.created_at,
+                NULL as ip_address,
+                COALESCE(u.name, 'System') as user_name,
+                'audit' as source
+            FROM audit_logs al
+            LEFT JOIN users u ON al.user_id = u.id
+            ORDER BY al.created_at DESC
+            LIMIT 10)
+            
+            ORDER BY created_at DESC
+            LIMIT 8
+        ");
+
+        return array_map(function ($event) {
+            $isAuth = str_starts_with($event->id, 'auth_');
+            
+            return [
+                'id' => $event->id,
+                'type' => $this->mapEventType($event->type, $isAuth),
+                'icon' => $isAuth ? $this->getEventIcon($event->type) : $this->getAuditIcon($event->type),
+                'color' => $isAuth ? $this->getEventColor($event->type) : $this->getAuditColor($event->type),
+                'message' => $isAuth 
+                    ? $this->formatAuthMessage($event)
+                    : $this->formatSimpleAuditMessage($event),
+                'user' => $event->user_name,
+                'timestamp' => $event->created_at,
+                'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
+            ];
+        }, $results);
+    }
+
+    /**
+     * Fetch only authentication events (fallback).
+     */
+    protected function fetchAuthenticationEvents(): array
+    {
+        $authEvents = DB::table('authentication_events')
+            ->join('users', 'authentication_events.user_id', '=', 'users.id')
+            ->select([
+                'authentication_events.id',
+                'authentication_events.event_type',
+                'authentication_events.created_at',
+                'authentication_events.ip_address',
+                'users.name as user_name',
+            ])
+            ->orderByDesc('authentication_events.created_at')
+            ->limit(8)
+            ->get();
+
+        return $authEvents->map(function ($event) {
+            return [
+                'id' => 'auth_' . $event->id,
+                'type' => $this->mapEventType($event->event_type, true),
+                'icon' => $this->getEventIcon($event->event_type),
+                'color' => $this->getEventColor($event->event_type),
+                'message' => $this->formatEventMessage($event),
+                'user' => $event->user_name,
+                'timestamp' => $event->created_at,
+                'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Fetch only audit events (fallback).
+     */
+    protected function fetchAuditEvents(): array
+    {
+        $auditEvents = DB::table('audit_logs')
+            ->leftJoin('users', 'audit_logs.user_id', '=', 'users.id')
+            ->select([
+                'audit_logs.id',
+                'audit_logs.action',
+                'audit_logs.auditable_type',
+                'audit_logs.created_at',
+                'users.name as user_name',
+            ])
+            ->orderByDesc('audit_logs.created_at')
+            ->limit(8)
+            ->get();
+
+        return $auditEvents->map(function ($event) {
+            return [
+                'id' => 'audit_' . $event->id,
+                'type' => $event->action,
+                'icon' => $this->getAuditIcon($event->action),
+                'color' => $this->getAuditColor($event->action),
+                'message' => $this->formatAuditMessage($event),
+                'user' => $event->user_name ?? 'System',
+                'timestamp' => $event->created_at,
+                'timeAgo' => \Carbon\Carbon::parse($event->created_at)->diffForHumans(),
+            ];
+        })->toArray();
+    }
+
+    /**
      * Map event type to readable label.
      */
-    protected function mapEventType(string $eventType): string
+    protected function mapEventType(string $eventType, bool $isAuth = false): string
     {
+        if (!$isAuth) {
+            return $eventType;
+        }
+        
         return match ($eventType) {
             'login' => 'login',
             'logout' => 'logout',
@@ -179,6 +255,32 @@ class RecentActivityWidget extends AbstractDashboardWidget
             'password_reset' => 'password_reset',
             default => 'activity',
         };
+    }
+
+    /**
+     * Format simple auth message for combined query.
+     */
+    protected function formatAuthMessage(object $event): string
+    {
+        $action = match ($event->type) {
+            'login' => 'logged in',
+            'logout' => 'logged out',
+            'login_failed' => 'failed login attempt',
+            'password_reset' => 'reset password',
+            default => $event->type,
+        };
+
+        $ip = $event->ip_address ? " from {$event->ip_address}" : '';
+        return "{$event->user_name} {$action}{$ip}";
+    }
+
+    /**
+     * Format simple audit message for combined query.
+     */
+    protected function formatSimpleAuditMessage(object $event): string
+    {
+        $action = ucfirst(strtolower($event->type));
+        return "{$event->user_name} {$action}";
     }
 
     /**

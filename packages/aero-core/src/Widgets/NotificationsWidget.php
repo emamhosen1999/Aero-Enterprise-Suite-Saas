@@ -21,7 +21,7 @@ class NotificationsWidget extends AbstractDashboardWidget
     protected int $order = 5;
     protected int|string $span = 1;
     protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
-    protected array $requiredPermissions = [];
+    protected array $requiredPermissions = []; // No permissions needed - user's own notifications
 
     public function getKey(): string
     {

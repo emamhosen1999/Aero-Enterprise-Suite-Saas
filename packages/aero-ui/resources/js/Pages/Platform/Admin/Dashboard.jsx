@@ -144,22 +144,10 @@ const getItemStyle = (accentColor = 'var(--theme-primary)') => ({
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MODULE DEFINITIONS - Based on actual package configs
+// PLATFORM MODULE - Dynamic from Backend
 // ═══════════════════════════════════════════════════════════════════════════════
-
-const PLATFORM_MODULES = [
-  { code: 'hrm', name: 'Human Resources', icon: UserGroupIcon, color: '#0ea5e9', category: 'Operations', scope: 'tenant', priority: 10 },
-  { code: 'finance', name: 'Finance & Accounting', icon: BanknotesIcon, color: '#10b981', category: 'Business', scope: 'tenant', priority: 12 },
-  { code: 'project', name: 'Project Management', icon: ClipboardDocumentCheckIcon, color: '#8b5cf6', category: 'Operations', scope: 'tenant', priority: 11 },
-  { code: 'ims', name: 'Inventory Management', icon: CubeIcon, color: '#f59e0b', category: 'Operations', scope: 'tenant', priority: 13 },
-  { code: 'pos', name: 'Point of Sale', icon: CreditCardIcon, color: '#ec4899', category: 'Sales', scope: 'tenant', priority: 14 },
-  { code: 'scm', name: 'Supply Chain Management', icon: TruckIcon, color: '#f97316', category: 'Operations', scope: 'tenant', priority: 15 },
-  { code: 'quality', name: 'Quality Management', icon: BeakerIcon, color: '#ef4444', category: 'Operations', scope: 'tenant', priority: 16 },
-  { code: 'dms', name: 'Document Management', icon: DocumentTextIcon, color: '#06b6d4', category: 'Business', scope: 'tenant', priority: 17 },
-  { code: 'compliance', name: 'Compliance Management', icon: ShieldCheckIcon, color: '#14b8a6', category: 'Business', scope: 'tenant', priority: 18 },
-  { code: 'rfi', name: 'Request for Information', icon: InboxStackIcon, color: '#6366f1', category: 'Business', scope: 'tenant', priority: 19 },
-  { code: 'platform', name: 'Platform Management', icon: ServerStackIcon, color: '#a855f7', category: 'System', scope: 'landlord', priority: 1 },
-];
+// All module data comes from the Platform package's config and widget registry.
+// No hardcoded module definitions - widgets provide all necessary data.
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DEFAULT DATA (Server-provided fallbacks only)
@@ -183,53 +171,8 @@ const defaultPlatformStats = {
   activeAdmins: 0,
 };
 
-const defaultSubscriptionPlans = [
-  { name: 'Starter', count: 0, mrr: 0, color: '#94a3b8', price: 500 },
-  { name: 'Growth', count: 0, mrr: 0, color: '#0ea5e9', price: 2000 },
-  { name: 'Professional', count: 0, mrr: 0, color: '#8b5cf6', price: 5000 },
-  { name: 'Enterprise', count: 0, mrr: 0, color: '#f59e0b', price: 10000 },
-];
-
-const defaultTenantsByRegion = [
-  { region: 'Asia Pacific', count: 0, percentage: 0, growth: 0 },
-  { region: 'North America', count: 0, percentage: 0, growth: 0 },
-  { region: 'Europe', count: 0, percentage: 0, growth: 0 },
-  { region: 'Middle East', count: 0, percentage: 0, growth: 0 },
-  { region: 'Others', count: 0, percentage: 0, growth: 0 },
-];
-
-const defaultRecentTenants = [];
-
-const defaultSystemHealth = {
-  cpu: 0,
-  memory: 0,
-  disk: 0,
-  network: 0,
-  database: 0,
-  cache: 0,
-  queue: 0,
-  services: [],
-};
-
-const defaultRecentActivity = [];
-
-const defaultAlerts = [];
-
-const defaultBillingOverview = {
-  totalRevenue: 0,
-  pendingPayments: 0,
-  failedPayments: 0,
-  refunds: 0,
-  invoicesPending: 0,
-  invoicesOverdue: 0,
-};
-
-const defaultQuickActions = [
-  { label: 'Create Tenant', icon: BuildingOffice2Icon, href: '/admin/tenants/create', color: 'primary' },
-  { label: 'Manage Plans', icon: TagIcon, href: '/admin/plans', color: 'secondary' },
-  { label: 'View Modules', icon: CubeIcon, href: '/admin/modules', color: 'success' },
-  { label: 'System Settings', icon: Cog6ToothIcon, href: '/admin/settings', color: 'warning' },
-];
+// All default data removed - widgets provide everything.
+// Empty defaults only for safety in case widgets fail to load.
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -504,48 +447,6 @@ const SubscriptionDistributionCard = ({ plans, loading, themeRadius }) => {
     </Card>
   );
 };
-
-// Geographic Distribution
-const GeographicDistributionCard = ({ regions, loading }) => (
-  <Card style={getCardStyle('var(--theme-secondary)')}>
-    <CardHeader className="border-b p-3 sm:p-4" style={getHeaderStyle('var(--theme-secondary)')}>
-      <div className="min-w-0">
-        <p className="text-[10px] sm:text-xs uppercase tracking-wide text-default-500">Geographic Reach</p>
-        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Tenants by Region</h3>
-      </div>
-    </CardHeader>
-    <CardBody className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-      {loading ? (
-        Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-10 sm:h-12 rounded-lg" />)
-      ) : (
-        regions.map((region) => (
-          <div key={region.region} className="flex items-center gap-2 sm:gap-4 p-1.5 sm:p-2 transition-all hover:bg-content2/50 rounded-lg">
-            <div className="w-16 sm:w-24 flex-shrink-0">
-              <p className="text-xs sm:text-sm font-medium text-foreground truncate" title={region.region}>{region.region}</p>
-            </div>
-            <Progress 
-              value={region.percentage} 
-              color="secondary"
-              className="flex-1 h-1.5 sm:h-2"
-            />
-            <div className="flex items-center gap-1.5 sm:gap-3 text-xs sm:text-sm flex-shrink-0">
-              <span className="text-default-500 w-8 sm:w-12 text-right">{region.count}</span>
-              <Chip 
-                size="sm" 
-                variant="flat" 
-                color="success"
-                className="text-[10px] sm:text-xs px-1 sm:px-2"
-                startContent={<ArrowTrendingUpIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
-              >
-                {region.growth}%
-              </Chip>
-            </div>
-          </div>
-        ))
-      )}
-    </CardBody>
-  </Card>
-);
 
 // Recent Tenants Table
 const RecentTenantsCard = ({ tenants, loading, themeRadius }) => {
@@ -934,16 +835,15 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
     uptime: stats.uptime ?? defaultPlatformStats.uptime,
   };
 
-  // Map widget data to component props - now using real widget data with fallbacks
-  const modules = moduleUsageWidget.data?.modules ?? defaultModules;
-  const subscriptionPlans = subscriptionWidget.data?.plans ?? defaultSubscriptionPlans;
-  const tenantsByRegion = defaultTenantsByRegion; // TODO: Create TenantGeographyWidget
-  const recentTenants = recentTenantsWidget.data?.tenants ?? defaultRecentTenants;
-  const systemHealth = systemHealthWidget.data ?? defaultSystemHealth;
-  const recentActivity = recentActivityWidget.data?.activities ?? defaultRecentActivity;
-  const alerts = systemAlertsWidget.data?.alerts ?? defaultAlerts;
-  const billingOverview = billingOverviewWidget.data ?? defaultBillingOverview;
-  const quickActions = quickActionsWidget.data?.actions ?? defaultQuickActions;
+  // Extract widget data directly - widgets provide all data, no hardcoded fallbacks
+  const modules = moduleUsageWidget.data?.modules ?? [];
+  const subscriptionPlans = subscriptionWidget.data?.plans ?? [];
+  const recentTenants = recentTenantsWidget.data?.tenants ?? [];
+  const systemHealth = systemHealthWidget.data ?? {};
+  const recentActivity = recentActivityWidget.data?.activities ?? [];
+  const alerts = systemAlertsWidget.data?.alerts ?? [];
+  const billingOverview = billingOverviewWidget.data ?? {};
+  const quickActions = quickActionsWidget.data?.actions ?? [];
   
   // System status from health widget or stats
   const systemStatus = systemHealth?.status ?? stats.systemStatus ?? 'operational';
@@ -1047,23 +947,15 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
           </div>
         </motion.div>
 
-        {/* Three Column Layout: Geographic + Billing + Quick Actions */}
+        {/* Two Column Layout: Billing + Quick Actions */}
         <motion.div variants={itemVariants}>
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <GeographicDistributionCard regions={tenantsByRegion} loading={loading} />
-            {canViewBilling ? (
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+            {canViewBilling && Object.keys(billingOverview).length > 0 && (
               <BillingOverviewCard billing={billingOverview} loading={loading} themeRadius={themeRadius} />
-            ) : (
-              <Card className="border border-divider">
-                <CardBody className="flex items-center justify-center h-full py-12">
-                  <div className="text-center text-default-400">
-                    <CurrencyDollarIcon className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Billing data requires elevated permissions</p>
-                  </div>
-                </CardBody>
-              </Card>
             )}
-            <QuickActionsCard actions={quickActions} themeRadius={themeRadius} />
+            {quickActions.length > 0 && (
+              <QuickActionsCard actions={quickActions} themeRadius={themeRadius} />
+            )}
           </div>
         </motion.div>
 

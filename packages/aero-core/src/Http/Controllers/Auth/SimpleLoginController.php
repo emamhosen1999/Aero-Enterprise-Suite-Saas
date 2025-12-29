@@ -88,7 +88,7 @@ class SimpleLoginController extends Controller
             'last_login_ip' => $request->ip(),
         ]);
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('core.dashboard'));
     }
 
     /**

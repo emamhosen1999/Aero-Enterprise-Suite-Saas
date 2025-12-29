@@ -319,7 +319,7 @@ class LoginController extends Controller
 
         return match ($context) {
             IdentifyDomainContext::CONTEXT_ADMIN => route('admin.dashboard'),
-            IdentifyDomainContext::CONTEXT_TENANT => route('dashboard'),
+            IdentifyDomainContext::CONTEXT_TENANT => route('core.dashboard'),
             default => $user->hasRole('super-admin')
                 ? route('admin.dashboard')
                 : route('platform.billing.index'),

@@ -87,7 +87,7 @@ Route::post('/api/version/check', function (Request $request) {
 // ROOT ROUTE - Redirect to dashboard or login
 // ============================================================================
 Route::get('/', function () {
-    return redirect('/dashboard');
+    return redirect()->route('core.dashboard');
 })->middleware(['auth:web']);
 
 // ============================================================================
@@ -153,9 +153,9 @@ Route::middleware('auth:web')->group(function () {
         ->name('core.verification.send');
 
     // Dashboard Routes
-    // Named 'dashboard' for backward compatibility (previously 'core.dashboard')
-    // This allows route('dashboard') to work for tenant login redirects
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // All dashboard routes use 'core.dashboard.*' prefix for consistency
+    // This allows proper route grouping and makes route('core.dashboard') work consistently
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
     Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
     Route::get('dashboard/widget/{widgetKey}', [DashboardController::class, 'widgetData'])->name('core.dashboard.widget');
 

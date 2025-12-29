@@ -1048,7 +1048,7 @@ class CoreUserController extends Controller
 
             return response()->json([
                 'message' => "Now impersonating {$user->name}.",
-                'redirect' => route('dashboard'),
+                'redirect' => route('core.dashboard'),
             ]);
         } catch (\Exception $e) {
             report($e);

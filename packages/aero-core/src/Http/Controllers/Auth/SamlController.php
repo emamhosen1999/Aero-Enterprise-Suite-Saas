@@ -47,7 +47,7 @@ class SamlController extends Controller
         }
 
         try {
-            $returnTo = $request->input('returnTo', route('dashboard'));
+            $returnTo = $request->input('returnTo', route('core.dashboard'));
             $tenant = tenant();
 
             $redirectUrl = $this->samlService->login($idp, $returnTo, $tenant);
@@ -117,7 +117,7 @@ class SamlController extends Controller
 
             // Redirect to intended URL or dashboard
             $relayState = $request->input('RelayState');
-            $redirectTo = $relayState ?: route('dashboard');
+            $redirectTo = $relayState ?: route('core.dashboard');
 
             return redirect($redirectTo);
         } catch (\Exception $e) {

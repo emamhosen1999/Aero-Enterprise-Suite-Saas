@@ -176,7 +176,7 @@ class TwoFactorController extends Controller
             $this->twoFactorService->trustDevice($user, $deviceId);
         }
 
-        $intendedUrl = session()->pull('url.intended', route('dashboard'));
+        $intendedUrl = session()->pull('url.intended', route('core.dashboard'));
 
         return response()->json([
             'message' => 'Verification successful.',

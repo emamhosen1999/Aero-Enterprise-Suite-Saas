@@ -22,7 +22,7 @@ class WelcomeWidget extends AbstractDashboardWidget
     protected int $order = 1;
     protected int|string $span = 'full';
     protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
-    protected array $requiredPermissions = [];
+    protected array $requiredPermissions = []; // No permissions needed - always visible
 
     public function getKey(): string
     {

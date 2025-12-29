@@ -23,7 +23,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
     protected int $order = 2;
     protected int|string $span = 'full';
     protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
-    protected array $requiredPermissions = [];
+    protected array $requiredPermissions = []; // No permissions needed - actions have own checks
 
     public function getKey(): string
     {
