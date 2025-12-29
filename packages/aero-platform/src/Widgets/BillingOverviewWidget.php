@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Widgets;
 
-use Aero\Core\Contracts\AbstractDashboardWidget;
-use Aero\Core\Contracts\CoreWidgetCategory;
+use Aero\Platform\Contracts\AbstractPlatformWidget;
+use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Aero\Platform\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
  *
  * This is a FINANCIAL widget - shows revenue data.
  */
-class BillingOverviewWidget extends AbstractDashboardWidget
+class BillingOverviewWidget extends AbstractPlatformWidget
 {
     protected string $position = 'main_right';
 
@@ -30,7 +30,7 @@ class BillingOverviewWidget extends AbstractDashboardWidget
 
     protected int|string $span = 1;
 
-    protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+    protected PlatformWidgetCategory $category = PlatformWidgetCategory::SUMMARY;
 
     /**
      * Sensitive financial data - require elevated permissions.

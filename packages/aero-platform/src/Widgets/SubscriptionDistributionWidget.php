@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Widgets;
 
-use Aero\Core\Contracts\AbstractDashboardWidget;
-use Aero\Core\Contracts\CoreWidgetCategory;
+use Aero\Platform\Contracts\AbstractPlatformWidget;
+use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Aero\Platform\Models\Plan;
 use Aero\Platform\Models\Subscription;
 use Illuminate\Support\Facades\Cache;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Cache;
  *
  * This is a SUMMARY widget - provides subscription analytics.
  */
-class SubscriptionDistributionWidget extends AbstractDashboardWidget
+class SubscriptionDistributionWidget extends AbstractPlatformWidget
 {
     protected string $position = 'sidebar';
 
@@ -25,7 +25,7 @@ class SubscriptionDistributionWidget extends AbstractDashboardWidget
 
     protected int|string $span = 1;
 
-    protected CoreWidgetCategory $category = CoreWidgetCategory::SUMMARY;
+    protected PlatformWidgetCategory $category = PlatformWidgetCategory::SUMMARY;
 
     protected array $requiredPermissions = [];
 

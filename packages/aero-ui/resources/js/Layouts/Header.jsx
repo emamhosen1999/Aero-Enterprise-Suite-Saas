@@ -28,7 +28,7 @@ import ProfileMenu from '@/Components/ProfileMenu';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import ProfileAvatar from '@/Components/ProfileAvatar';
 import { useScrollTrigger } from '@/Hooks/useScrollTrigger.js';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import {
   Bars3Icon,
   ChevronDownIcon,
@@ -45,6 +45,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { useBranding } from '@/Hooks/useBranding';
+import { useMotionSystem } from '@/config/motionDepthSystem';
+import { useTheme } from '@/Context/ThemeContext';
 
 /**
  * Custom hook for responsive device type detection
@@ -683,6 +685,23 @@ const DesktopHeader = React.memo(({
   app,
   logo 
 }) => {
+  // ===== 3D MOTION SYSTEM =====
+  const motionSystem = useMotionSystem();
+  
+  // Cursor tracking for tilt effects
+  const cursorX = useMotionValue(0);
+  const cursorY = useMotionValue(0);
+  
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [cursorX, cursorY]);
+  
   // ===== STATE MANAGEMENT =====
   // Using separation of concerns - UI state management isolated from business logic
   const [profileMenuState, setProfileMenuState] = useState({
@@ -1004,38 +1023,65 @@ const DesktopHeader = React.memo(({
   // ===== RENDER COMPONENT =====
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -20, z: -20 }}
       animate={{ 
         opacity: !trigger ? 1 : 0, 
-        y: !trigger ? 0 : -20 
+        y: !trigger ? 0 : -20,
+        z: !trigger ? 0 : -20
       }}
-      transition={{ duration: 0.3 }}
-      style={{ display: !trigger ? 'block' : 'none' }}
+      transition={{ 
+        duration: 0.4, 
+        ease: motionSystem.easings.enterprise 
+      }}
+      style={{ 
+        display: !trigger ? 'block' : 'none',
+        perspective: motionSystem.PERSPECTIVE.subtle,
+        transformStyle: 'preserve-3d',
+      }}
     >
       <div className="p-4">
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: -10, z: -10 }}
+          animate={{ opacity: 1, y: 0, z: 0 }}
+          transition={{ 
+            duration: 0.4,
+            type: 'spring',
+            stiffness: 300,
+            damping: 30,
+          }}
           style={{
             fontFamily: `var(--fontFamily, 'Inter')`,
             transform: `scale(var(--scale, 1))`,
-            transformOrigin: 'top center'
+            transformOrigin: 'top center',
+            transformStyle: 'preserve-3d',
+          }}
+          whileHover={{
+            z: motionSystem.DEPTH_LAYERS.elevated,
+            transition: {
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
+            },
           }}
         >
           <Card 
-            className="backdrop-blur-md overflow-visible"
+            className={`backdrop-blur-md overflow-visible ${motionSystem.shadows.elevated} ${motionSystem.glows.subtle}`}
             style={{
-              background: `linear-gradient(to bottom right, 
-                var(--theme-content1, #FAFAFA) 20%, 
-                var(--theme-content2, #F4F4F5) 10%, 
-                var(--theme-content3, #F1F3F4) 20%)`,
+              background: `linear-gradient(135deg, 
+                var(--theme-content1, #FAFAFA) 0%, 
+                var(--theme-content2, #F4F4F5) 50%, 
+                var(--theme-content3, #F1F3F4) 100%)`,
               borderColor: `var(--theme-divider, #E4E4E7)`,
               borderWidth: `var(--borderWidth, 2px)`,
               borderStyle: 'solid',
               borderRadius: `var(--borderRadius, 8px)`,
-              boxShadow: `0 8px 32px color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
-              overflow: 'visible'
+              boxShadow: `
+                0 10px 40px -10px var(--theme-primary, #006FEE)15,
+                0 0 0 1px var(--theme-divider, #E4E4E7),
+                inset 0 1px 0 0 rgba(255,255,255,0.5)
+              `,
+              overflow: 'visible',
+              transformStyle: 'preserve-3d',
             }}
           >
             <div className="w-full px-4 lg:px-6 overflow-visible">
@@ -1128,23 +1174,72 @@ const DesktopHeader = React.memo(({
                             }}
                           >
                             <DropdownTrigger>
-                              <Button
-                                variant="light"
-                                size="sm"
-                                className="h-9 px-3 font-medium whitespace-nowrap gap-1 data-[hover=true]:bg-default-100"
-                                endContent={<ChevronDownIcon className="w-3 h-3 opacity-60" />}
-                                style={isActive ? {
-                                  backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)`,
-                                  color: `var(--theme-primary, #006FEE)`,
-                                  borderRadius: `var(--borderRadius, 8px)`,
-                                  fontWeight: 600
-                                } : {
-                                  color: `var(--theme-foreground, #11181C)`,
-                                  borderRadius: `var(--borderRadius, 8px)`
+                              <motion.div
+                                style={{
+                                  perspective: motionSystem.PERSPECTIVE.subtle,
+                                  transformStyle: 'preserve-3d',
                                 }}
+                                variants={{
+                                  idle: {
+                                    z: motionSystem.DEPTH_LAYERS.surface,
+                                    y: 0,
+                                  },
+                                  hover: {
+                                    z: motionSystem.DEPTH_LAYERS.elevated,
+                                    y: -2,
+                                    transition: {
+                                      type: 'spring',
+                                      stiffness: 400,
+                                      damping: 25,
+                                    },
+                                  },
+                                  active: {
+                                    z: motionSystem.DEPTH_LAYERS.floating,
+                                    y: 0,
+                                  },
+                                }}
+                                initial="idle"
+                                whileHover="hover"
+                                animate={isActive ? "active" : "idle"}
                               >
-                                {page.name}
-                              </Button>
+                                <Button
+                                  variant="light"
+                                  size="sm"
+                                  className={`h-9 px-3 font-medium whitespace-nowrap gap-1 data-[hover=true]:bg-default-100 relative overflow-hidden ${motionSystem.shadows.subtle}`}
+                                  endContent={<ChevronDownIcon className="w-3 h-3 opacity-60" />}
+                                  style={isActive ? {
+                                    backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)`,
+                                    color: `var(--theme-primary, #006FEE)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                    fontWeight: 600,
+                                    boxShadow: `0 4px 12px -2px var(--theme-primary, #006FEE)20`,
+                                  } : {
+                                    color: `var(--theme-foreground, #11181C)`,
+                                    borderRadius: `var(--borderRadius, 8px)`,
+                                  }}
+                                >
+                                  {/* Light beam indicator for active items */}
+                                  {isActive && (
+                                    <motion.div
+                                      className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                                      style={{
+                                        background: `linear-gradient(90deg, transparent, var(--theme-primary, #006FEE), transparent)`,
+                                      }}
+                                      initial={{ opacity: 0, scaleX: 0 }}
+                                      animate={{
+                                        opacity: [0.5, 1, 0.5],
+                                        scaleX: [0.8, 1, 0.8],
+                                      }}
+                                      transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        ease: 'easeInOut',
+                                      }}
+                                    />
+                                  )}
+                                  {page.name}
+                                </Button>
+                              </motion.div>
                             </DropdownTrigger>
                             <DropdownMenu
                               aria-label={`${page.name} submenu`}
@@ -1163,13 +1258,20 @@ const DesktopHeader = React.memo(({
                                   "gap-3"
                                 ],
                               }}
-                              className="p-2"
+                              className={`p-2 ${motionSystem.shadows.floating} ${motionSystem.glows.moderate}`}
                               style={{
                                 backgroundColor: `var(--theme-content1, #FFFFFF)`,
                                 borderRadius: `var(--borderRadius, 12px)`,
                                 border: `1px solid var(--theme-divider, #E4E4E7)`,
-                                boxShadow: `0 10px 40px -10px rgba(0,0,0,0.15)`,
-                                fontFamily: `var(--fontFamily, 'Inter')`
+                                boxShadow: `
+                                  0 20px 60px -15px rgba(0,0,0,0.2),
+                                  0 10px 30px -10px var(--theme-primary, #006FEE)10,
+                                  0 0 0 1px var(--theme-divider, #E4E4E7),
+                                  inset 0 1px 0 0 rgba(255,255,255,0.5)
+                                `,
+                                fontFamily: `var(--fontFamily, 'Inter')`,
+                                perspective: motionSystem.PERSPECTIVE.moderate,
+                                transformStyle: 'preserve-3d',
                               }}
                             >
                               {page.subMenu.map((subPage) => {
@@ -1267,24 +1369,73 @@ const DesktopHeader = React.memo(({
                             </DropdownMenu>
                           </Dropdown>
                         ) : (
-                          <Button
+                          <motion.div
                             key={`${page.name}-${index}`}
-                            variant="light"
-                            size="sm"
-                            className="h-9 px-3 font-medium whitespace-nowrap data-[hover=true]:bg-default-100"
-                            style={isActive ? {
-                              backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)`,
-                              color: `var(--theme-primary, #006FEE)`,
-                              borderRadius: `var(--borderRadius, 8px)`,
-                              fontWeight: 600
-                            } : {
-                              color: `var(--theme-foreground, #11181C)`,
-                              borderRadius: `var(--borderRadius, 8px)`
+                            style={{
+                              perspective: motionSystem.PERSPECTIVE.subtle,
+                              transformStyle: 'preserve-3d',
                             }}
-                            onPress={() => page.route && handleModuleNavigation(page.route, page.method)}
+                            variants={{
+                              idle: {
+                                z: motionSystem.DEPTH_LAYERS.surface,
+                                y: 0,
+                              },
+                              hover: {
+                                z: motionSystem.DEPTH_LAYERS.elevated,
+                                y: -2,
+                                transition: {
+                                  type: 'spring',
+                                  stiffness: 400,
+                                  damping: 25,
+                                },
+                              },
+                              active: {
+                                z: motionSystem.DEPTH_LAYERS.floating,
+                                y: 0,
+                              },
+                            }}
+                            initial="idle"
+                            whileHover="hover"
+                            animate={isActive ? "active" : "idle"}
                           >
-                            {page.name}
-                          </Button>
+                            <Button
+                              variant="light"
+                              size="sm"
+                              className={`h-9 px-3 font-medium whitespace-nowrap data-[hover=true]:bg-default-100 relative overflow-hidden ${motionSystem.shadows.subtle}`}
+                              style={isActive ? {
+                                backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 15%, transparent)`,
+                                color: `var(--theme-primary, #006FEE)`,
+                                borderRadius: `var(--borderRadius, 8px)`,
+                                fontWeight: 600,
+                                boxShadow: `0 4px 12px -2px var(--theme-primary, #006FEE)20`,
+                              } : {
+                                color: `var(--theme-foreground, #11181C)`,
+                                borderRadius: `var(--borderRadius, 8px)`,
+                              }}
+                              onPress={() => page.route && handleModuleNavigation(page.route, page.method)}
+                            >
+                              {/* Light beam indicator for active items */}
+                              {isActive && (
+                                <motion.div
+                                  className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                                  style={{
+                                    background: `linear-gradient(90deg, transparent, var(--theme-primary, #006FEE), transparent)`,
+                                  }}
+                                  initial={{ opacity: 0, scaleX: 0 }}
+                                  animate={{
+                                    opacity: [0.5, 1, 0.5],
+                                    scaleX: [0.8, 1, 0.8],
+                                  }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: 'easeInOut',
+                                  }}
+                                />
+                              )}
+                              {page.name}
+                            </Button>
+                          </motion.div>
                         );
                       })}
 
@@ -1353,19 +1504,32 @@ const DesktopHeader = React.memo(({
                   {/* Search Button - Show when sidebar is closed or on smaller screens */}
                   {(!internalSidebarOpen || isTablet) && (
                     <Tooltip content="Search (⌘K)" placement="bottom">
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        size="sm"
-                        className="w-8 h-8"
-                        style={{ 
-                          borderRadius: `var(--borderRadius, 8px)`,
-                          color: `var(--theme-foreground, #11181C)`
+                      <motion.div
+                        whileHover={{
+                          z: motionSystem.DEPTH_LAYERS.elevated,
+                          scale: 1.05,
+                          transition: {
+                            type: 'spring',
+                            stiffness: 400,
+                            damping: 25,
+                          },
                         }}
-                        aria-label="Search"
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <MagnifyingGlassIcon className="w-4 h-4" />
-                      </Button>
+                        <Button
+                          isIconOnly
+                          variant="light"
+                          size="sm"
+                          className={`w-8 h-8 ${motionSystem.shadows.subtle}`}
+                          style={{ 
+                            borderRadius: `var(--borderRadius, 8px)`,
+                            color: `var(--theme-foreground, #11181C)`,
+                          }}
+                          aria-label="Search"
+                        >
+                          <MagnifyingGlassIcon className="w-4 h-4" />
+                        </Button>
+                      </motion.div>
                     </Tooltip>
                   )}
 
@@ -1384,35 +1548,65 @@ const DesktopHeader = React.memo(({
                     }}
                   >
                     <DropdownTrigger>
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        size="sm"
-                        className="w-8 h-8 relative"
-                        style={{ 
-                          borderRadius: `var(--borderRadius, 8px)`,
-                          color: `var(--theme-foreground, #11181C)`
+                      <motion.div
+                        whileHover={{
+                          z: motionSystem.DEPTH_LAYERS.elevated,
+                          scale: 1.05,
+                          transition: {
+                            type: 'spring',
+                            stiffness: 400,
+                            damping: 25,
+                          },
                         }}
-                        aria-label="Notifications"
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <BellIcon className="w-4 h-4" />
-                        <Badge
-                          content="3"
-                          color="danger"
+                        <Button
+                          isIconOnly
+                          variant="light"
                           size="sm"
-                          className="absolute -top-0.5 -right-0.5 min-w-4 h-4 text-[10px]"
-                        />
-                      </Button>
+                          className={`w-8 h-8 relative ${motionSystem.shadows.subtle}`}
+                          style={{ 
+                            borderRadius: `var(--borderRadius, 8px)`,
+                            color: `var(--theme-foreground, #11181C)`,
+                          }}
+                          aria-label="Notifications"
+                        >
+                          <BellIcon className="w-4 h-4" />
+                          <motion.div
+                            animate={{
+                              scale: [1, 1.2, 1],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                            }}
+                          >
+                            <Badge
+                              content="3"
+                              color="danger"
+                              size="sm"
+                              className="absolute -top-0.5 -right-0.5 min-w-4 h-4 text-[10px]"
+                            />
+                          </motion.div>
+                        </Button>
+                      </motion.div>
                     </DropdownTrigger>
                     <DropdownMenu 
                       aria-label="Notifications"
-                      className="p-0"
+                      className={`p-0 ${motionSystem.shadows.floating}`}
                       style={{
                         backgroundColor: `var(--theme-content1, #FFFFFF)`,
                         borderRadius: `var(--borderRadius, 12px)`,
                         border: `1px solid var(--theme-divider, #E4E4E7)`,
-                        boxShadow: `0 10px 40px -10px rgba(0,0,0,0.15)`,
-                        fontFamily: `var(--fontFamily, 'Inter')`
+                        boxShadow: `
+                          0 20px 60px -15px rgba(0,0,0,0.2),
+                          0 10px 30px -10px var(--theme-primary, #006FEE)10,
+                          0 0 0 1px var(--theme-divider, #E4E4E7)
+                        `,
+                        fontFamily: `var(--fontFamily, 'Inter')`,
+                        perspective: motionSystem.PERSPECTIVE.moderate,
+                        transformStyle: 'preserve-3d',
                       }}
                       itemClasses={{
                         base: "px-4 py-3 gap-3 data-[hover=true]:bg-default-100"
@@ -1458,10 +1652,60 @@ const DesktopHeader = React.memo(({
                     style={{ backgroundColor: `var(--theme-divider, #E4E4E7)` }}
                   />
                   
-                  {/* Profile */}
-                  <ProfileMenu>
-                    <ProfileButton size="sm" />
-                  </ProfileMenu>
+                  {/* Profile - 3D Floating with Status Glow */}
+                  <motion.div
+                    style={{
+                      perspective: motionSystem.PERSPECTIVE.moderate,
+                      transformStyle: 'preserve-3d',
+                    }}
+                    variants={{
+                      idle: {
+                        z: motionSystem.DEPTH_LAYERS.surface,
+                        rotateY: 0,
+                      },
+                      hover: {
+                        z: motionSystem.DEPTH_LAYERS.floating,
+                        rotateY: 5,
+                        transition: {
+                          type: 'spring',
+                          stiffness: 400,
+                          damping: 25,
+                        },
+                      },
+                    }}
+                    initial="idle"
+                    whileHover="hover"
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {/* Ambient status glow */}
+                    <motion.div
+                      className="absolute inset-0 rounded-full -z-10"
+                      style={{
+                        background: `radial-gradient(circle at center, var(--theme-success, #17C964)40, transparent 70%)`,
+                        filter: 'blur(8px)',
+                      }}
+                      animate={{
+                        opacity: [0.3, 0.5, 0.3],
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                    <ProfileMenu>
+                      <motion.div
+                        className={motionSystem.shadows.elevated}
+                        style={{
+                          borderRadius: `var(--borderRadius, 50%)`,
+                          boxShadow: `0 4px 20px -4px var(--theme-success, #17C964)30`,
+                        }}
+                      >
+                        <ProfileButton size="sm" />
+                      </motion.div>
+                    </ProfileMenu>
+                  </motion.div>
                 </div>
               </div>
             </div>
@@ -1494,6 +1738,9 @@ const Header = React.memo(({
   pages,
   sideBarOpen 
 }) => {
+  // Get theme context for reactive theme updates
+  const { mode, themeSettings } = useTheme();
+  
   // ===== INTERNAL STATE MANAGEMENT =====
   // Use internal state to manage visual changes without depending on prop changes
   const [internalSidebarOpen, setInternalSidebarOpen] = useState(sideBarOpen);

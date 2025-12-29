@@ -25,7 +25,9 @@ import {
   ClockIcon
 } from "@heroicons/react/24/outline"; 
   
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { useMotionSystem } from '@/config/motionDepthSystem';
+import { useTheme } from '@/Context/ThemeContext';
 
 // Helper function to highlight search matches
 const highlightSearchMatch = (text, searchTerm) => {
@@ -101,6 +103,12 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   const { squareLogo, siteName } = useBranding();
   const firstLetter = siteName.charAt(0).toUpperCase();
   
+  // Get theme context for reactive theme updates
+  const { mode, themeSettings } = useTheme();
+  
+  // 3D Motion System
+  const motionSystem = useMotionSystem();
+  
   const {
     openSubMenus,
     setOpenSubMenus: updateOpenSubMenus,
@@ -109,6 +117,21 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
   
   const [activePage, setActivePage] = useState(url);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Cursor position for tilt effects
+  const cursorX = useMotionValue(0);
+  const cursorY = useMotionValue(0);
+  
+  // Track cursor for 3D tilt interactions
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [cursorX, cursorY]);
   
   // HeroUI will handle theming automatically through semantic colors
   
@@ -250,50 +273,105 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     const iconSize = level === 0 ? (isMobile ? 'w-4 h-4' : 'w-3 h-3') : level === 1 ? 'w-3 h-3' : 'w-3 h-3';
     const textSize = level === 0 ? (isMobile ? 'text-sm' : 'text-sm') : level === 1 ? 'text-xs' : 'text-xs';
     
+    // 3D Motion variants based on state
+    const itemVariants = {
+      idle: {
+        scale: 1,
+        z: motionSystem.DEPTH_LAYERS.surface,
+        rotateY: 0,
+        rotateX: 0,
+      },
+      hover: {
+        scale: 1.03,
+        z: motionSystem.DEPTH_LAYERS.elevated,
+        rotateY: isActive ? 0 : 3,
+        transition: {
+          type: 'spring',
+          stiffness: 400,
+          damping: 25,
+        },
+      },
+      active: {
+        scale: 1,
+        z: motionSystem.DEPTH_LAYERS.floating,
+        rotateY: 0,
+      },
+      tap: {
+        scale: 0.97,
+        transition: { duration: 0.1 },
+      },
+    };
+    
     if (page.subMenu) {
       return (
-        <div 
+        <motion.div 
           key={`menu-item-${page.name}-${level}`} 
           className="w-full"
+          style={{
+            perspective: motionSystem.PERSPECTIVE.subtle,
+            transformStyle: 'preserve-3d',
+          }}
+          variants={itemVariants}
+          initial="idle"
+          whileHover="hover"
+          whileTap="tap"
+          animate={hasActiveSubPage ? "active" : "idle"}
         >
           <Button
             variant="light"
             color={hasActiveSubPage ? "primary" : "default"}
             startContent={
-              <div style={{ color: hasActiveSubPage ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}>
+              <motion.div 
+                style={{ color: hasActiveSubPage ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 400 }}
+              >
                 {React.cloneElement(page.icon, { className: iconSize })}
-              </div>
+              </motion.div>
             }
             endContent={
-              <ChevronRightIcon 
-                className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-                style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
-              />
+              <motion.div
+                animate={{ rotate: isExpanded ? 90 : 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              >
+                <ChevronRightIcon 
+                  className={`w-3 h-3 transition-colors duration-200`}
+                  style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
+                />
+              </motion.div>
             }
-            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
+            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent relative overflow-hidden mb-0.5 ${motionSystem.glows.subtle}`}
             style={hasActiveSubPage ? {
               backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
               border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-              borderRadius: `var(--borderRadius, 8px)`
+              borderRadius: `var(--borderRadius, 8px)`,
+              boxShadow: `0 4px 15px -3px var(--theme-primary, #006FEE)30`,
             } : {
               border: `var(--borderWidth, 2px) solid transparent`,
-              borderRadius: `var(--borderRadius, 8px)`
-            }}
-            onMouseEnter={(e) => {
-              if (!hasActiveSubPage) {
-                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
-              }
-              e.currentTarget.style.borderRadius = `var(--borderRadius, 8px)`;
-            }}
-            onMouseLeave={(e) => {
-              if (!hasActiveSubPage) {
-                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
-              }
+              borderRadius: `var(--borderRadius, 8px)`,
             }}
             onPress={() => handleSubMenuToggle(page.name)}
             size="sm"
           >
-            <div className="flex items-center justify-between w-full">
+            {/* Glow effect for active items */}
+            {hasActiveSubPage && (
+              <motion.div
+                className="absolute inset-0 rounded-lg"
+                style={{
+                  background: `radial-gradient(circle at center, var(--theme-primary, #006FEE)15, transparent 70%)`,
+                }}
+                animate={{
+                  opacity: [0.3, 0.5, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+            )}
+            
+            <div className="flex items-center justify-between w-full relative z-10">
               <span 
                 className={`${textSize} font-medium flex-1 mr-2 whitespace-nowrap`} 
                 style={{ color: hasActiveSubPage ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}
@@ -304,30 +382,47 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 size="sm"
                 variant="flat"
                 color={hasActiveSubPage ? "primary" : "default"}
-                className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'}`}
+                className={`text-xs ${isMobile ? 'h-5 min-w-5 px-1' : 'h-4 min-w-4 px-1'} ${motionSystem.shadows.subtle}`}
               >
                 {page.subMenu.length}
               </Chip>
             </div>
           </Button>
-          {/* Submenu with CSS transitions */}
-          <div
-            className={`overflow-hidden transition-all duration-200 ease-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
-          >
-            <div 
-              className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
-              style={{ 
-                borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
-              }}
-            >
-              {page.subMenu.map((subPage, index) => (
-                <div key={`subitem-${page.name}-${subPage.name}-${level}-${index}`}>
-                  {renderCompactMenuItem(subPage, true, level + 1)}
+          
+          {/* Submenu with depth-based expansion */}
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial="collapsed"
+                animate="expanded"
+                exit="collapsed"
+                variants={motionSystem.variants.submenu}
+                style={{
+                  transformStyle: 'preserve-3d',
+                  perspective: motionSystem.PERSPECTIVE.moderate,
+                }}
+              >
+                <div 
+                  className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
+                  style={{ 
+                    borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`,
+                  }}
+                >
+                  {page.subMenu.map((subPage, index) => (
+                    <motion.div 
+                      key={`subitem-${page.name}-${subPage.name}-${level}-${index}`}
+                      initial={{ opacity: 0, x: -10, z: -10 }}
+                      animate={{ opacity: 1, x: 0, z: 0 }}
+                      transition={{ delay: index * 0.05, type: 'spring', stiffness: 300 }}
+                    >
+                      {renderCompactMenuItem(subPage, true, level + 1)}
+                    </motion.div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       );
     }
     
@@ -335,7 +430,18 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
     const leafHref = page.route ? route(page.route) : page.path;
     if (leafHref) {
       return (
-        <div key={`route-item-${page.name}-${level}`}>
+        <motion.div 
+          key={`route-item-${page.name}-${level}`}
+          style={{
+            perspective: motionSystem.PERSPECTIVE.subtle,
+            transformStyle: 'preserve-3d',
+          }}
+          variants={itemVariants}
+          initial="idle"
+          whileHover="hover"
+          whileTap="tap"
+          animate={isActive ? "active" : "idle"}
+        >
           <Button
             as={Link}
             href={leafHref}
@@ -344,88 +450,124 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             preserveScroll
             variant="light"
             startContent={
-              <div style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
+              <motion.div 
+                style={{ color: isActive ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 400 }}
+              >
                 {React.cloneElement(page.icon, { className: iconSize })}
-              </div>
+              </motion.div>
             }
-            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
+            className={`w-full justify-start ${height} ${paddingLeft} bg-transparent relative overflow-hidden mb-0.5`}
             style={isActive ? {
               backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`,
               border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
-              borderRadius: `var(--borderRadius, 8px)`
+              borderRadius: `var(--borderRadius, 8px)`,
+              boxShadow: `0 4px 15px -3px var(--theme-primary, #006FEE)40`,
             } : {
               border: `var(--borderWidth, 2px) solid transparent`,
-              borderRadius: `var(--borderRadius, 8px)`
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.border = `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 50%, transparent)`;
-              }
-              e.currentTarget.style.borderRadius = `var(--borderRadius, 8px)`;
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.border = `var(--borderWidth, 2px) solid transparent`;
-              }
+              borderRadius: `var(--borderRadius, 8px)`,
             }}
             onPress={() => handlePageClick(leafHref)}
             size="sm"
           >
+            {/* Glow beam for active items - creates "locked in space" effect */}
+            {isActive && (
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                style={{
+                  background: `linear-gradient(90deg, transparent, var(--theme-primary, #006FEE), transparent)`,
+                }}
+                animate={{
+                  opacity: [0.5, 1, 0.5],
+                  scaleX: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+            )}
+            
             <span 
-              className={`${textSize} font-medium whitespace-nowrap`}
+              className={`${textSize} font-medium whitespace-nowrap relative z-10`}
               style={{ color: isActive ? `#FFFFFF` : `var(--theme-foreground, #11181C)` }}
             >
               {highlightSearchMatch(page.name, searchTerm)}
             </span>
           </Button>
-        </div>
+        </motion.div>
       );
     }
     
     // Category header without route
     return (
-      <div 
+      <motion.div 
         key={`category-item-${page.name}-${level}`} 
         className="w-full"
+        style={{
+          perspective: motionSystem.PERSPECTIVE.subtle,
+          transformStyle: 'preserve-3d',
+        }}
+        variants={itemVariants}
+        initial="idle"
+        whileHover="hover"
+        whileTap="tap"
+        animate={hasActiveSubPage ? "active" : "idle"}
       >
         <Button
           variant="light"
           color={hasActiveSubPage ? "primary" : "default"}
           startContent={
-            <div style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}>
+            <motion.div 
+              style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}
+              whileHover={{ scale: 1.1 }}
+            >
               {React.cloneElement(page.icon, { className: iconSize })}
-            </div>
+            </motion.div>
           }
           endContent={
-            <ChevronRightIcon 
-              className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-              style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
-            />
+            <motion.div
+              animate={{ rotate: isExpanded ? 90 : 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            >
+              <ChevronRightIcon 
+                className={`w-3 h-3`}
+                style={{ color: isExpanded ? `var(--theme-primary, #006FEE)` : `var(--theme-foreground, #11181C)` }}
+              />
+            </motion.div>
           }
-          className={`w-full justify-start ${height} ${paddingLeft} bg-transparent transition-all duration-200 mb-0.5`}
+          className={`w-full justify-start ${height} ${paddingLeft} bg-transparent relative overflow-hidden mb-0.5`}
           style={hasActiveSubPage ? {
             backgroundColor: `var(--theme-primary, #006FEE)`,
             border: `var(--borderWidth, 2px) solid var(--theme-primary, #006FEE)`,
             borderRadius: `var(--borderRadius, 8px)`,
-            color: `var(--theme-primary-foreground, #FFFFFF)`
+            color: `var(--theme-primary-foreground, #FFFFFF)`,
+            boxShadow: `0 4px 15px -3px var(--theme-primary, #006FEE)40`,
           } : {
-            borderRadius: `var(--borderRadius, 8px)`
-          }}
-          onMouseEnter={(e) => {
-            if (!hasActiveSubPage) {
-              e.currentTarget.style.backgroundColor = `var(--theme-content2, #F4F4F5)`;
-            }
-            e.currentTarget.style.borderRadius = `var(--borderRadius, 8px)`;
-          }}
-          onMouseLeave={(e) => {
-            if (!hasActiveSubPage) {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }
+            borderRadius: `var(--borderRadius, 8px)`,
           }}
           onPress={() => handleSubMenuToggle(page.name)}
           size="sm"
         >
-          <div className="flex items-center justify-between w-full">
+          {hasActiveSubPage && (
+            <motion.div
+              className="absolute inset-0 rounded-lg"
+              style={{
+                background: `radial-gradient(circle at center, var(--theme-primary-foreground, #FFFFFF)10, transparent 70%)`,
+              }}
+              animate={{
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+              }}
+            />
+          )}
+          
+          <div className="flex items-center justify-between w-full relative z-10">
             <span 
               className={`${textSize} font-medium flex-1 mr-2 whitespace-nowrap`} 
               style={{ color: hasActiveSubPage ? `var(--theme-primary-foreground, #FFFFFF)` : `var(--theme-foreground, #11181C)` }}
@@ -442,24 +584,40 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
             </Chip>
           </div>
         </Button>
-        {/* Submenu with CSS transitions */}
-        <div
-          className={`overflow-hidden transition-all duration-200 ease-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
-        >
-          <div 
-            className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
-            style={{ 
-              borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
-            }}
-          >
-            {page.subMenu?.map((subPage, index) => (
-              <div key={`category-subitem-${page.name}-${subPage.name}-${level}-${index}`}>
-                {renderCompactMenuItem(subPage, true, level + 1)}
+        
+        {/* Submenu with depth expansion */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial="collapsed"
+              animate="expanded"
+              exit="collapsed"
+              variants={motionSystem.variants.submenu}
+              style={{
+                transformStyle: 'preserve-3d',
+              }}
+            >
+              <div 
+                className={`${level === 0 ? (isMobile ? 'ml-8' : 'ml-6') : (isMobile ? 'ml-6' : 'ml-4')} mt-1 space-y-0.5 pl-3`}
+                style={{ 
+                  borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`
+                }}
+              >
+                {page.subMenu?.map((subPage, index) => (
+                  <motion.div 
+                    key={`category-subitem-${page.name}-${subPage.name}-${level}-${index}`}
+                    initial={{ opacity: 0, x: -10, z: -10 }}
+                    animate={{ opacity: 1, x: 0, z: 0 }}
+                    transition={{ delay: index * 0.05, type: 'spring', stiffness: 300 }}
+                  >
+                    {renderCompactMenuItem(subPage, true, level + 1)}
+                  </motion.div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     );
   };
 
@@ -636,28 +794,56 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
       style={{ 
         fontFamily: `var(--fontFamily, 'Inter')`,
         transform: `scale(var(--scale, 1))`,
-        transformOrigin: 'top left'
+        transformOrigin: 'top left',
+        transformStyle: 'preserve-3d',
       }}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      initial={{ opacity: 0, x: -20, z: -20 }}
+      animate={{ opacity: 1, x: 0, z: 0 }}
+      transition={{ 
+        duration: 0.5, 
+        ease: motionSystem.easings.enterprise,
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+      }}
     >
-      {/* Fixed Header - Using PageHeader theming */}
+      {/* Fixed Header - Enhanced with depth */}
       <motion.div 
-        className="shrink-0"
+        className="shrink-0 relative"
         style={{ 
           backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
           borderColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`,
           borderWidth: `var(--borderWidth, 2px)`,
           borderStyle: 'solid',
-          borderRadius: `var(--borderRadius, 8px) var(--borderRadius, 8px) 0 0`
+          borderRadius: `var(--borderRadius, 8px) var(--borderRadius, 8px) 0 0`,
+          transformStyle: 'preserve-3d',
         }}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -10, z: -10 }}
+        animate={{ opacity: 1, y: 0, z: motionSystem.DEPTH_LAYERS.surface }}
         transition={{ duration: 0.4, delay: 0.1 }}
+        whileHover={{
+          z: motionSystem.DEPTH_LAYERS.elevated,
+          transition: { type: 'spring', stiffness: 400, damping: 30 },
+        }}
       >
+        {/* Ambient glow effect */}
+        <motion.div
+          className="absolute inset-0 rounded-t-lg pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, var(--theme-primary, #006FEE)15, transparent 70%)`,
+          }}
+          animate={{
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        
         <div 
-          className="p-3" 
+          className="p-3 relative z-10" 
           style={{ 
             borderBottom: `var(--borderWidth, '2px') solid var(--theme-divider, #E4E4E7)`
           }}
@@ -665,20 +851,32 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
           <div className="flex items-center justify-between mb-3">
             <motion.div 
               className="flex items-center gap-3"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 0.9, rotateY: -10 }}
+              animate={{ scale: 1, rotateY: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
+              whileHover={{
+                scale: 1.05,
+                transition: { type: 'spring', stiffness: 400 },
+              }}
             >
-              {/* Enhanced Logo Display */}
-              <div className="relative">
+              {/* Enhanced Logo Display with floating effect */}
+              <motion.div 
+                className="relative"
+                whileHover={{
+                  z: motionSystem.DEPTH_LAYERS.floating,
+                  rotateY: 5,
+                }}
+                transition={{ type: 'spring', stiffness: 400 }}
+              >
                 <div 
-                  className="w-10 h-10 flex items-center justify-center shadow-xl overflow-hidden"
+                  className={`w-10 h-10 flex items-center justify-center overflow-hidden ${motionSystem.shadows.elevated}`}
                   style={{ 
                     backgroundColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 10%, transparent)`,
                     borderColor: `color-mix(in srgb, var(--theme-primary, #006FEE) 20%, transparent)`,
                     borderWidth: `var(--borderWidth, 2px)`,
                     borderStyle: 'solid',
-                    borderRadius: `var(--borderRadius, 8px)`
+                    borderRadius: `var(--borderRadius, 8px)`,
+                    boxShadow: `0 4px 12px -2px var(--theme-primary, #006FEE)20`,
                   }}
                 >
                   {squareLogo ? (
@@ -687,7 +885,6 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                       alt={`${siteName} Logo`} 
                       className="w-8 h-8 object-contain"
                       onError={(e) => {
-                        // Fallback to text logo if image fails to load
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
                       }}
@@ -703,21 +900,37 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                     {firstLetter}
                   </div>
                 </div>
-                {/* Status Indicator */}
-                <div 
-                  className="absolute -top-1 -right-1 w-3 h-3 animate-pulse shadow-lg"
+                
+                {/* Pulsing status indicator */}
+                <motion.div 
+                  className="absolute -top-1 -right-1 w-3 h-3 shadow-lg"
                   style={{ 
                     backgroundColor: 'var(--theme-success, #17C964)',
                     borderColor: 'var(--theme-background, #FFFFFF)',
                     borderWidth: `var(--borderWidth, '2px')`,
                     borderStyle: 'solid',
-                    borderRadius: '50%'
+                    borderRadius: '50%',
                   }}
-                ></div>
-              </div>
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [1, 0.8, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              </motion.div>
               
-              {/* Brand Information */}
-              <div className="flex flex-col leading-tight">
+              {/* Brand Information with glow on hover */}
+              <motion.div 
+                className="flex flex-col leading-tight"
+                whileHover={{
+                  x: 2,
+                  transition: { type: 'spring', stiffness: 400 },
+                }}
+              >
                 <h1 
                   className="font-bold text-base"
                   style={{ color: `var(--theme-primary, #006FEE)` }}
@@ -730,30 +943,33 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 >
                   aeos365
                 </p>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
-          
-         
         </div>
       </motion.div>
 
       {/* Scrollable Navigation Content */}
       <motion.div 
         className="flex-1 overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, z: -10 }}
+        animate={{ opacity: 1, z: 0 }}
         transition={{ duration: 0.4, delay: 0.4 }}
+        style={{ transformStyle: 'preserve-3d' }}
       >
         <ScrollShadow className="h-full" hideScrollBar size={5}>
           <div className="p-2 space-y-2">
             
-            {/* Quick Search */}
+            {/* Quick Search with floating effect */}
             <motion.div 
               className="px-1 mb-2"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 10, z: -10 }}
+              animate={{ opacity: 1, y: 0, z: 0 }}
               transition={{ duration: 0.3, delay: 0.5 }}
+              whileHover={{
+                z: motionSystem.DEPTH_LAYERS.elevated,
+                transition: { type: 'spring', stiffness: 400 },
+              }}
             >
               <Input
                 size="sm"
@@ -768,7 +984,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                 }
                 isClearable
                 variant="bordered"
-                className="text-xs"
+                className={`text-xs ${motionSystem.shadows.subtle}`}
                 classNames={{
                   input: "text-xs",
                   inputWrapper: "h-8 min-h-8"
@@ -778,13 +994,7 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
                   borderColor: `var(--theme-divider, #E4E4E7)`,
                   borderRadius: `var(--borderRadius, 8px)`,
                   borderWidth: `var(--borderWidth, 2px)`,
-                  borderStyle: 'solid'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = `var(--theme-primary, #006FEE)`;
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = `var(--theme-divider, #E4E4E7)`;
+                  borderStyle: 'solid',
                 }}
               />
             </motion.div>
@@ -990,23 +1200,50 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         </ScrollShadow>
       </motion.div>
 
-      {/* Fixed Footer - Using PageHeader theming */}
+      {/* Fixed Footer - Floating status with depth */}
       <motion.div 
-        className="p-2 shrink-0"
-        style={{ borderTop: `1px solid var(--theme-divider, #E4E4E7)` }}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
+        className="p-2 shrink-0 relative"
+        style={{ 
+          borderTop: `1px solid var(--theme-divider, #E4E4E7)`,
+          transformStyle: 'preserve-3d',
+        }}
+        initial={{ opacity: 0, y: 10, z: -10 }}
+        animate={{ opacity: 1, y: 0, z: motionSystem.DEPTH_LAYERS.surface }}
         transition={{ duration: 0.3, delay: 1.1 }}
+        whileHover={{
+          z: motionSystem.DEPTH_LAYERS.elevated,
+          transition: { type: 'spring', stiffness: 400, damping: 30 },
+        }}
       >
+        {/* Ambient bottom glow */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 50% 100%, var(--theme-success, #17C964)10, transparent 60%)`,
+          }}
+          animate={{
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        
         <Card 
-          className="flex items-center justify-between p-2 transition-all duration-300" 
+          className={`flex items-center justify-between p-2 transition-all duration-300 relative ${motionSystem.shadows.subtle} ${motionSystem.glows.subtle}`}
           shadow="sm"
           style={{ 
             backgroundColor: `var(--theme-content1, #FAFAFA)`,
             borderRadius: `var(--borderRadius, '8px')`,
             borderWidth: `var(--borderWidth, '2px')`,
             borderColor: `var(--theme-divider, #E4E4E7)`,
-            borderStyle: 'solid'
+            borderStyle: 'solid',
+            boxShadow: `
+              0 4px 12px -2px var(--theme-success, #17C964)10,
+              0 0 0 1px var(--theme-divider, #E4E4E7)
+            `,
           }}
         >
           <div className="flex items-center gap-1">
@@ -1014,10 +1251,18 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
               className="w-1.5 h-1.5"
               style={{ 
                 backgroundColor: `var(--theme-success, #17C964)`,
-                borderRadius: '50%'
+                borderRadius: '50%',
+                boxShadow: `0 0 8px var(--theme-success, #17C964)60`,
               }}
-              animate={{ opacity: [1, 0.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              animate={{ 
+                opacity: [1, 0.5, 1],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
             />
             <span 
               className="text-xs font-medium"
@@ -1053,29 +1298,62 @@ const Sidebar = React.memo(({ toggleSideBar, pages, url, sideBarOpen }) => {
         bg-transparent
         shrink-0
       `}
+      style={{
+        perspective: motionSystem.PERSPECTIVE.subtle,
+        transformStyle: 'preserve-3d',
+      }}
       initial={false}
       animate={{ 
         minWidth: isMobile ? 260 : 240,
-        transition: { duration: 0.3, ease: "easeInOut" }
+        transition: { 
+          type: 'spring',
+          stiffness: 300,
+          damping: 35,
+        }
       }}
     >
-      <div className="h-full flex flex-col bg-transparent">
-        <Card 
-          className="h-full flex flex-col overflow-visible"
+      <motion.div 
+        className="h-full flex flex-col bg-transparent"
+        variants={motionSystem.variants.sidebar}
+        animate={sideBarOpen ? "expanded" : "collapsed"}
+      >
+        <motion.div
           style={{
-            background: `linear-gradient(to bottom right, 
-              var(--theme-content1, #FAFAFA) 20%, 
-              var(--theme-content2, #F4F4F5) 10%, 
-              var(--theme-content3, #F1F3F4) 20%)`,
-            borderColor: `var(--theme-divider, #E4E4E7)`,
-            borderWidth: `var(--borderWidth, 2px)`,
-            borderStyle: 'solid',
-            borderRadius: `var(--borderRadius, 8px)`
+            transformStyle: 'preserve-3d',
+            position: 'relative',
+          }}
+          whileHover={{
+            z: motionSystem.DEPTH_LAYERS.elevated,
+            transition: {
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
+            },
           }}
         >
-          {SidebarContent}
-        </Card>
-      </div>
+          <Card 
+            className={`h-full flex flex-col overflow-visible ${motionSystem.shadows.elevated} ${motionSystem.glows.subtle}`}
+            style={{
+              background: `linear-gradient(135deg, 
+                var(--theme-content1, #FAFAFA) 0%, 
+                var(--theme-content2, #F4F4F5) 50%, 
+                var(--theme-content3, #F1F3F4) 100%)`,
+              borderColor: `var(--theme-divider, #E4E4E7)`,
+              borderWidth: `var(--borderWidth, 2px)`,
+              borderStyle: 'solid',
+              borderRadius: `var(--borderRadius, 8px)`,
+              boxShadow: `
+                0 10px 40px -10px var(--theme-primary, #006FEE)15,
+                0 0 0 1px var(--theme-divider, #E4E4E7),
+                inset 0 1px 0 0 rgba(255,255,255,0.5)
+              `,
+              transformStyle: 'preserve-3d',
+            }}
+          >
+            {SidebarContent}
+          </Card>
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 });

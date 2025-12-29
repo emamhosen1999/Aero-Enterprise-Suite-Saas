@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Widgets;
 
-use Aero\Core\Contracts\AbstractDashboardWidget;
-use Aero\Core\Contracts\CoreWidgetCategory;
+use Aero\Platform\Contracts\AbstractPlatformWidget;
+use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
  * Shows personalized greeting and platform overview message.
  * This is a DISPLAY widget - informational only.
  */
-class PlatformWelcomeWidget extends AbstractDashboardWidget
+class PlatformWelcomeWidget extends AbstractPlatformWidget
 {
     protected string $position = 'welcome';
 
@@ -23,7 +23,7 @@ class PlatformWelcomeWidget extends AbstractDashboardWidget
 
     protected int|string $span = 'full';
 
-    protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+    protected PlatformWidgetCategory $category = PlatformWidgetCategory::DISPLAY;
 
     protected array $requiredPermissions = [];
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Widgets;
 
-use Aero\Core\Contracts\AbstractDashboardWidget;
-use Aero\Core\Contracts\CoreWidgetCategory;
+use Aero\Platform\Contracts\AbstractPlatformWidget;
+use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Aero\Platform\Models\ErrorLog;
 use Aero\Platform\Models\Subscription;
 use Aero\Platform\Models\Tenant;
@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Cache;
  *
  * This is an ALERT widget - requires attention.
  */
-class SystemAlertsWidget extends AbstractDashboardWidget
+class SystemAlertsWidget extends AbstractPlatformWidget
 {
     protected string $position = 'sidebar';
 
@@ -30,7 +30,7 @@ class SystemAlertsWidget extends AbstractDashboardWidget
 
     protected int|string $span = 1;
 
-    protected CoreWidgetCategory $category = CoreWidgetCategory::ALERT;
+    protected PlatformWidgetCategory $category = PlatformWidgetCategory::ALERT;
 
     protected array $requiredPermissions = [];
 

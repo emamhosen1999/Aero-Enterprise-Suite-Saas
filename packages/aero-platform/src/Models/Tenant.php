@@ -161,6 +161,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         ];
     }
 
+    /**
+     * Create a new factory instance for the model.
+     */
+    protected static function newFactory(): \Aero\Platform\Database\Factories\TenantFactory
+    {
+        return \Aero\Platform\Database\Factories\TenantFactory::new();
+    }
+
     // =========================================================================
     // RELATIONSHIPS
     // =========================================================================

@@ -160,6 +160,14 @@ const Pending = ({ registrations: initialRegistrations, stats: initialStats, fil
         return () => clearTimeout(delayDebounce);
     }, [filters.search, filters.status]);
 
+    // Add real-time auto-refresh every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ only: ['registrations', 'stats'], preserveScroll: true });
+        }, 30000); // Refresh every 30 seconds
+        return () => clearInterval(interval);
+    }, []);
+
     const handleApprove = async (registration) => {
         const promise = new Promise(async (resolve, reject) => {
             try {

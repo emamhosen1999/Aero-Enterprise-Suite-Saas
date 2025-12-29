@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Http\Controllers\Admin;
 
-use Aero\Core\Services\DashboardWidgetRegistry;
+use Aero\Platform\Services\PlatformWidgetRegistry;
 use Aero\Platform\Http\Controllers\Controller;
 use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Plan;
@@ -23,15 +23,15 @@ use Inertia\Response;
  * Main dashboard for the platform administration panel.
  * Aggregates widgets from Platform and provides real-time metrics.
  *
- * Following the Core Dashboard pattern:
- * - Uses DashboardWidgetRegistry for dynamic widgets
+ * Using Platform's own widget registry:
+ * - Uses PlatformWidgetRegistry for dynamic widgets (independent from Core)
  * - Provides API endpoints for lazy loading
  * - Caches expensive aggregations
  */
 class AdminDashboardController extends Controller
 {
     public function __construct(
-        protected DashboardWidgetRegistry $widgetRegistry
+        protected PlatformWidgetRegistry $widgetRegistry
     ) {}
 
     /**

@@ -5,6 +5,7 @@ namespace Aero\Core\Http\Controllers\Admin;
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Aero\Core\Services\AuditService;
+use Aero\Core\Services\Auth\SessionManagementService;
 use Aero\Core\Services\UserInvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,11 +26,16 @@ class CoreUserController extends Controller
 {
     protected UserInvitationService $invitationService;
     protected AuditService $auditService;
+    protected SessionManagementService $sessionManagementService;
 
-    public function __construct(UserInvitationService $invitationService, AuditService $auditService)
-    {
+    public function __construct(
+        UserInvitationService $invitationService,
+        AuditService $auditService,
+        SessionManagementService $sessionManagementService
+    ) {
         $this->invitationService = $invitationService;
         $this->auditService = $auditService;
+        $this->sessionManagementService = $sessionManagementService;
     }
 
     /**
@@ -422,6 +428,11 @@ class CoreUserController extends Controller
 
             $status = $user->active ? 'activated' : 'deactivated';
 
+            // Terminate all sessions when deactivating user
+            if (!$user->active) {
+                $this->sessionManagementService->terminateAllSessions($user);
+            }
+
             // Log the action
             $this->auditService->logUserStatusChanged($user, $user->active);
 
@@ -581,6 +592,14 @@ class CoreUserController extends Controller
             $userIds = $validated['user_ids'];
             if ($validated['active'] === false && in_array(auth()->id(), $userIds)) {
                 $userIds = array_diff($userIds, [auth()->id()]);
+            }
+
+            // If deactivating, terminate all sessions for affected users first
+            if ($validated['active'] === false) {
+                $usersToDeactivate = User::whereIn('id', $userIds)->get();
+                foreach ($usersToDeactivate as $user) {
+                    $this->sessionManagementService->terminateAllSessions($user);
+                }
             }
 
             $count = User::whereIn('id', $userIds)

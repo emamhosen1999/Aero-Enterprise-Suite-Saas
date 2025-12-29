@@ -133,6 +133,21 @@ const TenantManagement = ({ title }) => {
     const [bulkOperation, setBulkOperation] = useState(null);
     const [actionData, setActionData] = useState({ tenant: null, action: null });
 
+    // Modal helper functions
+    const openModal = useCallback((modalName) => {
+        setModalStates(prev => ({ ...prev, [modalName]: true }));
+    }, []);
+
+    const closeModal = useCallback((modalName) => {
+        setModalStates(prev => ({ ...prev, [modalName]: false }));
+        if (modalName === 'action') {
+            setActionData({ tenant: null, action: null });
+        }
+        if (modalName === 'bulk') {
+            setBulkOperation(null);
+        }
+    }, []);
+
     // Stats data for StatsCards component (REQUIRED)
     const statsData = useMemo(() => [
         {
@@ -284,7 +299,7 @@ const TenantManagement = ({ title }) => {
             return;
         }
         setBulkOperation(operation);
-        setIsBulkModalOpen(true);
+        openModal('bulk');
     };
 
     const executeBulkOperation = async () => {
@@ -298,7 +313,7 @@ const TenantManagement = ({ title }) => {
                     async: true,
                 });
                 
-                setIsBulkModalOpen(false);
+                closeModal('bulk');
                 setSelectedTenants(new Set());
                 await fetchTenants();
                 await fetchStats();
@@ -321,12 +336,13 @@ const TenantManagement = ({ title }) => {
         } else if (action === 'edit') {
             router.visit(route('admin.tenants.edit', { tenant: tenant.id }));
         } else {
-            setActionModal({ open: true, tenant, action });
+            setActionData({ tenant, action });
+            openModal('action');
         }
     };
 
     const executeAction = async () => {
-        const { tenant, action } = actionModal;
+        const { tenant, action } = actionData;
         
         const promise = new Promise(async (resolve, reject) => {
             try {
@@ -341,7 +357,7 @@ const TenantManagement = ({ title }) => {
                     response = await axios.delete(route('api.v1.tenants.destroy', { tenant: tenant.id }));
                 }
                 
-                setActionModal({ open: false, tenant: null, action: null });
+                closeModal('action');
                 await fetchTenants();
                 await fetchStats();
                 resolve([response.data.message || `Tenant ${action}d successfully`]);
@@ -356,6 +372,64 @@ const TenantManagement = ({ title }) => {
             error: (data) => Array.isArray(data) ? data.join(', ') : data,
         });
     };
+
+    // Export tenants to CSV
+    const handleExport = useCallback(() => {
+        const tenantsToExport = selectedTenants.size > 0 
+            ? tenants.filter(t => selectedTenants.has(t.id))
+            : tenants;
+
+        if (tenantsToExport.length === 0) {
+            showToast.error('No tenants to export');
+            return;
+        }
+
+        // Define CSV headers
+        const headers = [
+            'Name',
+            'Subdomain',
+            'Email',
+            'Phone',
+            'Type',
+            'Status',
+            'Plan',
+            'Trial Ends',
+            'Created At',
+        ];
+
+        // Map tenant data to CSV rows
+        const rows = tenantsToExport.map(tenant => [
+            tenant.name || '',
+            tenant.subdomain || '',
+            tenant.email || '',
+            tenant.phone || '',
+            tenant.type || '',
+            tenant.status || '',
+            tenant.plan?.name || 'No Plan',
+            tenant.trial_ends_at ? new Date(tenant.trial_ends_at).toLocaleDateString() : '',
+            tenant.created_at ? new Date(tenant.created_at).toLocaleDateString() : '',
+        ]);
+
+        // Convert to CSV string
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        ].join('\n');
+
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `tenants_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showToast.success(`Exported ${tenantsToExport.length} tenant(s) to CSV`);
+    }, [tenants, selectedTenants]);
 
     const getActionLabel = (action) => {
         const labels = {
@@ -726,12 +800,13 @@ const TenantManagement = ({ title }) => {
                                                         startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
                                                         size={isMobile ? "sm" : "md"}
                                                         className="font-semibold"
+                                                        onPress={handleExport}
                                                         style={{
                                                             borderRadius: `var(--borderRadius, 8px)`,
                                                             fontFamily: `var(--fontFamily, "Inter")`,
                                                         }}
                                                     >
-                                                        Export
+                                                        {selectedTenants.size > 0 ? `Export (${selectedTenants.size})` : 'Export'}
                                                     </Button>
                                                 </div>
                                             </div>

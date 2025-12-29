@@ -1,7 +1,8 @@
 import { Card, CardHeader, CardBody, CardFooter } from '@heroui/react';
+import { useTheme } from '../../Context/ThemeContext';
 
 /**
- * Get themed card style object using CSS variables
+ * Get themed card style object using CSS variables (fallback)
  * @returns {Object} Style object for Card component
  */
 export const getThemedCardStyle = () => ({
@@ -18,13 +19,15 @@ export const getThemedCardStyle = () => ({
 
 /**
  * ThemedCard - A Card component with consistent theme styling
- * Uses CSS variables for dynamic theming support
+ * Now integrates Tailwind classes from cardStyles + CSS variables
  */
-export const ThemedCard = ({ children, className = '', ...props }) => {
+export const ThemedCard = ({ children, className = '', style = {}, ...props }) => {
+    const { cardClasses } = useTheme();
+    
     return (
         <Card 
-            className={`transition-all duration-200 ${className}`}
-            style={getThemedCardStyle()}
+            className={`transition-all duration-200 ${cardClasses?.base || ''} ${className}`}
+            style={{ ...getThemedCardStyle(), ...style }}
             {...props}
         >
             {children}
@@ -34,12 +37,15 @@ export const ThemedCard = ({ children, className = '', ...props }) => {
 
 /**
  * ThemedCardHeader - Card header with bottom border
+ * Applies Tailwind classes from cardStyles
  */
-export const ThemedCardHeader = ({ children, className = '', ...props }) => {
+export const ThemedCardHeader = ({ children, className = '', style = {}, ...props }) => {
+    const { cardClasses } = useTheme();
+    
     return (
         <CardHeader 
-            className={`border-b border-divider p-4 ${className}`}
-            style={{ borderBottom: `1px solid var(--theme-divider, #E4E4E7)` }}
+            className={`border-b border-divider p-4 ${cardClasses?.header || ''} ${className}`}
+            style={{ borderBottom: `1px solid var(--theme-divider, #E4E4E7)`, ...style }}
             {...props}
         >
             {children}
@@ -49,11 +55,15 @@ export const ThemedCardHeader = ({ children, className = '', ...props }) => {
 
 /**
  * ThemedCardBody - Card body with padding
+ * Applies Tailwind classes from cardStyles
  */
-export const ThemedCardBody = ({ children, className = '', ...props }) => {
+export const ThemedCardBody = ({ children, className = '', style = {}, ...props }) => {
+    const { cardClasses } = useTheme();
+    
     return (
         <CardBody 
-            className={`p-4 ${className}`}
+            className={`p-4 ${cardClasses?.body || ''} ${className}`}
+            style={style}
             {...props}
         >
             {children}
@@ -63,12 +73,15 @@ export const ThemedCardBody = ({ children, className = '', ...props }) => {
 
 /**
  * ThemedCardFooter - Card footer with top border
+ * Applies Tailwind classes from cardStyles
  */
-export const ThemedCardFooter = ({ children, className = '', ...props }) => {
+export const ThemedCardFooter = ({ children, className = '', style = {}, ...props }) => {
+    const { cardClasses } = useTheme();
+    
     return (
         <CardFooter 
-            className={`border-t border-divider p-4 ${className}`}
-            style={{ borderTop: `1px solid var(--theme-divider, #E4E4E7)` }}
+            className={`border-t border-divider p-4 ${cardClasses?.footer || ''} ${className}`}
+            style={{ borderTop: `1px solid var(--theme-divider, #E4E4E7)`, ...style }}
             {...props}
         >
             {children}

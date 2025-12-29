@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Widgets;
 
-use Aero\Core\Contracts\AbstractDashboardWidget;
-use Aero\Core\Contracts\CoreWidgetCategory;
+use Aero\Platform\Contracts\AbstractPlatformWidget;
+use Aero\Platform\Contracts\PlatformWidgetCategory;
 
 /**
  * Quick Actions Widget for Admin Dashboard
@@ -14,7 +14,7 @@ use Aero\Core\Contracts\CoreWidgetCategory;
  *
  * This is an ACTION widget - provides quick navigation.
  */
-class QuickActionsWidget extends AbstractDashboardWidget
+class QuickActionsWidget extends AbstractPlatformWidget
 {
     protected string $position = 'main_left';
 
@@ -22,7 +22,7 @@ class QuickActionsWidget extends AbstractDashboardWidget
 
     protected int|string $span = 2;
 
-    protected CoreWidgetCategory $category = CoreWidgetCategory::ACTION;
+    protected PlatformWidgetCategory $category = PlatformWidgetCategory::ACTION;
 
     protected array $requiredPermissions = [];
 

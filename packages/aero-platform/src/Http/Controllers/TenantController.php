@@ -34,6 +34,8 @@ class TenantController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Tenant::class);
+
         $query = Tenant::query()
             ->with(['plan', 'domains'])
             ->when($request->boolean('include_archived'), function ($q) {
@@ -94,6 +96,8 @@ class TenantController extends Controller
      */
     public function stats(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Tenant::class);
+
         $cacheKey = 'tenant_stats_' . now()->format('Y-m-d_H-i');
         $cacheTtl = 120; // 2 minutes
 
@@ -127,6 +131,8 @@ class TenantController extends Controller
      */
     public function show(Request $request, Tenant $tenant): JsonResponse
     {
+        $this->authorize('view', $tenant);
+
         $tenant->load(['plan', 'domains', 'subscriptions']);
 
         return response()->json(['data' => $tenant]);
@@ -137,6 +143,8 @@ class TenantController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', Tenant::class);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'subdomain' => [
@@ -202,6 +210,8 @@ class TenantController extends Controller
      */
     public function update(Request $request, Tenant $tenant): JsonResponse
     {
+        $this->authorize('update', $tenant);
+
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'email', 'max:255'],
@@ -224,6 +234,8 @@ class TenantController extends Controller
      */
     public function destroy(Request $request, Tenant $tenant): JsonResponse
     {
+        $this->authorize('delete', $tenant);
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
             'confirm' => ['required', 'accepted'],
@@ -257,6 +269,8 @@ class TenantController extends Controller
     {
         $tenant = Tenant::onlyTrashed()->findOrFail($tenantId);
 
+        $this->authorize('restore', $tenant);
+
         // Check if restoration is allowed
         if (!$this->retentionService->canRestore($tenant)) {
             return response()->json([
@@ -288,6 +302,8 @@ class TenantController extends Controller
     public function purge(Request $request, string $tenantId): JsonResponse
     {
         $tenant = Tenant::onlyTrashed()->findOrFail($tenantId);
+
+        $this->authorize('forceDelete', $tenant);
 
         // Verify retention period expired
         if (!$this->retentionService->canPurge($tenant)) {
@@ -328,6 +344,8 @@ class TenantController extends Controller
      */
     public function suspend(Request $request, Tenant $tenant): JsonResponse
     {
+        $this->authorize('suspend', $tenant);
+
         $validated = $request->validate([
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
@@ -352,6 +370,8 @@ class TenantController extends Controller
      */
     public function activate(Request $request, Tenant $tenant): JsonResponse
     {
+        $this->authorize('activate', $tenant);
+
         $tenant->update([
             'status' => Tenant::STATUS_ACTIVE,
             'data' => array_merge($tenant->data?->getArrayCopy() ?? [], [
@@ -371,6 +391,8 @@ class TenantController extends Controller
      */
     public function archive(Request $request, Tenant $tenant): JsonResponse
     {
+        $this->authorize('archive', $tenant);
+
         $tenant->update([
             'status' => Tenant::STATUS_ARCHIVED,
         ]);
@@ -422,6 +444,39 @@ class TenantController extends Controller
         return response()->json([
             'available' => ! $exists,
             'message' => $exists ? 'This subdomain is already taken.' : 'Subdomain is available.',
+        ]);
+    }
+
+    /**
+     * Retry provisioning for a failed tenant.
+     */
+    public function retryProvisioning(Request $request, Tenant $tenant): JsonResponse
+    {
+        $this->authorize('retryProvisioning', $tenant);
+
+        // Validate tenant is in failed state
+        if ($tenant->status !== Tenant::STATUS_FAILED) {
+            return response()->json([
+                'message' => 'Only failed tenants can have their provisioning retried.',
+            ], 422);
+        }
+
+        // Reset status to pending
+        $tenant->update([
+            'status' => Tenant::STATUS_PROVISIONING,
+            'data' => array_merge($tenant->data?->getArrayCopy() ?? [], [
+                'provisioning_retry_at' => now()->toIso8601String(),
+                'provisioning_retry_by' => auth('landlord')->id(),
+                'provisioning_error' => null,
+            ]),
+        ]);
+
+        // Dispatch provisioning job
+        $this->provisioner->dispatch($tenant);
+
+        return response()->json([
+            'data' => $tenant->fresh(),
+            'message' => 'Provisioning retry started.',
         ]);
     }
 }

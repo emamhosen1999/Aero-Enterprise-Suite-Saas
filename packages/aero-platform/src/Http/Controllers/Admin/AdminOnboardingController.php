@@ -323,6 +323,9 @@ class AdminOnboardingController extends Controller
             // Dispatch provisioning job
             // dispatch(new ProvisionTenantJob($tenant));
 
+            // Clear stats cache
+            $this->clearStatsCache();
+
             Log::info('Tenant approved for provisioning', [
                 'tenant_id' => $tenant->id,
                 'approved_by' => Auth::guard('landlord')->id(),
@@ -363,6 +366,9 @@ class AdminOnboardingController extends Controller
                     'rejected_by' => Auth::guard('landlord')->id(),
                 ]),
             ]);
+
+            // Clear stats cache
+            $this->clearStatsCache();
 
             Log::info('Tenant registration rejected', [
                 'tenant_id' => $tenant->id,
@@ -598,6 +604,204 @@ class AdminOnboardingController extends Controller
         }
     }
 
+    /**
+     * Suspend a tenant.
+     */
+    public function suspend(Request $request, Tenant $tenant): JsonResponse
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        try {
+            if ($tenant->status === Tenant::STATUS_SUSPENDED) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tenant is already suspended.',
+                ], 422);
+            }
+
+            $previousStatus = $tenant->status;
+
+            $tenant->update([
+                'status' => Tenant::STATUS_SUSPENDED,
+                'data' => array_merge($tenant->data?->toArray() ?? [], [
+                    'suspension_reason' => $request->reason,
+                    'suspended_at' => Carbon::now()->toISOString(),
+                    'suspended_by' => Auth::guard('landlord')->id(),
+                    'previous_status' => $previousStatus,
+                ]),
+            ]);
+
+            // Clear stats cache
+            $this->clearStatsCache();
+
+            Log::info('Tenant suspended', [
+                'tenant_id' => $tenant->id,
+                'reason' => $request->reason,
+                'suspended_by' => Auth::guard('landlord')->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant has been suspended.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to suspend tenant', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to suspend tenant.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Reactivate a suspended tenant.
+     */
+    public function reactivate(Tenant $tenant): JsonResponse
+    {
+        try {
+            if ($tenant->status !== Tenant::STATUS_SUSPENDED) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only suspended tenants can be reactivated.',
+                ], 422);
+            }
+
+            // Restore previous status or default to active
+            $previousStatus = $tenant->data?->offsetExists('previous_status')
+                ? $tenant->data['previous_status']
+                : Tenant::STATUS_ACTIVE;
+
+            $tenant->update([
+                'status' => $previousStatus,
+                'data' => array_merge($tenant->data?->toArray() ?? [], [
+                    'reactivated_at' => Carbon::now()->toISOString(),
+                    'reactivated_by' => Auth::guard('landlord')->id(),
+                ]),
+            ]);
+
+            // Clear stats cache
+            $this->clearStatsCache();
+
+            Log::info('Tenant reactivated', [
+                'tenant_id' => $tenant->id,
+                'restored_status' => $previousStatus,
+                'reactivated_by' => Auth::guard('landlord')->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant has been reactivated.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to reactivate tenant', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reactivate tenant.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Archive a tenant.
+     */
+    public function archive(Request $request, Tenant $tenant): JsonResponse
+    {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $tenant->update([
+                'status' => Tenant::STATUS_ARCHIVED,
+                'data' => array_merge($tenant->data?->toArray() ?? [], [
+                    'archive_reason' => $request->reason ?? 'Manually archived by admin',
+                    'archived_at' => Carbon::now()->toISOString(),
+                    'archived_by' => Auth::guard('landlord')->id(),
+                ]),
+            ]);
+
+            Log::info('Tenant archived', [
+                'tenant_id' => $tenant->id,
+                'reason' => $request->reason,
+                'archived_by' => Auth::guard('landlord')->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant has been archived.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to archive tenant', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to archive tenant.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a tenant's trial.
+     */
+    public function cancelTrial(Request $request, Tenant $tenant): JsonResponse
+    {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            if (! $tenant->trial_ends_at) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tenant does not have an active trial.',
+                ], 422);
+            }
+
+            $tenant->update([
+                'trial_ends_at' => null,
+                'data' => array_merge($tenant->data?->toArray() ?? [], [
+                    'trial_cancelled_at' => Carbon::now()->toISOString(),
+                    'trial_cancelled_by' => Auth::guard('landlord')->id(),
+                    'trial_cancellation_reason' => $request->reason ?? 'Cancelled by admin',
+                ]),
+            ]);
+
+            Log::info('Trial cancelled', [
+                'tenant_id' => $tenant->id,
+                'reason' => $request->reason,
+                'cancelled_by' => Auth::guard('landlord')->id(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Trial has been cancelled.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to cancel trial', [
+                'tenant_id' => $tenant->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel trial.',
+            ], 500);
+        }
+    }
+
     // =========================================================================
     // PRIVATE HELPER METHODS
     // =========================================================================
@@ -609,27 +813,37 @@ class AdminOnboardingController extends Controller
      */
     private function getOnboardingStats(): array
     {
-        $now = Carbon::now();
+        return \Cache::remember('onboarding.dashboard.stats', 300, function () {
+            $now = Carbon::now();
 
-        return [
-            'pendingRegistrations' => Tenant::where('status', Tenant::STATUS_PENDING)->count(),
-            'activeTrials' => Tenant::whereNotNull('trial_ends_at')
-                ->where('status', Tenant::STATUS_ACTIVE)
-                ->where('trial_ends_at', '>', $now)
-                ->count(),
-            'conversionRate' => $this->calculateConversionRate(),
-            'provisioningQueue' => Tenant::whereIn('status', [Tenant::STATUS_PROVISIONING, Tenant::STATUS_FAILED])->count(),
-            'funnelStarted' => Tenant::whereMonth('created_at', $now->month)->count(),
-            'funnelVerified' => Tenant::whereMonth('created_at', $now->month)
-                ->whereNotNull('company_email_verified_at')
-                ->count(),
-            'funnelProvisioned' => Tenant::whereMonth('created_at', $now->month)
-                ->whereIn('status', [Tenant::STATUS_ACTIVE, Tenant::STATUS_PROVISIONING])
-                ->count(),
-            'funnelActive' => Tenant::whereMonth('created_at', $now->month)
-                ->where('status', Tenant::STATUS_ACTIVE)
-                ->count(),
-        ];
+            return [
+                'pendingRegistrations' => Tenant::where('status', Tenant::STATUS_PENDING)->count(),
+                'activeTrials' => Tenant::whereNotNull('trial_ends_at')
+                    ->where('status', Tenant::STATUS_ACTIVE)
+                    ->where('trial_ends_at', '>', $now)
+                    ->count(),
+                'conversionRate' => $this->calculateConversionRate(),
+                'provisioningQueue' => Tenant::whereIn('status', [Tenant::STATUS_PROVISIONING, Tenant::STATUS_FAILED])->count(),
+                'funnelStarted' => Tenant::whereMonth('created_at', $now->month)->count(),
+                'funnelVerified' => Tenant::whereMonth('created_at', $now->month)
+                    ->whereNotNull('company_email_verified_at')
+                    ->count(),
+                'funnelProvisioned' => Tenant::whereMonth('created_at', $now->month)
+                    ->whereIn('status', [Tenant::STATUS_ACTIVE, Tenant::STATUS_PROVISIONING])
+                    ->count(),
+                'funnelActive' => Tenant::whereMonth('created_at', $now->month)
+                    ->where('status', Tenant::STATUS_ACTIVE)
+                    ->count(),
+            ];
+        });
+    }
+
+    /**
+     * Clear onboarding stats cache.
+     */
+    private function clearStatsCache(): void
+    {
+        \Cache::forget('onboarding.dashboard.stats');
     }
 
     /**

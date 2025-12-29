@@ -40,13 +40,14 @@ import {
     ArrowPathIcon,
     CheckCircleIcon,
     ExclamationCircleIcon,
+    ArrowUturnLeftIcon,
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
 import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 import StatsCards from '@/Components/StatsCards';
 
-const Show = ({ auth, tenantId, title }) => {
+const Show = ({ auth, tenantId, title, can_impersonate }) => {
     // Theme radius helper (REQUIRED)
     const getThemeRadius = () => {
         if (typeof window === 'undefined') return 'lg';
@@ -99,6 +100,33 @@ const Show = ({ auth, tenantId, title }) => {
     const handleAction = async (action) => {
         setActionModal({ open: false, action: null });
         
+        // Handle impersonate differently - it's a redirect, not API call
+        if (action === 'impersonate') {
+            const promise = new Promise(async (resolve, reject) => {
+                try {
+                    const response = await axios.post(route('admin.tenants.impersonate', { tenant: tenantId }));
+                    if (response.data.redirect_url) {
+                        resolve(['Impersonation session started. Redirecting...']);
+                        // Redirect to tenant after short delay
+                        setTimeout(() => {
+                            window.location.href = response.data.redirect_url;
+                        }, 500);
+                    } else {
+                        resolve(['Impersonation session started']);
+                    }
+                } catch (error) {
+                    reject(error.response?.data?.message || 'Failed to impersonate tenant');
+                }
+            });
+
+            showToast.promise(promise, {
+                loading: 'Starting impersonation session...',
+                success: (data) => data.join(', '),
+                error: (data) => Array.isArray(data) ? data.join(', ') : data,
+            });
+            return;
+        }
+
         const promise = new Promise(async (resolve, reject) => {
             try {
                 let response;
@@ -108,6 +136,8 @@ const Show = ({ auth, tenantId, title }) => {
                     response = await axios.post(route('api.v1.tenants.activate', { tenant: tenantId }));
                 } else if (action === 'archive') {
                     response = await axios.post(route('api.v1.tenants.archive', { tenant: tenantId }));
+                } else if (action === 'restore') {
+                    response = await axios.post(route('api.v1.tenants.restore', { tenant: tenantId }));
                 }
                 await fetchTenant();
                 resolve([response.data.message || `Tenant ${action}d successfully`]);
@@ -118,6 +148,24 @@ const Show = ({ auth, tenantId, title }) => {
 
         showToast.promise(promise, {
             loading: `${action.charAt(0).toUpperCase() + action.slice(1)}ing tenant...`,
+            success: (data) => data.join(', '),
+            error: (data) => Array.isArray(data) ? data.join(', ') : data,
+        });
+    };
+
+    const handleRetryProvisioning = async () => {
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const response = await axios.post(route('api.v1.tenants.retry-provisioning', { tenant: tenantId }));
+                await fetchTenant();
+                resolve([response.data.message || 'Provisioning retry started']);
+            } catch (error) {
+                reject(error.response?.data?.message || 'Failed to retry provisioning');
+            }
+        });
+
+        showToast.promise(promise, {
+            loading: 'Retrying provisioning...',
             success: (data) => data.join(', '),
             error: (data) => Array.isArray(data) ? data.join(', ') : data,
         });
@@ -273,6 +321,29 @@ const Show = ({ auth, tenantId, title }) => {
                                 Archived tenants will be removed from active lists but data will be preserved.
                             </p>
                         )}
+                        {actionModal.action === 'restore' && (
+                            <div className="bg-success/10 border border-success/20 rounded-lg p-3 mt-2">
+                                <p className="text-success text-sm font-medium">
+                                    ✓ Restore Tenant
+                                </p>
+                                <p className="text-sm text-default-600 mt-1">
+                                    This will restore the tenant to active status. Users will be able 
+                                    to access their workspace again.
+                                </p>
+                            </div>
+                        )}
+                        {actionModal.action === 'impersonate' && (
+                            <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 mt-2">
+                                <p className="text-warning text-sm font-medium">
+                                    ⚠️ Security Warning
+                                </p>
+                                <p className="text-sm text-default-600 mt-1">
+                                    You will be logged into this tenant's workspace as their admin user. 
+                                    All actions will be logged for audit purposes. Your session will be 
+                                    clearly marked as impersonated.
+                                </p>
+                            </div>
+                        )}
                     </ModalBody>
                     <ModalFooter>
                         <Button 
@@ -283,7 +354,7 @@ const Show = ({ auth, tenantId, title }) => {
                             Cancel
                         </Button>
                         <Button
-                            color={actionModal.action === 'activate' ? 'success' : 'warning'}
+                            color={actionModal.action === 'activate' || actionModal.action === 'restore' ? 'success' : 'warning'}
                             onPress={() => handleAction(actionModal.action)}
                             radius={getThemeRadius()}
                         >
@@ -443,6 +514,17 @@ const Show = ({ auth, tenantId, title }) => {
                                     Archive Tenant
                                 </Button>
                             )}
+                            {tenant?.status === 'archived' && (
+                                <Button
+                                    color="success"
+                                    variant="flat"
+                                    startContent={<ArrowUturnLeftIcon className="w-4 h-4" />}
+                                    radius={getThemeRadius()}
+                                    onPress={() => setActionModal({ open: true, action: 'restore' })}
+                                >
+                                    Restore Tenant
+                                </Button>
+                            )}
                             <Button
                                 variant="flat"
                                 startContent={<ArrowPathIcon className="w-4 h-4" />}
@@ -451,6 +533,18 @@ const Show = ({ auth, tenantId, title }) => {
                             >
                                 Refresh Data
                             </Button>
+                            {/* Impersonate Tenant - only for active/pending tenants */}
+                            {['active', 'pending'].includes(tenant?.status) && can_impersonate && (
+                                <Button
+                                    color="secondary"
+                                    variant="flat"
+                                    startContent={<UsersIcon className="w-4 h-4" />}
+                                    radius={getThemeRadius()}
+                                    onPress={() => setActionModal({ open: true, action: 'impersonate' })}
+                                >
+                                    Impersonate Tenant
+                                </Button>
+                            )}
                         </div>
                     </ThemedCardBody>
                 </ThemedCard>
@@ -578,6 +672,76 @@ const Show = ({ auth, tenantId, title }) => {
                                                     </p>
                                                 </div>
                                             )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Provisioning Status - shown for provisioning/failed tenants */}
+                                {['provisioning', 'failed'].includes(tenant?.status) && (
+                                    <div className="mt-6">
+                                        <h4 className="font-semibold mb-4 flex items-center gap-2">
+                                            <ServerIcon className="w-5 h-5 text-primary" />
+                                            Provisioning Status
+                                        </h4>
+                                        <div className={`p-4 rounded-lg border ${
+                                            tenant?.status === 'failed' 
+                                                ? 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-800' 
+                                                : 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
+                                        }`}>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    {tenant?.status === 'failed' ? (
+                                                        <ExclamationCircleIcon className="w-5 h-5 text-danger" />
+                                                    ) : (
+                                                        <ArrowPathIcon className="w-5 h-5 text-primary animate-spin" />
+                                                    )}
+                                                    <span className="font-medium">
+                                                        {tenant?.status === 'failed' ? 'Provisioning Failed' : 'Provisioning in Progress'}
+                                                    </span>
+                                                </div>
+                                                {tenant?.status === 'failed' && (
+                                                    <Button
+                                                        size="sm"
+                                                        color="primary"
+                                                        variant="flat"
+                                                        startContent={<ArrowPathIcon className="w-4 h-4" />}
+                                                        onPress={() => handleRetryProvisioning()}
+                                                        radius={getThemeRadius()}
+                                                    >
+                                                        Retry Provisioning
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Current Step */}
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-default-500">Current Step</span>
+                                                    <span className="font-medium capitalize">
+                                                        {tenant?.data?.provisioning_step || 'Initializing'}
+                                                    </span>
+                                                </div>
+                                                
+                                                {tenant?.status === 'provisioning' && (
+                                                    <Progress 
+                                                        size="sm"
+                                                        isIndeterminate
+                                                        color="primary"
+                                                        className="mt-2"
+                                                        aria-label="Provisioning progress"
+                                                    />
+                                                )}
+                                                
+                                                {/* Error Message */}
+                                                {tenant?.status === 'failed' && tenant?.data?.provisioning_error && (
+                                                    <div className="mt-3 p-3 bg-danger-100 dark:bg-danger-950/50 rounded text-sm">
+                                                        <p className="text-danger font-medium mb-1">Error Details:</p>
+                                                        <p className="text-danger-700 dark:text-danger-300 font-mono text-xs break-all">
+                                                            {tenant.data.provisioning_error}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}

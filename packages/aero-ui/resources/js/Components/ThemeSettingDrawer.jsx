@@ -23,7 +23,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 /**
- * Simplified Theme Settings Drawer
+ * Theme Settings Drawer
  * 
  * Features:
  * - Card style selection (10 curated options)
@@ -38,7 +38,7 @@ import {
  * - Manual borderRadius, borderWidth, scale, opacity inputs
  * - Redundant theme tabs
  */
-const SimplifiedThemeSettingDrawer = ({ isOpen, onClose }) => {
+const ThemeSettingDrawer = ({ isOpen, onClose }) => {
     const { themeSettings, updateTheme, toggleMode, resetTheme } = useTheme();
     
     const [selectedTab, setSelectedTab] = useState('styles');
@@ -77,8 +77,8 @@ const SimplifiedThemeSettingDrawer = ({ isOpen, onClose }) => {
     
     const handleFontChange = (fontValue) => {
         updateTheme({
-            layout: {
-                ...themeSettings.layout,
+            typography: {
+                ...themeSettings.typography,
                 fontFamily: fontValue
             }
         });
@@ -88,7 +88,7 @@ const SimplifiedThemeSettingDrawer = ({ isOpen, onClose }) => {
         updateTheme({
             background: {
                 type: 'color',
-                color: bgValue
+                value: bgValue
             }
         });
     };
@@ -100,9 +100,14 @@ const SimplifiedThemeSettingDrawer = ({ isOpen, onClose }) => {
     };
     
     const currentCardStyle = themeSettings?.cardStyle || 'modern';
-    const currentFont = themeSettings?.layout?.fontFamily || 'Inter';
-    const currentBg = themeSettings?.background?.color || '#ffffff';
-    const isDark = themeSettings?.mode === 'dark';
+    const currentFont = themeSettings?.typography?.fontFamily || 'Inter';
+    const currentBg = themeSettings?.background?.value || '';
+    
+    // Calculate actual visual dark state (accounting for system preference)
+    const isDark = themeSettings?.mode === 'dark' || 
+        (themeSettings?.mode === 'system' && 
+         typeof window !== 'undefined' && 
+         window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
     
     return (
         <Modal
@@ -153,7 +158,7 @@ const SimplifiedThemeSettingDrawer = ({ isOpen, onClose }) => {
                                 </p>
                                 
                                 <div className="grid grid-cols-2 gap-4">
-                                    {cardStyleOptions.map((style) => (
+                                    {cardStyleOptions.all.map((style) => (
                                         <Card
                                             key={style.key}
                                             isPressable
@@ -342,4 +347,4 @@ const SimplifiedThemeSettingDrawer = ({ isOpen, onClose }) => {
     );
 };
 
-export default SimplifiedThemeSettingDrawer;
+export default ThemeSettingDrawer;

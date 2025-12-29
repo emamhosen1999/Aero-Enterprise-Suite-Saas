@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\Platform\Widgets;
 
-use Aero\Core\Contracts\AbstractDashboardWidget;
-use Aero\Core\Contracts\CoreWidgetCategory;
+use Aero\Platform\Contracts\AbstractPlatformWidget;
+use Aero\Platform\Contracts\PlatformWidgetCategory;
 use Aero\Platform\Models\Tenant;
 use Carbon\Carbon;
 
@@ -17,7 +17,7 @@ use Carbon\Carbon;
  *
  * This is a DISPLAY widget - informational listing.
  */
-class RecentTenantsWidget extends AbstractDashboardWidget
+class RecentTenantsWidget extends AbstractPlatformWidget
 {
     protected string $position = 'main_left';
 
@@ -25,7 +25,7 @@ class RecentTenantsWidget extends AbstractDashboardWidget
 
     protected int|string $span = 2;
 
-    protected CoreWidgetCategory $category = CoreWidgetCategory::DISPLAY;
+    protected PlatformWidgetCategory $category = PlatformWidgetCategory::DISPLAY;
 
     protected array $requiredPermissions = [];
 

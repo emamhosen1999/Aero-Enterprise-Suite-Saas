@@ -155,6 +155,14 @@ const Trials = ({ trials: initialTrials, stats: initialStats, plans, filters: in
         return () => clearTimeout(delayDebounce);
     }, [filters.search, filters.filter]);
 
+    // Add real-time auto-refresh every 60 seconds for trial expiration monitoring
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ only: ['trials', 'stats'], preserveScroll: true });
+        }, 60000); // Refresh every minute
+        return () => clearInterval(interval);
+    }, []);
+
     const handleExtend = async () => {
         if (!selectedTrial) return;
 

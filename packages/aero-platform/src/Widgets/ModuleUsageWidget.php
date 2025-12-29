@@ -231,15 +231,23 @@ class ModuleUsageWidget extends AbstractPlatformWidget
                 return $planModules;
             }
 
-            // Fallback - get from plan's modules JSON/array field
-            $plans = Plan::all();
+            // Fallback - get from plan's modules relationship
+            $plans = Plan::with('modules')->get();
 
             foreach ($plans as $plan) {
-                $modules = $plan->modules ?? [];
-                if (is_string($modules)) {
-                    $modules = json_decode($modules, true) ?? [];
+                // Handle as a relationship collection
+                $modules = $plan->modules;
+                if ($modules instanceof \Illuminate\Support\Collection || $modules instanceof \Illuminate\Database\Eloquent\Collection) {
+                    $planModules[$plan->id] = $modules->pluck('code')->toArray();
+                } elseif (is_string($modules)) {
+                    // Legacy JSON fallback
+                    $decoded = json_decode($modules, true) ?? [];
+                    $planModules[$plan->id] = is_array($decoded) ? array_keys($decoded) : [];
+                } elseif (is_array($modules)) {
+                    $planModules[$plan->id] = array_keys($modules);
+                } else {
+                    $planModules[$plan->id] = [];
                 }
-                $planModules[$plan->id] = array_keys($modules);
             }
         } catch (\Exception $e) {
             // Return empty if tables don't exist

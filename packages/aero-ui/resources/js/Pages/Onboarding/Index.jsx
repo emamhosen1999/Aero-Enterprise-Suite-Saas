@@ -79,9 +79,6 @@ export default function OnboardingWizard({
     user,
     roles = [],
     availableModules = [],
-    systemSettings,
-    user,
-    roles = [],
 }) {
     const [activeStep, setActiveStep] = useState(currentStep || 'welcome');
     const [teamInvites, setTeamInvites] = useState([{ email: '', role: roles[0]?.name || 'employee' }]);

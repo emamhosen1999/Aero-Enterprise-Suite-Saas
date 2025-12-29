@@ -7,6 +7,7 @@ use Aero\Core\Http\Controllers\Auth\AdminSetupController;
 use Aero\Core\Http\Controllers\Auth\AuthenticatedSessionController;
 use Aero\Core\Http\Controllers\Auth\DeviceController;
 use Aero\Core\Http\Controllers\Auth\EmailVerificationController;
+use Aero\Core\Http\Controllers\Auth\InvitationController;
 use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
@@ -124,6 +125,10 @@ Route::middleware('guest:web')->group(function () {
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
+
+    // Invitation Acceptance Routes (Public - for invited users to create accounts)
+    Route::get('invitation/accept/{token}', [InvitationController::class, 'showAcceptForm'])->name('invitation.accept');
+    Route::post('invitation/accept/{token}', [InvitationController::class, 'accept'])->name('invitation.accept.store');
 });
 
 // ============================================================================

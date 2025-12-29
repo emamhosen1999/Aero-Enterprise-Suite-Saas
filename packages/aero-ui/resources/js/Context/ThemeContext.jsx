@@ -1,6 +1,14 @@
-import React, { createContext, useContext, useState, useEffect, useLayoutEffect } from 'react';
-import { heroUIThemes, applyThemeToDocument, generateHeroUIConfig } from '../theme/index';
-import { getCardStyle, applyCardStyleTheme } from '../theme/cardStyles';
+import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
+import { applyThemeToDocument } from '../theme/index';
+import { getCardStyle, getCardStyleOptions, CARD_STYLES, validateThemeContrast } from '../theme/cardStyles';
+import { 
+  normalizeTheme, 
+  validateTheme, 
+  migrateTheme, 
+  cleanupLegacyKeys,
+  getDefaultTheme,
+  THEME_STORAGE_KEY
+} from '../utils/safeTheme';
 
 const ThemeContext = createContext();
 
@@ -12,163 +20,257 @@ export const useTheme = () => {
   return context;
 };
 
-const defaultThemeSettings = {
-  mode: 'light', // 'light' or 'dark'
-  cardStyle: 'modern', // Selected card style (replaces activeTheme)
-  layout: {
-    fontFamily: 'Inter' // ONLY user-customizable layout option
-  },
-  background: {
-    type: 'color', // 'color' only (NO images)
-    color: '#ffffff' // Background color or gradient only
-  }
-  // customColors REMOVED - auto-generated from cardStyle
-  // borderRadius REMOVED - comes from cardStyle
-  // borderWidth REMOVED - comes from cardStyle
-  // scale REMOVED - fixed at 100%
-  // disabledOpacity REMOVED - fixed at 0.5
-};
+// ====================
+// EXPORTED CONSTANTS (for components)
+// ====================
 
+export const CARD_STYLE_OPTIONS = getCardStyleOptions();
+
+export const FONT_OPTIONS = [
+  { key: 'inter', name: 'Inter', value: 'Inter' },
+  { key: 'roboto', name: 'Roboto', value: 'Roboto' },
+  { key: 'outfit', name: 'Outfit', value: 'Outfit' },
+  { key: 'poppins', name: 'Poppins', value: 'Poppins' },
+  { key: 'georgia', name: 'Georgia', value: 'Georgia' },
+];
+
+export const MODE_OPTIONS = ['light', 'dark', 'system'];
+
+export const FONT_SIZE_OPTIONS = [
+  { key: 'sm', name: 'Small', value: 'sm' },
+  { key: 'md', name: 'Medium', value: 'md' },
+  { key: 'lg', name: 'Large', value: 'lg' },
+];
+
+// ====================
+// STORAGE UTILITIES
+// ====================
+
+/**
+ * Read theme from storage with migration support
+ */
 const readStoredTheme = () => {
   if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-    return defaultThemeSettings;
+    return getDefaultTheme();
   }
 
   try {
-    const savedTheme = localStorage.getItem('heroui-theme-settings');
-    if (!savedTheme) {
-      return defaultThemeSettings;
+    // Try new v2.0 key first
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return normalizeTheme(parsed);
     }
 
-    const parsedTheme = JSON.parse(savedTheme);
-    return { ...defaultThemeSettings, ...parsedTheme };
+    // Attempt migration from legacy keys
+    const migrated = migrateTheme();
+    if (migrated) {
+      console.log('🎨 Theme: Migrated from legacy storage');
+      saveTheme(migrated); // Persist migrated version immediately
+      return migrated;
+    }
+
+    return getDefaultTheme();
   } catch (error) {
-    console.warn('Failed to parse saved theme:', error);
-    localStorage.removeItem('heroui-theme-settings');
-    return defaultThemeSettings;
+    console.error('Theme read error:', error);
+    return getDefaultTheme();
   }
 };
 
+/**
+ * Save theme to storage (atomic write with validation)
+ */
+const saveTheme = (theme) => {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return;
+  }
+
+  try {
+    const normalized = normalizeTheme(theme);
+    
+    if (!validateTheme(normalized)) {
+      console.error('[ThemeContext] Invalid theme structure, skipping save:', normalized);
+      return;
+    }
+    
+    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(normalized));
+    
+    // Clean up legacy keys after successful write
+    cleanupLegacyKeys();
+  } catch (error) {
+    console.error('Theme save error:', error);
+  }
+};
+
+// ====================
+// THEME PROVIDER
+// ====================
+
 export const ThemeProvider = ({ children }) => {
-  const [isInitialized, setIsInitialized] = useState(false);
   const [themeSettings, setThemeSettings] = useState(readStoredTheme);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Apply theme before paint to reduce flash and respect stored preference
+  // Apply theme BEFORE paint (reduce flash)
   useLayoutEffect(() => {
     applyThemeToDocument(themeSettings);
-    setIsInitialized(true);
+    // Small delay to ensure CSS variables are applied
+    const timer = setTimeout(() => setIsHydrated(true), 50);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Delay hydration flag slightly so loader is visible at least one frame
-  useEffect(() => {
-    if (!isInitialized) {
-      return undefined;
-    }
-
-    const timer = setTimeout(() => setIsHydrated(true), 80); // small delay for visible paint
-    return () => clearTimeout(timer);
-  }, [isInitialized]);
-
-  // Save theme to localStorage and apply when changed (but not during initial load)
-  useEffect(() => {
-    if (!isInitialized) {
-      return;
-    }
-
-    // Save to localStorage
-    try {
-      localStorage.setItem('heroui-theme-settings', JSON.stringify(themeSettings));
-    } catch (error) {
-      console.error('Failed to save theme to localStorage:', error);
-    }
+  // Sync on changes (after hydration)
+  useLayoutEffect(() => {
+    if (!isHydrated) return;
     
-    // Apply theme
+    saveTheme(themeSettings);
     applyThemeToDocument(themeSettings);
-  }, [themeSettings, isInitialized]);
+  }, [themeSettings, isHydrated]);
 
-  const updateTheme = (newSettings) => {
+  // ====================
+  // PUBLIC API
+  // ====================
+
+  /**
+   * Update theme settings (partial update with normalization)
+   */
+  const updateTheme = (updates) => {
     setThemeSettings(prev => {
-      let updatedSettings = {
-        ...prev,
-        ...newSettings
-      };
-
-      // If cardStyle is being changed, apply the complete card style theme
-      if (newSettings.cardStyle && newSettings.cardStyle !== prev.cardStyle) {
-        updatedSettings = applyCardStyleTheme(newSettings.cardStyle, prev);
-      }
-
-      return updatedSettings;
+      const next = normalizeTheme({ ...prev, ...updates });
+      return next;
     });
   };
 
+  /**
+   * Toggle between light and dark mode
+   * Handles 'system' mode by checking actual visual state
+   */
   const toggleMode = () => {
-    setThemeSettings(prev => ({
-      ...prev,
-      mode: prev.mode === 'light' ? 'dark' : 'light'
-    }));
-  };
-
-  const resetTheme = () => {
-    setThemeSettings({
-      mode: 'light',
-      cardStyle: 'modern',
-      layout: {
-        fontFamily: 'Inter'
-      },
-      background: {
-        type: 'color',
-        color: '#ffffff'
-      }
+    setThemeSettings(prev => {
+      // Determine current visual dark state (same logic as applyThemeToDocument)
+      const isCurrentlyDark = prev.mode === 'dark' || 
+        (prev.mode === 'system' && 
+         typeof window !== 'undefined' && 
+         window.matchMedia?.('(prefers-color-scheme: dark)')?.matches);
+      
+      return {
+        ...prev,
+        mode: isCurrentlyDark ? 'light' : 'dark'
+      };
     });
   };
 
-  // Prevent unthemed flash; show lightweight loader until theme is applied
+  /**
+   * Set specific mode (light, dark, or system)
+   */
+  const setMode = (mode) => {
+    if (['light', 'dark', 'system'].includes(mode)) {
+      setThemeSettings(prev => ({
+        ...prev,
+        mode
+      }));
+    }
+  };
+
+  /**
+   * Reset theme to default settings
+   */
+  const resetTheme = () => {
+    setThemeSettings(getDefaultTheme());
+  };
+
+  // ====================
+  // DERIVED STATE (always fresh from cardStyle)
+  // ====================
+
+  const currentCardStyle = getCardStyle(themeSettings.cardStyle);
+  const colors = currentCardStyle.theme.colors;
+  const layout = currentCardStyle.theme.layout;
+  const cardClasses = currentCardStyle.classes;
+  
+  // WCAG contrast validation (development only)
+  const contrastWarnings = React.useMemo(() => {
+    if (process.env.NODE_ENV === 'production') return [];
+    
+    const warnings = validateThemeContrast({ colors });
+    if (warnings.length > 0) {
+      console.warn('[ThemeContext] Contrast warnings for card style "' + themeSettings.cardStyle + '":', warnings);
+    }
+    return warnings;
+  }, [colors, themeSettings.cardStyle]);
+
+  // ====================
+  // LOADING SCREEN - Optimized for perceived performance
+  // ====================
+
+  // Render children immediately with fade-in transition instead of blocking
+  // This allows layout to render while theme applies, reducing perceived load time
   if (!isHydrated) {
     return (
-      <div className="fixed inset-0 z-[9999] grid place-items-center bg-[var(--theme-content1,#ffffff)] text-[var(--theme-foreground,#11181C)] transition-colors">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--theme-divider,#e4e4e7)] border-t-[var(--theme-primary,#006fee)]" />
-          <span className="text-sm font-medium">Applying theme...</span>
+      <ThemeContext.Provider value={{
+        themeSettings: getDefaultTheme(),
+        mode: 'light',
+        cardStyle: 'modern',
+        typography: { fontFamily: 'Inter', fontSize: 'base' },
+        background: { type: 'color', value: '' },
+        colors: {},
+        layout: {},
+        cardClasses: {},
+        contrastWarnings: [],
+        updateTheme: () => {},
+        toggleMode: () => {},
+        resetTheme: () => {},
+        cardStyleOptions: CARD_STYLE_OPTIONS,
+        fontOptions: FONT_OPTIONS,
+        modeOptions: MODE_OPTIONS,
+        fontSizeOptions: FONT_SIZE_OPTIONS,
+        CARD_STYLES,
+      }}>
+        <div className="opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
+          {children}
         </div>
-      </div>
+        <style>{`
+          @keyframes fadeIn {
+            to { opacity: 1; }
+          }
+        `}</style>
+      </ThemeContext.Provider>
     );
   }
 
-  // Get current card style configuration
-  const getCurrentCardStyle = () => {
-    return getCardStyle(themeSettings.cardStyle || 'modern');
-  };
-
-  // Convert heroUIThemes object to array format (kept for backward compatibility)
-  const prebuiltThemes = Object.keys(heroUIThemes || {}).map(key => ({
-    id: key,
-    name: heroUIThemes[key]?.name || key,
-    colors: [
-      heroUIThemes[key]?.colors?.primary?.DEFAULT || heroUIThemes[key]?.colors?.primary || '#006FEE',
-      heroUIThemes[key]?.colors?.secondary?.DEFAULT || heroUIThemes[key]?.colors?.secondary || '#17C964',
-      heroUIThemes[key]?.colors?.success?.DEFAULT || heroUIThemes[key]?.colors?.success || '#17C964',
-      heroUIThemes[key]?.colors?.warning?.DEFAULT || heroUIThemes[key]?.colors?.warning || '#F5A524',
-      heroUIThemes[key]?.colors?.danger?.DEFAULT || heroUIThemes[key]?.colors?.danger || '#F31260'
-    ],
-    isDefault: key === 'heroui'
-  }));
-
-  // Generate the actual HeroUI theme object
-  const getHeroUITheme = () => {
-    return generateHeroUIConfig(themeSettings, themeSettings.mode === 'dark');
-  };
+  // ====================
+  // CONTEXT VALUE
+  // ====================
 
   const value = {
+    // Current settings (mutable)
     themeSettings,
+    
+    // Shorthand accessors (read-only)
+    mode: themeSettings.mode,
+    cardStyle: themeSettings.cardStyle,
+    typography: themeSettings.typography,
+    background: themeSettings.background,
+    
+    // Derived state (auto-updated from cardStyle)
+    colors,
+    layout,
+    cardClasses,
+    contrastWarnings,
+    
+    // Actions
     updateTheme,
     toggleMode,
+    setMode,
     resetTheme,
-    getHeroUITheme,
-    getCurrentCardStyle,
-    prebuiltThemes,
-    heroUIThemes // Add this so components can access the themes directly
+    
+    // Metadata (for selectors and drawers)
+    cardStyleOptions: CARD_STYLE_OPTIONS,
+    fontOptions: FONT_OPTIONS,
+    modeOptions: MODE_OPTIONS,
+    fontSizeOptions: FONT_SIZE_OPTIONS,
+    
+    // Direct access to registry
+    CARD_STYLES,
   };
 
   return (

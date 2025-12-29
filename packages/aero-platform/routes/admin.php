@@ -162,7 +162,18 @@ Route::middleware(['auth:landlord'])->group(function () {
 
         // Dynamic routes with {tenant} parameter MUST come after static routes
         Route::get('/{tenant}', function ($tenant) {
-            return Inertia::render('Platform/Admin/Tenants/Show', ['tenantId' => $tenant]);
+            $user = auth('landlord')->user();
+            $canImpersonate = false;
+            
+            if ($user) {
+                // Check if user can impersonate - Super Admin or has explicit impersonate access
+                $canImpersonate = $user->hasRole('Super Administrator');
+            }
+            
+            return Inertia::render('Platform/Admin/Tenants/Show', [
+                'tenantId' => $tenant,
+                'can_impersonate' => $canImpersonate,
+            ]);
         })->middleware(['module:tenants,tenant-list,tenant-management,view'])->name('show');
 
         Route::get('/{tenant}/edit', function ($tenant) {
@@ -994,31 +1005,47 @@ Route::middleware(['auth:landlord'])->group(function () {
 
         // API action routes
         Route::post('/registrations/{tenant}/approve', [AdminOnboardingController::class, 'approve'])
-            ->middleware(['module:platform-onboarding,pending_approvals,approve'])
+            ->middleware(['module:platform-onboarding,pending_approvals,approve', 'throttle:10,1'])
             ->name('approve');
 
         Route::post('/registrations/{tenant}/reject', [AdminOnboardingController::class, 'reject'])
-            ->middleware(['module:platform-onboarding,pending_approvals,reject'])
+            ->middleware(['module:platform-onboarding,pending_approvals,reject', 'throttle:10,1'])
             ->name('reject');
 
         Route::post('/provisioning/{tenant}/retry', [AdminOnboardingController::class, 'retryProvisioning'])
-            ->middleware(['module:platform-onboarding,provisioning,retry'])
+            ->middleware(['module:platform-onboarding,provisioning,retry', 'throttle:5,1'])
             ->name('provisioning.retry');
 
         Route::post('/trials/{tenant}/extend', [AdminOnboardingController::class, 'extendTrial'])
-            ->middleware(['module:platform-onboarding,trials,extend'])
+            ->middleware(['module:platform-onboarding,trials,extend', 'throttle:5,1'])
             ->name('trials.extend');
 
         Route::post('/trials/{tenant}/convert', [AdminOnboardingController::class, 'convertToPaid'])
-            ->middleware(['module:platform-onboarding,trials,convert'])
+            ->middleware(['module:platform-onboarding,trials,convert', 'throttle:5,1'])
             ->name('trials.convert');
 
+        Route::post('/trials/{tenant}/cancel', [AdminOnboardingController::class, 'cancelTrial'])
+            ->middleware(['module:platform-onboarding,trials,cancel', 'throttle:5,1'])
+            ->name('trials.cancel');
+
+        Route::post('/tenants/{tenant}/suspend', [AdminOnboardingController::class, 'suspend'])
+            ->middleware(['module:platform-onboarding,manage,suspend', 'throttle:5,1'])
+            ->name('tenants.suspend');
+
+        Route::post('/tenants/{tenant}/reactivate', [AdminOnboardingController::class, 'reactivate'])
+            ->middleware(['module:platform-onboarding,manage,reactivate', 'throttle:5,1'])
+            ->name('tenants.reactivate');
+
+        Route::post('/tenants/{tenant}/archive', [AdminOnboardingController::class, 'archive'])
+            ->middleware(['module:platform-onboarding,manage,archive', 'throttle:5,1'])
+            ->name('tenants.archive');
+
         Route::post('/settings', [AdminOnboardingController::class, 'updateSettings'])
-            ->middleware(['module:platform-onboarding,onboarding_settings,update'])
+            ->middleware(['module:platform-onboarding,onboarding_settings,update', 'throttle:10,1'])
             ->name('settings.update');
 
         Route::post('/automation/toggle', [AdminOnboardingController::class, 'toggleAutomation'])
-            ->middleware(['module:platform-onboarding,onboarding_automation,manage'])
+            ->middleware(['module:platform-onboarding,onboarding_automation,manage', 'throttle:10,1'])
             ->name('automation.toggle');
     });
 
@@ -1057,6 +1084,12 @@ Route::middleware(['auth:landlord'])->group(function () {
             Route::post('/{tenant}/archive', [TenantController::class, 'archive'])
                 ->middleware(['module:tenants,tenant-list,delete'])
                 ->name('archive');
+            Route::post('/{tenant}/restore', [TenantController::class, 'restore'])
+                ->middleware(['module:tenants,tenant-list,edit'])
+                ->name('restore');
+            Route::post('/{tenant}/retry-provisioning', [TenantController::class, 'retryProvisioning'])
+                ->middleware(['module:tenants,tenant-list,create'])
+                ->name('retry-provisioning');
         });
 
         // Domain Management API

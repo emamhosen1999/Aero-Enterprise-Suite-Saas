@@ -90,6 +90,9 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $this->app->singleton(\Aero\Platform\Services\Tenant\TenantRetentionService::class);
         $this->app->singleton(\Aero\Platform\Services\Tenant\TenantPurgeService::class);
 
+        // Register Platform's own widget registry (independent from Core)
+        $this->app->singleton(\Aero\Platform\Services\PlatformWidgetRegistry::class);
+
         // Configure auth guards and providers programmatically
         $this->configureAuth();
 
@@ -115,6 +118,11 @@ class AeroPlatformServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\Gate::policy(
                 \Aero\Platform\Models\Plan::class,
                 \Aero\Platform\Policies\PlanPolicy::class
+            );
+
+            \Illuminate\Support\Facades\Gate::policy(
+                \Aero\Platform\Models\Tenant::class,
+                \Aero\Platform\Policies\TenantPolicy::class
             );
         }
     }
@@ -222,12 +230,8 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     protected function registerPlatformDashboardWidgets(): void
     {
-        // Only register if the registry is available
-        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
-            return;
-        }
-
-        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+        // Use Platform's own registry, NOT Core's DashboardWidgetRegistry
+        $registry = $this->app->make(\Aero\Platform\Services\PlatformWidgetRegistry::class);
 
         // Register Platform widgets (order matters for display)
         $registry->registerMany([

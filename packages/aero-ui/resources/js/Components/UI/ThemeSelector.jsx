@@ -23,9 +23,9 @@ import {
   CheckIcon,
   SwatchIcon
 } from '@heroicons/react/24/outline';
-import { useTheme, THEME_CONFIG, THEME_CATEGORIES } from '@/Context/ThemeContext';
+import { useTheme } from '../../Context/ThemeContext';
 
-const ThemePreview = ({ theme, config, isSelected, onClick }) => {
+const ThemePreview = ({ styleKey, config, isSelected, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -42,7 +42,7 @@ const ThemePreview = ({ theme, config, isSelected, onClick }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <CardBody className="p-3">
-        {/* Theme Color Preview */}
+        {/* Card Style Color Preview */}
         <div className="flex flex-col space-y-2">
           {/* Color Swatches */}
           <div className="flex space-x-1 mb-2">
@@ -60,7 +60,7 @@ const ThemePreview = ({ theme, config, isSelected, onClick }) => {
             />
           </div>
 
-          {/* Theme Name and Description */}
+          {/* Style Name and Description */}
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-foreground">
@@ -103,33 +103,28 @@ const ThemePreview = ({ theme, config, isSelected, onClick }) => {
 const ThemeSelector = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
-    currentTheme,
-    isDarkMode,
-    setTheme,
-    toggleDarkMode,
-    resetToSystemTheme,
-    getSystemTheme,
-    themes,
-    categories
+    mode,
+    cardStyle,
+    cardStyleOptions,
+    updateTheme,
+    toggleMode,
+    resetTheme
   } = useTheme();
 
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const getFilteredThemes = () => {
+  // Get unique categories from card style options
+  const categories = [...new Set(cardStyleOptions.map(opt => opt.category))];
+
+  const getFilteredStyles = () => {
     if (selectedCategory === 'all') {
-      return Object.entries(themes);
+      return cardStyleOptions;
     }
-    return Object.entries(themes).filter(([themeKey]) =>
-      categories[selectedCategory]?.includes(themeKey)
-    );
+    return cardStyleOptions.filter(opt => opt.category === selectedCategory);
   };
 
-  const handleThemeSelect = (themeKey) => {
-    setTheme(themeKey);
-  };
-
-  const handleSystemThemeToggle = () => {
-    resetToSystemTheme();
+  const handleStyleSelect = (styleKey) => {
+    updateTheme({ cardStyle: styleKey });
   };
 
   return (
@@ -179,7 +174,7 @@ const ThemeSelector = () => {
                   {/* Dark Mode Toggle */}
                   <div className="flex items-center justify-between p-4 bg-content1 rounded-lg">
                     <div className="flex items-center gap-3">
-                      {isDarkMode ? (
+                      {mode === 'dark' ? (
                         <MoonIcon className="w-5 h-5 text-foreground" />
                       ) : (
                         <SunIcon className="w-5 h-5 text-foreground" />
@@ -192,36 +187,16 @@ const ThemeSelector = () => {
                       </div>
                     </div>
                     <Switch
-                      isSelected={isDarkMode}
-                      onValueChange={toggleDarkMode}
+                      isSelected={mode === 'dark'}
+                      onValueChange={toggleMode}
                       color="primary"
                     />
                   </div>
 
-                  {/* System Theme Option */}
-                  <div className="flex items-center justify-between p-4 bg-content1 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <ComputerDesktopIcon className="w-5 h-5 text-foreground" />
-                      <div>
-                        <p className="font-semibold text-foreground">System Theme</p>
-                        <p className="text-sm text-foreground-500">
-                          Follow system preference ({getSystemTheme()})
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      onPress={handleSystemThemeToggle}
-                    >
-                      Use System
-                    </Button>
-                  </div>
-
-                  {/* Theme Categories */}
+                  {/* Card Style Categories */}
                   <div>
                     <h3 className="text-lg font-semibold mb-3 text-foreground">
-                      Theme Categories
+                      Card Style Categories
                     </h3>
                     <Tabs
                       selectedKey={selectedCategory}
@@ -230,53 +205,57 @@ const ThemeSelector = () => {
                       color="primary"
                       className="w-full"
                     >
-                      <Tab key="all" title="All Themes" />
-                      {Object.keys(categories).map((category) => (
+                      <Tab key="all" title="All Styles" />
+                      {categories.map((category) => (
                         <Tab key={category} title={category} />
                       ))}
                     </Tabs>
                   </div>
 
-                  {/* Theme Grid */}
+                  {/* Card Styles Grid */}
                   <div>
                     <h3 className="text-lg font-semibold mb-3 text-foreground">
-                      Available Themes
+                      Available Card Styles
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {getFilteredThemes().map(([themeKey, config]) => (
+                      {getFilteredStyles().map((styleOption) => (
                         <ThemePreview
-                          key={themeKey}
-                          theme={themeKey}
-                          config={config}
-                          isSelected={currentTheme === themeKey}
-                          onClick={() => handleThemeSelect(themeKey)}
+                          key={styleOption.key}
+                          styleKey={styleOption.key}
+                          config={styleOption}
+                          isSelected={cardStyle === styleOption.key}
+                          onClick={() => handleStyleSelect(styleOption.key)}
                         />
                       ))}
                     </div>
                   </div>
 
-                  {/* Current Theme Info */}
+                  {/* Current Card Style Info */}
                   <div className="p-4 bg-content1 rounded-lg">
                     <h4 className="font-semibold text-foreground mb-2">
-                      Current Theme: {themes[currentTheme]?.name}
+                      Current Style: {cardStyleOptions.find(opt => opt.key === cardStyle)?.name || 'Modern'}
                     </h4>
                     <p className="text-sm text-foreground-500 mb-3">
-                      {themes[currentTheme]?.description}
+                      {cardStyleOptions.find(opt => opt.key === cardStyle)?.description || 'Default card style'}
                     </p>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-foreground-500">Colors:</span>
                       <div className="flex gap-1">
-                        <div
-                          className="w-4 h-4 rounded-full border border-gray-300"
-                          style={{ backgroundColor: themes[currentTheme]?.preview.primary }}
-                        />
-                        <div
-                          className="w-4 h-4 rounded-full border border-gray-300"
-                          style={{ backgroundColor: themes[currentTheme]?.preview.secondary }}
-                        />
+                        {cardStyleOptions.find(opt => opt.key === cardStyle)?.preview && (
+                          <>
+                            <div
+                              className="w-4 h-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: cardStyleOptions.find(opt => opt.key === cardStyle).preview.primary }}
+                            />
+                            <div
+                              className="w-4 h-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: cardStyleOptions.find(opt => opt.key === cardStyle).preview.secondary }}
+                            />
+                          </>
+                        )}
                       </div>
                       <Chip size="sm" variant="flat" color="primary">
-                        {themes[currentTheme]?.category}
+                        {cardStyleOptions.find(opt => opt.key === cardStyle)?.category || 'Design'}
                       </Chip>
                     </div>
                   </div>
@@ -288,7 +267,7 @@ const ThemeSelector = () => {
                   color="danger"
                   variant="light"
                   onPress={() => {
-                    resetToSystemTheme();
+                    resetTheme();
                     onClose();
                   }}
                 >
@@ -298,7 +277,7 @@ const ThemeSelector = () => {
                   color="primary"
                   onPress={onClose}
                 >
-                  Apply Theme
+                  Apply Style
                 </Button>
               </ModalFooter>
             </>

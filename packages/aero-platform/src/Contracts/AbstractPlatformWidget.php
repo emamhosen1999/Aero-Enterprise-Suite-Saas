@@ -20,6 +20,8 @@ abstract class AbstractPlatformWidget
 
     protected bool $lazy = false;
 
+    protected bool $enabled = true;
+
     protected array $requiredPermissions = [];
 
     protected PlatformWidgetCategory $category = PlatformWidgetCategory::SUMMARY;
@@ -100,6 +102,14 @@ abstract class AbstractPlatformWidget
     public function isLazy(): bool
     {
         return $this->lazy;
+    }
+
+    /**
+     * Whether widget is enabled.
+     */
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
     }
 
     /**
