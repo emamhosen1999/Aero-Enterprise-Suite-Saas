@@ -33,6 +33,7 @@ class StorePlanRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('plans', 'slug')],
             'tier' => ['required', 'string', Rule::in(['free', 'starter', 'professional', 'enterprise'])],
+            'plan_type' => ['required', 'string', Rule::in(['trial', 'free', 'paid', 'custom'])],
             'description' => ['nullable', 'string', 'max:1000'],
 
             // Pricing
@@ -41,8 +42,11 @@ class StorePlanRequest extends FormRequest
             'setup_fee' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'currency' => ['required', 'string', 'size:3'],
 
-            // Trial
+            // Trial & Lifecycle
             'trial_days' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'grace_days' => ['nullable', 'integer', 'min:0', 'max:90'],
+            'downgrade_policy' => ['nullable', 'string', Rule::in(['immediate', 'end_of_period'])],
+            'cancellation_policy' => ['nullable', 'string', Rule::in(['immediate', 'end_of_period'])],
 
             // Status & Visibility
             'is_active' => ['boolean'],
@@ -62,7 +66,8 @@ class StorePlanRequest extends FormRequest
             // Legacy quota fields
             'max_users' => ['nullable', 'integer', 'min:0'],
             'max_storage_gb' => ['nullable', 'integer', 'min:0'],
-            'duration_in_months' => ['nullable', 'integer', Rule::in([1, 3, 6, 12])],
+            'duration_in_months' => ['nullable', 'integer', 'min:1', 'max:120'],
+            'supports_custom_duration' => ['boolean'],
 
             // Modules
             'module_codes' => ['nullable', 'array'],
@@ -125,6 +130,22 @@ class StorePlanRequest extends FormRequest
         // Set default tier if not provided
         if (!$this->filled('tier')) {
             $this->merge(['tier' => 'starter']);
+        }
+
+        // Set default plan_type if not provided
+        if (!$this->filled('plan_type')) {
+            $this->merge(['plan_type' => 'paid']);
+        }
+
+        // Set default lifecycle policies
+        if (!$this->filled('grace_days')) {
+            $this->merge(['grace_days' => 7]);
+        }
+        if (!$this->filled('downgrade_policy')) {
+            $this->merge(['downgrade_policy' => 'end_of_period']);
+        }
+        if (!$this->filled('cancellation_policy')) {
+            $this->merge(['cancellation_policy' => 'end_of_period']);
         }
     }
 }

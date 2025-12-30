@@ -8,29 +8,65 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
-   GLOBAL HEROUI CARD STYLING
-   Applies consistent theming to all Card components
-   
-   HeroUI Card structure:
-   - base: flex flex-col bg-content1 rounded-large shadow-medium
-   - header: flex p-3 z-10 w-full
-   - body: flex flex-1 flex-col p-3
-   - footer: flex p-3 h-auto w-full
+   3D MOTION SYSTEM - CSS VARIABLES
+   Central configuration for consistent depth effects
    ============================================ */
-
-/* Target HeroUI Card components by their distinctive class combination */
-.bg-content1.rounded-large {
-    background: linear-gradient(135deg, 
-        var(--theme-content1, var(--heroui-content1, #FAFAFA)) 0%, 
-        var(--theme-content2, var(--heroui-content2, #F4F4F5)) 50%, 
-        var(--theme-content3, var(--heroui-content3, #E4E4E7)) 100%) !important;
-    border: var(--borderWidth, 2px) solid transparent !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    font-family: var(--fontFamily, "Inter") !important;
-    transition: all 0.2s ease-in-out;
+:root {
+    /* Perspective values */
+    --perspective-subtle: 1000px;
+    --perspective-moderate: 800px;
+    --perspective-dramatic: 600px;
+    
+    /* Depth scales (translateZ values) */
+    --depth-surface: 0px;
+    --depth-raised: 4px;
+    --depth-elevated: 8px;
+    --depth-floating: 16px;
+    --depth-modal: 24px;
+    
+    /* Shadows matching depth */
+    --shadow-none: none;
+    --shadow-sm: 0 2px 8px -2px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 15px -3px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 25px -5px rgba(0,0,0,0.15);
+    --shadow-xl: 0 12px 35px -8px rgba(0,0,0,0.2);
+    --shadow-xxl: 0 20px 50px -12px rgba(0,0,0,0.25);
+    
+    /* Transition timing */
+    --motion-gentle: cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-snappy: cubic-bezier(0.4, 0, 0.1, 1);
+    --motion-duration: 200ms;
 }
 
-/* Also target cards with medium/small radius */
+/* ============================================
+   3D BASE CLASSES
+   Apply perspective containers and preserve-3d
+   ============================================ */
+.motion-3d-container {
+    perspective: var(--perspective-subtle);
+    transform-style: preserve-3d;
+}
+
+.motion-3d-element {
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-gentle),
+                box-shadow var(--motion-duration) var(--motion-gentle);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .motion-3d-element {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================
+   GLOBAL HEROUI CARD STYLING + 3D
+   Applies consistent theming and depth to all Cards
+   ============================================ */
+
+/* Target HeroUI Card components */
+.bg-content1.rounded-large,
 .bg-content1.rounded-medium,
 .bg-content1.rounded-small {
     background: linear-gradient(135deg, 
@@ -38,8 +74,14 @@
         var(--theme-content2, var(--heroui-content2, #F4F4F5)) 50%, 
         var(--theme-content3, var(--heroui-content3, #E4E4E7)) 100%) !important;
     border: var(--borderWidth, 2px) solid transparent !important;
+    border-radius: var(--borderRadius, 12px) !important;
     font-family: var(--fontFamily, "Inter") !important;
-    transition: all 0.2s ease-in-out;
+    
+    /* 3D depth effects */
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-gentle),
+                box-shadow var(--motion-duration) var(--motion-gentle);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Dark mode Card styling */
@@ -52,26 +94,41 @@
         var(--theme-content3, var(--heroui-content3, #3f3f46)) 100%) !important;
 }
 
-/* Hover effect for cards */
+
+/* Hover effect for cards - subtle 3D lift */
 .bg-content1.rounded-large:hover,
 .bg-content1.rounded-medium:hover,
 .bg-content1.rounded-small:hover {
-    transform: scale(1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: perspective(var(--perspective-subtle)) rotateX(-1deg) translateZ(var(--depth-raised)) translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .dark .bg-content1.rounded-large:hover,
 .dark .bg-content1.rounded-medium:hover,
 .dark .bg-content1.rounded-small:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.35);
+}
+
+/* Active/pressed card state */
+.bg-content1.rounded-large:active,
+.bg-content1.rounded-medium:active,
+.bg-content1.rounded-small:active {
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-surface));
+    box-shadow: var(--shadow-sm);
 }
 
 /* ============================================
-   GLOBAL MODAL STYLING
-   Applies card style theme to all modals
+   GLOBAL MODAL STYLING + 3D DEPTH
+   Modals appear closer in z-space
    ============================================ */
 
-/* HeroUI Modal content */
+/* Modal backdrop */
+[data-slot="backdrop"] {
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* HeroUI Modal content with 3D depth */
 [data-slot="base"][role="dialog"],
 .nextui-modal-content {
     background: linear-gradient(135deg, 
@@ -81,6 +138,22 @@
     border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
     border-radius: var(--borderRadius, 12px) !important;
     font-family: var(--fontFamily, "Inter") !important;
+    
+    /* 3D depth - modals float above everything */
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-xxl);
+    animation: modalEnter var(--motion-duration) var(--motion-gentle);
+}
+
+@keyframes modalEnter {
+    from {
+        transform: perspective(var(--perspective-moderate)) rotateX(5deg) translateZ(0) translateY(20px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: perspective(var(--perspective-moderate)) rotateX(0) translateZ(var(--depth-modal)) translateY(0) scale(1);
+        opacity: 1;
+    }
 }
 
 .dark [data-slot="base"][role="dialog"],
@@ -103,8 +176,8 @@
 }
 
 /* ============================================
-   GLOBAL INPUT & FORM STYLING
-   Applies card style theme to inputs and forms
+   GLOBAL INPUT & FORM STYLING + 3D FOCUS
+   Input fields lift and glow on focus
    ============================================ */
 
 /* HeroUI Input components */
@@ -114,6 +187,13 @@
     border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
     border-radius: var(--borderRadius, 12px) !important;
     font-family: var(--fontFamily, "Inter") !important;
+    
+    /* 3D depth */
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-gentle),
+                box-shadow var(--motion-duration) var(--motion-gentle),
+                border-color var(--motion-duration) var(--motion-gentle);
+    box-shadow: var(--shadow-none);
 }
 
 .dark [data-slot="input-wrapper"],
@@ -121,10 +201,27 @@
     background: var(--theme-content1, #18181b) !important;
 }
 
-/* Input focus state */
+/* Input hover state - subtle lift */
+[data-slot="input-wrapper"]:hover:not(:focus-within),
+.nextui-input-wrapper:hover:not(:focus-within) {
+    transform: perspective(var(--perspective-subtle)) translateZ(2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Input focus state - lift + glow */
 [data-slot="input-wrapper"]:focus-within,
 .nextui-input-wrapper:focus-within {
     border-color: var(--theme-primary, #006FEE) !important;
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
+    box-shadow: 0 0 20px var(--theme-primary)30, 0 4px 15px -3px var(--theme-primary)20;
+}
+
+/* Input error state - lift + red glow */
+[data-slot="input-wrapper"][data-invalid="true"],
+.nextui-input-wrapper[data-invalid="true"] {
+    border-color: var(--theme-danger, #F31260) !important;
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
+    box-shadow: 0 0 20px var(--theme-danger)30, 0 4px 15px -3px var(--theme-danger)20;
 }
 
 /* HeroUI Select components */
@@ -134,6 +231,12 @@
     border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
     border-radius: var(--borderRadius, 12px) !important;
     font-family: var(--fontFamily, "Inter") !important;
+    
+    /* 3D depth */
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-gentle),
+                box-shadow var(--motion-duration) var(--motion-gentle);
+    box-shadow: var(--shadow-sm);
 }
 
 .dark [data-slot="trigger"],
@@ -141,54 +244,215 @@
     background: var(--theme-content1, #18181b) !important;
 }
 
-/* Dropdown/Popover content */
+/* Select hover */
+[data-slot="trigger"]:hover,
+.nextui-select-trigger:hover {
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
+    box-shadow: var(--shadow-md);
+}
+
+/* Select open state */
+[data-slot="trigger"][data-open="true"],
+.nextui-select-trigger[data-open="true"] {
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
+    box-shadow: var(--shadow-md);
+}
+
+/* Dropdown/Popover content with 3D depth */
 [data-slot="content"],
 .nextui-popover-content {
     background: var(--theme-content1, #FAFAFA) !important;
     border: var(--borderWidth, 2px) solid var(--theme-divider, #E4E4E7) !important;
     border-radius: var(--borderRadius, 12px) !important;
     font-family: var(--fontFamily, "Inter") !important;
+    
+    /* 3D depth - dropdowns float above */
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-xl);
+    animation: dropdownEnter 150ms var(--motion-gentle);
+}
+
+@keyframes dropdownEnter {
+    from {
+        transform: perspective(var(--perspective-subtle)) translateZ(0) translateY(-4px) scale(0.98);
+        opacity: 0;
+    }
+    to {
+        transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-floating)) translateY(0);
+        opacity: 1;
+    }
 }
 
 .dark [data-slot="content"],
 .dark .nextui-popover-content {
     background: var(--theme-content1, #18181b) !important;
+    box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.5);
 }
 
 /* ============================================
-   GLOBAL BUTTON STYLING
-   Uses theme colors for consistency
+   GLOBAL BUTTON STYLING + 3D PRESS
+   Buttons depress when clicked
    ============================================ */
 
-/* Primary button colors from theme */
+/* All buttons get 3D treatment */
+button[data-slot="base"],
+.nextui-button {
+    border-radius: var(--borderRadius, 12px) !important;
+    font-family: var(--fontFamily, "Inter") !important;
+    
+    /* 3D depth */
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-snappy),
+                box-shadow var(--motion-duration) var(--motion-snappy);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Button hover - subtle lift */
+button[data-slot="base"]:not(:disabled):hover,
+.nextui-button:not(:disabled):hover {
+    transform: perspective(var(--perspective-subtle)) rotateX(-0.5deg) translateZ(4px) translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Button press - depress */
+button[data-slot="base"]:not(:disabled):active,
+.nextui-button:not(:disabled):active {
+    transform: perspective(var(--perspective-subtle)) translateZ(1px);
+    box-shadow: var(--shadow-none);
+}
+
+/* Button focus - glow */
+button[data-slot="base"]:not(:disabled):focus-visible,
+.nextui-button:not(:disabled):focus-visible {
+    outline: none;
+    box-shadow: 0 0 20px var(--theme-primary)30, 0 4px 15px -3px var(--theme-primary)20;
+}
+
+/* Primary button colors */
 button[data-color="primary"],
 .nextui-button-primary {
     background: var(--theme-primary, #006FEE) !important;
-    border-radius: var(--borderRadius, 12px) !important;
-    font-family: var(--fontFamily, "Inter") !important;
 }
 
-/* Secondary button colors from theme */
+/* Secondary button colors */
 button[data-color="secondary"],
 .nextui-button-secondary {
     background: var(--theme-secondary, #17C964) !important;
-    border-radius: var(--borderRadius, 12px) !important;
 }
 
 /* Success/Warning/Danger buttons */
 button[data-color="success"] {
     background: var(--theme-success, #17C964) !important;
-    border-radius: var(--borderRadius, 12px) !important;
 }
 
 button[data-color="warning"] {
     background: var(--theme-warning, #F5A524) !important;
-    border-radius: var(--borderRadius, 12px) !important;
 }
 
 button[data-color="danger"] {
     background: var(--theme-danger, #F31260) !important;
-    border-radius: var(--borderRadius, 12px) !important;
+}
+
+/* Icon-only buttons - special hover effect */
+button[data-slot="base"][aria-label]:not([class*="w-"]):hover {
+    transform: perspective(var(--perspective-subtle)) translateZ(4px) scale(1.05);
+}
+
+/* ============================================
+   TABLE & LIST 3D EFFECTS
+   Rows lift on hover, selected rows elevated
+   ============================================ */
+
+/* HeroUI Table rows */
+tr[data-slot="tr"]:not([data-disabled="true"]):hover,
+.nextui-table-row:hover {
+    transform: perspective(var(--perspective-subtle)) translateZ(2px);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--motion-duration) var(--motion-snappy),
+                box-shadow var(--motion-duration) var(--motion-snappy);
+}
+
+/* Selected table rows */
+tr[data-slot="tr"][data-selected="true"],
+.nextui-table-row[data-selected="true"] {
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+/* List items */
+[data-slot="list-item"]:not([data-disabled="true"]):hover,
+.nextui-list-item:hover {
+    transform: perspective(var(--perspective-subtle)) rotateX(-1deg) translateZ(var(--depth-raised)) translateY(-1px);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--motion-duration) var(--motion-snappy),
+                box-shadow var(--motion-duration) var(--motion-snappy);
+}
+
+/* Active list items */
+[data-slot="list-item"][data-selected="true"],
+.nextui-list-item[data-selected="true"] {
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
+    box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   CHIP, BADGE & SMALL ELEMENTS
+   Subtle depth for status indicators
+   ============================================ */
+
+/* Chips */
+[data-slot="base"][class*="chip"],
+.nextui-chip {
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-snappy);
+}
+
+[data-slot="base"][class*="chip"]:hover,
+.nextui-chip:hover {
+    transform: perspective(var(--perspective-subtle)) translateZ(2px);
+}
+
+/* Badges */
+[data-slot="badge"],
+.nextui-badge {
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ============================================
+   TABS & NAVIGATION ELEMENTS
+   Active tabs appear raised
+   ============================================ */
+
+/* Tab buttons */
+button[data-slot="tab"],
+.nextui-tab {
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-gentle),
+                box-shadow var(--motion-duration) var(--motion-gentle);
+}
+
+button[data-slot="tab"]:hover,
+.nextui-tab:hover {
+    transform: perspective(var(--perspective-subtle)) translateZ(2px);
+}
+
+button[data-slot="tab"][data-selected="true"],
+.nextui-tab[data-selected="true"] {
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
+    box-shadow: var(--shadow-sm);
+}
+
+/* ============================================
+   ACCORDION & COLLAPSIBLE
+   Items lift when expanded
+   ============================================ */
+
+[data-slot="heading"][data-open="true"],
+.nextui-accordion-heading[data-open="true"] {
+    transform: perspective(var(--perspective-subtle)) translateZ(2px);
+    box-shadow: var(--shadow-sm);
 }
 
 /* ============================================ */

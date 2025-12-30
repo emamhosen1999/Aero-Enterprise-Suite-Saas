@@ -150,33 +150,7 @@ const getItemStyle = (accentColor = 'var(--theme-primary)') => ({
 // No hardcoded module definitions - widgets provide all necessary data.
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DEFAULT DATA (Server-provided fallbacks only)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const defaultPlatformStats = {
-  totalTenants: 0,
-  activeTenants: 0,
-  totalUsers: 0,
-  activeUsers: 0,
-  mrr: 0,
-  arr: 0,
-  mrrGrowth: 0,
-  churnRate: 0,
-  avgRevenuePerTenant: 0,
-  totalStorage: '0 GB',
-  apiCalls: '0',
-  uptime: 100,
-  newThisWeek: 0,
-  totalAdmins: 0,
-  activeAdmins: 0,
-};
-
-// All default data removed - widgets provide everything.
-// Empty defaults only for safety in case widgets fail to load.
-
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// COMPONENTS
+// COMPONENTS - All data from Backend Widgets
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const DiagonalAccent = ({ color = 'var(--theme-primary)' }) => (
@@ -192,6 +166,15 @@ const DiagonalAccent = ({ color = 'var(--theme-primary)' }) => (
 
 // Platform Status Hero
 const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing, systemStatus }) => {
+  const { auth } = usePage().props;
+  const now = new Date();
+  const hour = now.getHours();
+  
+  // Determine greeting based on time of day
+  const greeting = hour >= 5 && hour < 12 ? 'Good Morning' :
+                   hour >= 12 && hour < 17 ? 'Good Afternoon' :
+                   hour >= 17 && hour < 21 ? 'Good Evening' : 'Hello';
+  
   const getStatusConfig = (status) => {
     switch (status) {
       case 'operational': return { color: 'success', label: 'All Systems Operational', icon: SignalIcon };
@@ -220,13 +203,13 @@ const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground truncate">Platform Command Center</h1>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground truncate">{greeting}, {auth?.user?.name || 'Admin'}!</h1>
             <Chip color={statusConfig.color} variant="flat" size="sm" startContent={<StatusIcon className="h-3 w-3" />} className="flex-shrink-0">
               {statusConfig.label}
             </Chip>
           </div>
           <p className="text-xs sm:text-sm text-default-500 truncate">
-            Multi-tenant operations suite · Last sync: {new Date().toLocaleTimeString()}
+            Platform Command Center · Last sync: {now.toLocaleTimeString()}
           </p>
         </div>
       </div>
@@ -257,26 +240,26 @@ const PlatformStatusHero = ({ stats, loading, themeRadius, onRefresh, refreshing
         <>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Active Tenants</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.activeTenants}</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats?.activeTenants ?? 0}</p>
             <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
-              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span className="truncate">+{stats.newThisWeek ?? 0} this week</span>
+              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span className="truncate">+{stats?.newThisWeek ?? 0} this week</span>
             </p>
           </div>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Platform Admins</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.totalAdmins ?? stats.activeUsers?.toLocaleString() ?? 0}</p>
-            <p className="text-[10px] sm:text-xs text-default-400 mt-1 truncate">{stats.activeAdmins ?? 0} active</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats?.totalAdmins ?? stats?.activeUsers?.toLocaleString() ?? 0}</p>
+            <p className="text-[10px] sm:text-xs text-default-400 mt-1 truncate">{stats?.activeAdmins ?? 0} active</p>
           </div>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle('var(--theme-success)')}>
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Monthly Revenue</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-success">{stats.formatted?.mrr ?? `$${(stats.mrr/1000).toFixed(0)}K`}</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-success">{stats?.formatted?.mrr ?? `$${((stats?.mrr ?? 0)/1000).toFixed(0)}K`}</p>
             <p className="text-[10px] sm:text-xs text-success flex items-center justify-center gap-1 mt-1">
-              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span>+{stats.mrrGrowth}%</span>
+              <ArrowTrendingUpIcon className="h-3 w-3 flex-shrink-0" /> <span>+{stats?.mrrGrowth ?? 0}%</span>
             </p>
           </div>
           <div className="p-3 sm:p-4 text-center" style={getItemStyle()}>
             <p className="text-[10px] sm:text-xs text-default-500 uppercase tracking-wide mb-1 truncate">Platform Uptime</p>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats.uptime}%</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">{stats?.uptime ?? 100}%</p>
             <p className="text-[10px] sm:text-xs text-default-400 mt-1 truncate">Last 30 days</p>
           </div>
         </>
@@ -811,7 +794,6 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
   const platformStatsWidget = dynamicWidgets['platform.stats'] ?? {};
   const recentTenantsWidget = dynamicWidgets['platform.recent_tenants'] ?? {};
   const systemAlertsWidget = dynamicWidgets['platform.system_alerts'] ?? {};
-  const welcomeWidget = dynamicWidgets['platform.welcome'] ?? {};
   const subscriptionWidget = dynamicWidgets['platform.subscription_distribution'] ?? {};
   const quickActionsWidget = dynamicWidgets['platform.quick_actions'] ?? {};
   const systemHealthWidget = dynamicWidgets['platform.system_health'] ?? {};
@@ -819,20 +801,20 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
   const billingOverviewWidget = dynamicWidgets['platform.billing_overview'] ?? {};
   const moduleUsageWidget = dynamicWidgets['platform.module_usage'] ?? {};
   
-  // Build platform stats from controller data with fallback to defaults
+  // Build platform stats from controller data only - no defaults
   const platformStats = {
-    totalTenants: stats.totalTenants ?? platformStatsWidget.data?.totalTenants ?? defaultPlatformStats.totalTenants,
-    activeTenants: stats.activeTenants ?? platformStatsWidget.data?.activeTenants ?? defaultPlatformStats.activeTenants,
-    totalUsers: stats.totalUsers ?? platformStatsWidget.data?.totalUsers ?? defaultPlatformStats.totalUsers,
-    activeUsers: stats.activeUsers ?? platformStatsWidget.data?.activeUsers ?? defaultPlatformStats.activeUsers,
-    mrr: stats.mrr ?? platformStatsWidget.data?.mrr ?? defaultPlatformStats.mrr,
-    arr: stats.arr ?? platformStatsWidget.data?.arr ?? defaultPlatformStats.arr,
-    mrrGrowth: stats.mrrGrowth ?? platformStatsWidget.data?.mrrGrowth ?? defaultPlatformStats.mrrGrowth,
-    churnRate: stats.churnRate ?? defaultPlatformStats.churnRate,
-    avgRevenuePerTenant: stats.avgRevenuePerTenant ?? platformStatsWidget.data?.avgRevenuePerTenant ?? defaultPlatformStats.avgRevenuePerTenant,
-    totalStorage: stats.totalStorage ?? defaultPlatformStats.totalStorage,
-    apiCalls: stats.apiCalls ?? defaultPlatformStats.apiCalls,
-    uptime: stats.uptime ?? defaultPlatformStats.uptime,
+    totalTenants: stats?.totalTenants ?? platformStatsWidget.data?.totalTenants ?? 0,
+    activeTenants: stats?.activeTenants ?? platformStatsWidget.data?.activeTenants ?? 0,
+    totalUsers: stats?.totalUsers ?? platformStatsWidget.data?.totalUsers ?? 0,
+    activeUsers: stats?.activeUsers ?? platformStatsWidget.data?.activeUsers ?? 0,
+    mrr: stats?.mrr ?? platformStatsWidget.data?.mrr ?? 0,
+    arr: stats?.arr ?? platformStatsWidget.data?.arr ?? 0,
+    mrrGrowth: stats?.mrrGrowth ?? platformStatsWidget.data?.mrrGrowth ?? 0,
+    churnRate: stats?.churnRate ?? 0,
+    avgRevenuePerTenant: stats?.avgRevenuePerTenant ?? platformStatsWidget.data?.avgRevenuePerTenant ?? 0,
+    totalStorage: stats?.totalStorage ?? '0 GB',
+    apiCalls: stats?.apiCalls ?? '0',
+    uptime: stats?.uptime ?? 100,
   };
 
   // Extract widget data directly - widgets provide all data, no hardcoded fallbacks
@@ -846,7 +828,7 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
   const quickActions = quickActionsWidget.data?.actions ?? [];
   
   // System status from health widget or stats
-  const systemStatus = systemHealth?.status ?? stats.systemStatus ?? 'operational';
+  const systemStatus = systemHealth?.status ?? stats?.systemStatus ?? 'operational';
 
   const [themeRadius, setThemeRadius] = useState('lg');
   const [loading, setLoading] = useState(false);
@@ -906,13 +888,10 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
         animate="visible"
         className="w-full h-full p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6"
       >
-        {/* Platform Status Hero */}
-        <motion.div variants={itemVariants}>
-          <PlatformStatusHero 
-            stats={platformStats} 
-            loading={loading} 
-            themeRadius={themeRadius}
-            onRefresh={handleRefresh}
+
+      {/* Platform Status Hero */}
+      <motion.div variants={itemVariants}>
+        <PlatformStatusHero 
             refreshing={refreshing}
             systemStatus={systemStatus}
           />

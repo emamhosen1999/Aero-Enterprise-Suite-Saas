@@ -601,6 +601,19 @@ class ProvisionTenant implements ShouldQueue
     {
         $modules = $this->discoverModuleConfigs();
 
+        // Filter module configs by tenant plan modules (if defined)
+        $planModuleCodes = $this->tenant->plan?->module_codes ?? [];
+        if (is_string($planModuleCodes)) {
+            $planModuleCodes = json_decode($planModuleCodes, true) ?? [];
+        }
+        $planModuleCodes = array_values(array_filter($planModuleCodes));
+
+        if (! empty($planModuleCodes)) {
+            $modules = array_values(array_filter($modules, function ($moduleConfig) use ($planModuleCodes) {
+                return in_array($moduleConfig['code'] ?? null, $planModuleCodes, true);
+            }));
+        }
+
         if (empty($modules)) {
             $this->logStep('   → No module configs found to sync', []);
 

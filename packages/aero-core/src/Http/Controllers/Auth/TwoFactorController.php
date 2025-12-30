@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
+use Aero\Core\Services\AuditService;
 use Aero\Core\Services\Auth\TwoFactorAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,8 @@ use Inertia\Response;
 class TwoFactorController extends Controller
 {
     public function __construct(
-        protected TwoFactorAuthService $twoFactorService
+        protected TwoFactorAuthService $twoFactorService,
+        protected AuditService $auditService
     ) {}
 
     /**
@@ -93,6 +95,9 @@ class TwoFactorController extends Controller
 
         $recoveryCodes = $this->twoFactorService->enable($user);
 
+        // Log 2FA enabled event
+        $this->auditService->log2FAEnabled($user);
+
         return response()->json([
             'message' => 'Two-factor authentication enabled successfully.',
             'recovery_codes' => $recoveryCodes,
@@ -121,6 +126,9 @@ class TwoFactorController extends Controller
         }
 
         $this->twoFactorService->disable($user);
+
+        // Log 2FA disabled event
+        $this->auditService->log2FADisabled($user);
 
         return response()->json([
             'message' => 'Two-factor authentication disabled.',
@@ -212,6 +220,9 @@ class TwoFactorController extends Controller
         }
 
         $codes = $this->twoFactorService->regenerateRecoveryCodes($user);
+
+        // Log recovery codes regenerated event
+        $this->auditService->log2FACodesRegenerated($user);
 
         return response()->json([
             'message' => 'Recovery codes regenerated.',

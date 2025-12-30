@@ -5,6 +5,7 @@ namespace Aero\Core\Http\Controllers\Admin;
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Aero\Core\Models\Module;
+use Aero\Core\Services\AuditService;
 use Aero\Core\Support\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -219,6 +220,7 @@ class RoleController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:roles,name',
             'description' => 'nullable|string|max:500',
+            'is_active' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -241,12 +243,17 @@ class RoleController extends Controller
                 'guard_name' => 'web',
             ]);
 
-            // Update description
+            // Update description and is_active
+            $updateData = [];
             if ($request->has('description')) {
-                DB::table('roles')->where('id', $role->id)->update([
-                    'description' => $request->description ?? null,
-                    'updated_at' => now(),
-                ]);
+                $updateData['description'] = $request->description ?? null;
+            }
+            if ($request->has('is_active')) {
+                $updateData['is_active'] = $request->boolean('is_active', true);
+            }
+            if (!empty($updateData)) {
+                $updateData['updated_at'] = now();
+                DB::table('roles')->where('id', $role->id)->update($updateData);
             }
 
             Log::info('Role created', [
@@ -254,6 +261,13 @@ class RoleController extends Controller
                 'role_name' => $role->name,
                 'created_by' => Auth::id(),
             ]);
+
+            // AUDIT: Log role creation
+            try {
+                app(AuditService::class)->logRoleCreated($role->fresh());
+            } catch (\Exception $e) {
+                Log::warning('Failed to create audit log for role creation: ' . $e->getMessage());
+            }
 
             DB::commit();
             $this->clearCache();
@@ -282,6 +296,7 @@ class RoleController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:roles,name,' . $id,
             'description' => 'nullable|string|max:500',
+            'is_active' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -299,20 +314,34 @@ class RoleController extends Controller
                 return response()->json(['error' => 'Role not found'], 404);
             }
 
+            // SECURITY: Backend protection for protected roles
             if ($this->isProtectedRole($role)) {
                 return response()->json([
-                    'error' => 'Super Administrator role cannot be edited.',
+                    'error' => 'Cannot modify protected role. Protected roles (Super Administrator) cannot be edited.',
                 ], 403);
             }
+
+            // Capture old data for audit trail
+            $oldData = [
+                'name' => $role->name,
+                'description' => DB::table('roles')->where('id', $id)->value('description'),
+                'is_active' => DB::table('roles')->where('id', $id)->value('is_active'),
+            ];
 
             $role->name = $request->name;
             $role->save();
 
+            // Update additional fields
+            $updateData = [];
             if ($request->has('description')) {
-                DB::table('roles')->where('id', $role->id)->update([
-                    'description' => $request->description,
-                    'updated_at' => now(),
-                ]);
+                $updateData['description'] = $request->description;
+            }
+            if ($request->has('is_active')) {
+                $updateData['is_active'] = $request->boolean('is_active');
+            }
+            if (!empty($updateData)) {
+                $updateData['updated_at'] = now();
+                DB::table('roles')->where('id', $role->id)->update($updateData);
             }
 
             Log::info('Role updated', [
@@ -320,6 +349,20 @@ class RoleController extends Controller
                 'role_name' => $role->name,
                 'updated_by' => Auth::id(),
             ]);
+
+            // Capture new data for audit trail
+            $newData = [
+                'name' => $role->name,
+                'description' => $request->description ?? null,
+                'is_active' => $request->boolean('is_active') ?? $oldData['is_active'],
+            ];
+
+            // AUDIT: Log role update with changes
+            try {
+                app(AuditService::class)->logRoleUpdated($role->fresh(), $oldData, $newData);
+            } catch (\Exception $e) {
+                Log::warning('Failed to create audit log for role update: ' . $e->getMessage());
+            }
 
             DB::commit();
             $this->clearCache();
@@ -354,9 +397,10 @@ class RoleController extends Controller
                 return response()->json(['error' => 'Role not found'], 404);
             }
 
+            // SECURITY: Backend protection for protected roles
             if ($this->isProtectedRole($role)) {
                 return response()->json([
-                    'error' => 'Super Administrator role cannot be deleted.',
+                    'error' => 'Cannot delete protected role. Protected roles (Super Administrator) are system-critical and cannot be removed.',
                 ], 403);
             }
 
@@ -372,6 +416,13 @@ class RoleController extends Controller
                 'role_name' => $role->name,
                 'deleted_by' => Auth::id(),
             ]);
+
+            // AUDIT: Log role deletion before actually deleting
+            try {
+                app(AuditService::class)->logRoleDeleted($role);
+            } catch (\Exception $e) {
+                Log::warning('Failed to create audit log for role deletion: ' . $e->getMessage());
+            }
 
             $role->delete();
 
@@ -506,5 +557,85 @@ class RoleController extends Controller
             'message' => 'Data refreshed successfully',
             'timestamp' => now()->toISOString(),
         ]);
+    }
+
+    /**
+     * Toggle role active status (activate/deactivate)
+     * FEATURE: Role deactivation without deletion
+     */
+    public function toggleRoleStatus(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'is_active' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $role = Role::findById($id);
+
+            if (! $role) {
+                return response()->json(['error' => 'Role not found'], 404);
+            }
+
+            // SECURITY: Backend protection for protected roles
+            if ($this->isProtectedRole($role)) {
+                return response()->json([
+                    'error' => 'Cannot modify protected role status. Protected roles cannot be deactivated.',
+                ], 403);
+            }
+
+            $newStatus = $request->boolean('is_active');
+            $oldStatus = DB::table('roles')->where('id', $id)->value('is_active') ?? true;
+
+            // Update is_active status
+            DB::table('roles')->where('id', $role->id)->update([
+                'is_active' => $newStatus,
+                'updated_at' => now(),
+            ]);
+
+            $action = $newStatus ? 'activated' : 'deactivated';
+
+            Log::info("Role {$action}", [
+                'role_id' => $role->id,
+                'role_name' => $role->name,
+                'is_active' => $newStatus,
+                'changed_by' => Auth::id(),
+            ]);
+
+            // AUDIT: Log status change
+            try {
+                app(AuditService::class)->logRoleUpdated(
+                    $role->fresh(),
+                    ['is_active' => $oldStatus],
+                    ['is_active' => $newStatus]
+                );
+            } catch (\Exception $e) {
+                Log::warning('Failed to create audit log for role status change: ' . $e->getMessage());
+            }
+
+            DB::commit();
+            $this->clearCache();
+
+            return response()->json([
+                'message' => "Role {$action} successfully",
+                'role' => $role->fresh(),
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Role status toggle failed: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'Failed to toggle role status',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

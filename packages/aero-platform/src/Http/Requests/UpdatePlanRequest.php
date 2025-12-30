@@ -35,6 +35,7 @@ class UpdatePlanRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'slug' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('plans', 'slug')->ignore($planId)],
             'tier' => ['sometimes', 'required', 'string', Rule::in(['free', 'starter', 'professional', 'enterprise'])],
+            'plan_type' => ['sometimes', 'required', 'string', Rule::in(['trial', 'free', 'paid', 'custom'])],
             'description' => ['nullable', 'string', 'max:1000'],
 
             // Pricing
@@ -43,8 +44,11 @@ class UpdatePlanRequest extends FormRequest
             'setup_fee' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'currency' => ['sometimes', 'required', 'string', 'size:3'],
 
-            // Trial
+            // Trial & Lifecycle
             'trial_days' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'grace_days' => ['nullable', 'integer', 'min:0', 'max:90'],
+            'downgrade_policy' => ['nullable', 'string', Rule::in(['immediate', 'end_of_period'])],
+            'cancellation_policy' => ['nullable', 'string', Rule::in(['immediate', 'end_of_period'])],
 
             // Status & Visibility
             'is_active' => ['boolean'],
@@ -64,7 +68,8 @@ class UpdatePlanRequest extends FormRequest
             // Legacy quota fields
             'max_users' => ['nullable', 'integer', 'min:0'],
             'max_storage_gb' => ['nullable', 'integer', 'min:0'],
-            'duration_in_months' => ['nullable', 'integer', Rule::in([1, 3, 6, 12])],
+            'duration_in_months' => ['nullable', 'integer', 'min:1', 'max:120'],
+            'supports_custom_duration' => ['boolean'],
 
             // Modules
             'module_codes' => ['nullable', 'array'],

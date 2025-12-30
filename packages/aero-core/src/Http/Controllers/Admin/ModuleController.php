@@ -9,6 +9,7 @@ use Aero\Core\Models\ModuleComponentAction;
 use Aero\Core\Models\Role;
 use Aero\Core\Models\RoleModuleAccess;
 use Aero\Core\Models\SubModule;
+use Aero\Core\Services\AuditService;
 use Aero\Core\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,7 +67,15 @@ class ModuleController extends Controller
 
         // Load modules from database (tenant scope only for Core package)
         $moduleScope = 'tenant';
-        $modules = $this->getModulesFromDatabase($moduleScope);
+        
+        // SECURITY FIX: Filter modules by user's role access
+        if ($isSuperAdmin) {
+            // Super admins see all modules
+            $modules = $this->getModulesFromDatabase($moduleScope);
+        } else {
+            // Regular users only see modules they have access to
+            $modules = $this->getModulesFromDatabaseFiltered($moduleScope, $user);
+        }
 
         // Get roles (web guard only)
         $roles = Role::where('guard_name', 'web')
@@ -279,6 +288,92 @@ class ModuleController extends Controller
             'total_actions' => ModuleComponentAction::whereHas('component', function ($q) use ($subModuleIds) {
                 $q->whereIn('sub_module_id', $subModuleIds);
             })->count(),
+
+    /**
+     * Get modules from database filtered by user's role access.
+     * SECURITY FIX: Only return modules user has access to.
+     */
+    protected function getModulesFromDatabaseFiltered(string $scope, $user): array
+    {
+        // Get accessible module IDs from user's roles
+        $accessibleModuleIds = collect();
+        foreach ($user->roles as $role) {
+            $roleModuleIds = $role->moduleAccess()
+                ->whereNotNull('module_id')
+                ->whereNull('sub_module_id')
+                ->pluck('module_id');
+            $accessibleModuleIds = $accessibleModuleIds->merge($roleModuleIds);
+        }
+        $accessibleModuleIds = $accessibleModuleIds->unique()->toArray();
+
+        if (empty($accessibleModuleIds)) {
+            return []; // No access to any modules
+        }
+
+        // Load only accessible modules with hierarchy
+        $modules = Module::where('scope', $scope)
+            ->where('is_active', true)
+            ->whereIn('id', $accessibleModuleIds)
+            ->with([
+                'subModules' => function ($query) {
+                    $query->orderBy('priority');
+                },
+                'subModules.components' => function ($query) {
+                    $query->orderBy('id');
+                },
+                'subModules.components.actions' => function ($query) {
+                    $query->orderBy('id');
+                },
+            ])
+            ->orderBy('priority')
+            ->get();
+
+        return $modules->map(function ($module) {
+            return [
+                'id' => $module->id,
+                'code' => $module->code,
+                'name' => $module->name,
+                'description' => $module->description ?? '',
+                'icon' => $module->icon ?? 'CubeIcon',
+                'route_prefix' => $module->route_prefix ?? '',
+                'category' => $module->category ?? 'core_system',
+                'priority' => $module->priority,
+                'is_core' => $module->is_core,
+                'is_active' => $module->is_active,
+                'sub_modules' => $module->subModules->map(function ($subModule) {
+                    return [
+                        'id' => $subModule->id,
+                        'code' => $subModule->code,
+                        'name' => $subModule->name,
+                        'description' => $subModule->description ?? '',
+                        'icon' => $subModule->icon ?? 'FolderIcon',
+                        'route' => $subModule->route ?? '',
+                        'priority' => $subModule->priority,
+                        'is_active' => $subModule->is_active ?? true,
+                        'components' => $subModule->components->map(function ($component) {
+                            return [
+                                'id' => $component->id,
+                                'code' => $component->code,
+                                'name' => $component->name,
+                                'description' => $component->description ?? '',
+                                'type' => $component->type ?? 'page',
+                                'route' => $component->route ?? '',
+                                'is_active' => $component->is_active ?? true,
+                                'actions' => $component->actions->map(function ($action) {
+                                    return [
+                                        'id' => $action->id,
+                                        'code' => $action->code,
+                                        'name' => $action->name,
+                                        'description' => $action->description ?? '',
+                                    ];
+                                })->toArray(),
+                            ];
+                        })->toArray(),
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+    }
             'active_modules' => $moduleIds->count(),
         ];
     }
@@ -855,6 +950,14 @@ class ModuleController extends Controller
                 'actions' => $request->input('actions', []),
             ];
 
+            // Capture old access state before sync for audit
+            $oldAccessData = null;
+            try {
+                $oldAccessData = $this->roleModuleAccessService->getRoleAccessTree($role);
+            } catch (\Exception $e) {
+                Log::warning('Could not capture old access state for audit: ' . $e->getMessage());
+            }
+
             $this->roleModuleAccessService->syncRoleAccess($role, $accessData);
 
             Log::info('Role access synced', [
@@ -866,6 +969,13 @@ class ModuleController extends Controller
                 'components_count' => count($accessData['components']),
                 'actions_count' => count($accessData['actions']),
             ]);
+
+            // AUDIT: Log role access change with before/after state
+            try {
+                app(AuditService::class)->logRoleAccessChanged($role, $oldAccessData, $accessData);
+            } catch (\Exception $e) {
+                Log::warning('Failed to create audit log for role access change: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'message' => 'Role access updated successfully',

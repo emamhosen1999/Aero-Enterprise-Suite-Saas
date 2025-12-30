@@ -18,10 +18,10 @@ const AuthCard = ({
             shadow="lg"
             isBlurred
             className={clsx(
-                'relative overflow-hidden border border-white/20 dark:border-white/10',
-                'bg-white/10 dark:bg-slate-900/50 backdrop-blur-2xl',
+                'relative overflow-hidden border border-slate-200/80 dark:border-slate-800/70',
+                'bg-white/80 dark:bg-slate-900/60 backdrop-blur-2xl',
                 'shadow-[0_20px_45px_rgba(15,23,42,0.35)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.6)]',
-                'text-foreground',
+                'text-foreground transition-colors duration-200',
                 className
             )}
             {...props}

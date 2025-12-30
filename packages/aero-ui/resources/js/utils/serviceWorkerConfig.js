@@ -19,7 +19,9 @@ export const SERVICE_WORKER_CONFIG = {
         '10.0.',
         '172.',
         'dev.',
-        'staging.'
+        'staging.',
+        '.test',
+        'aeos365.'
     ],
     
     // Check if current environment is development

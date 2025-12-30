@@ -366,7 +366,18 @@ Route::middleware(['auth:landlord'])->group(function () {
 
         // Create Plan Page
         Route::get('/create', function () {
-            return Inertia::render('Platform/Admin/Plans/PlanForm');
+            return Inertia::render('Platform/Admin/Plans/PlanForm', [
+                'currencies' => config('aero-platform.currencies', [
+                    ['code' => 'USD', 'name' => 'US Dollar', 'symbol' => '$'],
+                    ['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€'],
+                    ['code' => 'GBP', 'name' => 'British Pound', 'symbol' => '£'],
+                    ['code' => 'BDT', 'name' => 'Bangladeshi Taka', 'symbol' => '৳'],
+                ]),
+                'modules' => \Aero\Platform\Models\Module::where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->get(['id', 'code', 'name', 'description', 'is_core']),
+                'features' => config('aero-platform.plan_features', []),
+            ]);
         })->middleware(['module:subscriptions,plans,plan-list,create'])->name('create');
 
         // View Plan Details Page
@@ -387,6 +398,16 @@ Route::middleware(['auth:landlord'])->group(function () {
             $plan->load(['modules']);
             return Inertia::render('Platform/Admin/Plans/PlanForm', [
                 'plan' => $plan,
+                'currencies' => config('aero-platform.currencies', [
+                    ['code' => 'USD', 'name' => 'US Dollar', 'symbol' => '$'],
+                    ['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€'],
+                    ['code' => 'GBP', 'name' => 'British Pound', 'symbol' => '£'],
+                    ['code' => 'BDT', 'name' => 'Bangladeshi Taka', 'symbol' => '৳'],
+                ]),
+                'modules' => \Aero\Platform\Models\Module::where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->get(['id', 'code', 'name', 'description', 'is_core']),
+                'features' => config('aero-platform.plan_features', []),
             ]);
         })->middleware(['module:subscriptions,plans,plan-list,update'])->name('edit');
 
@@ -399,6 +420,16 @@ Route::middleware(['auth:landlord'])->group(function () {
             return Inertia::render('Platform/Admin/Plans/PlanForm', [
                 'plan' => $cloneData,
                 'isClone' => true,
+                'currencies' => config('aero-platform.currencies', [
+                    ['code' => 'USD', 'name' => 'US Dollar', 'symbol' => '$'],
+                    ['code' => 'EUR', 'name' => 'Euro', 'symbol' => '€'],
+                    ['code' => 'GBP', 'name' => 'British Pound', 'symbol' => '£'],
+                    ['code' => 'BDT', 'name' => 'Bangladeshi Taka', 'symbol' => '৳'],
+                ]),
+                'modules' => \Aero\Platform\Models\Module::where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->get(['id', 'code', 'name', 'description', 'is_core']),
+                'features' => config('aero-platform.plan_features', []),
             ]);
         })->middleware(['module:subscriptions,plans,plan-list,create'])->name('clone');
 

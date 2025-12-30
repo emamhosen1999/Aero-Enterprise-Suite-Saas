@@ -48,10 +48,8 @@ class TenantProvisioner
         $trial = $payload['trial'] ?? [];
 
         $trialEndsAt = now()->addDays((int) config('platform.trial_days', 14));
-        $modules = $this->cleanModules($plan['modules'] ?? []);
-
-        // Get plan_id directly (UUID) or resolve from slug
         $planId = $plan['plan_id'] ?? $this->resolvePlanId($plan['plan_slug'] ?? null);
+        $modules = $this->sanitizeModulesAgainstPlan($planId, $this->cleanModules($plan['modules'] ?? []));
 
         $email = (string) Arr::get($details, 'email');
         $subdomain = (string) Arr::get($details, 'subdomain');
@@ -157,10 +155,8 @@ class TenantProvisioner
         $plan = $payload['plan'] ?? [];
 
         $trialEndsAt = now()->addDays((int) config('platform.trial_days', 14));
-        $modules = $this->cleanModules($plan['modules'] ?? []);
-
-        // Get plan_id directly (UUID) or resolve from slug
         $planId = $plan['plan_id'] ?? $this->resolvePlanId($plan['plan_slug'] ?? null);
+        $modules = $this->sanitizeModulesAgainstPlan($planId, $this->cleanModules($plan['modules'] ?? []));
 
         // Get existing data as array (handles ArrayObject or array)
         $existingData = $tenant->data instanceof \ArrayObject
@@ -223,6 +219,28 @@ class TenantProvisioner
                 : null,
             $modules
         ))));
+    }
+
+    private function sanitizeModulesAgainstPlan(?string $planId, array $modules): array
+    {
+        if (! $planId) {
+            return $modules;
+        }
+
+        $plan = Plan::with('modules:code')->find($planId);
+        if (! $plan) {
+            return $modules;
+        }
+
+        $allowed = $plan->module_codes ?? $plan->modules->pluck('code')->all();
+        $allowed = array_values(array_filter($allowed));
+
+        // If no modules requested, default to full allowed set
+        if (empty($modules)) {
+            return $allowed;
+        }
+
+        return array_values(array_intersect($modules, $allowed));
     }
 
     private function buildDomain(?string $subdomain): string

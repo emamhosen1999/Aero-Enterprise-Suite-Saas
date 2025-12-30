@@ -64,6 +64,15 @@ class Subscription extends Model
         'payment_method',
         'payment_ref_id',
         'metadata',
+        // Lifecycle fields
+        'upgraded_from_plan_id',
+        'upgraded_at',
+        'downgraded_from_plan_id',
+        'pending_plan_id',
+        'downgraded_at',
+        'downgrade_scheduled_at',
+        'grace_period_ends_at',
+        'current_period_start',
     ];
 
     /**
@@ -80,6 +89,12 @@ class Subscription extends Model
             'ends_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'metadata' => 'array',
+            // Lifecycle field casts
+            'upgraded_at' => 'datetime',
+            'downgraded_at' => 'datetime',
+            'downgrade_scheduled_at' => 'datetime',
+            'grace_period_ends_at' => 'datetime',
+            'current_period_start' => 'datetime',
         ];
     }
 

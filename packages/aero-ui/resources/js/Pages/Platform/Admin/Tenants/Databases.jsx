@@ -35,7 +35,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
 const Databases = ({ auth, title }) => {
     // Theme radius helper (REQUIRED)
@@ -332,8 +331,8 @@ const Databases = ({ auth, title }) => {
                                     {/* Stats Cards (we'll use StatsCards component) */}
                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                                         {statsData.map((stat, idx) => (
-                                            <ThemedCard key={idx}>
-                                                <ThemedCardBody>
+                                            <Card key={idx}>
+                                                <CardBody>
                                                     <div className="flex items-center gap-3">
                                                         <div className={stat.iconBg}>
                                                             {stat.icon}
@@ -343,8 +342,8 @@ const Databases = ({ auth, title }) => {
                                                             <p className={`text-lg font-semibold ${stat.color}`}>{stat.value}</p>
                                                         </div>
                                                     </div>
-                                                </ThemedCardBody>
-                                            </ThemedCard>
+                                                </CardBody>
+                                            </Card>
                                         ))}
                                     </div>
                                     
@@ -396,11 +395,11 @@ const Databases = ({ auth, title }) => {
                                     )}
                                     
                                     {/* System Overview */}
-                                    <ThemedCard className="mt-6">
-                                        <ThemedCardHeader>
+                                    <Card className="mt-6">
+                                        <CardHeader>
                                             <h3 className="text-lg font-semibold">System Overview</h3>
-                                        </ThemedCardHeader>
-                                        <ThemedCardBody>
+                                        </CardHeader>
+                                        <CardBody>
                                             <div className="space-y-4">
                                                 <div>
                                                     <div className="flex justify-between mb-2">
@@ -434,8 +433,8 @@ const Databases = ({ auth, title }) => {
                                                     />
                                                 </div>
                                             </div>
-                                        </ThemedCardBody>
-                                    </ThemedCard>
+                                        </CardBody>
+                                    </Card>
                                 </CardBody>
                             </Card>
                         </motion.div>

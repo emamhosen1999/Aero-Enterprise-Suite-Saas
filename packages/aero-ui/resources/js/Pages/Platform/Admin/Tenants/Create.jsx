@@ -25,7 +25,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
 const Create = ({ auth, title }) => {
     // 1. Theme radius helper (REQUIRED)
@@ -81,8 +80,8 @@ const Create = ({ auth, title }) => {
 
     const fetchPlans = async () => {
         try {
-            const response = await axios.get(route('api.v1.plans.index'));
-            setPlans(response.data.data || []);
+            const response = await axios.get(route('admin.plans.index'), { params: { per_page: 'all' } });
+            setPlans(response.data.plans || response.data.data || []);
         } catch (error) {
             console.error('Failed to fetch plans:', error);
         }
@@ -273,14 +272,14 @@ const Create = ({ auth, title }) => {
                                         {/* Main Form */}
                                         <div className="lg:col-span-2 space-y-6">
                                             {/* Company Information */}
-                                            <ThemedCard>
-                                                <ThemedCardHeader>
+                                            <Card>
+                                                <CardHeader>
                                                     <div className="flex items-center gap-2">
                                                         <BuildingOfficeIcon className="w-5 h-5 text-primary" />
                                                         <h3 className="text-lg font-semibold">Company Information</h3>
                                                     </div>
-                                                </ThemedCardHeader>
-                                                <ThemedCardBody>
+                                                </CardHeader>
+                                                <CardBody>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <Input
                                                             label="Company Name"
@@ -331,18 +330,18 @@ const Create = ({ auth, title }) => {
                                                             ))}
                                                         </Select>
                                                     </div>
-                                                </ThemedCardBody>
-                                            </ThemedCard>
+                                                </CardBody>
+                                            </Card>
 
                     {/* Subdomain Configuration */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-2">
                                 <GlobeAltIcon className="w-5 h-5 text-primary" />
                                 <h3 className="text-lg font-semibold">Subdomain Configuration</h3>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-4">
                                 <Input
                                     label="Subdomain"
@@ -371,18 +370,18 @@ const Create = ({ auth, title }) => {
                                     </Chip>
                                 )}
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Admin User */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-2">
                                 <UserIcon className="w-5 h-5 text-primary" />
                                 <h3 className="text-lg font-semibold">Initial Admin User</h3>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input
                                     label="Admin Name"
@@ -418,17 +417,17 @@ const Create = ({ auth, title }) => {
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
 
                 {/* Sidebar - Plan Selection */}
                 <div className="space-y-6">
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <h3 className="text-lg font-semibold">Subscription Plan</h3>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-4">
                                 <Select
                                     label="Select Plan"
@@ -461,12 +460,12 @@ const Create = ({ auth, title }) => {
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Action Buttons */}
-                    <ThemedCard>
-                        <ThemedCardBody>
+                    <Card>
+                        <CardBody>
                             <div className="space-y-3">
                                 <Button
                                     color="primary"
@@ -488,12 +487,12 @@ const Create = ({ auth, title }) => {
                                     Cancel
                                 </Button>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Info Card */}
-                    <ThemedCard>
-                        <ThemedCardBody>
+                    <Card>
+                        <CardBody>
                             <div className="text-sm text-default-500 space-y-2">
                                 <p className="font-semibold text-default-700">What happens next?</p>
                                 <ul className="list-disc list-inside space-y-1">
@@ -503,8 +502,8 @@ const Create = ({ auth, title }) => {
                                     <li>Welcome email will be sent</li>
                                 </ul>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                                         </div>
                                     </div>
                                 </CardBody>

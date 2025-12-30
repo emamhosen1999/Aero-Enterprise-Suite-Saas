@@ -14,6 +14,8 @@ use Aero\Core\Services\RuntimeLoader;
 use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Aero\Core\Traits\ParsesHostDomain;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
@@ -190,6 +192,10 @@ class AeroCoreServiceProvider extends ServiceProvider
             config(['session.driver' => 'file', 'cache.default' => 'file']);
         }
 
+        // Register Authorization Gates for Role and Module Management
+        // These gates control access to admin functionality for managing roles and modules
+        $this->registerAuthorizationGates();
+
         // Load migrations from Core package (takes priority)
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
@@ -240,6 +246,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Register console commands
             if ($this->app->runningInConsole()) {
                 $this->registerCommands();
+                $this->registerSchedule();
             }
 
             // Only register navigation and widgets if installed
@@ -348,7 +355,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         if ($this->isSaasMode()) {
             // SaaS Mode: Core routes ONLY on tenant subdomains
             // Skip registration entirely on central domains to prevent route conflicts
-            if (request() && $this->isHostOnCentralDomain(request()->getHost())) {
+            if (request() && $this->isOnCentralDomain(request()->getHost())) {
                 // On central domains (admin.domain.com, domain.com), Platform handles everything
                 // Do NOT register Core routes - this prevents route matching conflicts
                 return;
@@ -456,6 +463,17 @@ class AeroCoreServiceProvider extends ServiceProvider
         // - 1 dot (domain.com) → Central (root domain)
         // - 2+ dots (tenant.domain.com) → Tenant (subdomain)
         return $dotCount === 1; // Only 1 dot means root domain = central
+    }
+
+    /**
+     * Check if current domain is the admin subdomain.
+     * Used in standalone mode to skip Core routes on admin.domain.com
+     */
+    protected function isHostAdminDomain(string $host): bool
+    {
+        $hostWithoutPort = preg_replace('/:\d+$/', '', $host);
+
+        return str_starts_with($hostWithoutPort, 'admin.');
     }
 
     /**
@@ -598,7 +616,22 @@ class AeroCoreServiceProvider extends ServiceProvider
             Console\Commands\InstallCommand::class,
             Console\Commands\SyncModuleHierarchy::class,
             Console\Commands\SeedCommand::class,
+            Console\Commands\CleanupExpiredSessions::class,
         ]);
+    }
+
+    /**
+     * Register scheduled tasks for Core module.
+     */
+    protected function registerSchedule(): void
+    {
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            // Clean up expired sessions hourly
+            $schedule->command('sessions:cleanup')
+                ->hourly()
+                ->withoutOverlapping()
+                ->description('Clean up expired user sessions');
+        });
     }
 
     /**
@@ -669,6 +702,49 @@ class AeroCoreServiceProvider extends ServiceProvider
             ModuleAccessService::class,
             RoleModuleAccessService::class,
         ];
+    }
+
+    /**
+     * Register authorization gates for role and module management.
+     *
+     * Gates define who can manage roles and modules in the system.
+     * - 'manage-roles': Create, update, delete roles and manage role-module access
+     * - 'manage-modules': View modules, sync role access, manage module hierarchy
+     *
+     * By default, only Super Administrator and Administrator roles have these permissions.
+     * These gates are used by the 'can:' middleware on role and module routes.
+     */
+    protected function registerAuthorizationGates(): void
+    {
+        // Only register gates if the system is installed
+        // Pre-installation, there are no users or roles to check
+        if (!$this->installed()) {
+            return;
+        }
+
+        try {
+            // Gate: manage-roles
+            // Allows user to create, update, delete roles and assign module access
+            Gate::define('manage-roles', function ($user) {
+                // Super Administrators and Administrators can manage roles
+                // Check if user has one of the authorized roles
+                return $user->hasRole(['Super Administrator', 'Administrator']);
+            });
+
+            // Gate: manage-modules
+            // Allows user to view modules, sync access, manage module hierarchy
+            Gate::define('manage-modules', function ($user) {
+                // Super Administrators and Administrators can manage modules
+                // Check if user has one of the authorized roles
+                return $user->hasRole(['Super Administrator', 'Administrator']);
+            });
+        } catch (\Throwable $e) {
+            // Silently fail if User model or hasRole method not available
+            // This can happen during migrations or in test environments
+            \Illuminate\Support\Facades\Log::warning('Failed to register authorization gates', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

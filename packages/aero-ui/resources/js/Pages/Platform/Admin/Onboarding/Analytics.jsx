@@ -21,7 +21,6 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
-import { getThemedCardStyle } from '@/Components/UI/ThemedCard';
 
 const Analytics = ({ 
     stats: initialStats, 
@@ -120,7 +119,7 @@ const Analytics = ({
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+                        <Card className="transition-all duration-200">
                             <CardHeader
                                 className="border-b p-0"
                                 style={{ borderColor: 'var(--theme-divider, #E4E4E7)' }}
@@ -327,3 +326,5 @@ const Analytics = ({
 Analytics.layout = (page) => <App children={page} />;
 
 export default Analytics;
+
+

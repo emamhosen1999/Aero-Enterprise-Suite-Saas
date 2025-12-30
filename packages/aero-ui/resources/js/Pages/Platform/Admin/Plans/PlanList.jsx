@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { Card, CardBody, CardHeader, Button, Input, Select, SelectItem, Chip, Progress, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Skeleton } from '@heroui/react';
-import { PlusIcon, MagnifyingGlassIcon, EllipsisVerticalIcon, PencilIcon, DocumentDuplicateIcon, ArchiveBoxIcon, TrashIcon, EyeIcon, CreditCardIcon, CurrencyDollarIcon, UserGroupIcon, ChartBarIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { Card, CardBody, CardHeader, Button, Input, Select, SelectItem, Chip, Progress, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Skeleton, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
+import { PlusIcon, MagnifyingGlassIcon, EllipsisVerticalIcon, PencilIcon, DocumentDuplicateIcon, ArchiveBoxIcon, TrashIcon, EyeIcon, CreditCardIcon, CurrencyDollarIcon, UserGroupIcon, ChartBarIcon, DocumentArrowDownIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
 import App from '@/Layouts/App.jsx';
@@ -73,17 +73,35 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
         return () => clearTimeout(timer);
     }, [searchQuery, tierFilter, statusFilter]);
 
-    const handleDelete = async (planId) => {
-        if (!confirm('Are you sure you want to delete this plan? This action cannot be undone.')) return;
+    // Delete confirmation modal state
+    const [deleteModal, setDeleteModal] = useState({ open: false, plan: null, loading: false });
+
+    const openDeleteModal = (plan) => {
+        setDeleteModal({ open: true, plan, loading: false });
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteModal({ open: false, plan: null, loading: false });
+    };
+
+    const handleDelete = async () => {
+        if (!deleteModal.plan) return;
+        
+        setDeleteModal(prev => ({ ...prev, loading: true }));
+        const planId = deleteModal.plan.id;
         
         const promise = axios.delete(route('admin.plans.destroy', planId));
         showToast.promise(promise, {
             loading: 'Deleting plan...',
             success: () => {
                 setPlans(plans.filter(p => p.id !== planId));
+                closeDeleteModal();
                 return 'Plan deleted successfully';
             },
-            error: 'Failed to delete plan'
+            error: (err) => {
+                setDeleteModal(prev => ({ ...prev, loading: false }));
+                return err.response?.data?.message || 'Failed to delete plan';
+            }
         });
     };
 
@@ -160,6 +178,50 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
     return (
         <>
             <Head title={title || "Plans Management"} />
+
+            {/* Delete Confirmation Modal */}
+            <Modal 
+                isOpen={deleteModal.open} 
+                onOpenChange={(open) => !open && closeDeleteModal()}
+                size="md"
+                classNames={{
+                    base: "bg-content1",
+                    header: "border-b border-divider",
+                    body: "py-6",
+                    footer: "border-t border-divider"
+                }}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex items-center gap-2">
+                        <ExclamationTriangleIcon className="w-5 h-5 text-danger" />
+                        <span>Delete Plan</span>
+                    </ModalHeader>
+                    <ModalBody>
+                        <p className="text-default-600">
+                            Are you sure you want to delete the plan <strong>{deleteModal.plan?.name}</strong>?
+                        </p>
+                        <p className="text-sm text-danger mt-2">
+                            This action cannot be undone. Plans with active subscriptions cannot be deleted.
+                        </p>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button 
+                            variant="flat" 
+                            onPress={closeDeleteModal}
+                            isDisabled={deleteModal.loading}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            color="danger" 
+                            onPress={handleDelete}
+                            isLoading={deleteModal.loading}
+                        >
+                            Delete Plan
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
             
             {/* Main content wrapper */}
             <div
@@ -404,7 +466,7 @@ const PlanList = ({ plans: initialPlans = [], stats: initialStats = {}, title })
                                                                     className="text-danger"
                                                                     color="danger"
                                                                     startContent={<TrashIcon className="w-4 h-4" />}
-                                                                    onPress={() => handleDelete(plan.id)}
+                                                                    onPress={() => openDeleteModal(plan)}
                                                                 >
                                                                     Delete
                                                                 </DropdownItem>

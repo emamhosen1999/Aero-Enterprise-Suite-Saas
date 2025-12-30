@@ -31,7 +31,6 @@ return new class extends Migration
 
             // Indexes for performance
             $table->index('scheduled_report_id');
-            $table->index('status');
             $table->index('created_at'); // For cleanup and history queries
         });
     }

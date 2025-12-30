@@ -6,6 +6,7 @@ namespace Aero\Core\Services\Auth;
 
 use Aero\Core\Models\User;
 use Aero\Core\Models\UserSession;
+use Aero\Core\Services\AuditService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -52,10 +53,11 @@ class SessionManagementService
      */
     protected int $inactivityTimeout = 60;
 
-    public function __construct()
+    public function __construct(protected ?AuditService $auditService = null)
     {
         $this->maxSessions = config('auth.max_sessions', 5);
         $this->inactivityTimeout = config('auth.session_timeout', 60);
+        $this->auditService = $auditService ?? app(AuditService::class);
     }
 
     /**
@@ -88,6 +90,10 @@ class SessionManagementService
 
         // Store the plain token for response (only shown once)
         $session->plain_token = $sessionToken;
+
+        // Log session creation
+        $deviceName = $session->device_type . ' - ' . $session->browser;
+        $this->auditService?->logSessionCreated($user, $deviceName);
 
         return $session;
     }
@@ -142,9 +148,16 @@ class SessionManagementService
      */
     public function terminateSession(User $user, int $sessionId): bool
     {
-        return UserSession::where('user_id', $user->id)
+        $result = UserSession::where('user_id', $user->id)
             ->where('id', $sessionId)
             ->delete() > 0;
+
+        if ($result) {
+            // Log session termination
+            $this->auditService?->logSessionTerminated($user, (string) $sessionId, true);
+        }
+
+        return $result;
     }
 
     /**
@@ -169,7 +182,15 @@ class SessionManagementService
      */
     public function terminateAllSessions(User $user): int
     {
-        return UserSession::where('user_id', $user->id)->delete();
+        $count = UserSession::where('user_id', $user->id)->count();
+        $deleted = UserSession::where('user_id', $user->id)->delete();
+
+        if ($deleted > 0) {
+            // Log all sessions terminated
+            $this->auditService?->logAllSessionsTerminated($user, $count);
+        }
+
+        return $deleted;
     }
 
     /**

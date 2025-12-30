@@ -58,6 +58,28 @@ Route::get('/aero-core/health', function () {
     ]);
 })->name('core.health')->withoutMiddleware(['auth']);
 
+// PWA Manifest (Public - No Auth Required)
+Route::get('/manifest.json', function () {
+    $appName = config('app.name', 'aeos365');
+    $icon = asset('favicon.ico');
+
+    return response()->json([
+        'name' => $appName,
+        'short_name' => $appName,
+        'start_url' => '/',
+        'display' => 'standalone',
+        'background_color' => '#0f172a',
+        'theme_color' => '#0f172a',
+        'icons' => [
+            [
+                'src' => $icon,
+                'sizes' => '64x64 32x32 24x24 16x16',
+                'type' => 'image/x-icon',
+            ],
+        ],
+    ], 200, ['Content-Type' => 'application/manifest+json']);
+})->name('core.manifest')->withoutMiddleware(['auth']);
+
 // ERROR LOGGING API - Receives frontend errors and forwards to platform (No Auth Required)
 Route::post('/api/error-log', function (Request $request) {
     $reporter = app(PlatformErrorReporter::class);
@@ -255,7 +277,9 @@ Route::middleware('auth:web')->group(function () {
     // ========================================================================
     // ROLE & PERMISSIONS MANAGEMENT
     // ========================================================================
-    Route::prefix('roles')->name('core.roles.')->group(function () {
+    // CRITICAL: Authorization middleware added for security
+    // Only users with 'manage-roles' capability can access these routes
+    Route::prefix('roles')->name('core.roles.')->middleware(['can:manage-roles'])->group(function () {
         // View
         Route::get('/', [RoleController::class, 'index'])->name('index');
         Route::get('/export', [RoleController::class, 'exportRoles'])->name('export');
@@ -267,6 +291,7 @@ Route::middleware('auth:web')->group(function () {
 
         // Update
         Route::put('/{id}', [RoleController::class, 'updateRole'])->name('update');
+        Route::patch('/{id}/toggle-status', [RoleController::class, 'toggleRoleStatus'])->name('toggle-status');
         Route::post('/assign-user', [RoleController::class, 'assignRolesToUser'])->name('assign-user');
 
         // Delete
@@ -276,7 +301,9 @@ Route::middleware('auth:web')->group(function () {
     // ========================================================================
     // MODULE REGISTRY MANAGEMENT
     // ========================================================================
-    Route::prefix('modules')->name('core.modules.')->group(function () {
+    // CRITICAL: Authorization middleware added for security
+    // Only users with 'manage-modules' capability can access these routes
+    Route::prefix('modules')->name('core.modules.')->middleware(['can:manage-modules'])->group(function () {
         // View
         Route::get('/', [ModuleController::class, 'index'])->name('index');
         Route::get('/api', [ModuleController::class, 'apiIndex'])->name('api.index');
@@ -368,15 +395,38 @@ Route::middleware('auth:web')->group(function () {
     });
 
     // ========================================================================
+    // TWO-FACTOR AUTHENTICATION ROUTES
+    // ========================================================================
+    Route::prefix('auth/two-factor')->name('auth.two-factor.')->group(function () {
+        Route::get('/', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'index'])->name('index');
+        Route::post('/setup', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'setup'])->name('setup');
+        Route::post('/confirm', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'confirm'])->name('confirm');
+        Route::post('/disable', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('disable');
+        Route::post('/regenerate-codes', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'regenerateRecoveryCodes'])->name('regenerate-codes');
+        Route::get('/challenge', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'challenge'])->name('challenge');
+        Route::post('/verify', [\Aero\Core\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
+            ->middleware('throttle:5,1') // 5 attempts per minute
+            ->name('verify');
+    });
+
+    // ========================================================================
     // PROFILE ROUTES
     // ========================================================================
     Route::prefix('profile')->name('core.profile.')->group(function () {
         Route::get('/', function () {
-            return inertia('Core/Profile/Index', [
-                'title' => 'My Profile',
-                'user' => auth()->user(),
-            ]);
+            return redirect()->route('core.profile.security');
         })->name('index');
+        
+        Route::get('/security', function () {
+            $user = auth()->user();
+            return inertia('Profile/Security', [
+                'title' => 'Security Settings',
+                'twoFactorEnabled' => !empty($user->two_factor_secret) && !empty($user->two_factor_enabled_at),
+                'remainingCodes' => !empty($user->two_factor_recovery_codes) 
+                    ? count(json_decode(\Illuminate\Support\Facades\Crypt::decryptString($user->two_factor_recovery_codes) ?: '[]', true))
+                    : 0,
+            ]);
+        })->name('security');
     });
 
     // ========================================================================

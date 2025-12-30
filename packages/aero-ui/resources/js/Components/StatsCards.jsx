@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardHeader, CardBody, Skeleton } from "@heroui/react";
+import { motion } from 'framer-motion';
 
 // Custom hook to replicate MUI's useMediaQuery functionality
 const useMediaQuery = (query) => {
@@ -17,6 +18,170 @@ const useMediaQuery = (query) => {
     
     return matches;
 };
+
+/**
+ * Stagger animation variants for stats cards
+ */
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const staggerItem = {
+  hidden: { 
+    opacity: 0, 
+    y: 10,
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+};
+
+/**
+ * StatCard3D - Individual stat card
+ * 3D effects automatically applied via app.css
+ */
+const StatCard3D = React.memo(({ stat, index, isMobile, animate, getCardClasses, getCardStyle }) => {
+    const {
+        title,
+        value,
+        icon,
+        color = 'text-blue-600',
+        description,
+        iconBg = 'bg-blue-500/20',
+        valueColor,
+        customStyle = {}
+    } = stat;
+    
+    return (
+        <motion.div
+            variants={animate ? staggerItem : undefined}
+        >
+            <Card 
+                className={getCardClasses()}
+                style={{
+                    ...getCardStyle(),
+                    ...customStyle
+                }}
+            >
+                {isMobile && stat.length > 6 ? (
+                    // Ultra-compact mobile layout for many cards
+                    <CardBody className="p-3">
+                        <div className="flex items-center gap-2">
+                            {icon && (
+                                <div className={`p-1.5 ${iconBg} rounded-md shrink-0`}>
+                                    {React.isValidElement(icon) ? (
+                                        React.cloneElement(icon, {
+                                            className: `w-4 h-4 ${color}`,
+                                            ...(icon.props || {})
+                                        })
+                                    ) : (
+                                        <div className={`w-4 h-4 ${color}`}>
+                                            {icon}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                                <p 
+                                    className="font-medium text-xs leading-tight"
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                        ...customStyle
+                                    }}
+                                >
+                                    {title}
+                                </p>
+                                <p 
+                                    className="font-bold text-sm leading-tight"
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                        ...customStyle
+                                    }}
+                                >
+                                    {value}
+                                </p>
+                            </div>
+                        </div>
+                    </CardBody>
+                ) : (
+                    // Standard layout for desktop/tablet or few cards
+                    <>
+                        <CardHeader className={`pb-2 ${isMobile ? 'p-3' : 'p-4'}`}>
+                            <div className="flex items-center gap-2">
+                                {icon && (
+                                    <motion.div 
+                                        className={`${isMobile ? 'p-1.5' : 'p-2'} ${iconBg} rounded-lg shrink-0`}
+                                        whileHover={{ scale: 1.1, rotate: 5 }}
+                                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                                    >
+                                        {React.isValidElement(icon) ? (
+                                            React.cloneElement(icon, {
+                                                className: `${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ${color}`,
+                                                ...(icon.props || {})
+                                            })
+                                        ) : (
+                                            <div className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ${color}`}>
+                                                {icon}
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                )}
+                                <h6 
+                                    className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'}`}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                        ...customStyle
+                                    }}
+                                >
+                                    {title}
+                                </h6>
+                            </div>
+                        </CardHeader>
+                        
+                        <CardBody className={`pt-0 ${isMobile ? 'p-3' : 'p-4'}`}>
+                            <div 
+                                className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}
+                                style={{
+                                    ...(typeof value === 'string' && value.length > 10 ? {
+                                        fontSize: isMobile ? '1rem' : '1.25rem',
+                                        lineHeight: '1.2'
+                                    } : {}),
+                                    fontFamily: `var(--fontFamily, "Inter")`,
+                                    ...customStyle
+                                }}
+                            >
+                                {value}
+                            </div>
+                            {description && (
+                                <p 
+                                    className={`text-foreground-600 ${isMobile ? 'text-xs' : 'text-sm'} mt-1`}
+                                    style={{
+                                        fontFamily: `var(--fontFamily, "Inter")`,
+                                    }}
+                                >
+                                    {description}
+                                </p>
+                            )}
+                        </CardBody>
+                    </>
+                )}
+            </Card>
+        </motion.div>
+    );
+});
 
 /**
  * Shared statistics cards component with enhanced responsive design for any number of cards
@@ -168,139 +333,26 @@ const StatsCards = ({ stats = [], gridCols, className = "mb-6", animate = true, 
     if (!stats || stats.length === 0) return null;
 
     return (
-        <div className={className}>
+        <motion.div 
+            className={className}
+            variants={animate ? staggerContainer : undefined}
+            initial={animate ? "hidden" : undefined}
+            animate={animate ? "visible" : undefined}
+        >
             <div className={`grid gap-4 ${getGridCols()}`}>
-                {stats.map((stat, index) => {
-                    const {
-                        title,
-                        value,
-                        icon,
-                        color = 'text-blue-600',
-                        description,
-                        iconBg = 'bg-blue-500/20',
-                        valueColor,
-                        customStyle = {}
-                    } = stat;
-
-                    return (
-                        <Card 
-                            key={index}
-                            className={getCardClasses()}
-                            style={animate ? {
-                                animationDelay: `${index * 100}ms`,
-                                animationDuration: '0.6s',
-                                animationFillMode: 'both',
-                                animationName: 'fadeInUp',
-                                ...getCardStyle(),
-                                ...customStyle
-                            } : {
-                                ...getCardStyle(),
-                                ...customStyle
-                            }}
-                        >
-                            {isMobile && stats.length > 6 ? (
-                                // Ultra-compact mobile layout for many cards
-                                <CardBody className="p-3">
-                                    <div className="flex items-center gap-2">
-                                        {icon && (
-                                            <div className={`p-1.5 ${iconBg} rounded-md shrink-0`}>
-                                                {React.isValidElement(icon) ? (
-                                                    React.cloneElement(icon, {
-                                                        className: `w-4 h-4 ${color}`,
-                                                        ...(icon.props || {})
-                                                    })
-                                                ) : (
-                                                    <div className={`w-4 h-4 ${color}`}>
-                                                        {icon}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                            <p 
-                                                className="font-medium text-xs leading-tight"
-                                                style={{
-                                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                                    ...customStyle
-                                                }}
-                                            >
-                                                {title}
-                                            </p>
-                                            <p 
-                                                className="font-bold text-sm leading-tight"
-                                                style={{
-                                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                                    ...customStyle
-                                                }}
-                                            >
-                                                {value}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </CardBody>
-                            ) : (
-                                // Standard layout for desktop/tablet or few cards
-                                <>
-                                    <CardHeader className={`pb-2 ${isMobile ? 'p-3' : 'p-4'}`}>
-                                        <div className="flex items-center gap-2">
-                                            {icon && (
-                                                <div className={`${isMobile ? 'p-1.5' : 'p-2'} ${iconBg} rounded-lg shrink-0`}>
-                                                    {React.isValidElement(icon) ? (
-                                                        React.cloneElement(icon, {
-                                                            className: `${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ${color}`,
-                                                            ...(icon.props || {})
-                                                        })
-                                                    ) : (
-                                                        <div className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ${color}`}>
-                                                            {icon}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                            <h6 
-                                                className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'}`}
-                                                style={{
-                                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                                    ...customStyle
-                                                }}
-                                            >
-                                                {title}
-                                            </h6>
-                                        </div>
-                                    </CardHeader>
-                                    
-                                    <CardBody className={`pt-0 ${isMobile ? 'p-3' : 'p-4'}`}>
-                                        <div 
-                                            className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}
-                                            style={{
-                                                ...(typeof value === 'string' && value.length > 10 ? {
-                                                    fontSize: isMobile ? '1rem' : '1.25rem',
-                                                    lineHeight: '1.2'
-                                                } : {}),
-                                                fontFamily: `var(--fontFamily, "Inter")`,
-                                                ...customStyle
-                                            }}
-                                        >
-                                            {value}
-                                        </div>
-                                        {description && (
-                                            <p 
-                                                className={`text-foreground-600 ${isMobile ? 'text-xs' : 'text-sm'} mt-1`}
-                                                style={{
-                                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                                }}
-                                            >
-                                                {description}
-                                            </p>
-                                        )}
-                                    </CardBody>
-                                </>
-                            )}
-                        </Card>
-                    );
-                })}
+                {stats.map((stat, index) => (
+                    <StatCard3D
+                        key={index}
+                        stat={stat}
+                        index={index}
+                        isMobile={isMobile}
+                        animate={animate}
+                        getCardClasses={getCardClasses}
+                        getCardStyle={getCardStyle}
+                    />
+                ))}
             </div>
-        </div>
+        </motion.div>
     );
 };
 

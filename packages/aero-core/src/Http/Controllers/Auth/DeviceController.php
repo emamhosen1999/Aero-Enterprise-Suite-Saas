@@ -4,6 +4,7 @@ namespace Aero\Core\Http\Controllers\Auth;
 
 use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
+use Aero\Core\Services\AuditService;
 use Aero\Core\Services\Auth\DeviceAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,12 +12,10 @@ use Inertia\Inertia;
 
 class DeviceController extends Controller
 {
-    protected DeviceAuthService $deviceAuthService;
-
-    public function __construct(DeviceAuthService $deviceAuthService)
-    {
-        $this->deviceAuthService = $deviceAuthService;
-    }
+    public function __construct(
+        protected DeviceAuthService $deviceAuthService,
+        protected AuditService $auditService
+    ) {}
 
     /**
      * Get all devices for the authenticated user.
@@ -26,9 +25,9 @@ class DeviceController extends Controller
         $user = Auth::user();
         $devices = $this->deviceAuthService->getUserDevices($user);
 
-        return response()->json([
-            'success' => true,
+        return Inertia::render('Profile/Security/Devices', [
             'devices' => $devices,
+            'singleDeviceEnabled' => $user->single_device_login_enabled,
         ]);
     }
 
@@ -41,16 +40,8 @@ class DeviceController extends Controller
         $user = User::findOrFail($userId);
         $devices = $this->deviceAuthService->getUserDevices($user);
 
-        // If request expects JSON (API call), return JSON
-        if ($request->expectsJson() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'devices' => $devices,
-            ]);
-        }
-
-        // Otherwise return Inertia page for browser navigation
-        return Inertia::render('UserDevices', [
+        // Always return Inertia page for browser navigation
+        return Inertia::render('Admin/UserDevices', [
             'user' => $user,
             'devices' => $devices,
         ]);
@@ -92,6 +83,9 @@ class DeviceController extends Controller
             ], 404);
         }
 
+        // Log device removed event
+        $this->auditService->logDeviceRemoved($user, "Device #{$deviceId}", $deviceId);
+
         return response()->json([
             'success' => true,
             'message' => 'Device deactivated successfully.',
@@ -112,6 +106,9 @@ class DeviceController extends Controller
                 'message' => 'Device not found.',
             ], 404);
         }
+
+        // Log device removed event (admin action)
+        $this->auditService->logDeviceRemoved($user, "Device #{$deviceId} (by admin)", $deviceId);
 
         return response()->json([
             'success' => true,

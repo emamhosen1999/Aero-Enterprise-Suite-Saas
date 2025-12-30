@@ -65,6 +65,10 @@ class AeroPlatformServiceProvider extends ServiceProvider
         // Module definitions are in config/module.php and loaded by ModuleDiscoveryService
         $this->mergeConfigFrom(__DIR__.'/../config/tenancy.php', 'tenancy');
         $this->mergeConfigFrom(__DIR__.'/../config/platform.php', 'platform');
+        
+        // Merge audit logging config into Laravel's logging channels
+        $auditConfig = require __DIR__.'/../config/audit.php';
+        config(['logging.channels.audit' => $auditConfig['audit']]);
 
         // Override TenantScopeInterface binding (Core binds StandaloneTenantScope by default)
         // Platform provides the SaaS implementation using stancl/tenancy
@@ -132,6 +136,9 @@ class AeroPlatformServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register Plan audit observer
+        \Aero\Platform\Models\Plan::observe(\Aero\Platform\Observers\PlanAuditObserver::class);
+        
         // Override tenancy bootstrappers after all providers registered
         // FilesystemTenancyBootstrapper disabled - causes "Undefined array key 'local'" error
         // Using custom CachePrefixTenancyBootstrapper instead of stancl's CacheTenancyBootstrapper
@@ -201,6 +208,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
                 \Aero\Platform\Console\Commands\EnsureSuperAdmin::class,
                 \Aero\Platform\Console\Commands\SetupApplication::class,
                 \Aero\Platform\Console\Commands\CleanupFailedInstallation::class,
+                \Aero\Platform\Console\Commands\ProcessPendingSubscriptionChanges::class,
             ]);
         }
 
@@ -235,9 +243,6 @@ class AeroPlatformServiceProvider extends ServiceProvider
 
         // Register Platform widgets (order matters for display)
         $registry->registerMany([
-            // Welcome header (full width)
-            new \Aero\Platform\Widgets\PlatformWelcomeWidget,
-
             // Stats row (full width grid)
             new \Aero\Platform\Widgets\PlatformStatsWidget,
 

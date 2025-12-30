@@ -345,6 +345,23 @@ class RegistrationController extends Controller
 
         $payload = $request->validated();
 
+        // Derive modules from the selected plan to prevent tampering
+        if (! empty($payload['plan_id'])) {
+            $plan = \Aero\Platform\Models\Plan::with('modules:code')->find($payload['plan_id']);
+
+            if ($plan) {
+                $allowed = $plan->module_codes ?? $plan->modules->pluck('code')->all();
+                $allowed = array_values(array_filter($allowed));
+
+                $requested = $payload['modules'] ?? [];
+                $cleanModules = ! empty($requested)
+                    ? array_values(array_intersect($requested, $allowed))
+                    : $allowed;
+
+                $payload['modules'] = $cleanModules;
+            }
+        }
+
         // Validate that at least one selection is made (plan OR modules)
         if (empty($payload['plan_id']) && empty($payload['modules'])) {
             return back()->withErrors([

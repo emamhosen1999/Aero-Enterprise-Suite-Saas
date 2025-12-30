@@ -37,6 +37,13 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
     link: isDarkMode ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900',
   };
 
+  const inputClasses = {
+    inputWrapper: 'bg-white/90 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 hover:border-primary/60 focus:border-primary data-[focus-visible=true]:ring-2 data-[focus-visible=true]:ring-primary/30 shadow-sm transition-colors',
+    label: 'text-sm sm:text-base text-slate-700 dark:text-slate-200',
+    input: 'text-sm sm:text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500',
+    description: 'text-xs sm:text-sm text-slate-500 dark:text-slate-400'
+  };
+
   // Check subdomain availability with debounce
   useEffect(() => {
     if (subdomainCheckTimer) {
@@ -158,10 +165,9 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
               isInvalid={Boolean(errors.name)}
               errorMessage={errors.name}
               isRequired
-              classNames={{
-                label: 'text-sm sm:text-base',
-                input: 'text-sm sm:text-base'
-              }}
+              variant="bordered"
+              radius="md"
+              classNames={inputClasses}
             />
             <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
               <Input
@@ -173,10 +179,9 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 isInvalid={Boolean(errors.email)}
                 errorMessage={errors.email}
                 isRequired
-                classNames={{
-                  label: 'text-sm sm:text-base',
-                  input: 'text-sm sm:text-base'
-                }}
+                variant="bordered"
+                radius="md"
+                classNames={inputClasses}
               />
               <Input
                 label="Phone (optional)"
@@ -186,11 +191,9 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 isInvalid={Boolean(errors.phone)}
                 errorMessage={errors.phone}
                 description="International format recommended (e.g., +1 234 567 8900)"
-                classNames={{
-                  label: 'text-sm sm:text-base',
-                  input: 'text-sm sm:text-base',
-                  description: 'text-xs sm:text-sm'
-                }}
+                variant="bordered"
+                radius="md"
+                classNames={inputClasses}
               />
             </div>
             <div className="grid gap-3 sm:gap-4 md:grid-cols-[2fr,1fr]">
@@ -212,11 +215,9 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                     <XCircleIcon className="w-5 h-5 text-danger" />
                   ) : null
                 }
-                classNames={{
-                  label: 'text-sm sm:text-base',
-                  input: 'text-sm sm:text-base',
-                  description: 'text-xs sm:text-sm'
-                }}
+                variant="bordered"
+                radius="md"
+                classNames={inputClasses}
               />
               <Input
                 type="number"
@@ -227,10 +228,9 @@ export default function Details({ steps = [], currentStep, savedData = {}, accou
                 isInvalid={Boolean(errors.team_size)}
                 errorMessage={errors.team_size}
                 min={1}
-                classNames={{
-                  label: 'text-sm sm:text-base',
-                  input: 'text-sm sm:text-base'
-                }}
+                variant="bordered"
+                radius="md"
+                classNames={inputClasses}
               />
             </div>
 

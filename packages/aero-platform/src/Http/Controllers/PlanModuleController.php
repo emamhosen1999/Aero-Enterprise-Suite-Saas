@@ -8,6 +8,7 @@ use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Aero\Core\Support\TenantCache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class PlanModuleController extends Controller
 {
@@ -62,6 +63,15 @@ class PlanModuleController extends Controller
 
         DB::beginTransaction();
         try {
+            // Check if Module table exists (standalone mode guard)
+            if (!Schema::hasTable('modules')) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Module management not available in standalone mode.',
+                ], 503);
+            }
+
             foreach ($validated['module_ids'] as $moduleId) {
                 $plan->modules()->syncWithoutDetaching([
                     $moduleId => [

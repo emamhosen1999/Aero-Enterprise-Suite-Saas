@@ -44,7 +44,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 import StatsCards from '@/Components/StatsCards';
 
 const Show = ({ auth, tenantId, title, can_impersonate }) => {
@@ -270,19 +269,19 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                     <CardBody className="p-6">
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                                             {[...Array(4)].map((_, i) => (
-                                                <ThemedCard key={i}>
-                                                    <ThemedCardBody>
+                                                <Card key={i}>
+                                                    <CardBody>
                                                         <Skeleton className="h-6 w-24 mb-2 rounded" />
                                                         <Skeleton className="h-8 w-32 rounded" />
-                                                    </ThemedCardBody>
-                                                </ThemedCard>
+                                                    </CardBody>
+                                                </Card>
                                             ))}
                                         </div>
-                                        <ThemedCard>
-                                            <ThemedCardBody>
+                                        <Card>
+                                            <CardBody>
                                                 <Skeleton className="h-64 rounded-lg" />
-                                            </ThemedCardBody>
-                                        </ThemedCard>
+                                            </CardBody>
+                                        </Card>
                                     </CardBody>
                                 </Card>
                             </motion.div>
@@ -476,11 +475,11 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                     <StatsCards stats={statsData} className="mb-6" />
 
                                     {/* Quick Actions */}
-                                    <ThemedCard className="mb-6">
-                                        <ThemedCardHeader>
+                                    <Card className="mb-6">
+                                        <CardHeader>
                                             <h3 className="text-lg font-semibold">Quick Actions</h3>
-                                        </ThemedCardHeader>
-                                        <ThemedCardBody>
+                                        </CardHeader>
+                                        <CardBody>
                                             <div className="flex flex-wrap gap-3">
                                                 {tenant?.status !== 'suspended' && tenant?.status !== 'archived' && (
                                                     <Button
@@ -546,12 +545,12 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                 </Button>
                             )}
                         </div>
-                    </ThemedCardBody>
-                </ThemedCard>
+                    </CardBody>
+                </Card>
 
                 {/* Tabs Content */}
-                <ThemedCard>
-                    <ThemedCardHeader>
+                <Card>
+                    <CardHeader>
                         <Tabs 
                             selectedKey={selectedTab} 
                             onSelectionChange={setSelectedTab}
@@ -583,8 +582,8 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                 </div>
                             } />
                         </Tabs>
-                    </ThemedCardHeader>
-                    <ThemedCardBody>
+                    </CardHeader>
+                    <CardBody>
                         {selectedTab === 'overview' && (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -877,8 +876,8 @@ const Show = ({ auth, tenantId, title, can_impersonate }) => {
                                 </div>
                             </div>
                         )}
-                                        </ThemedCardBody>
-                                    </ThemedCard>
+                                        </CardBody>
+                                    </Card>
                                 </CardBody>
                             </Card>
                         </motion.div>

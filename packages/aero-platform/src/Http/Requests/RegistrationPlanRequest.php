@@ -2,6 +2,7 @@
 
 namespace Aero\Platform\Http\Requests;
 
+use Aero\Platform\Models\Plan;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -48,6 +49,33 @@ class RegistrationPlanRequest extends FormRequest
             // Ensure at least one selection is made (plan OR modules)
             if (empty($planId) && empty($modules)) {
                 $validator->errors()->add('selection', 'Please select a plan or at least one module to continue.');
+            }
+
+            // If a plan is selected, enforce that modules are a subset of the plan's modules
+            if ($planId) {
+                $plan = Plan::with('modules:code')->find($planId);
+
+                if (! $plan) {
+                    $validator->errors()->add('plan_id', 'Selected plan is invalid.');
+                    return;
+                }
+
+                $allowed = $plan->module_codes ?? $plan->modules->pluck('code')->all();
+                $allowed = array_values(array_filter($allowed));
+
+                // Intersect with allowed modules; if none provided, use full allowed set
+                $cleanModules = ! empty($modules)
+                    ? array_values(array_intersect($modules, $allowed))
+                    : $allowed;
+
+                // If user requested modules not in plan, reject
+                $invalid = array_diff($modules, $allowed);
+                if (! empty($invalid)) {
+                    $validator->errors()->add('modules', 'Selected modules are not included in this plan.');
+                }
+
+                // Normalize modules back onto the request so controller uses sanitized data
+                $this->merge(['modules' => $cleanModules]);
             }
         });
     }

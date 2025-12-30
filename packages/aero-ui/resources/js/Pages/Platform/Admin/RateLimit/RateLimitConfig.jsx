@@ -39,7 +39,6 @@ import {
 import { showToast } from '@/utils/toastUtils';
 import App from '@/Layouts/App';
 import PageHeader from '@/Components/PageHeader';
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
 const RateLimitConfig = ({ auth }) => {
     const [configs, setConfigs] = useState([]);
@@ -280,7 +279,7 @@ const RateLimitConfig = ({ auth }) => {
                     borderWidth: `var(--borderWidth, 2px)`,
                     borderRadius: `var(--borderRadius, 12px)`,
                 }}>
-                    <ThemedCardHeader>
+                    <CardHeader>
                         <Tabs
                             selectedKey={activeTab}
                             onSelectionChange={setActiveTab}
@@ -290,8 +289,8 @@ const RateLimitConfig = ({ auth }) => {
                             <Tab key="global" title="Global Settings" />
                             <Tab key="tenant" title="Tenant-Specific" />
                         </Tabs>
-                    </ThemedCardHeader>
-                    <ThemedCardBody>
+                    </CardHeader>
+                    <CardBody>
                         {loading ? (
                             <div className="space-y-3">
                                 {Array.from({ length: 3 }).map((_, i) => (
@@ -318,7 +317,7 @@ const RateLimitConfig = ({ auth }) => {
                                 </TableBody>
                             </Table>
                         )}
-                    </ThemedCardBody>
+                    </CardBody>
                 </Card>
 
                 {/* Info Cards */}

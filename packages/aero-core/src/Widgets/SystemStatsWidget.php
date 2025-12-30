@@ -94,10 +94,10 @@ class SystemStatsWidget extends AbstractDashboardWidget
                 SUM(CASE WHEN MONTH(created_at) = ? AND YEAR(created_at) = ? THEN 1 ELSE 0 END) as new_this_month
             ', [now()->month, now()->year])->first();
 
-            $totalUsers = $userStats->total ?? 0;
-            $activeUsers = $userStats->active ?? 0;
-            $inactiveUsers = $userStats->inactive ?? 0;
-            $newUsersThisMonth = $userStats->new_this_month ?? 0;
+            $totalUsers = (int) ($userStats->total ?? 0);
+            $activeUsers = (int) ($userStats->active ?? 0);
+            $inactiveUsers = (int) ($userStats->inactive ?? 0);
+            $newUsersThisMonth = (int) ($userStats->new_this_month ?? 0);
         } catch (\Throwable $e) {
             Log::warning('SystemStatsWidget: Failed to fetch user statistics', [
                 'error' => $e->getMessage(),
@@ -108,7 +108,7 @@ class SystemStatsWidget extends AbstractDashboardWidget
 
         // Role statistics with error handling
         try {
-            $totalRoles = Role::count();
+            $totalRoles = (int) Role::count();
         } catch (\Throwable $e) {
             Log::warning('SystemStatsWidget: Failed to fetch role count', ['error' => $e->getMessage()]);
             $totalRoles = 0;

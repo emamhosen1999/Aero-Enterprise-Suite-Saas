@@ -259,8 +259,8 @@ const TenantManagement = ({ title }) => {
 
     const fetchPlans = useCallback(async () => {
         try {
-            const response = await axios.get(route('api.v1.plans.index'));
-            setPlans(response.data.data || []);
+            const response = await axios.get(route('admin.plans.index'), { params: { per_page: 'all' } });
+            setPlans(response.data.plans || response.data.data || []);
         } catch (error) {
             console.error('Failed to fetch plans:', error);
         }

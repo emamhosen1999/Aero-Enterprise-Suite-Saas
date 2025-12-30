@@ -37,7 +37,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 import StatsCards from '@/Components/StatsCards';
 
 const Domains = ({ auth, title }) => {

@@ -25,7 +25,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { showToast } from '@/utils/toastUtils';
 import App from "@/Layouts/App.jsx";
-import { ThemedCard, ThemedCardHeader, ThemedCardBody } from '@/Components/UI/ThemedCard';
 
 const Edit = ({ auth, tenantId, title }) => {
     // Theme radius helper (REQUIRED)
@@ -95,8 +94,8 @@ const Edit = ({ auth, tenantId, title }) => {
 
     const fetchPlans = async () => {
         try {
-            const response = await axios.get(route('api.v1.plans.index'));
-            setPlans(response.data.data || []);
+            const response = await axios.get(route('admin.plans.index'), { params: { per_page: 'all' } });
+            setPlans(response.data.plans || response.data.data || []);
         } catch (error) {
             console.error('Failed to fetch plans:', error);
         }
@@ -202,22 +201,22 @@ const Edit = ({ auth, tenantId, title }) => {
                                     <CardBody className="p-6">
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                             <div className="lg:col-span-2 space-y-6">
-                                                <ThemedCard>
-                                                    <ThemedCardBody>
+                                                <Card>
+                                                    <CardBody>
                                                         <div className="space-y-4">
                                                             <Skeleton className="h-10 rounded-lg" />
                                                             <Skeleton className="h-10 rounded-lg" />
                                                             <Skeleton className="h-10 rounded-lg" />
                                                         </div>
-                                                    </ThemedCardBody>
-                                                </ThemedCard>
+                                                    </CardBody>
+                                                </Card>
                                             </div>
                                             <div>
-                                                <ThemedCard>
-                                                    <ThemedCardBody>
+                                                <Card>
+                                                    <CardBody>
                                                         <Skeleton className="h-32 rounded-lg" />
-                                                    </ThemedCardBody>
-                                                </ThemedCard>
+                                                    </CardBody>
+                                                </Card>
                                             </div>
                                         </div>
                                     </CardBody>
@@ -335,14 +334,14 @@ const Edit = ({ auth, tenantId, title }) => {
                                         {/* Main Form */}
                                         <div className="lg:col-span-2 space-y-6">
                                             {/* Company Information */}
-                                            <ThemedCard>
-                                                <ThemedCardHeader>
+                                            <Card>
+                                                <CardHeader>
                                                     <div className="flex items-center gap-2">
                                                         <BuildingOfficeIcon className="w-5 h-5 text-primary" />
                                                         <h3 className="text-lg font-semibold">Company Information</h3>
                                                     </div>
-                                                </ThemedCardHeader>
-                                                <ThemedCardBody>
+                                                </CardHeader>
+                                                <CardBody>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <Input
                                                             label="Company Name"
@@ -376,18 +375,18 @@ const Edit = ({ auth, tenantId, title }) => {
                                                             classNames={{ inputWrapper: "bg-default-100" }}
                                                         />
                                                     </div>
-                                                </ThemedCardBody>
-                                            </ThemedCard>
+                                                </CardBody>
+                                            </Card>
 
                     {/* Domain Info (Read-only) */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-2">
                                 <GlobeAltIcon className="w-5 h-5 text-primary" />
                                 <h3 className="text-lg font-semibold">Domain Configuration</h3>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-4">
                                 <Input
                                     label="Subdomain"
@@ -406,18 +405,18 @@ const Edit = ({ auth, tenantId, title }) => {
                                     ))}
                                 </div>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Subscription Settings */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <div className="flex items-center gap-2">
                                 <CreditCardIcon className="w-5 h-5 text-primary" />
                                 <h3 className="text-lg font-semibold">Subscription Settings</h3>
                             </div>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Select
                                     label="Plan"
@@ -452,18 +451,18 @@ const Edit = ({ auth, tenantId, title }) => {
                                     classNames={{ inputWrapper: "bg-default-100" }}
                                 />
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
                 </div>
 
                 {/* Sidebar */}
                 <div className="space-y-6">
                     {/* Status Card */}
-                    <ThemedCard>
-                        <ThemedCardHeader>
+                    <Card>
+                        <CardHeader>
                             <h3 className="text-lg font-semibold">Tenant Status</h3>
-                        </ThemedCardHeader>
-                        <ThemedCardBody>
+                        </CardHeader>
+                        <CardBody>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
                                     <span className="text-default-600">Current Status</span>
@@ -492,12 +491,12 @@ const Edit = ({ auth, tenantId, title }) => {
                                     </span>
                                 </div>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Action Buttons */}
-                    <ThemedCard>
-                        <ThemedCardBody>
+                    <Card>
+                        <CardBody>
                             <div className="space-y-3">
                                 <Button
                                     color="primary"
@@ -519,16 +518,16 @@ const Edit = ({ auth, tenantId, title }) => {
                                     Cancel
                                 </Button>
                             </div>
-                        </ThemedCardBody>
-                    </ThemedCard>
+                        </CardBody>
+                    </Card>
 
                     {/* Current Plan Info */}
                     {tenant?.plan && (
-                        <ThemedCard>
-                            <ThemedCardHeader>
+                        <Card>
+                            <CardHeader>
                                 <h3 className="text-lg font-semibold">Current Plan</h3>
-                            </ThemedCardHeader>
-                            <ThemedCardBody>
+                            </CardHeader>
+                            <CardBody>
                                 <div className="space-y-2">
                                     <p className="font-semibold text-lg">{tenant.plan.name}</p>
                                     <p className="text-2xl font-bold text-primary">
@@ -538,8 +537,8 @@ const Edit = ({ auth, tenantId, title }) => {
                                         <p className="text-sm text-default-500">{tenant.plan.description}</p>
                                     )}
                                 </div>
-                            </ThemedCardBody>
-                        </ThemedCard>
+                            </CardBody>
+                        </Card>
                     )}
                                         </div>
                                     </div>

@@ -38,6 +38,12 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
+    // Extract module codes from plan.modules (which may be objects or already strings)
+    const getModuleCodes = (modules) => {
+        if (!modules || !Array.isArray(modules)) return [];
+        return modules.map(m => typeof m === 'string' ? m : m.code).filter(Boolean);
+    };
+
     const form = useForm({
         name: plan?.name || '',
         description: plan?.description || '',
@@ -64,7 +70,7 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
             projects: { limit: 5, unlimited: false }
         },
         
-        modules: plan?.modules || [],
+        modules: getModuleCodes(plan?.modules),
         enabled_features: plan?.enabled_features || [],
         
         stripe_product_id: plan?.stripe_product_id || '',
@@ -92,9 +98,36 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        // Transform form data for backend API
+        const submitData = {
+            ...form.data,
+            // Map 'modules' to 'module_codes' as expected by StorePlanRequest
+            module_codes: form.data.modules,
+            // Map frontend field names to backend expected names
+            yearly_price: form.data.annual_price,
+            // Determine plan_type based on pricing
+            plan_type: form.data.monthly_price === 0 ? 'free' : 'paid',
+            // Status flags
+            is_active: form.data.status === 'active',
+            is_featured: false,
+            // Trial configuration
+            trial_days: form.data.trial_enabled ? (form.data.trial_days || 14) : 0,
+            // Limits from quotas
+            limits: {
+                max_users: form.data.quotas?.users?.unlimited ? 0 : (form.data.quotas?.users?.limit || 10),
+                max_storage_gb: form.data.quotas?.storage?.unlimited ? 0 : (form.data.quotas?.storage?.limit || 10),
+                max_employees: form.data.quotas?.employees?.unlimited ? 0 : (form.data.quotas?.employees?.limit || 10),
+                max_projects: form.data.quotas?.projects?.unlimited ? 0 : (form.data.quotas?.projects?.limit || 5),
+                max_api_calls: form.data.quotas?.api_calls?.unlimited ? 0 : (form.data.quotas?.api_calls?.limit || 10000),
+            },
+            features: form.data.enabled_features,
+            // Lifecycle policies
+            grace_days: form.data.grace_period || 7,
+        };
+        
         const promise = isEdit
-            ? axios.put(route('admin.plans.update', plan.id), form.data)
-            : axios.post(route('admin.plans.store'), form.data);
+            ? axios.put(route('admin.plans.update', plan.id), submitData)
+            : axios.post(route('admin.plans.store'), submitData);
 
         showToast.promise(promise, {
             loading: isEdit ? 'Updating plan...' : 'Creating plan...',

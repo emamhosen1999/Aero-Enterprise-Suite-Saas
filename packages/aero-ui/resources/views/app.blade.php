@@ -10,6 +10,9 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
+    <!-- CSRF Token for Axios/Inertia -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- Security & Performance -->
     @production
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
@@ -223,7 +226,7 @@
     <div id="app-loading" role="status" aria-live="polite" aria-label="Loading application">
         <div class="loading-content" role="presentation">
             <div class="loading-logo" aria-hidden="true">
-                <img src="{{ $logoUrl ?? asset('assets/images/logo.png') }}" alt=""
+                <img src="{{ $logoUrl ?? asset('favicon.ico') }}" alt=""
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                 <div class="loading-logo-fallback">
                     {{ substr($siteName ?? 'aeos365', 0, 1) }}

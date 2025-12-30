@@ -105,7 +105,7 @@ export default function Settings({ title, settings: initialSettings }) {
                 />
 
                 {/* Quota Type Settings */}
-                <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+                <Card className="transition-all duration-200">
                     <CardHeader className="border-b border-divider p-4">
                         <h3 className="text-lg font-semibold">Quota Thresholds & Grace Periods</h3>
                     </CardHeader>
@@ -157,7 +157,7 @@ export default function Settings({ title, settings: initialSettings }) {
                 </Card>
 
                 {/* Notification Channels */}
-                <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+                <Card className="transition-all duration-200">
                     <CardHeader className="border-b border-divider p-4">
                         <h3 className="text-lg font-semibold">Notification Channels</h3>
                     </CardHeader>
@@ -192,7 +192,7 @@ export default function Settings({ title, settings: initialSettings }) {
                 </Card>
 
                 {/* Warning Escalation */}
-                <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+                <Card className="transition-all duration-200">
                     <CardHeader className="border-b border-divider p-4">
                         <h3 className="text-lg font-semibold">Warning Escalation Schedule</h3>
                     </CardHeader>
@@ -233,7 +233,7 @@ export default function Settings({ title, settings: initialSettings }) {
                 </Card>
 
                 {/* API Throttling */}
-                <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+                <Card className="transition-all duration-200">
                     <CardHeader className="border-b border-divider p-4">
                         <h3 className="text-lg font-semibold">API Throttling Configuration</h3>
                     </CardHeader>
@@ -278,7 +278,7 @@ export default function Settings({ title, settings: initialSettings }) {
                 </Card>
 
                 {/* Warning History Retention */}
-                <Card className="transition-all duration-200" style={getThemedCardStyle()}>
+                <Card className="transition-all duration-200">
                     <CardHeader className="border-b border-divider p-4">
                         <h3 className="text-lg font-semibold">Warning History Retention</h3>
                     </CardHeader>
@@ -318,3 +318,5 @@ export default function Settings({ title, settings: initialSettings }) {
         </>
     );
 }
+
+

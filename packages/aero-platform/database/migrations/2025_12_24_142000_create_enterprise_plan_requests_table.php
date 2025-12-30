@@ -30,12 +30,13 @@ return new class extends Migration
             $table->timestamp('reviewed_at')->nullable();
             $table->text('admin_notes')->nullable();
             $table->text('rejection_reason')->nullable();
-            $table->foreignId('created_plan_id')->nullable()->constrained('plans')->onDelete('set null'); // If approved
+            $table->char('created_plan_id', 36)->nullable(); // UUID reference to plans.id
             $table->timestamps();
             $table->softDeletes();
 
             // Foreign key for tenant
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
+            $table->foreign('created_plan_id')->references('id')->on('plans')->onDelete('set null');
             
             // Composite indexes for common queries
             $table->index(['tenant_id', 'status']);
