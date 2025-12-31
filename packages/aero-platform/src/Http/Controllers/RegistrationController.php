@@ -14,10 +14,10 @@ use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\PlatformVerificationService;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
 use Aero\Platform\Services\Monitoring\Tenant\TenantRegistrationSession;
-use Aero\Platform\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -404,6 +404,20 @@ class RegistrationController extends Controller
         $subdomain = $payload['details']['subdomain'] ?? null;
         $email = $payload['details']['email'] ?? null;
 
+        // Idempotency check: Prevent duplicate submissions
+        $idempotencyKey = 'registration_trial_'.hash('sha256', $email.$subdomain.$request->session()->getId());
+        if (Cache::has($idempotencyKey)) {
+            $cachedTenantId = Cache::get($idempotencyKey);
+            Log::info('Duplicate trial activation prevented', [
+                'email' => $email,
+                'subdomain' => $subdomain,
+                'cached_tenant_id' => $cachedTenantId,
+            ]);
+
+            // Redirect to the existing provisioning page
+            return to_route('platform.register.provisioning', ['tenant' => $cachedTenantId]);
+        }
+
         // Get current session's tenant ID (if created during verification)
         $verification = $this->registrationSession->getStep('verification');
         $sessionTenantId = $verification['tenant_id'] ?? null;
@@ -460,6 +474,9 @@ class RegistrationController extends Controller
             // Dispatch async provisioning job AFTER transaction commits
             // Admin will be created after provisioning on tenant domain
             ProvisionTenant::dispatch($tenant);
+
+            // Store idempotency key to prevent duplicate submissions (valid for 1 hour)
+            Cache::put($idempotencyKey, $tenant->id, now()->addHour());
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Tenant creation/update failed', [
                 'error' => $e->getMessage(),

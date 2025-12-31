@@ -235,6 +235,17 @@ class TenantProvisioner
         $allowed = $plan->module_codes ?? $plan->modules->pluck('code')->all();
         $allowed = array_values(array_filter($allowed));
 
+        // Validate that plan has at least one module configured
+        if (empty($allowed)) {
+            Log::warning('Plan has no module_codes configured', [
+                'plan_id' => $planId,
+                'plan_name' => $plan->name ?? 'unknown',
+            ]);
+            throw new \InvalidArgumentException(
+                "The selected plan '{$plan->name}' has no modules configured. Please contact support."
+            );
+        }
+
         // If no modules requested, default to full allowed set
         if (empty($modules)) {
             return $allowed;

@@ -3,6 +3,7 @@
 namespace Aero\Core\Http\Controllers\Admin;
 
 use Aero\Core\Http\Controllers\Controller;
+use Aero\Core\Models\Role;
 use Aero\Core\Models\User;
 use Aero\Core\Models\Module;
 use Aero\Core\Services\AuditService;
@@ -14,7 +15,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
 
 /**
  * Shared Admin Role Controller
@@ -40,7 +40,7 @@ class RoleController extends Controller
      */
     protected function getViewPath(): string
     {
-        return 'Roles/Index';
+        return 'Core/Roles/Index';
     }
 
     /**
@@ -424,6 +424,8 @@ class RoleController extends Controller
                 Log::warning('Failed to create audit log for role deletion: ' . $e->getMessage());
             }
 
+            // Delete the role - the Role model's booted() deleting event handles module access cleanup
+            // and bootHasPermissions() override prevents Spatie from touching the permissions table
             $role->delete();
 
             DB::commit();

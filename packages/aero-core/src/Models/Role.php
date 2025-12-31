@@ -30,11 +30,37 @@ class Role extends SpatieRole
         'description',
         'is_protected',
         'scope',
+        'is_active',
     ];
 
     protected $casts = [
         'is_protected' => 'boolean',
+        'is_active' => 'boolean',
     ];
+
+    /**
+     * Boot the model - override Spatie's deletion listener.
+     * We don't use the permissions table, so we skip the permissions detach on delete.
+     */
+    protected static function booted(): void
+    {
+        // Override the deleting event to clean up module access instead of permissions
+        static::deleting(function (Role $role) {
+            // Clean up module access entries for this role
+            $role->moduleAccess()->delete();
+        });
+    }
+
+    /**
+     * Override Spatie's bootHasPermissions to prevent permissions table access.
+     * We don't use the role_has_permissions table.
+     */
+    public static function bootHasPermissions(): void
+    {
+        // Intentionally empty - we override this to prevent Spatie from 
+        // trying to detach permissions on delete (which would fail since
+        // role_has_permissions table doesn't exist)
+    }
 
     /**
      * Override permissions relationship to prevent querying non-existent permissions table.
@@ -51,6 +77,15 @@ class Role extends SpatieRole
             'role_id',
             'permission_id'
         )->whereRaw('1 = 0'); // Always empty result
+    }
+
+    /**
+     * Sync permissions - no-op since we use module access instead
+     */
+    public function syncPermissions(...$permissions): self
+    {
+        // No-op - we don't use permissions table
+        return $this;
     }
 
     /**

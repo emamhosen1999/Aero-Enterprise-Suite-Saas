@@ -628,4 +628,61 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
         return $data['admin_setup_completed_at'] ?? null;
     }
+
+    /**
+     * Get the database size in bytes for this tenant.
+     *
+     * Uses information_schema to calculate total size of all tables.
+     * Returns null if unable to determine (database not accessible).
+     *
+     * @return array{size_bytes: int|null, size_formatted: string|null, table_count: int|null}|null
+     */
+    public function getDatabaseSize(): ?array
+    {
+        try {
+            $dbName = $this->database()?->getName();
+
+            if (!$dbName) {
+                return null;
+            }
+
+            $result = \Illuminate\Support\Facades\DB::select(
+                'SELECT
+                    SUM(data_length + index_length) AS size_bytes,
+                    COUNT(*) AS table_count
+                FROM information_schema.tables
+                WHERE table_schema = ?',
+                [$dbName]
+            );
+
+            if (empty($result)) {
+                return null;
+            }
+
+            $sizeBytes = (int) ($result[0]->size_bytes ?? 0);
+            $tableCount = (int) ($result[0]->table_count ?? 0);
+
+            return [
+                'size_bytes' => $sizeBytes,
+                'size_formatted' => $this->formatBytes($sizeBytes),
+                'table_count' => $tableCount,
+            ];
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Format bytes into human-readable size.
+     */
+    protected function formatBytes(int $bytes, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
+    }
 }

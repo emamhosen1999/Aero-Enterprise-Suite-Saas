@@ -288,6 +288,8 @@ class ModuleController extends Controller
             'total_actions' => ModuleComponentAction::whereHas('component', function ($q) use ($subModuleIds) {
                 $q->whereIn('sub_module_id', $subModuleIds);
             })->count(),
+        ];
+    }
 
     /**
      * Get modules from database filtered by user's role access.
@@ -373,9 +375,6 @@ class ModuleController extends Controller
                 })->toArray(),
             ];
         })->toArray();
-    }
-            'active_modules' => $moduleIds->count(),
-        ];
     }
 
     /**

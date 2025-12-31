@@ -560,4 +560,76 @@ class TenantControllerTest extends TestCase
         $this->assertEquals('Beta Corporation', $response->json('data.1.name'));
         $this->assertEquals('Gamma Industries', $response->json('data.2.name'));
     }
+
+    // =========================================================================
+    // FORCE LOGOUT
+    // =========================================================================
+
+    public function testSuperAdminCanForceLogoutTenantUsers(): void
+    {
+        $tenant = Tenant::factory()->active()->create();
+
+        $response = $this->actingAs($this->superAdmin, 'landlord')
+            ->postJson(route('api.v1.tenants.force-logout', $tenant));
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'All user sessions have been terminated.');
+    }
+
+    // =========================================================================
+    // TOGGLE MAINTENANCE MODE
+    // =========================================================================
+
+    public function testSuperAdminCanToggleMaintenanceMode(): void
+    {
+        $tenant = Tenant::factory()->active()->create(['maintenance_mode' => false]);
+
+        // Enable maintenance mode
+        $response = $this->actingAs($this->superAdmin, 'landlord')
+            ->postJson(route('api.v1.tenants.toggle-maintenance', $tenant));
+
+        $response->assertOk()
+            ->assertJsonPath('maintenance_mode', true)
+            ->assertJsonPath('message', 'Maintenance mode enabled.');
+
+        // Disable maintenance mode
+        $response = $this->actingAs($this->superAdmin, 'landlord')
+            ->postJson(route('api.v1.tenants.toggle-maintenance', $tenant));
+
+        $response->assertOk()
+            ->assertJsonPath('maintenance_mode', false)
+            ->assertJsonPath('message', 'Maintenance mode disabled.');
+    }
+
+    // =========================================================================
+    // EXPORT
+    // =========================================================================
+
+    public function testSuperAdminCanExportTenants(): void
+    {
+        Tenant::factory()->count(3)->create();
+
+        $response = $this->actingAs($this->superAdmin, 'landlord')
+            ->get(route('api.v1.tenants.export'));
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->assertHeader('Content-Disposition');
+    }
+
+    public function testExportCanBeFilteredByStatus(): void
+    {
+        Tenant::factory()->active()->count(2)->create();
+        Tenant::factory()->suspended()->count(1)->create();
+
+        $response = $this->actingAs($this->superAdmin, 'landlord')
+            ->get(route('api.v1.tenants.export', ['status' => Tenant::STATUS_ACTIVE]));
+
+        $response->assertOk();
+
+        // Check CSV contains only active tenants (header + 2 data rows)
+        $content = $response->streamedContent();
+        $lines = explode("\n", trim($content));
+        $this->assertCount(3, $lines); // Header + 2 active tenants
+    }
 }

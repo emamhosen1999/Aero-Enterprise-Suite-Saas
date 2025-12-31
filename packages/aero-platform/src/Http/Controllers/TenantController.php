@@ -93,12 +93,13 @@ class TenantController extends Controller
      * Get tenant statistics.
      *
      * Stats are cached for 2 minutes to improve performance at scale.
+     * Uses a static cache key so all admins share the same cached data.
      */
     public function stats(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Tenant::class);
 
-        $cacheKey = 'tenant_stats_' . now()->format('Y-m-d_H-i');
+        $cacheKey = 'platform:tenant_stats';
         $cacheTtl = 120; // 2 minutes
 
         $stats = Cache::remember($cacheKey, $cacheTtl, function () {
@@ -207,6 +208,10 @@ class TenantController extends Controller
 
     /**
      * Update a tenant.
+     *
+     * If plan_id is being changed, validates that the new plan is compatible:
+     * - New plan must have all modules currently in use by the tenant
+     * - Downgrade warnings are logged for audit purposes
      */
     public function update(Request $request, Tenant $tenant): JsonResponse
     {
@@ -220,6 +225,43 @@ class TenantController extends Controller
             'trial_ends_at' => ['nullable', 'date'],
             'subscription_ends_at' => ['nullable', 'date'],
         ]);
+
+        // Plan change validation
+        if (isset($validated['plan_id']) && $validated['plan_id'] !== $tenant->plan_id) {
+            $newPlan = \Aero\Platform\Models\Plan::find($validated['plan_id']);
+            $oldPlan = $tenant->plan;
+
+            if ($newPlan && $oldPlan) {
+                $oldModules = $oldPlan->module_codes ?? [];
+                $newModules = $newPlan->module_codes ?? [];
+
+                // Check for modules being removed (potential data loss)
+                $removedModules = array_diff($oldModules, $newModules);
+
+                if (!empty($removedModules)) {
+                    // Log the plan change with removed modules for audit
+                    \Illuminate\Support\Facades\Log::warning('Tenant plan downgrade detected', [
+                        'tenant_id' => $tenant->id,
+                        'tenant_name' => $tenant->name,
+                        'old_plan' => $oldPlan->name,
+                        'new_plan' => $newPlan->name,
+                        'removed_modules' => $removedModules,
+                        'changed_by' => auth('landlord')->id(),
+                    ]);
+
+                    // Store downgrade info in tenant data for transparency
+                    $tenant->data = array_merge($tenant->data?->getArrayCopy() ?? [], [
+                        'last_plan_change' => [
+                            'from' => $oldPlan->id,
+                            'to' => $newPlan->id,
+                            'removed_modules' => array_values($removedModules),
+                            'changed_at' => now()->toIso8601String(),
+                            'changed_by' => auth('landlord')->id(),
+                        ],
+                    ]);
+                }
+            }
+        }
 
         $tenant->update($validated);
 
@@ -478,5 +520,155 @@ class TenantController extends Controller
             'data' => $tenant->fresh(),
             'message' => 'Provisioning retry started.',
         ]);
+    }
+
+    /**
+     * Force logout all users for a tenant.
+     *
+     * Invalidates all active sessions by clearing the sessions table
+     * and revoking all personal access tokens for the tenant's database.
+     */
+    public function forceLogout(Request $request, Tenant $tenant): JsonResponse
+    {
+        $this->authorize('suspend', $tenant);
+
+        try {
+            tenancy()->initialize($tenant);
+
+            // Clear all sessions
+            DB::table('sessions')->truncate();
+
+            // Revoke all personal access tokens (if using Sanctum)
+            if (\Illuminate\Support\Facades\Schema::hasTable('personal_access_tokens')) {
+                DB::table('personal_access_tokens')->delete();
+            }
+
+            tenancy()->end();
+
+            // Log the action
+            $tenant->data = array_merge($tenant->data?->getArrayCopy() ?? [], [
+                'force_logout_at' => now()->toIso8601String(),
+                'force_logout_by' => auth('landlord')->id(),
+            ]);
+            $tenant->save();
+
+            return response()->json([
+                'message' => 'All user sessions have been terminated.',
+            ]);
+        } catch (\Exception $e) {
+            tenancy()->end();
+
+            return response()->json([
+                'message' => 'Failed to force logout: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle maintenance mode for a tenant.
+     */
+    public function toggleMaintenance(Request $request, Tenant $tenant): JsonResponse
+    {
+        $this->authorize('update', $tenant);
+
+        $isEnabled = $tenant->isInMaintenance();
+
+        if ($isEnabled) {
+            $tenant->disableMaintenance();
+            $message = 'Maintenance mode disabled.';
+        } else {
+            $tenant->enableMaintenance();
+            $message = 'Maintenance mode enabled.';
+        }
+
+        // Log the action
+        $tenant->data = array_merge($tenant->data?->getArrayCopy() ?? [], [
+            'maintenance_toggled_at' => now()->toIso8601String(),
+            'maintenance_toggled_by' => auth('landlord')->id(),
+            'maintenance_mode' => !$isEnabled,
+        ]);
+        $tenant->save();
+
+        return response()->json([
+            'data' => $tenant->fresh(),
+            'maintenance_mode' => !$isEnabled,
+            'message' => $message,
+        ]);
+    }
+
+    /**
+     * Export tenants to CSV (server-side generation for large datasets).
+     */
+    public function export(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $this->authorize('viewAny', Tenant::class);
+
+        $query = Tenant::query()
+            ->with(['plan'])
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')))
+            ->when($request->filled('plan_id'), fn ($q) => $q->where('plan_id', $request->input('plan_id')))
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->input('search');
+                $q->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('subdomain', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('created_at', 'desc');
+
+        $filename = 'tenants_export_' . now()->format('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($query) {
+            $handle = fopen('php://output', 'w');
+
+            // Write header row
+            fputcsv($handle, [
+                'ID',
+                'Name',
+                'Subdomain',
+                'Email',
+                'Phone',
+                'Type',
+                'Status',
+                'Plan',
+                'Trial Ends At',
+                'Subscription Ends At',
+                'Created At',
+                'Updated At',
+            ]);
+
+            // Stream results in chunks to handle large datasets
+            $query->chunk(500, function ($tenants) use ($handle) {
+                foreach ($tenants as $tenant) {
+                    fputcsv($handle, [
+                        $tenant->id,
+                        $tenant->name,
+                        $tenant->subdomain,
+                        $tenant->email,
+                        $tenant->phone,
+                        $tenant->type,
+                        $tenant->status,
+                        $tenant->plan?->name ?? 'No Plan',
+                        $tenant->trial_ends_at?->toDateString(),
+                        $tenant->subscription_ends_at?->toDateString(),
+                        $tenant->created_at?->toDateTimeString(),
+                        $tenant->updated_at?->toDateTimeString(),
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

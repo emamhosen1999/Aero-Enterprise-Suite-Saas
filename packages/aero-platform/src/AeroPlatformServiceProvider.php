@@ -406,6 +406,7 @@ class AeroPlatformServiceProvider extends ServiceProvider
         $router->aliasMiddleware('tenant.onboarding', \Aero\Platform\Http\Middleware\RequireTenantOnboarding::class);
         $router->aliasMiddleware('set.locale', \Aero\Platform\Http\Middleware\SetLocale::class);
         $router->aliasMiddleware('check.subscription', \Aero\Platform\Http\Middleware\CheckModuleSubscription::class);
+        $router->aliasMiddleware('require.saas', \Aero\Platform\Http\Middleware\RequireSaasMode::class);
 
         // Optionally push CheckModuleSubscription to 'tenant' middleware group
         // This provides automatic route-based module gating for all tenant routes
@@ -803,20 +804,26 @@ class AeroPlatformServiceProvider extends ServiceProvider
      *
      * This overrides Core's migrator override which excludes app migrations.
      * Platform further restricts to ONLY platform migrations for landlord.
+     * 
+     * IMPORTANT: This filter only applies when connected to the central/landlord database.
+     * When tenancy is initialized (tenant database), all package migrations are allowed.
      */
     protected function overrideMigratorForLandlord(): void
     {
         $platformMigrationsPath = realpath(__DIR__.'/../database/migrations');
+        $centralDatabase = config('tenancy.database.central_connection', config('database.default'));
 
-        $this->app->extend('migrator', function ($migrator, $app) use ($platformMigrationsPath) {
-            return new class($app['migration.repository'], $app['db'], $app['files'], $app['events'], $platformMigrationsPath) extends \Illuminate\Database\Migrations\Migrator
+        $this->app->extend('migrator', function ($migrator, $app) use ($platformMigrationsPath, $centralDatabase) {
+            return new class($app['migration.repository'], $app['db'], $app['files'], $app['events'], $platformMigrationsPath, $centralDatabase) extends \Illuminate\Database\Migrations\Migrator
             {
                 protected string $platformMigrationsPath;
+                protected string $centralDatabase;
 
-                public function __construct($repository, $resolver, $files, $dispatcher, string $platformMigrationsPath)
+                public function __construct($repository, $resolver, $files, $dispatcher, string $platformMigrationsPath, string $centralDatabase)
                 {
                     parent::__construct($repository, $resolver, $files, $dispatcher);
                     $this->platformMigrationsPath = $platformMigrationsPath;
+                    $this->centralDatabase = $centralDatabase;
                 }
 
                 public function getMigrationFiles($paths)
@@ -824,7 +831,13 @@ class AeroPlatformServiceProvider extends ServiceProvider
                     // Get all migration files from all paths
                     $files = parent::getMigrationFiles($paths);
 
-                    // ONLY allow migrations from aero-platform package
+                    // Check if we're on a tenant database (tenancy is initialized)
+                    // If tenancy is initialized, allow ALL package migrations
+                    if (function_exists('tenancy') && tenancy()->initialized) {
+                        return $files;
+                    }
+
+                    // On central/landlord database: ONLY allow migrations from aero-platform package
                     // All other packages (core, hrm, crm, etc.) are for tenant databases
                     return collect($files)->filter(function ($path, $name) {
                         // Normalize path for comparison (resolve ../ and convert slashes)

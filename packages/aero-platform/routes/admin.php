@@ -136,7 +136,8 @@ Route::middleware(['auth:landlord'])->group(function () {
     // =========================================================================
     // 2. TENANT MANAGEMENT MODULE (tenants)
     // =========================================================================
-    Route::middleware(['module:tenants'])->prefix('tenants')->name('admin.tenants.')->group(function () {
+    // Note: require.saas middleware blocks these routes in standalone mode
+    Route::middleware(['require.saas', 'module:tenants'])->prefix('tenants')->name('admin.tenants.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Platform/Admin/Tenants/Index');
         })->middleware(['module:tenants,tenant-list'])->name('index');
@@ -162,6 +163,12 @@ Route::middleware(['auth:landlord'])->group(function () {
 
         // Dynamic routes with {tenant} parameter MUST come after static routes
         Route::get('/{tenant}', function ($tenant) {
+            // Validate tenant exists - return 404 if not found
+            $tenantModel = \Aero\Platform\Models\Tenant::find($tenant);
+            if (!$tenantModel) {
+                abort(404, 'Tenant not found');
+            }
+
             $user = auth('landlord')->user();
             $canImpersonate = false;
             
@@ -177,6 +184,12 @@ Route::middleware(['auth:landlord'])->group(function () {
         })->middleware(['module:tenants,tenant-list,tenant-management,view'])->name('show');
 
         Route::get('/{tenant}/edit', function ($tenant) {
+            // Validate tenant exists - return 404 if not found
+            $tenantModel = \Aero\Platform\Models\Tenant::find($tenant);
+            if (!$tenantModel) {
+                abort(404, 'Tenant not found');
+            }
+
             return Inertia::render('Platform/Admin/Tenants/Edit', ['tenantId' => $tenant]);
         })->middleware(['module:tenants,tenant-list,tenant-management,update'])->name('edit');
 
@@ -1086,14 +1099,18 @@ Route::middleware(['auth:landlord'])->group(function () {
     // These are JSON API endpoints for admin operations
 
     Route::prefix('api/v1')->name('api.v1.')->group(function () {
-        // Tenant Management API
-        Route::prefix('tenants')->name('tenants.')->middleware(['module:tenants'])->group(function () {
+        // Tenant Management API (require.saas blocks in standalone mode)
+        Route::prefix('tenants')->name('tenants.')->middleware(['require.saas', 'module:tenants'])->group(function () {
             Route::get('/', [TenantController::class, 'index'])
                 ->middleware(['module:tenants,tenant-list,view'])
                 ->name('index');
             Route::get('/stats', [TenantController::class, 'stats'])
                 ->middleware(['module:tenants,tenant-list,view'])
                 ->name('stats');
+            // Export MUST be before /{tenant} to prevent 'export' being captured as tenant ID
+            Route::get('/export', [TenantController::class, 'export'])
+                ->middleware(['module:tenants,tenant-list,view'])
+                ->name('export');
             Route::get('/{tenant}', [TenantController::class, 'show'])
                 ->middleware(['module:tenants,tenant-list,view'])
                 ->name('show');
@@ -1121,6 +1138,12 @@ Route::middleware(['auth:landlord'])->group(function () {
             Route::post('/{tenant}/retry-provisioning', [TenantController::class, 'retryProvisioning'])
                 ->middleware(['module:tenants,tenant-list,create'])
                 ->name('retry-provisioning');
+            Route::post('/{tenant}/force-logout', [TenantController::class, 'forceLogout'])
+                ->middleware(['module:tenants,tenant-list,suspend'])
+                ->name('force-logout');
+            Route::post('/{tenant}/toggle-maintenance', [TenantController::class, 'toggleMaintenance'])
+                ->middleware(['module:tenants,tenant-list,edit'])
+                ->name('toggle-maintenance');
         });
 
         // Domain Management API
