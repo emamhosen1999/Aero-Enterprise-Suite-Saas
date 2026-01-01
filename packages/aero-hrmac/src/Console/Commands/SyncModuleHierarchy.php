@@ -1,12 +1,14 @@
 <?php
 
-namespace Aero\Core\Console\Commands;
+declare(strict_types=1);
 
-use Aero\Core\Models\Module;
-use Aero\Core\Models\ModuleComponent;
-use Aero\Core\Models\ModuleComponentAction;
-use Aero\Core\Models\SubModule;
-use Aero\Core\Services\Module\ModuleDiscoveryService;
+namespace Aero\HRMAC\Console\Commands;
+
+use Aero\HRMAC\Models\Action;
+use Aero\HRMAC\Models\Component;
+use Aero\HRMAC\Models\Module;
+use Aero\HRMAC\Models\SubModule;
+use Aero\HRMAC\Services\ModuleDiscoveryService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -14,26 +16,23 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Sync Module Hierarchy Command
  *
- * Syncs module definitions from packages to the custom 4-level hierarchy:
+ * Syncs module definitions from packages to the 4-level hierarchy:
  * - modules (top level)
  * - sub_modules (second level)
  * - module_components (third level)
  * - module_component_actions (fourth level - leaf)
  *
- * This command does NOT use Spatie Permissions. It uses custom hierarchy tables
- * with role_module_access for authorization.
- *
- * Usage: php artisan aero:sync-module-hierarchy
+ * Usage: php artisan hrmac:sync-modules
  */
 class SyncModuleHierarchy extends Command
 {
-    protected $signature = 'aero:sync-module
-                          {--scope= : Override auto-detected scope (platform or tenant)}
-                          {--fresh : Clear all existing modules before syncing (fresh seed)}
-                          {--force : Force sync even if modules table does not exist}
+    protected $signature = 'hrmac:sync-modules
+                          {--scope= : Override auto-detected scope (platform, tenant, or all)}
+                          {--fresh : Clear all existing modules before syncing}
+                          {--force : Force sync even if tables do not exist}
                           {--prune : Remove modules that are no longer installed}';
 
-    protected $description = 'Sync module hierarchy from package configs to database. Auto-detects context: central DB = platform modules, tenant DB = tenant modules.';
+    protected $description = 'Sync module hierarchy from package configs to database. Auto-detects context.';
 
     protected ModuleDiscoveryService $moduleDiscovery;
 
@@ -60,26 +59,26 @@ class SyncModuleHierarchy extends Command
 
     public function handle(): int
     {
-        $this->info('🚀 Starting Module Hierarchy Sync...');
+        $this->info('🚀 HRMAC: Starting Module Hierarchy Sync...');
         $this->newLine();
 
-        // CRITICAL: Schema validation to prevent crashes in Standalone mode
+        // Schema validation
         if (! $this->validateSchema()) {
             return self::FAILURE;
         }
 
-        // Auto-detect scope based on current context (tenant vs central)
+        // Auto-detect scope
         $scope = $this->option('scope') ?: $this->detectScope();
-        $prune = $this->option('prune');
         $fresh = $this->option('fresh');
+        $prune = $this->option('prune');
 
-        $this->info("📍 Detected context: {$scope}");
+        $this->info("📍 Context: {$scope}");
         $this->newLine();
 
         try {
             DB::beginTransaction();
 
-            // Fresh sync: Clear all existing modules before syncing
+            // Fresh sync
             if ($fresh) {
                 $this->clearExistingModules($scope);
             }
@@ -88,17 +87,17 @@ class SyncModuleHierarchy extends Command
 
             if ($modules->isEmpty()) {
                 $this->warn('⚠️  No module definitions found in packages.');
-                
-                // If pruning is enabled, remove all non-core modules
+
                 if ($prune) {
-                    $this->warn('🗑️  Pruning enabled - removing all non-core modules from database...');
                     $this->pruneRemovedModules(collect([]));
                     DB::commit();
                     $this->displayStats();
+
                     return self::SUCCESS;
                 }
-                
+
                 DB::rollBack();
+
                 return self::SUCCESS;
             }
 
@@ -108,32 +107,31 @@ class SyncModuleHierarchy extends Command
             $progressBar = $this->output->createProgressBar($modules->count());
             $progressBar->setFormat('verbose');
 
-            $syncedModuleCodes = [];
-
             foreach ($modules as $moduleDef) {
-                // Filter by scope (skip if scope is 'all' - sync everything in standalone mode)
+                // Filter by scope
                 $moduleScope = $moduleDef['scope'] ?? 'tenant';
                 if ($scope && $scope !== 'all' && $moduleScope !== $scope) {
                     $progressBar->advance();
+
                     continue;
                 }
 
                 $this->syncModule($moduleDef);
-                $syncedModuleCodes[] = $moduleDef['code'];
                 $progressBar->advance();
             }
 
             $progressBar->finish();
             $this->newLine(2);
 
-            // Prune removed modules (always prune to keep DB in sync)
-            $this->pruneRemovedModules(collect($modules));
+            // Prune removed modules
+            if ($prune) {
+                $this->pruneRemovedModules($modules);
+            }
 
             DB::commit();
 
             $this->displayStats();
-
-            $this->info('✅ Module hierarchy sync completed successfully!');
+            $this->info('✅ Module hierarchy sync completed!');
 
             return self::SUCCESS;
         } catch (\Exception $e) {
@@ -147,116 +145,12 @@ class SyncModuleHierarchy extends Command
     }
 
     /**
-     * Prune modules that are no longer installed.
-     * Only removes non-core modules to protect essential system modules.
-     */
-    protected function pruneRemovedModules($installedModules): void
-    {
-        $installedCodes = $installedModules->pluck('code')->toArray();
-        
-        // Find modules in DB that are not in installed packages (exclude core modules)
-        $removedModules = Module::whereNotIn('code', $installedCodes)
-            ->where('is_core', false)
-            ->get();
-
-        if ($removedModules->isEmpty()) {
-            return;
-        }
-
-        $this->warn("🗑️  Removing {$removedModules->count()} uninstalled module(s)...");
-
-        foreach ($removedModules as $module) {
-            $this->line("   - Removing: {$module->name} ({$module->code})");
-            
-            // Count items being removed for stats
-            $submoduleCount = $module->subModules()->count();
-            $componentCount = ModuleComponent::where('module_id', $module->id)->count();
-            $actionCount = ModuleComponentAction::whereIn(
-                'module_component_id', 
-                ModuleComponent::where('module_id', $module->id)->pluck('id')
-            )->count();
-
-            // Delete in reverse order (actions -> components -> submodules -> module)
-            // Due to foreign key constraints
-            ModuleComponentAction::whereIn(
-                'module_component_id', 
-                ModuleComponent::where('module_id', $module->id)->pluck('id')
-            )->delete();
-            
-            ModuleComponent::where('module_id', $module->id)->delete();
-            $module->subModules()->delete();
-            $module->delete();
-
-            $this->stats['modules_removed']++;
-            $this->stats['submodules_removed'] += $submoduleCount;
-            $this->stats['components_removed'] += $componentCount;
-            $this->stats['actions_removed'] += $actionCount;
-        }
-    }
-
-    /**
-     * Clear all existing modules before fresh sync.
-     * Respects scope filter if provided.
-     */
-    protected function clearExistingModules(?string $scope): void
-    {
-        $this->warn('🧹 Fresh sync: Clearing existing modules...');
-
-        $query = Module::query();
-
-        // Filter by scope if specified (unless 'all' which clears everything)
-        if ($scope && $scope !== 'all') {
-            $query->where('scope', $scope);
-            $this->line("   Clearing only '{$scope}' scoped modules");
-        } else {
-            $this->line('   Clearing all modules');
-        }
-
-        $modules = $query->get();
-
-        if ($modules->isEmpty()) {
-            $this->info('   No existing modules to clear.');
-
-            return;
-        }
-
-        foreach ($modules as $module) {
-            // Count items being removed for stats
-            $submoduleCount = $module->subModules()->count();
-            $componentCount = ModuleComponent::where('module_id', $module->id)->count();
-            $actionCount = ModuleComponentAction::whereIn(
-                'module_component_id',
-                ModuleComponent::where('module_id', $module->id)->pluck('id')
-            )->count();
-
-            // Delete in reverse order (actions -> components -> submodules -> module)
-            ModuleComponentAction::whereIn(
-                'module_component_id',
-                ModuleComponent::where('module_id', $module->id)->pluck('id')
-            )->delete();
-
-            ModuleComponent::where('module_id', $module->id)->delete();
-            $module->subModules()->delete();
-            $module->delete();
-
-            $this->stats['modules_removed']++;
-            $this->stats['submodules_removed'] += $submoduleCount;
-            $this->stats['components_removed'] += $componentCount;
-            $this->stats['actions_removed'] += $actionCount;
-        }
-
-        $this->info("   ✓ Cleared {$modules->count()} module(s)");
-        $this->newLine();
-    }
-
-    /**
-     * Validate database schema before syncing.
-     * Prevents crashes in Standalone mode if migrations haven't run.
+     * Validate database schema.
      */
     protected function validateSchema(): bool
     {
         if ($this->option('force')) {
-            $this->warn('⚠️  Skipping schema validation (--force flag)');
+            $this->warn('⚠️  Skipping schema validation (--force)');
 
             return true;
         }
@@ -271,10 +165,8 @@ class SyncModuleHierarchy extends Command
         }
 
         if (! empty($missingTables)) {
-            $this->error('❌ Required tables do not exist: '.implode(', ', $missingTables));
+            $this->error('❌ Required tables missing: '.implode(', ', $missingTables));
             $this->error('Run migrations first: php artisan migrate');
-            $this->newLine();
-            $this->info('💡 Or use --force flag to skip validation (not recommended)');
 
             return false;
         }
@@ -286,36 +178,25 @@ class SyncModuleHierarchy extends Command
     }
 
     /**
-     * Auto-detect scope based on current database context.
-     *
-     * - If running in tenant context (tenancy initialized) → tenant scope
-     * - If running on central/landlord database → platform scope
-     *
-     * Detection logic:
-     * 1. Check if tenancy() helper exists and tenant is initialized
-     * 2. Check if 'tenants' table exists (indicates central database)
-     * 3. Default to tenant if unclear
+     * Auto-detect scope based on context.
      */
     protected function detectScope(): string
     {
-        // Check if we're in a tenant context (stancl/tenancy)
+        // Tenant context
         if (function_exists('tenancy') && tenancy()->initialized) {
             return 'tenant';
         }
 
-        // Check if tenants table exists - indicates central/landlord database
+        // Central database (has tenants table)
         if (Schema::hasTable('tenants')) {
             return 'platform';
         }
 
-        // Check if this is a standalone app (no tenancy package)
-        // In standalone mode, we sync all modules
+        // Standalone mode
         if (! class_exists(\Stancl\Tenancy\Tenancy::class)) {
-            // Return null to sync all modules in standalone mode
             return 'all';
         }
 
-        // Default to tenant scope if running in an ambiguous context
         return 'tenant';
     }
 
@@ -324,7 +205,6 @@ class SyncModuleHierarchy extends Command
      */
     protected function syncModule(array $moduleDef): void
     {
-        // Sync module (top level)
         $module = Module::updateOrCreate(
             ['code' => $moduleDef['code']],
             [
@@ -398,7 +278,7 @@ class SyncModuleHierarchy extends Command
     protected function syncComponents(Module $module, SubModule $subModule, array $components): void
     {
         foreach ($components as $componentDef) {
-            $component = ModuleComponent::updateOrCreate(
+            $component = Component::updateOrCreate(
                 [
                     'module_id' => $module->id,
                     'sub_module_id' => $subModule->id,
@@ -409,7 +289,6 @@ class SyncModuleHierarchy extends Command
                     'description' => $componentDef['description'] ?? null,
                     'type' => $componentDef['type'] ?? 'page',
                     'route' => $componentDef['route'] ?? null,
-                    'priority' => $componentDef['priority'] ?? 100,
                     'is_active' => $componentDef['is_active'] ?? true,
                 ]
             );
@@ -430,10 +309,10 @@ class SyncModuleHierarchy extends Command
     /**
      * Sync actions for a component.
      */
-    protected function syncActions(ModuleComponent $component, array $actions): void
+    protected function syncActions(Component $component, array $actions): void
     {
         foreach ($actions as $actionDef) {
-            $action = ModuleComponentAction::updateOrCreate(
+            $action = Action::updateOrCreate(
                 [
                     'module_component_id' => $component->id,
                     'code' => $actionDef['code'],
@@ -441,7 +320,6 @@ class SyncModuleHierarchy extends Command
                 [
                     'name' => $actionDef['name'],
                     'description' => $actionDef['description'] ?? null,
-                    'is_active' => $actionDef['is_active'] ?? true,
                 ]
             );
 
@@ -450,6 +328,91 @@ class SyncModuleHierarchy extends Command
             } else {
                 $this->stats['actions_updated']++;
             }
+        }
+    }
+
+    /**
+     * Clear existing modules.
+     */
+    protected function clearExistingModules(?string $scope): void
+    {
+        $this->warn('🧹 Fresh sync: Clearing existing modules...');
+
+        $query = Module::query();
+
+        if ($scope && $scope !== 'all') {
+            $query->where('scope', $scope);
+        }
+
+        $modules = $query->get();
+
+        foreach ($modules as $module) {
+            $submoduleCount = $module->subModules()->count();
+            $componentCount = Component::where('module_id', $module->id)->count();
+            $actionCount = Action::whereIn(
+                'module_component_id',
+                Component::where('module_id', $module->id)->pluck('id')
+            )->count();
+
+            Action::whereIn(
+                'module_component_id',
+                Component::where('module_id', $module->id)->pluck('id')
+            )->delete();
+
+            Component::where('module_id', $module->id)->delete();
+            $module->subModules()->delete();
+            $module->delete();
+
+            $this->stats['modules_removed']++;
+            $this->stats['submodules_removed'] += $submoduleCount;
+            $this->stats['components_removed'] += $componentCount;
+            $this->stats['actions_removed'] += $actionCount;
+        }
+
+        $this->info("   ✓ Cleared {$modules->count()} module(s)");
+        $this->newLine();
+    }
+
+    /**
+     * Prune removed modules.
+     */
+    protected function pruneRemovedModules($installedModules): void
+    {
+        $installedCodes = $installedModules->pluck('code')->toArray();
+
+        $removedModules = Module::whereNotIn('code', $installedCodes)
+            ->where('is_core', false)
+            ->get();
+
+        if ($removedModules->isEmpty()) {
+            return;
+        }
+
+        $this->warn("🗑️  Removing {$removedModules->count()} uninstalled module(s)...");
+
+        foreach ($removedModules as $module) {
+            $this->line("   - Removing: {$module->name} ({$module->code})");
+
+            $submoduleCount = $module->subModules()->count();
+            $componentCount = Component::where('module_id', $module->id)->count();
+            $actionCount = Action::whereIn(
+                'module_component_id',
+                Component::where('module_id', $module->id)->pluck('id')
+            )->count();
+
+            Action::whereIn(
+                'module_component_id',
+                Component::where('module_id', $module->id)->pluck('id')
+            )->delete();
+
+            Component::where('module_id', $module->id)->delete();
+            $module->subModules()->delete();
+            $module->delete();
+
+            $this->stats['modules_removed']++;
+            $this->stats['submodules_removed'] += $submoduleCount;
+            $this->stats['components_removed'] += $componentCount;
+            $this->stats['actions_removed'] += $actionCount;
         }
     }
 
@@ -469,11 +432,11 @@ class SyncModuleHierarchy extends Command
             ]
         );
 
-        $totalCreated = $this->stats['modules_created'] + $this->stats['submodules_created'] + 
+        $totalCreated = $this->stats['modules_created'] + $this->stats['submodules_created'] +
                        $this->stats['components_created'] + $this->stats['actions_created'];
-        $totalUpdated = $this->stats['modules_updated'] + $this->stats['submodules_updated'] + 
+        $totalUpdated = $this->stats['modules_updated'] + $this->stats['submodules_updated'] +
                        $this->stats['components_updated'] + $this->stats['actions_updated'];
-        $totalRemoved = $this->stats['modules_removed'] + $this->stats['submodules_removed'] + 
+        $totalRemoved = $this->stats['modules_removed'] + $this->stats['submodules_removed'] +
                        $this->stats['components_removed'] + $this->stats['actions_removed'];
 
         $this->newLine();

@@ -758,14 +758,23 @@ class ProvisionTenant implements ShouldQueue
 
     /**
      * Sync a single module and its hierarchy to the database.
+     * Uses HRMAC models if available, falls back to Core models.
      */
     protected function syncModuleToDatabase(array $moduleDef): void
     {
-        // Import models
-        $moduleClass = \Aero\Core\Models\Module::class;
-        $subModuleClass = \Aero\Core\Models\SubModule::class;
-        $componentClass = \Aero\Core\Models\ModuleComponent::class;
-        $actionClass = \Aero\Core\Models\ModuleComponentAction::class;
+        // Use HRMAC models if available, else fall back to Core models
+        $moduleClass = class_exists(\Aero\HRMAC\Models\Module::class)
+            ? \Aero\HRMAC\Models\Module::class
+            : \Aero\Core\Models\Module::class;
+        $subModuleClass = class_exists(\Aero\HRMAC\Models\SubModule::class)
+            ? \Aero\HRMAC\Models\SubModule::class
+            : \Aero\Core\Models\SubModule::class;
+        $componentClass = class_exists(\Aero\HRMAC\Models\Component::class)
+            ? \Aero\HRMAC\Models\Component::class
+            : \Aero\Core\Models\ModuleComponent::class;
+        $actionClass = class_exists(\Aero\HRMAC\Models\Action::class)
+            ? \Aero\HRMAC\Models\Action::class
+            : \Aero\Core\Models\ModuleComponentAction::class;
 
         // Sync module (top level)
         $module = $moduleClass::updateOrCreate(

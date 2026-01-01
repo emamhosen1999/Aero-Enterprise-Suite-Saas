@@ -1,0 +1,34 @@
+{
+    "name": "aero/hrmac",
+    "description": "Hierarchical Role-Module Access Control for Aero Enterprise Suite",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Aero Team",
+            "email": "dev@aeroenterprise.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/database": "^11.0|^12.0",
+        "illuminate/cache": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aero\\HRMAC\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Aero\\HRMAC\\HRMACServiceProvider"
+            ],
+            "aliases": {
+                "HRMAC": "Aero\\HRMAC\\Facades\\HRMAC"
+            }
+        }
+    },
+    "minimum-stability": "stable"
+}

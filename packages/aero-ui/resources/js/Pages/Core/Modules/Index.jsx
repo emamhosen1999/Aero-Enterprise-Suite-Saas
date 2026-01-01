@@ -330,9 +330,44 @@ const ModuleManagement = (props) => {
 
     const debouncedSearch = useDebounce(searchQuery, 300);
 
-    // Filter modules
+    // Process modules: Flatten Core module's sub-modules to appear as top-level modules
+    // This hides "Core Framework" as a parent and shows Dashboard, User Management, etc. as main modules
+    const processedModules = useMemo(() => {
+        const result = [];
+        
+        modules.forEach(module => {
+            // If this is the Core module, promote its sub-modules to top-level
+            if (module.code === 'core' && module.is_core) {
+                // Add each sub-module as a "virtual" top-level module
+                (module.sub_modules || []).forEach(subModule => {
+                    result.push({
+                        ...subModule,
+                        // Mark as promoted from Core for styling/identification if needed
+                        is_core_submodule: true,
+                        // Inherit some properties from parent Core module
+                        category: module.category || 'core_system',
+                        // Use sub-module's components directly
+                        sub_modules: [{
+                            ...subModule,
+                            // The sub-module becomes its own only sub-module for hierarchy display
+                        }],
+                        // Keep original module reference for permission syncing
+                        parent_module_id: module.id,
+                        parent_module_code: module.code,
+                    });
+                });
+            } else {
+                // Non-core modules are added as-is
+                result.push(module);
+            }
+        });
+        
+        return result;
+    }, [modules]);
+
+    // Filter modules (now using processedModules instead of modules)
     const filteredModules = useMemo(() => {
-        return modules.filter(module => {
+        return processedModules.filter(module => {
             const matchesSearch = !debouncedSearch ||
                 module.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
                 module.code.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
@@ -345,13 +380,13 @@ const ModuleManagement = (props) => {
 
             return matchesSearch && matchesCategory && matchesStatus;
         });
-    }, [modules, debouncedSearch, categoryFilter, statusFilter]);
+    }, [processedModules, debouncedSearch, categoryFilter, statusFilter]);
 
-    // Stats cards data
+    // Stats cards data - use processedModules count for accurate display
     const statsData = useMemo(() => [
         {
             title: 'Total Modules',
-            value: statistics.total_modules || 0,
+            value: processedModules.length || 0,
             icon: <CubeIcon className="w-6 h-6" />,
             color: 'primary',
             description: 'Top-level modules'
@@ -377,7 +412,7 @@ const ModuleManagement = (props) => {
             color: 'warning',
             description: 'Access requirements'
         }
-    ], [statistics]);
+    ], [statistics, processedModules]);
 
     // Toggle module expansion
     const toggleModuleExpand = (moduleId) => {
@@ -457,7 +492,14 @@ const ModuleManagement = (props) => {
     };
 
     // Check if an item is checked (considering inheritance)
-    const isModuleChecked = (moduleId) => roleAccess.modules.includes(moduleId);
+    // For promoted Core sub-modules (is_core_submodule: true), check sub_modules array instead
+    const isModuleChecked = (moduleId, isCoreSubmodule = false, parentModuleId = null) => {
+        if (isCoreSubmodule) {
+            // This is a promoted Core sub-module - check parent module OR sub_modules array
+            return roleAccess.modules.includes(parentModuleId) || roleAccess.sub_modules.includes(moduleId);
+        }
+        return roleAccess.modules.includes(moduleId);
+    };
     const isSubModuleChecked = (subModuleId, moduleId) => {
         // Checked if parent module is checked OR explicitly checked
         return roleAccess.modules.includes(moduleId) || roleAccess.sub_modules.includes(subModuleId);
@@ -477,7 +519,13 @@ const ModuleManagement = (props) => {
 
     // Check if an item is indeterminate (some children checked, not all)
     const isModuleIndeterminate = (module) => {
-        if (roleAccess.modules.includes(module.id)) return false;
+        // For promoted Core sub-modules, check the sub_modules array
+        if (module.is_core_submodule) {
+            if (roleAccess.modules.includes(module.parent_module_id)) return false;
+            if (roleAccess.sub_modules.includes(module.id)) return false;
+        } else {
+            if (roleAccess.modules.includes(module.id)) return false;
+        }
         // Check if any sub-module, component, or action is checked
         const hasAnyChecked = module.sub_modules?.some(sm => 
             roleAccess.sub_modules.includes(sm.id) ||
@@ -490,30 +538,52 @@ const ModuleManagement = (props) => {
     };
 
     // Toggle module access (and all children)
-    const toggleModuleAccess = (moduleId, checked) => {
+    // For promoted Core sub-modules, use sub_modules array instead
+    const toggleModuleAccess = (moduleId, checked, isCoreSubmodule = false, parentModuleId = null) => {
         setRoleAccess(prev => {
             const newAccess = { ...prev };
-            if (checked) {
-                // Add module (grants access to all children via inheritance)
-                if (!newAccess.modules.includes(moduleId)) {
-                    newAccess.modules = [...newAccess.modules, moduleId];
-                }
-                // Remove any explicit sub-module/component/action entries for this module (now inherited)
-                const module = modules.find(m => m.id === moduleId);
-                if (module) {
-                    const subModuleIds = module.sub_modules?.map(sm => sm.id) || [];
-                    const componentIds = module.sub_modules?.flatMap(sm => sm.components?.map(c => c.id) || []) || [];
-                    const actionIds = module.sub_modules?.flatMap(sm => 
-                        sm.components?.flatMap(c => c.actions?.map(a => a.id) || []) || []
-                    ) || [];
-                    
-                    newAccess.sub_modules = newAccess.sub_modules.filter(id => !subModuleIds.includes(id));
-                    newAccess.components = newAccess.components.filter(id => !componentIds.includes(id));
-                    newAccess.actions = newAccess.actions.filter(a => !actionIds.includes(a.id || a));
+            
+            if (isCoreSubmodule) {
+                // This is a promoted Core sub-module - add to sub_modules array
+                if (checked) {
+                    if (!newAccess.sub_modules.includes(moduleId)) {
+                        newAccess.sub_modules = [...newAccess.sub_modules, moduleId];
+                    }
+                    // Remove child component/action entries for this sub-module (now inherited)
+                    const processedModule = processedModules.find(m => m.id === moduleId && m.is_core_submodule);
+                    if (processedModule) {
+                        const componentIds = processedModule.components?.map(c => c.id) || [];
+                        const actionIds = processedModule.components?.flatMap(c => c.actions?.map(a => a.id) || []) || [];
+                        newAccess.components = newAccess.components.filter(id => !componentIds.includes(id));
+                        newAccess.actions = newAccess.actions.filter(a => !actionIds.includes(a.id || a));
+                    }
+                } else {
+                    newAccess.sub_modules = newAccess.sub_modules.filter(id => id !== moduleId);
                 }
             } else {
-                // Remove module
-                newAccess.modules = newAccess.modules.filter(id => id !== moduleId);
+                // Regular module
+                if (checked) {
+                    // Add module (grants access to all children via inheritance)
+                    if (!newAccess.modules.includes(moduleId)) {
+                        newAccess.modules = [...newAccess.modules, moduleId];
+                    }
+                    // Remove any explicit sub-module/component/action entries for this module (now inherited)
+                    const module = modules.find(m => m.id === moduleId);
+                    if (module) {
+                        const subModuleIds = module.sub_modules?.map(sm => sm.id) || [];
+                        const componentIds = module.sub_modules?.flatMap(sm => sm.components?.map(c => c.id) || []) || [];
+                        const actionIds = module.sub_modules?.flatMap(sm => 
+                            sm.components?.flatMap(c => c.actions?.map(a => a.id) || []) || []
+                        ) || [];
+                        
+                        newAccess.sub_modules = newAccess.sub_modules.filter(id => !subModuleIds.includes(id));
+                        newAccess.components = newAccess.components.filter(id => !componentIds.includes(id));
+                        newAccess.actions = newAccess.actions.filter(a => !actionIds.includes(a.id || a));
+                    }
+                } else {
+                    // Remove module
+                    newAccess.modules = newAccess.modules.filter(id => id !== moduleId);
+                }
             }
             return newAccess;
         });
@@ -932,10 +1002,10 @@ const ModuleManagement = (props) => {
                             {/* Role Access Checkbox */}
                             {selectedRoleId && (
                                 <Checkbox
-                                    isSelected={isModuleChecked(module.id) || isProtectedRole}
-                                    isIndeterminate={!isModuleChecked(module.id) && isModuleIndeterminate(module)}
+                                    isSelected={isModuleChecked(module.id, module.is_core_submodule, module.parent_module_id) || isProtectedRole}
+                                    isIndeterminate={!isModuleChecked(module.id, module.is_core_submodule, module.parent_module_id) && isModuleIndeterminate(module)}
                                     isDisabled={isProtectedRole}
-                                    onValueChange={(checked) => toggleModuleAccess(module.id, checked)}
+                                    onValueChange={(checked) => toggleModuleAccess(module.id, checked, module.is_core_submodule, module.parent_module_id)}
                                     onClick={(e) => e.stopPropagation()}
                                     color="primary"
                                     size="lg"

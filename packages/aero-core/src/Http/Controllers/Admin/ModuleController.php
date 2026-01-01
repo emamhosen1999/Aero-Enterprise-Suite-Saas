@@ -12,7 +12,6 @@ use Aero\Core\Models\SubModule;
 use Aero\Core\Services\AuditService;
 use Aero\Core\Services\Module\RoleModuleAccessService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -45,7 +44,7 @@ class ModuleController extends Controller
      */
     protected function getViewPath(): string
     {
-        return 'Modules/Index';
+        return 'Core/Modules/Index';
     }
 
     /**
@@ -54,6 +53,7 @@ class ModuleController extends Controller
     protected function isSuperAdmin(): bool
     {
         $user = $this->getCurrentUser();
+
         return $user?->hasRole('Super Administrator') ?? false;
     }
 
@@ -67,7 +67,7 @@ class ModuleController extends Controller
 
         // Load modules from database (tenant scope only for Core package)
         $moduleScope = 'tenant';
-        
+
         // SECURITY FIX: Filter modules by user's role access
         if ($isSuperAdmin) {
             // Super admins see all modules
@@ -157,7 +157,7 @@ class ModuleController extends Controller
                             $componentData['actions'][] = [
                                 'code' => $action['code'],
                                 'name' => $action['name'],
-                            ]
+                            ],
                         ];
                     }
 
@@ -954,7 +954,7 @@ class ModuleController extends Controller
             try {
                 $oldAccessData = $this->roleModuleAccessService->getRoleAccessTree($role);
             } catch (\Exception $e) {
-                Log::warning('Could not capture old access state for audit: ' . $e->getMessage());
+                Log::warning('Could not capture old access state for audit: '.$e->getMessage());
             }
 
             $this->roleModuleAccessService->syncRoleAccess($role, $accessData);
@@ -973,7 +973,7 @@ class ModuleController extends Controller
             try {
                 app(AuditService::class)->logRoleAccessChanged($role, $oldAccessData, $accessData);
             } catch (\Exception $e) {
-                Log::warning('Failed to create audit log for role access change: ' . $e->getMessage());
+                Log::warning('Failed to create audit log for role access change: '.$e->getMessage());
             }
 
             return response()->json([

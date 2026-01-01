@@ -1,0 +1,1518 @@
+<?php
+
+namespace Aero\Core\Http\Controllers;
+
+use Aero\Core\Services\LicenseValidationService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
+
+/**
+ * Unified Installation Controller
+ * 
+ * Handles installation for both SaaS (Platform) and Standalone (Core) modes.
+ * Uses the unified UI components from aero-ui package.
+ * 
+ * Mode detection:
+ * - 'saas': When aero-platform package is installed and SAAS_MODE=true
+ * - 'standalone': Default mode for single-tenant installations
+ */
+class UnifiedInstallationController extends Controller
+{
+    /**
+     * Installation lock file (unified path for both core and platform)
+     */
+    private const LOCK_FILE = 'app/aeos.installed';
+    
+    /**
+     * Progress file for tracking installation steps
+     */
+    private const PROGRESS_FILE = 'storage/framework/installation_progress.json';
+    
+    /**
+     * Configuration persistence path
+     */
+    private const CONFIG_PATH = 'storage/framework/installation_config.json';
+
+    /**
+     * Installation timeout in minutes
+     */
+    private const INSTALLATION_TIMEOUT = 30;
+
+    /**
+     * License validation service (optional for SaaS mode)
+     */
+    protected ?LicenseValidationService $licenseService;
+
+    public function __construct(?LicenseValidationService $licenseService = null)
+    {
+        $this->licenseService = $licenseService;
+    }
+
+    /**
+     * Detect installation mode
+     */
+    protected function getMode(): string
+    {
+        // Check if Platform package is installed and SaaS mode is enabled
+        if (class_exists('\Aero\Platform\AeroPlatformServiceProvider') 
+            && config('aero.mode', 'standalone') === 'saas') {
+            return 'saas';
+        }
+        
+        return 'standalone';
+    }
+
+    /**
+     * Get step configuration based on mode
+     */
+    protected function getSteps(): array
+    {
+        $mode = $this->getMode();
+        
+        if ($mode === 'saas') {
+            return [
+                1 => 'welcome',
+                2 => 'requirements',
+                3 => 'database',
+                4 => 'settings',
+                5 => 'admin',
+                6 => 'review',
+                7 => 'processing',
+                8 => 'complete',
+            ];
+        }
+        
+        return [
+            1 => 'welcome',
+            2 => 'license',
+            3 => 'requirements',
+            4 => 'database',
+            5 => 'settings',
+            6 => 'admin',
+            7 => 'review',
+            8 => 'processing',
+            9 => 'complete',
+        ];
+    }
+
+    /**
+     * Check if application is already installed
+     */
+    protected function isInstalled(): bool
+    {
+        return File::exists(storage_path(self::LOCK_FILE));
+    }
+
+    /**
+     * Persist configuration to file (browser-refresh safe)
+     */
+    protected function persistConfig(string $key, array $data): void
+    {
+        $configPath = base_path(self::CONFIG_PATH);
+        $config = [];
+        
+        if (File::exists($configPath)) {
+            $config = json_decode(File::get($configPath), true) ?? [];
+        }
+        
+        $config[$key] = $data;
+        $config['_updated_at'] = now()->toDateTimeString();
+        $config['_mode'] = $this->getMode();
+        
+        File::ensureDirectoryExists(dirname($configPath));
+        File::put($configPath, json_encode($config, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Get persisted configuration
+     */
+    protected function getPersistedConfig(?string $key = null): mixed
+    {
+        $configPath = base_path(self::CONFIG_PATH);
+        
+        if (!File::exists($configPath)) {
+            return $key ? null : [];
+        }
+        
+        $config = json_decode(File::get($configPath), true) ?? [];
+        
+        return $key ? ($config[$key] ?? null) : $config;
+    }
+
+    /**
+     * Clear persisted configuration
+     */
+    protected function clearPersistedConfig(): void
+    {
+        $configPath = base_path(self::CONFIG_PATH);
+        
+        if (File::exists($configPath)) {
+            File::delete($configPath);
+        }
+    }
+
+    /**
+     * Show welcome page
+     */
+    public function welcome()
+    {
+        if ($this->isInstalled()) {
+            return $this->alreadyInstalled();
+        }
+
+        $mode = $this->getMode();
+        $steps = $this->getSteps();
+
+        return Inertia::render('Installation/Welcome', [
+            'title' => 'Welcome to Aero Enterprise Suite',
+            'mode' => $mode,
+            'version' => config('app.version', '1.0.0'),
+            'phpVersion' => PHP_VERSION,
+            'laravelVersion' => app()->version(),
+            'steps' => array_values($steps),
+            'installedModules' => $this->getInstalledModules(),
+        ]);
+    }
+
+    /**
+     * Show license validation page (Standalone only)
+     */
+    public function license()
+    {
+        if ($this->isInstalled()) {
+            return redirect()->route('login');
+        }
+
+        // Skip license for SaaS mode
+        if ($this->getMode() === 'saas') {
+            return redirect()->route('install.requirements');
+        }
+
+        return Inertia::render('Installation/License', [
+            'title' => 'License Validation',
+            'mode' => 'standalone',
+            'savedLicense' => $this->getPersistedConfig('license'),
+        ]);
+    }
+
+    /**
+     * Validate license key
+     */
+    public function validateLicense(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'license_key' => 'required|string|min:10',
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid input',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if (!$this->licenseService) {
+            return response()->json([
+                'success' => false,
+                'message' => 'License validation service not available',
+            ], 500);
+        }
+
+        // Validate license against API
+        $result = $this->licenseService->validate(
+            $request->license_key,
+            $request->email,
+            $request->get('domain', request()->getHost())
+        );
+
+        if (!$result['success']) {
+            return response()->json($result, 422);
+        }
+
+        // Persist license data
+        $this->persistConfig('license', [
+            'key' => $request->license_key,
+            'email' => $request->email,
+            'provider' => $result['data']['provider'] ?? 'unknown',
+            'type' => $result['data']['type'] ?? 'regular',
+            'valid_until' => $result['data']['valid_until'] ?? null,
+            'allowed_modules' => $result['data']['allowed_modules'] ?? [],
+            'validated_at' => now()->toDateTimeString(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'License validated successfully',
+            'data' => $result['data'],
+        ]);
+    }
+
+    /**
+     * Show requirements check page
+     */
+    public function requirements()
+    {
+        if ($this->isInstalled()) {
+            return redirect()->route('login');
+        }
+
+        $checks = $this->performRequirementsCheck();
+
+        return Inertia::render('Installation/Requirements', [
+            'title' => 'System Requirements',
+            'mode' => $this->getMode(),
+            'checks' => $checks,
+            'canProceed' => $checks['allPassed'],
+        ]);
+    }
+
+    /**
+     * Re-check requirements (AJAX)
+     */
+    public function recheckRequirements()
+    {
+        $checks = $this->performRequirementsCheck();
+        
+        return response()->json([
+            'success' => true,
+            'checks' => $checks,
+            'canProceed' => $checks['allPassed'],
+        ]);
+    }
+
+    /**
+     * Show database configuration page
+     */
+    public function database()
+    {
+        if ($this->isInstalled()) {
+            return redirect()->route('login');
+        }
+
+        return Inertia::render('Installation/Database', [
+            'title' => 'Database Configuration',
+            'mode' => $this->getMode(),
+            'savedDatabase' => $this->getPersistedConfig('database'),
+            'connections' => ['mysql', 'pgsql', 'sqlite', 'sqlsrv'],
+        ]);
+    }
+
+    /**
+     * Test database server connection
+     */
+    public function testDatabaseServer(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'connection' => 'required|string|in:mysql,pgsql,sqlite,sqlsrv',
+            'host' => 'required_unless:connection,sqlite|string',
+            'port' => 'required_unless:connection,sqlite|integer',
+            'username' => 'required_unless:connection,sqlite|string',
+            'password' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid input',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $connection = $request->connection;
+            
+            // Configure temporary connection
+            Config::set("database.connections.installation_test", array_merge(
+                config("database.connections.{$connection}"),
+                [
+                    'host' => $request->host,
+                    'port' => $request->port,
+                    'username' => $request->username,
+                    'password' => $request->password ?? '',
+                    'database' => null, // Don't specify database yet
+                ]
+            ));
+
+            // Test connection
+            DB::connection('installation_test')->getPdo();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Server connection successful',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Connection failed: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * List available databases
+     */
+    public function listDatabases(Request $request)
+    {
+        try {
+            $connection = $request->connection ?? 'mysql';
+            
+            Config::set("database.connections.installation_test", array_merge(
+                config("database.connections.{$connection}"),
+                [
+                    'host' => $request->host,
+                    'port' => $request->port,
+                    'username' => $request->username,
+                    'password' => $request->password ?? '',
+                    'database' => null,
+                ]
+            ));
+
+            $databases = DB::connection('installation_test')
+                ->select("SHOW DATABASES");
+
+            $systemDbs = ['information_schema', 'mysql', 'performance_schema', 'sys', 'phpmyadmin'];
+            $filtered = array_filter(
+                array_column($databases, 'Database'),
+                fn($db) => !in_array($db, $systemDbs)
+            );
+
+            return response()->json([
+                'success' => true,
+                'databases' => array_values($filtered),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to list databases: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Create new database
+     */
+    public function createDatabase(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|alpha_dash|max:64',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid database name',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $connection = $request->connection ?? 'mysql';
+            
+            Config::set("database.connections.installation_test", array_merge(
+                config("database.connections.{$connection}"),
+                [
+                    'host' => $request->host,
+                    'port' => $request->port,
+                    'username' => $request->username,
+                    'password' => $request->password ?? '',
+                    'database' => null,
+                ]
+            ));
+
+            DB::connection('installation_test')
+                ->statement("CREATE DATABASE IF NOT EXISTS `{$request->name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Database '{$request->name}' created successfully",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create database: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Save database configuration
+     */
+    public function saveDatabase(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'connection' => 'required|string|in:mysql,pgsql,sqlite,sqlsrv',
+            'host' => 'required_unless:connection,sqlite|string',
+            'port' => 'required_unless:connection,sqlite|integer',
+            'database' => 'required|string',
+            'username' => 'required_unless:connection,sqlite|string',
+            'password' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid input',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Test full connection
+        try {
+            Config::set("database.connections.installation_test", array_merge(
+                config("database.connections.{$request->connection}"),
+                [
+                    'host' => $request->host,
+                    'port' => $request->port,
+                    'database' => $request->database,
+                    'username' => $request->username,
+                    'password' => $request->password ?? '',
+                ]
+            ));
+
+            DB::connection('installation_test')->getPdo();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database connection failed: ' . $e->getMessage(),
+            ], 422);
+        }
+
+        // Persist database config
+        $this->persistConfig('database', [
+            'connection' => $request->connection,
+            'host' => $request->host,
+            'port' => $request->port,
+            'database' => $request->database,
+            'username' => $request->username,
+            'password' => $request->password ?? '',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Database configuration saved',
+        ]);
+    }
+
+    /**
+     * Show settings page (mode-aware)
+     */
+    public function settings()
+    {
+        if ($this->isInstalled()) {
+            return redirect()->route('login');
+        }
+
+        $mode = $this->getMode();
+        $savedSettings = $this->getPersistedConfig('settings');
+
+        return Inertia::render('Installation/Settings', [
+            'title' => $mode === 'saas' ? 'Platform Settings' : 'System Settings',
+            'mode' => $mode,
+            'savedSettings' => $savedSettings,
+            'timezones' => $this->getTimezones(),
+        ]);
+    }
+
+    /**
+     * Save settings (Platform or System)
+     */
+    public function saveSettings(Request $request)
+    {
+        $mode = $this->getMode();
+        
+        if ($mode === 'saas') {
+            return $this->savePlatformSettings($request);
+        }
+        
+        return $this->saveSystemSettings($request);
+    }
+
+    /**
+     * Save Platform settings (SaaS mode)
+     */
+    protected function savePlatformSettings(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'site_name' => 'required|string|max:100',
+            'support_email' => 'required|email',
+            'app_url' => 'required|url',
+            'timezone' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $this->persistConfig('settings', $request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Platform settings saved',
+        ]);
+    }
+
+    /**
+     * Save System settings (Standalone mode)
+     */
+    protected function saveSystemSettings(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'company_name' => 'required|string|max:100',
+            'support_email' => 'required|email',
+            'app_url' => 'required|url',
+            'timezone' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $this->persistConfig('settings', $request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'System settings saved',
+        ]);
+    }
+
+    /**
+     * Show admin account page
+     */
+    public function admin()
+    {
+        if ($this->isInstalled()) {
+            return redirect()->route('login');
+        }
+
+        return Inertia::render('Installation/Admin', [
+            'title' => 'Admin Account',
+            'mode' => $this->getMode(),
+            'savedAdmin' => $this->getPersistedConfig('admin'),
+        ]);
+    }
+
+    /**
+     * Save admin account
+     */
+    public function saveAdmin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:50',
+            'last_name' => 'required|string|max:50',
+            'email' => 'required|email|max:100',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Store password hash, not plain text
+        // Also store plain password temporarily for Complete page display (will be cleared)
+        $this->persistConfig('admin', [
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'password' => $request->password, // For Complete page display only
+            'password_hash' => Hash::make($request->password),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin account saved',
+        ]);
+    }
+
+    /**
+     * Show review page
+     */
+    public function review()
+    {
+        if ($this->isInstalled()) {
+            return redirect()->route('login');
+        }
+
+        $config = $this->getPersistedConfig();
+        $mode = $this->getMode();
+
+        // Build summary
+        $summary = [
+            'database' => $config['database'] ?? [],
+            'settings' => $config['settings'] ?? [],
+            'admin' => [
+                'first_name' => $config['admin']['first_name'] ?? '',
+                'last_name' => $config['admin']['last_name'] ?? '',
+                'email' => $config['admin']['email'] ?? '',
+            ],
+        ];
+
+        // Add license for standalone mode
+        if ($mode === 'standalone' && isset($config['license'])) {
+            $summary['license'] = [
+                'key' => $config['license']['key'] ?? '',
+                'provider' => $config['license']['provider'] ?? '',
+                'type' => $config['license']['type'] ?? '',
+                'valid_until' => $config['license']['valid_until'] ?? null,
+            ];
+            $summary['modules'] = $config['license']['allowed_modules'] ?? [];
+        }
+
+        return Inertia::render('Installation/Review', [
+            'title' => 'Review Configuration',
+            'mode' => $mode,
+            'summary' => $summary,
+        ]);
+    }
+
+    /**
+     * Show processing page
+     */
+    public function processing()
+    {
+        if ($this->isInstalled()) {
+            return redirect()->route('install.complete');
+        }
+
+        return Inertia::render('Installation/Processing', [
+            'title' => 'Installing',
+            'mode' => $this->getMode(),
+        ]);
+    }
+
+    /**
+     * Test email configuration
+     */
+    public function testEmail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'mail_host' => 'required|string',
+            'mail_port' => 'required|integer',
+            'mail_from_address' => 'required|email',
+            'test_email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid input',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            // Configure mailer dynamically
+            Config::set('mail.mailers.smtp.host', $request->mail_host);
+            Config::set('mail.mailers.smtp.port', $request->mail_port);
+            Config::set('mail.mailers.smtp.username', $request->mail_username ?? '');
+            Config::set('mail.mailers.smtp.password', $request->mail_password ?? '');
+            Config::set('mail.mailers.smtp.encryption', $request->mail_encryption ?? 'tls');
+            Config::set('mail.from.address', $request->mail_from_address);
+            Config::set('mail.from.name', $request->mail_from_name ?? 'Aero Installation Test');
+
+            // Send test email
+            \Illuminate\Support\Facades\Mail::raw(
+                'This is a test email from the Aero Enterprise Suite installation wizard. If you received this email, your SMTP configuration is working correctly.',
+                function ($message) use ($request) {
+                    $message->to($request->test_email)
+                        ->subject('Aero Enterprise Suite - Test Email');
+                }
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Test email sent successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send test email: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Execute installation
+     */
+    public function execute()
+    {
+        if ($this->isInstalled()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Application is already installed',
+            ], 422);
+        }
+
+        try {
+            // Mark installation as in progress
+            Cache::put('installation_in_progress', true, now()->addMinutes(self::INSTALLATION_TIMEOUT));
+            
+            // Remove progress file if exists to trigger fresh installation
+            $progressFile = base_path(self::PROGRESS_FILE);
+            if (File::exists($progressFile)) {
+                File::delete($progressFile);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Installation started',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to start installation: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get installation progress
+     */
+    public function progress()
+    {
+        $progressFile = base_path(self::PROGRESS_FILE);
+        
+        if (!File::exists($progressFile)) {
+            // If no progress file, run the actual installation
+            return $this->runInstallation();
+        }
+
+        $progress = json_decode(File::get($progressFile), true);
+        
+        return response()->json($progress);
+    }
+
+    /**
+     * Run the actual installation (called via progress polling)
+     */
+    protected function runInstallation()
+    {
+        $mode = $this->getMode();
+        $config = $this->getPersistedConfig();
+        
+        $steps = $mode === 'saas' 
+            ? ['config', 'database', 'migrations', 'admin', 'modules', 'settings', 'cache', 'finalize']
+            : ['config', 'database', 'migrations', 'seeders', 'roles', 'admin', 'settings', 'modules', 'cache', 'finalize'];
+
+        $totalSteps = count($steps);
+        $currentStepIndex = 0;
+
+        try {
+            foreach ($steps as $step) {
+                $this->updateProgress(
+                    ($currentStepIndex / $totalSteps) * 100,
+                    $step,
+                    'running'
+                );
+
+                $this->executeStep($step, $config, $mode);
+                
+                $currentStepIndex++;
+            }
+
+            // Mark as complete
+            $this->updateProgress(100, 'complete', 'completed');
+            $this->createLockFile();
+
+            return response()->json([
+                'percentage' => 100,
+                'currentStep' => 'complete',
+                'status' => 'completed',
+                'steps' => $this->getProgressSteps($mode),
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Installation failed', [
+                'step' => $steps[$currentStepIndex] ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $this->updateProgress(
+                ($currentStepIndex / $totalSteps) * 100,
+                $steps[$currentStepIndex] ?? 'unknown',
+                'failed',
+                $e->getMessage()
+            );
+
+            return response()->json([
+                'percentage' => ($currentStepIndex / $totalSteps) * 100,
+                'currentStep' => $steps[$currentStepIndex] ?? 'unknown',
+                'status' => 'failed',
+                'error' => $e->getMessage(),
+                'steps' => $this->getProgressSteps($mode),
+            ]);
+        }
+    }
+
+    /**
+     * Execute a specific installation step
+     */
+    protected function executeStep(string $step, array $config, string $mode): void
+    {
+        match ($step) {
+            'config' => $this->stepWriteConfig($config),
+            'database' => $this->stepSetupDatabase($config),
+            'migrations' => $this->stepRunMigrations($mode),
+            'seeders' => $this->stepRunSeeders($mode),
+            'roles' => $this->stepCreateRoles(),
+            'admin' => $this->stepCreateAdmin($config, $mode),
+            'settings' => $this->stepSaveSettings($config, $mode),
+            'modules' => $this->stepInstallModules($config),
+            'cache' => $this->stepWarmCache(),
+            'finalize' => $this->stepFinalize(),
+            default => throw new \Exception("Unknown installation step: {$step}"),
+        };
+    }
+
+    /**
+     * Step: Write configuration files
+     */
+    protected function stepWriteConfig(array $config): void
+    {
+        $envPath = base_path('.env');
+        $dbConfig = $config['database'] ?? [];
+        $settings = $config['settings'] ?? [];
+
+        // Read current .env
+        $envContent = File::exists($envPath) ? File::get($envPath) : '';
+
+        // Update database settings
+        $envContent = $this->updateEnvValue($envContent, 'DB_CONNECTION', $dbConfig['connection'] ?? 'mysql');
+        $envContent = $this->updateEnvValue($envContent, 'DB_HOST', $dbConfig['host'] ?? '127.0.0.1');
+        $envContent = $this->updateEnvValue($envContent, 'DB_PORT', $dbConfig['port'] ?? '3306');
+        $envContent = $this->updateEnvValue($envContent, 'DB_DATABASE', $dbConfig['database'] ?? 'aero');
+        $envContent = $this->updateEnvValue($envContent, 'DB_USERNAME', $dbConfig['username'] ?? 'root');
+        $envContent = $this->updateEnvValue($envContent, 'DB_PASSWORD', $dbConfig['password'] ?? '');
+
+        // Update app settings
+        $envContent = $this->updateEnvValue($envContent, 'APP_URL', $settings['app_url'] ?? 'http://localhost');
+        $envContent = $this->updateEnvValue($envContent, 'APP_TIMEZONE', $settings['timezone'] ?? 'UTC');
+
+        // Email settings
+        if (!empty($settings['mail_host'])) {
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_MAILER', $settings['mail_driver'] ?? 'smtp');
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_HOST', $settings['mail_host']);
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_PORT', $settings['mail_port'] ?? '587');
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_USERNAME', $settings['mail_username'] ?? '');
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_PASSWORD', $settings['mail_password'] ?? '');
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_ENCRYPTION', $settings['mail_encryption'] ?? 'tls');
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_FROM_ADDRESS', $settings['mail_from_address'] ?? '');
+            $envContent = $this->updateEnvValue($envContent, 'MAIL_FROM_NAME', $settings['mail_from_name'] ?? '');
+        }
+
+        File::put($envPath, $envContent);
+        
+        // Clear config cache to pick up new values
+        Artisan::call('config:clear');
+    }
+
+    /**
+     * Step: Setup database connection
+     */
+    protected function stepSetupDatabase(array $config): void
+    {
+        $dbConfig = $config['database'] ?? [];
+        $connection = $dbConfig['connection'] ?? 'mysql';
+
+        // Re-configure database connection
+        Config::set("database.default", $connection);
+        Config::set("database.connections.{$connection}.host", $dbConfig['host'] ?? '127.0.0.1');
+        Config::set("database.connections.{$connection}.port", $dbConfig['port'] ?? 3306);
+        Config::set("database.connections.{$connection}.database", $dbConfig['database'] ?? 'aero');
+        Config::set("database.connections.{$connection}.username", $dbConfig['username'] ?? 'root');
+        Config::set("database.connections.{$connection}.password", $dbConfig['password'] ?? '');
+
+        // Purge and reconnect
+        DB::purge($connection);
+        DB::reconnect($connection);
+
+        // Test connection
+        DB::connection()->getPdo();
+    }
+
+    /**
+     * Step: Run migrations
+     */
+    protected function stepRunMigrations(string $mode): void
+    {
+        if ($mode === 'saas') {
+            // Run platform migrations
+            Artisan::call('migrate', [
+                '--force' => true,
+                '--path' => 'vendor/aero/platform/database/migrations',
+            ]);
+        }
+
+        // Run core migrations
+        Artisan::call('migrate', [
+            '--force' => true,
+        ]);
+    }
+
+    /**
+     * Step: Run seeders
+     */
+    protected function stepRunSeeders(string $mode): void
+    {
+        if ($mode === 'saas') {
+            Artisan::call('db:seed', [
+                '--class' => 'Aero\\Platform\\Database\\Seeders\\PlatformDatabaseSeeder',
+                '--force' => true,
+            ]);
+        } else {
+            Artisan::call('db:seed', [
+                '--force' => true,
+            ]);
+        }
+    }
+
+    /**
+     * Step: Create roles and permissions
+     */
+    protected function stepCreateRoles(): void
+    {
+        Artisan::call('hrmac:sync-modules', ['--scope' => 'all']);
+    }
+
+    /**
+     * Step: Create admin user
+     */
+    protected function stepCreateAdmin(array $config, string $mode): void
+    {
+        $adminConfig = $config['admin'] ?? [];
+        
+        if ($mode === 'saas') {
+            // Create LandlordUser with Platform Role model
+            $userClass = 'Aero\\Platform\\Models\\LandlordUser';
+            $roleClass = 'Aero\\Platform\\Models\\Role'; // Uses Platform Role (extends Spatie)
+        } else {
+            // Create regular User
+            $userClass = config('auth.providers.users.model', 'App\\Models\\User');
+            $roleClass = 'Spatie\\Permission\\Models\\Role';
+        }
+
+        $email = $adminConfig['email'] ?? 'admin@example.com';
+        
+        // Handle soft-deleted users: check with trashed first, restore or create
+        $user = $userClass::withTrashed()->where('email', $email)->first();
+        
+        if ($user) {
+            // User exists (possibly soft-deleted), restore if needed
+            if ($user->trashed()) {
+                $user->restore();
+            }
+            // Update password and name in case they changed
+            $user->update([
+                'name' => ($adminConfig['first_name'] ?? 'Admin') . ' ' . ($adminConfig['last_name'] ?? 'User'),
+                'password' => $adminConfig['password_hash'] ?? Hash::make('password'),
+                'email_verified_at' => now(),
+            ]);
+        } else {
+            // Create new user
+            $user = $userClass::create([
+                'email' => $email,
+                'name' => ($adminConfig['first_name'] ?? 'Admin') . ' ' . ($adminConfig['last_name'] ?? 'User'),
+                'password' => $adminConfig['password_hash'] ?? Hash::make('password'),
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        // Create Super Administrator role with protected=true and assign to admin
+        $guardName = $mode === 'saas' ? 'landlord' : 'web';
+        
+        $role = $roleClass::firstOrCreate(
+            ['name' => 'Super Administrator', 'guard_name' => $guardName],
+            [
+                'description' => 'Full system access with all permissions',
+                'protected' => true,
+            ]
+        );
+        
+        // Ensure protected is set even if role already exists
+        if (!$role->protected) {
+            $role->update(['protected' => true]);
+        }
+        
+        $user->assignRole($role);
+    }
+
+    /**
+     * Step: Save settings to database
+     */
+    protected function stepSaveSettings(array $config, string $mode): void
+    {
+        $settings = $config['settings'] ?? [];
+        
+        if (empty($settings)) {
+            return; // No settings to save
+        }
+        
+        if ($mode === 'saas') {
+            // Save Platform settings - PlatformSetting uses single row model
+            $settingsClass = 'Aero\\Platform\\Models\\PlatformSetting';
+            
+            // Get or create the platform settings record
+            $platformSettings = $settingsClass::firstOrCreate(
+                ['slug' => 'platform'],
+                ['site_name' => $settings['site_name'] ?? config('app.name')]
+            );
+            
+            // Map settings to model attributes
+            $attributesToUpdate = [];
+            $settingsMapping = [
+                'site_name' => 'site_name',
+                'company_name' => 'legal_name',
+                'tagline' => 'tagline',
+                'support_email' => 'support_email',
+                'support_phone' => 'support_phone',
+            ];
+            
+            foreach ($settings as $key => $value) {
+                if (isset($settingsMapping[$key])) {
+                    $attributesToUpdate[$settingsMapping[$key]] = $value;
+                }
+            }
+            
+            if (!empty($attributesToUpdate)) {
+                $platformSettings->update($attributesToUpdate);
+            }
+        } else {
+            // Save System settings for standalone mode
+            $settingsClass = 'Aero\\Core\\Models\\SystemSetting';
+            
+            // Check if SystemSetting model has set method
+            if (method_exists($settingsClass, 'set')) {
+                foreach ($settings as $key => $value) {
+                    if (is_array($value)) {
+                        $value = json_encode($value);
+                    }
+                    $settingsClass::set($key, $value);
+                }
+            } else {
+                // Fallback: use updateOrCreate for key-value style table
+                foreach ($settings as $key => $value) {
+                    if (is_array($value)) {
+                        $value = json_encode($value);
+                    }
+                    $settingsClass::updateOrCreate(
+                        ['key' => $key],
+                        ['value' => $value]
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Step: Sync and install modules
+     */
+    protected function stepInstallModules(array $config): void
+    {
+        $mode = $this->getMode();
+        
+        // Sync modules with appropriate scope
+        // platform = SaaS central database, all = standalone mode
+        $scope = $mode === 'saas' ? 'platform' : 'all';
+        Artisan::call('hrmac:sync-modules', ['--scope' => $scope]);
+        
+        // For standalone mode, also install licensed modules
+        if ($mode !== 'saas') {
+            $license = $config['license'] ?? [];
+            $modules = $license['allowed_modules'] ?? [];
+
+            foreach ($modules as $moduleCode) {
+                try {
+                    Artisan::call('aero:install-module', [
+                        'module' => $moduleCode,
+                        '--force' => true,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning("Failed to install module: {$moduleCode}", [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Step: Warm cache
+     */
+    protected function stepWarmCache(): void
+    {
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+        
+        // Optionally cache for production
+        if (app()->environment('production')) {
+            Artisan::call('config:cache');
+            Artisan::call('route:cache');
+            Artisan::call('view:cache');
+        }
+    }
+
+    /**
+     * Step: Finalize installation
+     */
+    protected function stepFinalize(): void
+    {
+        // Generate installation key
+        $installationKey = Str::uuid()->toString();
+        
+        $this->persistConfig('installation', [
+            'key' => $installationKey,
+            'installed_at' => now()->toDateTimeString(),
+            'version' => config('app.version', '1.0.0'),
+            'mode' => $this->getMode(),
+        ]);
+    }
+
+    /**
+     * Create installation lock file
+     * 
+     * Creates the unified lock file at storage/app/aeos.installed
+     * This path is used by both aero-core and aero-platform packages.
+     */
+    protected function createLockFile(): void
+    {
+        $lockFile = storage_path(self::LOCK_FILE);
+        $config = $this->getPersistedConfig('installation') ?? [];
+        $mode = $this->getMode();
+        
+        $lockData = [
+            'installed_at' => now()->toDateTimeString(),
+            'version' => config('app.version', '1.0.0'),
+            'mode' => $mode,
+            'key' => $config['key'] ?? Str::uuid()->toString(),
+        ];
+        
+        File::ensureDirectoryExists(dirname($lockFile));
+        File::put($lockFile, json_encode($lockData, JSON_PRETTY_PRINT));
+        
+        // Also create mode file for reference
+        $modeFile = storage_path('app/aeos.mode');
+        File::put($modeFile, $mode);
+    }
+
+    /**
+     * Show completion page
+     */
+    public function complete()
+    {
+        if (!$this->isInstalled()) {
+            return redirect()->route('install.welcome');
+        }
+
+        $config = $this->getPersistedConfig();
+        $mode = $this->getMode();
+
+        // Get admin credentials before clearing config
+        $adminEmail = $config['admin']['email'] ?? '';
+        $adminPassword = $config['admin']['password'] ?? '';
+
+        // Clear sensitive data from config
+        $this->clearPersistedConfig();
+
+        return Inertia::render('Installation/Complete', [
+            'title' => 'Installation Complete',
+            'mode' => $mode,
+            'appUrl' => $config['settings']['app_url'] ?? config('app.url'),
+            'adminEmail' => $adminEmail,
+            'adminPassword' => $adminPassword,
+            'licensedModules' => $config['license']['allowed_modules'] ?? [],
+            'installationKey' => $config['installation']['key'] ?? null,
+        ]);
+    }
+
+    /**
+     * Show already installed page
+     */
+    public function alreadyInstalled()
+    {
+        $lockFile = storage_path(self::LOCK_FILE);
+        $lockData = [];
+        
+        if (File::exists($lockFile)) {
+            $lockData = json_decode(File::get($lockFile), true) ?? [];
+        }
+
+        return Inertia::render('Installation/AlreadyInstalled', [
+            'title' => 'Already Installed',
+            'mode' => $lockData['mode'] ?? $this->getMode(),
+            'appUrl' => config('app.url'),
+            'installedAt' => $lockData['installed_at'] ?? null,
+            'version' => $lockData['version'] ?? config('app.version'),
+        ]);
+    }
+
+    /**
+     * Cleanup failed installation (POST endpoint)
+     */
+    public function cleanup()
+    {
+        try {
+            // Remove lock file
+            $lockFile = storage_path(self::LOCK_FILE);
+            if (File::exists($lockFile)) {
+                File::delete($lockFile);
+            }
+
+            // Remove progress file
+            $progressFile = base_path(self::PROGRESS_FILE);
+            if (File::exists($progressFile)) {
+                File::delete($progressFile);
+            }
+
+            // Clear persisted config
+            $this->clearPersistedConfig();
+
+            // Clear cache
+            Cache::forget('installation_in_progress');
+            Artisan::call('config:clear');
+
+            Log::info('Installation cleanup completed');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Installation cleanup completed',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Installation cleanup failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Cleanup failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Retry failed installation
+     */
+    public function retry()
+    {
+        // Clear progress file to restart
+        $progressFile = base_path(self::PROGRESS_FILE);
+        if (File::exists($progressFile)) {
+            File::delete($progressFile);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Installation will be retried',
+        ]);
+    }
+
+    /**
+     * Update installation progress
+     */
+    protected function updateProgress(float $percentage, string $currentStep, string $status, ?string $error = null): void
+    {
+        $progressFile = base_path(self::PROGRESS_FILE);
+        $mode = $this->getMode();
+        
+        $progress = [
+            'percentage' => round($percentage, 1),
+            'currentStep' => $currentStep,
+            'status' => $status,
+            'error' => $error,
+            'steps' => $this->getProgressSteps($mode),
+            'updated_at' => now()->toDateTimeString(),
+        ];
+
+        File::ensureDirectoryExists(dirname($progressFile));
+        File::put($progressFile, json_encode($progress, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Get progress steps with labels
+     */
+    protected function getProgressSteps(string $mode): array
+    {
+        if ($mode === 'saas') {
+            return [
+                ['key' => 'config', 'label' => 'Writing configuration files...'],
+                ['key' => 'database', 'label' => 'Setting up central database...'],
+                ['key' => 'migrations', 'label' => 'Running migrations...'],
+                ['key' => 'admin', 'label' => 'Creating Super Administrator...'],
+                ['key' => 'modules', 'label' => 'Syncing platform modules...'],
+                ['key' => 'settings', 'label' => 'Saving platform settings...'],
+                ['key' => 'cache', 'label' => 'Clearing and warming cache...'],
+                ['key' => 'finalize', 'label' => 'Finalizing installation...'],
+            ];
+        }
+
+        return [
+            ['key' => 'config', 'label' => 'Writing configuration files...'],
+            ['key' => 'database', 'label' => 'Setting up database...'],
+            ['key' => 'migrations', 'label' => 'Running migrations...'],
+            ['key' => 'seeders', 'label' => 'Seeding initial data...'],
+            ['key' => 'roles', 'label' => 'Creating roles & permissions...'],
+            ['key' => 'admin', 'label' => 'Creating Super Administrator...'],
+            ['key' => 'settings', 'label' => 'Saving system settings...'],
+            ['key' => 'modules', 'label' => 'Syncing modules...'],
+            ['key' => 'cache', 'label' => 'Clearing and warming cache...'],
+            ['key' => 'finalize', 'label' => 'Finalizing installation...'],
+        ];
+    }
+
+    /**
+     * Perform requirements check
+     */
+    protected function performRequirementsCheck(): array
+    {
+        $php = [
+            'name' => 'PHP Version',
+            'required' => '8.2.0',
+            'current' => PHP_VERSION,
+            'passed' => version_compare(PHP_VERSION, '8.2.0', '>='),
+        ];
+
+        $extensions = [
+            ['name' => 'BCMath', 'required' => true, 'installed' => extension_loaded('bcmath')],
+            ['name' => 'Ctype', 'required' => true, 'installed' => extension_loaded('ctype')],
+            ['name' => 'cURL', 'required' => true, 'installed' => extension_loaded('curl')],
+            ['name' => 'DOM', 'required' => true, 'installed' => extension_loaded('dom')],
+            ['name' => 'Fileinfo', 'required' => true, 'installed' => extension_loaded('fileinfo')],
+            ['name' => 'JSON', 'required' => true, 'installed' => extension_loaded('json')],
+            ['name' => 'Mbstring', 'required' => true, 'installed' => extension_loaded('mbstring')],
+            ['name' => 'OpenSSL', 'required' => true, 'installed' => extension_loaded('openssl')],
+            ['name' => 'PDO', 'required' => true, 'installed' => extension_loaded('pdo')],
+            ['name' => 'PDO MySQL', 'required' => false, 'installed' => extension_loaded('pdo_mysql')],
+            ['name' => 'Tokenizer', 'required' => true, 'installed' => extension_loaded('tokenizer')],
+            ['name' => 'XML', 'required' => true, 'installed' => extension_loaded('xml')],
+            ['name' => 'GD', 'required' => false, 'installed' => extension_loaded('gd')],
+            ['name' => 'Imagick', 'required' => false, 'installed' => extension_loaded('imagick')],
+            ['name' => 'Redis', 'required' => false, 'installed' => extension_loaded('redis')],
+            ['name' => 'Zip', 'required' => false, 'installed' => extension_loaded('zip')],
+        ];
+
+        $directories = [
+            ['path' => 'storage/app', 'writable' => is_writable(storage_path('app'))],
+            ['path' => 'storage/framework', 'writable' => is_writable(storage_path('framework'))],
+            ['path' => 'storage/logs', 'writable' => is_writable(storage_path('logs'))],
+            ['path' => 'bootstrap/cache', 'writable' => is_writable(base_path('bootstrap/cache'))],
+            ['path' => '.env', 'writable' => is_writable(base_path('.env'))],
+        ];
+
+        $allExtensionsPassed = collect($extensions)
+            ->filter(fn($e) => $e['required'])
+            ->every(fn($e) => $e['installed']);
+
+        $allDirectoriesPassed = collect($directories)
+            ->every(fn($d) => $d['writable']);
+
+        return [
+            'php' => $php,
+            'extensions' => $extensions,
+            'directories' => $directories,
+            'allPassed' => $php['passed'] && $allExtensionsPassed && $allDirectoriesPassed,
+        ];
+    }
+
+    /**
+     * Get installed modules (from composer packages)
+     */
+    protected function getInstalledModules(): array
+    {
+        $modules = [];
+        $packagesPath = base_path('vendor/aero');
+
+        if (File::isDirectory($packagesPath)) {
+            $packages = File::directories($packagesPath);
+            
+            foreach ($packages as $package) {
+                $name = basename($package);
+                if (!in_array($name, ['core', 'platform', 'ui'])) {
+                    $modules[] = [
+                        'code' => $name,
+                        'name' => ucfirst(str_replace('-', ' ', $name)),
+                    ];
+                }
+            }
+        }
+
+        return $modules;
+    }
+
+    /**
+     * Get available license providers
+     */
+    protected function getAvailableProviders(): array
+    {
+        return [
+            [
+                'code' => 'aero',
+                'name' => 'Aero Platform',
+                'prefix' => 'AP-',
+                'description' => 'Official Aero Enterprise licenses',
+            ],
+            [
+                'code' => 'codecanyon',
+                'name' => 'CodeCanyon',
+                'prefix' => 'CC-',
+                'description' => 'Envato marketplace licenses',
+            ],
+            [
+                'code' => 'enterprise',
+                'name' => 'Enterprise',
+                'prefix' => 'EP-',
+                'description' => 'Enterprise offline licenses',
+            ],
+        ];
+    }
+
+    /**
+     * Get list of timezones
+     */
+    protected function getTimezones(): array
+    {
+        return \DateTimeZone::listIdentifiers(\DateTimeZone::ALL);
+    }
+
+    /**
+     * Update .env value
+     */
+    protected function updateEnvValue(string $content, string $key, string $value): string
+    {
+        // Escape special characters in value
+        if (str_contains($value, ' ') || str_contains($value, '#') || str_contains($value, '"')) {
+            $value = '"' . addslashes($value) . '"';
+        }
+
+        $pattern = "/^{$key}=.*/m";
+        
+        if (preg_match($pattern, $content)) {
+            return preg_replace($pattern, "{$key}={$value}", $content);
+        }
+        
+        return $content . "\n{$key}={$value}";
+    }
+}

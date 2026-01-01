@@ -56,6 +56,10 @@ class SetupApplication extends Command
         ]);
         $this->info(Artisan::output());
 
+        // Sync platform modules using HRMAC
+        $this->info('Synchronizing platform modules...');
+        $this->syncPlatformModules();
+
         $this->info('✅ aeos365 application has been set up successfully!');
 
         // Output final information
@@ -72,5 +76,31 @@ class SetupApplication extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Sync platform modules using HRMAC package.
+     * Platform modules (scope: platform) are synced to the landlord database.
+     */
+    private function syncPlatformModules(): void
+    {
+        try {
+            // Check if HRMAC package is available
+            if (class_exists(\Aero\HRMAC\Console\Commands\SyncModuleHierarchy::class)) {
+                $this->line('   Using HRMAC sync (scope: platform)...');
+
+                Artisan::call('hrmac:sync-modules', [
+                    '--scope' => 'platform',  // Only platform-scoped modules
+                    '--prune' => true,
+                ]);
+
+                $moduleCount = \Aero\HRMAC\Models\Module::where('scope', 'platform')->count();
+                $this->line("   ✅ {$moduleCount} platform module(s) synchronized");
+            } else {
+                $this->warn('   HRMAC package not available, skipping module sync');
+            }
+        } catch (\Exception $e) {
+            $this->error('   Platform module sync failed: '.$e->getMessage());
+        }
     }
 }

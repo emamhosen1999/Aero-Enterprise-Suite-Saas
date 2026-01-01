@@ -130,6 +130,11 @@ class LicenseValidationService
     }
     
     /**
+     * Aero Platform API URL (hardcoded for security)
+     */
+    const AERO_PLATFORM_API_URL = 'https://aeos365.com/api';
+    
+    /**
      * Validate license through Aero Platform API
      *
      * @param string $licenseKey
@@ -140,12 +145,13 @@ class LicenseValidationService
      */
     protected function validateAeroPlatform(string $licenseKey, ?string $email, ?string $domain, array $additionalData = []): array
     {
-        $apiUrl = config('license.providers.aero.api_url');
+        // Use hardcoded URL for security - cannot be overridden via config
+        $apiUrl = self::AERO_PLATFORM_API_URL;
         $timeout = config('license.providers.aero.timeout', 10);
         
         try {
             $response = Http::timeout($timeout)
-                ->post($apiUrl . '/api/v1/licenses/validate', [
+                ->post($apiUrl . '/v1/licenses/validate', [
                     'license_key' => $licenseKey,
                     'email' => $email,
                     'domain' => $domain,

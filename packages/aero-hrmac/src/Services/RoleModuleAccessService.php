@@ -1,0 +1,491 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aero\HRMAC\Services;
+
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
+use Aero\HRMAC\Models\Action;
+use Aero\HRMAC\Models\Component;
+use Aero\HRMAC\Models\Module;
+use Aero\HRMAC\Models\RoleModuleAccess;
+use Aero\HRMAC\Models\SubModule;
+use Illuminate\Support\Facades\Cache;
+
+/**
+ * Role Module Access Service
+ *
+ * Unified service for role-based module access control.
+ * Works with both tenant and landlord databases based on context.
+ *
+ * This replaces permission-based access with direct role_module_access table lookups.
+ * No dependency on Spatie permissions for module access checks.
+ */
+class RoleModuleAccessService implements RoleModuleAccessInterface
+{
+    /**
+     * Cache TTL in seconds (1 hour)
+     */
+    private const CACHE_TTL = 3600;
+
+    /**
+     * Check if a role has access to a specific module by ID.
+     */
+    public function canAccessModule(mixed $role, int $moduleId): bool
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+        $cacheKey = $this->getCacheKey("role_access:{$roleId}:module:{$moduleId}");
+
+        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () use ($roleId, $moduleId) {
+            return RoleModuleAccess::where('role_id', $roleId)
+                ->where('module_id', $moduleId)
+                ->whereNull('sub_module_id')
+                ->whereNull('component_id')
+                ->whereNull('action_id')
+                ->exists();
+        });
+    }
+
+    /**
+     * Check if a role has access to a specific sub-module by ID.
+     */
+    public function canAccessSubModule(mixed $role, int $subModuleId): bool
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+        $cacheKey = $this->getCacheKey("role_access:{$roleId}:sub_module:{$subModuleId}");
+
+        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () use ($roleId, $subModuleId) {
+            // Check direct sub-module access
+            if (RoleModuleAccess::where('role_id', $roleId)
+                ->where('sub_module_id', $subModuleId)
+                ->whereNull('component_id')
+                ->whereNull('action_id')
+                ->exists()) {
+                return true;
+            }
+
+            // Check parent module access (inheritance)
+            $subModule = SubModule::find($subModuleId);
+            if ($subModule && $subModule->module_id) {
+                return $this->canAccessModule($roleId, $subModule->module_id);
+            }
+
+            return false;
+        });
+    }
+
+    /**
+     * Check if a role has access to a specific component by ID.
+     */
+    public function canAccessComponent(mixed $role, int $componentId): bool
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+        $cacheKey = $this->getCacheKey("role_access:{$roleId}:component:{$componentId}");
+
+        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () use ($roleId, $componentId) {
+            // Check direct component access
+            if (RoleModuleAccess::where('role_id', $roleId)
+                ->where('component_id', $componentId)
+                ->whereNull('action_id')
+                ->exists()) {
+                return true;
+            }
+
+            // Check parent sub-module access (inheritance)
+            $component = Component::find($componentId);
+            if ($component && $component->sub_module_id) {
+                return $this->canAccessSubModule($roleId, $component->sub_module_id);
+            }
+
+            return false;
+        });
+    }
+
+    /**
+     * Check if a role has access to a specific action by ID.
+     */
+    public function canAccessAction(mixed $role, int $actionId): bool
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+        $cacheKey = $this->getCacheKey("role_access:{$roleId}:action:{$actionId}");
+
+        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () use ($roleId, $actionId) {
+            // Check direct action access
+            if (RoleModuleAccess::where('role_id', $roleId)
+                ->where('action_id', $actionId)
+                ->exists()) {
+                return true;
+            }
+
+            // Check parent component access (inheritance)
+            $action = Action::find($actionId);
+            if ($action) {
+                $componentId = $action->module_component_id ?? $action->component_id;
+                if ($componentId) {
+                    return $this->canAccessComponent($roleId, $componentId);
+                }
+            }
+
+            return false;
+        });
+    }
+
+    /**
+     * Check if a user (through their roles) can access a module by code.
+     */
+    public function userCanAccessModule(mixed $user, string $moduleCode): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // Super admin bypasses all checks
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        $module = Module::where('code', $moduleCode)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $module) {
+            return false;
+        }
+
+        // Check each of user's roles
+        foreach ($user->roles as $role) {
+            if ($this->canAccessModule($role, $module->id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a user (through their roles) can access a sub-module by codes.
+     */
+    public function userCanAccessSubModule(mixed $user, string $moduleCode, string $subModuleCode): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // Super admin bypasses all checks
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        $subModule = SubModule::whereHas('module', function ($q) use ($moduleCode) {
+            $q->where('code', $moduleCode)->where('is_active', true);
+        })->where('code', $subModuleCode)->where('is_active', true)->first();
+
+        if (! $subModule) {
+            return false;
+        }
+
+        // Check each of user's roles
+        foreach ($user->roles as $role) {
+            if ($this->canAccessSubModule($role, $subModule->id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the first accessible route for a user.
+     * Used for smart landing page redirects.
+     */
+    public function getFirstAccessibleRoute(mixed $user): ?string
+    {
+        if (! $user) {
+            return null;
+        }
+
+        // Super admin goes to dashboard
+        if ($this->isSuperAdmin($user)) {
+            return 'core.dashboard';
+        }
+
+        // Check if user has Dashboard access first
+        if ($this->userCanAccessSubModule($user, 'core', 'dashboard')) {
+            return 'core.dashboard';
+        }
+
+        // Get user's accessible sub-modules and find the first one with a route
+        $subModuleIds = $this->getUserAccessibleSubModuleIds($user);
+        if (empty($subModuleIds)) {
+            return null;
+        }
+
+        // Get sub-modules with routes, prioritized
+        $subModule = SubModule::whereIn('id', $subModuleIds)
+            ->where('is_active', true)
+            ->whereNotNull('route')
+            ->orderBy('priority')
+            ->first();
+
+        if ($subModule && $subModule->route) {
+            return $subModule->route;
+        }
+
+        // If no sub-module has a route, check parent modules
+        $moduleIds = SubModule::whereIn('id', $subModuleIds)->pluck('module_id')->unique();
+        $module = Module::whereIn('id', $moduleIds)
+            ->where('is_active', true)
+            ->whereNotNull('route_prefix')
+            ->orderBy('priority')
+            ->first();
+
+        if ($module && $module->route_prefix) {
+            return $module->route_prefix;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get all accessible module IDs for a role.
+     */
+    public function getAccessibleModuleIds(mixed $role): array
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+        $cacheKey = $this->getCacheKey("role_accessible_modules:{$roleId}");
+
+        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () use ($roleId) {
+            $access = RoleModuleAccess::where('role_id', $roleId)->get();
+
+            $moduleIds = collect();
+
+            foreach ($access as $entry) {
+                if ($entry->module_id) {
+                    $moduleIds->push($entry->module_id);
+                } elseif ($entry->sub_module_id) {
+                    $subModule = SubModule::find($entry->sub_module_id);
+                    if ($subModule) {
+                        $moduleIds->push($subModule->module_id);
+                    }
+                } elseif ($entry->component_id) {
+                    $component = Component::find($entry->component_id);
+                    if ($component) {
+                        $moduleIds->push($component->module_id);
+                    }
+                } elseif ($entry->action_id) {
+                    $action = Action::find($entry->action_id);
+                    $componentId = $action->module_component_id ?? $action->component_id ?? null;
+                    if ($componentId) {
+                        $component = Component::find($componentId);
+                        if ($component) {
+                            $moduleIds->push($component->module_id);
+                        }
+                    }
+                }
+            }
+
+            return $moduleIds->unique()->values()->toArray();
+        });
+    }
+
+    /**
+     * Get all accessible sub-module IDs for a user.
+     */
+    public function getUserAccessibleSubModuleIds(mixed $user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $cacheKey = $this->getCacheKey("user_accessible_submodules:{$user->id}");
+
+        return $this->cache()->remember($cacheKey, self::CACHE_TTL, function () use ($user) {
+            $subModuleIds = collect();
+
+            foreach ($user->roles as $role) {
+                $access = RoleModuleAccess::where('role_id', $role->id)->get();
+
+                foreach ($access as $entry) {
+                    // Direct sub-module access
+                    if ($entry->sub_module_id) {
+                        $subModuleIds->push($entry->sub_module_id);
+                    }
+                    // Module-level access grants all sub-modules
+                    elseif ($entry->module_id && ! $entry->sub_module_id) {
+                        $moduleSubModules = SubModule::where('module_id', $entry->module_id)
+                            ->where('is_active', true)
+                            ->pluck('id');
+                        $subModuleIds = $subModuleIds->merge($moduleSubModules);
+                    }
+                    // Component/action level access - get parent sub-module
+                    elseif ($entry->component_id) {
+                        $component = Component::find($entry->component_id);
+                        if ($component) {
+                            $subModuleIds->push($component->sub_module_id);
+                        }
+                    } elseif ($entry->action_id) {
+                        $action = Action::find($entry->action_id);
+                        $componentId = $action->module_component_id ?? $action->component_id ?? null;
+                        if ($componentId) {
+                            $component = Component::find($componentId);
+                            if ($component) {
+                                $subModuleIds->push($component->sub_module_id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return $subModuleIds->unique()->values()->toArray();
+        });
+    }
+
+    /**
+     * Sync role access from UI selections.
+     */
+    public function syncRoleAccess(mixed $role, array $accessData): void
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+
+        // Clear existing access for this role
+        RoleModuleAccess::where('role_id', $roleId)->delete();
+
+        // Add module-level access
+        foreach ($accessData['modules'] ?? [] as $moduleId) {
+            RoleModuleAccess::create([
+                'role_id' => $roleId,
+                'module_id' => $moduleId,
+                'access_scope' => RoleModuleAccess::SCOPE_ALL,
+            ]);
+        }
+
+        // Add sub-module-level access
+        foreach ($accessData['sub_modules'] ?? [] as $subModuleId) {
+            RoleModuleAccess::create([
+                'role_id' => $roleId,
+                'sub_module_id' => $subModuleId,
+                'access_scope' => RoleModuleAccess::SCOPE_ALL,
+            ]);
+        }
+
+        // Add component-level access
+        foreach ($accessData['components'] ?? [] as $componentId) {
+            RoleModuleAccess::create([
+                'role_id' => $roleId,
+                'component_id' => $componentId,
+                'access_scope' => RoleModuleAccess::SCOPE_ALL,
+            ]);
+        }
+
+        // Add action-level access with scope
+        foreach ($accessData['actions'] ?? [] as $actionData) {
+            if (is_array($actionData)) {
+                RoleModuleAccess::create([
+                    'role_id' => $roleId,
+                    'action_id' => $actionData['id'],
+                    'access_scope' => $actionData['scope'] ?? RoleModuleAccess::SCOPE_ALL,
+                ]);
+            } else {
+                RoleModuleAccess::create([
+                    'role_id' => $roleId,
+                    'action_id' => $actionData,
+                    'access_scope' => RoleModuleAccess::SCOPE_ALL,
+                ]);
+            }
+        }
+
+        // Clear cache
+        $this->clearRoleCache($role);
+    }
+
+    /**
+     * Get the full access tree for a role.
+     */
+    public function getRoleAccessTree(mixed $role): array
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+        $access = RoleModuleAccess::where('role_id', $roleId)->get();
+
+        return [
+            'modules' => $access->whereNotNull('module_id')
+                ->whereNull('sub_module_id')
+                ->pluck('module_id')
+                ->toArray(),
+            'sub_modules' => $access->whereNotNull('sub_module_id')
+                ->whereNull('component_id')
+                ->pluck('sub_module_id')
+                ->toArray(),
+            'components' => $access->whereNotNull('component_id')
+                ->whereNull('action_id')
+                ->pluck('component_id')
+                ->toArray(),
+            'actions' => $access->whereNotNull('action_id')
+                ->map(fn ($a) => ['id' => $a->action_id, 'scope' => $a->access_scope])
+                ->values()
+                ->toArray(),
+        ];
+    }
+
+    /**
+     * Clear cached access data for a role.
+     */
+    public function clearRoleCache(mixed $role): void
+    {
+        $roleId = is_object($role) ? $role->id : $role;
+
+        $this->cache()->forget($this->getCacheKey("role_accessible_modules:{$roleId}"));
+
+        // Note: Individual module/submodule/component/action caches
+        // will naturally expire. For immediate invalidation, use tagged caching.
+    }
+
+    /**
+     * Clear cached access data for a user.
+     */
+    public function clearUserCache(mixed $user): void
+    {
+        if ($user) {
+            $userId = is_object($user) ? $user->id : $user;
+            $this->cache()->forget($this->getCacheKey("user_accessible_submodules:{$userId}"));
+        }
+    }
+
+    /**
+     * Check if user is a super admin.
+     */
+    protected function isSuperAdmin(mixed $user): bool
+    {
+        if (! $user || ! method_exists($user, 'hasRole')) {
+            return false;
+        }
+
+        $superAdminRoles = config('hrmac.super_admin_roles', [
+            'Super Administrator',
+            'super-admin',
+            'tenant_super_administrator',
+        ]);
+
+        return $user->hasRole($superAdminRoles);
+    }
+
+    /**
+     * Get cache key with optional tenant prefix.
+     */
+    protected function getCacheKey(string $key): string
+    {
+        // If in tenant context, prefix with tenant ID
+        if (function_exists('tenant') && tenant()) {
+            return 'tenant:'.tenant('id').':hrmac:'.$key;
+        }
+
+        return 'hrmac:'.$key;
+    }
+
+    /**
+     * Get cache store.
+     */
+    protected function cache()
+    {
+        return Cache::store();
+    }
+}

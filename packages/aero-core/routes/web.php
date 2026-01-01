@@ -106,9 +106,52 @@ Route::post('/api/version/check', function (Request $request) {
 })->name('core.api.version.check')->middleware('throttle:30,1')->withoutMiddleware(['auth']);
 
 // ============================================================================
-// ROOT ROUTE - Redirect to dashboard or login
+// ROOT ROUTE - Smart redirect to first accessible page
 // ============================================================================
 Route::get('/', function () {
+    // Check if HRMAC package is available for smart landing
+    if (class_exists('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
+        $service = app(\Aero\HRMAC\Contracts\RoleModuleAccessInterface::class);
+        $user = auth()->user();
+
+        if ($user) {
+            // Super admin goes directly to dashboard
+            if ($user->hasRole(['Super Administrator', 'super-admin', 'tenant_super_administrator'])) {
+                return redirect()->route('core.dashboard');
+            }
+
+            // Check Dashboard access first
+            if ($service->userCanAccessSubModule($user, 'core', 'dashboard')) {
+                return redirect()->route('core.dashboard');
+            }
+
+            // Get first accessible route
+            $firstRoute = $service->getFirstAccessibleRoute($user);
+            if ($firstRoute) {
+                // Check if it's a named route
+                try {
+                    if (\Illuminate\Support\Facades\Route::has($firstRoute)) {
+                        return redirect()->route($firstRoute);
+                    }
+                } catch (\Exception $e) {
+                    // Not a named route
+                }
+
+                // Treat as URL path
+                $url = $firstRoute;
+                if (! str_starts_with($url, '/')) {
+                    $url = '/'.$url;
+                }
+
+                return redirect($url);
+            }
+
+            // No accessible routes - still redirect to dashboard (will show access denied)
+            return redirect()->route('core.dashboard');
+        }
+    }
+
+    // Fallback for standalone mode or when HRMAC isn't loaded
     return redirect()->route('core.dashboard');
 })->middleware(['auth:web']);
 
@@ -177,9 +220,16 @@ Route::middleware('auth:web')->group(function () {
     // Dashboard Routes
     // All dashboard routes use 'core.dashboard.*' prefix for consistency
     // This allows proper route grouping and makes route('core.dashboard') work consistently
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
-    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
-    Route::get('dashboard/widget/{widgetKey}', [DashboardController::class, 'widgetData'])->name('core.dashboard.widget');
+    // Protected by role.access middleware to enforce role_module_access table checks
+    $dashboardMiddleware = class_exists('Aero\HRMAC\Http\Middleware\CheckRoleModuleAccess')
+        ? ['role.access:core,dashboard']
+        : [];
+
+    Route::middleware($dashboardMiddleware)->group(function () {
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');
+        Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('core.dashboard.stats');
+        Route::get('dashboard/widget/{widgetKey}', [DashboardController::class, 'widgetData'])->name('core.dashboard.widget');
+    });
 
     // Session & Auth Check Routes
     Route::get('/session-check', function () {
@@ -312,7 +362,7 @@ Route::middleware('auth:web')->group(function () {
 
         // Role Access Management
         Route::get('/role-access/{roleId}', [ModuleController::class, 'getRoleAccess'])->name('role-access.show');
-        Route::post('/role-access/{roleId}', [ModuleController::class, 'syncRoleAccess'])->name('role-access.sync');
+        Route::post('/role-access/{roleId}/sync', [ModuleController::class, 'syncRoleAccess'])->name('role-access.sync');
 
         // Permission Sync
         Route::post('/{module}/sync-permissions', [ModuleController::class, 'syncModulePermissions'])->name('sync-permissions');
@@ -416,13 +466,14 @@ Route::middleware('auth:web')->group(function () {
         Route::get('/', function () {
             return redirect()->route('core.profile.security');
         })->name('index');
-        
+
         Route::get('/security', function () {
             $user = auth()->user();
+
             return inertia('Profile/Security', [
                 'title' => 'Security Settings',
-                'twoFactorEnabled' => !empty($user->two_factor_secret) && !empty($user->two_factor_enabled_at),
-                'remainingCodes' => !empty($user->two_factor_recovery_codes) 
+                'twoFactorEnabled' => ! empty($user->two_factor_secret) && ! empty($user->two_factor_enabled_at),
+                'remainingCodes' => ! empty($user->two_factor_recovery_codes)
                     ? count(json_decode(\Illuminate\Support\Facades\Crypt::decryptString($user->two_factor_recovery_codes) ?: '[]', true))
                     : 0,
             ]);

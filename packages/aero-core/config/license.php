@@ -25,7 +25,8 @@ return [
         */
         'aero' => [
             'enabled' => env('LICENSE_PROVIDER_AERO_ENABLED', true),
-            'api_url' => env('LICENSE_PROVIDER_AERO_API_URL', 'https://platform.aero365.com'),
+            // Hardcoded to official Aero Platform API - do not change
+            'api_url' => 'https://aeos365.com/api',
             'timeout' => env('LICENSE_PROVIDER_AERO_TIMEOUT', 10),
             'retry_attempts' => env('LICENSE_PROVIDER_AERO_RETRY', 3),
         ],

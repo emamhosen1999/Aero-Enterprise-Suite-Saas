@@ -24,7 +24,6 @@ class PlatformDatabaseSeeder extends Seeder
         $this->command->info('🚀 Seeding Platform (Landlord) database...');
 
         $this->call([
-            LandlordUserSeeder::class,
             PlanSeeder::class,
         ]);
 

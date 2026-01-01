@@ -2,12 +2,12 @@
 
 namespace Aero\Platform\Services\Module;
 
+use Aero\Core\Support\TenantCache;
 use Aero\Platform\Models\Module;
 use Aero\Platform\Models\ModuleComponent;
 use Aero\Platform\Models\ModuleComponentAction;
 use Aero\Platform\Models\RoleModuleAccess;
 use Aero\Platform\Models\SubModule;
-use Aero\Core\Support\TenantCache;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -358,5 +358,177 @@ class RoleModuleAccessService
             ->delete();
 
         $this->clearRoleCache($role);
+    }
+
+    /**
+     * Check if a user (through their roles) can access a module by code.
+     */
+    public function userCanAccessModule($user, string $moduleCode): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // Super admin bypasses all checks
+        if ($user->hasRole(['Super Administrator', 'super-admin', 'tenant_super_administrator'])) {
+            return true;
+        }
+
+        $module = Module::where('code', $moduleCode)->where('is_active', true)->first();
+        if (! $module) {
+            return false;
+        }
+
+        // Check each of user's roles
+        foreach ($user->roles as $role) {
+            if ($this->canAccessModule($role, $module->id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a user (through their roles) can access a sub-module by codes.
+     */
+    public function userCanAccessSubModule($user, string $moduleCode, string $subModuleCode): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // Super admin bypasses all checks
+        if ($user->hasRole(['Super Administrator', 'super-admin', 'tenant_super_administrator'])) {
+            return true;
+        }
+
+        $subModule = SubModule::whereHas('module', function ($q) use ($moduleCode) {
+            $q->where('code', $moduleCode)->where('is_active', true);
+        })->where('code', $subModuleCode)->where('is_active', true)->first();
+
+        if (! $subModule) {
+            return false;
+        }
+
+        // Check each of user's roles
+        foreach ($user->roles as $role) {
+            if ($this->canAccessSubModule($role, $subModule->id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get accessible sub-module IDs for a user (across all their roles).
+     */
+    public function getUserAccessibleSubModuleIds($user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $cacheKey = "user_accessible_submodules:{$user->id}";
+
+        return TenantCache::remember($cacheKey, self::CACHE_TTL, function () use ($user) {
+            $subModuleIds = collect();
+
+            foreach ($user->roles as $role) {
+                $access = RoleModuleAccess::where('role_id', $role->id)->get();
+
+                foreach ($access as $entry) {
+                    // Direct sub-module access
+                    if ($entry->sub_module_id) {
+                        $subModuleIds->push($entry->sub_module_id);
+                    }
+                    // Module-level access grants all sub-modules
+                    elseif ($entry->module_id && ! $entry->sub_module_id) {
+                        $moduleSubModules = SubModule::where('module_id', $entry->module_id)
+                            ->where('is_active', true)
+                            ->pluck('id');
+                        $subModuleIds = $subModuleIds->merge($moduleSubModules);
+                    }
+                    // Component/action level access - get parent sub-module
+                    elseif ($entry->component_id) {
+                        $component = ModuleComponent::find($entry->component_id);
+                        if ($component) {
+                            $subModuleIds->push($component->sub_module_id);
+                        }
+                    } elseif ($entry->action_id) {
+                        $action = ModuleComponentAction::find($entry->action_id);
+                        if ($action?->component) {
+                            $subModuleIds->push($action->component->sub_module_id);
+                        }
+                    }
+                }
+            }
+
+            return $subModuleIds->unique()->values()->toArray();
+        });
+    }
+
+    /**
+     * Get the first accessible route for a user.
+     * Used for smart landing page redirects.
+     */
+    public function getFirstAccessibleRoute($user): ?string
+    {
+        if (! $user) {
+            return null;
+        }
+
+        // Super admin goes to dashboard
+        if ($user->hasRole(['Super Administrator', 'super-admin', 'tenant_super_administrator'])) {
+            return 'core.dashboard';
+        }
+
+        // Check if user has Dashboard access first
+        if ($this->userCanAccessSubModule($user, 'core', 'dashboard')) {
+            return 'core.dashboard';
+        }
+
+        // Get user's accessible sub-modules and find the first one with a route
+        $subModuleIds = $this->getUserAccessibleSubModuleIds($user);
+        if (empty($subModuleIds)) {
+            return null;
+        }
+
+        // Get sub-modules with routes, prioritized
+        $subModule = SubModule::whereIn('id', $subModuleIds)
+            ->where('is_active', true)
+            ->whereNotNull('route')
+            ->orderBy('priority')
+            ->first();
+
+        if ($subModule && $subModule->route) {
+            return $subModule->route;
+        }
+
+        // If no sub-module has a route, check parent modules
+        $moduleIds = SubModule::whereIn('id', $subModuleIds)->pluck('module_id')->unique();
+        $module = Module::whereIn('id', $moduleIds)
+            ->where('is_active', true)
+            ->whereNotNull('route_prefix')
+            ->orderBy('priority')
+            ->first();
+
+        if ($module && $module->route_prefix) {
+            // Construct a route like 'hrm.dashboard' or just 'hrm'
+            return $module->route_prefix;
+        }
+
+        return null;
+    }
+
+    /**
+     * Clear user's access cache.
+     */
+    public function clearUserCache($user): void
+    {
+        if ($user) {
+            TenantCache::forget("user_accessible_submodules:{$user->id}");
+        }
     }
 }
