@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace Aero\DMS\Widgets;
 
-use Aero\Core\Contracts\DashboardWidgetInterface;
+use Aero\Core\Contracts\AbstractDashboardWidget;
+use Aero\Core\Contracts\CoreWidgetCategory;
 
 /**
  * Recent Documents Widget
  *
  * Displays recently uploaded or modified documents for the current user.
  */
-class RecentDocumentsWidget implements DashboardWidgetInterface
+class RecentDocumentsWidget extends AbstractDashboardWidget
 {
+    protected string $position = 'main_left';
+    protected int $order = 20;
+    protected int|string $span = 1;
+    protected array $requiredPermissions = ['dms.view'];
+
+    public function getCategory(): CoreWidgetCategory
+    {
+        return CoreWidgetCategory::ACTIVITY;
+    }
+
     public function getKey(): string
     {
         return 'dms.recent_documents';
@@ -28,29 +39,14 @@ class RecentDocumentsWidget implements DashboardWidgetInterface
         return 'Recently uploaded or modified documents';
     }
 
-    public function getModule(): string
+    public function getModuleCode(): string
     {
         return 'dms';
-    }
-
-    public function getCategory(): string
-    {
-        return 'activity'; // activity, stats, action, alert
-    }
-
-    public function getPosition(): string
-    {
-        return 'main_left'; // welcome, stats_row, main_left, main_right, sidebar, full_width
     }
 
     public function getComponent(): string
     {
         return 'Widgets/DMS/RecentDocumentsWidget';
-    }
-
-    public function getPermissions(): array
-    {
-        return ['dms.view'];
     }
 
     public function getData(): array
@@ -72,23 +68,5 @@ class RecentDocumentsWidget implements DashboardWidgetInterface
             'total' => 0,
             'show_more_url' => route('dms.documents', [], false),
         ];
-    }
-
-    public function getProps(): array
-    {
-        return array_merge($this->getData(), [
-            'title' => $this->getTitle(),
-            'limit' => 5,
-        ]);
-    }
-
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function getPriority(): int
-    {
-        return 100;
     }
 }

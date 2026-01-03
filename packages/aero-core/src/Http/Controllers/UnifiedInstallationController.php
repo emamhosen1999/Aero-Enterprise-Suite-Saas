@@ -2,15 +2,20 @@
 
 namespace Aero\Core\Http\Controllers;
 
+use Aero\Core\Models\Module;
+use Aero\Core\Models\ModuleComponent;
+use Aero\Core\Models\ModuleComponentAction;
+use Aero\Core\Models\SubModule;
 use Aero\Core\Services\LicenseValidationService;
+use Aero\Core\Services\Module\ModuleDiscoveryService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -223,10 +228,36 @@ class UnifiedInstallationController extends Controller
             ], 422);
         }
 
+        // Development mode bypass: automatically validate test licenses in local environment
+        if (config('app.env') === 'local' && str_starts_with($request->license_key, 'AP-TEST-')) {
+            $this->persistConfig('license', [
+                'key' => $request->license_key,
+                'email' => $request->email,
+                'provider' => 'aero',
+                'type' => 'extended',
+                'valid_until' => now()->addYear()->toDateString(),
+                'allowed_modules' => ['all'], // Allow all modules in dev mode
+                'validated_at' => now()->toDateTimeString(),
+                'is_dev_license' => true,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Development license validated successfully',
+                'data' => [
+                    'provider' => 'aero',
+                    'type' => 'extended',
+                    'valid_until' => now()->addYear()->toDateString(),
+                    'allowed_modules' => ['all'],
+                    'is_dev_license' => true,
+                ],
+            ]);
+        }
+
         if (!$this->licenseService) {
             return response()->json([
                 'success' => false,
-                'message' => 'License validation service not available',
+                'message' => 'License validation service not available. Use AP-TEST-* license key in development mode.',
             ], 500);
         }
 
@@ -812,6 +843,32 @@ class UnifiedInstallationController extends Controller
     {
         $mode = $this->getMode();
         $config = $this->getPersistedConfig();
+
+        // Ensure APP_KEY is loaded and encrypter is bound before running any steps
+        $appKey = env('APP_KEY');
+        if (!$appKey) {
+            // If somehow missing, generate and persist a new key immediately
+            $appKey = 'base64:' . base64_encode(random_bytes(32));
+            // Make it available in the current process and future requests
+            putenv("APP_KEY={$appKey}");
+            $_ENV['APP_KEY'] = $appKey;
+            $_SERVER['APP_KEY'] = $appKey;
+            Config::set('app.key', $appKey);
+        }
+
+        // Rebind encrypter with a normalized key
+        if ($appKey) {
+            $normalizedKey = $appKey;
+            if (str_starts_with($appKey, 'base64:')) {
+                $normalizedKey = base64_decode(substr($appKey, 7));
+            }
+
+            Config::set('app.key', $appKey);
+            app()->forgetInstance('encrypter');
+            app()->singleton('encrypter', function ($app) use ($normalizedKey) {
+                return new \Illuminate\Encryption\Encrypter($normalizedKey, $app['config']['app.cipher']);
+            });
+        }
         
         $steps = $mode === 'saas' 
             ? ['config', 'database', 'migrations', 'admin', 'modules', 'settings', 'cache', 'finalize']
@@ -908,6 +965,12 @@ class UnifiedInstallationController extends Controller
         $envContent = $this->updateEnvValue($envContent, 'DB_USERNAME', $dbConfig['username'] ?? 'root');
         $envContent = $this->updateEnvValue($envContent, 'DB_PASSWORD', $dbConfig['password'] ?? '');
 
+        // Ensure APP_KEY exists (installer may run before a key is generated)
+        if (!preg_match('/^APP_KEY\s*=\s*/m', $envContent)) {
+            $generatedKey = 'base64:' . base64_encode(random_bytes(32));
+            $envContent = rtrim($envContent) . "\nAPP_KEY={$generatedKey}\n";
+        }
+
         // Update app settings
         $envContent = $this->updateEnvValue($envContent, 'APP_URL', $settings['app_url'] ?? 'http://localhost');
         $envContent = $this->updateEnvValue($envContent, 'APP_TIMEZONE', $settings['timezone'] ?? 'UTC');
@@ -926,8 +989,29 @@ class UnifiedInstallationController extends Controller
 
         File::put($envPath, $envContent);
         
-        // Clear config cache to pick up new values
-        Artisan::call('config:clear');
+        // Clear config cache by removing cached files directly (no Artisan commands)
+        $this->clearConfigCache();
+        
+        // Force reload the APP_KEY from .env into the current process
+        // This is critical because the installation process continues in the same request
+        $dotenv = \Dotenv\Dotenv::createImmutable(base_path());
+        $dotenv->load();
+
+        // Update the running config with the new APP_KEY and rebind encrypter
+        if ($appKey = env('APP_KEY')) {
+            Config::set('app.key', $appKey);
+
+            // Decode base64 keys to raw bytes as expected by Encrypter
+            $normalizedKey = $appKey;
+            if (str_starts_with($appKey, 'base64:')) {
+                $normalizedKey = base64_decode(substr($appKey, 7));
+            }
+
+            app()->forgetInstance('encrypter');
+            app()->singleton('encrypter', function ($app) use ($normalizedKey) {
+                return new \Illuminate\Encryption\Encrypter($normalizedKey, $app['config']['app.cipher']);
+            });
+        }
     }
 
     /**
@@ -956,46 +1040,71 @@ class UnifiedInstallationController extends Controller
 
     /**
      * Step: Run migrations
+     * Uses direct migration runner instead of Artisan commands
      */
     protected function stepRunMigrations(string $mode): void
     {
+        $migrator = app('migrator');
+        $repository = $migrator->getRepository();
+        
+        // Ensure the migrations table exists first
+        if (!$repository->repositoryExists()) {
+            $repository->createRepository();
+        }
+        
         if ($mode === 'saas') {
-            // Run platform migrations
-            Artisan::call('migrate', [
-                '--force' => true,
-                '--path' => 'vendor/aero/platform/database/migrations',
-            ]);
+            // Run platform migrations first
+            $platformPath = base_path('vendor/aero/platform/database/migrations');
+            if (File::isDirectory($platformPath)) {
+                $migrator->run($platformPath);
+            }
         }
 
-        // Run core migrations
-        Artisan::call('migrate', [
-            '--force' => true,
-        ]);
+        // Run all registered migration paths (includes package migrations)
+        $paths = $migrator->paths();
+        foreach ($paths as $path) {
+            if (File::isDirectory($path)) {
+                $migrator->run($path);
+            }
+        }
+        
+        // Run default database migrations
+        $defaultPath = database_path('migrations');
+        if (File::isDirectory($defaultPath)) {
+            $migrator->run($defaultPath);
+        }
     }
 
     /**
      * Step: Run seeders
+     * Uses direct seeder instantiation instead of Artisan commands
      */
     protected function stepRunSeeders(string $mode): void
     {
         if ($mode === 'saas') {
-            Artisan::call('db:seed', [
-                '--class' => 'Aero\\Platform\\Database\\Seeders\\PlatformDatabaseSeeder',
-                '--force' => true,
-            ]);
+            $seederClass = 'Aero\\Platform\\Database\\Seeders\\PlatformDatabaseSeeder';
+            if (class_exists($seederClass)) {
+                $seeder = app($seederClass);
+                $seeder->run();
+            }
         } else {
-            Artisan::call('db:seed', [
-                '--force' => true,
-            ]);
+            // Run default database seeder
+            $seederClass = 'Database\\Seeders\\DatabaseSeeder';
+            if (class_exists($seederClass)) {
+                $seeder = app($seederClass);
+                $seeder->run();
+            }
         }
     }
 
     /**
      * Step: Create roles and permissions
+     * Syncs module hierarchy directly without using Artisan commands
      */
     protected function stepCreateRoles(): void
     {
-        Artisan::call('hrmac:sync-modules', ['--scope' => 'all']);
+        // Sync modules directly using ModuleDiscoveryService
+        $this->syncModuleHierarchy('tenant');
     }
 
     /**
@@ -1028,6 +1137,7 @@ class UnifiedInstallationController extends Controller
             // Update password and name in case they changed
             $user->update([
                 'name' => ($adminConfig['first_name'] ?? 'Admin') . ' ' . ($adminConfig['last_name'] ?? 'User'),
+                'user_name' => strtolower(str_replace(' ', '_', ($adminConfig['first_name'] ?? 'admin') . '_' . ($adminConfig['last_name'] ?? 'user'))),
                 'password' => $adminConfig['password_hash'] ?? Hash::make('password'),
                 'email_verified_at' => now(),
             ]);
@@ -1036,6 +1146,7 @@ class UnifiedInstallationController extends Controller
             $user = $userClass::create([
                 'email' => $email,
                 'name' => ($adminConfig['first_name'] ?? 'Admin') . ' ' . ($adminConfig['last_name'] ?? 'User'),
+                'user_name' => strtolower(str_replace(' ', '_', ($adminConfig['first_name'] ?? 'admin') . '_' . ($adminConfig['last_name'] ?? 'user'))),
                 'password' => $adminConfig['password_hash'] ?? Hash::make('password'),
                 'email_verified_at' => now(),
             ]);
@@ -1102,56 +1213,88 @@ class UnifiedInstallationController extends Controller
             }
         } else {
             // Save System settings for standalone mode
+            // SystemSetting uses single-row model similar to PlatformSetting
             $settingsClass = 'Aero\\Core\\Models\\SystemSetting';
             
-            // Check if SystemSetting model has set method
-            if (method_exists($settingsClass, 'set')) {
-                foreach ($settings as $key => $value) {
+            // Get or create the system settings record
+            $systemSettings = $settingsClass::firstOrCreate(
+                ['slug' => 'default'],
+                ['company_name' => $settings['company_name'] ?? config('app.name')]
+            );
+            
+            // Map settings to model attributes (column-based, not key-value)
+            $attributesToUpdate = [];
+            $settingsMapping = [
+                'company_name' => 'company_name',
+                'legal_name' => 'legal_name',
+                'tagline' => 'tagline',
+                'app_url' => 'website_url',
+                'timezone' => 'timezone',
+                'support_email' => 'support_email',
+                'support_phone' => 'support_phone',
+                'address' => 'address_line1',
+                'city' => 'city',
+                'state' => 'state',
+                'postal_code' => 'postal_code',
+                'country' => 'country',
+            ];
+            
+            foreach ($settings as $key => $value) {
+                if (isset($settingsMapping[$key])) {
                     if (is_array($value)) {
                         $value = json_encode($value);
                     }
-                    $settingsClass::set($key, $value);
+                    $attributesToUpdate[$settingsMapping[$key]] = $value;
                 }
-            } else {
-                // Fallback: use updateOrCreate for key-value style table
-                foreach ($settings as $key => $value) {
-                    if (is_array($value)) {
-                        $value = json_encode($value);
-                    }
-                    $settingsClass::updateOrCreate(
-                        ['key' => $key],
-                        ['value' => $value]
-                    );
-                }
+            }
+            
+            // Handle email settings - pass array directly since model has 'array' cast
+            if (isset($settings['mail_driver']) || isset($settings['mail_host'])) {
+                $attributesToUpdate['email_settings'] = [
+                    'driver' => $settings['mail_driver'] ?? 'smtp',
+                    'host' => $settings['mail_host'] ?? '',
+                    'port' => $settings['mail_port'] ?? 587,
+                    'username' => $settings['mail_username'] ?? '',
+                    'password' => $settings['mail_password'] ?? '',
+                    'encryption' => $settings['mail_encryption'] ?? 'tls',
+                    'from_address' => $settings['mail_from_address'] ?? '',
+                    'from_name' => $settings['mail_from_name'] ?? '',
+                ];
+            }
+            
+            if (!empty($attributesToUpdate)) {
+                $systemSettings->update($attributesToUpdate);
             }
         }
     }
 
     /**
      * Step: Sync and install modules
+     * Syncs module hierarchy directly without using Artisan commands
      */
     protected function stepInstallModules(array $config): void
     {
         $mode = $this->getMode();
         
         // Sync modules with appropriate scope
-        // platform = SaaS central database, all = standalone mode
+        // platform = SaaS central database, tenant = standalone mode (tenant context)
         $scope = $mode === 'saas' ? 'platform' : 'all';
-        Artisan::call('hrmac:sync-modules', ['--scope' => $scope]);
         
-        // For standalone mode, also install licensed modules
+        // Sync module hierarchy directly
+        $this->syncModuleHierarchy($scope);
+        
+        // For standalone mode, activate licensed modules
         if ($mode !== 'saas') {
             $license = $config['license'] ?? [];
             $modules = $license['allowed_modules'] ?? [];
 
             foreach ($modules as $moduleCode) {
                 try {
-                    Artisan::call('aero:install-module', [
-                        'module' => $moduleCode,
-                        '--force' => true,
-                    ]);
+                    // Activate the module in the database
+                    Module::where('code', $moduleCode)->update(['is_active' => true]);
+                    Log::info("Activated module: {$moduleCode}");
                 } catch (\Exception $e) {
-                    Log::warning("Failed to install module: {$moduleCode}", [
+                    Log::warning("Failed to activate module: {$moduleCode}", [
                         'error' => $e->getMessage(),
                     ]);
                 }
@@ -1161,19 +1304,17 @@ class UnifiedInstallationController extends Controller
 
     /**
      * Step: Warm cache
+     * Clears caches directly without using Artisan commands
      */
     protected function stepWarmCache(): void
     {
-        Artisan::call('config:clear');
-        Artisan::call('route:clear');
-        Artisan::call('view:clear');
+        // Clear all caches directly
+        $this->clearConfigCache();
+        $this->clearRouteCache();
+        $this->clearViewCache();
         
-        // Optionally cache for production
-        if (app()->environment('production')) {
-            Artisan::call('config:cache');
-            Artisan::call('route:cache');
-            Artisan::call('view:cache');
-        }
+        // Note: We don't cache in production during installation
+        // because the app should be fully functional first
     }
 
     /**
@@ -1293,7 +1434,7 @@ class UnifiedInstallationController extends Controller
 
             // Clear cache
             Cache::forget('installation_in_progress');
-            Artisan::call('config:clear');
+            $this->clearConfigCache();
 
             Log::info('Installation cleanup completed');
 
@@ -1438,23 +1579,58 @@ class UnifiedInstallationController extends Controller
     }
 
     /**
-     * Get installed modules (from composer packages)
+     * Get installed product modules (from composer packages)
+     * 
+     * Returns only product/business modules, excluding foundation packages.
+     * Loads full names and descriptions from each module's config/module.php file.
+     * 
+     * Foundation packages (hidden from display):
+     * - core: Core framework functionality
+     * - platform: Multi-tenant platform functionality (SaaS mode)
+     * - ui: Shared UI components and themes
+     * - hrmac: Human Resource Management Accounting (accounting foundation for HRM)
+     * 
+     * Product modules (visible to users):
+     * - hrm, crm, finance, dms, compliance, pos, scm, project, ims, quality, etc.
      */
     protected function getInstalledModules(): array
     {
         $modules = [];
         $packagesPath = base_path('vendor/aero');
+        
+        // Foundation packages that should NOT be shown as products
+        $foundationPackages = ['core', 'platform', 'ui', 'hrmac'];
 
         if (File::isDirectory($packagesPath)) {
             $packages = File::directories($packagesPath);
             
             foreach ($packages as $package) {
                 $name = basename($package);
-                if (!in_array($name, ['core', 'platform', 'ui'])) {
-                    $modules[] = [
-                        'code' => $name,
-                        'name' => ucfirst(str_replace('-', ' ', $name)),
-                    ];
+                
+                // Only include actual product modules, not foundation packages
+                if (!in_array($name, $foundationPackages)) {
+                    $configPath = $package . '/config/module.php';
+                    
+                    // Try to load module config for proper name and description
+                    if (File::exists($configPath)) {
+                        $config = require $configPath;
+                        
+                        // Handle different config structures (some have 'module' key, others don't)
+                        $moduleConfig = $config['module'] ?? $config;
+                        
+                        $modules[] = [
+                            'code' => $name,
+                            'name' => $moduleConfig['name'] ?? ucfirst(str_replace('-', ' ', $name)),
+                            'description' => $moduleConfig['description'] ?? null,
+                        ];
+                    } else {
+                        // Fallback if no config file exists
+                        $modules[] = [
+                            'code' => $name,
+                            'name' => ucfirst(str_replace('-', ' ', $name)),
+                            'description' => null,
+                        ];
+                    }
                 }
             }
         }
@@ -1514,5 +1690,176 @@ class UnifiedInstallationController extends Controller
         }
         
         return $content . "\n{$key}={$value}";
+    }
+
+    /**
+     * Clear config cache by removing cached files directly
+     */
+    protected function clearConfigCache(): void
+    {
+        $cachedConfigPath = base_path('bootstrap/cache/config.php');
+        if (File::exists($cachedConfigPath)) {
+            File::delete($cachedConfigPath);
+        }
+    }
+
+    /**
+     * Clear route cache by removing cached files directly
+     */
+    protected function clearRouteCache(): void
+    {
+        $cachedRoutesPath = base_path('bootstrap/cache/routes-v7.php');
+        if (File::exists($cachedRoutesPath)) {
+            File::delete($cachedRoutesPath);
+        }
+        
+        // Also try the older route cache filename
+        $oldCachedRoutesPath = base_path('bootstrap/cache/routes.php');
+        if (File::exists($oldCachedRoutesPath)) {
+            File::delete($oldCachedRoutesPath);
+        }
+    }
+
+    /**
+     * Clear view cache by removing compiled view files
+     */
+    protected function clearViewCache(): void
+    {
+        $viewCachePath = storage_path('framework/views');
+        if (File::isDirectory($viewCachePath)) {
+            $files = File::glob($viewCachePath . '/*.php');
+            foreach ($files as $file) {
+                File::delete($file);
+            }
+        }
+    }
+
+    /**
+     * Sync module hierarchy directly using ModuleDiscoveryService
+     * This replaces the Artisan command call with direct logic
+     */
+    protected function syncModuleHierarchy(string $scope): void
+    {
+        try {
+            // Validate schema first
+            $requiredTables = ['modules', 'sub_modules', 'module_components', 'module_component_actions'];
+            foreach ($requiredTables as $table) {
+                if (!Schema::hasTable($table)) {
+                    Log::warning("Module sync skipped: table '{$table}' does not exist");
+                    return;
+                }
+            }
+
+            $moduleDiscovery = app(ModuleDiscoveryService::class);
+            $modules = $moduleDiscovery->getModuleDefinitions();
+
+            if ($modules->isEmpty()) {
+                Log::info('No module definitions found in packages');
+                return;
+            }
+
+            DB::beginTransaction();
+
+            foreach ($modules as $moduleDef) {
+                // Filter by scope
+                $moduleScope = $moduleDef['scope'] ?? 'tenant';
+                if ($scope !== 'all' && $moduleScope !== $scope) {
+                    continue;
+                }
+
+                $this->syncModule($moduleDef);
+            }
+
+            DB::commit();
+            Log::info("Module hierarchy synced successfully for scope: {$scope}");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Module sync failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Sync a single module and its hierarchy
+     */
+    protected function syncModule(array $moduleDef): void
+    {
+        $module = Module::updateOrCreate(
+            ['code' => $moduleDef['code']],
+            [
+                'name' => $moduleDef['name'],
+                'scope' => $moduleDef['scope'] ?? 'tenant',
+                'description' => $moduleDef['description'] ?? null,
+                'icon' => $moduleDef['icon'] ?? null,
+                'route_prefix' => $moduleDef['route_prefix'] ?? null,
+                'category' => $moduleDef['category'] ?? 'core_system',
+                'priority' => $moduleDef['priority'] ?? 100,
+                'is_active' => $moduleDef['is_active'] ?? true,
+                'is_core' => $moduleDef['is_core'] ?? false,
+                'settings' => $moduleDef['settings'] ?? null,
+                'version' => $moduleDef['version'] ?? '1.0.0',
+                'min_plan' => $moduleDef['min_plan'] ?? null,
+                'license_type' => $moduleDef['license_type'] ?? null,
+                'dependencies' => $moduleDef['dependencies'] ?? null,
+                'release_date' => $moduleDef['release_date'] ?? null,
+            ]
+        );
+
+        // Sync submodules
+        if (isset($moduleDef['submodules']) && is_array($moduleDef['submodules'])) {
+            foreach ($moduleDef['submodules'] as $subModuleDef) {
+                $subModule = SubModule::updateOrCreate(
+                    [
+                        'module_id' => $module->id,
+                        'code' => $subModuleDef['code'],
+                    ],
+                    [
+                        'name' => $subModuleDef['name'],
+                        'description' => $subModuleDef['description'] ?? null,
+                        'icon' => $subModuleDef['icon'] ?? null,
+                        'route' => $subModuleDef['route'] ?? null,
+                        'priority' => $subModuleDef['priority'] ?? 100,
+                        'is_active' => $subModuleDef['is_active'] ?? true,
+                    ]
+                );
+
+                // Sync components
+                if (isset($subModuleDef['components']) && is_array($subModuleDef['components'])) {
+                    foreach ($subModuleDef['components'] as $componentDef) {
+                        $component = ModuleComponent::updateOrCreate(
+                            [
+                                'module_id' => $module->id,
+                                'sub_module_id' => $subModule->id,
+                                'code' => $componentDef['code'],
+                            ],
+                            [
+                                'name' => $componentDef['name'],
+                                'description' => $componentDef['description'] ?? null,
+                                'type' => $componentDef['type'] ?? 'page',
+                                'route' => $componentDef['route'] ?? null,
+                                'priority' => $componentDef['priority'] ?? 100,
+                                'is_active' => $componentDef['is_active'] ?? true,
+                            ]
+                        );
+
+                        // Sync actions
+                        if (isset($componentDef['actions']) && is_array($componentDef['actions'])) {
+                            foreach ($componentDef['actions'] as $actionDef) {
+                                ModuleComponentAction::updateOrCreate(
+                                    [
+                                        'module_component_id' => $component->id,
+                                        'code' => $actionDef['code'],
+                                    ],
+                                    [
+                                        'name' => $actionDef['name'],
+                                        'description' => $actionDef['description'] ?? null,
+                                        'is_active' => $actionDef['is_active'] ?? true,
+                                    ]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

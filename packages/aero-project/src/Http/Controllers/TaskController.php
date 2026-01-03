@@ -3,11 +3,10 @@
 namespace Aero\Project\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use App\Models\Tenant\Analytics\Report;
 use Aero\Core\Models\User;
-use App\Services\Task\TaskCrudService;
-use App\Services\Task\TaskImportService;
-use App\Services\Task\TaskNotificationService;
+use Aero\Project\Services\Task\TaskCrudService;
+use Aero\Project\Services\Task\TaskImportService;
+use Aero\Project\Services\Task\TaskNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -35,8 +34,10 @@ class TaskController extends Controller
      */
     public function tasks()
     {
-        $reports = Report::all();
-        $reports_with_tasks = Report::with('tasks')->has('tasks')->get();
+        // Note: Report model reference removed as it should be in its own package
+        // $reports = Report::all();
+        // $reports_with_tasks = Report::with('tasks')->has('tasks')->get();
+        
         $incharges = User::role('Supervision Engineer')->get();
         $users = User::with('roles')->get();
 
@@ -51,14 +52,14 @@ class TaskController extends Controller
             'users' => $users,
             'allincharges' => $incharges,
             'title' => 'Tasks',
-            'reports' => $reports,
-            'reports_with_tasks' => $reports_with_tasks,
+            // 'reports' => $reports,
+            // 'reports_with_tasks' => $reports_with_tasks,
         ]);
     }
 
     public function getLatestTimestamp()
     {
-        $latestTimestamp = \App\Models\DailyWork::max('updated_at');
+        $latestTimestamp = \Aero\Rfi\Models\DailyWork::max('updated_at');
 
         return response()->json(['timestamp' => $latestTimestamp]);
     }

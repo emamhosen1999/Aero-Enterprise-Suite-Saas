@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace Aero\DMS\Widgets;
 
-use Aero\Core\Contracts\DashboardWidgetInterface;
+use Aero\Core\Contracts\AbstractDashboardWidget;
+use Aero\Core\Contracts\CoreWidgetCategory;
 
 /**
  * Shared With Me Widget
  *
  * Displays documents that have been shared with the current user.
  */
-class SharedWithMeWidget implements DashboardWidgetInterface
+class SharedWithMeWidget extends AbstractDashboardWidget
 {
+    protected string $position = 'main_left';
+    protected int $order = 30;
+    protected int|string $span = 1;
+    protected array $requiredPermissions = ['dms.view'];
+
+    public function getCategory(): CoreWidgetCategory
+    {
+        return CoreWidgetCategory::ACTIVITY;
+    }
+
     public function getKey(): string
     {
         return 'dms.shared_with_me';
@@ -28,29 +39,14 @@ class SharedWithMeWidget implements DashboardWidgetInterface
         return 'Documents shared with you by others';
     }
 
-    public function getModule(): string
+    public function getModuleCode(): string
     {
         return 'dms';
-    }
-
-    public function getCategory(): string
-    {
-        return 'activity';
-    }
-
-    public function getPosition(): string
-    {
-        return 'sidebar';
     }
 
     public function getComponent(): string
     {
         return 'Widgets/DMS/SharedWithMeWidget';
-    }
-
-    public function getPermissions(): array
-    {
-        return ['dms.view'];
     }
 
     public function getData(): array
@@ -70,23 +66,5 @@ class SharedWithMeWidget implements DashboardWidgetInterface
             'count' => 0,
             'view_all_url' => route('dms.shared', [], false),
         ];
-    }
-
-    public function getProps(): array
-    {
-        return array_merge($this->getData(), [
-            'title' => $this->getTitle(),
-            'limit' => 5,
-        ]);
-    }
-
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function getPriority(): int
-    {
-        return 70;
     }
 }

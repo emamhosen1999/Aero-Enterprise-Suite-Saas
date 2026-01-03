@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace Aero\DMS\Widgets;
 
-use Aero\Core\Contracts\DashboardWidgetInterface;
+use Aero\Core\Contracts\AbstractDashboardWidget;
+use Aero\Core\Contracts\CoreWidgetCategory;
 
 /**
- * Pending Document Approvals Widget
+ * Pending Approvals Widget
  *
  * Displays documents awaiting approval from the current user.
  */
-class PendingApprovalsWidget implements DashboardWidgetInterface
+class PendingApprovalsWidget extends AbstractDashboardWidget
 {
+    protected string $position = 'main_right';
+    protected int $order = 10;
+    protected int|string $span = 1;
+    protected array $requiredPermissions = ['dms.approve'];
+
+    public function getCategory(): CoreWidgetCategory
+    {
+        return CoreWidgetCategory::ACTION;
+    }
+
     public function getKey(): string
     {
         return 'dms.pending_approvals';
@@ -28,29 +39,14 @@ class PendingApprovalsWidget implements DashboardWidgetInterface
         return 'Documents awaiting your approval';
     }
 
-    public function getModule(): string
+    public function getModuleCode(): string
     {
         return 'dms';
-    }
-
-    public function getCategory(): string
-    {
-        return 'action';
-    }
-
-    public function getPosition(): string
-    {
-        return 'sidebar';
     }
 
     public function getComponent(): string
     {
         return 'Widgets/DMS/PendingApprovalsWidget';
-    }
-
-    public function getPermissions(): array
-    {
-        return ['dms.approve'];
     }
 
     public function getData(): array
@@ -70,22 +66,5 @@ class PendingApprovalsWidget implements DashboardWidgetInterface
             'count' => 0,
             'action_url' => route('dms.approvals', [], false),
         ];
-    }
-
-    public function getProps(): array
-    {
-        return array_merge($this->getData(), [
-            'title' => $this->getTitle(),
-        ]);
-    }
-
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function getPriority(): int
-    {
-        return 80;
     }
 }

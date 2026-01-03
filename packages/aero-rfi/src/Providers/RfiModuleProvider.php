@@ -5,12 +5,16 @@ namespace Aero\Rfi\Providers;
 use Aero\Core\Providers\AbstractModuleProvider;
 use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Services\UserRelationshipRegistry;
+use Aero\Rfi\Events\RfiApproved;
+use Aero\Rfi\Events\RfiRejected;
+use Aero\Rfi\Events\RfiSubmitted;
 use Aero\Rfi\Models\DailyWork;
 use Aero\Rfi\Models\Objection;
 use Aero\Rfi\Models\WorkLocation;
 use Aero\Rfi\Policies\DailyWorkPolicy;
 use Aero\Rfi\Policies\ObjectionPolicy;
 use Aero\Rfi\Policies\WorkLocationPolicy;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -76,6 +80,9 @@ class RfiModuleProvider extends AbstractModuleProvider
         $this->app->singleton(\Aero\Rfi\Services\DailyWorkValidationService::class);
         $this->app->singleton(\Aero\Rfi\Services\DailyWorkSummaryService::class);
 
+        // Register Chainage Gap Analysis Service (PATENTABLE)
+        $this->app->singleton(\Aero\Rfi\Services\ChainageGapAnalysisService::class);
+
         // Merge RFI-specific configuration
         $rfiConfigPath = $this->getModulePath('config/rfi.php');
         if (file_exists($rfiConfigPath)) {
@@ -96,6 +103,9 @@ class RfiModuleProvider extends AbstractModuleProvider
 
         // Register navigation items for auto-discovery
         $this->registerNavigation();
+
+        // Register event listeners for RFI workflow (PATENTABLE integration)
+        $this->registerEventListeners();
     }
 
     /**
@@ -228,6 +238,36 @@ class RfiModuleProvider extends AbstractModuleProvider
                 Gate::policy($model, $policy);
             }
         }
+    }
+
+    /**
+     * Register event listeners for RFI workflow.
+     * These listeners enable the PATENTABLE integration between modules.
+     */
+    protected function registerEventListeners(): void
+    {
+        // RfiApproved -> Auto-generate BOQ Measurement
+        Event::listen(
+            RfiApproved::class,
+            [\Aero\Project\Listeners\GenerateBoqMeasurementOnApproval::class, 'handle']
+        );
+
+        // RfiRejected -> Auto-create NCR if severe
+        Event::listen(
+            RfiRejected::class,
+            [\Aero\Quality\Listeners\CreateNcrOnRfiRejection::class, 'handle']
+        );
+
+        // RfiSubmitted -> Create ChainageProgress record
+        Event::listen(
+            RfiSubmitted::class,
+            function (RfiSubmitted $event) {
+                if ($event->workLayerId) {
+                    $service = app(\Aero\Rfi\Services\ChainageGapAnalysisService::class);
+                    $service->recordRfiSubmission($event->rfi, $event->workLayerId);
+                }
+            }
+        );
     }
 
     /**

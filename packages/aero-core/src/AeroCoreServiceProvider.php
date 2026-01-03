@@ -330,7 +330,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             // System NOT installed - ONLY load installation routes
             // These work on ANY domain (platform, tenant, or standalone)
             Route::middleware(['web'])
-                ->group($routesPath.'/install.php');
+                ->group($routesPath.'/installation.php');
             return;
         }
 

@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace Aero\DMS\Widgets;
 
-use Aero\Core\Contracts\DashboardWidgetInterface;
+use Aero\Core\Contracts\AbstractDashboardWidget;
+use Aero\Core\Contracts\CoreWidgetCategory;
 
 /**
  * Storage Usage Widget
  *
  * Displays storage usage statistics and quota information.
  */
-class StorageUsageWidget implements DashboardWidgetInterface
+class StorageUsageWidget extends AbstractDashboardWidget
 {
+    protected string $position = 'sidebar';
+    protected int $order = 10;
+    protected int|string $span = 1;
+    protected array $requiredPermissions = ['dms.view'];
+
+    public function getCategory(): CoreWidgetCategory
+    {
+        return CoreWidgetCategory::STATS;
+    }
+
     public function getKey(): string
     {
         return 'dms.storage_usage';
@@ -28,29 +39,14 @@ class StorageUsageWidget implements DashboardWidgetInterface
         return 'Document storage usage and quota';
     }
 
-    public function getModule(): string
+    public function getModuleCode(): string
     {
         return 'dms';
-    }
-
-    public function getCategory(): string
-    {
-        return 'stats';
-    }
-
-    public function getPosition(): string
-    {
-        return 'stats_row';
     }
 
     public function getComponent(): string
     {
         return 'Widgets/DMS/StorageUsageWidget';
-    }
-
-    public function getPermissions(): array
-    {
-        return ['dms.view'];
     }
 
     public function getData(): array
@@ -65,22 +61,5 @@ class StorageUsageWidget implements DashboardWidgetInterface
             'document_count' => 0,
             'folder_count' => 0,
         ];
-    }
-
-    public function getProps(): array
-    {
-        return array_merge($this->getData(), [
-            'title' => $this->getTitle(),
-        ]);
-    }
-
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function getPriority(): int
-    {
-        return 90;
     }
 }

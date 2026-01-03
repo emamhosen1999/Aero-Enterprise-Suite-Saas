@@ -3,224 +3,201 @@
 namespace Aero\Dms\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
-use Aero\Core\Contracts\ModuleRegistry;
-use Aero\Core\Services\DashboardWidgetRegistry;
-use Aero\DMS\Widgets\RecentDocumentsWidget;
-use Aero\DMS\Widgets\StorageUsageWidget;
-use Aero\DMS\Widgets\PendingApprovalsWidget;
-use Aero\DMS\Widgets\SharedWithMeWidget;
+use Aero\Core\Services\NavigationRegistry;
+use Aero\Core\Services\UserRelationshipRegistry;
+use Aero\DMS\Models\Document;
+use Aero\DMS\Models\Folder;
+use Aero\DMS\Policies\DocumentPolicy;
+use Aero\DMS\Policies\FolderPolicy;
+use Illuminate\Support\Facades\Gate;
 
+/**
+ * DMS Module Provider
+ *
+ * Provides Document Management System functionality including document storage,
+ * version control, approval workflows, and secure document sharing.
+ *
+ * All module metadata is read from config/module.php (single source of truth).
+ * This provider only contains module-specific services, policies, and relationships.
+ */
 class DmsModuleProvider extends AbstractModuleProvider
 {
+    /**
+     * Module code - the only required property.
+     * All other metadata is read from config/module.php.
+     */
     protected string $moduleCode = 'dms';
-    protected string $moduleName = 'Document Management';
-    protected string $moduleDescription = 'Complete document management system with version control, approval workflows, and secure document storage';
-    protected string $moduleVersion = '1.0.0';
-    protected int $modulePriority = 18;
-    protected array $dependencies = ['core'];
-    protected array $authors = [
-        ['name' => 'Aero Team', 'email' => 'dev@aero.com'],
-    ];
 
     /**
-     * Register the module with the application.
+     * Get the module path.
      */
-    public function register(): void
+    protected function getModulePath(string $path = ''): string
     {
-        parent::register();
-        
-        // Register with ModuleRegistry
-        $this->app->make(ModuleRegistry::class)->register($this);
-        
-        // Register module services
-        $this->registerServices();
+        $basePath = dirname(__DIR__, 2);
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
     /**
-     * Bootstrap the module services.
+     * Override parent loadRoutes to prevent duplicate route registration.
+     * Routes are registered by AeroDmsServiceProvider with proper middleware.
      */
-    public function boot(): void
+    protected function loadRoutes(): void
     {
-        parent::boot();
-        
-        // Routes are loaded by parent::boot() via AbstractModuleProvider::loadRoutes()
-        // which applies proper domain isolation middleware.
-        
-        // Load module migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
-        
-        // Load module views (if any)
-        // $this->loadViewsFrom(__DIR__.'/../../resources/views', 'dms');
-        
-        // Register dashboard widgets
+        // Do nothing - routes handled by AeroDmsServiceProvider
+    }
+
+    /**
+     * Register module services.
+     */
+    protected function registerServices(): void
+    {
+        // Register main DMS service
+        $this->app->singleton('dms', function ($app) {
+            return new \Aero\DMS\Services\DMSService;
+        });
+
+        // Register specific services
+        $this->app->singleton('dms.documents', function ($app) {
+            return new \Aero\DMS\Services\DocumentService;
+        });
+
+        $this->app->singleton('dms.versioning', function ($app) {
+            return new \Aero\DMS\Services\DocumentVersioningService;
+        });
+
+        $this->app->singleton('dms.approval', function ($app) {
+            return new \Aero\DMS\Services\DocumentApprovalService;
+        });
+
+        $this->app->singleton('dms.search', function ($app) {
+            return new \Aero\DMS\Services\DocumentSearchService;
+        });
+
+        $this->app->singleton('dms.signature', function ($app) {
+            return new \Aero\DMS\Services\DigitalSignatureService;
+        });
+
+        // Merge DMS-specific configuration
+        $dmsConfigPath = $this->getModulePath('config/dms.php');
+        if (file_exists($dmsConfigPath)) {
+            $this->mergeConfigFrom($dmsConfigPath, 'dms');
+        }
+    }
+
+    /**
+     * Boot DMS module.
+     */
+    protected function bootModule(): void
+    {
+        // Register policies
+        $this->registerPolicies();
+
+        // Register User model relationships dynamically
+        $this->registerUserRelationships();
+
+        // Register navigation items for auto-discovery
+        $this->registerNavigation();
+
+        // Register dashboard widgets for Core Dashboard
         $this->registerDashboardWidgets();
-        
+
         // Publish module assets
         $this->publishes([
-            __DIR__ . '/../../config/module.php' => config_path('modules/dms.php'),
+            $this->getModulePath('config/module.php') => config_path('modules/dms.php'),
         ], 'dms-config');
     }
 
     /**
-     * Register DMS dashboard widgets.
+     * Register DMS widgets for the Core Dashboard.
+     *
+     * These are ACTION/ALERT/SUMMARY widgets only.
+     * Full analytics stay on DMS Dashboard (/dms/dashboard).
      */
     protected function registerDashboardWidgets(): void
     {
-        $registry = $this->app->make(DashboardWidgetRegistry::class);
-        
+        // Only register if the registry is available
+        if (!$this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardWidgetRegistry::class);
+
+        // Register DMS widgets for Core Dashboard
         $registry->registerMany([
-            new RecentDocumentsWidget(),
-            new StorageUsageWidget(),
-            new PendingApprovalsWidget(),
-            new SharedWithMeWidget(),
+            new \Aero\DMS\Widgets\RecentDocumentsWidget(),
+            new \Aero\DMS\Widgets\StorageUsageWidget(),
+            new \Aero\DMS\Widgets\PendingApprovalsWidget(),
+            new \Aero\DMS\Widgets\SharedWithMeWidget(),
         ]);
     }
 
     /**
-     * Get module navigation items.
+     * Register User model relationships via UserRelationshipRegistry.
+     * This allows the core User model to be extended without hard dependencies.
      */
-    protected function getNavigationItems(): array
+    protected function registerUserRelationships(): void
     {
-        return [
-            [
-                'label' => 'Dashboard',
-                'route' => 'tenant.dms.dashboard',
-                'icon' => 'ChartBarIcon',
-                'order' => 1,
-            ],
-            [
-                'label' => 'Documents',
-                'route' => 'tenant.dms.documents',
-                'icon' => 'DocumentTextIcon',
-                'order' => 2,
-            ],
-            [
-                'label' => 'Folders',
-                'route' => 'tenant.dms.folders',
-                'icon' => 'FolderIcon',
-                'order' => 3,
-            ],
-            [
-                'label' => 'Templates',
-                'route' => 'tenant.dms.templates',
-                'icon' => 'DocumentDuplicateIcon',
-                'order' => 4,
-            ],
-        ];
+        if (! $this->app->bound(UserRelationshipRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(UserRelationshipRegistry::class);
+
+        // Register document ownership relationship
+        $registry->registerRelationship('documents', function ($user) {
+            return $user->hasMany(Document::class, 'created_by');
+        });
+
+        // Register folder ownership relationship
+        $registry->registerRelationship('folders', function ($user) {
+            return $user->hasMany(Folder::class, 'created_by');
+        });
+
+        // Register shared documents relationship
+        $registry->registerRelationship('sharedDocuments', function ($user) {
+            return $user->belongsToMany(Document::class, 'document_shares', 'user_id', 'document_id')
+                ->withTimestamps()
+                ->withPivot(['permission_level', 'shared_by', 'expires_at']);
+        });
+
+        // Register scopes for user queries
+        $registry->registerScope('withDmsRelations', function ($query) {
+            return $query->with([
+                'documents',
+                'folders',
+                'sharedDocuments',
+            ]);
+        });
+
+        // Register computed accessors
+        $registry->registerAccessor('documents_count', function ($user) {
+            return $user->documents()->count();
+        });
+
+        $registry->registerAccessor('folders_count', function ($user) {
+            return $user->folders()->count();
+        });
+
+        $registry->registerAccessor('storage_used', function ($user) {
+            return $user->documents()->sum('file_size');
+        });
     }
 
     /**
-     * Get module hierarchy definition.
+     * Register policies for DMS models.
      */
-    protected function getModuleHierarchy(): array
+    protected function registerPolicies(): void
     {
-        return [
-            'submodules' => [
-                [
-                    'code' => 'document_management',
-                    'name' => 'Document Management',
-                    'description' => 'Core document management features',
-                    'components' => [
-                        [
-                            'code' => 'documents',
-                            'name' => 'Documents',
-                            'description' => 'Document CRUD operations',
-                            'actions' => ['view', 'create', 'edit', 'delete', 'upload', 'download', 'preview', 'share', 'version'],
-                        ],
-                        [
-                            'code' => 'folders',
-                            'name' => 'Folders',
-                            'description' => 'Folder organization',
-                            'actions' => ['view', 'create', 'edit', 'delete', 'move', 'share'],
-                        ],
-                        [
-                            'code' => 'categories',
-                            'name' => 'Categories',
-                            'description' => 'Document categorization',
-                            'actions' => ['view', 'create', 'edit', 'delete'],
-                        ],
-                    ],
-                ],
-                [
-                    'code' => 'version_control',
-                    'name' => 'Version Control',
-                    'description' => 'Document version management',
-                    'components' => [
-                        [
-                            'code' => 'versions',
-                            'name' => 'Document Versions',
-                            'description' => 'Version history and management',
-                            'actions' => ['view', 'create', 'restore', 'compare', 'download'],
-                        ],
-                    ],
-                ],
-                [
-                    'code' => 'approval_workflow',
-                    'name' => 'Approval Workflow',
-                    'description' => 'Document approval processes',
-                    'components' => [
-                        [
-                            'code' => 'approvals',
-                            'name' => 'Document Approvals',
-                            'description' => 'Approval workflow management',
-                            'actions' => ['view', 'approve', 'reject', 'request'],
-                        ],
-                        [
-                            'code' => 'workflows',
-                            'name' => 'Workflows',
-                            'description' => 'Workflow configuration',
-                            'actions' => ['view', 'create', 'edit', 'delete'],
-                        ],
-                    ],
-                ],
-                [
-                    'code' => 'templates',
-                    'name' => 'Document Templates',
-                    'description' => 'Template management',
-                    'components' => [
-                        [
-                            'code' => 'templates',
-                            'name' => 'Templates',
-                            'description' => 'Document template management',
-                            'actions' => ['view', 'create', 'edit', 'delete', 'use'],
-                        ],
-                    ],
-                ],
-                [
-                    'code' => 'security',
-                    'name' => 'Security & Access',
-                    'description' => 'Document security and access control',
-                    'components' => [
-                        [
-                            'code' => 'access_control',
-                            'name' => 'Access Control',
-                            'description' => 'Manage document permissions',
-                            'actions' => ['view', 'grant', 'revoke'],
-                        ],
-                        [
-                            'code' => 'audit_logs',
-                            'name' => 'Audit Logs',
-                            'description' => 'Document access and activity logs',
-                            'actions' => ['view', 'export'],
-                        ],
-                        [
-                            'code' => 'signatures',
-                            'name' => 'Digital Signatures',
-                            'description' => 'Document signing',
-                            'actions' => ['view', 'sign', 'verify'],
-                        ],
-                    ],
-                ],
-            ],
+        $policies = [
+            Document::class => DocumentPolicy::class,
+            Folder::class => FolderPolicy::class,
         ];
-    }
 
-    /**
-     * Register module-specific services.
-     */
-    protected function registerServices(): void
-    {
-        // Register DMS service
-        $this->app->singleton(\Aero\Dms\Services\DMSService::class);
+        foreach ($policies as $model => $policy) {
+            if (class_exists($policy)) {
+                Gate::policy($model, $policy);
+            }
+        }
     }
 }

@@ -36,7 +36,6 @@ import {
     X,
     Sparkles,
     SkipForward,
-    CubeIcon,
 } from 'lucide-react';
 import { showToast, toastStyles } from '@/utils/toastUtils';
 import { useTheme } from '@/Context/ThemeContext.jsx';

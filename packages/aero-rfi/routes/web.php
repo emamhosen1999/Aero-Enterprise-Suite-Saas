@@ -1,9 +1,11 @@
 <?php
 
+use Aero\Rfi\Http\Controllers\ChainageProgressController;
 use Aero\Rfi\Http\Controllers\DailyWorkController;
 use Aero\Rfi\Http\Controllers\DailyWorkSummaryController;
 use Aero\Rfi\Http\Controllers\ObjectionController;
 use Aero\Rfi\Http\Controllers\RfiDashboardController;
+use Aero\Rfi\Http\Controllers\WorkLayerController;
 use Aero\Rfi\Http\Controllers\WorkLocationController;
 use Illuminate\Support\Facades\Route;
 
@@ -145,6 +147,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Find by chainage
         Route::get('/find/by-chainage', [WorkLocationController::class, 'findByChainage'])->name('find-by-chainage');
+    });
+
+    // ============================================================================
+    // CHAINAGE PROGRESS MAP (PATENTABLE - Chainage-Centric Construction Ledger)
+    // ============================================================================
+    Route::prefix('chainage-progress')->name('chainage-progress.')->middleware(['module:rfi,chainage-progress'])->group(function () {
+        Route::get('/', [ChainageProgressController::class, 'index'])->name('index');
+        Route::get('/api/data', [ChainageProgressController::class, 'getProgressData'])->name('data');
+        Route::get('/api/gap-analysis', [ChainageProgressController::class, 'getGapAnalysis'])->name('gap-analysis');
+        Route::get('/api/timeline', [ChainageProgressController::class, 'getChainageTimeline'])->name('timeline');
+    });
+
+    // ============================================================================
+    // WORK LAYERS (Layer Sequencing & Prerequisites)
+    // ============================================================================
+    Route::prefix('work-layers')->name('work-layers.')->middleware(['module:rfi,work-layers'])->group(function () {
+        Route::get('/', [WorkLayerController::class, 'index'])->name('index');
+        Route::get('/api/list', [WorkLayerController::class, 'list'])->name('list');
+        Route::post('/', [WorkLayerController::class, 'store'])->name('store');
+        Route::get('/{workLayer}', [WorkLayerController::class, 'show'])->name('show');
+        Route::put('/{workLayer}', [WorkLayerController::class, 'update'])->name('update');
+        Route::delete('/{workLayer}', [WorkLayerController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [WorkLayerController::class, 'reorder'])->name('reorder');
     });
 
 }); // End of auth middleware group

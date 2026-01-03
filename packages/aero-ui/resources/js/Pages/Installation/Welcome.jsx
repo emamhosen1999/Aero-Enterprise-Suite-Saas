@@ -212,20 +212,41 @@ export default function Welcome() {
                         {/* Included Modules (Standalone mode) */}
                         {mode === 'standalone' && installedModules.length > 0 && (
                             <div>
-                                <h3 className="text-lg font-semibold mb-3">Included Modules</h3>
-                                <div className="flex flex-wrap gap-2">
+                                <h3 className="text-lg font-semibold mb-4">Included Product Modules</h3>
+                                <div className="space-y-3">
                                     {installedModules
-                                        .filter(module => module !== 'core')
-                                        .map((module) => (
-                                            <Chip
-                                                key={module}
-                                                color="primary"
-                                                variant="flat"
-                                                radius={themeRadius}
-                                            >
-                                                {module === 'all' ? 'All Modules' : module.toUpperCase()}
-                                            </Chip>
-                                        ))}
+                                        .filter(module => {
+                                            const code = typeof module === 'object' ? module.code : module;
+                                            return code !== 'core';
+                                        })
+                                        .map((module) => {
+                                            const code = typeof module === 'object' ? module.code : module;
+                                            const name = typeof module === 'object' ? module.name : module.toUpperCase();
+                                            const description = typeof module === 'object' ? module.description : null;
+                                            
+                                            return (
+                                                <div 
+                                                    key={code}
+                                                    className="p-3 rounded-lg border border-divider bg-default-50"
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="flex-shrink-0 mt-0.5">
+                                                            <CheckCircleIcon className="w-5 h-5 text-success" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-semibold text-foreground">
+                                                                {code === 'all' ? 'All Modules' : name}
+                                                            </h4>
+                                                            {description && (
+                                                                <p className="text-sm text-default-600 mt-1">
+                                                                    {description}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                 </div>
                             </div>
                         )}

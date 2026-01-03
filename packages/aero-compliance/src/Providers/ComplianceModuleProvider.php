@@ -3,189 +3,162 @@
 namespace Aero\Compliance\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
+use Aero\Core\Services\NavigationRegistry;
+use Aero\Core\Services\UserRelationshipRegistry;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Compliance Module Provider
  *
  * Provides compliance management functionality including regulatory compliance,
- * audit trails, and compliance reporting.
+ * audit trails, policy management, and compliance reporting.
+ *
+ * All module metadata is read from config/module.php (single source of truth).
+ * This provider only contains module-specific services, policies, and relationships.
  */
 class ComplianceModuleProvider extends AbstractModuleProvider
 {
+    /**
+     * Module code - the only required property.
+     * All other metadata is read from config/module.php.
+     */
     protected string $moduleCode = 'compliance';
-    protected string $moduleName = 'Compliance Management';
-    protected string $moduleDescription = 'Complete compliance management system with regulatory tracking, audit trails, and compliance reporting';
-    protected string $moduleVersion = '1.0.0';
-    protected string $moduleCategory = 'business';
-    protected string $moduleIcon = 'ShieldCheckIcon';
-    protected int $modulePriority = 17;
-    protected bool $enabled = true;
-    protected ?string $minimumPlan = 'enterprise';
-    protected array $dependencies = ['core'];
 
-    protected array $navigationItems = [
-        [
-            'code' => 'compliance_dashboard',
-            'name' => 'Compliance Dashboard',
-            'icon' => 'ShieldCheckIcon',
-            'route' => 'compliance.dashboard',
-            'priority' => 1,
-        ],
-        [
-            'code' => 'compliance_requirements',
-            'name' => 'Requirements',
-            'icon' => 'DocumentCheckIcon',
-            'route' => 'compliance.requirements.index',
-            'priority' => 2,
-        ],
-        [
-            'code' => 'compliance_audits',
-            'name' => 'Audits',
-            'icon' => 'ClipboardDocumentCheckIcon',
-            'route' => 'compliance.audits.index',
-            'priority' => 3,
-        ],
-        [
-            'code' => 'compliance_policies',
-            'name' => 'Policies',
-            'icon' => 'DocumentTextIcon',
-            'route' => 'compliance.policies.index',
-            'priority' => 4,
-        ],
-    ];
-
-    protected array $moduleHierarchy = [
-        'code' => 'compliance',
-        'name' => 'Compliance Management',
-        'description' => 'Regulatory compliance and audit management',
-        'icon' => 'ShieldCheckIcon',
-        'priority' => 17,
-        'is_active' => true,
-        'requires_subscription' => true,
-        'route_prefix' => 'compliance',
-        'sub_modules' => [
-            [
-                'code' => 'regulatory_requirements',
-                'name' => 'Regulatory Requirements',
-                'description' => 'Manage regulatory requirements',
-                'icon' => 'DocumentCheckIcon',
-                'priority' => 1,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'requirements_list',
-                        'name' => 'Requirements List',
-                        'description' => 'View and manage regulatory requirements',
-                        'route_name' => 'compliance.requirements.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Requirements', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Requirement', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Requirement', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Requirement', 'is_active' => true],
-                            ['code' => 'assess', 'name' => 'Assess Compliance', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'audit_management',
-                'name' => 'Audit Management',
-                'description' => 'Manage compliance audits',
-                'icon' => 'ClipboardDocumentCheckIcon',
-                'priority' => 2,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'audit_list',
-                        'name' => 'Audit List',
-                        'description' => 'View and manage audits',
-                        'route_name' => 'compliance.audits.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Audits', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Audit', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Audit', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Audit', 'is_active' => true],
-                            ['code' => 'schedule', 'name' => 'Schedule Audit', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'compliance_policies',
-                'name' => 'Compliance Policies',
-                'description' => 'Manage compliance policies',
-                'icon' => 'DocumentTextIcon',
-                'priority' => 3,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'policy_list',
-                        'name' => 'Policy List',
-                        'description' => 'View and manage policies',
-                        'route_name' => 'compliance.policies.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Policies', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Policy', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Policy', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Policy', 'is_active' => true],
-                            ['code' => 'publish', 'name' => 'Publish Policy', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'code' => 'jurisdictions',
-                'name' => 'Jurisdictions',
-                'description' => 'Manage jurisdictions and regulatory bodies',
-                'icon' => 'GlobeAltIcon',
-                'priority' => 4,
-                'is_active' => true,
-                'components' => [
-                    [
-                        'code' => 'jurisdiction_list',
-                        'name' => 'Jurisdiction List',
-                        'description' => 'View and manage jurisdictions',
-                        'route_name' => 'compliance.jurisdictions.index',
-                        'priority' => 1,
-                        'is_active' => true,
-                        'actions' => [
-                            ['code' => 'view', 'name' => 'View Jurisdictions', 'is_active' => true],
-                            ['code' => 'create', 'name' => 'Create Jurisdiction', 'is_active' => true],
-                            ['code' => 'edit', 'name' => 'Edit Jurisdiction', 'is_active' => true],
-                            ['code' => 'delete', 'name' => 'Delete Jurisdiction', 'is_active' => true],
-                        ],
-                    ],
-                ],
-            ],
-        ],
-    ];
-
+    /**
+     * Get the module path.
+     */
     protected function getModulePath(string $path = ''): string
     {
         $basePath = dirname(__DIR__, 2);
-        return $path ? $basePath . '/' . $path : $basePath;
+
+        return $path ? $basePath.'/'.$path : $basePath;
     }
 
+    /**
+     * Override parent loadRoutes to prevent duplicate route registration.
+     * Routes are registered by AeroComplianceServiceProvider with proper middleware.
+     */
+    protected function loadRoutes(): void
+    {
+        // Do nothing - routes handled by AeroComplianceServiceProvider
+    }
+
+    /**
+     * Register module services.
+     */
     protected function registerServices(): void
     {
-        // Register Compliance-specific services here when needed
+        // Register main Compliance service
+        $this->app->singleton('compliance', function ($app) {
+            return new \Aero\Compliance\Services\ComplianceService;
+        });
+
+        // Register specific services
+        $this->app->singleton('compliance.requirements', function ($app) {
+            return new \Aero\Compliance\Services\RequirementService;
+        });
+
+        $this->app->singleton('compliance.audits', function ($app) {
+            return new \Aero\Compliance\Services\AuditService;
+        });
+
+        $this->app->singleton('compliance.policies', function ($app) {
+            return new \Aero\Compliance\Services\PolicyService;
+        });
+
+        $this->app->singleton('compliance.reporting', function ($app) {
+            return new \Aero\Compliance\Services\ReportingService;
+        });
+
+        // Merge Compliance-specific configuration
+        $complianceConfigPath = $this->getModulePath('config/compliance.php');
+        if (file_exists($complianceConfigPath)) {
+            $this->mergeConfigFrom($complianceConfigPath, 'compliance');
+        }
     }
 
+    /**
+     * Boot Compliance module.
+     */
     protected function bootModule(): void
     {
-        // Register module-specific middleware, policies, etc.
+        // Register policies
+        $this->registerPolicies();
+
+        // Register User model relationships dynamically
+        $this->registerUserRelationships();
+
+        // Register navigation items for auto-discovery
+        $this->registerNavigation();
+
+        // Publish module assets
+        $this->publishes([
+            $this->getModulePath('config/module.php') => config_path('modules/compliance.php'),
+        ], 'compliance-config');
     }
 
-    public function register(): void
+    /**
+     * Register User model relationships via UserRelationshipRegistry.
+     * This allows the core User model to be extended without hard dependencies.
+     */
+    protected function registerUserRelationships(): void
     {
-        parent::register();
-        $registry = $this->app->make(\Aero\Core\Services\ModuleRegistry::class);
-        $registry->register($this);
+        if (! $this->app->bound(UserRelationshipRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(UserRelationshipRegistry::class);
+
+        // Register compliance requirements assigned to user
+        $registry->registerRelationship('complianceRequirements', function ($user) {
+            return $user->hasMany(\Aero\Compliance\Models\Requirement::class, 'assigned_to');
+        });
+
+        // Register audits where user is auditor
+        $registry->registerRelationship('audits', function ($user) {
+            return $user->hasMany(\Aero\Compliance\Models\Audit::class, 'auditor_id');
+        });
+
+        // Register policies authored by user
+        $registry->registerRelationship('policies', function ($user) {
+            return $user->hasMany(\Aero\Compliance\Models\Policy::class, 'author_id');
+        });
+
+        // Register scopes for user queries
+        $registry->registerScope('withComplianceRelations', function ($query) {
+            return $query->with([
+                'complianceRequirements',
+                'audits',
+                'policies',
+            ]);
+        });
+
+        // Register computed accessors
+        $registry->registerAccessor('active_compliance_count', function ($user) {
+            return $user->complianceRequirements()->where('status', 'active')->count();
+        });
+
+        $registry->registerAccessor('pending_audits_count', function ($user) {
+            return $user->audits()->where('status', 'pending')->count();
+        });
+    }
+
+    /**
+     * Register policies for Compliance models.
+     */
+    protected function registerPolicies(): void
+    {
+        // Policies will be registered when models and policies are created
+        $policies = [
+            // \Aero\Compliance\Models\Requirement::class => \Aero\Compliance\Policies\RequirementPolicy::class,
+            // \Aero\Compliance\Models\Audit::class => \Aero\Compliance\Policies\AuditPolicy::class,
+            // \Aero\Compliance\Models\Policy::class => \Aero\Compliance\Policies\PolicyPolicy::class,
+        ];
+
+        foreach ($policies as $model => $policy) {
+            if (class_exists($model) && class_exists($policy)) {
+                Gate::policy($model, $policy);
+            }
+        }
     }
 }

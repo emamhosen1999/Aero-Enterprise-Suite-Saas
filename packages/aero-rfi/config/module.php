@@ -187,5 +187,75 @@ return [
                 ],
             ],
         ],
+
+        // ==================== Chainage Progress Submodule (PATENTABLE) ====================
+        [
+            'code' => 'chainage-progress',
+            'name' => 'Chainage Progress',
+            'description' => 'Visual chainage-indexed progress map for linear infrastructure',
+            'icon' => 'MapIcon',
+            'route' => '/rfi/chainage-progress',
+            'priority' => 40,
+            'is_active' => true,
+
+            'components' => [
+                [
+                    'code' => 'progress-map',
+                    'name' => 'Progress Map',
+                    'description' => 'Visual linear map showing construction progress by chainage',
+                    'route' => '/rfi/chainage-progress',
+                    'icon' => 'MapIcon',
+                    'type' => 'page',
+
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View', 'description' => 'View chainage progress map'],
+                        ['code' => 'export', 'name' => 'Export', 'description' => 'Export progress reports'],
+                    ],
+                ],
+                [
+                    'code' => 'gap-analysis',
+                    'name' => 'Gap Analysis',
+                    'description' => 'Analyze prerequisite gaps and blocking NCRs',
+                    'route' => null,
+                    'icon' => 'ChartBarSquareIcon',
+                    'type' => 'feature',
+
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View', 'description' => 'View gap analysis'],
+                        ['code' => 'validate', 'name' => 'Validate', 'description' => 'Validate RFI prerequisites'],
+                    ],
+                ],
+            ],
+        ],
+
+        // ==================== Work Layers Submodule (PATENTABLE) ====================
+        [
+            'code' => 'work-layers',
+            'name' => 'Work Layers',
+            'description' => 'Define construction activity layers with prerequisite sequencing',
+            'icon' => 'Squares2X2Icon',
+            'route' => '/rfi/work-layers',
+            'priority' => 50,
+            'is_active' => true,
+
+            'components' => [
+                [
+                    'code' => 'layer-list',
+                    'name' => 'Layer List',
+                    'description' => 'View and manage work layers',
+                    'route' => '/rfi/work-layers',
+                    'icon' => 'ListBulletIcon',
+                    'type' => 'page',
+
+                    'actions' => [
+                        ['code' => 'view', 'name' => 'View', 'description' => 'View work layers'],
+                        ['code' => 'create', 'name' => 'Create', 'description' => 'Create new work layers'],
+                        ['code' => 'update', 'name' => 'Update', 'description' => 'Update work layers'],
+                        ['code' => 'delete', 'name' => 'Delete', 'description' => 'Delete work layers'],
+                        ['code' => 'reorder', 'name' => 'Reorder', 'description' => 'Reorder layer sequence'],
+                    ],
+                ],
+            ],
+        ],
     ],
 ];
