@@ -304,12 +304,12 @@ export default function Review() {
                             </div>
                         </AccordionItem>
 
-                        {/* Modules Section (Standalone only) */}
+                        {/* Products Section (Standalone only) */}
                         {mode === 'standalone' && modules.length > 0 && (
                             <AccordionItem
                                 key="modules"
-                                aria-label="Modules"
-                                title={<SectionHeader icon={CubeIcon} title="Licensed Modules" step="license" />}
+                                aria-label="Products"
+                                title={<SectionHeader icon={CubeIcon} title="Licensed Products" step="license" />}
                             >
                                 <div className="px-2 pb-2">
                                     <div className="flex flex-wrap gap-2">

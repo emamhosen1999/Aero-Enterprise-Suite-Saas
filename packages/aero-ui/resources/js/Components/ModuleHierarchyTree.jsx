@@ -374,7 +374,7 @@ const ModuleHierarchyTree = ({
             {moduleHierarchy.length === 0 ? (
                 <Card>
                     <CardBody className="text-center py-8">
-                        <p className="text-default-400">No modules available</p>
+                        <p className="text-default-400">No products available</p>
                     </CardBody>
                 </Card>
             ) : (

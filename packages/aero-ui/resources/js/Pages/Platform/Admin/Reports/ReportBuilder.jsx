@@ -164,7 +164,7 @@ const ReportBuilder = ({ savedReports: initialReports = [], templates: initialTe
             'Users Count', 'Users Limit', 'Employees Count', 'Projects Count',
         ],
         engagement: [
-            'Feature Usage', 'Module Access Count', 'Page Views', 'Time on Platform',
+            'Feature Usage', 'Product Access Count', 'Page Views', 'Time on Platform',
             'Actions Performed', 'API Requests',
         ],
     };

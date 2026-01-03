@@ -99,21 +99,21 @@ const ExtensionsIndex = ({ installedModules = [], marketplaceModules = [], purch
                 });
                 
                 if (response.status === 200) {
-                    resolve([response.data.message || 'Module installed successfully']);
+                    resolve([response.data.message || 'Extension installed successfully']);
                     setUploadModalOpen(false);
                     setUploadFile(null);
                     setPurchaseCode('');
                     router.reload();
                 }
             } catch (error) {
-                reject(error.response?.data?.errors || ['Failed to install module']);
+                reject(error.response?.data?.errors || ['Failed to install extension']);
             } finally {
                 setUploading(false);
             }
         });
 
         showToast.promise(promise, {
-            loading: 'Installing module...',
+            loading: 'Installing extension...',
             success: (data) => data.join(', '),
             error: (data) => Array.isArray(data) ? data.join(', ') : data,
         });
@@ -305,7 +305,7 @@ const ExtensionsIndex = ({ installedModules = [], marketplaceModules = [], purch
                                 installedModules.map(module => renderModuleCard(module, true))
                             ) : (
                                 <div className="col-span-full text-center py-12 text-default-500">
-                                    No modules installed yet
+                                    No extensions installed yet
                                 </div>
                             )}
                         </div>
@@ -326,7 +326,7 @@ const ExtensionsIndex = ({ installedModules = [], marketplaceModules = [], purch
                                 marketplaceModules.map(module => renderModuleCard(module, false))
                             ) : (
                                 <div className="col-span-full text-center py-12 text-default-500">
-                                    No marketplace modules available
+                                    No marketplace extensions available
                                 </div>
                             )}
                         </div>

@@ -259,12 +259,12 @@ export default function Complete() {
                             </div>
                         )}
 
-                        {/* Licensed Modules (Standalone) */}
+                        {/* Licensed Products (Standalone) */}
                         {mode === 'standalone' && licensedModules.length > 0 && (
                             <div className="bg-primary-50 dark:bg-primary/10 rounded-xl p-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <SparklesIcon className="w-5 h-5 text-primary" />
-                                    <span className="font-medium text-primary">Licensed Modules</span>
+                                    <span className="font-medium text-primary">Licensed Products</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {licensedModules.map((module, index) => (

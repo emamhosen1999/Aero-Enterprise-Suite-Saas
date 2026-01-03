@@ -70,6 +70,13 @@ class ComplianceModuleProvider extends AbstractModuleProvider
             return new \Aero\Compliance\Services\ReportingService;
         });
 
+        // ========================================================================
+        // PATENTABLE CORE IP SERVICES - HSE & Safety Automation
+        // ========================================================================
+        
+        // Permit Validation Service - Automatic safety authorization enforcement
+        $this->app->singleton(\Aero\Compliance\Services\PermitValidationService::class);
+
         // Merge Compliance-specific configuration
         $complianceConfigPath = $this->getModulePath('config/compliance.php');
         if (file_exists($complianceConfigPath)) {

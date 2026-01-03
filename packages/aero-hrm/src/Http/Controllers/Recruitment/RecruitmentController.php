@@ -82,7 +82,7 @@ class RecruitmentController extends Controller
         ];
 
         // Always return Inertia response for page loads
-        return Inertia::render('Pages/HRM/Recruitment/Index', $data);
+        return Inertia::render('HRM/Recruitment/Index', $data);
     }
 
     /**
@@ -381,7 +381,7 @@ class RecruitmentController extends Controller
         ];
 
         // Always return Inertia response for page loads
-        return Inertia::render('Pages/HRM/Recruitment/Show', $data);
+        return Inertia::render('HRM/Recruitment/Show', $data);
     }
 
     /**
@@ -488,7 +488,7 @@ class RecruitmentController extends Controller
             },
         ])->findOrFail($id);
 
-        return Inertia::render('Pages/HRM/Recruitment/Edit', [
+        return Inertia::render('HRM/Recruitment/Edit', [
             'job' => $job,
             'departments' => Department::all(['id', 'name']),
             'managers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
@@ -659,7 +659,7 @@ class RecruitmentController extends Controller
 
         $hiringStages = $job->hiringStages()->orderBy('sequence')->get();
 
-        return Inertia::render('Pages/HRM/Recruitment/Applications/Index', [
+        return Inertia::render('HRM/Recruitment/Applications/Index', [
             'job' => $job,
             'applications' => $applications,
             'hiringStages' => $hiringStages,
@@ -721,7 +721,7 @@ class RecruitmentController extends Controller
                 ->with('error', 'This job is not open for applications.');
         }
 
-        return Inertia::render('Pages/HRM/Recruitment/Applications/Create', [
+        return Inertia::render('HRM/Recruitment/Applications/Create', [
             'job' => $job,
             'existingUsers' => User::select('id', 'name', 'email', 'phone')->get(),
             'sources' => [
@@ -825,7 +825,7 @@ class RecruitmentController extends Controller
 
         $job = Job::with('hiringStages')->findOrFail($id);
 
-        return Inertia::render('Pages/HRM/Recruitment/Applications/Show', [
+        return Inertia::render('HRM/Recruitment/Applications/Show', [
             'job' => $job,
             'application' => $application,
             'resume' => $application->getFirstMedia('resumes'),
@@ -904,7 +904,7 @@ class RecruitmentController extends Controller
             ->orderBy('scheduled_at')
             ->get();
 
-        return Inertia::render('Pages/HRM/Recruitment/Applications/Interviews/Index', [
+        return Inertia::render('HRM/Recruitment/Applications/Interviews/Index', [
             'job' => Job::findOrFail($id),
             'application' => $application,
             'interviews' => $interviews,
@@ -1264,7 +1264,7 @@ class RecruitmentController extends Controller
             ];
         }
 
-        return Inertia::render('Pages/HRM/Recruitment/Kanban', [
+        return Inertia::render('HRM/Recruitment/Kanban', [
             'job' => $job,
             'hiringStages' => $hiringStages,
             'applicationsByStage' => $applicationsByStage,

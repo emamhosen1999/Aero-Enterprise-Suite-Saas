@@ -105,7 +105,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
 
   return (
     <RegisterLayout>
-      <Head title={`Choose modules - ${siteName || 'aeos365'}`} />
+      <Head title={`Choose Products - ${siteName || 'aeos365'}`} />
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6 sm:space-y-8">
         <div className="space-y-2 sm:space-y-3 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 4</p>
@@ -136,12 +136,12 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                         <span className={palette.copy}>{selectedPlan.name} Plan</span>
                         <span className={palette.heading}>${planPrice.toLocaleString()}</span>
                       </div>
-                      <p className={`text-xs ${palette.muted}`}>Includes {selectedPlan.modules?.length || 0} modules</p>
+                      <p className={`text-xs ${palette.muted}`}>Includes {selectedPlan.modules?.length || 0} products</p>
                     </>
                   ) : modulesList.length > 0 ? (
                     <>
                       <div className="flex justify-between">
-                        <span className={palette.copy}>{modulesList.length} Custom Module{modulesList.length !== 1 ? 's' : ''}</span>
+                        <span className={palette.copy}>{modulesList.length} Custom Product{modulesList.length !== 1 ? 's' : ''}</span>
                         <span className={palette.heading}>${modulesOnlyPrice.toLocaleString()}</span>
                       </div>
                       <p className={`text-xs ${palette.muted}`}>Custom plan</p>
@@ -206,7 +206,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
               <div className="space-y-3">
                 <div>
                   <h3 className={`text-base sm:text-lg font-semibold ${palette.heading}`}>1. Choose a Plan</h3>
-                  <p className={`text-xs sm:text-sm ${palette.copy}`}>Pre-configured bundles with modules included</p>
+                  <p className={`text-xs sm:text-sm ${palette.copy}`}>Pre-configured bundles with products included</p>
                 </div>
                 
                 <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
@@ -238,10 +238,10 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                           <p className={`text-xs sm:text-sm ${palette.copy} mt-2`}>{plan.description}</p>
                         </CardHeader>
                         <CardBody className="text-xs sm:text-sm space-y-3 pt-2">
-                          {/* Included Modules */}
+                          {/* Included Products */}
                           {plan.modules && plan.modules.length > 0 && (
                             <div>
-                              <p className={`text-xs font-semibold ${palette.muted} mb-2`}>INCLUDED MODULES:</p>
+                              <p className={`text-xs font-semibold ${palette.muted} mb-2`}>INCLUDED PRODUCTS:</p>
                               <div className="space-y-2">
                                 {plan.modules.map((module) => (
                                   <div key={module.id} className="flex items-start gap-2">
@@ -285,12 +285,12 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
 
               <Divider className="my-4" />
 
-              {/* Section 2: Additional Modules */}
+              {/* Section 2: Additional Products */}
               <div className="space-y-3">
                 <div>
-                  <h3 className={`text-base sm:text-lg font-semibold ${palette.heading}`}>2. Or Build Custom with Modules</h3>
-                  <p className={`text-xs sm:text-sm ${palette.copy}`}>Select individual modules • ${pricePerModule}/{isAnnual ? 'year' : 'month'} per module</p>
-                  <p className={`text-xs ${palette.muted} mt-1`}>💡 Selecting modules will deselect any plan • Core Platform is always included free</p>
+                  <h3 className={`text-base sm:text-lg font-semibold ${palette.heading}`}>2. Or Build Custom with Products</h3>
+                  <p className={`text-xs sm:text-sm ${palette.copy}`}>Select individual products • ${pricePerModule}/{isAnnual ? 'year' : 'month'} per product</p>
+                  <p className={`text-xs ${palette.muted} mt-1`}>💡 Selecting products will deselect any plan • Core Platform is always included free</p>
                 </div>
                 
                 <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
@@ -371,12 +371,12 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
                         <span className={palette.copy}>{selectedPlan.name} Plan</span>
                         <span className={palette.heading}>${planPrice.toLocaleString()}</span>
                       </div>
-                      <p className={`text-xs ${palette.muted}`}>Includes {selectedPlan.modules?.length || 0} modules</p>
+                      <p className={`text-xs ${palette.muted}`}>Includes {selectedPlan.modules?.length || 0} products</p>
                     </>
                   ) : modulesList.length > 0 ? (
                     <>
                       <div className="flex justify-between">
-                        <span className={palette.copy}>{modulesList.length} Module{modulesList.length !== 1 ? 's' : ''}</span>
+                        <span className={palette.copy}>{modulesList.length} Product{modulesList.length !== 1 ? 's' : ''}</span>
                         <span className={palette.heading}>${modulesOnlyPrice.toLocaleString()}</span>
                       </div>
                       <p className={`text-xs ${palette.muted}`}>Custom plan</p>
@@ -423,7 +423,7 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
             <Card className={`${palette.surface} text-sm`}>
               <CardBody className="space-y-2">
                 <p className={`font-semibold ${palette.heading}`}>Flexible Pricing</p>
-                <p className={palette.copy}>Choose a pre-configured plan OR build custom with individual modules. Pick what works best for your needs.</p>
+                <p className={palette.copy}>Choose a pre-configured plan OR build custom with individual products. Pick what works best for your needs.</p>
                 <p className="text-emerald-500">Core platform features (auth, users, settings) are always included at no extra cost.</p>
               </CardBody>
             </Card>
@@ -433,8 +433,8 @@ export default function SelectPlan({ steps = [], currentStep, savedData = {}, pl
           <div className="lg:hidden">
             <Card className={`${palette.surface} text-xs sm:text-sm`}>
               <CardBody className="space-y-2">
-                <p className={`font-semibold ${palette.heading}`}>Why modules?</p>
-                <p className={palette.copy}>Rolling modules lets finance teams align spend with adoption milestones. You can pause any module in 1 click.</p>
+                <p className={`font-semibold ${palette.heading}`}>Why products?</p>
+                <p className={palette.copy}>Rolling products lets finance teams align spend with adoption milestones. You can pause any product in 1 click.</p>
                 <p className="text-emerald-500">Payment collection happens later. Right now we only need your wish list.</p>
               </CardBody>
             </Card>

@@ -16,17 +16,17 @@ export default function ModuleHierarchyDemo() {
 
     return (
         <App>
-            <Head title="Module Hierarchy" />
+            <Head title="Product Hierarchy" />
 
             <div className="container mx-auto p-6 max-w-7xl">
                 {/* Header */}
                 <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
                         <CubeIcon className="w-8 h-8 text-primary" />
-                        <h1 className="text-3xl font-bold">Module Hierarchy</h1>
+                        <h1 className="text-3xl font-bold">Product Hierarchy</h1>
                     </div>
                     <p className="text-default-500">
-                        Explore the complete 4-level module structure: Modules → Submodules → Components → Actions
+                        Explore the complete 4-level product structure: Products → Features → Components → Actions
                     </p>
                 </div>
 
@@ -36,7 +36,7 @@ export default function ModuleHierarchyDemo() {
                         <CardBody>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-default-500">Modules</p>
+                                    <p className="text-sm text-default-500">Products</p>
                                     <p className="text-2xl font-bold">{moduleHierarchy.length}</p>
                                 </div>
                                 <Chip color="primary" variant="flat" size="lg">
@@ -50,7 +50,7 @@ export default function ModuleHierarchyDemo() {
                         <CardBody>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-default-500">Submodules</p>
+                                    <p className="text-sm text-default-500">Features</p>
                                     <p className="text-2xl font-bold">
                                         {moduleHierarchy.reduce((sum, m) => sum + (m.submodules?.length || 0), 0)}
                                     </p>
@@ -122,11 +122,11 @@ export default function ModuleHierarchyDemo() {
                                 <ul className="space-y-2 ml-4">
                                     <li className="flex items-center gap-2">
                                         <Chip size="sm" color="primary" variant="flat">Level 1</Chip>
-                                        <span><strong>Modules</strong> - Top-level features (HRM, CRM, Project, Finance)</span>
+                                        <span><strong>Products</strong> - Top-level features (HRM, CRM, Project, Finance)</span>
                                     </li>
                                     <li className="flex items-center gap-2">
                                         <Chip size="sm" color="secondary" variant="flat">Level 2</Chip>
-                                        <span><strong>Submodules</strong> - Feature categories (Employees, Leave, Attendance)</span>
+                                        <span><strong>Features</strong> - Feature categories (Employees, Leave, Attendance)</span>
                                     </li>
                                     <li className="flex items-center gap-2">
                                         <Chip size="sm" color="success" variant="flat">Level 3</Chip>
@@ -142,11 +142,11 @@ export default function ModuleHierarchyDemo() {
                             <div>
                                 <h3 className="font-semibold mb-2">🔐 How It Works</h3>
                                 <ol className="list-decimal ml-6 space-y-1 text-sm text-default-600">
-                                    <li>Platform admin creates subscription plans and selects modules</li>
-                                    <li>Tenants subscribe to a plan (gets access to plan's modules)</li>
+                                    <li>Platform admin creates subscription plans and selects products</li>
+                                    <li>Tenants subscribe to a plan (gets access to plan's products)</li>
                                     <li>Tenant admin assigns permissions to roles</li>
                                     <li>Users inherit permissions from their roles</li>
-                                    <li>Access granted only when both plan includes module AND user has permission</li>
+                                    <li>Access granted only when both plan includes product AND user has permission</li>
                                 </ol>
                             </div>
                         </div>
@@ -156,13 +156,13 @@ export default function ModuleHierarchyDemo() {
                 {/* Hierarchy Tree */}
                 <Card>
                     <CardHeader>
-                        <h2 className="text-xl font-semibold">Module Hierarchy Tree</h2>
+                        <h2 className="text-xl font-semibold">Product Hierarchy Tree</h2>
                     </CardHeader>
                     <Divider />
                     <CardBody>
                         {moduleHierarchy.length === 0 ? (
                             <div className="text-center py-8">
-                                <p className="text-default-400">No modules configured yet.</p>
+                                <p className="text-default-400">No products configured yet.</p>
                                 <p className="text-sm text-default-300 mt-2">
                                     Run: <code className="bg-default-100 px-2 py-1 rounded">php artisan db:seed --class=ModuleSeeder</code>
                                 </p>

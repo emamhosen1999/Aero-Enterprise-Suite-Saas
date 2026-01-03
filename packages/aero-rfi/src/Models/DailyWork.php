@@ -3,6 +3,9 @@
 namespace Aero\Rfi\Models;
 
 use Aero\Core\Models\User;
+use Aero\Rfi\Traits\HasGeoLock;
+use Aero\Compliance\Traits\RequiresPermit;
+use Aero\Compliance\Models\PermitToWork;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,10 +17,15 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * DailyWork Model
+ * DailyWork Model - ENHANCED WITH PATENTABLE FEATURES
  *
  * Represents a Request for Inspection (RFI) submitted for daily construction work.
  * Supports file attachments, objections, and work location relationships.
+ * 
+ * PATENTABLE FEATURES:
+ * - GPS validation via HasGeoLock trait (anti-fraud)
+ * - Permit enforcement via RequiresPermit trait (safety)
+ * - Layer continuity tracking (structural integrity)
  *
  * @property int $id
  * @property string $date
@@ -45,6 +53,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class DailyWork extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;
+    use HasGeoLock;          // PATENTABLE: GPS validation (anti-fraud)
+    use RequiresPermit;      // PATENTABLE: PTW enforcement (safety)
 
     // ==================== Status Constants ====================
 
@@ -188,6 +198,35 @@ class DailyWork extends Model implements HasMedia
         'resubmission_count',
         'resubmission_date',
         'rfi_submission_date',
+        // GPS Validation Fields (HasGeoLock trait)
+        'latitude',
+        'longitude',
+        'gps_accuracy',
+        'gps_captured_at',
+        'geo_validation_result',
+        'geo_validation_status',
+        'requires_review',
+        'review_reason',
+        // Layer Continuity Fields (LinearContinuityValidator)
+        'layer',
+        'layer_order',
+        'continuity_validation_result',
+        'continuity_status',
+        'prerequisite_coverage',
+        'can_approve',
+        'detected_gaps',
+        'continuity_overridden_by',
+        'continuity_overridden_at',
+        'continuity_override_reason',
+        // Permit Validation Fields (RequiresPermit trait)
+        'permit_to_work_id',
+        'permit_validation_result',
+        'permit_validation_status',
+        'requires_hse_review',
+        'hse_review_reason',
+        'permit_overridden_by',
+        'permit_overridden_at',
+        'permit_override_reason',
     ];
 
     /**
@@ -203,6 +242,19 @@ class DailyWork extends Model implements HasMedia
         'resubmission_date' => 'date',
         'resubmission_count' => 'integer',
         'qty_layer' => 'integer',
+        // GPS Validation casts
+        'gps_captured_at' => 'datetime',
+        'geo_validation_result' => 'array',
+        'requires_review' => 'boolean',
+        // Layer Continuity casts
+        'continuity_validation_result' => 'array',
+        'detected_gaps' => 'array',
+        'can_approve' => 'boolean',
+        'continuity_overridden_at' => 'datetime',
+        // Permit Validation casts
+        'permit_validation_result' => 'array',
+        'requires_hse_review' => 'boolean',
+        'permit_overridden_at' => 'datetime',
     ];
 
     /**
@@ -298,6 +350,62 @@ class DailyWork extends Model implements HasMedia
     public function submissionOverrideLogs(): HasMany
     {
         return $this->hasMany(SubmissionOverrideLog::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get material consumptions for this daily work.
+     */
+    public function materialConsumptions(): HasMany
+    {
+        return $this->hasMany(MaterialConsumption::class)->orderBy('recorded_at', 'desc');
+    }
+
+    /**
+     * Get equipment logs for this daily work.
+     */
+    public function equipmentLogs(): HasMany
+    {
+        return $this->hasMany(EquipmentLog::class)->orderBy('log_date', 'desc');
+    }
+
+    /**
+     * Get weather logs for this daily work.
+     */
+    public function weatherLogs(): HasMany
+    {
+        return $this->hasMany(WeatherLog::class)->orderBy('observation_time', 'desc');
+    }
+
+    /**
+     * Get progress photos for this daily work.
+     */
+    public function progressPhotos(): HasMany
+    {
+        return $this->hasMany(ProgressPhoto::class)->orderBy('captured_at', 'desc');
+    }
+
+    /**
+     * Get labor deployments for this daily work.
+     */
+    public function laborDeployments(): HasMany
+    {
+        return $this->hasMany(LaborDeployment::class);
+    }
+
+    /**
+     * Get site instructions for this daily work.
+     */
+    public function siteInstructions(): HasMany
+    {
+        return $this->hasMany(SiteInstruction::class)->orderBy('issued_date', 'desc');
+    }
+
+    /**
+     * Get the permit to work for this daily work (PATENTABLE FEATURE).
+     */
+    public function permitToWork(): BelongsTo
+    {
+        return $this->belongsTo(PermitToWork::class, 'permit_to_work_id');
     }
 
     // ==================== Accessors ====================

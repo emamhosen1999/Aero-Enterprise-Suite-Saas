@@ -21,7 +21,7 @@ class ApiKeyController extends Controller
         // TODO: Fetch API keys from database
         $apiKeys = [];
 
-        return Inertia::render('Pages/Shared/Integrations/ApiKeys', [
+        return Inertia::render('Shared/Integrations/ApiKeys', [
             'title' => 'API Keys',
             'apiKeys' => $apiKeys,
         ]);

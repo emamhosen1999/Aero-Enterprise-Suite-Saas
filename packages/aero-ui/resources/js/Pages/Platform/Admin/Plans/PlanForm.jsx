@@ -423,10 +423,10 @@ const PlanForm = ({ plan = null, currencies = [], modules = [], features = [], t
                         </CardBody>
                     </Card>
 
-                    {/* Module Access */}
+                    {/* Product Access */}
                     <Card radius={getThemeRadius()}>
                         <CardHeader className="border-b border-divider p-4 flex justify-between items-center">
-                            <h2 className="text-lg font-semibold text-foreground">Module Access</h2>
+                            <h2 className="text-lg font-semibold text-foreground">Product Access</h2>
                             <div className="flex gap-2">
                                 <Button
                                     size="sm"

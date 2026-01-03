@@ -47,8 +47,9 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        return Inertia::render('Pages/Shared/UsersList', [
+        return Inertia::render('Shared/UsersList', [
             'title' => 'User Management',
+            'context' => 'tenant',
             'roles' => Role::all(),
             'departments' => Department::all(),
             'designations' => Designation::with('department')->orderBy('hierarchy_level', 'asc')->get(),

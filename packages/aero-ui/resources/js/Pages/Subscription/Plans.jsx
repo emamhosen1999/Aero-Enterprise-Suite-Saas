@@ -257,9 +257,9 @@ export default function SubscriptionPlans({ plans = [], currentPlan, billingCycl
                                         ))}
                                     </tr>
 
-                                    {/* Modules */}
+                                    {/* Products */}
                                     <tr className="border-b border-divider">
-                                        <td className="py-4 px-4">Modules</td>
+                                        <td className="py-4 px-4">Products</td>
                                         {plans.map(plan => (
                                             <td key={plan.id} className="text-center py-4 px-4">
                                                 {plan.features?.includes('All modules') ? 'All' : 'Limited'}

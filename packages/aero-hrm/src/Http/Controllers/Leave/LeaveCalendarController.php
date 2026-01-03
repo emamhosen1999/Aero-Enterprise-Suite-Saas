@@ -39,7 +39,7 @@ class LeaveCalendarController extends Controller
             ]
         );
 
-        return Inertia::render('Pages/HRM/TimeOff/TeamCalendar', [
+        return Inertia::render('HRM/TimeOff/TeamCalendar', [
             'title' => 'Team Leave Calendar',
             'calendar' => $calendar,
             'selectedMonth' => $month,

@@ -3,8 +3,14 @@
 use Aero\Rfi\Http\Controllers\ChainageProgressController;
 use Aero\Rfi\Http\Controllers\DailyWorkController;
 use Aero\Rfi\Http\Controllers\DailyWorkSummaryController;
+use Aero\Rfi\Http\Controllers\EquipmentLogController;
+use Aero\Rfi\Http\Controllers\LaborDeploymentController;
+use Aero\Rfi\Http\Controllers\MaterialConsumptionController;
 use Aero\Rfi\Http\Controllers\ObjectionController;
+use Aero\Rfi\Http\Controllers\ProgressPhotoController;
 use Aero\Rfi\Http\Controllers\RfiDashboardController;
+use Aero\Rfi\Http\Controllers\SiteInstructionController;
+use Aero\Rfi\Http\Controllers\WeatherLogController;
 use Aero\Rfi\Http\Controllers\WorkLayerController;
 use Aero\Rfi\Http\Controllers\WorkLocationController;
 use Illuminate\Support\Facades\Route;
@@ -170,6 +176,105 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{workLayer}', [WorkLayerController::class, 'update'])->name('update');
         Route::delete('/{workLayer}', [WorkLayerController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [WorkLayerController::class, 'reorder'])->name('reorder');
+    });
+
+    // ============================================================================
+    // CONSTRUCTION TRACKING (Enhanced Industry Features)
+    // ============================================================================
+
+    // Material Consumption
+    Route::prefix('material-consumptions')->name('material-consumptions.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+        Route::get('/', [MaterialConsumptionController::class, 'index'])->name('index');
+        Route::post('/', [MaterialConsumptionController::class, 'store'])->name('store');
+        Route::get('/{materialConsumption}', [MaterialConsumptionController::class, 'show'])->name('show');
+        Route::put('/{materialConsumption}', [MaterialConsumptionController::class, 'update'])->name('update');
+        Route::delete('/{materialConsumption}', [MaterialConsumptionController::class, 'destroy'])->name('destroy');
+
+        // Analytics endpoints
+        Route::get('/summary/by-material', [MaterialConsumptionController::class, 'summaryByMaterial'])->name('summary.by-material');
+        Route::get('/summary/by-chainage', [MaterialConsumptionController::class, 'summaryByChainage'])->name('summary.by-chainage');
+        Route::get('/reports/wastage', [MaterialConsumptionController::class, 'wastageReport'])->name('reports.wastage');
+        Route::get('/reports/quality', [MaterialConsumptionController::class, 'qualityReport'])->name('reports.quality');
+    });
+
+    // Equipment Logs
+    Route::prefix('equipment-logs')->name('equipment-logs.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+        Route::get('/', [EquipmentLogController::class, 'index'])->name('index');
+        Route::post('/', [EquipmentLogController::class, 'store'])->name('store');
+        Route::get('/{equipmentLog}', [EquipmentLogController::class, 'show'])->name('show');
+        Route::put('/{equipmentLog}', [EquipmentLogController::class, 'update'])->name('update');
+        Route::delete('/{equipmentLog}', [EquipmentLogController::class, 'destroy'])->name('destroy');
+
+        // Analytics endpoints
+        Route::get('/reports/utilization', [EquipmentLogController::class, 'utilizationReport'])->name('reports.utilization');
+        Route::get('/reports/fuel-analysis', [EquipmentLogController::class, 'fuelAnalysis'])->name('reports.fuel-analysis');
+        Route::get('/alerts/maintenance', [EquipmentLogController::class, 'maintenanceAlerts'])->name('alerts.maintenance');
+        Route::get('/reports/breakdowns', [EquipmentLogController::class, 'breakdownReport'])->name('reports.breakdowns');
+    });
+
+    // Weather Logs
+    Route::prefix('weather-logs')->name('weather-logs.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+        Route::get('/', [WeatherLogController::class, 'index'])->name('index');
+        Route::post('/', [WeatherLogController::class, 'store'])->name('store');
+        Route::get('/{weatherLog}', [WeatherLogController::class, 'show'])->name('show');
+        Route::put('/{weatherLog}', [WeatherLogController::class, 'update'])->name('update');
+        Route::delete('/{weatherLog}', [WeatherLogController::class, 'destroy'])->name('destroy');
+
+        // Analytics endpoints
+        Route::get('/summary/impact', [WeatherLogController::class, 'impactSummary'])->name('summary.impact');
+        Route::get('/summary/work-suitable-days', [WeatherLogController::class, 'workSuitableDays'])->name('summary.work-suitable-days');
+        Route::get('/history', [WeatherLogController::class, 'weatherHistory'])->name('history');
+    });
+
+    // Progress Photos
+    Route::prefix('progress-photos')->name('progress-photos.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+        Route::get('/', [ProgressPhotoController::class, 'index'])->name('index');
+        Route::post('/', [ProgressPhotoController::class, 'store'])->name('store');
+        Route::get('/{progressPhoto}', [ProgressPhotoController::class, 'show'])->name('show');
+        Route::put('/{progressPhoto}', [ProgressPhotoController::class, 'update'])->name('update');
+        Route::delete('/{progressPhoto}', [ProgressPhotoController::class, 'destroy'])->name('destroy');
+
+        // Workflow actions
+        Route::post('/{progressPhoto}/submit', [ProgressPhotoController::class, 'submit'])->name('submit');
+        Route::post('/{progressPhoto}/approve', [ProgressPhotoController::class, 'approve'])->name('approve');
+
+        // Analytics endpoints
+        Route::get('/by-chainage', [ProgressPhotoController::class, 'byChainage'])->name('by-chainage');
+        Route::get('/timeline', [ProgressPhotoController::class, 'timeline'])->name('timeline');
+    });
+
+    // Labor Deployments
+    Route::prefix('labor-deployments')->name('labor-deployments.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+        Route::get('/', [LaborDeploymentController::class, 'index'])->name('index');
+        Route::post('/', [LaborDeploymentController::class, 'store'])->name('store');
+        Route::get('/{laborDeployment}', [LaborDeploymentController::class, 'show'])->name('show');
+        Route::put('/{laborDeployment}', [LaborDeploymentController::class, 'update'])->name('update');
+        Route::delete('/{laborDeployment}', [LaborDeploymentController::class, 'destroy'])->name('destroy');
+
+        // Analytics endpoints
+        Route::get('/reports/productivity', [LaborDeploymentController::class, 'productivityAnalysis'])->name('reports.productivity');
+        Route::get('/reports/man-hours', [LaborDeploymentController::class, 'manHoursSummary'])->name('reports.man-hours');
+        Route::get('/reports/skill-distribution', [LaborDeploymentController::class, 'skillDistribution'])->name('reports.skill-distribution');
+        Route::get('/reports/safety', [LaborDeploymentController::class, 'safetyReport'])->name('reports.safety');
+    });
+
+    // Site Instructions
+    Route::prefix('site-instructions')->name('site-instructions.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+        Route::get('/', [SiteInstructionController::class, 'index'])->name('index');
+        Route::post('/', [SiteInstructionController::class, 'store'])->name('store');
+        Route::get('/{siteInstruction}', [SiteInstructionController::class, 'show'])->name('show');
+        Route::put('/{siteInstruction}', [SiteInstructionController::class, 'update'])->name('update');
+        Route::delete('/{siteInstruction}', [SiteInstructionController::class, 'destroy'])->name('destroy');
+
+        // Workflow actions
+        Route::post('/{siteInstruction}/status', [SiteInstructionController::class, 'updateStatus'])->name('status');
+        Route::post('/{siteInstruction}/response', [SiteInstructionController::class, 'addResponse'])->name('response');
+
+        // Analytics endpoints
+        Route::get('/overdue', [SiteInstructionController::class, 'overdueInstructions'])->name('overdue');
+        Route::get('/by-chainage', [SiteInstructionController::class, 'byChainage'])->name('by-chainage');
+        Route::get('/reports/impact', [SiteInstructionController::class, 'impactAnalysis'])->name('reports.impact');
+        Route::get('/reports/completion', [SiteInstructionController::class, 'completionReport'])->name('reports.completion');
     });
 
 }); // End of auth middleware group

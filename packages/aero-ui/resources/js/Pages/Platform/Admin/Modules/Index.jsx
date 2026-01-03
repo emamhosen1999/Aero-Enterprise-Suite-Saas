@@ -77,7 +77,7 @@ const ModulesIndex = () => {
 
   return (
     <>
-      <Head title="Modules - Admin" />
+      <Head title="Products - Admin" />
       <div className="flex flex-col w-full h-full p-4">
         <div className="space-y-4">
           {/* Single Parent Card - matching tenant Employee page structure */}
@@ -101,7 +101,7 @@ const ModulesIndex = () => {
                       <PuzzlePieceIcon className="w-8 h-8" style={{ color: 'var(--theme-primary)' }} />
                     </div>
                     <div>
-                      <h1 className="text-2xl font-bold text-foreground">Module catalog</h1>
+                      <h1 className="text-2xl font-bold text-foreground">Product catalog</h1>
                       <p className="text-sm text-default-500">
                         Curate which product surfaces are provisioned per tenant and monitor adoption health.
                       </p>

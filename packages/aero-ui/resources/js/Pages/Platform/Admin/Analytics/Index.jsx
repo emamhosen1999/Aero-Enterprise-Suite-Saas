@@ -101,9 +101,9 @@ const AnalyticsIndex = () => {
 
   const stats = [
     { 
-      label: 'Total Modules', 
+      label: 'Total Products', 
       value: analytics.overview.total_modules, 
-      change: 'Active modules', 
+      change: 'Active products', 
       icon: ChartBarSquareIcon 
     },
     { 

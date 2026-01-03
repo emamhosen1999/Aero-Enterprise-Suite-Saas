@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'code' => 'hrm',
@@ -573,7 +573,7 @@ return [
         [
             'code' => 'performance',
             'name' => 'Performance',
-            'description' => 'KPIs, appraisals, 360Â° reviews, and performance tracking',
+            'description' => 'KPIs, appraisals, 360° reviews, and performance tracking',
             'icon' => 'ChartBarSquareIcon',
             'route' => '/hrm/performance',
             'priority' => 9,
@@ -604,7 +604,7 @@ return [
                 ],
                 [
                     'code' => 'reviews-360',
-                    'name' => '360Â° Reviews',
+                    'name' => '360° Reviews',
                     'type' => 'page',
                     'route' => '/hrm/performance/360-reviews',
                     'actions' => [

@@ -16,7 +16,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Aero\\Project\\Providers\\ProjectModuleProvider"
+                "Aero\\Project\\AeroProjectServiceProvider"
             ]
         },
         "aero": {

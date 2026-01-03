@@ -385,7 +385,7 @@ const MobileHeader = React.memo(({
                   className="w-full"
                 >
                   <Input
-                    placeholder="Search modules, users, data..."
+                    placeholder="Search products, users, data..."
                     startContent={
                       <MagnifyingGlassIcon 
                         className="w-4 h-4" 

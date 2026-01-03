@@ -120,6 +120,42 @@ class AeroRfiServiceProvider extends ServiceProvider
                 ->name('rfi.')
                 ->group($routesPath.'/web.php');
         }
+
+        // ========================================================================
+        // PATENTABLE CORE IP - API Routes for GPS & Layer Continuity Validation
+        // ========================================================================
+        $this->registerApiRoutes();
+    }
+
+    /**
+     * Register API routes for patentable features.
+     *
+     * These routes provide:
+     * - GPS validation for anti-fraud location verification
+     * - Layer continuity validation for construction sequence enforcement
+     * - AI-powered work location suggestions
+     */
+    protected function registerApiRoutes(): void
+    {
+        $apiRoutesPath = __DIR__.'/../routes/api.php';
+
+        if (!file_exists($apiRoutesPath)) {
+            return;
+        }
+
+        // API routes use sanctum auth and work in both SaaS and Standalone modes
+        if (function_exists('is_saas_mode') && is_saas_mode()) {
+            // SaaS Mode: Include tenancy middleware
+            Route::middleware([
+                'api',
+                \Aero\Core\Http\Middleware\InitializeTenancyIfNotCentral::class,
+                'tenant',
+            ])->group($apiRoutesPath);
+        } else {
+            // Standalone Mode: Standard API middleware
+            Route::middleware(['api'])
+                ->group($apiRoutesPath);
+        }
     }
 
     /**

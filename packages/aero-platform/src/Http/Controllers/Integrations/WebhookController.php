@@ -54,7 +54,7 @@ class WebhookController extends Controller
             ]);
         }
 
-        return Inertia::render('Pages/Platform/Admin/Webhooks/WebhookManager', [
+        return Inertia::render('Platform/Admin/Webhooks/WebhookManager', [
             'title' => 'Webhooks',
             'webhooks' => $webhooks,
         ]);

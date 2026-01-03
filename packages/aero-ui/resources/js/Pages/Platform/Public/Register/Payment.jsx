@@ -103,7 +103,7 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
         <div className="space-y-2 sm:space-y-3 text-center">
           <p className={`text-[10px] sm:text-sm uppercase tracking-[0.3em] ${palette.badge}`}>Step 5</p>
           <h1 className={`text-2xl sm:text-4xl font-semibold ${palette.heading} px-2`}>Review and start your trial.</h1>
-          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Payments go live later. Today we just launch your {trialDays}-day sandbox and wire up the modules you picked.</p>
+          <p className={`${palette.copy} text-sm sm:text-base px-2`}>Payments go live later. Today we just launch your {trialDays}-day sandbox and wire up the products you picked.</p>
         </div>
 
         <ProgressSteps steps={steps} currentStep={currentStep} />
@@ -150,7 +150,7 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
                       </li>
                     ))}
                     {selectedItems.length === 0 && (
-                      <li className={`text-xs ${palette.badge}`}>No modules selected</li>
+                      <li className={`text-xs ${palette.badge}`}>No products selected</li>
                     )}
                   </ul>
                 </CardBody>
@@ -181,13 +181,13 @@ export default function Payment({ steps = [], currentStep, savedData = {}, trial
               <Checkbox
                 checked={data.notify_updates}
                 onChange={(event) => setData('notify_updates', event.target.checked)}
-                label="Keep me posted about rollout templates and module launches."
+                label="Keep me posted about rollout templates and product launches."
               />
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
               <SafeLink route="platform.register.plan" className={`text-xs sm:text-sm transition-colors text-center sm:text-left ${palette.link}`}>
-                ← Back to modules
+                ← Back to products
               </SafeLink>
               <Button type="submit" color="success" className="px-6 w-full sm:w-auto" isLoading={processing}>
                 Launch trial workspace

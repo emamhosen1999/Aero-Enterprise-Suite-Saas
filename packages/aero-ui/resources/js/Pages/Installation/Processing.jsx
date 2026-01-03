@@ -132,7 +132,7 @@ export default function Processing() {
             { key: 'roles', label: 'Creating roles & permissions...' },
             { key: 'admin', label: 'Creating super admin...' },
             { key: 'settings', label: 'Saving system settings...' },
-            { key: 'modules', label: 'Installing licensed modules...' },
+            { key: 'modules', label: 'Installing licensed products...' },
             { key: 'cache', label: 'Clearing and warming cache...' },
             { key: 'finalize', label: 'Finalizing installation...' },
         ];

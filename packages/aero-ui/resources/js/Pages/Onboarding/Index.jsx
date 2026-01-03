@@ -1149,7 +1149,7 @@ export default function OnboardingWizard({
                                 <Card className="transition-all duration-200">
                                     <CardBody className="text-center py-8">
                                         <Puzzle className="w-12 h-12 text-default-300 mx-auto mb-4" />
-                                        <p className="text-default-500">No additional modules available.</p>
+                                        <p className="text-default-500">No additional products available.</p>
                                         <p className="text-sm text-default-400">Core features are already included in your subscription.</p>
                                     </CardBody>
                                 </Card>

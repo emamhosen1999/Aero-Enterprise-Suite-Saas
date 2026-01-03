@@ -440,7 +440,7 @@ const PlanShow = ({ plan: initialPlan, modules = [], title = 'Plan Details' }) =
                                             </Table>
                                         ) : (
                                             <p className="text-default-500 text-center py-4">
-                                                No modules assigned to this plan
+                                                No products assigned to this plan
                                             </p>
                                         )}
                                     </CardBody>

@@ -15,6 +15,16 @@ class QualityModuleProvider extends AbstractModuleProvider
     protected array $dependencies = ['core'];
 
     /**
+     * Get the module path.
+     */
+    protected function getModulePath(string $path = ''): string
+    {
+        $basePath = dirname(__DIR__, 2);
+        
+        return $path ? $basePath.'/'.$path : $basePath;
+    }
+
+    /**
      * Register any application services.
      */
     public function register(): void
@@ -51,7 +61,7 @@ class QualityModuleProvider extends AbstractModuleProvider
     /**
      * Get module navigation items for sidebar.
      */
-    protected function getNavigationItems(): array
+    public function getNavigationItems(): array
     {
         return [
             [
@@ -84,7 +94,7 @@ class QualityModuleProvider extends AbstractModuleProvider
     /**
      * Get module hierarchy structure for ModuleRegistry.
      */
-    protected function getModuleHierarchy(): array
+    public function getModuleHierarchy(): array
     {
         return [
             [

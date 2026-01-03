@@ -61,8 +61,9 @@
 }
 
 /* ============================================
-   GLOBAL HEROUI CARD STYLING + 3D
-   Applies consistent theming and depth to all Cards
+   GLOBAL HEROUI CARD STYLING (NO 3D EFFECTS ON MAIN CARDS)
+   Applies consistent theming to all Cards
+   EXCEPTION: Navigation cards and nested cards keep 3D effects
    ============================================ */
 
 /* Target HeroUI Card components */
@@ -77,10 +78,8 @@
     border-radius: var(--borderRadius, 12px) !important;
     font-family: var(--fontFamily, "Inter") !important;
     
-    /* 3D depth effects */
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-gentle),
-                box-shadow var(--motion-duration) var(--motion-gentle);
+    /* No 3D effects on cards - flat design */
+    transition: box-shadow var(--motion-duration) var(--motion-gentle);
     box-shadow: var(--shadow-sm);
 }
 
@@ -94,12 +93,10 @@
         var(--theme-content3, var(--heroui-content3, #3f3f46)) 100%) !important;
 }
 
-
-/* Hover effect for cards - subtle 3D lift */
+/* Hover effect for cards - subtle shadow only */
 .bg-content1.rounded-large:hover,
 .bg-content1.rounded-medium:hover,
 .bg-content1.rounded-small:hover {
-    transform: perspective(var(--perspective-subtle)) rotateX(-1deg) translateZ(var(--depth-raised)) translateY(-1px);
     box-shadow: var(--shadow-md);
 }
 
@@ -109,12 +106,73 @@
     box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.35);
 }
 
-/* Active/pressed card state */
+/* Active/pressed card state - no change */
 .bg-content1.rounded-large:active,
 .bg-content1.rounded-medium:active,
 .bg-content1.rounded-small:active {
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-surface));
     box-shadow: var(--shadow-sm);
+}
+
+/* ============================================
+   EXCEPTION: NESTED CARDS & NAVIGATION CARDS WITH 3D
+   These keep the 3D float and click effects
+   ============================================ */
+
+/* Nested cards inside other cards */
+.bg-content1 .bg-content1.rounded-large,
+.bg-content1 .bg-content1.rounded-medium,
+.bg-content1 .bg-content1.rounded-small,
+/* Navigation cards (in sidebar, menus, etc) */
+[data-slot="navigation"] .bg-content1,
+[role="navigation"] .bg-content1,
+nav .bg-content1,
+.sidebar-menu .bg-content1,
+.nav-card .bg-content1,
+/* Widget cards (dashboard widgets) */
+.widget-card,
+.dashboard-widget .bg-content1,
+/* Stats cards */
+.stats-card,
+/* Card inside CardBody (nested pattern) */
+[data-slot="body"] .bg-content1 {
+    /* 3D depth effects restored for nested/navigation cards */
+    transform-style: preserve-3d;
+    transition: transform var(--motion-duration) var(--motion-gentle),
+                box-shadow var(--motion-duration) var(--motion-gentle) !important;
+}
+
+/* 3D hover for nested/navigation cards */
+.bg-content1 .bg-content1.rounded-large:hover,
+.bg-content1 .bg-content1.rounded-medium:hover,
+.bg-content1 .bg-content1.rounded-small:hover,
+[data-slot="navigation"] .bg-content1:hover,
+[role="navigation"] .bg-content1:hover,
+nav .bg-content1:hover,
+.sidebar-menu .bg-content1:hover,
+.nav-card .bg-content1:hover,
+.widget-card:hover,
+.dashboard-widget .bg-content1:hover,
+.stats-card:hover,
+[data-slot="body"] .bg-content1:hover {
+    transform: perspective(var(--perspective-subtle)) rotateX(-1deg) translateZ(var(--depth-raised)) translateY(-1px) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* 3D active/click for nested/navigation cards */
+.bg-content1 .bg-content1.rounded-large:active,
+.bg-content1 .bg-content1.rounded-medium:active,
+.bg-content1 .bg-content1.rounded-small:active,
+[data-slot="navigation"] .bg-content1:active,
+[role="navigation"] .bg-content1:active,
+nav .bg-content1:active,
+.sidebar-menu .bg-content1:active,
+.nav-card .bg-content1:active,
+.widget-card:active,
+.dashboard-widget .bg-content1:active,
+.stats-card:active,
+[data-slot="body"] .bg-content1:active {
+    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-surface)) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
 /* ============================================
@@ -359,40 +417,34 @@ button[data-slot="base"][aria-label]:not([class*="w-"]):hover {
 }
 
 /* ============================================
-   TABLE & LIST 3D EFFECTS
-   Rows lift on hover, selected rows elevated
+   TABLE & LIST EFFECTS (NO 3D)
+   Simple shadow effects only
    ============================================ */
 
 /* HeroUI Table rows */
 tr[data-slot="tr"]:not([data-disabled="true"]):hover,
 .nextui-table-row:hover {
-    transform: perspective(var(--perspective-subtle)) translateZ(2px);
     box-shadow: var(--shadow-sm);
-    transition: transform var(--motion-duration) var(--motion-snappy),
-                box-shadow var(--motion-duration) var(--motion-snappy);
+    transition: box-shadow var(--motion-duration) var(--motion-snappy);
 }
 
 /* Selected table rows */
 tr[data-slot="tr"][data-selected="true"],
 .nextui-table-row[data-selected="true"] {
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
     box-shadow: var(--shadow-md);
     position: relative;
 }
 
-/* List items */
+/* List items - no 3D effects */
 [data-slot="list-item"]:not([data-disabled="true"]):hover,
 .nextui-list-item:hover {
-    transform: perspective(var(--perspective-subtle)) rotateX(-1deg) translateZ(var(--depth-raised)) translateY(-1px);
     box-shadow: var(--shadow-md);
-    transition: transform var(--motion-duration) var(--motion-snappy),
-                box-shadow var(--motion-duration) var(--motion-snappy);
+    transition: box-shadow var(--motion-duration) var(--motion-snappy);
 }
 
 /* Active list items */
 [data-slot="list-item"][data-selected="true"],
 .nextui-list-item[data-selected="true"] {
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
     box-shadow: var(--shadow-md);
 }
 
@@ -421,37 +473,33 @@ tr[data-slot="tr"][data-selected="true"],
 }
 
 /* ============================================
-   TABS & NAVIGATION ELEMENTS
-   Active tabs appear raised
+   TABS & NAVIGATION ELEMENTS (NO 3D)
+   Simple shadow effects only
    ============================================ */
 
 /* Tab buttons */
 button[data-slot="tab"],
 .nextui-tab {
-    transform-style: preserve-3d;
-    transition: transform var(--motion-duration) var(--motion-gentle),
-                box-shadow var(--motion-duration) var(--motion-gentle);
+    transition: box-shadow var(--motion-duration) var(--motion-gentle);
 }
 
 button[data-slot="tab"]:hover,
 .nextui-tab:hover {
-    transform: perspective(var(--perspective-subtle)) translateZ(2px);
+    box-shadow: var(--shadow-sm);
 }
 
 button[data-slot="tab"][data-selected="true"],
 .nextui-tab[data-selected="true"] {
-    transform: perspective(var(--perspective-subtle)) translateZ(var(--depth-raised));
     box-shadow: var(--shadow-sm);
 }
 
 /* ============================================
-   ACCORDION & COLLAPSIBLE
-   Items lift when expanded
+   ACCORDION & COLLAPSIBLE (NO 3D)
+   Simple shadow effects only
    ============================================ */
 
 [data-slot="heading"][data-open="true"],
 .nextui-accordion-heading[data-open="true"] {
-    transform: perspective(var(--perspective-subtle)) translateZ(2px);
     box-shadow: var(--shadow-sm);
 }
 
@@ -470,4 +518,137 @@ button[data-slot="tab"][data-selected="true"],
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ============================================
+   TEXT 3D FLOAT ANIMATION + REFLECTION
+   Floating text with passing reflection effect
+   ============================================ */
+
+/* Text floating animation class */
+.text-3d-float {
+    display: inline-block;
+    transform-style: preserve-3d;
+    animation: textFloat 3s ease-in-out infinite;
+    position: relative;
+    background: linear-gradient(
+        90deg,
+        currentColor 0%,
+        currentColor 40%,
+        rgba(255, 255, 255, 0.8) 50%,
+        currentColor 60%,
+        currentColor 100%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textFloat 3s ease-in-out infinite, reflectionPass 2s linear infinite;
+}
+
+.dark .text-3d-float {
+    background: linear-gradient(
+        90deg,
+        currentColor 0%,
+        currentColor 40%,
+        rgba(255, 255, 255, 0.9) 50%,
+        currentColor 60%,
+        currentColor 100%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@keyframes textFloat {
+    0%, 100% {
+        transform: perspective(var(--perspective-subtle)) 
+                   translateY(0) 
+                   translateZ(2px) 
+                   rotateX(0deg);
+    }
+    25% {
+        transform: perspective(var(--perspective-subtle)) 
+                   translateY(-4px) 
+                   translateZ(6px) 
+                   rotateX(2deg);
+    }
+    50% {
+        transform: perspective(var(--perspective-subtle)) 
+                   translateY(-6px) 
+                   translateZ(8px) 
+                   rotateX(0deg);
+    }
+    75% {
+        transform: perspective(var(--perspective-subtle)) 
+                   translateY(-4px) 
+                   translateZ(6px) 
+                   rotateX(-2deg);
+    }
+}
+
+@keyframes reflectionPass {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Heading variations with float */
+h1.text-3d-float, .text-3d-float-h1 {
+    animation: textFloat 4s ease-in-out infinite, reflectionPass 3s linear infinite;
+}
+
+h2.text-3d-float, .text-3d-float-h2 {
+    animation: textFloat 3.5s ease-in-out infinite, reflectionPass 2.5s linear infinite;
+}
+
+h3.text-3d-float, .text-3d-float-h3 {
+    animation: textFloat 3s ease-in-out infinite, reflectionPass 2s linear infinite;
+}
+
+h4.text-3d-float, .text-3d-float-h4 {
+    animation: textFloat 2.5s ease-in-out infinite, reflectionPass 1.8s linear infinite;
+}
+
+/* Button text with float */
+button .text-3d-float,
+.nextui-button .text-3d-float {
+    animation: textFloat 2s ease-in-out infinite, reflectionPass 1.5s linear infinite;
+}
+
+/* Reduce motion support */
+@media (prefers-reduced-motion: reduce) {
+    .text-3d-float {
+        animation: none !important;
+        background: currentColor;
+        -webkit-text-fill-color: currentColor;
+    }
+}
+
+/* Hover enhancement for text float */
+.text-3d-float:hover {
+    animation-duration: 1.5s, 1s;
+}
+
+/* Alternative: Apply to all headings in cards */
+.bg-content1 h1,
+.bg-content1 h2,
+.bg-content1 h3,
+.bg-content1 h4,
+.bg-content1 h5,
+.bg-content1 h6 {
+    transform-style: preserve-3d;
+}
+
+/* Apply float to card titles specifically */
+[data-slot="header"] h1,
+[data-slot="header"] h2,
+[data-slot="header"] h3,
+[data-slot="header"] h4 {
+    display: inline-block;
+    transform-style: preserve-3d;
 }

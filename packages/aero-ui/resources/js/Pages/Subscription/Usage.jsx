@@ -390,7 +390,7 @@ export default function SubscriptionUsage({
                                 </p>
                             </div>
                             <div className="text-center">
-                                <p className="text-sm text-default-500 mb-1">Active Modules</p>
+                                <p className="text-sm text-default-500 mb-1">Active Products</p>
                                 <p className="text-3xl font-bold text-warning">{usage?.active_modules || 0}</p>
                             </div>
                         </div>

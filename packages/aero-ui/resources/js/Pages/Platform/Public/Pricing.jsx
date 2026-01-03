@@ -61,12 +61,12 @@ const featureComparison = [
 
 const faqs = [
   {
-    title: 'How does per-module billing work?',
-    content: 'Each active module is priced per user per month. Archive modules anytime. Annual plans include 2 months free.',
+    title: 'How does per-product billing work?',
+    content: 'Each active product is priced per user per month. Archive products anytime. Annual plans include 2 months free.',
   },
   {
     title: 'Can we mix environments (prod, sandbox, regions)?',
-    content: 'Yes. Sandbox is free. Additional production regions are billed at 50% of your base per-module price.',
+    content: 'Yes. Sandbox is free. Additional production regions are billed at 50% of your base per-product price.',
   },
   {
     title: 'What is the minimum contract length?',
@@ -125,10 +125,10 @@ export default function Pricing() {
         <div className="relative">
           <Chip variant="flat" color="success" className="uppercase tracking-[0.3em] text-[10px] md:text-xs">Pricing</Chip>
           <h1 className="text-2xl md:text-5xl font-bold mt-3 md:mt-4 mb-4 md:mb-6">
-            Pricing built around the modules you actually use.
+            Pricing built around the products you actually use.
           </h1>
           <p className={`max-w-3xl mx-auto mb-6 md:mb-10 text-sm md:text-lg ${palette.mutedText}`}>
-            Pick monthly or annual billing, add modules when teams are ready, and pause what you are not using without renegotiating a contract.
+            Pick monthly or annual billing, add products when teams are ready, and pause what you are not using without renegotiating a contract.
           </p>
           <div className="flex items-center justify-center gap-2 md:gap-3">
             <span className={`text-xs md:text-sm ${annual ? 'font-semibold' : palette.mutedText}`}>Annual (2 months free)</span>
@@ -304,7 +304,7 @@ export default function Pricing() {
         <Card className={`max-w-5xl mx-auto text-center ${palette.highlightCard}`}>
           <CardBody className="space-y-4 md:space-y-6">
             <Chip variant="flat" color="success" className="text-[10px] md:text-xs">Next Steps</Chip>
-            <h3 className="text-2xl md:text-4xl font-semibold">Bundle modules, launch faster.</h3>
+            <h3 className="text-2xl md:text-4xl font-semibold">Bundle products, launch faster.</h3>
             <p className={`text-sm md:text-base ${palette.mutedText}`}>
               Our pricing team will tailor a package across HR, Projects, Compliance, SCM, and CRM with the right SLAs and integrations.
             </p>

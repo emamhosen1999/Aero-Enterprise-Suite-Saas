@@ -209,10 +209,10 @@ export default function Welcome() {
                             ))}
                         </div>
 
-                        {/* Included Modules (Standalone mode) */}
+                        {/* Included Products (Standalone mode) */}
                         {mode === 'standalone' && installedModules.length > 0 && (
                             <div>
-                                <h3 className="text-lg font-semibold mb-4">Included Product Modules</h3>
+                                <h3 className="text-lg font-semibold mb-4">Included Products</h3>
                                 <div className="space-y-3">
                                     {installedModules
                                         .filter(module => {

@@ -50,7 +50,13 @@ class RfiModuleProvider extends AbstractModuleProvider
      */
     protected function loadRoutes(): void
     {
-        // Do nothing - routes handled by AeroRfiServiceProvider
+        // Load API routes for PATENTABLE features
+        $apiRoutesPath = $this->getModulePath('routes/api.php');
+        if (file_exists($apiRoutesPath)) {
+            $this->loadRoutesFrom($apiRoutesPath);
+        }
+        
+        // Web routes are handled by AeroRfiServiceProvider
     }
 
     /**
@@ -82,6 +88,21 @@ class RfiModuleProvider extends AbstractModuleProvider
 
         // Register Chainage Gap Analysis Service (PATENTABLE)
         $this->app->singleton(\Aero\Rfi\Services\ChainageGapAnalysisService::class);
+
+        // ========================================================================
+        // PATENTABLE CORE IP SERVICES - Construction Tech SaaS Innovation
+        // ========================================================================
+        
+        // GPS Validation Service - Anti-fraud location verification
+        $this->app->singleton(\Aero\Rfi\Services\GeoFencingService::class);
+        
+        // Layer Continuity Validator - Sequential construction enforcement (CORE IP)
+        $this->app->singleton(\Aero\Rfi\Services\LinearContinuityValidator::class);
+        
+        // Weather Validation Service - Environmental constraints checking
+        $this->app->singleton(\Aero\Quality\Services\WeatherValidationService::class, function ($app) {
+            return new \Aero\Quality\Services\WeatherValidationService;
+        });
 
         // Merge RFI-specific configuration
         $rfiConfigPath = $this->getModulePath('config/rfi.php');

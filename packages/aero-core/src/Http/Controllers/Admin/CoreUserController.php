@@ -68,10 +68,11 @@ class CoreUserController extends Controller
 
         $users = $query->paginate($request->per_page ?? 15);
 
-        return Inertia::render('Pages/Core/Users/Index', [
+        return Inertia::render('Shared/UsersList', [
             'title' => 'Users',
             'users' => $users,
             'roles' => Role::all(['id', 'name']),
+            'context' => 'tenant',
             'filters' => $request->only(['search', 'status', 'role']),
             'stats' => [
                 'total' => User::count(),
@@ -229,7 +230,7 @@ class CoreUserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        return Inertia::render('Pages/Core/Users/Create', [
+        return Inertia::render('Core/Users/Create', [
             'title' => 'Create User',
             'roles' => Role::all(['id', 'name']),
         ]);
@@ -307,7 +308,7 @@ class CoreUserController extends Controller
 
         $user->load(['roles', 'permissions']);
 
-        return Inertia::render('Pages/Core/Users/Show', [
+        return Inertia::render('Core/Users/Show', [
             'title' => $user->name,
             'user' => $user,
         ]);
@@ -322,7 +323,7 @@ class CoreUserController extends Controller
 
         $user->load(['roles']);
 
-        return Inertia::render('Pages/Core/Users/Edit', [
+        return Inertia::render('Core/Users/Edit', [
             'title' => 'Edit User',
             'user' => $user,
             'roles' => Role::all(['id', 'name']),

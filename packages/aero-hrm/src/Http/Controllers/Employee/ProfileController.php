@@ -45,7 +45,7 @@ class ProfileController extends Controller
         $reportTo = User::find($user->report_to);
         $userDetails = $this->crudService->getUserWithDetails($user->id);
 
-        return Inertia::render('Pages/Shared/Profile/UserProfile', [
+        return Inertia::render('Shared/Profile/UserProfile', [
             'title' => 'Profile',
             'user' => $userDetails,
             'allUsers' => User::all(),

@@ -268,11 +268,11 @@ export default function License() {
                                             )}
                                             {validationResult.allowed_modules && (
                                                 <div className="mt-2">
-                                                    <p className="mb-1">Included modules:</p>
+                                                    <p className="mb-1">Included products:</p>
                                                     <div className="flex flex-wrap gap-1">
                                                         {validationResult.allowed_modules.map(mod => (
                                                             <Chip key={mod} size="sm" color="success" variant="flat">
-                                                                {mod === 'all' ? 'All Modules' : mod.toUpperCase()}
+                                                                {mod === 'all' ? 'All Products' : mod.toUpperCase()}
                                                             </Chip>
                                                         ))}
                                                     </div>
