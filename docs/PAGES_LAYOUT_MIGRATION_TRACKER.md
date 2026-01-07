@@ -25,7 +25,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Compliance\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\Admin\Extensions\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\AuditLogs\Index.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Core\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Core\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\FileManager\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\Modules\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Notifications\Index.jsx
