@@ -22,7 +22,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Administration\ModuleHierarchyDemo.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Analytics\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Auth\AdminSetup.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Compliance\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Compliance\Dashboard.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Admin\Extensions\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\AuditLogs\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Dashboard.jsx
@@ -208,7 +208,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Project\BoqMeasurements\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Project\DailyWorks.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Project\DailyWorkSummary.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Project\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Project\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Project\ProjectsIndex.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Project\Rfis\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Quality\Dashboard.jsx
