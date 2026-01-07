@@ -23,7 +23,7 @@ Created and implemented a `StandardPageLayout` component that provides:
 
 ## Migration Progress
 
-### Completed (4 pages)
+### Completed (5 pages)
 1. **packages/aero-ui/resources/js/Pages/Shared/UsersList.jsx** ✅
    - Complex user management page with multiple contexts (tenant/admin/core)
    - Uses StandardPageLayout with full features
@@ -39,16 +39,25 @@ Created and implemented a `StandardPageLayout` component that provides:
    - Complex page with view modes (table/grid)
    - Advanced filters with chips
    - Shows modal placement pattern
+   - **Migrated in latest session**
 
 4. **packages/aero-ui/resources/js/Pages/HRM/Designations.jsx** ✅
    - Similar to Departments page
    - Demonstrates consistent migration pattern
    - Simplified filter implementation
+   - **Migrated in latest session**
+
+5. **packages/aero-ui/resources/js/Pages/HRM/Holidays.jsx** ✅
+   - Complex page with inline Add/Edit/Delete modals
+   - DateInput components, search, year filter
+   - Active filter chips with motion animations
+   - Table with custom cell rendering
+   - **Migrated in latest session**
 
 ### In Progress
 - **HRM/Holidays.jsx** - Complex page with inline modals, requires careful migration
 
-### Remaining (244 pages)
+### Remaining (243 pages)
 See `PAGES_LAYOUT_MIGRATION_TRACKER.md` for complete inventory.
 
 ## Migration Pattern
@@ -343,5 +352,6 @@ The benefits of reduced code duplication, improved consistency, and centralized 
 ---
 
 **Last Updated:** 2026-01-07
-**Status:** In Progress (4/248 pages migrated)
-**Next Milestone:** Complete HRM module pages (10 total)
+**Status:** In Progress (5/248 pages migrated - 2.0%)
+**Next Milestone:** Complete HRM module pages (5 more remaining)
+**Latest Session**: Migrated 3 pages (Departments, Designations, Holidays)
