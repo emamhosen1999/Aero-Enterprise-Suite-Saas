@@ -61,7 +61,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\DeleteUserForm.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\HRM\Departments.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\HRM\Designations.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\HRM\Designations.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Employees\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Employees\Salary.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Employees\Show.jsx
