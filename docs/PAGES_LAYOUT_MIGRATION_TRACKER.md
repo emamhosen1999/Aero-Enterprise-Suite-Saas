@@ -267,6 +267,6 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Subscription\Invoices.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Subscription\Plans.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Subscription\Usage.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Support\Dashboard.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Support\TicketsIndex.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Support\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Support\TicketsIndex.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\WorkLocations\WorkLocations.jsx
