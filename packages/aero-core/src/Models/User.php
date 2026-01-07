@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Traits\HasRoles;
 
 /**
  * User Model - Core Authentication & Account Management
@@ -50,14 +50,8 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory;
-    use HasRoles;
     use Notifiable;
     use SoftDeletes;
-
-    /**
-     * The guard name for Spatie Permission
-     */
-    protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
@@ -312,6 +306,208 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     // =========================================================================
+    // ROLES & PERMISSIONS (Uses HRMAC Package)
+    // =========================================================================
+
+    /**
+     * Get the Role model class from config.
+     */
+    protected function getRoleModel(): string
+    {
+        return config('hrmac.models.role', \Aero\HRMAC\Models\Role::class);
+    }
+
+    /**
+     * Get the roles that belong to the user.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            $this->getRoleModel(),
+            'model_has_roles',
+            'model_id',
+            'role_id'
+        )->where('model_has_roles.model_type', static::class);
+    }
+
+    /**
+     * Check if user has a specific role.
+     *
+     * @param  string|array|object  $role  Role name, Role object, or array of role names
+     */
+    public function hasRole($role): bool
+    {
+        // Handle array of role names - return true if user has ANY of them
+        if (is_array($role)) {
+            return $this->roles()->whereIn('name', $role)->exists();
+        }
+
+        if (is_string($role)) {
+            return $this->roles()->where('name', $role)->exists();
+        }
+
+        if (is_object($role) && isset($role->id)) {
+            return $this->roles()->where('id', $role->id)->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Assign a role to the user.
+     */
+    public function assignRole(...$roles): self
+    {
+        $roleModel = $this->getRoleModel();
+        $roleIds = collect($roles)
+            ->flatten()
+            ->map(function ($role) use ($roleModel) {
+                if (is_string($role)) {
+                    return $roleModel::where('name', $role)->first()?->id;
+                }
+                if (is_object($role) && isset($role->id)) {
+                    return $role->id;
+                }
+                return is_numeric($role) ? (int) $role : null;
+            })
+            ->filter()
+            ->toArray();
+
+        foreach ($roleIds as $roleId) {
+            \DB::table('model_has_roles')->updateOrInsert([
+                'role_id' => $roleId,
+                'model_type' => static::class,
+                'model_id' => $this->id,
+            ]);
+        }
+
+        $this->unsetRelation('roles');
+
+        return $this;
+    }
+
+    /**
+     * Remove a role from the user.
+     */
+    public function removeRole($role): self
+    {
+        $roleModel = $this->getRoleModel();
+        $roleId = null;
+        if (is_string($role)) {
+            $roleId = $roleModel::where('name', $role)->first()?->id;
+        } elseif (is_object($role) && isset($role->id)) {
+            $roleId = $role->id;
+        } elseif (is_numeric($role)) {
+            $roleId = (int) $role;
+        }
+
+        if ($roleId) {
+            \DB::table('model_has_roles')
+                ->where('role_id', $roleId)
+                ->where('model_type', static::class)
+                ->where('model_id', $this->id)
+                ->delete();
+        }
+
+        $this->unsetRelation('roles');
+
+        return $this;
+    }
+
+    /**
+     * Sync roles for the user.
+     */
+    public function syncRoles(...$roles): self
+    {
+        $roleModel = $this->getRoleModel();
+        $roleIds = collect($roles)
+            ->flatten()
+            ->map(function ($role) use ($roleModel) {
+                if (is_string($role)) {
+                    return $roleModel::where('name', $role)->first()?->id;
+                }
+                if (is_object($role) && isset($role->id)) {
+                    return $role->id;
+                }
+                return is_numeric($role) ? (int) $role : null;
+            })
+            ->filter()
+            ->toArray();
+
+        // Delete existing roles
+        \DB::table('model_has_roles')
+            ->where('model_type', static::class)
+            ->where('model_id', $this->id)
+            ->delete();
+
+        // Insert new roles
+        foreach ($roleIds as $roleId) {
+            \DB::table('model_has_roles')->insert([
+                'role_id' => $roleId,
+                'model_type' => static::class,
+                'model_id' => $this->id,
+            ]);
+        }
+
+        $this->unsetRelation('roles');
+
+        return $this;
+    }
+
+    /**
+     * Check if user has any of the given roles.
+     */
+    public function hasAnyRole($roles, $guard = null): bool
+    {
+        return $this->roles()->whereIn('name', (array) $roles)->exists();
+    }
+
+    /**
+     * Check if user is a super admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        $superAdminRoles = config('hrmac.super_admin_roles', [
+            'Super Administrator',
+            'super-admin',
+            'tenant_super_administrator',
+        ]);
+
+        return $this->hasAnyRole($superAdminRoles);
+    }
+
+    /**
+     * Check if user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole(['Super Administrator', 'Super Admin', 'Admin', 'Administrator']);
+    }
+
+    /**
+     * Get all permissions - returns empty as we use module access.
+     */
+    public function getAllPermissions(): \Illuminate\Support\Collection
+    {
+        // We don't use Spatie permissions - module access handles authorization
+        return collect([]);
+    }
+
+    /**
+     * Permissions relationship - returns empty as we use module access.
+     */
+    public function permissions(): BelongsToMany
+    {
+        // Return empty relationship - we use role_module_access instead
+        return $this->belongsToMany(
+            Role::class, // Dummy model, never queried due to whereRaw
+            'model_has_permissions',
+            'model_id',
+            'permission_id'
+        )->whereRaw('1 = 0'); // Always empty
+    }
+
+    // =========================================================================
     // DEVICE MANAGEMENT
     // =========================================================================
 
@@ -517,34 +713,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     // =========================================================================
-    // ROLE HELPER METHODS
-    // =========================================================================
-
-    /**
-     * Check if the user has any of the given roles.
-     */
-    public function hasAnyRole($roles, $guard = null): bool
-    {
-        return $this->roles()->whereIn('name', (array) $roles)->exists();
-    }
-
-    /**
-     * Check if user is a super admin.
-     */
-    public function isSuperAdmin(): bool
-    {
-        return $this->hasRole('Super Admin');
-    }
-
-    /**
-     * Check if user is an admin (Super Admin or Admin).
-     */
-    public function isAdmin(): bool
-    {
-        return $this->hasAnyRole(['Super Admin', 'Admin']);
-    }
-
-    // =========================================================================
     // MODULE ACCESS METHODS (Core RBAC)
     // =========================================================================
 
@@ -596,7 +764,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getModuleAccessTree(): array
     {
-        if (! app()->bound('Aero\Core\Services\RoleModuleAccessService')) {
+        if (! app()->bound('Aero\HRMAC\Services\RoleModuleAccessService')) {
             return [
                 'modules' => [],
                 'sub_modules' => [],
@@ -605,7 +773,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ];
         }
 
-        $roleAccessService = app('Aero\Core\Services\RoleModuleAccessService');
+        $roleAccessService = app('Aero\HRMAC\Services\RoleModuleAccessService');
         $role = $this->roles->first();
 
         if (! $role) {

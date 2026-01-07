@@ -3,7 +3,7 @@
 namespace Aero\Rfi\Http\Controllers;
 
 use Aero\Rfi\Models\ChainageProgress;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\ProgressPhoto;
 use Aero\Rfi\Models\WorkLayer;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +23,7 @@ class ProgressPhotoController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $query = ProgressPhoto::query()
-            ->with(['dailyWork', 'workLayer', 'chainageProgress', 'uploader', 'approver'])
+            ->with(['rfi', 'workLayer', 'chainageProgress', 'uploader', 'approver'])
             ->orderBy('captured_at', 'desc');
 
         // Apply filters
@@ -117,7 +117,7 @@ class ProgressPhotoController extends Controller
 
         return response()->json([
             'message' => 'Photo uploaded successfully',
-            'data' => $photo->load(['dailyWork', 'workLayer', 'uploader']),
+            'data' => $photo->load(['rfi', 'workLayer', 'uploader']),
         ], 201);
     }
 
@@ -127,7 +127,7 @@ class ProgressPhotoController extends Controller
     public function show(ProgressPhoto $progressPhoto): JsonResponse
     {
         return response()->json([
-            'data' => $progressPhoto->load(['dailyWork', 'workLayer', 'chainageProgress', 'uploader', 'approver']),
+            'data' => $progressPhoto->load(['rfi', 'workLayer', 'chainageProgress', 'uploader', 'approver']),
         ]);
     }
 
@@ -150,7 +150,7 @@ class ProgressPhotoController extends Controller
 
         return response()->json([
             'message' => 'Photo updated successfully',
-            'data' => $progressPhoto->fresh(['dailyWork', 'workLayer', 'uploader']),
+            'data' => $progressPhoto->fresh(['rfi', 'workLayer', 'uploader']),
         ]);
     }
 
@@ -249,7 +249,7 @@ class ProgressPhotoController extends Controller
 
         $photos = ProgressPhoto::query()
             ->whereBetween('chainage_m', [$request->start_chainage, $request->end_chainage])
-            ->with(['dailyWork', 'workLayer', 'uploader'])
+            ->with(['rfi', 'workLayer', 'uploader'])
             ->orderBy('chainage_m')
             ->get();
 

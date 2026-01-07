@@ -9,31 +9,28 @@ return new class extends Migration
     /**
      * Add GPS Validation Fields - PATENTABLE CORE IP
      * 
-     * Adds HasGeoLock trait support to DailyWork model.
+     * Adds HasGeoLock trait support to Rfi model.
      * Stores GPS coordinates and validation results for anti-fraud protection.
      */
     public function up(): void
     {
         Schema::table('daily_works', function (Blueprint $table) {
             // GPS Coordinates (captured from user's device)
-            $table->decimal('latitude', 10, 7)->nullable()->after('chainage')->comment('User GPS latitude');
-            $table->decimal('longitude', 10, 7)->nullable()->after('latitude')->comment('User GPS longitude');
-            $table->decimal('gps_accuracy', 8, 2)->nullable()->after('longitude')->comment('GPS accuracy in meters');
-            $table->timestamp('gps_captured_at')->nullable()->after('gps_accuracy');
+            $table->decimal('latitude', 10, 7)->nullable()->comment('User GPS latitude');
+            $table->decimal('longitude', 10, 7)->nullable()->comment('User GPS longitude');
+            $table->decimal('gps_accuracy', 8, 2)->nullable()->comment('GPS accuracy in meters');
+            $table->timestamp('gps_captured_at')->nullable();
             
             // Geo Validation Results (from GeoFencingService)
-            $table->json('geo_validation_result')->nullable()->after('gps_captured_at')->comment('Full validation result from service');
-            $table->enum('geo_validation_status', ['passed', 'failed', 'pending', 'skipped'])->nullable()->after('geo_validation_result');
-            $table->boolean('requires_review')->default(false)->after('geo_validation_status')->comment('Flag for supervisor review');
-            $table->text('review_reason')->nullable()->after('requires_review');
+            $table->json('geo_validation_result')->nullable()->comment('Full validation result from service');
+            $table->enum('geo_validation_status', ['passed', 'failed', 'pending', 'skipped'])->nullable();
+            $table->boolean('requires_review')->default(false)->comment('Flag for supervisor review');
+            $table->text('review_reason')->nullable();
             
             // Indexes
             $table->index(['geo_validation_status', 'requires_review'], 'idx_geo_validation');
             $table->index(['latitude', 'longitude'], 'idx_gps_coords');
         });
-
-        // Add comment
-        DB::statement("COMMENT ON COLUMN daily_works.geo_validation_result IS 'GPS validation data: {valid, distance, expected_location, validated_at}'");
     }
 
     public function down(): void

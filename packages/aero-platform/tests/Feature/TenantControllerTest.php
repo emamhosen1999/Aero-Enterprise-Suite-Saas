@@ -10,7 +10,7 @@ use Aero\Platform\Models\Tenant;
 use Aero\Platform\Services\Monitoring\Tenant\TenantProvisioner;
 use Aero\Platform\Services\Tenant\TenantRetentionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 use Tests\TestCase;
 
 /**

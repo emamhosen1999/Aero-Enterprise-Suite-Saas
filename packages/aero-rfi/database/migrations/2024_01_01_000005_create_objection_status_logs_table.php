@@ -21,16 +21,13 @@ return new class extends Migration
             $table->string('from_status')->nullable()->comment('Previous status (null for initial creation)');
             $table->string('to_status')->comment('New status');
             $table->text('notes')->nullable()->comment('Notes/reason for status change');
-            $table->foreignId('changed_by')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('changed_by')->nullable()->index();
             $table->timestamp('changed_at');
             $table->timestamps();
 
             // Indexes
             $table->index('objection_id');
-            $table->index('changed_by');
             $table->index('changed_at');
             $table->index(['objection_id', 'changed_at']);
         });

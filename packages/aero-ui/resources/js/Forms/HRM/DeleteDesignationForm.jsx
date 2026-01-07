@@ -33,7 +33,7 @@ const DeleteDesignationForm = ({ open, onClose, onSuccess, designation }) => {
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.delete(`/designations/${designation.id}`);
+                const response = await axios.delete(route('hrm.designations.destroy', designation.id));
                 
                 if (response.status === 200) {
                     if (onSuccess) {

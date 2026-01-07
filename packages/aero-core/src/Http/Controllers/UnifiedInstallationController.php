@@ -1040,7 +1040,7 @@ class UnifiedInstallationController extends Controller
 
     /**
      * Step: Run migrations
-     * Uses direct migration runner instead of Artisan commands
+     * Uses direct migration runner with package discovery (same mechanism as aero:sync-migrations)
      */
     protected function stepRunMigrations(string $mode): void
     {
@@ -1052,27 +1052,82 @@ class UnifiedInstallationController extends Controller
             $repository->createRepository();
         }
         
+        // Discover migration paths from all installed Aero packages
+        // Uses the same discovery mechanism as aero:sync-migrations command
+        $migrationPaths = $this->discoverMigrationPaths();
+        
         if ($mode === 'saas') {
-            // Run platform migrations first
+            // Run platform migrations first (priority)
             $platformPath = base_path('vendor/aero/platform/database/migrations');
             if (File::isDirectory($platformPath)) {
                 $migrator->run($platformPath);
+                Log::info("Ran platform migrations from: {$platformPath}");
             }
         }
 
-        // Run all registered migration paths (includes package migrations)
-        $paths = $migrator->paths();
-        foreach ($paths as $path) {
+        // Run migrations from all discovered package paths
+        foreach ($migrationPaths as $packageName => $path) {
+            if (File::isDirectory($path)) {
+                $migrator->run($path);
+                Log::info("Ran migrations for package: {$packageName}");
+            }
+        }
+        
+        // Also run any paths registered via loadMigrationsFrom() (fallback)
+        $registeredPaths = $migrator->paths();
+        foreach ($registeredPaths as $path) {
+            // Skip if already processed in discovered paths
+            if (in_array($path, $migrationPaths)) {
+                continue;
+            }
             if (File::isDirectory($path)) {
                 $migrator->run($path);
             }
         }
-        
-        // Run default database migrations
-        $defaultPath = database_path('migrations');
-        if (File::isDirectory($defaultPath)) {
-            $migrator->run($defaultPath);
+    }
+
+    /**
+     * Discover migration paths from all installed Aero packages
+     * Uses the same mechanism as ModuleDiscoveryService and aero:sync-migrations command
+     * 
+     * @return array<string, string> Package name => migration path
+     */
+    protected function discoverMigrationPaths(): array
+    {
+        $migrationPaths = [];
+        $vendorPrefix = 'aero';
+
+        // 1. Discover packages installed via Composer (vendor/aero/*)
+        $vendorPath = base_path('vendor/' . $vendorPrefix);
+        if (File::exists($vendorPath)) {
+            foreach (File::directories($vendorPath) as $packagePath) {
+                $migrationsPath = $packagePath . '/database/migrations';
+                if (File::exists($migrationsPath) && File::isDirectory($migrationsPath)) {
+                    $files = File::files($migrationsPath);
+                    if (count($files) > 0) {
+                        $packageName = basename($packagePath);
+                        $migrationPaths[$packageName] = $migrationsPath;
+                    }
+                }
+            }
         }
+
+        // 2. Discover runtime modules (modules/*)
+        $runtimePath = base_path('modules');
+        if (File::exists($runtimePath)) {
+            foreach (File::directories($runtimePath) as $modulePath) {
+                $migrationsPath = $modulePath . '/database/migrations';
+                if (File::exists($migrationsPath) && File::isDirectory($migrationsPath)) {
+                    $files = File::files($migrationsPath);
+                    if (count($files) > 0) {
+                        $moduleName = basename($modulePath);
+                        $migrationPaths[$moduleName] = $migrationsPath;
+                    }
+                }
+            }
+        }
+
+        return $migrationPaths;
     }
 
     /**

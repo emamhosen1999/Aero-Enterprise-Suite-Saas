@@ -3,7 +3,7 @@
 namespace Aero\Core\Http\Controllers\Admin;
 
 use Aero\Core\Http\Controllers\Controller;
-use Aero\Core\Models\Role;
+use Aero\HRMAC\Models\Role;
 use Aero\Core\Models\User;
 use Aero\Core\Models\Module;
 use Aero\Core\Services\AuditService;

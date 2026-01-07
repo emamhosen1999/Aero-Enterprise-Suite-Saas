@@ -5,6 +5,21 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
+    | Model Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the models used by HRMAC. You can override these with your own
+    | implementations if needed.
+    |
+    */
+
+    'models' => [
+        'role' => \Aero\HRMAC\Models\Role::class,
+        'user' => \Aero\Core\Models\User::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Super Admin Roles
     |--------------------------------------------------------------------------
     |

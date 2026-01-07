@@ -3,13 +3,13 @@
 namespace Aero\Core\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
-use Stancl\Tenancy\Contracts\Tenant;
 
 /**
  * Tenant Scoped Trait
  *
  * Automatically scope all queries to the current tenant.
  * Use this trait on models that should be tenant-isolated.
+ * This trait is only active when stancl/tenancy is installed and initialized.
  */
 trait TenantScoped
 {
@@ -18,6 +18,11 @@ trait TenantScoped
      */
     protected static function bootTenantScoped(): void
     {
+        // Check if tenancy is available (stancl/tenancy package installed)
+        if (! function_exists('tenancy')) {
+            return;
+        }
+
         // Only apply tenant scoping if we're in a tenant context
         if (! tenancy()->initialized) {
             return;
@@ -25,14 +30,14 @@ trait TenantScoped
 
         // Automatically add tenant_id when creating
         static::creating(function ($model) {
-            if (tenancy()->initialized && ! $model->getAttribute('tenant_id')) {
+            if (function_exists('tenancy') && tenancy()->initialized && ! $model->getAttribute('tenant_id')) {
                 $model->setAttribute('tenant_id', tenant('id'));
             }
         });
 
         // Automatically scope all queries to current tenant
         static::addGlobalScope('tenant', function (Builder $builder) {
-            if (tenancy()->initialized) {
+            if (function_exists('tenancy') && tenancy()->initialized) {
                 $builder->where($builder->getQuery()->from.'.tenant_id', tenant('id'));
             }
         });
@@ -43,7 +48,9 @@ trait TenantScoped
      */
     public function tenant()
     {
-        return $this->belongsTo(config('tenancy.tenant_model', \App\Models\Tenant::class), 'tenant_id');
+        $tenantModel = config('tenancy.tenant_model', \App\Models\Tenant::class);
+
+        return $this->belongsTo($tenantModel, 'tenant_id');
     }
 
     /**

@@ -1010,6 +1010,7 @@ class EmployeeController extends Controller
     /**
      * Get users who haven't been onboarded as employees yet (pending onboarding).
      *
+     * Only shows users who have the "Employee" role (but may have other roles too).
      * Used by UI to display users that can be converted to employees.
      *
      * @param  Request  $request
@@ -1019,6 +1020,9 @@ class EmployeeController extends Controller
     {
         try {
             $query = User::whereDoesntHave('employee')
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'Employee');
+                })
                 ->when($request->search, function ($query, $search) {
                     $query->where(function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%")

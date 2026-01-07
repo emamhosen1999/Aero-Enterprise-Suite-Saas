@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 /**
  * AdminSetupController

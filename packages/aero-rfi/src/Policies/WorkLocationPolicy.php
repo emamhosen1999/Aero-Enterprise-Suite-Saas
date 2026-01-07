@@ -80,8 +80,8 @@ class WorkLocationPolicy
             return true;
         }
 
-        // Prevent deletion if work location has daily works
-        if ($workLocation->dailyWorks()->count() > 0) {
+        // Prevent deletion if work location has RFIs
+        if ($workLocation->rfis()->count() > 0) {
             return false;
         }
 

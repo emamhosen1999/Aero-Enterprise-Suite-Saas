@@ -2,6 +2,7 @@
 
 namespace Aero\Compliance\Models;
 
+use Aero\Rfi\Models\Rfi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,10 +42,18 @@ class Jurisdiction extends Model
     }
 
     /**
-     * Get all daily works associated with this jurisdiction.
+     * Get all RFIs associated with this jurisdiction.
+     */
+    public function rfis()
+    {
+        return $this->hasMany(Rfi::class, 'jurisdiction_id');
+    }
+
+    /**
+     * Alias for backward compatibility.
      */
     public function dailyWorks()
     {
-        return $this->hasMany(DailyWork::class, 'jurisdiction_id');
+        return $this->rfis();
     }
 }

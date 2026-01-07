@@ -99,19 +99,12 @@ class OptimizeTenantCache
 
     /**
      * Cache all permissions for the tenant.
+     * @deprecated We use module access instead of permissions
      */
     protected function warmPermissionsCache(string $tenantId): void
     {
-        try {
-            $permissions = \Spatie\Permission\Models\Permission::all(['id', 'name', 'guard_name']);
-            $this->taggedCache($tenantId)->put(
-                'all_permissions',
-                $permissions->toArray(),
-                now()->addDay()
-            );
-        } catch (\Exception $e) {
-            // Silently fail - permissions table may not exist yet
-        }
+        // We don't use permissions table - module access handles authorization
+        return;
     }
 
     /**
@@ -120,7 +113,7 @@ class OptimizeTenantCache
     protected function warmRolesCache(string $tenantId): void
     {
         try {
-            $roles = \Spatie\Permission\Models\Role::with('permissions:id,name')->get(['id', 'name', 'guard_name']);
+            $roles = \Aero\HRMAC\Models\Role::get(['id', 'name', 'guard_name']);
             $this->taggedCache($tenantId)->put(
                 'all_roles',
                 $roles->toArray(),

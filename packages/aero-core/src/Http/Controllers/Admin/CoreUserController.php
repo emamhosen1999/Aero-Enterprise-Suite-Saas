@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 /**
  * Core User Controller
@@ -72,7 +72,7 @@ class CoreUserController extends Controller
             'title' => 'Users',
             'users' => $users,
             'roles' => Role::all(['id', 'name']),
-            'context' => 'tenant',
+            'context' => 'core',
             'filters' => $request->only(['search', 'status', 'role']),
             'stats' => [
                 'total' => User::count(),

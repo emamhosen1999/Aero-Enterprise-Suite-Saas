@@ -18,6 +18,16 @@ import axios from 'axios';
 import { showToast } from "@/utils/toastUtils";
 
 /**
+ * Helper to get invite route based on context
+ * Supports: 'admin', 'tenant', 'core'
+ */
+const getInviteRoute = (context) => {
+    if (context === 'admin') return 'admin.users.invite';
+    if (context === 'core') return 'core.users.invite';
+    return 'users.invite';
+};
+
+/**
  * InviteUserForm - Modal form for sending team member invitations
  * 
  * Allows inviting users via email with role, department, and designation pre-assignment.
@@ -27,10 +37,14 @@ const InviteUserForm = ({
     roles = [], 
     open, 
     closeModal,
-    onInviteSent
+    onInviteSent,
+    context = 'tenant'
 }) => {
     const [loading, setLoading] = useState(false);
     const [themeRadius, setThemeRadius] = useState('lg');
+    
+    // Get the invite route for the current context
+    const inviteRoute = useMemo(() => getInviteRoute(context), [context]);
     
     // Form state
     const [formData, setFormData] = useState({
@@ -118,7 +132,7 @@ const InviteUserForm = ({
         setLoading(true);
         
         try {
-            const response = await axios.post(route('users.invite'), formData);
+            const response = await axios.post(route(inviteRoute), formData);
             
             if (response.status === 200 || response.status === 201) {
                 showToast.success('Invitation sent successfully!');

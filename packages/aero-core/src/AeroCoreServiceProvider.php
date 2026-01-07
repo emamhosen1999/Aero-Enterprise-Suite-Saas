@@ -9,7 +9,7 @@ use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Services\ModuleManager;
 use Aero\Core\Services\ModuleRegistry;
 use Aero\Core\Services\NavigationRegistry;
-use Aero\Core\Services\RoleModuleAccessService;
+use Aero\HRMAC\Services\RoleModuleAccessService;
 use Aero\Core\Services\RuntimeLoader;
 use Aero\Core\Services\StandaloneTenantScope;
 use Aero\Core\Services\UserRelationshipRegistry;
@@ -615,6 +615,7 @@ class AeroCoreServiceProvider extends ServiceProvider
         $this->commands([
             Console\Commands\InstallCommand::class,
             Console\Commands\SyncModuleHierarchy::class,
+            Console\Commands\SyncModuleMigrations::class,
             Console\Commands\SeedCommand::class,
             Console\Commands\CleanupExpiredSessions::class,
         ]);

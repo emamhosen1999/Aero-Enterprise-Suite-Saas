@@ -2,11 +2,11 @@
 
 namespace Aero\Dms\Services;
 
-use App\Models\Tenant\DMS$1
-use App\Models\Tenant\DMS$1
-use App\Models\Tenant\DMS$1
-use App\Models\Tenant\DMS$1
-use App\Models\Tenant\DMS$1
+use Aero\Dms\Models\Document;
+use Aero\Dms\Models\DocumentVersion;
+use Aero\Dms\Models\Folder;
+use Aero\Dms\Models\Category;
+use Aero\Dms\Models\DocumentTemplate;
 use Aero\Core\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -224,7 +224,7 @@ class DMSService
     /**
      * Upload a new version of an existing document.
      */
-    public function uploadNewVersion(Document $document, UploadedFile $file, User $user, ?string $changeSummary = null): \App\Models\DMS\DocumentVersion
+    public function uploadNewVersion(Document $document, UploadedFile $file, User $user, ?string $changeSummary = null): DocumentVersion
     {
         // Get the next version number
         $currentVersion = $document->version ?? 1;
@@ -232,7 +232,7 @@ class DMSService
 
         // Store the current version in version history if not already done
         if ($currentVersion === 1 && $document->versionHistory()->count() === 0) {
-            \App\Models\DMS\DocumentVersion::create([
+            DocumentVersion::create([
                 'document_id' => $document->id,
                 'version' => 1,
                 'change_summary' => 'Initial version',
@@ -248,7 +248,7 @@ class DMSService
         $filePath = $file->storeAs('documents/versions', $fileName, 'public');
 
         // Create version record
-        $version = \App\Models\DMS\DocumentVersion::create([
+        $version = DocumentVersion::create([
             'document_id' => $document->id,
             'version' => $newVersion,
             'change_summary' => $changeSummary ?? 'Version '.$newVersion.' uploaded',
@@ -296,7 +296,7 @@ class DMSService
 
         // Store current as a new version first
         $currentVersion = $document->version + 1;
-        \App\Models\DMS\DocumentVersion::create([
+        DocumentVersion::create([
             'document_id' => $document->id,
             'version' => $currentVersion,
             'change_summary' => "Rolled back to version {$targetVersion->version}",

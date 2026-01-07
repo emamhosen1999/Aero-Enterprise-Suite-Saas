@@ -125,7 +125,8 @@ return new class extends Migration
             $table->timestamp('rfi_submitted_at')->nullable();
             $table->timestamp('inspected_at')->nullable();
             $table->timestamp('approved_at')->nullable();
-            $table->foreignId('approved_by_user_id')->nullable()->constrained('users');
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('approved_by_user_id')->nullable()->index();
             
             $table->timestamps();
             $table->softDeletes();

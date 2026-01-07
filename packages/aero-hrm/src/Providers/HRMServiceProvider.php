@@ -3,7 +3,6 @@
 namespace Aero\HRM\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
-use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceType;
@@ -227,66 +226,6 @@ class HRMServiceProvider extends AbstractModuleProvider
         $registry->registerAccessor('designation_name', function ($user) {
             return $user->employee?->designation?->name;
         });
-    }
-
-    /**
-     * Register HRM navigation items with NavigationRegistry.
-     * Navigation is derived from config/module.php submodules for consistency.
-     *
-     * Structure: Module → Submodules → Components (3 levels)
-     */
-    protected function registerNavigation(): void
-    {
-        if (! $this->app->bound(NavigationRegistry::class)) {
-            return;
-        }
-
-        $navRegistry = $this->app->make(NavigationRegistry::class);
-        $config = $this->getModuleConfig();
-        $modulePriority = $this->getModulePriority();
-
-        // Build navigation children from config submodules
-        $submoduleNav = [];
-        foreach ($config['submodules'] ?? [] as $submodule) {
-            $submoduleCode = $submodule['code'] ?? '';
-            $submoduleIcon = $submodule['icon'] ?? null;
-
-            // Build component children for this submodule
-            $componentNav = [];
-            foreach ($submodule['components'] ?? [] as $component) {
-                $componentNav[] = [
-                    'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
-                    'path' => $component['route'] ?? '',
-                    'icon' => $component['icon'] ?? $submoduleIcon, // Inherit submodule icon if not set
-                    'access' => $this->moduleCode.'.'.$submoduleCode.'.'.($component['code'] ?? ''),
-                    'type' => $component['type'] ?? 'page',
-                ];
-            }
-
-            $submoduleNav[] = [
-                'name' => $submodule['name'] ?? ucfirst($submoduleCode),
-                'path' => $submodule['route'] ?? '',
-                'icon' => $submoduleIcon,
-                'access' => $this->moduleCode.'.'.$submoduleCode,
-                'priority' => $submodule['priority'] ?? 100,
-                'children' => $componentNav,
-            ];
-        }
-
-        // Sort submodules by priority
-        usort($submoduleNav, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
-
-        // Register main HRM navigation with module as parent wrapper
-        // Scope: 'tenant' - HRM is for tenant users only
-        $navRegistry->register($this->moduleCode, [
-            [
-                'name' => $config['name'] ?? 'Human Resources',
-                'icon' => $config['icon'] ?? 'UserGroupIcon',
-                'access' => $this->moduleCode,
-                'priority' => $modulePriority,
-                'children' => $submoduleNav,
-            ],
-        ], $modulePriority, 'tenant');
     }
 
     /**

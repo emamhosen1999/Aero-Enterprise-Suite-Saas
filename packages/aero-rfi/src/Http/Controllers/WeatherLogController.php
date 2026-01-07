@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Http\Controllers;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WeatherLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ class WeatherLogController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $query = WeatherLog::query()
-            ->with(['dailyWork'])
+            ->with(['rfi'])
             ->orderBy('observation_time', 'desc');
 
         // Apply filters
@@ -79,7 +79,7 @@ class WeatherLogController extends Controller
 
         return response()->json([
             'message' => 'Weather log created successfully',
-            'data' => $log->load('dailyWork'),
+            'data' => $log->load('rfi'),
         ], 201);
     }
 
@@ -89,7 +89,7 @@ class WeatherLogController extends Controller
     public function show(WeatherLog $weatherLog): JsonResponse
     {
         return response()->json([
-            'data' => $weatherLog->load('dailyWork'),
+            'data' => $weatherLog->load('rfi'),
         ]);
     }
 
@@ -115,7 +115,7 @@ class WeatherLogController extends Controller
 
         return response()->json([
             'message' => 'Weather log updated successfully',
-            'data' => $weatherLog->fresh('dailyWork'),
+            'data' => $weatherLog->fresh('rfi'),
         ]);
     }
 

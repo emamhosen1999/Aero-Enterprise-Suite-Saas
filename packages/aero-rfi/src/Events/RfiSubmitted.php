@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Events;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -20,7 +20,7 @@ class RfiSubmitted
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public DailyWork $rfi,
+        public Rfi $rfi,
         public int $submittedByUserId,
         public ?int $workLayerId = null,
         public ?array $metadata = null

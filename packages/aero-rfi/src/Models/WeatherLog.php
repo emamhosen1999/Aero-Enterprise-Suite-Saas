@@ -36,9 +36,9 @@ class WeatherLog extends Model
         'affected_activities' => 'array',
     ];
 
-    public function dailyWork(): BelongsTo
+    public function rfi(): BelongsTo
     {
-        return $this->belongsTo(DailyWork::class);
+        return $this->belongsTo(Rfi::class);
     }
 
     /**

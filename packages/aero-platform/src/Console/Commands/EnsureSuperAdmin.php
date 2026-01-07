@@ -6,7 +6,7 @@ use Aero\Core\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 class EnsureSuperAdmin extends Command
 {

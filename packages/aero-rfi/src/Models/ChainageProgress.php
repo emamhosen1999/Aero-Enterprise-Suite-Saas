@@ -84,9 +84,9 @@ class ChainageProgress extends Model
         return $this->belongsTo(WorkLayer::class);
     }
 
-    public function dailyWork(): BelongsTo
+    public function rfi(): BelongsTo
     {
-        return $this->belongsTo(DailyWork::class);
+        return $this->belongsTo(Rfi::class);
     }
 
     public function boqMeasurement(): BelongsTo

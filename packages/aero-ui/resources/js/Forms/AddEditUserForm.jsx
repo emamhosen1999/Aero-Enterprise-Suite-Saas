@@ -21,12 +21,25 @@ import ProfileAvatar from '@/Components/ProfileAvatar';
 
 /**
  * Helper to get routes based on context
+ * Supports: 'admin', 'tenant', 'core'
  */
 const getRoutes = (context) => {
-    const isAdmin = context === 'admin';
+    if (context === 'admin') {
+        return {
+            store: 'admin.users.store',
+            update: 'admin.users.update',
+        };
+    }
+    if (context === 'core') {
+        return {
+            store: 'core.users.store',
+            update: 'core.users.update',
+        };
+    }
+    // Default: tenant context
     return {
-        store: isAdmin ? 'admin.users.store' : 'users.store',
-        update: isAdmin ? 'admin.users.update' : 'users.update',
+        store: 'users.store',
+        update: 'users.update',
     };
 };
 

@@ -1,8 +1,8 @@
 <?php
 
 use Aero\Rfi\Http\Controllers\ChainageProgressController;
-use Aero\Rfi\Http\Controllers\DailyWorkController;
-use Aero\Rfi\Http\Controllers\DailyWorkSummaryController;
+use Aero\Rfi\Http\Controllers\RfiWebController;
+use Aero\Rfi\Http\Controllers\RfiSummaryController;
 use Aero\Rfi\Http\Controllers\EquipmentLogController;
 use Aero\Rfi\Http\Controllers\LaborDeploymentController;
 use Aero\Rfi\Http\Controllers\MaterialConsumptionController;
@@ -34,74 +34,76 @@ use Illuminate\Support\Facades\Route;
 // Note: Service provider adds 'rfi.' prefix and '/rfi' path automatically
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Dashboard
-    Route::middleware(['module:rfi,dashboard'])
+    // Dashboard - module level access only (no sub-module required for dashboard)
+    Route::middleware(['module:rfi'])
         ->get('/', [RfiDashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Daily Works (RFIs)
-    Route::prefix('daily-works')->name('daily-works.')->middleware(['module:rfi,daily-works'])->group(function () {
-    Route::get('/', [DailyWorkController::class, 'index'])->name('index');
-    Route::get('/create', [DailyWorkController::class, 'create'])->name('create');
-    Route::post('/', [DailyWorkController::class, 'store'])->name('store');
-    Route::get('/{dailyWork}', [DailyWorkController::class, 'show'])->name('show');
-    Route::get('/{dailyWork}/edit', [DailyWorkController::class, 'edit'])->name('edit');
-    Route::put('/{dailyWork}', [DailyWorkController::class, 'update'])->name('update');
-    Route::delete('/{dailyWork}', [DailyWorkController::class, 'destroy'])->name('destroy');
+    // RFIs - maps to inspection-management sub-module
+    Route::prefix('rfis')->name('rfis.')->middleware(['module:rfi,inspection-management'])->group(function () {
+    Route::get('/', [RfiWebController::class, 'index'])->name('index');
+    Route::get('/create', [RfiWebController::class, 'create'])->name('create');
+    Route::post('/', [RfiWebController::class, 'store'])->name('store');
+    Route::get('/{rfi}', [RfiWebController::class, 'show'])->name('show');
+    Route::get('/{rfi}/edit', [RfiWebController::class, 'edit'])->name('edit');
+    Route::put('/{rfi}', [RfiWebController::class, 'update'])->name('update');
+    Route::delete('/{rfi}', [RfiWebController::class, 'destroy'])->name('destroy');
 
     // API Endpoints for pagination and filtering
-    Route::get('/api/paginate', [DailyWorkController::class, 'paginate'])->name('paginate');
-    Route::get('/api/all', [DailyWorkController::class, 'all'])->name('all');
+    Route::get('/api/paginate', [RfiWebController::class, 'paginate'])->name('paginate');
+    Route::get('/api/all', [RfiWebController::class, 'all'])->name('all');
 
     // Import
-    Route::post('/import', [DailyWorkController::class, 'import'])->name('import');
-    Route::get('/template/download', [DailyWorkController::class, 'downloadTemplate'])->name('template.download');
+    Route::post('/import', [RfiWebController::class, 'import'])->name('import');
+    Route::get('/template/download', [RfiWebController::class, 'downloadTemplate'])->name('template.download');
 
     // RFI Submission
-    Route::post('/{dailyWork}/submit', [DailyWorkController::class, 'submit'])->name('submit');
+    Route::post('/{rfi}/submit', [RfiWebController::class, 'submit'])->name('submit');
 
     // Inspection
-    Route::post('/{dailyWork}/inspect', [DailyWorkController::class, 'inspect'])->name('inspect');
+    Route::post('/{rfi}/inspect', [RfiWebController::class, 'inspect'])->name('inspect');
 
     // Files
-    Route::post('/{dailyWork}/files', [DailyWorkController::class, 'uploadFiles'])->name('files.upload');
-    Route::get('/{dailyWork}/files', [DailyWorkController::class, 'getRfiFiles'])->name('files.list');
-    Route::delete('/{dailyWork}/files/{mediaId}', [DailyWorkController::class, 'deleteFile'])->name('files.delete');
-    Route::get('/{dailyWork}/files/{mediaId}/download', [DailyWorkController::class, 'downloadRfiFile'])->name('files.download');
+    Route::post('/{rfi}/files', [RfiWebController::class, 'uploadFiles'])->name('files.upload');
+    Route::get('/{rfi}/files', [RfiWebController::class, 'getRfiFiles'])->name('files.list');
+    Route::delete('/{rfi}/files/{mediaId}', [RfiWebController::class, 'deleteFile'])->name('files.delete');
+    Route::get('/{rfi}/files/{mediaId}/download', [RfiWebController::class, 'downloadRfiFile'])->name('files.download');
 
     // Objection management
-    Route::post('/{dailyWork}/objections', [DailyWorkController::class, 'attachObjections'])->name('objections.attach');
-    Route::delete('/{dailyWork}/objections', [DailyWorkController::class, 'detachObjections'])->name('objections.detach');
+    Route::get('/{rfi}/objections', [RfiWebController::class, 'getObjections'])->name('objections.index');
+    Route::get('/{rfi}/objections/available', [RfiWebController::class, 'getAvailableObjections'])->name('objections.available');
+    Route::post('/{rfi}/objections', [RfiWebController::class, 'attachObjections'])->name('objections.attach');
+    Route::delete('/{rfi}/objections', [RfiWebController::class, 'detachObjections'])->name('objections.detach');
 
     // Bulk operations
-    Route::post('/bulk/status', [DailyWorkController::class, 'bulkUpdateStatus'])->name('bulk.status');
-    Route::post('/bulk/submit', [DailyWorkController::class, 'bulkSubmit'])->name('bulk.submit');
-    Route::post('/bulk/import-submit', [DailyWorkController::class, 'bulkImportSubmit'])->name('bulk.import-submit');
-    Route::get('/bulk/submit-template', [DailyWorkController::class, 'downloadBulkImportTemplate'])->name('bulk.submit-template');
-    Route::post('/bulk/response-status', [DailyWorkController::class, 'bulkResponseStatusUpdate'])->name('bulk.response-status');
-    Route::post('/bulk/import-response-status', [DailyWorkController::class, 'bulkImportResponseStatus'])->name('bulk.import-response-status');
-    Route::get('/bulk/response-status-template', [DailyWorkController::class, 'downloadResponseStatusTemplate'])->name('bulk.response-status-template');
+    Route::post('/bulk/status', [RfiWebController::class, 'bulkUpdateStatus'])->name('bulk.status');
+    Route::post('/bulk/submit', [RfiWebController::class, 'bulkSubmit'])->name('bulk.submit');
+    Route::post('/bulk/import-submit', [RfiWebController::class, 'bulkImportSubmit'])->name('bulk.import-submit');
+    Route::get('/bulk/submit-template', [RfiWebController::class, 'downloadBulkImportTemplate'])->name('bulk.submit-template');
+    Route::post('/bulk/response-status', [RfiWebController::class, 'bulkResponseStatusUpdate'])->name('bulk.response-status');
+    Route::post('/bulk/import-response-status', [RfiWebController::class, 'bulkImportResponseStatus'])->name('bulk.import-response-status');
+    Route::get('/bulk/response-status-template', [RfiWebController::class, 'downloadResponseStatusTemplate'])->name('bulk.response-status-template');
 
     // Status updates
-    Route::post('/update-status', [DailyWorkController::class, 'updateStatus'])->name('update-status');
-    Route::post('/update-completion-time', [DailyWorkController::class, 'updateCompletionTime'])->name('update-completion-time');
-    Route::post('/update-submission-time', [DailyWorkController::class, 'updateSubmissionTime'])->name('update-submission-time');
-    Route::post('/update-inspection-details', [DailyWorkController::class, 'updateInspectionDetails'])->name('update-inspection-details');
-    Route::post('/update-incharge', [DailyWorkController::class, 'updateIncharge'])->name('update-incharge');
-    Route::post('/update-assigned', [DailyWorkController::class, 'updateAssigned'])->name('update-assigned');
+    Route::post('/update-status', [RfiWebController::class, 'updateStatus'])->name('update-status');
+    Route::post('/update-completion-time', [RfiWebController::class, 'updateCompletionTime'])->name('update-completion-time');
+    Route::post('/update-submission-time', [RfiWebController::class, 'updateSubmissionTime'])->name('update-submission-time');
+    Route::post('/update-inspection-details', [RfiWebController::class, 'updateInspectionDetails'])->name('update-inspection-details');
+    Route::post('/update-incharge', [RfiWebController::class, 'updateIncharge'])->name('update-incharge');
+    Route::post('/update-assigned', [RfiWebController::class, 'updateAssigned'])->name('update-assigned');
 
     // Export
-    Route::get('/export/csv', [DailyWorkController::class, 'export'])->name('export');
-    Route::get('/export/objected', [DailyWorkController::class, 'exportObjectedRfis'])->name('export.objected');
+    Route::get('/export/csv', [RfiWebController::class, 'export'])->name('export');
+    Route::get('/export/objected', [RfiWebController::class, 'exportObjectedRfis'])->name('export.objected');
 });
 
-    // Daily Work Summary
-    Route::prefix('daily-works-summary')->name('daily-works-summary.')->middleware(['module:rfi,daily-works'])->group(function () {
-        Route::get('/', [DailyWorkSummaryController::class, 'index'])->name('index');
-        Route::post('/filter', [DailyWorkSummaryController::class, 'filterSummary'])->name('filter');
-        Route::get('/export', [DailyWorkSummaryController::class, 'exportDailySummary'])->name('export');
-        Route::get('/statistics', [DailyWorkSummaryController::class, 'getStatistics'])->name('statistics');
-        Route::post('/refresh', [DailyWorkSummaryController::class, 'refresh'])->name('refresh');
+    // RFI Summary - maps to inspection-management sub-module
+    Route::prefix('rfis-summary')->name('rfis-summary.')->middleware(['module:rfi,inspection-management'])->group(function () {
+        Route::get('/', [RfiSummaryController::class, 'index'])->name('index');
+        Route::post('/filter', [RfiSummaryController::class, 'filterSummary'])->name('filter');
+        Route::get('/export', [RfiSummaryController::class, 'exportDailySummary'])->name('export');
+        Route::get('/statistics', [RfiSummaryController::class, 'getStatistics'])->name('statistics');
+        Route::post('/refresh', [RfiSummaryController::class, 'refresh'])->name('refresh');
     });
 
     // Objections
@@ -138,8 +140,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/statistics/summary', [ObjectionController::class, 'statistics'])->name('statistics');
     });
 
-    // Work Locations
-    Route::prefix('work-locations')->name('work-locations.')->middleware(['module:rfi,work-locations'])->group(function () {
+    // Work Locations - maps to daily-reporting sub-module
+    Route::prefix('work-locations')->name('work-locations.')->middleware(['module:rfi,daily-reporting'])->group(function () {
         Route::get('/', [WorkLocationController::class, 'index'])->name('index');
         Route::get('/create', [WorkLocationController::class, 'create'])->name('create');
         Route::post('/', [WorkLocationController::class, 'store'])->name('store');
@@ -148,8 +150,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{workLocation}', [WorkLocationController::class, 'update'])->name('update');
         Route::delete('/{workLocation}', [WorkLocationController::class, 'destroy'])->name('destroy');
 
-        // Daily works for location
-        Route::get('/{workLocation}/daily-works', [WorkLocationController::class, 'dailyWorks'])->name('daily-works');
+        // RFIs for location
+        Route::get('/{workLocation}/rfis', [WorkLocationController::class, 'rfis'])->name('rfis');
 
         // Find by chainage
         Route::get('/find/by-chainage', [WorkLocationController::class, 'findByChainage'])->name('find-by-chainage');
@@ -158,7 +160,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ============================================================================
     // CHAINAGE PROGRESS MAP (PATENTABLE - Chainage-Centric Construction Ledger)
     // ============================================================================
-    Route::prefix('chainage-progress')->name('chainage-progress.')->middleware(['module:rfi,chainage-progress'])->group(function () {
+    Route::prefix('chainage-progress')->name('chainage-progress.')->middleware(['module:rfi,linear-progress'])->group(function () {
         Route::get('/', [ChainageProgressController::class, 'index'])->name('index');
         Route::get('/api/data', [ChainageProgressController::class, 'getProgressData'])->name('data');
         Route::get('/api/gap-analysis', [ChainageProgressController::class, 'getGapAnalysis'])->name('gap-analysis');
@@ -168,7 +170,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ============================================================================
     // WORK LAYERS (Layer Sequencing & Prerequisites)
     // ============================================================================
-    Route::prefix('work-layers')->name('work-layers.')->middleware(['module:rfi,work-layers'])->group(function () {
+    Route::prefix('work-layers')->name('work-layers.')->middleware(['module:rfi,linear-progress'])->group(function () {
         Route::get('/', [WorkLayerController::class, 'index'])->name('index');
         Route::get('/api/list', [WorkLayerController::class, 'list'])->name('list');
         Route::post('/', [WorkLayerController::class, 'store'])->name('store');
@@ -182,8 +184,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // CONSTRUCTION TRACKING (Enhanced Industry Features)
     // ============================================================================
 
-    // Material Consumption
-    Route::prefix('material-consumptions')->name('material-consumptions.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+    // Material Consumption - maps to daily-reporting sub-module
+    Route::prefix('material-consumptions')->name('material-consumptions.')->middleware(['module:rfi,daily-reporting'])->group(function () {
         Route::get('/', [MaterialConsumptionController::class, 'index'])->name('index');
         Route::post('/', [MaterialConsumptionController::class, 'store'])->name('store');
         Route::get('/{materialConsumption}', [MaterialConsumptionController::class, 'show'])->name('show');
@@ -197,8 +199,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports/quality', [MaterialConsumptionController::class, 'qualityReport'])->name('reports.quality');
     });
 
-    // Equipment Logs
-    Route::prefix('equipment-logs')->name('equipment-logs.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+    // Equipment Logs - maps to daily-reporting sub-module
+    Route::prefix('equipment-logs')->name('equipment-logs.')->middleware(['module:rfi,daily-reporting'])->group(function () {
         Route::get('/', [EquipmentLogController::class, 'index'])->name('index');
         Route::post('/', [EquipmentLogController::class, 'store'])->name('store');
         Route::get('/{equipmentLog}', [EquipmentLogController::class, 'show'])->name('show');
@@ -212,8 +214,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports/breakdowns', [EquipmentLogController::class, 'breakdownReport'])->name('reports.breakdowns');
     });
 
-    // Weather Logs
-    Route::prefix('weather-logs')->name('weather-logs.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+    // Weather Logs - maps to daily-reporting sub-module
+    Route::prefix('weather-logs')->name('weather-logs.')->middleware(['module:rfi,daily-reporting'])->group(function () {
         Route::get('/', [WeatherLogController::class, 'index'])->name('index');
         Route::post('/', [WeatherLogController::class, 'store'])->name('store');
         Route::get('/{weatherLog}', [WeatherLogController::class, 'show'])->name('show');
@@ -226,8 +228,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/history', [WeatherLogController::class, 'weatherHistory'])->name('history');
     });
 
-    // Progress Photos
-    Route::prefix('progress-photos')->name('progress-photos.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+    // Progress Photos - maps to daily-reporting sub-module
+    Route::prefix('progress-photos')->name('progress-photos.')->middleware(['module:rfi,daily-reporting'])->group(function () {
         Route::get('/', [ProgressPhotoController::class, 'index'])->name('index');
         Route::post('/', [ProgressPhotoController::class, 'store'])->name('store');
         Route::get('/{progressPhoto}', [ProgressPhotoController::class, 'show'])->name('show');
@@ -243,8 +245,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/timeline', [ProgressPhotoController::class, 'timeline'])->name('timeline');
     });
 
-    // Labor Deployments
-    Route::prefix('labor-deployments')->name('labor-deployments.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+    // Labor Deployments - maps to daily-reporting sub-module
+    Route::prefix('labor-deployments')->name('labor-deployments.')->middleware(['module:rfi,daily-reporting'])->group(function () {
         Route::get('/', [LaborDeploymentController::class, 'index'])->name('index');
         Route::post('/', [LaborDeploymentController::class, 'store'])->name('store');
         Route::get('/{laborDeployment}', [LaborDeploymentController::class, 'show'])->name('show');
@@ -258,8 +260,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports/safety', [LaborDeploymentController::class, 'safetyReport'])->name('reports.safety');
     });
 
-    // Site Instructions
-    Route::prefix('site-instructions')->name('site-instructions.')->middleware(['module:rfi,construction-tracking'])->group(function () {
+    // Site Instructions - maps to daily-reporting sub-module
+    Route::prefix('site-instructions')->name('site-instructions.')->middleware(['module:rfi,daily-reporting'])->group(function () {
         Route::get('/', [SiteInstructionController::class, 'index'])->name('index');
         Route::post('/', [SiteInstructionController::class, 'store'])->name('store');
         Route::get('/{siteInstruction}', [SiteInstructionController::class, 'show'])->name('show');

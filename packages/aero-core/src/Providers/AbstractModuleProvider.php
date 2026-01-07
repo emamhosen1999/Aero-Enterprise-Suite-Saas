@@ -3,6 +3,7 @@
 namespace Aero\Core\Providers;
 
 use Aero\Core\Contracts\ModuleProviderInterface;
+use Aero\Core\Services\NavigationRegistry;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -386,6 +387,72 @@ abstract class AbstractModuleProvider extends ServiceProvider implements ModuleP
     protected function isPlatformActive(): bool
     {
         return class_exists(\Aero\Platform\AeroPlatformServiceProvider::class);
+    }
+
+    /**
+     * Register navigation items to NavigationRegistry.
+     *
+     * Reads from config/module.php submodules structure and registers
+     * the complete navigation tree. This is the SINGLE approach for
+     * all modules - no module should override this method.
+     */
+    protected function registerNavigation(): void
+    {
+        if (!$this->app->bound(NavigationRegistry::class)) {
+            return;
+        }
+
+        $navRegistry = $this->app->make(NavigationRegistry::class);
+        $config = $this->getModuleConfig();
+        $modulePriority = $this->getModulePriority();
+
+        // Build navigation children from config submodules
+        $submoduleNav = [];
+        foreach ($config['submodules'] ?? [] as $submodule) {
+            $submoduleCode = $submodule['code'] ?? '';
+            $submoduleIcon = $submodule['icon'] ?? null;
+
+            // Build component children for this submodule
+            $componentNav = [];
+            foreach ($submodule['components'] ?? [] as $component) {
+                // Only include components with routes (pages)
+                if (empty($component['route'])) {
+                    continue;
+                }
+
+                $componentNav[] = [
+                    'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
+                    'path' => $component['route'] ?? '',
+                    'icon' => $component['icon'] ?? $submoduleIcon,
+                    'access' => $this->moduleCode . '.' . $submoduleCode . '.' . ($component['code'] ?? ''),
+                    'type' => $component['type'] ?? 'page',
+                ];
+            }
+
+            $submoduleNav[] = [
+                'name' => $submodule['name'] ?? ucfirst($submoduleCode),
+                'path' => $submodule['route'] ?? '',
+                'icon' => $submoduleIcon,
+                'access' => $this->moduleCode . '.' . $submoduleCode,
+                'priority' => $submodule['priority'] ?? 100,
+                'children' => $componentNav,
+            ];
+        }
+
+        // Sort submodules by priority
+        usort($submoduleNav, fn($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
+
+        // Register main module navigation with module as parent wrapper
+        // Scope: 'tenant' - modules are for tenant users by default
+        $navRegistry->register($this->moduleCode, [
+            [
+                'name' => $config['name'] ?? ucfirst($this->moduleCode),
+                'icon' => $config['icon'] ?? 'CubeIcon',
+                'access' => $this->moduleCode,
+                'priority' => $modulePriority,
+                'children' => $submoduleNav,
+            ],
+        ], $modulePriority, 'tenant');
     }
 
     /**

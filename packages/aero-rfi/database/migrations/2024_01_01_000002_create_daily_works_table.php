@@ -28,15 +28,10 @@ return new class extends Migration
             $table->string('side')->nullable()->comment('Road side: TR-R, TR-L, SR-R, SR-L, Both');
             $table->integer('qty_layer')->nullable()->comment('Quantity/layer number');
             $table->string('planned_time')->nullable();
-            $table->foreignId('incharge_user_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete()
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('incharge_user_id')->nullable()->index()
                 ->comment('User in charge of this work');
-            $table->foreignId('assigned_user_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete()
+            $table->unsignedBigInteger('assigned_user_id')->nullable()->index()
                 ->comment('User assigned to perform this work');
             $table->timestamp('completion_time')->nullable();
             $table->text('inspection_details')->nullable();
@@ -54,8 +49,6 @@ return new class extends Migration
             $table->index('status');
             $table->index('type');
             $table->index('inspection_result');
-            $table->index('incharge_user_id');
-            $table->index('assigned_user_id');
             $table->index('work_location_id');
 
             // Composite indexes for common filter combinations

@@ -6,7 +6,7 @@ use Aero\Project\Models\BoqItem;
 use Aero\Project\Models\BoqMeasurement;
 use Aero\Rfi\Events\RfiApproved;
 use Aero\Rfi\Models\ChainageProgress;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WorkLayer;
 
 /**
@@ -78,7 +78,7 @@ class AutoMeasurementService
      * 
      * @return array{length: float, width: float, depth: float, area: float, volume: float}
      */
-    protected function calculateDimensions(DailyWork $rfi, $workLocation): array
+    protected function calculateDimensions(Rfi $rfi, $workLocation): array
     {
         // Length from chainage (in meters)
         $length = ($workLocation->end_chainage_m ?? 0) - ($workLocation->start_chainage_m ?? 0);
@@ -137,7 +137,7 @@ class AutoMeasurementService
     /**
      * Determine work layer from RFI type.
      */
-    protected function determineWorkLayer(DailyWork $rfi): ?WorkLayer
+    protected function determineWorkLayer(Rfi $rfi): ?WorkLayer
     {
         // Try to find layer from RFI attributes
         if ($rfi->work_layer_id) {
@@ -170,7 +170,7 @@ class AutoMeasurementService
     /**
      * Find matching BOQ item for the RFI and layer.
      */
-    protected function findMatchingBoqItem(DailyWork $rfi, WorkLayer $layer): ?BoqItem
+    protected function findMatchingBoqItem(Rfi $rfi, WorkLayer $layer): ?BoqItem
     {
         // Try to match by layer code
         return BoqItem::query()
@@ -186,7 +186,7 @@ class AutoMeasurementService
      * Update ChainageProgress to approved status.
      */
     protected function updateChainageProgress(
-        DailyWork $rfi,
+        Rfi $rfi,
         WorkLayer $workLayer,
         BoqMeasurement $measurement,
         int $approvedByUserId

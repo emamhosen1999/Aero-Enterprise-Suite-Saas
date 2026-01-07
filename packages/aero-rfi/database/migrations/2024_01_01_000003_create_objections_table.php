@@ -21,25 +21,14 @@ return new class extends Migration
             $table->text('reason')->nullable()->comment('Reason for raising objection');
             $table->string('status')->default('draft')->comment('Workflow status');
             $table->text('resolution_notes')->nullable();
-            $table->foreignId('resolved_by')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('resolved_by')->nullable()->index();
             $table->timestamp('resolved_at')->nullable();
-            $table->foreignId('created_by')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
-            $table->foreignId('updated_by')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
+            $table->unsignedBigInteger('created_by')->nullable()->index();
+            $table->unsignedBigInteger('updated_by')->nullable()->index();
             $table->boolean('was_overridden')->default(false)->comment('Whether RFI was submitted despite this objection');
             $table->text('override_reason')->nullable();
-            $table->foreignId('overridden_by')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
+            $table->unsignedBigInteger('overridden_by')->nullable()->index();
             $table->timestamp('overridden_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -47,8 +36,6 @@ return new class extends Migration
             // Indexes
             $table->index('status');
             $table->index('category');
-            $table->index('created_by');
-            $table->index('resolved_by');
             $table->index(['chainage_from', 'chainage_to']);
             $table->index(['status', 'created_at']);
         });

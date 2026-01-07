@@ -39,15 +39,6 @@ class DmsModuleProvider extends AbstractModuleProvider
     }
 
     /**
-     * Override parent loadRoutes to prevent duplicate route registration.
-     * Routes are registered by AeroDmsServiceProvider with proper middleware.
-     */
-    protected function loadRoutes(): void
-    {
-        // Do nothing - routes handled by AeroDmsServiceProvider
-    }
-
-    /**
      * Register module services.
      */
     protected function registerServices(): void

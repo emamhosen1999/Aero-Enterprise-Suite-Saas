@@ -8,7 +8,7 @@ use Aero\Quality\Models\QualityInspection;
 use Aero\Rfi\Events\RfiApproved;
 use Aero\Rfi\Events\RfiRejected;
 use Aero\Rfi\Models\ChainageProgress;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 
 /**
  * QualityBOQIntegrationService
@@ -58,13 +58,13 @@ class QualityBOQIntegrationService
      */
     protected function handlePassedInspection(QualityInspection $inspection, int $inspectorId): array
     {
-        $rfi = $inspection->dailyWork;
+        $rfi = $inspection->rfi;
 
         if ($rfi) {
             // Update RFI status
             $rfi->update([
-                'status' => DailyWork::STATUS_COMPLETED,
-                'inspection_result' => DailyWork::INSPECTION_APPROVED,
+                'status' => Rfi::STATUS_COMPLETED,
+                'inspection_result' => Rfi::INSPECTION_APPROVED,
             ]);
 
             // Dispatch RfiApproved event (triggers AutoMeasurementService)
@@ -95,14 +95,14 @@ class QualityBOQIntegrationService
         int $inspectorId,
         string $result
     ): array {
-        $rfi = $inspection->dailyWork;
+        $rfi = $inspection->rfi;
         $createNcr = $inspection->fail_count > 0 || $result === QualityInspection::RESULT_FAIL;
 
         if ($rfi) {
             // Update RFI status
             $rfi->update([
-                'status' => DailyWork::STATUS_REJECTED,
-                'inspection_result' => DailyWork::INSPECTION_REJECTED,
+                'status' => Rfi::STATUS_REJECTED,
+                'inspection_result' => Rfi::INSPECTION_REJECTED,
             ]);
 
             // Dispatch RfiRejected event (may create NCR)
@@ -138,7 +138,7 @@ class QualityBOQIntegrationService
      */
     public function verifyMeasurement(BoqMeasurement $measurement, int $userId): bool
     {
-        $rfi = $measurement->dailyWork;
+        $rfi = $measurement->rfi;
 
         if (! $rfi) {
             return false;

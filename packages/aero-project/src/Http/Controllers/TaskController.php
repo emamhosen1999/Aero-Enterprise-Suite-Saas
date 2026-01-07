@@ -48,7 +48,7 @@ class TaskController extends Controller
             return $user;
         });
 
-        return Inertia::render('Project/DailyWorks/Index', [
+        return Inertia::render('Project/Rfis/Index', [
             'users' => $users,
             'allincharges' => $incharges,
             'title' => 'Tasks',
@@ -59,7 +59,7 @@ class TaskController extends Controller
 
     public function getLatestTimestamp()
     {
-        $latestTimestamp = \Aero\Rfi\Models\DailyWork::max('updated_at');
+        $latestTimestamp = \Aero\Rfi\Models\Rfi::max('updated_at');
 
         return response()->json(['timestamp' => $latestTimestamp]);
     }

@@ -8,7 +8,7 @@ import { Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Chip } from "@heroui/react";
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-import { getMenuItemUrl, highlightMatch, getMenuItemId } from './navigationUtils.jsx';
+import { getMenuItemUrl, highlightMatch, getMenuItemId, isItemActive } from './navigationUtils.jsx';
 
 /**
  * MenuItem3D Component
@@ -22,6 +22,8 @@ import { getMenuItemUrl, highlightMatch, getMenuItemId } from './navigationUtils
  * @param {string} searchTerm - Current search term for highlighting
  * @param {string} variant - 'sidebar' | 'header'
  * @param {boolean} collapsed - Sidebar collapsed mode
+ * @param {Set} expandedMenus - Set of expanded menu IDs (for nested items)
+ * @param {string} activePath - Current active path (for nested items)
  */
 const MenuItem3D = React.memo(({
   item,
@@ -35,6 +37,8 @@ const MenuItem3D = React.memo(({
   variant = 'sidebar',
   collapsed = false,
   parentId = '',
+  expandedMenus = null,
+  activePath = '',
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
@@ -48,13 +52,20 @@ const MenuItem3D = React.memo(({
   const styles = useMemo(() => {
     const isHighlighted = isActive || hasActiveChild || isExpanded;
     
-    // Size and spacing based on level
-    const sizes = {
-      0: { height: 'h-11', padding: 'px-3', icon: 'w-5 h-5', text: 'text-sm', indent: 0 },
-      1: { height: 'h-10', padding: 'px-3', icon: 'w-4 h-4', text: 'text-sm', indent: 16 },
-      2: { height: 'h-9', padding: 'px-3', icon: 'w-4 h-4', text: 'text-xs', indent: 32 },
+    // Size and spacing based on level - supports infinite nesting
+    const getSizeConfig = (lvl) => {
+      if (lvl === 0) return { height: 'h-11', padding: 'px-3', icon: 'w-5 h-5', text: 'text-sm', indent: 0 };
+      if (lvl === 1) return { height: 'h-10', padding: 'px-3', icon: 'w-4 h-4', text: 'text-sm', indent: 12 };
+      // For level 2+, decrease height slightly and increase indent progressively
+      return { 
+        height: 'h-9', 
+        padding: 'px-3', 
+        icon: 'w-4 h-4', 
+        text: 'text-xs', 
+        indent: 12 + ((lvl - 1) * 8) // Progressive indentation for deep nesting
+      };
     };
-    const sizeConfig = sizes[Math.min(level, 2)];
+    const sizeConfig = getSizeConfig(level);
     
     return {
       container: `
@@ -68,7 +79,7 @@ const MenuItem3D = React.memo(({
         cursor-pointer select-none
         focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
       `,
-      text: `${sizeConfig.text} font-medium flex-1 truncate`,
+      text: `${sizeConfig.text} font-medium flex-1 whitespace-nowrap`,
       icon: sizeConfig.icon,
       indent: sizeConfig.indent,
       
@@ -311,30 +322,41 @@ const MenuItem3D = React.memo(({
               style={{
                 marginLeft: level === 0 ? '12px' : '8px',
                 paddingLeft: '12px',
-                borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) 30%, transparent)`,
+                borderLeft: `var(--borderWidth, 2px) solid color-mix(in srgb, var(--theme-primary, #006FEE) ${30 - Math.min(level * 5, 20)}%, transparent)`,
               }}
             >
-              {subItems.map((subItem, index) => (
-                <motion.div
-                  key={getMenuItemId(subItem, itemId)}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.03, duration: 0.2 }}
-                >
-                  <MenuItem3D
-                    item={subItem}
-                    level={level + 1}
-                    isActive={false} // Will be determined by parent
-                    isExpanded={false} // Will be determined by parent
-                    onToggle={onToggle}
-                    onNavigate={onNavigate}
-                    searchTerm={searchTerm}
-                    variant={variant}
-                    collapsed={collapsed}
-                    parentId={itemId}
-                  />
-                </motion.div>
-              ))}
+              {subItems.map((subItem, index) => {
+                const subItemId = getMenuItemId(subItem, itemId);
+                const subItemUrl = getMenuItemUrl(subItem);
+                const subItemActive = subItemUrl && activePath === subItemUrl;
+                const subItemHasActiveChild = isItemActive(subItem, activePath) && !subItemActive;
+                const subItemExpanded = expandedMenus?.has(subItemId) || (searchTerm && (subItem.subMenu?.length > 0 || subItem.children?.length > 0));
+                
+                return (
+                  <motion.div
+                    key={subItemId}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.03, duration: 0.2 }}
+                  >
+                    <MenuItem3D
+                      item={subItem}
+                      level={level + 1}
+                      isActive={subItemActive}
+                      hasActiveChild={subItemHasActiveChild}
+                      isExpanded={subItemExpanded}
+                      onToggle={onToggle}
+                      onNavigate={onNavigate}
+                      searchTerm={searchTerm}
+                      variant={variant}
+                      collapsed={collapsed}
+                      parentId={itemId}
+                      expandedMenus={expandedMenus}
+                      activePath={activePath}
+                    />
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         )}

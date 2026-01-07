@@ -9,8 +9,8 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Pivot table for DailyWork <-> Report relationship.
-     * Allows linking daily works to generated reports.
+     * Pivot table for Rfi <-> Report relationship.
+     * Allows linking RFIs to generated reports.
      */
     public function up(): void
     {

@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Http\Controllers;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\LaborDeployment;
 use Aero\Rfi\Models\WorkLayer;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,7 @@ class LaborDeploymentController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $query = LaborDeployment::query()
-            ->with(['dailyWork', 'workLayer'])
+            ->with(['rfi', 'workLayer'])
             ->latest();
 
         // Apply filters
@@ -94,7 +94,7 @@ class LaborDeploymentController extends Controller
 
         return response()->json([
             'message' => 'Labor deployment recorded successfully',
-            'data' => $deployment->load(['dailyWork', 'workLayer']),
+            'data' => $deployment->load(['rfi', 'workLayer']),
         ], 201);
     }
 
@@ -104,7 +104,7 @@ class LaborDeploymentController extends Controller
     public function show(LaborDeployment $laborDeployment): JsonResponse
     {
         return response()->json([
-            'data' => $laborDeployment->load(['dailyWork', 'workLayer']),
+            'data' => $laborDeployment->load(['rfi', 'workLayer']),
         ]);
     }
 
@@ -139,7 +139,7 @@ class LaborDeploymentController extends Controller
 
         return response()->json([
             'message' => 'Labor deployment updated successfully',
-            'data' => $laborDeployment->fresh(['dailyWork', 'workLayer']),
+            'data' => $laborDeployment->fresh(['rfi', 'workLayer']),
         ]);
     }
 

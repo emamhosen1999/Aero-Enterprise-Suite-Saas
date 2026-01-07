@@ -12,7 +12,6 @@ use Aero\HRM\Http\Controllers\Employee\EmployeeSelfServiceController;
 use Aero\HRM\Http\Controllers\Employee\ExperienceController;
 use Aero\HRM\Http\Controllers\Employee\HrAnalyticsController;
 use Aero\HRM\Http\Controllers\Employee\HrDocumentController;
-use Aero\HRM\Http\Controllers\Employee\LetterController;
 use Aero\HRM\Http\Controllers\Employee\OnboardingController;
 use Aero\HRM\Http\Controllers\Employee\PayrollController;
 use Aero\HRM\Http\Controllers\Employee\PerformanceController;
@@ -579,13 +578,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/experience/delete', [ExperienceController::class, 'delete'])->name('experience.delete');
     });
 
-    // Document management routes
-    Route::middleware(['module:hrm,documents'])->group(function () {
-        Route::get('/letters', [LetterController::class, 'index'])->name('letters');
-        Route::get('/letters-paginate', [LetterController::class, 'paginate'])->name('letters.paginate');
-    });
-
-    Route::middleware(['module:hrm,documents,document-list,update'])->put('/letters-update', [LetterController::class, 'update'])->name('letters.update');    // Leave management routes
+    // Leave management routes
     Route::middleware(['module:hrm,time-off'])->group(function () {
         Route::get('/leaves', [LeaveController::class, 'index2'])->name('leaves');
         Route::get('/leave-summary', [LeaveController::class, 'leaveSummary'])->name('leave-summary');
@@ -640,15 +633,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/employees/stats', [\Aero\HRM\Http\Controllers\Employee\EmployeeController::class, 'stats'])->name('employees.stats');
     });
 
-    // Department management routes
-    Route::middleware(['module:hrm,organization,departments'])->get('/departments', [DepartmentController::class, 'index'])->name('departments');
-    Route::middleware(['module:hrm,organization,departments'])->get('/api/departments', [DepartmentController::class, 'getDepartments'])->name('api.departments');
-    Route::middleware(['module:hrm,organization,departments'])->get('/departments/stats', [DepartmentController::class, 'getStats'])->name('departments.stats');
-    Route::middleware(['module:hrm,organization,departments,department-list,create'])->post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
-    Route::middleware(['module:hrm,organization,departments'])->get('/departments/{id}', [DepartmentController::class, 'show'])->name('departments.show');
-    Route::middleware(['module:hrm,organization,departments,department-list,update'])->put('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
-    Route::middleware(['module:hrm,organization,departments,department-list,delete'])->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.delete');
-    Route::middleware(['module:hrm,organization,departments,department-list,update'])->put('/users/{id}/department', [DepartmentController::class, 'updateUserDepartment'])->name('users.update-department');
+    // Department management routes - Departments is under hrm.employees.departments in navigation
+    Route::middleware(['module:hrm,employees,departments'])->get('/departments', [DepartmentController::class, 'index'])->name('departments');
+    Route::middleware(['module:hrm,employees,departments'])->get('/api/departments', [DepartmentController::class, 'getDepartments'])->name('api.departments');
+    Route::middleware(['module:hrm,employees,departments'])->get('/departments/stats', [DepartmentController::class, 'getStats'])->name('departments.stats');
+    Route::middleware(['module:hrm,employees,departments,department-list,create'])->post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
+    Route::middleware(['module:hrm,employees,departments'])->get('/departments/{id}', [DepartmentController::class, 'show'])->name('departments.show');
+    Route::middleware(['module:hrm,employees,departments,department-list,update'])->put('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::middleware(['module:hrm,employees,departments,department-list,delete'])->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.delete');
+    Route::middleware(['module:hrm,employees,departments,department-list,update'])->put('/users/{id}/department', [DepartmentController::class, 'updateUserDepartment'])->name('users.update-department');
 
     // Route::middleware(['module:hrm,organization'])->get('/jurisdiction', [JurisdictionController::class, 'index'])->name('jurisdiction'); // TODO: Move to compliance package
 
@@ -656,8 +649,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['module:hrm,time-off,holidays,holiday-list,create'])->post('/holiday-add', [HolidayController::class, 'create'])->name('holiday-add');
     Route::middleware(['module:hrm,time-off,holidays,holiday-list,delete'])->delete('/holiday-delete', [HolidayController::class, 'delete'])->name('holiday-delete');
 
-    // Document management routes
-    Route::middleware(['module:hrm,documents'])->get('/letters', [LetterController::class, 'index'])->name('letters');    // Attendance management routes
+    // Attendance management routes
     Route::middleware(['module:hrm,attendance'])->group(function () {
         Route::get('/attendances', [AttendanceController::class, 'index1'])->name('attendances');
         Route::get('/timesheet', [AttendanceController::class, 'index3'])->name('timesheet'); // New TimeSheet page route
@@ -713,8 +705,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware(['module:hrm,settings,documents-settings,setting-list,update'])->post('/documents', [\Aero\HRM\Http\Controllers\Settings\HrmSettingController::class, 'updateDocumentSettings'])->name('settings.hr.documents.update');
     });
 
-    // Designation Management
-    Route::middleware(['module:hrm,organization,designations'])->group(function () {
+    // Designation Management - Designations is under hrm.employees.designations in navigation
+    Route::middleware(['module:hrm,employees,designations'])->group(function () {
         // Initial page render (Inertia)
         Route::get('/designations', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'index'])->name('designations.index');
         // API data fetch (JSON)

@@ -158,10 +158,11 @@ return new class extends Migration
             
             // Approval tracking
             $table->enum('status', ['draft', 'submitted', 'approved', 'rejected'])->default('draft');
-            $table->foreignId('approved_by_user_id')->nullable()->constrained('users');
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('approved_by_user_id')->nullable()->index();
             $table->timestamp('approved_at')->nullable();
             
-            $table->foreignId('uploaded_by_user_id')->constrained('users');
+            $table->unsignedBigInteger('uploaded_by_user_id')->index();
             $table->timestamps();
             $table->softDeletes();
             
@@ -237,7 +238,8 @@ return new class extends Migration
             $table->date('response_due_date')->nullable();
             $table->date('responded_at')->nullable();
             $table->text('response_details')->nullable();
-            $table->foreignId('responded_by_user_id')->nullable()->constrained('users');
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('responded_by_user_id')->nullable()->index();
             
             // Implementation
             $table->enum('status', ['pending', 'acknowledged', 'in_progress', 'completed', 'closed'])->default('pending');

@@ -2,12 +2,10 @@
 
 namespace Aero\Core\Models;
 
-use Aero\Core\Traits\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Component Model
@@ -27,8 +25,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Component extends Model
 {
     use HasFactory;
-    use SoftDeletes;
-    use TenantScoped;
+
+    /**
+     * The table associated with the model.
+     */
+    protected $table = 'module_components';
 
     protected $fillable = [
         'sub_module_id',

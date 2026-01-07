@@ -12,6 +12,7 @@ return [
     */
 
     'code' => 'rfi',
+    'scope' => 'tenant',
     'name' => 'RFI & Site Intelligence',
     'description' => 'Advanced site operations with geo-fenced RFI validation, linear chainage mapping, and automated daily reporting.',
     'version' => '2.1.0',

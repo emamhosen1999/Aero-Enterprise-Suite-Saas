@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 /**
  * Shared User Controller

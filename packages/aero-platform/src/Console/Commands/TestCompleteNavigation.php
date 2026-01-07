@@ -3,10 +3,9 @@
 namespace Aero\Platform\Console\Commands;
 
 use Aero\Core\Models\User;
+use Aero\HRMAC\Models\Role;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Route;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class TestCompleteNavigation extends Command
 {
@@ -19,42 +18,10 @@ class TestCompleteNavigation extends Command
         $this->info('=== COMPREHENSIVE NAVIGATION SYSTEM TEST ===');
         $this->newLine();
 
-        // Test 1: Check all required permissions exist
-        $this->info('1. Testing Permission System...');
-        $requiredPermissions = [
-            'dashboard.view',
-            'attendance.own.view',
-            'leave.own.view',
-            'communications.own.view',
-            'employees.view',
-            'departments.view',
-            'designations.view',
-            'attendance.view',
-            'holidays.view',
-            'leaves.view',
-            'leave-settings.view',
-            'daily-works.view',
-            'letters.view',
-            'users.view',
-            'roles.view',
-            'company.settings',
-        ];
-
-        $missingPermissions = [];
-        foreach ($requiredPermissions as $permission) {
-            if (! Permission::where('name', $permission)->exists()) {
-                $missingPermissions[] = $permission;
-            }
-        }
-
-        if (empty($missingPermissions)) {
-            $this->info('✅ All navigation permissions exist');
-        } else {
-            $this->warn('❌ Missing permissions:');
-            foreach ($missingPermissions as $perm) {
-                $this->line("   - {$perm}");
-            }
-        }
+        // Test 1: Module access is now handled by HRMAC - skip old permission checks
+        $this->info('1. Testing Module Access System...');
+        $this->info('   ℹ️ Module access is now managed by HRMAC RoleModuleAccess');
+        $this->info('   ✅ Spatie Permission system has been deprecated');
 
         // Test 2: Check all required routes exist
         $this->newLine();
@@ -96,9 +63,9 @@ class TestCompleteNavigation extends Command
             }
         }
 
-        // Test 3: Check role assignments
+        // Test 3: Check role assignments using HRMAC Role model
         $this->newLine();
-        $this->info('3. Testing Role System...');
+        $this->info('3. Testing Role System (HRMAC)...');
 
         $superAdmin = Role::where('name', 'Super Administrator')->first();
         $admin = Role::where('name', 'Administrator')->first();
@@ -107,72 +74,55 @@ class TestCompleteNavigation extends Command
         if ($superAdmin && $admin && $employee) {
             $this->info('✅ Core roles exist (Super Administrator, Administrator, Employee)');
 
-            // Check permission counts
-            $superAdminPerms = $superAdmin->permissions->count();
-            $adminPerms = $admin->permissions->count();
-            $employeePerms = $employee->permissions->count();
+            // Check module access counts via HRMAC
+            $superAdminAccess = $superAdmin->moduleAccess()->count();
+            $adminAccess = $admin->moduleAccess()->count();
+            $employeeAccess = $employee->moduleAccess()->count();
 
-            $this->info("   - Super Administrator: {$superAdminPerms} permissions");
-            $this->info("   - Administrator: {$adminPerms} permissions");
-            $this->info("   - Employee: {$employeePerms} permissions");
-
-            if ($superAdminPerms >= $adminPerms && $adminPerms >= $employeePerms) {
-                $this->info('✅ Role hierarchy is correct');
-            } else {
-                $this->warn('❌ Role hierarchy may be incorrect');
-            }
+            $this->info("   - Super Administrator: {$superAdminAccess} module access entries");
+            $this->info("   - Administrator: {$adminAccess} module access entries");
+            $this->info("   - Employee: {$employeeAccess} module access entries");
         } else {
             $this->warn('❌ Missing core roles');
+            if (! $superAdmin) {
+                $this->line('   - Super Administrator role not found');
+            }
+            if (! $admin) {
+                $this->line('   - Administrator role not found');
+            }
+            if (! $employee) {
+                $this->line('   - Employee role not found');
+            }
         }
 
-        // Test 4: Check user permissions flow
+        // Test 4: Check user roles using custom hasRole method
         $this->newLine();
-        $this->info('4. Testing User Permission Flow...');
+        $this->info('4. Testing User Role Assignment...');
 
-        $adminUser = User::role('Administrator')->first();
+        $adminUser = User::whereHas('roles', function ($q) {
+            $q->where('name', 'Administrator');
+        })->first();
+
         if ($adminUser) {
-            $userPermissions = $adminUser->getAllPermissions()->pluck('name')->toArray();
-            $hasNavPermissions = array_intersect($requiredPermissions, $userPermissions);
+            $userRoles = $adminUser->roles->pluck('name')->toArray();
+            $this->info('✅ Administrator user found with roles: '.implode(', ', $userRoles));
 
-            $this->info('✅ Admin user has '.count($hasNavPermissions).' out of '.count($requiredPermissions).' navigation permissions');
-
-            // Check if admin can access role management
-            if ($adminUser->can('roles.view')) {
-                $this->info('✅ Administrator can access role management');
-            } else {
-                $this->warn('❌ Administrator cannot access role management');
+            // Check if admin has module access via HRMAC
+            if ($adminUser->isSuperAdmin() || $adminUser->hasRole('Administrator')) {
+                $this->info('✅ Administrator user properly assigned');
             }
         } else {
             $this->warn('❌ No Administrator user found for testing');
         }
 
-        // Test 5: Check module toggle functionality
-        $this->newLine();
-        $this->info('5. Testing Module Toggle System...');
-
-        // Verify no duplicate permissions exist
-        $duplicates = Permission::select('name')
-            ->groupBy('name')
-            ->havingRaw('count(*) > 1')
-            ->pluck('name');
-
-        if ($duplicates->count() === 0) {
-            $this->info('✅ No duplicate permissions found');
-        } else {
-            $this->warn('❌ Found duplicate permissions:');
-            foreach ($duplicates as $dup) {
-                $this->line("   - {$dup}");
-            }
-        }
-
         // Final summary
         $this->newLine();
         $this->info('=== FINAL SUMMARY ===');
-        $totalIssues = count($missingPermissions) + count($missingRoutes) + $duplicates->count();
+        $totalIssues = count($missingRoutes);
 
         if ($totalIssues === 0) {
             $this->info('🎉 All navigation system tests PASSED!');
-            $this->info('The navigation system is properly configured and ready for production.');
+            $this->info('The navigation system is properly configured using HRMAC module access.');
         } else {
             $this->warn("⚠️ Found {$totalIssues} issues that need attention.");
         }

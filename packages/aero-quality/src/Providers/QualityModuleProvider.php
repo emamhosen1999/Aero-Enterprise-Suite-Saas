@@ -4,6 +4,8 @@ namespace Aero\Quality\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
 use Aero\Core\Services\ModuleRegistry;
+use Aero\Quality\Contracts\NcrBlockingServiceInterface;
+use Aero\Quality\Services\NcrBlockingService;
 
 class QualityModuleProvider extends AbstractModuleProvider
 {
@@ -33,6 +35,9 @@ class QualityModuleProvider extends AbstractModuleProvider
         
         // Register with module registry
         $this->app->make(ModuleRegistry::class)->register($this);
+
+        // Bind NCR blocking abstraction for other modules (e.g., RFI)
+        $this->app->singleton(NcrBlockingServiceInterface::class, NcrBlockingService::class);
         
         // Load module configuration
         $this->mergeConfigFrom(
@@ -47,8 +52,8 @@ class QualityModuleProvider extends AbstractModuleProvider
     {
         parent::boot();
         
-        // Routes are loaded by parent::boot() via AbstractModuleProvider::loadRoutes()
-        // which applies proper domain isolation middleware.
+        // Register navigation
+        $this->registerNavigation();
         
         // Publish configuration
         if ($this->app->runningInConsole()) {

@@ -2,11 +2,9 @@
 
 namespace Aero\Core\Models;
 
-use Aero\Core\Traits\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Action Model
@@ -15,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * (e.g., 'create', 'edit', 'delete', 'view')
  *
  * @property int $id
- * @property int $component_id
+ * @property int $module_component_id
  * @property string $code Unique within component (e.g., 'create', 'edit', 'delete')
  * @property string $name Display name (e.g., 'Create Employee')
  * @property string|null $description
@@ -24,11 +22,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Action extends Model
 {
     use HasFactory;
-    use SoftDeletes;
-    use TenantScoped;
+
+    /**
+     * The table associated with the model.
+     */
+    protected $table = 'module_component_actions';
 
     protected $fillable = [
-        'component_id',
+        'module_component_id',
         'code',
         'name',
         'description',
@@ -49,7 +50,7 @@ class Action extends Model
      */
     public function component(): BelongsTo
     {
-        return $this->belongsTo(Component::class);
+        return $this->belongsTo(Component::class, 'module_component_id');
     }
 
     /**

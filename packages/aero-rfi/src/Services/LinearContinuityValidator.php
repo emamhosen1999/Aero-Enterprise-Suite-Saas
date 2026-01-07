@@ -148,20 +148,27 @@ class LinearContinuityValidator
         int $projectId
     ): array {
         // Get all approved RFIs for this layer within the chainage range
-        $completedSegments = DB::table('rfis')
-            ->where('project_id', $projectId)
-            ->where('work_type', $layer)
-            ->where('status', 'approved') // Only approved work counts
+        // Uses daily_works joined with work_locations to get chainage boundaries
+        $completedSegments = DB::table('daily_works')
+            ->join('work_locations', 'daily_works.work_location_id', '=', 'work_locations.id')
+            ->where('work_locations.project_id', $projectId)
+            ->where('daily_works.layer', $layer)
+            ->where('daily_works.inspection_result', Rfi::INSPECTION_APPROVED) // Only approved work counts
             ->where(function ($query) use ($startChainage, $endChainage) {
-                $query->whereBetween('start_chainage', [$startChainage, $endChainage])
-                    ->orWhereBetween('end_chainage', [$startChainage, $endChainage])
+                $query->whereBetween('work_locations.start_chainage_m', [$startChainage, $endChainage])
+                    ->orWhereBetween('work_locations.end_chainage_m', [$startChainage, $endChainage])
                     ->orWhere(function ($q) use ($startChainage, $endChainage) {
-                        $q->where('start_chainage', '<=', $startChainage)
-                          ->where('end_chainage', '>=', $endChainage);
+                        $q->where('work_locations.start_chainage_m', '<=', $startChainage)
+                          ->where('work_locations.end_chainage_m', '>=', $endChainage);
                     });
             })
-            ->orderBy('start_chainage')
-            ->get(['start_chainage', 'end_chainage', 'id']);
+            ->orderBy('work_locations.start_chainage_m')
+            ->select([
+                'work_locations.start_chainage_m as start_chainage',
+                'work_locations.end_chainage_m as end_chainage',
+                'daily_works.id'
+            ])
+            ->get();
 
         if ($completedSegments->isEmpty()) {
             return [

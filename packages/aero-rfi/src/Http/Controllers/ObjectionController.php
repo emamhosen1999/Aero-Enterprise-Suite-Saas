@@ -93,7 +93,7 @@ class ObjectionController extends Controller
             'updatedByUser',
             'resolvedByUser',
             'overriddenByUser',
-            'dailyWorks.inchargeUser',
+            'rfis.inchargeUser',
             'statusLogs.changedByUser',
         ]);
 

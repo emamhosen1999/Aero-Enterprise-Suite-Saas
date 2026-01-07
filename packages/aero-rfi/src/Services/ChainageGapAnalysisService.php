@@ -2,16 +2,18 @@
 
 namespace Aero\Rfi\Services;
 
+use Aero\Quality\Contracts\NcrBlockingServiceInterface;
 use Aero\Rfi\Models\ChainageProgress;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WorkLayer;
-use Aero\Quality\Models\NonConformanceReport;
+use Aero\Rfi\Models\WorkLocation;
+use Illuminate\Support\Collection;
 
 /**
  * ChainageGapAnalysisService
- * 
+ *
  * PATENTABLE SERVICE: "Spatially-indexed prerequisite validation for linear infrastructure"
- * 
+ *
  * This service validates that:
  * 1. Prerequisite layers are approved at the requested chainage
  * 2. No open NCRs exist that block the chainage
@@ -19,10 +21,14 @@ use Aero\Quality\Models\NonConformanceReport;
  */
 class ChainageGapAnalysisService
 {
+    public function __construct(private NcrBlockingServiceInterface $ncrBlockingService)
+    {
+    }
+
     /**
      * Validate if an RFI can be submitted for the given layer at the given chainage.
-     * 
-     * @return array{valid: bool, errors: array, warnings: array}
+     *
+     * @return array{valid: bool, errors: array, warnings: array, gaps: array}
      */
     public function validateRfiSubmission(
         int $projectId,
@@ -37,7 +43,7 @@ class ChainageGapAnalysisService
         $workLayer = WorkLayer::find($workLayerId);
         if (! $workLayer || ! $workLayer->is_active) {
             $errors[] = 'Invalid or inactive work layer.';
-            return ['valid' => false, 'errors' => $errors, 'warnings' => $warnings];
+            return ['valid' => false, 'errors' => $errors, 'warnings' => $warnings, 'gaps' => []];
         }
 
         // 2. Check prerequisite layer is approved at this chainage
@@ -52,13 +58,13 @@ class ChainageGapAnalysisService
             );
         }
 
-        // 3. Check for open NCRs at this chainage
-        $openNcrs = $this->getOpenNcrsAtChainage($projectId, $startChainageM, $endChainageM);
+        // 3. Check for open NCRs at this chainage via quality service
+        $openNcrs = $this->ncrBlockingService->getOpenNcrsAtChainage($projectId, $startChainageM, $endChainageM);
         if ($openNcrs->isNotEmpty()) {
             foreach ($openNcrs as $ncr) {
                 $errors[] = sprintf(
                     'Open NCR #%s blocks this chainage. Resolve NCR before submitting RFI.',
-                    $ncr->ncr_number
+                    $ncr->ncr_number ?? $ncr->reference_number ?? $ncr->id
                 );
             }
         }
@@ -91,10 +97,8 @@ class ChainageGapAnalysisService
 
     /**
      * Get the prerequisite chain for a layer (all layers that must be done first).
-     * 
-     * @return \Illuminate\Support\Collection
      */
-    public function getPrerequisiteChain(WorkLayer $layer): \Illuminate\Support\Collection
+    public function getPrerequisiteChain(WorkLayer $layer): Collection
     {
         $chain = collect();
         $current = $layer->prerequisiteLayer;
@@ -109,8 +113,6 @@ class ChainageGapAnalysisService
 
     /**
      * Get progress summary for a project at a specific chainage.
-     * 
-     * @return array
      */
     public function getProgressAtChainage(int $projectId, float $chainageM): array
     {
@@ -143,7 +145,7 @@ class ChainageGapAnalysisService
 
     /**
      * Generate a visual progress map for a chainage range.
-     * 
+     *
      * @return array Array of segments with layer statuses
      */
     public function getProgressMap(int $projectId, float $startM, float $endM, float $segmentSize = 100): array
@@ -184,90 +186,48 @@ class ChainageGapAnalysisService
     /**
      * Auto-create ChainageProgress record when RFI is submitted.
      */
-    public function recordRfiSubmission(DailyWork $dailyWork, int $workLayerId): ChainageProgress
+    public function recordRfiSubmission(Rfi $rfi, int $workLayerId): ChainageProgress
     {
-        $workLocation = $dailyWork->workLocation;
+        $workLocation = $rfi->workLocation;
 
         return ChainageProgress::create([
-            'project_id' => $dailyWork->project_id ?? $workLocation?->project_id,
+            'project_id' => $rfi->project_id ?? $workLocation?->project_id,
             'work_layer_id' => $workLayerId,
             'start_chainage_m' => $workLocation?->start_chainage_m ?? 0,
             'end_chainage_m' => $workLocation?->end_chainage_m ?? 0,
             'status' => ChainageProgress::STATUS_RFI_SUBMITTED,
-            'daily_work_id' => $dailyWork->id,
+            'daily_work_id' => $rfi->id,
             'rfi_submitted_at' => now(),
         ]);
     }
 
     /**
-     * Get open NCRs that affect the given chainage range.
-     */
-    protected function getOpenNcrsAtChainage(int $projectId, float $startM, float $endM)
-    {
-        return NonConformanceReport::query()
-            ->where('project_id', $projectId)
-            ->whereIn('status', ['open', 'in_progress'])
-            ->where(function ($q) use ($startM, $endM) {
-                $q->whereBetween('start_chainage_m', [$startM, $endM])
-                    ->orWhereBetween('end_chainage_m', [$startM, $endM])
-                    ->orWhere(function ($q2) use ($startM, $endM) {
-                        $q2->where('start_chainage_m', '<=', $startM)
-                            ->where('end_chainage_m', '>=', $endM);
-                    });
-            })
-            ->get();
-    }
-
-    /**
      * Get blocking NCRs for a work location and layer at a specific chainage range.
      * PUBLIC API for controller usage.
-     * 
-     * @return array
      */
     public function getBlockingNcrs(int $workLocationId, int $layerId, float $startM, float $endM): array
     {
-        // Get the project ID from the work location
-        $workLocation = \Aero\Rfi\Models\WorkLocation::find($workLocationId);
-        if (!$workLocation) {
+        $workLocation = WorkLocation::find($workLocationId);
+        if (! $workLocation) {
             return [];
         }
 
         $projectId = $workLocation->project_id;
 
-        // Find NCRs that block this layer at this chainage
-        $blockingNcrs = NonConformanceReport::query()
-            ->where('project_id', $projectId)
-            ->whereIn('status', ['open', 'in_progress'])
-            ->where(function ($q) use ($layerId) {
-                // NCRs that block all layers or specifically this layer
-                $q->where('blocks_all_layers', true)
-                    ->orWhere(function ($q2) use ($layerId) {
-                        $q2->where('blocks_same_layer', true)
-                            ->where('work_layer_id', $layerId);
-                    });
+        return $this->ncrBlockingService
+            ->getBlockingNcrs($projectId, $layerId, $startM, $endM)
+            ->map(function ($ncr) {
+                return [
+                    'id' => $ncr->id,
+                    'reference_number' => $ncr->ncr_number ?? $ncr->reference_number ?? $ncr->id,
+                    'title' => $ncr->title ?? $ncr->description,
+                    'severity' => $ncr->severity,
+                    'start_chainage' => $ncr->start_chainage_m,
+                    'end_chainage' => $ncr->end_chainage_m,
+                    'status' => $ncr->status,
+                ];
             })
-            ->where(function ($q) use ($startM, $endM) {
-                // NCRs in the chainage range
-                $q->whereBetween('start_chainage_m', [$startM, $endM])
-                    ->orWhereBetween('end_chainage_m', [$startM, $endM])
-                    ->orWhere(function ($q2) use ($startM, $endM) {
-                        $q2->where('start_chainage_m', '<=', $startM)
-                            ->where('end_chainage_m', '>=', $endM);
-                    });
-            })
-            ->get();
-
-        return $blockingNcrs->map(function ($ncr) {
-            return [
-                'id' => $ncr->id,
-                'reference_number' => $ncr->ncr_number ?? $ncr->reference_number,
-                'title' => $ncr->title ?? $ncr->description,
-                'severity' => $ncr->severity,
-                'start_chainage' => $ncr->start_chainage_m,
-                'end_chainage' => $ncr->end_chainage_m,
-                'status' => $ncr->status,
-            ];
-        })->toArray();
+            ->toArray();
     }
 
     /**

@@ -2,8 +2,8 @@
 
 namespace Aero\Compliance\Http\Controllers;
 
-use App\Models\Tenant\Compliance\CompliancePolicy;
-use App\Models\Tenant\Compliance\CompliancePolicyAcknowledgment;
+use Aero\Compliance\Models\CompliancePolicy;
+use Aero\Compliance\Models\CompliancePolicyAcknowledgment;
 use Illuminate\Routing\Controller;
 
 

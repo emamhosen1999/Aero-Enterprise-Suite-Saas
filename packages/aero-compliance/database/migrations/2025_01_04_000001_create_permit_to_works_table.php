@@ -20,7 +20,8 @@ return new class extends Migration
         Schema::create('permit_to_works', function (Blueprint $table) {
             $table->id();
             $table->string('permit_number', 50)->unique()->comment('PTW-YYYY-NNNN');
-            $table->foreignId('project_id')->constrained()->onDelete('cascade');
+            // No FK constraint - projects table may be from aero-project or host app
+            $table->unsignedBigInteger('project_id');
             
             // Permit Type
             $table->enum('permit_type', [
@@ -45,9 +46,9 @@ return new class extends Migration
             $table->decimal('end_chainage', 10, 3)->nullable()->comment('End of permitted area (km)');
             $table->json('location_details')->nullable()->comment('Additional location info');
             
-            // Authorization
-            $table->foreignId('requested_by')->constrained('users')->onDelete('cascade');
-            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
+            // Authorization (users table may not exist during migration - skip FK)
+            $table->unsignedBigInteger('requested_by')->index();
+            $table->unsignedBigInteger('approved_by')->nullable()->index();
             $table->timestamp('approved_at')->nullable();
             $table->json('authorized_workers')->comment('Array of user_ids allowed to work');
             $table->json('authorized_equipment')->nullable()->comment('Equipment/tools permitted');
@@ -78,13 +79,13 @@ return new class extends Migration
             $table->text('status_notes')->nullable();
             
             // Revocation (Emergency Stop-Work)
-            $table->foreignId('revoked_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->unsignedBigInteger('revoked_by')->nullable()->index();
             $table->timestamp('revoked_at')->nullable();
             $table->text('revocation_reason')->nullable()->comment('Reason for emergency revocation');
             $table->integer('affected_rfis_locked')->default(0)->comment('Count of RFIs auto-locked');
             
             // Completion
-            $table->foreignId('closed_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->unsignedBigInteger('closed_by')->nullable()->index();
             $table->timestamp('closed_at')->nullable();
             $table->text('completion_notes')->nullable();
             
@@ -100,9 +101,6 @@ return new class extends Migration
             $table->index('valid_until');
             $table->index('status');
         });
-
-        // Add comment to table
-        DB::statement("COMMENT ON TABLE permit_to_works IS 'Digital PTW system with automatic enforcement and emergency revocation (CORE IP)'");
     }
 
     public function down(): void

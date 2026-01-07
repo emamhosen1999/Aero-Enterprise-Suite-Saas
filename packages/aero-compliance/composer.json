@@ -10,13 +10,14 @@
     },
     "autoload": {
         "psr-4": {
+            "Aero\\Compliance\\Database\\Seeders\\": "database/seeders/",
             "Aero\\Compliance\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Aero\\Compliance\\Providers\\ComplianceModuleProvider"
+                "Aero\\Compliance\\AeroComplianceServiceProvider"
             ]
         },
         "aero": {

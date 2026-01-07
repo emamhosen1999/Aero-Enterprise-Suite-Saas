@@ -6,7 +6,7 @@ use Aero\Core\Models\User;
 use Aero\Rfi\Http\Requests\WorkLocation\StoreWorkLocationRequest;
 use Aero\Rfi\Http\Requests\WorkLocation\UpdateWorkLocationRequest;
 use Aero\Rfi\Models\WorkLocation;
-use Aero\Rfi\Services\DailyWorkService;
+use Aero\Rfi\Services\RfiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +22,7 @@ use Inertia\Response;
 class WorkLocationController extends Controller
 {
     public function __construct(
-        protected DailyWorkService $dailyWorkService
+        protected RfiService $rfiService
     ) {}
 
     /**
@@ -32,7 +32,7 @@ class WorkLocationController extends Controller
     {
         $query = WorkLocation::query()
             ->with(['inchargeUser'])
-            ->withCount('dailyWorks');
+            ->withCount('rfis');
 
         // Apply filters
         if ($request->filled('search')) {
@@ -96,9 +96,9 @@ class WorkLocationController extends Controller
         return Inertia::render('Rfi/WorkLocations/Show/Index', [
             'title' => "Work Location: {$workLocation->name}",
             'workLocation' => $workLocation,
-            'dailyWorksCount' => $workLocation->dailyWorks()->count(),
-            'pendingCount' => $workLocation->dailyWorks()->pending()->count(),
-            'completedCount' => $workLocation->dailyWorks()->completed()->count(),
+            'rfisCount' => $workLocation->rfis()->count(),
+            'pendingCount' => $workLocation->rfis()->pending()->count(),
+            'completedCount' => $workLocation->rfis()->completed()->count(),
         ]);
     }
 
@@ -131,11 +131,11 @@ class WorkLocationController extends Controller
      */
     public function destroy(WorkLocation $workLocation): RedirectResponse
     {
-        // Prevent deletion if has daily works
-        if ($workLocation->dailyWorks()->count() > 0) {
+        // Prevent deletion if has RFIs
+        if ($workLocation->rfis()->count() > 0) {
             return redirect()
                 ->back()
-                ->with('error', 'Cannot delete work location with associated daily works.');
+                ->with('error', 'Cannot delete work location with associated RFIs.');
         }
 
         $workLocation->delete();
@@ -146,25 +146,25 @@ class WorkLocationController extends Controller
     }
 
     /**
-     * Get daily works for a work location.
+     * Get RFIs for a work location.
      */
-    public function dailyWorks(Request $request, WorkLocation $workLocation): Response
+    public function rfis(Request $request, WorkLocation $workLocation): Response
     {
         $filters = $request->only([
             'search', 'status', 'type', 'date_from', 'date_to',
             'sort_by', 'sort_direction',
         ]);
 
-        $dailyWorks = $this->dailyWorkService->getByWorkLocation(
+        $rfis = $this->rfiService->getByWorkLocation(
             $workLocation->id,
             $filters,
             $request->input('per_page', 15)
         );
 
-        return Inertia::render('Rfi/WorkLocations/DailyWorks/Index', [
-            'title' => "Daily Works - {$workLocation->name}",
+        return Inertia::render('Rfi/WorkLocations/Rfis/Index', [
+            'title' => "RFIs - {$workLocation->name}",
             'workLocation' => $workLocation,
-            'dailyWorks' => $dailyWorks,
+            'rfis' => $rfis,
             'filters' => $filters,
         ]);
     }

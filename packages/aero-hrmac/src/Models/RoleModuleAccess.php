@@ -70,8 +70,7 @@ class RoleModuleAccess extends Model
      */
     public function role(): BelongsTo
     {
-        // Use Spatie's Role model or a custom one
-        $roleModel = config('hrmac.models.role', \Spatie\Permission\Models\Role::class);
+        $roleModel = config('hrmac.models.role', Role::class);
 
         return $this->belongsTo($roleModel, 'role_id');
     }

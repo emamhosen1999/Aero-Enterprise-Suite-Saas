@@ -7,7 +7,7 @@ use Aero\Core\Services\DashboardWidgetRegistry;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 
 

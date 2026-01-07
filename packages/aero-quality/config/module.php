@@ -12,6 +12,7 @@ return [
     */
 
     'code' => 'quality',
+    'scope' => 'tenant',
     'name' => 'Quality Control & Labs',
     'description' => 'Holistic quality management with material lab integration, smart inspections, and defect cost analysis.',
     'version' => '2.1.0',

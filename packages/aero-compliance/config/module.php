@@ -12,6 +12,7 @@ return [
     */
 
     'code' => 'compliance',
+    'scope' => 'tenant',
     'name' => 'HSE & Compliance',
     'description' => 'Comprehensive safety management with Digital Permit to Work (PTW) and regulatory tracking.',
     'version' => '2.1.0',
@@ -23,6 +24,21 @@ return [
     'dependencies' => ['core', 'hr', 'assets'],
 
     'submodules' => [
+
+        // ==================== COMPLIANCE DASHBOARD ====================
+        [
+            'code' => 'compliance-dashboard',
+            'name' => 'Compliance Dashboard',
+            'route' => '/compliance',
+           
+            'type' => 'dashboard',
+            'description' => 'Main compliance dashboard with key metrics and alerts.',
+            'icon' => 'ChartPieIcon',
+            'priority' => 1,
+            'is_active' => true,
+
+            
+        ],
 
         // ==================== 1. HEALTH & SAFETY (HSE) OPERATIONS ====================
         [

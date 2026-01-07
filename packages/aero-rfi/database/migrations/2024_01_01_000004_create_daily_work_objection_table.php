@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Many-to-many pivot table for DailyWork <-> Objection relationship.
+     * Many-to-many pivot table for Rfi <-> Objection relationship.
      * Allows one objection to affect multiple RFIs and one RFI to have multiple objections.
      */
     public function up(): void
@@ -22,10 +22,8 @@ return new class extends Migration
             $table->foreignId('objection_id')
                 ->constrained('objections')
                 ->cascadeOnDelete();
-            $table->foreignId('attached_by')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete()
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('attached_by')->nullable()->index()
                 ->comment('User who attached this objection to the RFI');
             $table->timestamp('attached_at')->nullable()->comment('When the objection was attached');
             $table->text('attachment_notes')->nullable()->comment('Notes about why objection was attached to this RFI');
@@ -35,7 +33,6 @@ return new class extends Migration
             $table->unique(['daily_work_id', 'objection_id'], 'daily_work_objection_unique');
 
             // Indexes
-            $table->index('attached_by');
             $table->index('attached_at');
         });
     }

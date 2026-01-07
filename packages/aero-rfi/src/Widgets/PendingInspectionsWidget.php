@@ -6,7 +6,7 @@ namespace Aero\Rfi\Widgets;
 
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -72,9 +72,9 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
             }
 
             // Count pending inspections
-            $pendingQuery = DailyWork::whereIn('status', [
-                DailyWork::STATUS_PENDING,
-                DailyWork::STATUS_IN_PROGRESS,
+            $pendingQuery = Rfi::whereIn('status', [
+                Rfi::STATUS_PENDING,
+                Rfi::STATUS_IN_PROGRESS,
             ])->whereNull('inspection_result');
 
             // If user is assigned inspector, filter by their assignments
@@ -90,8 +90,8 @@ class PendingInspectionsWidget extends AbstractDashboardWidget
                 ->count();
 
             // Today's count
-            $todayCount = DailyWork::whereDate('date', today())
-                ->whereIn('status', [DailyWork::STATUS_PENDING, DailyWork::STATUS_IN_PROGRESS])
+            $todayCount = Rfi::whereDate('date', today())
+                ->whereIn('status', [Rfi::STATUS_PENDING, Rfi::STATUS_IN_PROGRESS])
                 ->count();
 
             // Get recent 3 for preview

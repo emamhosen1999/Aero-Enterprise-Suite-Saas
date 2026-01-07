@@ -216,19 +216,19 @@ class LinearContinuityController
             $projectId = $request->input('project_id');
 
             // Get counts for all layers
-            $totalRfis = \Aero\Rfi\Models\DailyWork::where('project_id', $projectId)
+            $totalRfis = \Aero\Rfi\Models\Rfi::where('project_id', $projectId)
                 ->whereNotNull('layer')
                 ->count();
 
-            $validatedRfis = \Aero\Rfi\Models\DailyWork::where('project_id', $projectId)
+            $validatedRfis = \Aero\Rfi\Models\Rfi::where('project_id', $projectId)
                 ->where('geo_validation_status', 'passed')
                 ->count();
 
-            $activeRfis = \Aero\Rfi\Models\DailyWork::where('project_id', $projectId)
+            $activeRfis = \Aero\Rfi\Models\Rfi::where('project_id', $projectId)
                 ->whereIn('status', ['new', 'in-progress', 'pending'])
                 ->count();
 
-            $blockedApprovals = \Aero\Rfi\Models\DailyWork::where('project_id', $projectId)
+            $blockedApprovals = \Aero\Rfi\Models\Rfi::where('project_id', $projectId)
                 ->where('can_approve', false)
                 ->count();
 

@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Only run if table exists (skip for fresh installs)
+        if (!Schema::hasTable('quality_inspections')) {
+            return;
+        }
+        
         Schema::table('quality_inspections', function (Blueprint $table) {
             // Link to RFI/DailyWork
             $table->foreignId('daily_work_id')->nullable()->after('id')

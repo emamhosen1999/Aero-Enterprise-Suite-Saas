@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Services;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WeatherLog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;

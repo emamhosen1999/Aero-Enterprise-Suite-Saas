@@ -23,7 +23,7 @@ class ObjectionService
     {
         $query = Objection::query()
             ->with(['createdByUser', 'resolvedByUser'])
-            ->withCount('dailyWorks');
+            ->withCount('rfis');
 
         // Apply filters
         if (! empty($filters['search'])) {
@@ -297,7 +297,7 @@ class ObjectionService
     {
         return Objection::query()
             ->with(['createdByUser'])
-            ->withCount('dailyWorks')
+            ->withCount('rfis')
             ->where('status', Objection::STATUS_SUBMITTED)
             ->orderBy('created_at', 'asc')
             ->paginate($perPage);

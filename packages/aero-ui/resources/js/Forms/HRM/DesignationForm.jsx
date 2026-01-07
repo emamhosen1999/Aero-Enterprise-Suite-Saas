@@ -118,10 +118,10 @@ const DesignationForm = ({
                 
                 let response;
                 if (designation?.id) {
-                    response = await axios.put(`/designations/${designation.id}`, apiData);
+                    response = await axios.put(route('hrm.designations.update', designation.id), apiData);
                     resolve([response.data.message || 'Designation updated successfully']);
                 } else {
-                    response = await axios.post('/designations', apiData);
+                    response = await axios.post(route('hrm.designations.store'), apiData);
                     resolve([response.data.message || 'Designation created successfully']);
                 }
                 

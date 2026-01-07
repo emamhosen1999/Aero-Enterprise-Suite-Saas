@@ -33,7 +33,7 @@ const DeleteDepartmentForm = ({ open, onClose, onSuccess, department }) => {
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.delete(`/departments/${department.id}`);
+                const response = await axios.delete(route('hrm.departments.delete', department.id));
                 
                 if (response.status === 200) {
                     if (onSuccess) {

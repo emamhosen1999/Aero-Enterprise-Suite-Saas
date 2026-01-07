@@ -3,6 +3,7 @@
 namespace Aero\Project\Models;
 
 use Aero\HRM\Models\Department;
+use Aero\Rfi\Models\Rfi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -86,9 +87,17 @@ class Project extends Model implements HasMedia
             ->withTimestamps();
     }
 
+    public function rfis()
+    {
+        return $this->hasMany(Rfi::class);
+    }
+
+    /**
+     * Alias for backward compatibility.
+     */
     public function dailyWorks()
     {
-        return $this->hasMany(DailyWork::class);
+        return $this->rfis();
     }
 
     public function timeEntries()

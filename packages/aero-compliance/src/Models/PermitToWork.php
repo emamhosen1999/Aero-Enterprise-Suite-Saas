@@ -2,10 +2,10 @@
 
 namespace Aero\Compliance\Models;
 
-use Aero\Core\Models\BaseModel;
+use Illuminate\Database\Eloquent\Model;
 use Aero\Core\Models\User;
 use Aero\Project\Models\Project;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -59,7 +59,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $completion_notes
  * @property array|null $audit_log
  */
-class PermitToWork extends BaseModel
+class PermitToWork extends Model
 {
     use SoftDeletes;
 
@@ -179,9 +179,17 @@ class PermitToWork extends BaseModel
         return $this->belongsTo(User::class, 'closed_by');
     }
 
+    public function rfis(): HasMany
+    {
+        return $this->hasMany(Rfi::class, 'permit_to_work_id');
+    }
+
+    /**
+     * Alias for backward compatibility.
+     */
     public function dailyWorks(): HasMany
     {
-        return $this->hasMany(DailyWork::class, 'permit_to_work_id');
+        return $this->rfis();
     }
 
     // Scopes

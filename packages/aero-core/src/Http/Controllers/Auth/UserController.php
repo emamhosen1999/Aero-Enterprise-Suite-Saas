@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 /**
  * UserController - Manages User authentication and access control
@@ -47,11 +47,12 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        return Inertia::render('UsersList', [
+        return Inertia::render('Shared/UsersList', [
             'title' => 'User Management',
             'roles' => Role::all(),
             'departments' => Department::all(),
             'designations' => Designation::with('department')->orderBy('hierarchy_level', 'asc')->get(),
+            'context' => 'core',
         ]);
     }
 

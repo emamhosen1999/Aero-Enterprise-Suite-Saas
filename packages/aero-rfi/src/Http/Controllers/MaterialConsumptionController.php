@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Http\Controllers;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\MaterialConsumption;
 use Aero\Rfi\Models\WorkLayer;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,7 @@ class MaterialConsumptionController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $query = MaterialConsumption::query()
-            ->with(['dailyWork', 'workLayer'])
+            ->with(['rfi', 'workLayer'])
             ->orderBy('recorded_at', 'desc');
 
         // Apply filters
@@ -103,7 +103,7 @@ class MaterialConsumptionController extends Controller
 
         return response()->json([
             'message' => 'Material consumption recorded successfully',
-            'data' => $material->load(['dailyWork', 'workLayer']),
+            'data' => $material->load(['rfi', 'workLayer']),
         ], 201);
     }
 
@@ -113,7 +113,7 @@ class MaterialConsumptionController extends Controller
     public function show(MaterialConsumption $materialConsumption): JsonResponse
     {
         return response()->json([
-            'data' => $materialConsumption->load(['dailyWork', 'workLayer']),
+            'data' => $materialConsumption->load(['rfi', 'workLayer']),
         ]);
     }
 
@@ -149,7 +149,7 @@ class MaterialConsumptionController extends Controller
 
         return response()->json([
             'message' => 'Material consumption updated successfully',
-            'data' => $materialConsumption->fresh(['dailyWork', 'workLayer']),
+            'data' => $materialConsumption->fresh(['rfi', 'workLayer']),
         ]);
     }
 
@@ -221,7 +221,7 @@ class MaterialConsumptionController extends Controller
                 $q->whereBetween('start_chainage_m', [$request->start_chainage, $request->end_chainage])
                     ->orWhereBetween('end_chainage_m', [$request->start_chainage, $request->end_chainage]);
             })
-            ->with(['dailyWork', 'workLayer'])
+            ->with(['rfi', 'workLayer'])
             ->get();
 
         return response()->json(['data' => $materials]);

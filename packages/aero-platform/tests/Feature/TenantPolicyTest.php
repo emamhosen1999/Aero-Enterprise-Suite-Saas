@@ -8,7 +8,7 @@ use Aero\Platform\Models\LandlordUser;
 use Aero\Platform\Models\Tenant;
 use Aero\Platform\Policies\TenantPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 use Tests\TestCase;
 
 /**

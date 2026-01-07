@@ -258,6 +258,8 @@ const SidebarContent = React.memo(({
           variant="sidebar"
           collapsed={collapsed}
           parentId={groupName}
+          expandedMenus={expandedMenus}
+          activePath={activePath}
         />
       );
     });
@@ -560,7 +562,7 @@ const Sidebar = React.memo(({ pages = [], className = '' }) => {
     }
   }, [toggleMenu, sidebarCollapsed, toggleCollapsed]);
   
-  const sidebarWidth = sidebarCollapsed ? 72 : 280;
+  const sidebarWidth = sidebarCollapsed ? 72 : 320;
   
   // Mobile Drawer
   if (isMobile) {

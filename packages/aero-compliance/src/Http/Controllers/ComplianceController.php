@@ -2,13 +2,14 @@
 
 namespace Aero\Compliance\Http\Controllers;
 
-use App\Models\Tenant\Compliance\AuditFinding;
-use App\Models\Tenant\Compliance\ComplianceAudit;
-use App\Models\Tenant\Compliance\CompliancePolicy;
-use App\Models\Tenant\Compliance\ControlledDocument;
-use App\Models\Tenant\Compliance\RegulatoryRequirement;
-use App\Models\Tenant\Compliance\RiskAssessment;
-use App\Models\Tenant\Compliance\RiskMitigationAction;
+use Aero\Compliance\Models\AuditFinding;
+use Aero\Compliance\Models\ComplianceAudit;
+use Aero\Compliance\Models\CompliancePolicy;
+use Aero\Compliance\Models\ComplianceTrainingRecord;
+use Aero\Compliance\Models\ControlledDocument;
+use Aero\Compliance\Models\RegulatoryRequirement;
+use Aero\Compliance\Models\RiskAssessment;
+use Aero\Compliance\Models\RiskMitigationAction;
 use Illuminate\Routing\Controller;
 
 
@@ -64,7 +65,7 @@ class ComplianceController extends Controller
                 'total' => ComplianceAudit::count(),
                 'active' => ComplianceAudit::active()->count(),
                 'completed_this_year' => ComplianceAudit::completed()
-                    ->whereYear('end_date', now()->year)->count(),
+                    ->whereYear('actual_date', now()->year)->count(),
                 'findings_open' => AuditFinding::where('status', AuditFinding::STATUS_OPEN)->count(),
             ],
             'training' => [

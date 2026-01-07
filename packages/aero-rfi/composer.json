@@ -1,13 +1,12 @@
 {
     "name": "aero/rfi",
-    "description": "Aero RFI (Request for Inspection) Management Module - Daily Works, Objections, Work Locations",
+    "description": "Aero RFI (Request for Inspection) Management Module - RFIs, Objections, Work Locations",
     "type": "library",
     "license": "proprietary",
     "keywords": [
         "laravel",
         "rfi",
         "inspection",
-        "daily-works",
         "objections"
     ],
     "authors": [
@@ -30,8 +29,9 @@
     },
     "autoload": {
         "psr-4": {
-            "Aero\\Rfi\\": "src/",
-            "Aero\\Rfi\\Database\\Factories\\": "database/factories/"
+            "Aero\\Rfi\\Database\\Seeders\\": "database/seeders/",
+            "Aero\\Rfi\\Database\\Factories\\": "database/factories/",
+            "Aero\\Rfi\\": "src/"
         }
     },
     "autoload-dev": {

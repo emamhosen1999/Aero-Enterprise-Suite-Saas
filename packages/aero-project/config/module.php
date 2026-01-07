@@ -2,6 +2,7 @@
 
 return [
     'code' => 'project',
+    'scope' => 'tenant',
     'name' => 'Enterprise Project Intelligence',
     'description' => 'Holistic project lifecycle management with AI-driven forecasting, BIM integration, and linear scheduling.',
     'version' => '2.0.0', // Major version bump

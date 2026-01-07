@@ -2,7 +2,7 @@
 
 namespace Aero\Project\Models;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,12 +11,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * BoqMeasurement Model
  * 
- * Represents a recorded measurement of work done, linked to an RFI/DailyWork.
+ * Represents a recorded measurement of work done, linked to an RFI.
  * This is the "Patentable Link" between RFI (Field) and Finance (Billing).
  * 
  * @property int $id
  * @property int $boq_item_id
- * @property int|null $daily_work_id (The RFI reference)
+ * @property int|null $daily_work_id (The RFI reference - column name preserved for DB compatibility)
  * @property float $measured_quantity
  * @property string $formula (e.g., "L * W * D")
  * @property array $dimensions (JSON: {length: 100, width: 3.5, depth: 0.2})
@@ -51,10 +51,18 @@ class BoqMeasurement extends Model
     }
 
     /**
-     * The RFI/DailyWork that justifies this measurement.
+     * The RFI that justifies this measurement.
+     */
+    public function rfi(): BelongsTo
+    {
+        return $this->belongsTo(Rfi::class, 'daily_work_id');
+    }
+
+    /**
+     * Alias for backward compatibility.
      */
     public function dailyWork(): BelongsTo
     {
-        return $this->belongsTo(DailyWork::class);
+        return $this->rfi();
     }
 }

@@ -76,7 +76,8 @@ return new class extends Migration
             Schema::create('compliance_check_logs', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('project_id')->nullable();
-                $table->foreignId('daily_work_id')->constrained('daily_works')->cascadeOnDelete()
+                // Daily works table is part of aero-rfi; avoid hard FK to keep install order flexible
+                $table->foreignId('daily_work_id')->nullable()->index()
                     ->comment('The RFI that triggered this check');
                 $table->unsignedBigInteger('regulatory_requirement_id')->nullable();
                 
@@ -85,7 +86,8 @@ return new class extends Migration
                 $table->text('details')->nullable();
                 $table->boolean('blocks_submission')->default(false);
                 
-                $table->foreignId('checked_by_user_id')->nullable()->constrained('users');
+                // Users table may not exist at migration time; skip FK constraint
+                $table->unsignedBigInteger('checked_by_user_id')->nullable()->index();
                 $table->timestamp('checked_at');
                 
                 $table->timestamps();

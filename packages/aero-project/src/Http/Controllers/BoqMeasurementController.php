@@ -33,8 +33,8 @@ class BoqMeasurementController extends Controller
         $measurements = BoqMeasurement::query()
             ->with([
                 'boqItem:id,code,description,unit,rate',
-                'dailyWork:id,reference_number,work_date,status',
-                'dailyWork.workLocation:id,name',
+                'rfi:id,reference_number,work_date,status',
+                'rfi.workLocation:id,name',
                 'measuredByUser:id,name',
                 'verifiedByUser:id,name',
             ])
@@ -85,8 +85,8 @@ class BoqMeasurementController extends Controller
         $measurements = BoqMeasurement::query()
             ->where('boq_item_id', $boqItem->id)
             ->with([
-                'dailyWork:id,reference_number,work_date,status',
-                'dailyWork.workLocation:id,name',
+                'rfi:id,reference_number,work_date,status',
+                'rfi.workLocation:id,name',
                 'measuredByUser:id,name',
             ])
             ->orderBy('measurement_date', 'desc')
@@ -102,12 +102,12 @@ class BoqMeasurementController extends Controller
     }
 
     /**
-     * Get measurements for a specific RFI/Daily Work.
+     * Get measurements for a specific RFI.
      */
-    public function byDailyWork(Request $request, int $dailyWorkId): JsonResponse
+    public function byRfi(Request $request, int $rfiId): JsonResponse
     {
         $measurements = BoqMeasurement::query()
-            ->where('daily_work_id', $dailyWorkId)
+            ->where('daily_work_id', $rfiId)
             ->with([
                 'boqItem:id,code,description,unit,rate',
                 'measuredByUser:id,name',

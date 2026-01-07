@@ -60,9 +60,47 @@ const getThemeRadius = () => {
  * Helper to get routes based on context
  */
 const getRoutes = (context) => {
-  const isAdmin = context === 'admin';
+  if (context === 'admin') {
+    return {
+      // Device routes for platform admin
+      devices: 'admin.users.devices',
+      devicesToggle: 'admin.users.devices.toggle',
+      devicesReset: 'admin.users.devices.reset',
+      devicesDeactivate: 'admin.users.devices.deactivate',
+      // User management routes
+      toggleStatus: 'admin.users.toggle-status',
+      updateRoles: 'admin.users.update-roles',
+      destroy: 'admin.users.destroy',
+      restore: 'admin.users.restore',
+      lock: 'admin.users.lock',
+      unlock: 'admin.users.unlock',
+      forcePasswordReset: 'admin.users.force-password-reset',
+      resendVerification: 'admin.users.resend-verification',
+    };
+  }
+  
+  if (context === 'core') {
+    return {
+      // Device routes for standalone/core mode
+      devices: 'core.devices.admin.list',
+      devicesToggle: 'core.devices.admin.toggle',
+      devicesReset: 'core.devices.admin.reset',
+      devicesDeactivate: 'core.devices.admin.deactivate',
+      // User management routes
+      toggleStatus: 'core.users.toggleStatus',
+      updateRoles: 'core.users.updateRole',
+      destroy: 'core.users.destroy',
+      restore: 'core.users.restore',
+      lock: 'core.users.lock',
+      unlock: 'core.users.unlock',
+      forcePasswordReset: 'core.users.forcePasswordReset',
+      resendVerification: 'core.users.resendVerification',
+    };
+  }
+  
+  // Default: tenant context for SaaS mode
   return {
-    // Device routes - consistent naming
+    // Device routes
     devices: 'devices.admin.list',
     devicesToggle: 'devices.admin.toggle',
     devicesReset: 'devices.admin.reset',
@@ -248,13 +286,11 @@ const UsersTable = ({
     const promise = new Promise(async (resolve, reject) => {
       try {
         // Use context-aware route and HTTP method for role updates
-        // Admin context uses PATCH, tenant context uses POST
+        // Admin context uses PATCH, tenant/core context uses POST
         const isAdminContext = context === 'admin';
-        const updateRoute = isAdminContext 
-          ? route('admin.users.update-roles', { user: userId })
-          : route('users.updateRole', { id: userId });
+        const updateRoute = route(routes.updateRoles, { id: userId, user: userId });
         
-        // Admin uses PATCH, tenant uses POST
+        // Admin uses PATCH, tenant/core uses POST
         const response = isAdminContext
           ? await axios.patch(updateRoute, { roles: newRoleNames })
           : await axios.post(updateRoute, { roles: newRoleNames });

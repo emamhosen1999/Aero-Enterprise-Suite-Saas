@@ -28,7 +28,7 @@ class ProjectAlignmentPointsSeeder extends Seeder
             return;
         }
 
-        $this->command->info("Seeding alignment points for project: {$project->name}");
+        $this->command->info("Seeding alignment points for project: {$project->project_name}");
 
         // Clear existing points for this project
         DB::table('project_alignment_points')->where('project_id', $project->id)->delete();
@@ -70,9 +70,9 @@ class ProjectAlignmentPointsSeeder extends Seeder
                 'point_type' => $currentChainage % 1.0 === 0.0 ? 'control' : 'survey', // Major points every 1km
                 'source' => 'GPS Survey - Trimble R10',
                 'surveyed_date' => Carbon::now()->subDays(rand(10, 60)),
-                'surveyed_by' => 1, // Admin user
+                'surveyed_by' => null, // No user reference for demo data
                 'is_verified' => true,
-                'verified_by' => 1,
+                'verified_by' => null, // No user reference for demo data
                 'verified_at' => Carbon::now()->subDays(rand(1, 10)),
                 'notes' => $currentChainage % 1.0 === 0.0 
                     ? "Major control point at Ch {$currentChainage}" 

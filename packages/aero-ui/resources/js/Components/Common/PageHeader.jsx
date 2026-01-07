@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Divider } from "@heroui/react";
+import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
 
 
 /**
@@ -22,7 +23,7 @@ const PageHeader = ({
                         variant = 'default'
                     }) => {
 
-    const isMobile = window.innerWidth < 640; // Simple mobile detection
+    const isMobile = useMediaQuery('(max-width: 640px)');
     const getHeaderStyles = () => {
         switch (variant) {
             case 'minimal':
@@ -34,6 +35,19 @@ const PageHeader = ({
         }
     };
 
+    const iconNode = React.useMemo(() => {
+        if (!icon) return null;
+
+        if (React.isValidElement(icon)) {
+            return React.cloneElement(icon, {
+                className: `${icon.props?.className || ''} w-6 h-6 text-primary`,
+                ...(icon.props || {}),
+            });
+        }
+
+        return React.createElement(icon, { className: "w-6 h-6 text-primary" });
+    }, [icon]);
+
     return (
         <div className="overflow-hidden theme-aware-header">
             {/* Header Section - Theme-aware */}
@@ -43,10 +57,7 @@ const PageHeader = ({
                         <div className="flex items-center gap-4">
                             {icon && (
                                 <div className="p-3 rounded-xl bg-primary/10 backdrop-blur-sm">
-                                    {React.cloneElement(icon, {
-                                        className: `${icon.props.className || ''} text-primary`,
-                                        ...icon.props
-                                    })}
+                                    {iconNode}
                                 </div>
                             )}
                             <div>

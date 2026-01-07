@@ -540,7 +540,7 @@ const HeaderUserMenu = React.memo(({ user }) => {
           <DropdownItem
             key="profile"
             startContent={<UserIcon className="w-4 h-4" />}
-            href={safeRoute('profile', '/profile')}
+            href={safeRoute('core.profile.index', '/profile')}
           >
             My Profile
           </DropdownItem>

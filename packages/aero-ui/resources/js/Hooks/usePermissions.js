@@ -63,8 +63,11 @@ export function usePermissions() {
     const can = useCallback((permission) => {
         if (!user) return false;
         
-        // Super admin has all permissions
-        if (user.is_super_admin || roles.includes('super_admin')) {
+        // Super admin has all permissions (check multiple possible identifiers)
+        if (user.is_super_admin || 
+            roles.includes('super_admin') || 
+            roles.includes('Super Administrator') ||
+            roles.includes('tenant_super_administrator')) {
             return true;
         }
 
@@ -135,7 +138,11 @@ export function usePermissions() {
      */
     const isAdmin = useMemo(() => {
         if (!user) return false;
-        return user.is_super_admin || roles.includes('super_admin') || roles.includes('admin');
+        return user.is_super_admin || 
+               roles.includes('super_admin') || 
+               roles.includes('Super Administrator') ||
+               roles.includes('tenant_super_administrator') ||
+               roles.includes('admin');
     }, [user, roles]);
 
     /**

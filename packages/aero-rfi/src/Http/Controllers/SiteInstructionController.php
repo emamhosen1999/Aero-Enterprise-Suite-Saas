@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Http\Controllers;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\SiteInstruction;
 use Aero\Rfi\Models\WorkLayer;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,7 @@ class SiteInstructionController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $query = SiteInstruction::query()
-            ->with(['dailyWork', 'workLayer'])
+            ->with(['rfi', 'workLayer'])
             ->orderBy('issued_date', 'desc');
 
         // Apply filters
@@ -98,7 +98,7 @@ class SiteInstructionController extends Controller
 
         return response()->json([
             'message' => 'Site instruction created successfully',
-            'data' => $instruction->load(['dailyWork', 'workLayer']),
+            'data' => $instruction->load(['rfi', 'workLayer']),
         ], 201);
     }
 
@@ -108,7 +108,7 @@ class SiteInstructionController extends Controller
     public function show(SiteInstruction $siteInstruction): JsonResponse
     {
         return response()->json([
-            'data' => $siteInstruction->load(['dailyWork', 'workLayer']),
+            'data' => $siteInstruction->load(['rfi', 'workLayer']),
         ]);
     }
 
@@ -136,7 +136,7 @@ class SiteInstructionController extends Controller
 
         return response()->json([
             'message' => 'Site instruction updated successfully',
-            'data' => $siteInstruction->fresh(['dailyWork', 'workLayer']),
+            'data' => $siteInstruction->fresh(['rfi', 'workLayer']),
         ]);
     }
 
@@ -232,7 +232,7 @@ class SiteInstructionController extends Controller
             ->where('status', '!=', 'cancelled')
             ->whereNotNull('target_completion_date')
             ->where('target_completion_date', '<', now())
-            ->with(['dailyWork', 'workLayer'])
+            ->with(['rfi', 'workLayer'])
             ->orderBy('target_completion_date')
             ->get();
 
@@ -254,7 +254,7 @@ class SiteInstructionController extends Controller
                 $q->whereBetween('start_chainage_m', [$request->start_chainage, $request->end_chainage])
                     ->orWhereBetween('end_chainage_m', [$request->start_chainage, $request->end_chainage]);
             })
-            ->with(['dailyWork', 'workLayer'])
+            ->with(['rfi', 'workLayer'])
             ->orderBy('issued_date', 'desc')
             ->get();
 

@@ -3,12 +3,12 @@
 namespace Aero\Platform\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Traits\HasRoles;
+use Aero\HRMAC\Models\Role;
 
 /**
  * LandlordUser Model (Platform Admin)
@@ -42,7 +42,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class LandlordUser extends Authenticatable
 {
-    use HasFactory, HasRoles, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * CRITICAL: Force this model to ALWAYS use the central database connection.
@@ -60,14 +60,6 @@ class LandlordUser extends Authenticatable
      * @var string
      */
     protected $table = 'landlord_users';
-
-    /**
-     * The guard name for Spatie permissions.
-     * This allows sharing roles/permissions with the 'web' guard.
-     *
-     * @var string
-     */
-    protected $guard_name = 'landlord';
 
     /**
      * Create a new factory instance for the model.
@@ -155,7 +147,127 @@ class LandlordUser extends Authenticatable
     // RELATIONSHIPS
     // =========================================================================
 
- 
+    /**
+     * Get the roles that belong to the user.
+     */
+    public function roles(): BelongsToMany
+    {
+        $roleModel = config('hrmac.models.role', Role::class);
+
+        return $this->belongsToMany(
+            $roleModel,
+            'model_has_roles',
+            'model_id',
+            'role_id'
+        )->where('model_has_roles.model_type', static::class);
+    }
+
+    // =========================================================================
+    // ROLE METHODS
+    // =========================================================================
+
+    /**
+     * Check if user has a specific role.
+     */
+    public function hasRole($role): bool
+    {
+        if (is_string($role)) {
+            return $this->roles()->where('name', $role)->exists();
+        }
+
+        if (is_object($role) && isset($role->id)) {
+            return $this->roles()->where('id', $role->id)->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user has any of the given roles.
+     */
+    public function hasAnyRole($roles, $guard = null): bool
+    {
+        return $this->roles()->whereIn('name', (array) $roles)->exists();
+    }
+
+    /**
+     * Assign a role to the user.
+     */
+    public function assignRole(...$roles): self
+    {
+        $roleModel = config('hrmac.models.role', Role::class);
+        $roleIds = collect($roles)
+            ->flatten()
+            ->map(function ($role) use ($roleModel) {
+                if (is_string($role)) {
+                    return $roleModel::where('name', $role)->first()?->id;
+                }
+                if (is_object($role) && isset($role->id)) {
+                    return $role->id;
+                }
+                return is_numeric($role) ? (int) $role : null;
+            })
+            ->filter()
+            ->toArray();
+
+        foreach ($roleIds as $roleId) {
+            \DB::connection('central')->table('model_has_roles')->updateOrInsert([
+                'role_id' => $roleId,
+                'model_type' => static::class,
+                'model_id' => $this->id,
+            ]);
+        }
+
+        $this->unsetRelation('roles');
+
+        return $this;
+    }
+
+    /**
+     * Sync roles for the user.
+     */
+    public function syncRoles(...$roles): self
+    {
+        $roleModel = config('hrmac.models.role', Role::class);
+        $roleIds = collect($roles)
+            ->flatten()
+            ->map(function ($role) use ($roleModel) {
+                if (is_string($role)) {
+                    return $roleModel::where('name', $role)->first()?->id;
+                }
+                if (is_object($role) && isset($role->id)) {
+                    return $role->id;
+                }
+                return is_numeric($role) ? (int) $role : null;
+            })
+            ->filter()
+            ->toArray();
+
+        \DB::connection('central')->table('model_has_roles')
+            ->where('model_type', static::class)
+            ->where('model_id', $this->id)
+            ->delete();
+
+        foreach ($roleIds as $roleId) {
+            \DB::connection('central')->table('model_has_roles')->insert([
+                'role_id' => $roleId,
+                'model_type' => static::class,
+                'model_id' => $this->id,
+            ]);
+        }
+
+        $this->unsetRelation('roles');
+
+        return $this;
+    }
+
+    /**
+     * Get all permissions - returns empty as we use module access.
+     */
+    public function getAllPermissions(): \Illuminate\Support\Collection
+    {
+        return collect([]);
+    }
 
     // =========================================================================
     // HELPER METHODS

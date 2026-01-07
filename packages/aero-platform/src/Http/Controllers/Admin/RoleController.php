@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 /**
  * Shared Admin Role Controller

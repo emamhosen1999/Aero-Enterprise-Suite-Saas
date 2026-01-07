@@ -10,7 +10,7 @@ return [
     // Enable/disable the module
     'enabled' => env('AERO_RFI_ENABLED', true),
 
-    // Default status for new daily works
+    // Default status for new RFIs
     'default_status' => 'new',
 
     // Default inspection result

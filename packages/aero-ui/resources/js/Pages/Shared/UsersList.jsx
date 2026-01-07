@@ -10,14 +10,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Head, router, usePage } from "@inertiajs/react";
 import { hasRoute, safeRoute, safeNavigate } from '@/utils/routeUtils';
-import { motion } from 'framer-motion';
 import { 
   Button,
   Chip,
   ButtonGroup,
   Card,
   CardBody,
-  CardHeader,
   User,
   Pagination,
   Input,
@@ -28,7 +26,6 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Skeleton,
   Badge,
   Tooltip,
   Switch
@@ -67,36 +64,82 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import UsersTable from '@/Tables/UsersTable.jsx';
 import AddEditUserForm from "@/Forms/AddEditUserForm.jsx";
 import InviteUserForm from "@/Forms/InviteUserForm.jsx";
-import PendingInvitationsPanel from "@/Components/PendingInvitationsPanel.jsx";
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
 /**
  * Route helper that returns the appropriate route based on context
+ * Supports three contexts:
+ * - 'admin': Platform admin routes (admin.users.*)
+ * - 'tenant': Tenant routes for SaaS mode (users.*)
+ * - 'core': Core routes for standalone mode (core.users.*)
  */
 const getRoutes = (context) => {
-  const isAdmin = context === 'admin';
+  if (context === 'admin') {
+    return {
+      // Data routes
+      paginate: 'admin.users.paginate',
+      stats: 'admin.users.stats',
+      store: 'admin.users.store',
+      update: 'admin.users.update',
+      destroy: 'admin.users.destroy',
+      toggleStatus: 'admin.users.toggle-status',
+      updateRoles: 'admin.users.update-roles',
+      
+      // Device management routes
+      devicesToggle: 'admin.users.devices.toggle',
+      devicesReset: 'admin.users.devices.reset',
+      devices: 'admin.users.devices',
+      
+      // Profile route
+      profile: 'admin.users.show',
+    };
+  }
   
+  if (context === 'core') {
+    return {
+      // Data routes for standalone/core mode
+      paginate: 'core.users.paginate',
+      stats: 'core.users.stats',
+      store: 'core.users.store',
+      update: 'core.users.update',
+      destroy: 'core.users.destroy',
+      toggleStatus: 'core.users.toggleStatus',
+      updateRoles: 'core.users.updateRole',
+      
+      // Device management routes
+      devicesToggle: 'core.devices.admin.toggle',
+      devicesReset: 'core.devices.admin.reset',
+      devices: 'core.devices.admin.index',
+      
+      // Profile route
+      profile: 'core.profile',
+    };
+  }
+  
+  // Default: tenant context for SaaS mode
   return {
     // Data routes
-    paginate: isAdmin ? 'admin.users.paginate' : 'users.paginate',
-    stats: isAdmin ? 'admin.users.stats' : 'users.stats',
-    store: isAdmin ? 'admin.users.store' : 'users.store',
-    update: isAdmin ? 'admin.users.update' : 'users.update',
-    destroy: isAdmin ? 'admin.users.destroy' : 'users.destroy',
-    toggleStatus: isAdmin ? 'admin.users.toggle-status' : 'users.toggleStatus',
-    updateRoles: isAdmin ? 'admin.users.update-roles' : 'users.updateRole',
+    paginate: 'users.paginate',
+    stats: 'users.stats',
+    store: 'users.store',
+    update: 'users.update',
+    destroy: 'users.destroy',
+    toggleStatus: 'users.toggleStatus',
+    updateRoles: 'users.updateRole',
     
-    // Device management routes (admin only)
-    devicesToggle: 'admin.users.devices.toggle',
-    devicesReset: 'admin.users.devices.reset',
-    devices: 'admin.users.devices',
+    // Device management routes
+    devicesToggle: 'devices.admin.toggle',
+    devicesReset: 'devices.admin.reset',
+    devices: 'devices.admin.index',
     
     // Profile route
-    profile: isAdmin ? 'admin.users.show' : 'profile',
+    profile: 'profile',
   };
 };
 
@@ -115,29 +158,7 @@ const UsersList = ({
   const [isTablet, setIsTablet] = useState(false);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isMediumScreen, setIsMediumScreen] = useState(false);
-  const [themeRadius, setThemeRadius] = useState('lg');
-
-  // Theme utility function
-  const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-  };
-
-  // Set theme radius on mount (client-side only)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setThemeRadius(getThemeRadius());
-    }
-  }, []);
+  const themeRadius = useThemeRadius();
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -859,8 +880,8 @@ const UsersList = ({
         />
       )}
 
-      {/* Invite User Modal (Tenant context only) */}
-      {openModalType === 'invite' && context === 'tenant' && (
+      {/* Invite User Modal (Tenant and Core context only) */}
+      {openModalType === 'invite' && (context === 'tenant' || context === 'core') && (
         <InviteUserForm
           roles={roles}
           open={openModalType === 'invite'}
@@ -868,359 +889,236 @@ const UsersList = ({
           onInviteSent={() => {
             fetchUsers();
           }}
+          context={context}
         />
       )}
 
-      <div 
-        className="flex flex-col w-full h-full p-4"
-        role="main"
-        aria-label={pageTitle}
-      >
-        <div className="space-y-4">
-          <div className="w-full">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
+      <StandardPageLayout
+        title={pageTitle}
+        subtitle={pageDescription}
+        icon={UsersIcon}
+        isLoading={loading}
+        ariaLabel={pageTitle}
+        actions={
+          <>
+            <Button
+              size={isMobile ? "sm" : "md"}
+              color="primary"
+              startContent={<UserPlusIcon className="w-4 h-4" />}
+              onPress={() => openModal('add')}
+              radius={themeRadius}
+              style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+              className="min-w-0"
             >
-              <Card 
-                className="transition-all duration-200"
+              {isMobile ? "Add" : context === 'admin' ? "Add Admin" : "Add User"}
+            </Button>
+
+            {context === 'tenant' && (
+              <Button
+                size={isMobile ? "sm" : "md"}
+                variant="bordered"
+                startContent={<EnvelopeIcon className="w-4 h-4" />}
+                onPress={() => openModal('invite')}
+                radius={themeRadius}
                 style={{
-                  border: `var(--borderWidth, 2px) solid transparent`,
-                  borderRadius: `var(--borderRadius, 12px)`,
+                  background: `color-mix(in srgb, var(--theme-secondary) 10%, transparent)` ,
+                  border: `1px solid color-mix(in srgb, var(--theme-secondary) 30%, transparent)` ,
+                  color: 'var(--theme-secondary)',
                   fontFamily: `var(--fontFamily, "Inter")`,
-                  transform: `scale(var(--scale, 1))`,
-                  background: `linear-gradient(135deg, 
-                    var(--theme-content1, #FAFAFA) 20%, 
-                    var(--theme-content2, #F4F4F5) 10%, 
-                    var(--theme-content3, #F1F3F4) 20%)`,
                 }}
+                className="min-w-0"
               >
-                <CardHeader 
-                  className="border-b p-0"
-                  style={{
-                    borderColor: `var(--theme-divider, #E4E4E7)`,
-                    background: `linear-gradient(135deg, 
-                      color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                      color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                  }}
-                >
-                  <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'} w-full`}>
-                    <div className="flex flex-col space-y-4">
-                      {/* Main Header Content */}
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        {/* Title Section */}
-                        {loading ? (
-                          <div className="flex items-center gap-3 lg:gap-4">
-                            <Skeleton className="w-12 h-12 rounded-xl" />
-                            <div className="min-w-0 flex-1">
-                              <Skeleton className="w-64 h-6 rounded mb-2" />
-                              <Skeleton className="w-48 h-4 rounded" />
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-3 lg:gap-4">
-                            <div 
-                              className={`
-                                ${isLargeScreen ? 'p-3' : isMediumScreen ? 'p-2.5' : 'p-2'} 
-                                rounded-xl flex items-center justify-center
-                              `}
-                              style={{
-                                background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
-                                borderWidth: `var(--borderWidth, 2px)`,
-                                borderRadius: `var(--borderRadius, 12px)`,
-                              }}
-                            >
-                              <UsersIcon 
-                                className={`
-                                  ${isLargeScreen ? 'w-8 h-8' : isMediumScreen ? 'w-6 h-6' : 'w-5 h-5'}
-                                `}
-                                style={{ color: 'var(--theme-primary)' }}
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 
-                                className={`
-                                  ${isLargeScreen ? 'text-2xl' : isMediumScreen ? 'text-xl' : 'text-lg'}
-                                  font-bold text-foreground
-                                  ${!isLargeScreen ? 'truncate' : ''}
-                                `}
-                                style={{
-                                  fontFamily: `var(--fontFamily, "Inter")`,
-                                }}
-                              >
-                                {pageTitle}
-                              </h4>
-                              <p 
-                                className={`
-                                  ${isLargeScreen ? 'text-sm' : 'text-xs'} 
-                                  text-default-500
-                                  ${!isLargeScreen ? 'truncate' : ''}
-                                `}
-                                style={{
-                                  fontFamily: `var(--fontFamily, "Inter")`,
-                                }}
-                              >
-                                {pageDescription}
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                {isMobile ? "Invite" : "Invite User"}
+              </Button>
+            )}
 
-                        {/* Action Buttons */}
-                        {loading ? (
-                          <div className="flex flex-wrap gap-2 lg:gap-3">
-                            <Skeleton className="w-24 h-8 rounded" />
-                            <Skeleton className="w-20 h-8 rounded" />
-                          </div>
-                        ) : (
-                          <div className="flex flex-wrap gap-2 lg:gap-3">
-                            <Button
-                              size={isMobile ? "sm" : "md"}
-                              color="primary"
-                              startContent={<UserPlusIcon className="w-4 h-4" />}
-                              onPress={() => openModal('add')}
-                              radius={themeRadius}
-                              style={{
-                                fontFamily: `var(--fontFamily, "Inter")`,
-                              }}
-                              className="min-w-0"
-                            >
-                              {isMobile ? "Add" : context === 'admin' ? "Add Admin" : "Add User"}
-                            </Button>
-                            
-                            {/* Invite button only for tenant context */}
-                            {context === 'tenant' && (
-                              <Button
-                                size={isMobile ? "sm" : "md"}
-                                variant="bordered"
-                                startContent={<EnvelopeIcon className="w-4 h-4" />}
-                                onPress={() => openModal('invite')}
-                                radius={themeRadius}
-                                style={{
-                                  background: `color-mix(in srgb, var(--theme-secondary) 10%, transparent)`,
-                                  border: `1px solid color-mix(in srgb, var(--theme-secondary) 30%, transparent)`,
-                                  color: 'var(--theme-secondary)',
-                                  fontFamily: `var(--fontFamily, "Inter")`,
-                                }}
-                                className="min-w-0"
-                              >
-                                {isMobile ? "Invite" : "Invite User"}
-                              </Button>
-                            )}
-                            
-                            <Button
-                              size={isMobile ? "sm" : "md"}
-                              variant="bordered"
-                              startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
-                              radius={themeRadius}
-                              style={{
-                                background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)`,
-                                border: `1px solid color-mix(in srgb, var(--theme-primary) 30%, transparent)`,
-                                color: 'var(--theme-primary)',
-                                fontFamily: `var(--fontFamily, "Inter")`,
-                              }}
-                              className="min-w-0"
-                            >
-                              {isMobile ? "Export" : "Export Users"}
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+            <Button
+              size={isMobile ? "sm" : "md"}
+              variant="bordered"
+              startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+              radius={themeRadius}
+              style={{
+                background: `color-mix(in srgb, var(--theme-primary) 10%, transparent)` ,
+                border: `1px solid color-mix(in srgb, var(--theme-primary) 30%, transparent)` ,
+                color: 'var(--theme-primary)',
+                fontFamily: `var(--fontFamily, "Inter")`,
+              }}
+              className="min-w-0"
+            >
+              {isMobile ? "Export" : "Export Users"}
+            </Button>
+          </>
+        }
+        stats={
+          <StatsCards
+            stats={statsCards}
+            className="mb-0"
+            isLoading={loading}
+          />
+        }
+        filters={
+          <div className="flex flex-col md:flex-row gap-3">
+            <Input
+              size={isMobile ? "sm" : "md"}
+              placeholder="Search users..."
+              value={filters.search}
+              onValueChange={(value) => handleFilterChange('search', value)}
+              startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+              isClearable
+              onClear={() => handleFilterChange('search', '')}
+              radius={themeRadius}
+              classNames={{ inputWrapper: "bg-default-100" }}
+              className="flex-1"
+            />
 
-                      {/* Filter Bar */}
-                      <div className="flex flex-col md:flex-row gap-3">
-                        {/* Search */}
-                        <Input
-                          size={isMobile ? "sm" : "md"}
-                          placeholder="Search users..."
-                          value={filters.search}
-                          onValueChange={(value) => handleFilterChange('search', value)}
-                          startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                          isClearable
-                          onClear={() => handleFilterChange('search', '')}
-                          radius={themeRadius}
-                          classNames={{
-                            inputWrapper: "bg-default-100",
-                          }}
-                          className="flex-1"
-                        />
-                        
-                        {/* Role Filter */}
-                        <Select
-                          size={isMobile ? "sm" : "md"}
-                          placeholder="All Roles"
-                          selectedKeys={filters.role !== 'all' ? [filters.role] : []}
-                          onSelectionChange={(keys) => handleFilterChange('role', Array.from(keys)[0] || 'all')}
-                          radius={themeRadius}
-                          classNames={{
-                            trigger: "bg-default-100",
-                          }}
-                          className="w-full md:w-48"
-                        >
-                          {roles?.map((role) => (
-                            <SelectItem key={role.name || role} textValue={role.name || role}>
-                              {role.name || role}
-                            </SelectItem>
-                          ))}
-                        </Select>
-                        
-                        {/* Status Filter */}
-                        <Select
-                          size={isMobile ? "sm" : "md"}
-                          placeholder="All Status"
-                          selectedKeys={filters.status !== 'all' ? [filters.status] : []}
-                          onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
-                          radius={themeRadius}
-                          classNames={{
-                            trigger: "bg-default-100",
-                          }}
-                          className="w-full md:w-40"
-                        >
-                          <SelectItem key="active" textValue="Active">Active</SelectItem>
-                          <SelectItem key="inactive" textValue="Inactive">Inactive</SelectItem>
-                        </Select>
-                        
-                        {/* Department Filter (Tenant only) */}
-                        {context === 'tenant' && departments && departments.length > 0 && (
-                          <Select
-                            size={isMobile ? "sm" : "md"}
-                            placeholder="All Departments"
-                            selectedKeys={filters.department !== 'all' ? [filters.department] : []}
-                            onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys)[0] || 'all')}
-                            radius={themeRadius}
-                            classNames={{
-                              trigger: "bg-default-100",
-                            }}
-                            className="w-full md:w-48"
-                          >
-                            {departments?.map((dept) => (
-                              <SelectItem key={String(dept.id)} textValue={dept.name}>
-                                {dept.name}
-                              </SelectItem>
-                            ))}
-                          </Select>
-                        )}
-                        
-                        {/* View Toggle */}
-                        <ButtonGroup size={isMobile ? "sm" : "md"} radius={themeRadius}>
-                          <Button
-                            isIconOnly
-                            variant={viewMode === 'table' ? 'solid' : 'bordered'}
-                            color={viewMode === 'table' ? 'primary' : 'default'}
-                            onPress={() => setViewMode('table')}
-                          >
-                            <TableCellsIcon className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            isIconOnly
-                            variant={viewMode === 'grid' ? 'solid' : 'bordered'}
-                            color={viewMode === 'grid' ? 'primary' : 'default'}
-                            onPress={() => setViewMode('grid')}
-                          >
-                            <Squares2X2Icon className="w-4 h-4" />
-                          </Button>
-                        </ButtonGroup>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
+            <Select
+              size={isMobile ? "sm" : "md"}
+              placeholder="All Roles"
+              selectedKeys={filters.role !== 'all' ? [filters.role] : []}
+              onSelectionChange={(keys) => handleFilterChange('role', Array.from(keys)[0] || 'all')}
+              radius={themeRadius}
+              classNames={{ trigger: "bg-default-100" }}
+              className="w-full md:w-48"
+            >
+              {roles?.map((role) => (
+                <SelectItem key={role.name || role} textValue={role.name || role}>
+                  {role.name || role}
+                </SelectItem>
+              ))}
+            </Select>
 
-                <CardBody className="p-6">
-                  {/* Statistics Cards */}
-                  <StatsCards
-                    stats={statsCards}
-                    className="mb-6"
-                    isLoading={loading}
-                  />
+            <Select
+              size={isMobile ? "sm" : "md"}
+              placeholder="All Status"
+              selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+              onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
+              radius={themeRadius}
+              classNames={{ trigger: "bg-default-100" }}
+              className="w-full md:w-40"
+            >
+              <SelectItem key="active" textValue="Active">Active</SelectItem>
+              <SelectItem key="inactive" textValue="Inactive">Inactive</SelectItem>
+            </Select>
 
-                  {/* Users Content Section */}
-                  <div className="overflow-hidden">
-                    {loading ? (
-                      <div className="flex justify-center items-center py-12">
-                        <Spinner size="lg" />
-                      </div>
-                    ) : viewMode === 'table' ? (
-                      <UsersTable 
-                        allUsers={paginatedUsers.data}
-                        roles={roles}
-                        setUsers={handleUsersUpdate}
-                        isMobile={isMobile}
-                        isTablet={isTablet}
-                        pagination={pagination}
-                        onPageChange={handlePageChange}
-                        onRowsPerPageChange={handleRowsPerPageChange}
-                        totalUsers={paginatedUsers.total}
-                        loading={loading}
-                        onEdit={(user) => openModal('edit', user)}
-                        updateUserOptimized={updateUserOptimized}
-                        deleteUserOptimized={deleteUserOptimized}
-                        toggleUserStatusOptimized={toggleUserStatusOptimized}
-                        updateUserRolesOptimized={updateUserRolesOptimized}
-                        toggleSingleDeviceLogin={toggleSingleDeviceLogin}
-                        resetUserDevice={resetUserDevice}
-                        deviceActions={deviceActions}
-                        context={context}
-                      />
-                    ) : (
-                      <div>
-                        {paginatedUsers.data && paginatedUsers.data.length > 0 ? (
-                          <div className={`grid gap-4 ${
-                            isMobile 
-                              ? 'grid-cols-1' 
-                              : isTablet 
-                                ? 'grid-cols-2' 
-                                : 'grid-cols-3 xl:grid-cols-4'
-                          }`}>
-                            {paginatedUsers.data.map((user, index) => (
-                              <UserCard key={user.id} user={user} index={index} />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-12">
-                            <UsersIcon className="w-16 h-16 mx-auto text-default-300 mb-4" />
-                            <h3 className="text-lg font-semibold text-foreground mb-2">No users found</h3>
-                            <p className="text-default-500 mb-4">
-                              Try adjusting your search criteria or filters
-                            </p>
-                            <Button
-                              color="primary"
-                              startContent={<UserPlusIcon className="w-4 h-4" />}
-                              onPress={() => openModal('add')}
-                            >
-                              {context === 'admin' ? 'Add First Admin' : 'Add First User'}
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {/* Pagination for Grid View */}
-                        {paginatedUsers.data && paginatedUsers.data.length > 0 && (
-                          <div className="flex justify-center mt-6 border-t pt-4" style={{ borderColor: 'var(--theme-divider, #E4E4E7)' }}>
-                            <Pagination
-                              total={Math.ceil(paginatedUsers.total / pagination.perPage)}
-                              initialPage={pagination.currentPage}
-                              page={pagination.currentPage}
-                              onChange={handlePageChange}
-                              size={isMobile ? "sm" : "md"}
-                              variant="bordered"
-                              showControls
-                              radius={themeRadius}
-                              style={{
-                                fontFamily: `var(--fontFamily, "Inter")`,
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardBody>
-              </Card>
-            </motion.div>
+            {context === 'tenant' && departments && departments.length > 0 && (
+              <Select
+                size={isMobile ? "sm" : "md"}
+                placeholder="All Departments"
+                selectedKeys={filters.department !== 'all' ? [filters.department] : []}
+                onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys)[0] || 'all')}
+                radius={themeRadius}
+                classNames={{ trigger: "bg-default-100" }}
+                className="w-full md:w-48"
+              >
+                {departments?.map((dept) => (
+                  <SelectItem key={String(dept.id)} textValue={dept.name}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </Select>
+            )}
+
+            <ButtonGroup size={isMobile ? "sm" : "md"} radius={themeRadius}>
+              <Button
+                isIconOnly
+                variant={viewMode === 'table' ? 'solid' : 'bordered'}
+                color={viewMode === 'table' ? 'primary' : 'default'}
+                onPress={() => setViewMode('table')}
+              >
+                <TableCellsIcon className="w-4 h-4" />
+              </Button>
+              <Button
+                isIconOnly
+                variant={viewMode === 'grid' ? 'solid' : 'bordered'}
+                color={viewMode === 'grid' ? 'primary' : 'default'}
+                onPress={() => setViewMode('grid')}
+              >
+                <Squares2X2Icon className="w-4 h-4" />
+              </Button>
+            </ButtonGroup>
           </div>
+        }
+        pagination={
+          viewMode === 'grid' && paginatedUsers.data && paginatedUsers.data.length > 0 ? (
+            <div className="flex justify-center border-t pt-4" style={{ borderColor: 'var(--theme-divider, #E4E4E7)' }}>
+              <Pagination
+                total={Math.ceil(paginatedUsers.total / pagination.perPage)}
+                initialPage={pagination.currentPage}
+                page={pagination.currentPage}
+                onChange={handlePageChange}
+                size={isMobile ? "sm" : "md"}
+                variant="bordered"
+                showControls
+                radius={themeRadius}
+                style={{
+                  fontFamily: `var(--fontFamily, "Inter")`,
+                }}
+              />
+            </div>
+          ) : null
+        }
+      >
+        <div className="overflow-hidden">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Spinner size="lg" />
+            </div>
+          ) : viewMode === 'table' ? (
+            <UsersTable 
+              allUsers={paginatedUsers.data}
+              roles={roles}
+              setUsers={handleUsersUpdate}
+              isMobile={isMobile}
+              isTablet={isTablet}
+              pagination={pagination}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              totalUsers={paginatedUsers.total}
+              loading={loading}
+              onEdit={(user) => openModal('edit', user)}
+              updateUserOptimized={updateUserOptimized}
+              deleteUserOptimized={deleteUserOptimized}
+              toggleUserStatusOptimized={toggleUserStatusOptimized}
+              updateUserRolesOptimized={updateUserRolesOptimized}
+              toggleSingleDeviceLogin={toggleSingleDeviceLogin}
+              resetUserDevice={resetUserDevice}
+              deviceActions={deviceActions}
+              context={context}
+            />
+          ) : (
+            <div>
+              {paginatedUsers.data && paginatedUsers.data.length > 0 ? (
+                <div className={`grid gap-4 ${
+                  isMobile 
+                    ? 'grid-cols-1' 
+                    : isTablet 
+                      ? 'grid-cols-2' 
+                      : 'grid-cols-3 xl:grid-cols-4'
+                }`}>
+                  {paginatedUsers.data.map((user, index) => (
+                    <UserCard key={user.id} user={user} index={index} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <UsersIcon className="w-16 h-16 mx-auto text-default-300 mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No users found</h3>
+                  <p className="text-default-500 mb-4">
+                    Try adjusting your search criteria or filters
+                  </p>
+                  <Button
+                    color="primary"
+                    startContent={<UserPlusIcon className="w-4 h-4" />}
+                    onPress={() => openModal('add')}
+                  >
+                    {context === 'admin' ? 'Add First Admin' : 'Add First User'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </div>
+      </StandardPageLayout>
     </>
   );
 };

@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Aero\Rfi\Http\Controllers\LinearContinuityController;
+use Aero\Rfi\Http\Controllers\RfiController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,7 +15,21 @@ use Aero\Rfi\Http\Controllers\LinearContinuityController;
 */
 
 Route::prefix('api/rfi')->middleware(['auth:sanctum'])->name('rfi.')->group(function () {
-    
+
+    // RFI CRUD endpoints
+    Route::get('/', [RfiController::class, 'index'])->name('index');
+    Route::post('/', [RfiController::class, 'store'])->name('store');
+    Route::get('{rfi}', [RfiController::class, 'show'])->name('show');
+    Route::put('{rfi}', [RfiController::class, 'update'])->name('update');
+    Route::delete('{rfi}', [RfiController::class, 'destroy'])->name('destroy');
+    Route::post('{rfi}/approve', [RfiController::class, 'approve'])->name('approve');
+    Route::post('{rfi}/reject', [RfiController::class, 'reject'])->name('reject');
+    Route::post('{rfi}/override-continuity', [RfiController::class, 'overrideContinuity'])->name('override-continuity');
+
+    // Standalone validation endpoints (PATENTABLE)
+    Route::post('validate-gps', [RfiController::class, 'validateGps'])->name('validate-gps');
+    Route::post('validate-continuity', [RfiController::class, 'validateContinuity'])->name('validate-continuity');
+
     // Linear Continuity Validation (CORE IP)
     Route::prefix('linear-continuity')->name('linear-continuity.')->group(function () {
         Route::get('grid', [LinearContinuityController::class, 'getCompletionGrid'])->name('grid');

@@ -184,6 +184,7 @@ class CoreModuleProvider extends AbstractModuleProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Aero\Core\Console\Commands\SyncModuleHierarchy::class,
+                \Aero\Core\Console\Commands\SyncModuleMigrations::class,
                 \Aero\Core\Console\Commands\SeedCommand::class,
                 \Aero\Core\Console\Commands\InstallCommand::class,
             ]);
@@ -221,7 +222,7 @@ class CoreModuleProvider extends AbstractModuleProvider
             );
             
             \Illuminate\Support\Facades\Gate::policy(
-                \Aero\Core\Models\Role::class,
+                \Aero\HRMAC\Models\Role::class,
                 \Aero\Core\Policies\RolePolicy::class
             );
         }

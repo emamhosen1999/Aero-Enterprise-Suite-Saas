@@ -4,7 +4,7 @@ namespace Aero\Quality\Models;
 
 use Aero\Core\Models\User;
 use Aero\Project\Models\Project;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WorkLayer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -91,9 +91,17 @@ class NonConformanceReport extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function rfi(): BelongsTo
+    {
+        return $this->belongsTo(Rfi::class, 'daily_work_id');
+    }
+
+    /**
+     * Alias for rfi() for backward compatibility.
+     */
     public function dailyWork(): BelongsTo
     {
-        return $this->belongsTo(DailyWork::class);
+        return $this->rfi();
     }
 
     public function qualityInspection(): BelongsTo

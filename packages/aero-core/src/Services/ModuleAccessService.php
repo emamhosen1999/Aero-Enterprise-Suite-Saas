@@ -78,6 +78,15 @@ class ModuleAccessService
      */
     public function canAccessModule(User $user, string $moduleCode): array
     {
+        // Super admin bypass - allow all modules without checking existence
+        if ($user->hasRole('super-admin') || $user->hasRole('Super Administrator') || $user->isSuperAdmin()) {
+            return [
+                'allowed' => true,
+                'module' => null,
+                'bypass' => 'super_admin',
+            ];
+        }
+
         $cacheKey = "user.{$user->id}.module.{$moduleCode}";
 
         return $this->rememberWithOptionalTags(['module-access', "user-{$user->id}"], $cacheKey, 3600, function () use ($user, $moduleCode) {
@@ -120,6 +129,15 @@ class ModuleAccessService
      */
     public function canAccessSubModule(User $user, string $moduleCode, string $subModuleCode): array
     {
+        // Super admin bypass - allow all sub-modules without checking existence
+        if ($user->hasRole('super-admin') || $user->hasRole('Super Administrator') || $user->isSuperAdmin()) {
+            return [
+                'allowed' => true,
+                'subModule' => null,
+                'bypass' => 'super_admin',
+            ];
+        }
+
         // First check module access
         $moduleAccess = $this->canAccessModule($user, $moduleCode);
         if (! $moduleAccess['allowed']) {
@@ -163,6 +181,15 @@ class ModuleAccessService
      */
     public function canAccessComponent(User $user, string $moduleCode, string $subModuleCode, string $componentCode): array
     {
+        // Super admin bypass - allow all components without checking existence
+        if ($user->hasRole('super-admin') || $user->hasRole('Super Administrator') || $user->isSuperAdmin()) {
+            return [
+                'allowed' => true,
+                'component' => null,
+                'bypass' => 'super_admin',
+            ];
+        }
+
         // First check sub-module access
         $subModuleAccess = $this->canAccessSubModule($user, $moduleCode, $subModuleCode);
         if (! $subModuleAccess['allowed']) {
@@ -209,6 +236,15 @@ class ModuleAccessService
      */
     public function canPerformAction(User $user, string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): array
     {
+        // Super admin bypass - allow all actions without checking existence
+        if ($user->hasRole('super-admin') || $user->hasRole('Super Administrator') || $user->isSuperAdmin()) {
+            return [
+                'allowed' => true,
+                'action' => null,
+                'bypass' => 'super_admin',
+            ];
+        }
+
         // First check component access
         $componentAccess = $this->canAccessComponent($user, $moduleCode, $subModuleCode, $componentCode);
         if (! $componentAccess['allowed']) {
@@ -318,12 +354,53 @@ class ModuleAccessService
      */
     protected function hasRolePermission(User $user, string $permission): bool
     {
-        // Super admin has all access
-        if ($user->hasRole('super-admin')) {
+        // Super admin (both role name formats) has all access
+        if ($user->hasRole('super-admin') || $user->hasRole('Super Administrator') || $user->isSuperAdmin()) {
             return true;
         }
 
-        // Check direct permission or role permission
-        return $user->hasPermissionTo($permission) || $user->hasAnyPermission([$permission, 'access-all-modules']);
+        // Check using HRMAC's role module access system
+        // Permission format: module.hrm, submodule.hrm.employees, component.hrm.employees.list, action.hrm.employees.list.view
+        $parts = explode('.', $permission);
+        $type = $parts[0] ?? '';
+        
+        // Get user's primary role
+        $role = $user->roles->first();
+        if (!$role) {
+            return false;
+        }
+        
+        // Use HRMAC's Role model methods for access check
+        if (method_exists($role, 'hasFullAccess') && $role->hasFullAccess()) {
+            return true;
+        }
+        
+        switch ($type) {
+            case 'module':
+                $moduleCode = $parts[1] ?? '';
+                return $role->hasModuleAccess($moduleCode);
+                
+            case 'submodule':
+                $moduleCode = $parts[1] ?? '';
+                $subModuleCode = $parts[2] ?? '';
+                return $role->hasSubModuleAccess($moduleCode, $subModuleCode);
+                
+            case 'component':
+                $moduleCode = $parts[1] ?? '';
+                $subModuleCode = $parts[2] ?? '';
+                $componentCode = $parts[3] ?? '';
+                // Components are accessible if submodule is accessible
+                return $role->hasSubModuleAccess($moduleCode, $subModuleCode);
+                
+            case 'action':
+                $moduleCode = $parts[1] ?? '';
+                $subModuleCode = $parts[2] ?? '';
+                $componentCode = $parts[3] ?? '';
+                $actionCode = $parts[4] ?? '';
+                return $role->hasActionAccess($moduleCode, $subModuleCode, $componentCode, $actionCode);
+                
+            default:
+                return false;
+        }
     }
 }

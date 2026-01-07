@@ -965,7 +965,7 @@ const EmployeeTable = ({
                 <DropdownItem 
                   key="edit" 
                   startContent={<PencilIcon className="w-4 h-4" />}
-                  href={route('profile', { user: user.id })}
+                  href={route('hrm.profile', { user: user.id })}
                   as={Link}
                   
                 >

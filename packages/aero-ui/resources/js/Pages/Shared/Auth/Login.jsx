@@ -967,6 +967,7 @@ export default function Login({
                                 <motion.div variants={itemVariants}>
                                     <Input
                                         ref={emailInputRef}
+                                        name="email"
                                         type="email"
                                         label="Email Address"
                                         placeholder="Enter your email"
@@ -996,6 +997,7 @@ export default function Login({
                                 <motion.div variants={itemVariants}>
                                     <Input
                                         ref={passwordInputRef}
+                                        name="password"
                                         type={uiState.isPasswordVisible ? "text" : "password"}
                                         label="Password"
                                         placeholder="Enter your password"
@@ -1042,6 +1044,7 @@ export default function Login({
                                     className="flex items-center justify-between"
                                 >
                                     <Checkbox
+                                        name="remember"
                                         isSelected={formData.remember}
                                         onValueChange={handleRememberChange}
                                         size="sm"

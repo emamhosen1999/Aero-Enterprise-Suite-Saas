@@ -5,7 +5,7 @@ namespace Aero\Compliance\Services;
 use Aero\Compliance\Models\ComplianceCheckLog;
 use Aero\Compliance\Models\RegulatoryRequirement;
 use Aero\Compliance\Models\RiskAssessment;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 
 /**
  * ComplianceRfiIntegrationService
@@ -25,7 +25,7 @@ class ComplianceRfiIntegrationService
      * 
      * @return array{can_submit: bool, checks: array, blockers: array, warnings: array}
      */
-    public function runPreSubmissionChecks(DailyWork $rfi): array
+    public function runPreSubmissionChecks(Rfi $rfi): array
     {
         $checks = [];
         $blockers = [];
@@ -75,7 +75,7 @@ class ComplianceRfiIntegrationService
      * Check RFI description against compliance keyword triggers.
      * PATENTABLE: "NLP-based regulatory trigger detection in construction documents"
      */
-    protected function checkKeywordCompliance(DailyWork $rfi, ?int $projectId): array
+    protected function checkKeywordCompliance(Rfi $rfi, ?int $projectId): array
     {
         $checks = [];
         $blockers = [];
@@ -189,7 +189,7 @@ class ComplianceRfiIntegrationService
      * @return array{probability: float, factors: array}
      */
     protected function predictRfiRisk(
-        DailyWork $rfi,
+        Rfi $rfi,
         ?int $projectId,
         ?float $startM,
         ?float $endM
@@ -203,15 +203,15 @@ class ComplianceRfiIntegrationService
 
         // Factor 1: Historical failure rate at this chainage
         if ($startM && $endM) {
-            $historicalFailures = DailyWork::query()
+            $historicalFailures = Rfi::query()
                 ->whereHas('workLocation', function ($q) use ($startM, $endM) {
                     $q->where('start_chainage_m', '<=', $endM)
                         ->where('end_chainage_m', '>=', $startM);
                 })
-                ->where('inspection_result', DailyWork::INSPECTION_REJECTED)
+                ->where('inspection_result', Rfi::INSPECTION_REJECTED)
                 ->count();
 
-            $historicalTotal = DailyWork::query()
+            $historicalTotal = Rfi::query()
                 ->whereHas('workLocation', function ($q) use ($startM, $endM) {
                     $q->where('start_chainage_m', '<=', $endM)
                         ->where('end_chainage_m', '>=', $startM);
@@ -244,12 +244,12 @@ class ComplianceRfiIntegrationService
         }
 
         // Factor 3: Work type historical performance
-        $typeFailRate = DailyWork::query()
+        $typeFailRate = Rfi::query()
             ->where('type', $rfi->type)
-            ->where('inspection_result', DailyWork::INSPECTION_REJECTED)
+            ->where('inspection_result', Rfi::INSPECTION_REJECTED)
             ->count();
 
-        $typeTotal = DailyWork::query()
+        $typeTotal = Rfi::query()
             ->where('type', $rfi->type)
             ->whereNotNull('inspection_result')
             ->count();
@@ -272,7 +272,7 @@ class ComplianceRfiIntegrationService
      * Log a compliance check result.
      */
     public function logCheck(
-        DailyWork $rfi,
+        Rfi $rfi,
         string $checkType,
         string $result,
         ?int $requirementId = null,

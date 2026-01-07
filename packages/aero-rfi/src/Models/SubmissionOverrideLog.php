@@ -59,11 +59,11 @@ class SubmissionOverrideLog extends Model
     // ==================== Relationships ====================
 
     /**
-     * Get the daily work this override belongs to.
+     * Get the RFI this override belongs to.
      */
-    public function dailyWork(): BelongsTo
+    public function rfi(): BelongsTo
     {
-        return $this->belongsTo(DailyWork::class);
+        return $this->belongsTo(Rfi::class);
     }
 
     /**

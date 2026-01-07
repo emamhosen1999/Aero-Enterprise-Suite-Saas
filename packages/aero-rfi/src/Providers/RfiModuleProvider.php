@@ -3,15 +3,14 @@
 namespace Aero\Rfi\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
-use Aero\Core\Services\NavigationRegistry;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Aero\Rfi\Events\RfiApproved;
 use Aero\Rfi\Events\RfiRejected;
 use Aero\Rfi\Events\RfiSubmitted;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\Objection;
 use Aero\Rfi\Models\WorkLocation;
-use Aero\Rfi\Policies\DailyWorkPolicy;
+use Aero\Rfi\Policies\RfiPolicy;
 use Aero\Rfi\Policies\ObjectionPolicy;
 use Aero\Rfi\Policies\WorkLocationPolicy;
 use Illuminate\Support\Facades\Event;
@@ -70,21 +69,21 @@ class RfiModuleProvider extends AbstractModuleProvider
         });
 
         // Register specific services
-        $this->app->singleton('rfi.daily-work', function ($app) {
-            return new \Aero\Rfi\Services\DailyWorkService;
+        $this->app->singleton('rfi.service', function ($app) {
+            return new \Aero\Rfi\Services\RfiService;
         });
 
         $this->app->singleton('rfi.objection', function ($app) {
             return new \Aero\Rfi\Services\ObjectionService;
         });
 
-        // Register DailyWork specialized services
-        $this->app->singleton(\Aero\Rfi\Services\DailyWorkPaginationService::class);
-        $this->app->singleton(\Aero\Rfi\Services\DailyWorkImportService::class);
-        $this->app->singleton(\Aero\Rfi\Services\DailyWorkCrudService::class);
-        $this->app->singleton(\Aero\Rfi\Services\DailyWorkFileService::class);
-        $this->app->singleton(\Aero\Rfi\Services\DailyWorkValidationService::class);
-        $this->app->singleton(\Aero\Rfi\Services\DailyWorkSummaryService::class);
+        // Register RFI specialized services
+        $this->app->singleton(\Aero\Rfi\Services\RfiPaginationService::class);
+        $this->app->singleton(\Aero\Rfi\Services\RfiImportService::class);
+        $this->app->singleton(\Aero\Rfi\Services\RfiCrudService::class);
+        $this->app->singleton(\Aero\Rfi\Services\RfiFileService::class);
+        $this->app->singleton(\Aero\Rfi\Services\RfiValidationService::class);
+        $this->app->singleton(\Aero\Rfi\Services\RfiSummaryService::class);
 
         // Register Chainage Gap Analysis Service (PATENTABLE)
         $this->app->singleton(\Aero\Rfi\Services\ChainageGapAnalysisService::class);
@@ -141,14 +140,14 @@ class RfiModuleProvider extends AbstractModuleProvider
 
         $registry = $this->app->make(UserRelationshipRegistry::class);
 
-        // Register daily works where user is incharge
-        $registry->registerRelationship('dailyWorksAsIncharge', function ($user) {
-            return $user->hasMany(DailyWork::class, 'incharge_user_id');
+        // Register RFIs where user is incharge
+        $registry->registerRelationship('rfisAsIncharge', function ($user) {
+            return $user->hasMany(Rfi::class, 'incharge_user_id');
         });
 
-        // Register daily works where user is assigned
-        $registry->registerRelationship('dailyWorksAsAssigned', function ($user) {
-            return $user->hasMany(DailyWork::class, 'assigned_user_id');
+        // Register RFIs where user is assigned
+        $registry->registerRelationship('rfisAsAssigned', function ($user) {
+            return $user->hasMany(Rfi::class, 'assigned_user_id');
         });
 
         // Register objections created by user
@@ -164,15 +163,15 @@ class RfiModuleProvider extends AbstractModuleProvider
         // Register scopes for user queries
         $registry->registerScope('withRfiRelations', function ($query) {
             return $query->with([
-                'dailyWorksAsIncharge',
-                'dailyWorksAsAssigned',
+                'rfisAsIncharge',
+                'rfisAsAssigned',
                 'workLocations',
             ]);
         });
 
         // Register computed accessors
-        $registry->registerAccessor('daily_works_count', function ($user) {
-            return $user->dailyWorksAsIncharge()->count() + $user->dailyWorksAsAssigned()->count();
+        $registry->registerAccessor('rfis_count', function ($user) {
+            return $user->rfisAsIncharge()->count() + $user->rfisAsAssigned()->count();
         });
 
         $registry->registerAccessor('active_objections_count', function ($user) {
@@ -181,75 +180,12 @@ class RfiModuleProvider extends AbstractModuleProvider
     }
 
     /**
-     * Register RFI navigation items with NavigationRegistry.
-     * Navigation is derived from config/module.php submodules for consistency.
-     */
-    protected function registerNavigation(): void
-    {
-        if (! $this->app->bound(NavigationRegistry::class)) {
-            return;
-        }
-
-        $navRegistry = $this->app->make(NavigationRegistry::class);
-        $config = $this->getModuleConfig();
-        $modulePriority = $this->getModulePriority();
-
-        // Build navigation children from config submodules
-        $submoduleNav = [];
-        foreach ($config['submodules'] ?? [] as $submodule) {
-            $submoduleCode = $submodule['code'] ?? '';
-            $submoduleIcon = $submodule['icon'] ?? null;
-
-            // Build component children for this submodule
-            $componentNav = [];
-            foreach ($submodule['components'] ?? [] as $component) {
-                // Only include components with routes (pages)
-                if (empty($component['route'])) {
-                    continue;
-                }
-
-                $componentNav[] = [
-                    'name' => $component['name'] ?? ucfirst($component['code'] ?? ''),
-                    'path' => $component['route'] ?? '',
-                    'icon' => $component['icon'] ?? $submoduleIcon,
-                    'access' => $this->moduleCode.'.'.$submoduleCode.'.'.($component['code'] ?? ''),
-                    'type' => $component['type'] ?? 'page',
-                ];
-            }
-
-            $submoduleNav[] = [
-                'name' => $submodule['name'] ?? ucfirst($submoduleCode),
-                'path' => $submodule['route'] ?? '',
-                'icon' => $submoduleIcon,
-                'access' => $this->moduleCode.'.'.$submoduleCode,
-                'priority' => $submodule['priority'] ?? 100,
-                'children' => $componentNav,
-            ];
-        }
-
-        // Sort submodules by priority
-        usort($submoduleNav, fn ($a, $b) => ($a['priority'] ?? 100) <=> ($b['priority'] ?? 100));
-
-        // Register main RFI navigation with module as parent wrapper
-        // Scope: 'tenant' - RFI is for tenant users only
-        $navRegistry->register($this->moduleCode, [
-            [
-                'name' => $config['name'] ?? 'RFI Management',
-                'icon' => $config['icon'] ?? 'ClipboardDocumentCheckIcon',
-                'access' => $this->moduleCode,
-                'priority' => $modulePriority,
-                'children' => $submoduleNav,
-            ],
-        ], $modulePriority, 'tenant');
-    }
-
-    /**
      * Register policies.
      */
     protected function registerPolicies(): void
     {
         $policies = [
-            DailyWork::class => DailyWorkPolicy::class,
+            Rfi::class => RfiPolicy::class,
             Objection::class => ObjectionPolicy::class,
             WorkLocation::class => WorkLocationPolicy::class,
         ];

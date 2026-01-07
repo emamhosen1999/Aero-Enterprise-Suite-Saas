@@ -2,7 +2,6 @@
 
 namespace Aero\HRM\Models;
 
-use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -35,9 +34,9 @@ class Designation extends Model
         return $this->belongsTo(Department::class);
     }
 
-    public function users(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function employees(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(User::class, 'designation_id');
+        return $this->hasMany(Employee::class, 'designation_id');
     }
 
     public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -74,14 +73,17 @@ class Designation extends Model
     // Accessors
     public function getEmployeeCountAttribute(): int
     {
-        return $this->users()->count(); // note: better to use withCount() outside
+        return $this->employees()->count(); // note: better to use withCount() outside
     }
 
     // Optional: customize array output for API responses
     public function toArray(): array
     {
         $array = parent::toArray();
-        $array['department_name'] = optional($this->department)->name;
+        // Only include department_name if relationship is loaded
+        if ($this->relationLoaded('department')) {
+            $array['department_name'] = optional($this->department)->name;
+        }
         $array['employee_count'] = $this->employee_count;
 
         return $array;

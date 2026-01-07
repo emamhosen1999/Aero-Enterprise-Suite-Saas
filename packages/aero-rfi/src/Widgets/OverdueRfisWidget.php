@@ -6,7 +6,7 @@ namespace Aero\Rfi\Widgets;
 
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 
 /**
  * Overdue RFIs Widget for Core Dashboard
@@ -53,9 +53,9 @@ class OverdueRfisWidget extends AbstractDashboardWidget
     {
         return $this->safeResolve(function () {
             // Overdue = status not completed and date is in the past
-            $overdueQuery = DailyWork::whereNotIn('status', [
-                    DailyWork::STATUS_COMPLETED,
-                    DailyWork::STATUS_REJECTED,
+            $overdueQuery = Rfi::whereNotIn('status', [
+                    Rfi::STATUS_COMPLETED,
+                    Rfi::STATUS_REJECTED,
                 ])
                 ->whereDate('date', '<', today());
 

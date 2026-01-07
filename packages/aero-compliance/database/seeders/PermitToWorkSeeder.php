@@ -25,7 +25,7 @@ class PermitToWorkSeeder extends Seeder
             return;
         }
 
-        $this->command->info("Seeding permits for project: {$project->name}");
+        $this->command->info("Seeding permits for project: {$project->project_name}");
 
         // Clear existing permits for this project
         DB::table('permit_to_works')->where('project_id', $project->id)->delete();
@@ -34,7 +34,6 @@ class PermitToWorkSeeder extends Seeder
 
         // 1. Hot Work Permit (Welding) - Ch 0.000 to Ch 2.000
         $permits[] = [
-            'permit_number' => PermitToWork::generatePermitNumber(),
             'project_id' => $project->id,
             'permit_type' => PermitToWork::TYPE_HOT_WORK,
             'work_description' => 'Welding of steel reinforcement for bridge deck at Ch 1.250',
@@ -75,7 +74,6 @@ class PermitToWorkSeeder extends Seeder
 
         // 2. Work at Height Permit - Ch 3.000 to Ch 5.000
         $permits[] = [
-            'permit_number' => PermitToWork::generatePermitNumber(),
             'project_id' => $project->id,
             'permit_type' => PermitToWork::TYPE_WORK_AT_HEIGHT,
             'work_description' => 'Installation of bridge girders at elevation >15m',
@@ -116,7 +114,6 @@ class PermitToWorkSeeder extends Seeder
 
         // 3. Excavation Permit - Ch 6.000 to Ch 8.000
         $permits[] = [
-            'permit_number' => PermitToWork::generatePermitNumber(),
             'project_id' => $project->id,
             'permit_type' => PermitToWork::TYPE_EXCAVATION,
             'work_description' => 'Deep excavation for foundation (depth >3m)',
@@ -157,7 +154,6 @@ class PermitToWorkSeeder extends Seeder
 
         // 4. Expired Permit (for testing expiration alerts)
         $permits[] = [
-            'permit_number' => PermitToWork::generatePermitNumber(),
             'project_id' => $project->id,
             'permit_type' => PermitToWork::TYPE_ELECTRICAL,
             'work_description' => 'High voltage cable installation - EXPIRED',
@@ -178,7 +174,7 @@ class PermitToWorkSeeder extends Seeder
 
         // 5. Expiring Soon Permit (for testing proactive monitoring)
         $permits[] = [
-            'permit_number' => PermitToWork::generatePermitNumber(),
+
             'project_id' => $project->id,
             'permit_type' => PermitToWork::TYPE_LIFTING_OPERATIONS,
             'work_description' => 'Crane operations for precast beam installation - EXPIRING SOON',
@@ -204,9 +200,11 @@ class PermitToWorkSeeder extends Seeder
             'updated_at' => Carbon::now(),
         ];
 
-        // Insert all permits
-        foreach ($permits as $permit) {
-            DB::table('permit_to_works')->insert($permit);
+        // Insert all permits using the model so permit_number auto-generates
+        foreach ($permits as $permitData) {
+            // Remove permit_number - let model generate it
+            unset($permitData['permit_number']);
+            PermitToWork::create($permitData);
         }
 
         $this->command->info("✓ Created " . count($permits) . " sample permits");

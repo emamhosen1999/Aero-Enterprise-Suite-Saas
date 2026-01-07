@@ -57,7 +57,7 @@ interface DashboardWidgetInterface
 
     /**
      * React component path relative to Widgets directory.
-     * Example: 'HRM/Widgets/PunchStatus' or 'RFI/Widgets/DailyWorkStats'
+     * Example: 'HRM/Widgets/PunchStatus' or 'RFI/Widgets/RfiStats'
      */
     public function getComponent(): string;
 

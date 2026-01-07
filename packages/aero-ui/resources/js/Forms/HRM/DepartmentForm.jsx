@@ -96,10 +96,10 @@ const DepartmentForm = ({ open, onClose, onSuccess, department = null, managers 
                 
                 let response;
                 if (department?.id) {
-                    response = await axios.put(`/departments/${department.id}`, apiData);
+                    response = await axios.put(route('hrm.departments.update', department.id), apiData);
                     resolve([response.data.message || 'Department updated successfully']);
                 } else {
-                    response = await axios.post('/departments', apiData);
+                    response = await axios.post(route('hrm.departments.store'), apiData);
                     resolve([response.data.message || 'Department created successfully']);
                 }
                 

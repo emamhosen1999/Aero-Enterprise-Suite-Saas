@@ -3,7 +3,7 @@
 namespace Aero\Compliance\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use App\Models\Tenant\Compliance\Jurisdiction;
+use Aero\Compliance\Models\Jurisdiction;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;

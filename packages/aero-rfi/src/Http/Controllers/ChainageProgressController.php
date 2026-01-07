@@ -65,7 +65,7 @@ class ChainageProgressController extends Controller
 
         $query = ChainageProgress::query()
             ->where('work_location_id', $request->work_location_id)
-            ->with(['workLayer', 'dailyWork', 'qualityInspection']);
+            ->with(['workLayer', 'rfi', 'qualityInspection']);
 
         if ($request->filled('layer_id')) {
             $query->where('work_layer_id', $request->layer_id);
@@ -168,7 +168,7 @@ class ChainageProgressController extends Controller
             ->where('end_chainage', '>=', $request->chainage)
             ->with([
                 'workLayer',
-                'dailyWork.inchargeUser',
+                'rfi.inchargeUser',
                 'qualityInspection.inspector',
                 'boqMeasurement.boqItem',
             ])

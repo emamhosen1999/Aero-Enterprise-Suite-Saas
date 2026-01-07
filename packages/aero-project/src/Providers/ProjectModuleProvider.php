@@ -186,4 +186,10 @@ class ProjectModuleProvider extends AbstractModuleProvider
         $registry = $this->app->make(\Aero\Core\Services\ModuleRegistry::class);
         $registry->register($this);
     }
+
+    public function boot(): void
+    {
+        parent::boot();
+        $this->registerNavigation();
+    }
 }

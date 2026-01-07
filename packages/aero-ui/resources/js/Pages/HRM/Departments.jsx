@@ -26,6 +26,7 @@ import DepartmentTable from '@/Tables/HRM/DepartmentTable.jsx';
 import DepartmentForm from '@/Forms/HRM/DepartmentForm.jsx';
 import DeleteDepartmentForm from '@/Forms/HRM/DeleteDepartmentForm.jsx';
 import {useTheme} from '@/Context/ThemeContext.jsx';
+import {usePermissions} from '@/Hooks/usePermissions.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils.jsx';
 import dayjs from 'dayjs';
@@ -33,6 +34,7 @@ import dayjs from 'dayjs';
 const Departments = ({ title, departments: initialDepartments, managers, parentDepartments, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;
     const { theme } = useTheme();
+    const { can } = usePermissions();
     const [isMobile] = useState(window.innerWidth < 640);
     const [isTablet] = useState(window.innerWidth < 768);
     
@@ -73,21 +75,21 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
         parent_departments: 0
     });
     
-    // Check permissions
-    const canCreateDepartment = auth.permissions?.includes('departments.create') || false;
-    const canEditDepartment = auth.permissions?.includes('departments.update') || false;
-    const canDeleteDepartment = auth.permissions?.includes('departments.delete') || false;
+    // Check permissions using usePermissions hook (Super Admin bypasses automatically)
+    const canCreateDepartment = can('departments.create');
+    const canEditDepartment = can('departments.update');
+    const canDeleteDepartment = can('departments.delete');
     
-    // Check permissions more directly for template use
-    const hasEditPermission = canEditDepartment || auth.permissions?.includes('departments.update') || false;
-    const hasDeletePermission = canDeleteDepartment || auth.permissions?.includes('departments.delete') || false;
+    // Check permissions for template use
+    const hasEditPermission = canEditDepartment;
+    const hasDeletePermission = canDeleteDepartment;
     
     // Fetch departments data
     const fetchDepartments = useCallback(async () => {
         setLoading(true);
         
         try {
-            const response = await axios.get(route('api.departments'), {
+            const response = await axios.get(route('hrm.api.departments'), {
                 params: {
                     page: pagination.currentPage,
                     per_page: pagination.perPage,
@@ -109,7 +111,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
     // Fetch department statistics
     const fetchDepartmentStats = useCallback(async () => {
         try {
-            const response = await axios.get(route('departments.stats'));
+            const response = await axios.get(route('hrm.departments.stats'));
             
             if (response.status === 200) {
                 const { stats } = response.data;

@@ -13,12 +13,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * WorkLocation Model
  *
  * Represents a defined work area or jurisdiction with chainage boundaries.
- * Used to organize daily works by geographic/project zones.
+ * Used to organize RFIs by geographic/project zones.
  *
  * Keeping Both `location` (text) and `work_location_id` (FK):
- * - `location` (text field in DailyWork): Stores free-form chainage/location text
+ * - `location` (text field in Rfi): Stores free-form chainage/location text
  *   for quick reference and when exact coordinates are needed (e.g., "KM 15+200 to 15+450")
- * - `work_location_id` (FK in DailyWork): Links to a predefined WorkLocation for
+ * - `work_location_id` (FK in Rfi): Links to a predefined WorkLocation for
  *   filtering, grouping, and assigning incharge users to zones
  *
  * This dual approach allows:
@@ -79,7 +79,7 @@ class WorkLocation extends Model
      *
      * @var array<string>
      */
-    protected $appends = ['chainage_range', 'daily_works_count'];
+    protected $appends = ['chainage_range', 'rfis_count'];
 
     // ==================== Relationships ====================
 
@@ -92,11 +92,11 @@ class WorkLocation extends Model
     }
 
     /**
-     * Get all daily works associated with this work location.
+     * Get all RFIs associated with this work location.
      */
-    public function dailyWorks(): HasMany
+    public function rfis(): HasMany
     {
-        return $this->hasMany(DailyWork::class);
+        return $this->hasMany(Rfi::class);
     }
 
     // ==================== Accessors ====================
@@ -114,11 +114,11 @@ class WorkLocation extends Model
     }
 
     /**
-     * Get count of daily works in this location.
+     * Get count of RFIs in this location.
      */
-    public function getDailyWorksCountAttribute(): int
+    public function getRfisCountAttribute(): int
     {
-        return $this->dailyWorks()->count();
+        return $this->rfis()->count();
     }
 
     // ==================== Scopes ====================

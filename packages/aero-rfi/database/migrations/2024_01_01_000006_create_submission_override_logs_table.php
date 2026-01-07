@@ -24,17 +24,14 @@ return new class extends Migration
             $table->integer('active_objections_count')->default(0)->comment('Number of active objections at time of override');
             $table->text('reason')->comment('Justification for override');
             $table->boolean('user_acknowledged')->default(true)->comment('Whether user acknowledged the override');
-            $table->foreignId('overridden_by')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('overridden_by')->nullable()->index();
             $table->timestamp('overridden_at');
             $table->json('objection_ids')->nullable()->comment('Array of objection IDs that were active at time of override');
             $table->timestamps();
 
             // Indexes
             $table->index('daily_work_id');
-            $table->index('overridden_by');
             $table->index('overridden_at');
             $table->index(['daily_work_id', 'overridden_at']);
         });

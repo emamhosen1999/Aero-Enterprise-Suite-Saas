@@ -4,9 +4,9 @@ namespace Aero\Compliance\Http\Controllers;
 
 use Aero\HRM\Models\Department;
 use Illuminate\Routing\Controller;
-use App\Models\ComplianceAuditFinding;
+use Aero\Compliance\Models\ComplianceAuditFinding;
 use Aero\Core\Models\User;
-use App\Models\Tenant\Compliance\ComplianceAudit;
+use Aero\Compliance\Models\ComplianceAudit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

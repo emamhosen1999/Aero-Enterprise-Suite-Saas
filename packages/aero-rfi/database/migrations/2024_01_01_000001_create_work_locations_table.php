@@ -17,10 +17,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('start_chainage')->nullable()->comment('Start chainage (e.g., KM 0+000)');
             $table->string('end_chainage')->nullable()->comment('End chainage (e.g., KM 5+000)');
-            $table->foreignId('incharge_user_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete()
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('incharge_user_id')->nullable()->index()
                 ->comment('User responsible for this work location');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -28,7 +26,6 @@ return new class extends Migration
 
             // Indexes
             $table->index('is_active');
-            $table->index('incharge_user_id');
             $table->index(['start_chainage', 'end_chainage']);
         });
     }

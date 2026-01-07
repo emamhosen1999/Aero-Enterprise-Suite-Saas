@@ -225,11 +225,11 @@ class Objection extends Model implements HasMedia
     // ==================== Relationships ====================
 
     /**
-     * Get the daily works (RFIs) this objection is attached to (many-to-many).
+     * Get the RFIs this objection is attached to (many-to-many).
      */
-    public function dailyWorks(): BelongsToMany
+    public function rfis(): BelongsToMany
     {
-        return $this->belongsToMany(DailyWork::class, 'daily_work_objection')
+        return $this->belongsToMany(Rfi::class, 'daily_work_objection')
             ->withPivot(['attached_by', 'attached_at', 'attachment_notes'])
             ->withTimestamps();
     }
@@ -336,7 +336,7 @@ class Objection extends Model implements HasMedia
      */
     public function getAffectedRfisCountAttribute(): int
     {
-        return $this->dailyWorks()->count();
+        return $this->rfis()->count();
     }
 
     // ==================== Scopes ====================
@@ -500,7 +500,7 @@ class Objection extends Model implements HasMedia
             ];
         }
 
-        $this->dailyWorks()->syncWithoutDetaching($attachData);
+        $this->rfis()->syncWithoutDetaching($attachData);
     }
 
     /**
@@ -511,7 +511,7 @@ class Objection extends Model implements HasMedia
      */
     public function detachFromRfis(array $rfiIds): int
     {
-        return $this->dailyWorks()->detach($rfiIds);
+        return $this->rfis()->detach($rfiIds);
     }
 
     /**
@@ -525,7 +525,7 @@ class Objection extends Model implements HasMedia
             return collect([]);
         }
 
-        return DailyWork::where(function ($query) {
+        return Rfi::where(function ($query) {
             $query->where('location', '>=', $this->chainage_from)
                 ->where('location', '<=', $this->chainage_to);
         })->get();

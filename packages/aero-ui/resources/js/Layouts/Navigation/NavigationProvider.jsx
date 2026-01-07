@@ -11,6 +11,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { usePage } from '@inertiajs/react';
+import { getMenuItemId } from './navigationUtils.jsx';
 
 // Navigation Context
 const NavigationContext = createContext(null);
@@ -257,17 +258,19 @@ export const NavigationProvider = ({
   }, []);
   
   const expandParentMenus = useCallback((targetPath, menuItems) => {
-    const findParents = (items, path, parents = []) => {
+    // Helper to generate ID consistent with getMenuItemId
+    const findParents = (items, path, parentId = 'main', parents = []) => {
       for (const item of items) {
         const itemPath = item.path || (item.route ? `/${item.route}` : null);
-        const currentParents = [...parents, item.name || item.id];
+        const itemId = getMenuItemId(item, parentId);
+        const currentParents = [...parents, itemId];
         
         if (itemPath === path) {
           return currentParents.slice(0, -1);
         }
         
         if (item.subMenu || item.children) {
-          const found = findParents(item.subMenu || item.children, path, currentParents);
+          const found = findParents(item.subMenu || item.children, path, itemId, currentParents);
           if (found) return found;
         }
       }

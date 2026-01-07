@@ -54,7 +54,7 @@ class DepartmentController extends Controller
             'parent_departments' => Department::whereNull('parent_id')->orWhere('parent_id', 0)->count(),
         ];
 
-        return Inertia::render('Departments', [
+        return Inertia::render('HRM/Departments', [
             'title' => 'Department Management',
             'departments' => $departments,
             'managers' => $managers,

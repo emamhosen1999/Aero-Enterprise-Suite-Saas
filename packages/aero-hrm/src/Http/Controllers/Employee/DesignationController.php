@@ -12,12 +12,6 @@ use Inertia\Inertia;
 
 class DesignationController extends Controller
 {
-    public function __construct()
-    {
-        // Apply authorization middleware or policies
-        $this->middleware('can:manage-designations');
-    }
-
     /**
      * Render the Designations page with dropdown data and stats.
      */
@@ -42,7 +36,7 @@ class DesignationController extends Controller
         $departments = Department::all(['id', 'name']);
         $allDesignations = Designation::with('department')->orderBy('hierarchy_level', 'asc')->get();
 
-        return Inertia::render('Designations', [
+        return Inertia::render('HRM/Designations', [
             'title' => 'Designation Management',
             'designations' => [], // Loaded via frontend API
             'allDesignations' => $allDesignations,
@@ -59,7 +53,7 @@ class DesignationController extends Controller
      */
     public function getDesignations(Request $request)
     {
-        $query = Designation::with(['department', 'users']);
+        $query = Designation::with(['department', 'employees']);
 
         // Apply search
         if ($request->filled('search')) {

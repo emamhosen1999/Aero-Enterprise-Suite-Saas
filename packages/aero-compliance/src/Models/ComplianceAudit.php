@@ -61,4 +61,28 @@ class ComplianceAudit extends Model
     {
         return $this->auditFindings()->whereIn('status', ['open', 'in_progress'])->count();
     }
+
+    /**
+     * Scope to filter active (in-progress or scheduled) audits.
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', ['planned', 'in_progress', 'scheduled', 'active']);
+    }
+
+    /**
+     * Scope to filter completed audits.
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
+    /**
+     * Scope to filter audits by planned status.
+     */
+    public function scopePlanned($query)
+    {
+        return $query->where('status', 'planned');
+    }
 }

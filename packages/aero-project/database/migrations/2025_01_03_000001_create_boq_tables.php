@@ -33,7 +33,8 @@ return new class extends Migration
             $table->foreignId('boq_item_id')->constrained()->cascadeOnDelete();
             // Nullable because a measurement might be drafted before RFI is linked, 
             // but for the patentable workflow, this link is crucial.
-            $table->foreignId('daily_work_id')->nullable()->constrained('daily_works')->nullOnDelete();
+            // Daily works table lives in aero-rfi; skip FK to avoid failures when module isn't present
+            $table->foreignId('daily_work_id')->nullable()->index();
             
             // Chainage integration for patentable feature
             $table->decimal('start_chainage_m', 12, 3)->nullable()
@@ -47,7 +48,8 @@ return new class extends Migration
             $table->string('location_description')->nullable(); // "CH 10+000 to 10+100"
             
             $table->string('status')->default('draft'); // draft, verified, rejected, billed
-            $table->foreignId('verified_by_user_id')->nullable()->constrained('users');
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('verified_by_user_id')->nullable()->index();
             $table->timestamp('verified_at')->nullable();
             $table->text('rejection_reason')->nullable();
             

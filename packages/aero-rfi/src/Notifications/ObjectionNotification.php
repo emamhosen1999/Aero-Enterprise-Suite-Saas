@@ -40,8 +40,8 @@ class ObjectionNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $dailyWorks = $this->objection->dailyWorks;
-        $firstRfi = $dailyWorks->first();
+        $rfis = $this->objection->rfis;
+        $firstRfi = $rfis->first();
         $rfiNumber = $firstRfi?->number ?? 'N/A';
         $creator = $this->objection->createdByUser;
 
@@ -60,7 +60,7 @@ class ObjectionNotification extends Notification implements ShouldQueue
                     ->line("Raised by: {$creator?->name}")
                     ->line('Description: '.\Illuminate\Support\Str::limit($this->objection->description, 200))
                     ->line('')
-                    ->line('**Affected RFIs:** '.$dailyWorks->pluck('number')->implode(', '))
+                    ->line('**Affected RFIs:** '.$rfis->pluck('number')->implode(', '))
                     ->action('Review Objection', url("/rfi/objections/{$this->objection->id}"))
                     ->line('Please review this objection and take appropriate action.');
                 break;
@@ -101,8 +101,8 @@ class ObjectionNotification extends Notification implements ShouldQueue
 
     public function toArray(object $notifiable): array
     {
-        $dailyWorks = $this->objection->dailyWorks;
-        $firstRfi = $dailyWorks->first();
+        $rfis = $this->objection->rfis;
+        $firstRfi = $rfis->first();
 
         return [
             'type' => 'rfi_objection',
@@ -111,8 +111,8 @@ class ObjectionNotification extends Notification implements ShouldQueue
             'objection_title' => $this->objection->title,
             'objection_category' => $this->objection->category,
             'objection_status' => $this->objection->status,
-            'daily_work_ids' => $dailyWorks->pluck('id')->toArray(),
-            'daily_work_numbers' => $dailyWorks->pluck('number')->toArray(),
+            'rfi_ids' => $rfis->pluck('id')->toArray(),
+            'rfi_numbers' => $rfis->pluck('number')->toArray(),
             'created_by_id' => $this->objection->created_by,
             'created_by_name' => $this->objection->createdByUser?->name,
             'resolved_by_id' => $this->objection->resolved_by,

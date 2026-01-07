@@ -16,11 +16,13 @@ import App from '@/Layouts/App.jsx';
 import DesignationTable from '@/Tables/HRM/DesignationTable.jsx';
 import DesignationForm from '@/Forms/HRM/DesignationForm.jsx';
 import DeleteDesignationForm from '@/Forms/HRM/DeleteDesignationForm.jsx';
+import {usePermissions} from '@/Hooks/usePermissions.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils.jsx';
 
 const Designations = ({ title, initialDesignations, departments, managers, parentDesignations, allDesignations, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;
+    const { can } = usePermissions();
 
     const [designationsData, setDesignationsData] = useState(initialDesignations || { data: [] });
     const [loading, setLoading] = useState(false);
@@ -65,16 +67,17 @@ const Designations = ({ title, initialDesignations, departments, managers, paren
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const canCreateDesignation = auth.permissions?.includes('designations.create') || false;
-    const canEditDesignation = auth.permissions?.includes('designations.update') || false;
-    const canDeleteDesignation = auth.permissions?.includes('designations.delete') || false;
+    // Check permissions using usePermissions hook (Super Admin bypasses automatically)
+    const canCreateDesignation = can('designations.create');
+    const canEditDesignation = can('designations.update');
+    const canDeleteDesignation = can('designations.delete');
 
 
 
     const fetchDesignations = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await axios.get(route('designations.json'), {
+            const response = await axios.get(route('hrm.designations.json'), {
                 params: {
                     page: pagination.currentPage,
                     per_page: pagination.perPage,
@@ -96,7 +99,7 @@ const Designations = ({ title, initialDesignations, departments, managers, paren
 
     const fetchDesignationStats = useCallback(async () => {
         try {
-            const response = await axios.get(route('designations.stats'));
+            const response = await axios.get(route('hrm.designations.stats'));
             if (response.status === 200) {
                 setStats(response.data.stats);
             }

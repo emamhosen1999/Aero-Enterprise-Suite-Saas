@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Only run if table exists (skip for fresh installs)
+        if (!Schema::hasTable('non_conformance_reports')) {
+            return;
+        }
+        
         Schema::table('non_conformance_reports', function (Blueprint $table) {
             // Project/Location context
             $table->foreignId('project_id')->nullable()->after('id')

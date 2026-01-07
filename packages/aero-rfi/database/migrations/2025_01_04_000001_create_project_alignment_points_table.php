@@ -19,7 +19,8 @@ return new class extends Migration
     {
         Schema::create('project_alignment_points', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained()->onDelete('cascade');
+            // No FK constraint - projects table may be from aero-project or host app
+            $table->unsignedBigInteger('project_id');
             $table->decimal('chainage', 10, 3)->comment('Linear position in km');
             $table->decimal('latitude', 10, 7)->comment('GPS latitude (7 decimal places = ~1cm accuracy)');
             $table->decimal('longitude', 10, 7)->comment('GPS longitude');
@@ -27,10 +28,11 @@ return new class extends Migration
             $table->string('point_type', 50)->default('control')->comment('control, survey, marker');
             $table->string('source', 100)->nullable()->comment('Survey method or equipment used');
             $table->date('surveyed_date')->nullable();
-            $table->foreignId('surveyed_by')->nullable()->constrained('users')->onDelete('set null');
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('surveyed_by')->nullable()->index();
             $table->text('notes')->nullable();
             $table->boolean('is_verified')->default(false);
-            $table->foreignId('verified_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->unsignedBigInteger('verified_by')->nullable()->index();
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
 
@@ -42,9 +44,6 @@ return new class extends Migration
             // Unique constraint: one point per chainage per project
             $table->unique(['project_id', 'chainage']);
         });
-
-        // Add comment to table
-        DB::statement("COMMENT ON TABLE project_alignment_points IS 'Surveyed control points for GPS-to-chainage conversion (CORE IP)'");
     }
 
     public function down(): void

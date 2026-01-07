@@ -2,7 +2,6 @@
 
 namespace Aero\HRM\Models;
 
-use Aero\Core\Models\User;
 use Database\Factories\AttendanceTypeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,10 +35,10 @@ class AttendanceType extends Model
         return AttendanceTypeFactory::new();
     }
 
-    // Relationship with users
-    public function users()
+    // Relationship with employees (not users - attendance is employee-specific)
+    public function employees()
     {
-        return $this->hasMany(User::class, 'attendance_type_id');
+        return $this->hasMany(Employee::class, 'attendance_type_id');
     }
 
     // Scope for active attendance types

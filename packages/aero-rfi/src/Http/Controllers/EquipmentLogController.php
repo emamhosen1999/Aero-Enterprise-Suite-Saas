@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Http\Controllers;
 
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\EquipmentLog;
 use Aero\Rfi\Models\WorkLayer;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,7 @@ class EquipmentLogController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $query = EquipmentLog::query()
-            ->with(['dailyWork', 'workLayer'])
+            ->with(['rfi', 'workLayer'])
             ->orderBy('log_date', 'desc');
 
         // Apply filters
@@ -103,7 +103,7 @@ class EquipmentLogController extends Controller
 
         return response()->json([
             'message' => 'Equipment log created successfully',
-            'data' => $log->load(['dailyWork', 'workLayer']),
+            'data' => $log->load(['rfi', 'workLayer']),
         ], 201);
     }
 
@@ -113,7 +113,7 @@ class EquipmentLogController extends Controller
     public function show(EquipmentLog $equipmentLog): JsonResponse
     {
         return response()->json([
-            'data' => $equipmentLog->load(['dailyWork', 'workLayer']),
+            'data' => $equipmentLog->load(['rfi', 'workLayer']),
         ]);
     }
 
@@ -149,7 +149,7 @@ class EquipmentLogController extends Controller
 
         return response()->json([
             'message' => 'Equipment log updated successfully',
-            'data' => $equipmentLog->fresh(['dailyWork', 'workLayer']),
+            'data' => $equipmentLog->fresh(['rfi', 'workLayer']),
         ]);
     }
 

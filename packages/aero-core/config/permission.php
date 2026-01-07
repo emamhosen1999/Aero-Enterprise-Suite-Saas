@@ -2,8 +2,9 @@
 
 return [
     'models' => [
-        'permission' => Spatie\Permission\Models\Permission::class,
-        'role' => Aero\Core\Models\Role::class,
+        // We no longer use Spatie Permission - using HRMAC for role management
+        'permission' => null,
+        'role' => Aero\HRMAC\Models\Role::class,
     ],
 
     'table_names' => [

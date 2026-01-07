@@ -4,7 +4,7 @@ namespace Aero\Platform\Console\Commands;
 
 use Aero\Core\Models\User;
 use Illuminate\Console\Command;
-use Spatie\Permission\Models\Role;
+use Aero\HRMAC\Models\Role;
 
 class AssignSuperAdminRole extends Command
 {

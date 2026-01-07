@@ -6,7 +6,7 @@ namespace Aero\Rfi\Widgets;
 
 use Aero\Core\Contracts\AbstractDashboardWidget;
 use Aero\Core\Contracts\CoreWidgetCategory;
-use Aero\Rfi\Models\DailyWork;
+use Aero\Rfi\Models\Rfi;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -61,7 +61,7 @@ class MyRfiStatusWidget extends AbstractDashboardWidget
             $today = today();
 
             // Get user's today's RFIs (as incharge or assigned)
-            $myTodayRfis = DailyWork::where(function ($q) use ($user) {
+            $myTodayRfis = Rfi::where(function ($q) use ($user) {
                     $q->where('incharge_user_id', $user->id)
                       ->orWhere('assigned_user_id', $user->id);
                 })
@@ -70,15 +70,15 @@ class MyRfiStatusWidget extends AbstractDashboardWidget
 
             $stats = [
                 'total' => $myTodayRfis->count(),
-                'pending' => $myTodayRfis->whereIn('status', [DailyWork::STATUS_PENDING, DailyWork::STATUS_NEW])->count(),
-                'in_progress' => $myTodayRfis->where('status', DailyWork::STATUS_IN_PROGRESS)->count(),
-                'completed' => $myTodayRfis->where('status', DailyWork::STATUS_COMPLETED)->count(),
-                'rejected' => $myTodayRfis->where('status', DailyWork::STATUS_REJECTED)->count(),
+                'pending' => $myTodayRfis->whereIn('status', [Rfi::STATUS_PENDING, Rfi::STATUS_NEW])->count(),
+                'in_progress' => $myTodayRfis->where('status', Rfi::STATUS_IN_PROGRESS)->count(),
+                'completed' => $myTodayRfis->where('status', Rfi::STATUS_COMPLETED)->count(),
+                'rejected' => $myTodayRfis->where('status', Rfi::STATUS_REJECTED)->count(),
             ];
 
             // Get the most recent/urgent items
             $recentItems = $myTodayRfis
-                ->whereIn('status', [DailyWork::STATUS_PENDING, DailyWork::STATUS_IN_PROGRESS, DailyWork::STATUS_NEW])
+                ->whereIn('status', [Rfi::STATUS_PENDING, Rfi::STATUS_IN_PROGRESS, Rfi::STATUS_NEW])
                 ->sortByDesc('created_at')
                 ->take(3)
                 ->map(fn ($item) => [

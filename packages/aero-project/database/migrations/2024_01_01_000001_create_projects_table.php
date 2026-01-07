@@ -20,16 +20,17 @@ return new class extends Migration
             $table->string('project_name');
             $table->string('code', 50)->nullable()->comment('Project code/reference');
             $table->text('description')->nullable();
-            $table->foreignId('client_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('department_id')->nullable()->constrained('departments')->onDelete('set null');
+            // Users table may not exist during migration - skip FK
+            $table->unsignedBigInteger('client_id')->nullable()->index();
+            $table->unsignedBigInteger('department_id')->nullable()->comment('FK to departments if HRM installed');
             
             // Dates
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             
             // Team
-            $table->foreignId('project_leader_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('team_leader_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->unsignedBigInteger('project_leader_id')->nullable()->index();
+            $table->unsignedBigInteger('team_leader_id')->nullable()->index();
             
             // Financial
             $table->decimal('budget', 15, 2)->nullable();
