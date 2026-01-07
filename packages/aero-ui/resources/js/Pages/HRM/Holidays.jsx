@@ -40,14 +40,17 @@ import {
 } from "@heroicons/react/24/outline";
 
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
+import StandardPageLayout from "@/Layouts/StandardPageLayout.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils';
 
 const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
-  const [isMobile] = useState(window.innerWidth < 640);
-  const [isTablet] = useState(window.innerWidth < 768);
+  const themeRadius = useThemeRadius();
+  const isMobile = useMediaQuery('(max-width: 640px)');
+  const isTablet = useMediaQuery('(max-width: 768px)');
   
   const [holidays, setHolidays] = useState(initialHolidays);
   const [searchTerm, setSearchTerm] = useState('');
@@ -320,149 +323,25 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
     }
   }, []);
 
+  // Action buttons
+  const actionButtons = [
+    <Button
+      key="add"
+      color="primary"
+      variant="shadow"
+      size={isMobile ? 'sm' : 'md'}
+      startContent={<PlusIcon className="w-4 h-4" />}
+      onPress={onAddOpen}
+      className="font-medium"
+      style={{ fontFamily: `var(--fontFamily, "Inter")` }}
+    >
+      {isMobile ? "Add" : "Add Holiday"}
+    </Button>
+  ];
+
   return (
     <>
       <Head title={title} />
-
-      <div className="flex justify-center p-2">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <Card className="shadow-lg">
-            <PageHeader
-              title="Company Holidays"
-              subtitle="Manage company-wide holidays and special occasions"
-              icon={<GlobeAltIcon className="w-8 h-8" />}
-              variant="default"
-              actionButtons={[
-                {
-                  label: isMobile ? "Add" : "Add Holiday",
-                  icon: <PlusIcon className="w-4 h-4" />,
-                  onClick: onAddOpen,
-                  className: "bg-linear-to-r from-(--theme-primary) to-(--theme-secondary) text-white font-medium hover:opacity-90"
-                }
-              ]}
-            >
-              <div className="p-4 sm:p-6">
-                {/* Statistics Cards */}
-                <StatsCards stats={enhancedStats} className="mb-6" />
-
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                  <div className="flex-1">
-                    <Input
-                      label="Search Holidays"
-                      placeholder="Search by holiday name..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                    />
-                  </div>
-
-                  <div className="flex gap-2 items-end">
-                    <Select
-                      label="Year"
-                      selectedKeys={[selectedYear]}
-                      onSelectionChange={(keys) => setSelectedYear(Array.from(keys)[0])}
-                      className="w-32"
-                    >
-                      <SelectItem key="all" value="all">All Years</SelectItem>
-                      {availableYears.map(year => (
-                        <SelectItem key={year.toString()} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </Select>
-                    
-                    <Button
-                      isIconOnly={isMobile}
-                      variant="bordered"
-                      onPress={() => setShowFilters(!showFilters)}
-                      className={showFilters ? 'bg-purple-500/20' : 'bg-white/5'}
-                    >
-                      <FunnelIcon className="w-4 h-4" />
-                      {!isMobile && <span className="ml-1">Filters</span>}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Active Filters */}
-                {(searchTerm || selectedYear !== new Date().getFullYear().toString()) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="mb-4 flex flex-wrap gap-2"
-                  >
-                      {searchTerm && (
-                        <Chip
-                          variant="flat"
-                          color="primary"
-                          size="sm"
-                          onClose={() => setSearchTerm('')}
-                        >
-                          Search: {searchTerm}
-                        </Chip>
-                      )}
-                      {selectedYear !== new Date().getFullYear().toString() && (
-                        <Chip
-                          variant="flat"
-                          color="secondary"
-                          size="sm"
-                          onClose={() => setSelectedYear(new Date().getFullYear().toString())}
-                        >
-                          Year: {selectedYear === 'all' ? 'All Years' : selectedYear}
-                        </Chip>
-                      )}
-                    </motion.div>
-                )}
-
-                {/* Holidays Table */}
-                <div className="bg-white/5 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden">
-                  <div className="p-4 border-b border-white/10">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      Company Holidays
-                      <span className="text-sm text-default-500 ml-2">
-                        ({filteredHolidays.length} {filteredHolidays.length === 1 ? 'holiday' : 'holidays'})
-                      </span>
-                    </h3>
-                  </div>
-                  
-                  <Table
-                    isStriped
-                    removeWrapper
-                    aria-label="Holidays table"
-                    classNames={{
-                      th: "bg-white/5 text-default-600 border-b border-white/10",
-                      td: "border-b border-white/5",
-                    }}
-                  >
-                    <TableHeader columns={columns}>
-                      {(column) => (
-                        <TableColumn 
-                          key={column.uid} 
-                          align={column.uid === "actions" ? "center" : "start"}
-                        >
-                          {column.name}
-                        </TableColumn>
-                      )}
-                    </TableHeader>
-                    <TableBody items={filteredHolidays}>
-                      {(item) => (
-                        <TableRow key={item.id}>
-                          {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </PageHeader>
-          </Card>
-        </motion.div>
-      </div>
 
       {/* Add/Edit Holiday Modal */}
       <Modal 
@@ -489,12 +368,14 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
                 isRequired
+                radius={themeRadius}
               />
               
               <Select
                 label="Holiday Type"
                 selectedKeys={[formData.type]}
                 onSelectionChange={(keys) => setFormData(prev => ({...prev, type: Array.from(keys)[0]}))}
+                radius={themeRadius}
               >
                 {holidayCategories.map(category => (
                   <SelectItem key={category.key} value={category.key}>
@@ -508,6 +389,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                 value={formData.from_date}
                 onChange={(date) => setFormData(prev => ({...prev, from_date: date}))}
                 isRequired
+                radius={themeRadius}
               />
               
               <DateInput
@@ -515,6 +397,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
                 value={formData.to_date}
                 onChange={(date) => setFormData(prev => ({...prev, to_date: date}))}
                 isRequired
+                radius={themeRadius}
               />
             </div>
             
@@ -524,6 +407,7 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
               value={formData.description}
               onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
               rows={3}
+              radius={themeRadius}
             />
           </ModalBody>
           <ModalFooter>
@@ -570,6 +454,129 @@ const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      <StandardPageLayout
+        ariaLabel="Holidays Management"
+        title="Company Holidays"
+        subtitle="Manage company-wide holidays and special occasions"
+        icon={GlobeAltIcon}
+        actions={<div className="flex items-center gap-2">{actionButtons}</div>}
+        stats={<StatsCards stats={enhancedStats} />}
+        filters={
+          <div className="space-y-4">
+            {/* Search and Year Filter */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search by holiday name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                  variant="bordered"
+                  size={isMobile ? 'sm' : 'md'}
+                  radius={themeRadius}
+                  classNames={{
+                    inputWrapper: "bg-default-100"
+                  }}
+                />
+              </div>
+
+              <div className="flex gap-2 items-end">
+                <Select
+                  label="Year"
+                  selectedKeys={[selectedYear]}
+                  onSelectionChange={(keys) => setSelectedYear(Array.from(keys)[0])}
+                  className="w-32"
+                  variant="bordered"
+                  size={isMobile ? 'sm' : 'md'}
+                  radius={themeRadius}
+                  classNames={{
+                    trigger: "bg-default-100"
+                  }}
+                >
+                  <SelectItem key="all" value="all">All Years</SelectItem>
+                  {availableYears.map(year => (
+                    <SelectItem key={year.toString()} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </Select>
+                
+                <Button
+                  isIconOnly={isMobile}
+                  variant="bordered"
+                  onPress={() => setShowFilters(!showFilters)}
+                  color={showFilters ? 'primary' : 'default'}
+                  size={isMobile ? 'sm' : 'md'}
+                >
+                  <FunnelIcon className="w-4 h-4" />
+                  {!isMobile && <span className="ml-1">Filters</span>}
+                </Button>
+              </div>
+            </div>
+
+            {/* Active Filters */}
+            {(searchTerm || selectedYear !== new Date().getFullYear().toString()) && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-wrap gap-2"
+              >
+                {searchTerm && (
+                  <Chip
+                    variant="flat"
+                    color="primary"
+                    size="sm"
+                    onClose={() => setSearchTerm('')}
+                  >
+                    Search: {searchTerm}
+                  </Chip>
+                )}
+                {selectedYear !== new Date().getFullYear().toString() && (
+                  <Chip
+                    variant="flat"
+                    color="secondary"
+                    size="sm"
+                    onClose={() => setSelectedYear(new Date().getFullYear().toString())}
+                  >
+                    Year: {selectedYear === 'all' ? 'All Years' : selectedYear}
+                  </Chip>
+                )}
+              </motion.div>
+            )}
+          </div>
+        }
+      >
+        {/* Holidays Table */}
+        <Table
+          isStriped
+          removeWrapper
+          aria-label="Holidays table"
+          classNames={{
+            th: "bg-default-100 text-default-600 border-b border-divider",
+            td: "border-b border-divider/50",
+          }}
+        >
+          <TableHeader columns={columns}>
+            {(column) => (
+              <TableColumn 
+                key={column.uid} 
+                align={column.uid === "actions" ? "center" : "start"}
+              >
+                {column.name}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody items={filteredHolidays}>
+            {(item) => (
+              <TableRow key={item.id}>
+                {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </StandardPageLayout>
     </>
   );
 };
