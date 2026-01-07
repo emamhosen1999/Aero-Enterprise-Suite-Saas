@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
 import PageHeader from '@/Components/PageHeader';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {
     Card,
     CardBody,
@@ -38,25 +39,13 @@ import axios from 'axios';
  * Allows activation/deactivation of modules and uploading new modules.
  */
 const ExtensionsIndex = ({ installedModules = [], marketplaceModules = [], purchasedCodes = {} }) => {
+    const themeRadius = useThemeRadius();
     const [activeTab, setActiveTab] = useState('installed');
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [uploadFile, setUploadFile] = useState(null);
     const [purchaseCode, setPurchaseCode] = useState('');
     const [uploading, setUploading] = useState(false);
     const [checkingUpdates, setCheckingUpdates] = useState(false);
-    
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'xl';
-    };
-    
-    const themeRadius = getThemeRadius();
 
     const handleToggleModule = (moduleCode, currentStatus) => {
         const action = currentStatus ? 'deactivate' : 'activate';
