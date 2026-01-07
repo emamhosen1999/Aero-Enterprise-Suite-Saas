@@ -2,31 +2,18 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import {CalendarIcon, ChartBarIcon, CheckCircleIcon, UserPlusIcon} from "@heroicons/react/24/outline";
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import App from "@/Layouts/App.jsx";
 import TimeSheetTable from '@/Tables/HRM/TimeSheetTable.jsx';
 import MarkAsPresentForm from "@/Forms/HRM/MarkAsPresentForm.jsx";
 import BulkMarkAsPresentForm from "@/Forms/HRM/BulkMarkAsPresentForm.jsx";
 import dayjs from "dayjs";
 
-// Theme utility function
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 12) return 'lg';
-    return 'xl';
-};
-
 const TimeSheet = ({ title, allUsers }) => {
     const { auth } = usePage().props;
     const isMobile = useMediaQuery('(max-width: 768px)');
     const isSmallScreen = useMediaQuery('(max-width: 640px)');
+    const themeRadius = useThemeRadius();
     
     const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
     const [modalState, setModalState] = useState({

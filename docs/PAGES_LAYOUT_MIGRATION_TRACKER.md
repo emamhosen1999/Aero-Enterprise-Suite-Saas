@@ -73,7 +73,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [DONE] packages\aero-ui\resources\js\Pages\HRM\LeavesEmployee.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\LeaveSummary.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Payslip.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\HRM\TimeSheet.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\HRM\TimeSheet.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\UpdatePasswordForm.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\UpdateProfileInformationForm.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\UserBankInformation.jsx
