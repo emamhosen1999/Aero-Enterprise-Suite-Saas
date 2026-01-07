@@ -32,11 +32,17 @@ import {
   CalendarIcon
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from "@/Layouts/StandardPageLayout.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 
 const AuditLogsIndex = () => {
   const { title } = usePage().props;
+  const themeRadius = useThemeRadius();
+  const isMobile = useMediaQuery('(max-width: 640px)');
+  
   const [activeTab, setActiveTab] = useState('activity');
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -119,6 +125,29 @@ const AuditLogsIndex = () => {
   const handleSearchChange = (value) => {
     setFilters(prev => ({ ...prev, search: value }));
   };
+
+  // Action buttons
+  const actionButtons = [
+    <Button
+      key="refresh"
+      variant="flat"
+      startContent={<ArrowPathIcon className="w-4 h-4" />}
+      onPress={() => fetchLogs(pagination.currentPage)}
+      isLoading={loading}
+      size={isMobile ? "sm" : "md"}
+    >
+      Refresh
+    </Button>,
+    <Button
+      key="export"
+      variant="flat"
+      color="primary"
+      startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+      size={isMobile ? "sm" : "md"}
+    >
+      Export
+    </Button>
+  ];
 
   const statsData = [
     {
@@ -249,21 +278,24 @@ const AuditLogsIndex = () => {
   };
 
   return (
-    <App>
+    <>
       <Head title={title} />
       
-      <div className="space-y-6">
-        {/* Stats Cards */}
-        <StatsCards stats={statsData} isLoading={statsLoading} />
-
-        {/* Main Content Card */}
-        <Card className="shadow-none border border-divider">
-          <CardHeader className="flex flex-col sm:flex-row justify-between gap-4 px-6 py-4">
+      <StandardPageLayout
+        ariaLabel="Audit Logs Management"
+        title="Audit Logs"
+        subtitle="Track system activities and security events"
+        icon={ClipboardDocumentListIcon}
+        actions={<div className="flex items-center gap-2">{actionButtons}</div>}
+        stats={<StatsCards stats={statsData} isLoading={statsLoading} />}
+        filters={
+          <div className="space-y-4">
             <Tabs 
               selectedKey={activeTab} 
               onSelectionChange={setActiveTab}
               variant="underlined"
               color="primary"
+              size={isMobile ? "sm" : "md"}
             >
               <Tab 
                 key="activity" 
@@ -285,30 +317,8 @@ const AuditLogsIndex = () => {
               />
             </Tabs>
 
-            <div className="flex gap-3">
-              <Button
-                variant="flat"
-                startContent={<ArrowPathIcon className="w-4 h-4" />}
-                onPress={() => fetchLogs(pagination.currentPage)}
-                isLoading={loading}
-                size="sm"
-              >
-                Refresh
-              </Button>
-              <Button
-                variant="flat"
-                color="primary"
-                startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
-                size="sm"
-              >
-                Export
-              </Button>
-            </div>
-          </CardHeader>
-
-          <CardBody className="px-6">
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Input
                 placeholder="Search logs..."
                 value={filters.search}
@@ -316,6 +326,7 @@ const AuditLogsIndex = () => {
                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                 classNames={{ inputWrapper: "bg-default-100" }}
                 className="w-full sm:w-64"
+                radius={themeRadius}
               />
               <Input
                 type="date"
@@ -325,6 +336,7 @@ const AuditLogsIndex = () => {
                 onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
                 classNames={{ inputWrapper: "bg-default-100" }}
                 className="w-full sm:w-auto"
+                radius={themeRadius}
               />
               <Input
                 type="date"
@@ -334,56 +346,57 @@ const AuditLogsIndex = () => {
                 onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
                 classNames={{ inputWrapper: "bg-default-100" }}
                 className="w-full sm:w-auto"
+                radius={themeRadius}
               />
             </div>
-
-            {/* Table */}
-            {loading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex gap-4">
-                    <Skeleton className="h-12 w-12 rounded-lg" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4 rounded" />
-                      <Skeleton className="h-3 w-1/2 rounded" />
-                    </div>
-                  </div>
-                ))}
+          </div>
+        }
+      >
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex gap-4">
+                <Skeleton className="h-12 w-12 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-3 w-1/2 rounded" />
+                </div>
               </div>
-            ) : (
-              <Table
-                aria-label={`${activeTab === 'activity' ? 'Activity' : 'Security'} logs`}
-                isHeaderSticky
-                classNames={{
-                  wrapper: "shadow-none border border-divider rounded-lg",
-                  th: "bg-default-100 text-default-600 font-semibold",
-                  td: "py-3"
-                }}
+            ))}
+          </div>
+        ) : (
+          <>
+            <Table
+              aria-label={`${activeTab === 'activity' ? 'Activity' : 'Security'} logs`}
+              isHeaderSticky
+              classNames={{
+                wrapper: "shadow-none border border-divider rounded-lg",
+                th: "bg-default-100 text-default-600 font-semibold",
+                td: "py-3"
+              }}
+            >
+              <TableHeader columns={activeTab === 'activity' ? activityColumns : securityColumns}>
+                {(column) => (
+                  <TableColumn key={column.uid}>{column.name}</TableColumn>
+                )}
+              </TableHeader>
+              <TableBody 
+                items={logs} 
+                emptyContent="No logs found"
               >
-                <TableHeader columns={activeTab === 'activity' ? activityColumns : securityColumns}>
-                  {(column) => (
-                    <TableColumn key={column.uid}>{column.name}</TableColumn>
-                  )}
-                </TableHeader>
-                <TableBody 
-                  items={logs} 
-                  emptyContent="No logs found"
-                >
-                  {(item) => (
-                    <TableRow key={item.id}>
-                      {(columnKey) => (
-                        <TableCell>
-                          {activeTab === 'activity' 
-                            ? renderActivityCell(item, columnKey)
-                            : renderSecurityCell(item, columnKey)
-                          }
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
+                {(item) => (
+                  <TableRow key={item.id}>
+                    {(columnKey) => (
+                      <TableCell>
+                        {activeTab === 'activity' 
+                          ? renderActivityCell(item, columnKey)
+                          : renderSecurityCell(item, columnKey)}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
 
             {/* Pagination */}
             {pagination.lastPage > 1 && (
@@ -397,11 +410,13 @@ const AuditLogsIndex = () => {
                 />
               </div>
             )}
-          </CardBody>
-        </Card>
-      </div>
-    </App>
+          </>
+        )}
+      </StandardPageLayout>
+    </>
   );
 };
+
+AuditLogsIndex.layout = (page) => <App children={page} />;
 
 export default AuditLogsIndex;
