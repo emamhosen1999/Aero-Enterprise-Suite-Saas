@@ -122,7 +122,6 @@ const TimeSheet = ({ title, allUsers }) => {
     }), [modalState.type, handleModalClose, modalState.selectedDate, selectedDate, allUsers, refreshTimeSheet, modalState.selectedUsers, modalState.currentUser]);
 
     // Check permissions
-    const canManageAttendance = auth.permissions?.includes('attendance.view') || false;
 
     // Permissions already defined above using HRMAC
         <>
