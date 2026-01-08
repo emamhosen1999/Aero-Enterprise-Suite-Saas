@@ -38,24 +38,11 @@ import {
     EyeIcon
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
-
-// Helper function to convert theme borderRadius to HeroUI radius values
-const getThemeRadius = () => {
-    if (typeof window === 'undefined') return 'lg';
-    
-    const rootStyles = getComputedStyle(document.documentElement);
-    const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-    
-    const radiusValue = parseInt(borderRadius);
-    if (radiusValue === 0) return 'none';
-    if (radiusValue <= 4) return 'sm';
-    if (radiusValue <= 8) return 'md';
-    if (radiusValue <= 16) return 'lg';
-    return 'full';
-};
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 // Status color mapping
 const statusColorMap = {
@@ -67,7 +54,6 @@ const statusColorMap = {
 
 // Status label mapping
 const statusLabelMap = {
-    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     pending: "Pending",
     in_progress: "In Progress",
     completed: "Completed",
@@ -76,6 +62,13 @@ const statusLabelMap = {
 
 const OnboardingIndex = ({ title, onboardings }) => {
     const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
+    
+    // HRMAC permissions - TODO: Update with proper HRMAC module hierarchy path once defined
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    const canCreateOnboarding = canCreate('hrm.onboarding') || isSuperAdmin();
+    const canEditOnboarding = canUpdate('hrm.onboarding') || isSuperAdmin();
+    const canDeleteOnboarding = canDelete('hrm.onboarding') || isSuperAdmin();
     
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
@@ -257,92 +250,44 @@ const OnboardingIndex = ({ title, onboardings }) => {
             default:
                 return item[columnKey];
         }
-    }, [canEdit, canDelete]);
+    }, [canEditOnboarding, canDeleteOnboarding]);
 
     // Handle pagination
     const handlePageChange = (page) => {
         router.visit(route('hrm.onboarding.index', { page }));
     };
 
+    // Action buttons for StandardPageLayout
+    const actionButtons = useMemo(() => (
+        <>
+            {canCreateOnboarding && (
+                <Button 
+                    color="primary" 
+                    variant="shadow"
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    onPress={handleCreate}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    New Onboarding
+                </Button>
+            )}
+        </>
+    ), [canCreateOnboarding, isMobile, handleCreate]);
+
     return (
         <>
             <Head title={title} />
             
-            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Employee Onboarding Management">
-                <div className="space-y-4">
-                    <div className="w-full">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <Card 
-                                className="transition-all duration-200"
-                                style={{
-                                    border: `var(--borderWidth, 2px) solid transparent`,
-                                    borderRadius: `var(--borderRadius, 12px)`,
-                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                    transform: `scale(var(--scale, 1))`,
-                                    background: `linear-gradient(135deg, 
-                                        var(--theme-content1, #FAFAFA) 20%, 
-                                        var(--theme-content2, #F4F4F5) 10%, 
-                                        var(--theme-content3, #F1F3F4) 20%)`,
-                                }}
-                            >
-                                <CardHeader 
-                                    className="border-b p-0"
-                                    style={{
-                                        borderColor: `var(--theme-divider, #E4E4E7)`,
-                                        background: `linear-gradient(135deg, 
-                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                                    }}
-                                >
-                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                            <div className="flex items-center gap-3 lg:gap-4">
-                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
-                                                    style={{
-                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                                        borderRadius: `var(--borderRadius, 12px)`,
-                                                    }}
-                                                >
-                                                    <ClipboardDocumentListIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`} 
-                                                        style={{ color: 'var(--theme-primary)' }} />
-                                                </div>
-                                                <div>
-                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
-                                                        Employee Onboarding
-                                                    </h4>
-                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
-                                                        Manage employee onboarding processes
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex gap-2 flex-wrap">
-                                                {canCreateOnboarding && (
-                                                    <Button 
-                                                        color="primary" 
-                                                        variant="shadow"
-                                                        startContent={<PlusIcon className="w-4 h-4" />}
-                                                        onPress={handleCreate}
-                                                        size={isMobile ? "sm" : "md"}
-                                                    >
-                                                        New Onboarding
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-
-                                <CardBody className="p-6">
-                                    {/* Stats Cards */}
-                                    <StatsCards stats={statsData} className="mb-6" />
-                                    
-                                    {/* Filters */}
-                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <StandardPageLayout
+                title="Employee Onboarding"
+                subtitle="Manage employee onboarding processes"
+                icon={<ClipboardDocumentListIcon />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                ariaLabel="Employee Onboarding Management"
+            >
+                {/* Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
                                         <Input
                                             placeholder="Search by employee name..."
                                             value={searchQuery}
@@ -418,16 +363,11 @@ const OnboardingIndex = ({ title, onboardings }) => {
                                                 onChange={handlePageChange}
                                                 showControls
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                             />
                                         </div>
                                     )}
-                                </CardBody>
-                            </Card>
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
+            </StandardPageLayout>
         </>
     );
 };
