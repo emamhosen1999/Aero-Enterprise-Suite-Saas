@@ -7,9 +7,11 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const WeatherLogsIndex = ({ title }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Theme radius helper
     const getThemeRadius = () => {
@@ -110,9 +112,11 @@ const WeatherLogsIndex = ({ title }) => {
     ], [stats]);
 
     // Permission checks
-    const canCreate = auth.permissions?.includes('rfi.weather-logs.create') || false;
-    const canEdit = auth.permissions?.includes('rfi.weather-logs.update') || false;
-    const canDelete = auth.permissions?.includes('rfi.weather-logs.delete') || false;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for RFI
+    const canCreateWeather = canCreate("rfi.weather-logs") || isSuperAdmin();
+    const canEditWeather = canUpdate("rfi.weather-logs") || isSuperAdmin();
+    const canDeleteWeather = canDelete("rfi.weather-logs") || isSuperAdmin();
 
     // Data fetching
     const fetchLogs = useCallback(async () => {
@@ -290,7 +294,7 @@ const WeatherLogsIndex = ({ title }) => {
                                 </Button>
                             </DropdownTrigger>
                             <DropdownMenu aria-label="Weather log actions">
-                                {canEdit && (
+                                {canEditWeather && (
                                     <DropdownItem 
                                         key="edit"
                                         startContent={<PencilIcon className="w-4 h-4" />}
@@ -299,7 +303,7 @@ const WeatherLogsIndex = ({ title }) => {
                                         Edit
                                     </DropdownItem>
                                 )}
-                                {canDelete && (
+                                {canDeleteWeather && (
                                     <DropdownItem 
                                         key="delete"
                                         className="text-danger" 
@@ -382,7 +386,7 @@ const WeatherLogsIndex = ({ title }) => {
                                             
                                             {/* Action Buttons */}
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreateWeather && (
                                                     <Button color="primary" variant="shadow"
                                                         startContent={<PlusIcon className="w-4 h-4" />}
                                                         onPress={() => console.log('Add Weather Log')}
