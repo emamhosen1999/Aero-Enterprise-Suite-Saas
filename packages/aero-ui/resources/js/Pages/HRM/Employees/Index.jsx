@@ -39,6 +39,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 
 import StatsCards from "@/Components/StatsCards.jsx";
 import EmployeeTable from "@/Tables/HRM/EmployeeTable.jsx";
@@ -336,6 +337,20 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
     }
   ], [stats]);
 
+  // Prepare action buttons for StandardPageLayout
+  const actionButtons = useMemo(() => (
+    <Button
+      as={Link}
+      href={safeRoute('core.users.index')}
+      color="primary"
+      variant="shadow"
+      startContent={<UserPlusIcon className="w-4 h-4" />}
+      size={isMobile ? "sm" : "md"}
+    >
+      {isMobile ? "Go to Users" : "Add from User List"}
+    </Button>
+  ), [isMobile]);
+
   // Grid card component for employee display
   const EmployeeCard = ({ user, index }) => {
     const department = departments?.find(d => d.id === user.department_id);
@@ -443,131 +458,29 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
   return (
     <>
       <Head title={title || "Employee Directory"} />
-      <div 
-        className="flex flex-col w-full h-full p-4"
-        role="main"
-        aria-label="Employee Directory Management"
+      
+      <StandardPageLayout
+        title="Employee Directory"
+        subtitle="Manage employee information and organizational structure"
+        icon={<UsersIcon />}
+        actions={actionButtons}
+        stats={<StatsCards stats={statsData} />}
+        ariaLabel="Employee Directory Management"
       >
-        <div className="space-y-4">
-          <div className="w-full">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Card 
-                className="transition-all duration-200"
-                style={{
-                  border: `var(--borderWidth, 2px) solid transparent`,
-                  borderRadius: `var(--borderRadius, 12px)`,
-                  fontFamily: `var(--fontFamily, "Inter")`,
-                  transform: `scale(var(--scale, 1))`,
-                  background: `linear-gradient(135deg, 
-                    var(--theme-content1, #FAFAFA) 20%, 
-                    var(--theme-content2, #F4F4F5) 10%, 
-                    var(--theme-content3, #F1F3F4) 20%)`,
-                }}
-              >
-                <CardHeader 
-                  className="border-b p-0"
-                  style={{
-                    borderColor: `var(--theme-divider, #E4E4E7)`,
-                    background: `linear-gradient(135deg, 
-                      color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                      color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                  }}
-                >
-                  <div className={`${isLargeScreen ? 'p-6' : isMediumScreen ? 'p-4' : 'p-3'} w-full`}>
-                    <div className="flex flex-col space-y-4">
-                      {/* Main Header Content */}
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        {/* Title Section */}
-                        <div className="flex items-center gap-3 lg:gap-4">
-                          <div 
-                            className={`
-                              ${isLargeScreen ? 'p-3' : isMediumScreen ? 'p-2.5' : 'p-2'} 
-                              rounded-xl flex items-center justify-center
-                            `}
-                            style={{
-                              background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                              borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
-                              borderWidth: `var(--borderWidth, 2px)`,
-                              borderRadius: `var(--borderRadius, 12px)`,
-                            }}
-                          >
-                            <UsersIcon 
-                              className={`
-                                ${isLargeScreen ? 'w-8 h-8' : isMediumScreen ? 'w-6 h-6' : 'w-5 h-5'}
-                              `}
-                              style={{ color: 'var(--theme-primary)' }}
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 
-                              className={`
-                                ${isLargeScreen ? 'text-2xl' : isMediumScreen ? 'text-xl' : 'text-lg'}
-                                font-bold text-foreground
-                                ${!isLargeScreen ? 'truncate' : ''}
-                              `}
-                              style={{
-                                fontFamily: `var(--fontFamily, "Inter")`,
-                              }}
-                            >
-                              Employee Directory
-                            </h4>
-                            <p 
-                              className={`
-                                ${isLargeScreen ? 'text-sm' : 'text-xs'} 
-                                text-default-500
-                                ${!isLargeScreen ? 'truncate' : ''}
-                              `}
-                              style={{
-                                fontFamily: `var(--fontFamily, "Inter")`,
-                              }}
-                            >
-                              Manage employee information and organizational structure
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {/* Action Buttons */}
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            as={Link}
-                            href={safeRoute('core.users.index')}
-                            className="text-white font-medium"
-                            style={{
-                              background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
-                              borderRadius: themeRadius,
-                            }}
-                            startContent={<UserPlusIcon className="w-4 h-4" />}
-                          >
-                            {isMobile ? "Go to Users" : "Add from User List"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
+        {/* Pending Onboarding Section */}
+        <PendingOnboardingSection
+          departments={departments || []}
+          designations={designations || []}
+          managers={allManagers || []}
+          onOnboardingComplete={(employee) => {
+            // Refresh employees list after successful onboarding
+            fetchEmployees();
+            fetchStats();
+          }}
+        />
 
-                <CardBody className="p-6">
-                  {/* Statistics Cards */}
-                  <StatsCards stats={statsData} className="mb-6" />
-                  
-                  {/* Pending Onboarding Section */}
-                  <PendingOnboardingSection
-                    departments={departments || []}
-                    designations={designations || []}
-                    managers={allManagers || []}
-                    onOnboardingComplete={(employee) => {
-                      // Refresh employees list after successful onboarding
-                      fetchEmployees();
-                      fetchStats();
-                    }}
-                  />
-
-                {/* Analytics Dashboard */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Analytics Dashboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                   {/* Department Distribution */}
                   <div 
                     className="p-4"
@@ -1078,12 +991,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                     </div>
                   </CardBody>
                 </Card>
-                </CardBody>
-              </Card>
-            </motion.div>
-          </div>
-        </div>
-      </div>
+        </StandardPageLayout>
     </>
   );
 };
