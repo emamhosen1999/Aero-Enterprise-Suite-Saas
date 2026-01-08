@@ -46,11 +46,18 @@ import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const HolidaysManagement = ({ title, holidays: initialHolidays, stats }) => {
   const themeRadius = useThemeRadius();
   const isMobile = useMediaQuery('(max-width: 640px)');
   const isTablet = useMediaQuery('(max-width: 768px)');
+  
+  // TODO: Update with proper HRMAC module hierarchy path once defined
+  const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+  const canCreateHoliday = canCreate('hrm.holidays') || isSuperAdmin();
+  const canEditHoliday = canUpdate('hrm.holidays') || isSuperAdmin();
+  const canDeleteHoliday = canDelete('hrm.holidays') || isSuperAdmin();
   
   const [holidays, setHolidays] = useState(initialHolidays);
   const [searchTerm, setSearchTerm] = useState('');

@@ -18,9 +18,15 @@ import {
     UserIcon,
     XCircleIcon
 } from '@heroicons/react/24/outline';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const AttendanceEmployee = React.memo(({ title, totalWorkingDays, presentDays, absentDays, lateArrivals }) => {
     const { auth } = usePage().props;
+    
+    // TODO: Update with proper HRMAC module hierarchy path once defined
+    const { hasAccess, canUpdate, isSuperAdmin } = useHRMAC();
+    const canViewAttendance = hasAccess('hrm.employees.attendance') || isSuperAdmin();
+    const canEditAttendance = canUpdate('hrm.employees.attendance') || isSuperAdmin();
     
     // Media query logic
     const [isLargeScreen, setIsLargeScreen] = useState(false);
