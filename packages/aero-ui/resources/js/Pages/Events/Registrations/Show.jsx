@@ -34,8 +34,17 @@ import {
 import dayjs from 'dayjs';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const Show = ({ auth, registration, event }) => {
+    const { canUpdate, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Events
+    const canViewRegistration = hasAccess('events.registrations') || isSuperAdmin();
+    const canApproveRegistration = canUpdate('events.registrations') || isSuperAdmin();
+    const canRejectRegistration = canUpdate('events.registrations') || isSuperAdmin();
+    
     const [showRejectModal, setShowRejectModal] = React.useState(false);
     const [rejectReason, setRejectReason] = React.useState('');
     const [processing, setProcessing] = React.useState(false);

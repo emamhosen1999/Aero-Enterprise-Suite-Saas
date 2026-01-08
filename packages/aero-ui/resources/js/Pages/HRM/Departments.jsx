@@ -32,6 +32,7 @@ import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils.jsx';
 import dayjs from 'dayjs';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const Departments = ({ title, departments: initialDepartments, managers, parentDepartments, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;
@@ -40,6 +41,13 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
     const themeRadius = useThemeRadius();
     const isMobile = useMediaQuery('(max-width: 640px)');
     const isTablet = useMediaQuery('(max-width: 768px)');
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canCreateDepartment = canCreate('hrm.departments') || isSuperAdmin();
+    const canEditDepartment = canUpdate('hrm.departments') || isSuperAdmin();
+    const canDeleteDepartment = canDelete('hrm.departments') || isSuperAdmin();
     
     // State for departments data
     const [departmentsData, setDepartmentsData] = useState(initialDepartments || { data: [] });
