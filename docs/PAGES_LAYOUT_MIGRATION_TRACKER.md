@@ -29,10 +29,10 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Core\FileManager\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Modules\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Notifications\Index.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Core\Profile\Index.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Core\Profile\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Roles\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\Settings\SystemSettings.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Core\UserDevices\Index.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Core\UserDevices\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\CRM\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\CRM\Pipeline\DealCard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\CRM\Pipeline\Index.jsx
@@ -53,7 +53,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Finance\BankAccounts.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Finance\Budget.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Finance\ChartOfAccounts.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Finance\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Finance\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Finance\FixedAssets.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Finance\GeneralLedger.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Finance\JournalEntries.jsx
@@ -62,7 +62,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\DeleteUserForm.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\HRM\Departments.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\HRM\Designations.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\HRM\Employees\Index.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\HRM\Employees\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Employees\Salary.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Employees\Show.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Evaluation.jsx
@@ -71,7 +71,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\LeavesAdmin.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\LeavesAdmin_new.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\HRM\LeavesEmployee.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\HRM\LeaveSummary.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\HRM\LeaveSummary.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Payslip.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\HRM\TimeSheet.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\UpdatePasswordForm.jsx

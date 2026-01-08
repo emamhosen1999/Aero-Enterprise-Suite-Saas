@@ -47,6 +47,7 @@ import PendingOnboardingSection from "@/Components/HRM/PendingOnboardingSection.
 
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 
 const EmployeesList = ({ title, departments, designations, attendanceTypes }) => {
@@ -95,20 +96,8 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
     perPage: 10,
     total: 0
   });
-   // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+  
+  const themeRadius = useThemeRadius();
 
   // Stats - Updated to match comprehensive backend stats structure
   const [stats, setStats] = useState({
@@ -541,7 +530,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                             className="text-white font-medium"
                             style={{
                               background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
-                              borderRadius: getThemeRadius(),
+                              borderRadius: themeRadius,
                             }}
                             startContent={<UserPlusIcon className="w-4 h-4" />}
                           >
@@ -577,7 +566,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                     style={{
                       background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
                       border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
-                      borderRadius: getThemeRadius(),
+                      borderRadius: themeRadius,
                       backdropFilter: 'blur(16px)',
                     }}
                   >
@@ -627,7 +616,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                     style={{
                       background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
                       border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
-                      borderRadius: getThemeRadius(),
+                      borderRadius: themeRadius,
                       backdropFilter: 'blur(16px)',
                     }}
                   >
@@ -746,7 +735,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                           startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                           variant="bordered"
                           size="sm"
-                          radius={getThemeRadius()}
+                          radius={themeRadius}
                           classNames={{
                             input: "text-sm",
                           }}
@@ -764,7 +753,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                           style={{
                             background: 'color-mix(in srgb, var(--theme-content2) 30%, transparent)',
                             border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
-                            borderRadius: getThemeRadius(),
+                            borderRadius: themeRadius,
                           }}
                         >
                           <Button
@@ -813,7 +802,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                             color: showFilters 
                               ? 'var(--theme-primary)' 
                               : 'var(--theme-foreground)',
-                            borderRadius: getThemeRadius(),
+                            borderRadius: themeRadius,
                           }}
                         >
                           <FunnelIcon className="w-4 h-4" />
@@ -835,7 +824,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                           style={{
                             background: 'color-mix(in srgb, var(--theme-content2) 50%, transparent)',
                             border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
-                            borderRadius: getThemeRadius(),
+                            borderRadius: themeRadius,
                             backdropFilter: 'blur(16px)',
                           }}
                         >
@@ -850,7 +839,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                             }}
                             variant="bordered"
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             startContent={<BuildingOfficeIcon className="w-4 h-4 text-default-400" />}
                             classNames={{
                               trigger: "bg-white/10 backdrop-blur-md border-white/20",
@@ -874,7 +863,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                             }}
                             variant="bordered"
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             isDisabled={filters.department === 'all'}
                             startContent={<BriefcaseIcon className="w-4 h-4 text-default-400" />}
                             classNames={{
@@ -899,7 +888,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                             }}
                             variant="bordered"
                             size="sm"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             startContent={<ClockIcon className="w-4 h-4 text-default-400" />}
                             classNames={{
                               trigger: "bg-white/10 backdrop-blur-md border-white/20",
@@ -936,7 +925,7 @@ const EmployeesList = ({ title, departments, designations, attendanceTypes }) =>
                               style={{
                                 background: 'color-mix(in srgb, var(--theme-danger) 20%, transparent)',
                                 color: 'var(--theme-danger)',
-                                borderRadius: getThemeRadius(),
+                                borderRadius: themeRadius,
                               }}
                             >
                               Clear Filters
