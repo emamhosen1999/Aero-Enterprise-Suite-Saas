@@ -25,6 +25,7 @@ import {
 } from "@heroui/react";
 import { useTheme } from '@/Context/ThemeContext.jsx';
 import useMediaQuery from '@/Hooks/useMediaQuery';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import { 
   UserGroupIcon, 
   ShieldCheckIcon,
@@ -119,19 +120,7 @@ const RoleManagement = (props) => {
     const isDark = themeSettings?.mode === 'dark';
     const isMobile = useMediaQuery('(max-width: 640px)');
     const isTablet = useMediaQuery('(max-width: 768px)');
-    
-    // Helper function to get theme-aware radius for HeroUI components
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // Main tab management
     const [activeTab, setActiveTab] = useState(0);
@@ -607,7 +596,7 @@ const RoleManagement = (props) => {
                             isRequired
                             isDisabled={isLoading}
                             variant="bordered"
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             classNames={{
                                 inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground placeholder:text-default-400",
@@ -626,7 +615,7 @@ const RoleManagement = (props) => {
                             isDisabled={isLoading}
                             variant="bordered"
                             minRows={2}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             classNames={{
                                 inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground placeholder:text-default-400",
@@ -705,7 +694,7 @@ const RoleManagement = (props) => {
             {/* Data validation error alerts - shown as a card instead of MUI Alert */}
             {dataValidationErrors.length > 0 && (
                 <div className="mb-4 p-4">
-                    <Card className="bg-warning/10 border border-warning/30" radius={getThemeRadius()}>
+                    <Card className="bg-warning/10 border border-warning/30" radius={themeRadius}>
                         <CardBody className="flex flex-row items-start gap-4">
                             <ExclamationTriangleIcon className="w-6 h-6 text-warning flex-shrink-0 mt-0.5" />
                             <div className="flex-1">
@@ -832,7 +821,7 @@ const RoleManagement = (props) => {
                                                         style={{
                                                             background: `color-mix(in srgb, var(--theme-success) 15%, transparent)`,
                                                             color: `var(--theme-success)`,
-                                                            borderRadius: getThemeRadius(),
+                                                            borderRadius: themeRadius,
                                                             border: `1px solid color-mix(in srgb, var(--theme-success) 30%, transparent)`,
                                                         }}
                                                         startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
@@ -911,7 +900,7 @@ const RoleManagement = (props) => {
                                                                 className="text-white font-medium"
                                                                 style={{
                                                                     background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
-                                                                    borderRadius: getThemeRadius(),
+                                                                    borderRadius: themeRadius,
                                                                 }}
                                                             >
                                                                 Add Role
@@ -925,7 +914,7 @@ const RoleManagement = (props) => {
                                                                 value={roleSearchQuery}
                                                                 onValueChange={handleRoleSearchChange}
                                                                 className="flex-1 min-w-0"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                                 variant="bordered"
                                                                 classNames={{
@@ -940,7 +929,7 @@ const RoleManagement = (props) => {
                                                                 selectedKeys={[roleStatusFilter]}
                                                                 onSelectionChange={(keys) => handleRoleStatusFilterChange(Array.from(keys)[0])}
                                                                 className="w-full sm:w-[140px] sm:flex-shrink-0"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 classNames={{
                                                                     trigger: "bg-white/10 backdrop-blur-md border-white/20",
                                                                 }}
@@ -998,7 +987,7 @@ const RoleManagement = (props) => {
                                                                 value={userSearchQuery}
                                                                 onValueChange={handleUserSearchChange}
                                                                 className="flex-1 min-w-0"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                                 variant="bordered"
                                                                 classNames={{
@@ -1013,7 +1002,7 @@ const RoleManagement = (props) => {
                                                                 selectedKeys={[userRoleFilter]}
                                                                 onSelectionChange={(keys) => handleUserRoleFilterChange(Array.from(keys)[0])}
                                                                 className="w-full sm:w-[160px] sm:flex-shrink-0"
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                                 classNames={{
                                                                     trigger: "bg-white/10 backdrop-blur-md border-white/20",
                                                                 }}

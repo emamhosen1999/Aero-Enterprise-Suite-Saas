@@ -27,25 +27,12 @@ import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import dayjs from 'dayjs';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils.jsx';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 
 
 const LeavesAdmin = ({ title, allUsers }) => {
     const { auth } = usePage().props;
-    
-    // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // Custom media queries
     const [isMobile, setIsMobile] = useState(false);
@@ -1038,7 +1025,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                                                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="w-full"
                                                 classNames={{
                                                     input: "text-sm",
@@ -1052,7 +1039,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                                         <div className="flex gap-2 items-end">
                                             <ButtonGroup 
                                                 variant="bordered" 
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="bg-white/5"
                                             >
                                                 <Button
@@ -1084,7 +1071,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                                                         onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys))}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -1108,7 +1095,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                                                         onSelectionChange={(keys) => handleFilterChange('leaveType', Array.from(keys))}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -1133,7 +1120,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                                                         onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys))}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -1158,7 +1145,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
                                                         startContent={<CalendarIcon className="w-4 h-4 text-default-400" />}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             input: "text-sm",
