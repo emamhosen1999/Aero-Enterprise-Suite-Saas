@@ -37,11 +37,18 @@ import StatsCards from "@/Components/StatsCards.jsx";
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const AuditLogsIndex = () => {
   const { title } = usePage().props;
   const themeRadius = useThemeRadius();
   const isMobile = useMediaQuery('(max-width: 640px)');
+  const { hasAccess, canDelete, isSuperAdmin } = useHRMAC();
+
+  // Permissions using HRMAC
+  // TODO: Update with correct HRMAC path once module hierarchy is defined for Core
+  const canViewAuditLogs = hasAccess('core.audit-logs') || isSuperAdmin();
+  const canDeleteAuditLog = canDelete('core.audit-logs') || isSuperAdmin();
   
   const [activeTab, setActiveTab] = useState('activity');
   const [loading, setLoading] = useState(true);
