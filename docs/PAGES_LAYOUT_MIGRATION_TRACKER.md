@@ -20,17 +20,17 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 
 - [TODO] packages\aero-assistant\resources\js\Pages\Assistant\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Administration\ModuleHierarchyDemo.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Analytics\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Analytics\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Auth\AdminSetup.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Compliance\Dashboard.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Admin\Extensions\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\AuditLogs\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\FileManager\Index.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Core\Modules\Index.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Core\Modules\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Core\Notifications\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\Profile\Index.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Core\Roles\Index.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Core\Roles\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\Settings\SystemSettings.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\UserDevices\Index.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\CRM\Dashboard.jsx
@@ -86,6 +86,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\IMS\StockManagement.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\IMS\StockTransfers.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\IMS\Warehouses.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Integrations\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Installation\Admin.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Installation\AlreadyInstalled.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Installation\Complete.jsx
