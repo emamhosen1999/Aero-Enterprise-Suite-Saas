@@ -22,7 +22,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Head } from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
-import DailyWorksTable from '@/Tables/HRM/DailyWorksTable';
+import RfisTable from '@/Tables/HRM/RfisTable';
 import { 
     Card, 
     CardHeader, 
@@ -38,15 +38,15 @@ import {
 } from "@heroui/react";
 import StatsCards from "@/Components/StatsCards.jsx";
 import { useMediaQuery } from '@/Hooks/useMediaQuery.js';
-import DailyWorkForm from "@/Forms/HRM/DailyWorkForm.jsx";
-import DeleteDailyWorkForm from "@/Forms/HRM/DeleteDailyWorkForm.jsx";
-import EnhancedDailyWorksExportForm from "@/Forms/HRM/EnhancedDailyWorksExportForm.jsx";
-import DailyWorksUploadForm from "@/Forms/HRM/DailyWorksUploadForm.jsx";
+import RfiForm from "@/Forms/HRM/RfiForm.jsx";
+import DeleteRfiForm from "@/Forms/HRM/DeleteRfiForm.jsx";
+import EnhancedRfisExportForm from "@/Forms/HRM/EnhancedRfisExportForm.jsx";
+import RfisUploadForm from "@/Forms/HRM/RfisUploadForm.jsx";
 import ChainageProgressMap from "@/Components/RFI/ChainageProgressMap.jsx";
 
 
 
-const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, reports_with_daily_works, overallEndDate, overallStartDate }) => {
+const Rfis = ({ auth, title, allData, jurisdictions, users, reports, reports_with_rfis, overallEndDate, overallStartDate }) => {
     const isLargeScreen = useMediaQuery('(min-width: 1025px)');
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
     const isMobile = useMediaQuery('(max-width: 640px)');
@@ -150,12 +150,12 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
 
       
             
-            // Use the /daily-works-all endpoint to get all data without pagination
-            const response = await axios.get('/daily-works-all', { params });
+            // Use the /rfis-all endpoint to get all data without pagination
+            const response = await axios.get('/rfis-all', { params });
             
-            const dailyWorks = response.data.dailyWorks || [];
-            setData(Array.isArray(dailyWorks) ? dailyWorks : []);
-            setTotalRows(dailyWorks.length);
+            const rfis = response.data.rfis || [];
+            setData(Array.isArray(rfis) ? rfis : []);
+            setTotalRows(rfis.length);
             setLastPage(1);
             
          
@@ -188,7 +188,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
 
         
             
-            const response = await axios.get('/daily-works-paginate', { params });
+            const response = await axios.get('/rfis-paginate', { params });
             
             setData(Array.isArray(response.data.data) ? response.data.data : []);
             setTotalRows(response.data.total || 0);
@@ -277,7 +277,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                     perPage: itemsNeeded,
                 };
 
-                const response = await axios.get('/daily-works-paginate', { params });
+                const response = await axios.get('/rfis-paginate', { params });
                 
                 if (response.status === 200 && response.data.data) {
                     setData(prevData => {
@@ -308,7 +308,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
             
                 
                 // Use axios for delete operation with automatic CSRF handling
-                const response = await axios.delete('/delete-daily-work', {
+                const response = await axios.delete('/delete-rfi', {
                     data: {
                         id: taskIdToDelete,
                         page: currentPage,
@@ -358,18 +358,18 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                     const errorData = error.response.data;
                     
                     if (status === 403) {
-                        reject('You do not have permission to delete daily works.');
+                        reject('You do not have permission to delete rfis.');
                     } else if (status === 404) {
                         reject('Daily work not found.');
                     } else if (status === 422 && errorData.message) {
                         reject(errorData.message);
                     } else {
-                        reject(`Failed to delete daily work. Status: ${status}`);
+                        reject(`Failed to delete rfi. Status: ${status}`);
                     }
                 } else if (error.request) {
                     reject('Network error. Please check your connection.');
                 } else {
-                    reject(`Failed to delete daily work: ${error.message}`);
+                    reject(`Failed to delete rfi: ${error.message}`);
                 }
             } finally {
                 setDeleteLoading(false);
@@ -377,7 +377,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
         });
 
         showToast.promise(promise, {
-            loading: 'Deleting daily work...',
+            loading: 'Deleting rfi...',
             success: (data) => data,
             error: (data) => data,
         });
@@ -507,7 +507,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
     const fetchStatistics = async () => {
         setStatsLoading(true);
         try {
-            const response = await axios.get('/daily-works/statistics');
+            const response = await axios.get('/rfis/statistics');
             setApiStats(response.data);
         } catch (error) {
             console.error('Error fetching statistics:', error);
@@ -524,7 +524,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
             value: apiStats.overview?.totalWorks || 0,
             icon: <ChartBarIcon className="w-5 h-5" />,
             color: 'text-blue-600',
-            description: `All daily works`
+            description: `All rfis`
         },
         {
             title: 'Completed',
@@ -585,21 +585,21 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
             icon: <PlusIcon className="w-4 h-4" />,
             color: 'primary',
             variant: 'solid',
-            onPress: () => openModal('addDailyWork')
+            onPress: () => openModal('addRfi')
         },
         {
             label: 'Import',
             icon: <DocumentArrowUpIcon className="w-4 h-4" />,
             color: 'secondary',
             variant: 'flat',
-            onPress: () => openModal('importDailyWorks')
+            onPress: () => openModal('importRfis')
         },
         {
             label: 'Export',
             icon: <DocumentArrowDownIcon className="w-4 h-4" />,
             color: 'success',
             variant: 'flat',
-            onPress: () => openModal('exportDailyWorks')
+            onPress: () => openModal('exportRfis')
         }
     ];
 
@@ -647,37 +647,37 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
             <Head title={title} />
 
             {/* Modals */}
-            {openModalType === 'addDailyWork' && (
-                <DailyWorkForm
+            {openModalType === 'addRfi' && (
+                <RfiForm
                     modalType="add"
-                    open={openModalType === 'addDailyWork'}
+                    open={openModalType === 'addRfi'}
                     setData={setData}
                     closeModal={closeModal}
                     onSuccess={handleAddSuccess}
                 />
             )}
-            {openModalType === 'editDailyWork' && (
-                <DailyWorkForm
+            {openModalType === 'editRfi' && (
+                <RfiForm
                     modalType="update"
-                    open={openModalType === 'editDailyWork'}
+                    open={openModalType === 'editRfi'}
                     currentRow={currentRow}
                     setData={setData}
                     closeModal={closeModal}
                     onSuccess={handleEditSuccess}
                 />
             )}
-            {openModalType === 'deleteDailyWork' && (
-                <DeleteDailyWorkForm
-                    open={openModalType === 'deleteDailyWork'}
+            {openModalType === 'deleteRfi' && (
+                <DeleteRfiForm
+                    open={openModalType === 'deleteRfi'}
                     handleClose={handleClose}
                     handleDelete={handleDelete}
                     isLoading={deleteLoading}
                     setData={setData}
                 />
             )}
-            {openModalType === 'importDailyWorks' && (
-                <DailyWorksUploadForm
-                    open={openModalType === 'importDailyWorks'}
+            {openModalType === 'importRfis' && (
+                <RfisUploadForm
+                    open={openModalType === 'importRfis'}
                     closeModal={closeModal}
                     setData={setData}
                     setTotalRows={setTotalRows}
@@ -685,9 +685,9 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                     onSuccess={handleImportSuccess}
                 />
             )}
-            {openModalType === 'exportDailyWorks' && (
-                <EnhancedDailyWorksExportForm
-                    open={openModalType === 'exportDailyWorks'}
+            {openModalType === 'exportRfis' && (
+                <EnhancedRfisExportForm
+                    open={openModalType === 'exportRfis'}
                     closeModal={closeModal}
                     filterData={filterData}
                     users={users}
@@ -773,7 +773,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                                                         fontFamily: `var(--fontFamily, "Inter")`,
                                                     }}
                                                 >
-                                                    Track daily work progress and project activities
+                                                    Track rfi progress and project activities
                                                 </p>
                                             </div>
                                         </div>
@@ -1142,7 +1142,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                             >
                                 <CardBody className="p-4">
                                     {viewMode === 'table' ? (
-                                        <DailyWorksTable
+                                        <RfisTable
                                             setData={setData}
                                             filteredData={filteredData}
                                             setFilteredData={setFilteredData}
@@ -1163,7 +1163,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                                             allInCharges={allData.allInCharges}
                                             jurisdictions={jurisdictions}
                                             users={users}
-                                            reports_with_daily_works={reports_with_daily_works}
+                                            reports_with_rfis={reports_with_rfis}
                                             isMobile={isMobile}
                                         />
                                     ) : (
@@ -1198,6 +1198,6 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
     );
 };
 
-DailyWorks.layout = (page) => <App>{page}</App>;
+Rfis.layout = (page) => <App>{page}</App>;
 
-export default DailyWorks;
+export default Rfis;

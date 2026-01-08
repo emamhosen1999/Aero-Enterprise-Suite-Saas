@@ -40,7 +40,7 @@ import GpsMapPreview from '@/Components/RFI/GpsMapPreview.jsx';
 import LayerDependencyIndicator from '@/Components/RFI/LayerDependencyIndicator.jsx';
 
 
-const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
+const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
 
     // Helper function to convert theme borderRadius to HeroUI radius values
     const getThemeRadius = () => {
@@ -67,7 +67,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         return `RFI-${year}${month}${day}-${time}`;
     };
 
-    const [dailyWorkData, setDailyWorkData] = useState({
+    const [rfiData, setRfiData] = useState({
         id: currentRow?.id || '',
         date: currentRow?.date ? new Date(currentRow.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         number: currentRow?.number || (modalType === 'add' ? generateRFINumber() : ''),
@@ -240,16 +240,16 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
 
     // Validate GPS coordinates against expected location
     const validateGps = useCallback(async () => {
-        if (!dailyWorkData.gps_latitude || !dailyWorkData.gps_longitude || !dailyWorkData.chainage_start) {
+        if (!rfiData.gps_latitude || !rfiData.gps_longitude || !rfiData.chainage_start) {
             return;
         }
 
         try {
             const response = await axios.post(route('rfi.rfis.validate-gps'), {
-                gps_latitude: dailyWorkData.gps_latitude,
-                gps_longitude: dailyWorkData.gps_longitude,
-                chainage_start: dailyWorkData.chainage_start,
-                chainage_end: dailyWorkData.chainage_end
+                gps_latitude: rfiData.gps_latitude,
+                gps_longitude: rfiData.gps_longitude,
+                chainage_start: rfiData.chainage_start,
+                chainage_end: rfiData.chainage_end
             });
 
             if (response.status === 200) {
@@ -262,7 +262,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         } catch (error) {
             console.error('GPS validation failed:', error);
         }
-    }, [dailyWorkData.gps_latitude, dailyWorkData.gps_longitude, dailyWorkData.chainage_start, dailyWorkData.chainage_end]);
+    }, [rfiData.gps_latitude, rfiData.gps_longitude, rfiData.chainage_start, rfiData.chainage_end]);
 
     // Auto-validate GPS when coordinates change
     useEffect(() => {
@@ -275,16 +275,16 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
     
     // Check layer continuity
     const checkContinuity = useCallback(async () => {
-        if (!dailyWorkData.work_layer_id || !dailyWorkData.chainage_start || !dailyWorkData.chainage_end) {
+        if (!rfiData.work_layer_id || !rfiData.chainage_start || !rfiData.chainage_end) {
             return;
         }
 
         setCheckingContinuity(true);
         try {
             const response = await axios.post(route('rfi.rfis.check-continuity'), {
-                work_layer_id: dailyWorkData.work_layer_id,
-                chainage_start: dailyWorkData.chainage_start,
-                chainage_end: dailyWorkData.chainage_end
+                work_layer_id: rfiData.work_layer_id,
+                chainage_start: rfiData.chainage_start,
+                chainage_end: rfiData.chainage_end
             });
 
             if (response.status === 200) {
@@ -296,7 +296,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         } finally {
             setCheckingContinuity(false);
         }
-    }, [dailyWorkData.work_layer_id, dailyWorkData.chainage_start, dailyWorkData.chainage_end]);
+    }, [rfiData.work_layer_id, rfiData.chainage_start, rfiData.chainage_end]);
 
     // Auto-check continuity when layer/chainage changes
     useEffect(() => {
@@ -317,7 +317,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                 const initialErrors = {};
                 const initialValidationStatus = {};
                 
-                Object.entries(dailyWorkData).forEach(([key, value]) => {
+                Object.entries(rfiData).forEach(([key, value]) => {
                     if (value && value.toString().trim() !== '') {
                         initialValidationStatus[key] = 'success';
                         // Don't include in errors if field has a valid value
@@ -333,25 +333,25 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
             }
         }, 800);
         return () => clearTimeout(timer);
-    }, [modalType, currentRow, dailyWorkData]);
+    }, [modalType, currentRow, rfiData]);
 
     // Smart defaults based on work type
     useEffect(() => {
-        if (dailyWorkData.type && workTypeConfigs[dailyWorkData.type]) {
-            const config = workTypeConfigs[dailyWorkData.type];
+        if (rfiData.type && workTypeConfigs[rfiData.type]) {
+            const config = workTypeConfigs[rfiData.type];
             if (!currentRow) { // Only for new forms
-                setDailyWorkData(prev => ({
+                setRfiData(prev => ({
                     ...prev,
                     qty_layer: prev.qty_layer || String(config.defaultLayers),
                     planned_time: prev.planned_time || config.suggestedTimes[0]
                 }));
             }
         }
-    }, [dailyWorkData.type, currentRow, workTypeConfigs]);
+    }, [rfiData.type, currentRow, workTypeConfigs]);
 
     useEffect(() => {
         // Check if any field is changed
-        const hasChanges = Object.entries(dailyWorkData).some(([key, value]) => {
+        const hasChanges = Object.entries(rfiData).some(([key, value]) => {
             if (currentRow) {
                 return value !== (currentRow[key] || '');
             }
@@ -362,17 +362,17 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         // For edit mode, initialize validation status to success for fields with values
         if (currentRow && modalType === 'update') {
             const initialValidationStatus = {};
-            Object.entries(dailyWorkData).forEach(([key, value]) => {
+            Object.entries(rfiData).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
                     initialValidationStatus[key] = 'success';
                 }
             });
             setValidationStatus(prev => ({ ...prev, ...initialValidationStatus }));
         }
-    }, [dailyWorkData, currentRow, modalType]);
+    }, [rfiData, currentRow, modalType]);
 
     const handleChange = (name, value) => {
-        setDailyWorkData(prevData => ({
+        setRfiData(prevData => ({
             ...prevData,
             [name]: value,
         }));
@@ -405,7 +405,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         const newErrors = {};
         
         requiredFields.forEach(field => {
-            const error = validateField(field, dailyWorkData[field]);
+            const error = validateField(field, rfiData[field]);
             if (error) {
                 newErrors[field] = error;
             }
@@ -428,17 +428,17 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.post(route(`dailyWorks.${modalType}`), {
+                const response = await axios.post(route(`rfis.${modalType}`), {
                     ruleSet: 'details',
-                    ...dailyWorkData
+                    ...rfiData
                 });
 
                 if (response.status === 200) {
                     if (modalType === 'add') {
-                        setData(prevWorks => [response.data.dailyWork, ...prevWorks]);
+                        setData(prevWorks => [response.data.rfi, ...prevWorks]);
                     } else {
                         setData(prevWorks => prevWorks.map(work =>
-                            work.id === dailyWorkData.id ? response.data.dailyWork : work
+                            work.id === rfiData.id ? response.data.rfi : work
                         ));
                     }
 
@@ -473,7 +473,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                         return (
                             <div className="flex items-center gap-2">
                                 <Spinner size="sm" />
-                                <span>{modalType === 'add' ? 'Creating daily work...' : 'Updating daily work...'}</span>
+                                <span>{modalType === 'add' ? 'Creating rfi...' : 'Updating rfi...'}</span>
                             </div>
                         );
                     },
@@ -522,7 +522,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
     // Get validation icon
     const getValidationIcon = (fieldName) => {
         const status = validationStatus[fieldName];
-        if (!dailyWorkData[fieldName]) return null;
+        if (!rfiData[fieldName]) return null;
         
         if (status === 'success') {
             return <CheckCircle size={16} className="text-green-500" />;
@@ -570,10 +570,10 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                         <span className="text-lg font-semibold" style={{
                                             fontFamily: `var(--fontFamily, "Inter")`,
                                         }}>
-                                            {currentRow ? 'Edit Daily Work' : 'Add Daily Work'}
+                                            {currentRow ? 'Edit RFI' : 'Add RFI'}
                                         </span>
                                         <p className="text-sm text-default-500">
-                                            {currentRow ? 'Update work details and status' : 'Create a new daily work entry'}
+                                            {currentRow ? 'Update work details and status' : 'Create a new rfi entry'}
                                         </p>
                                     </div>
                                 </div>
@@ -611,7 +611,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                         isPressable
                                                         isHoverable
                                                         className={`p-3 cursor-pointer transition-all duration-200 ${
-                                                            dailyWorkData.type === key 
+                                                            rfiData.type === key 
                                                                 ? 'border-2 border-primary bg-primary/5' 
                                                                 : 'border border-divider hover:border-primary/50'
                                                         }`}
@@ -625,7 +625,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                                     <div className="font-semibold text-sm">{config.label}</div>
                                                                     <div className="text-xs text-default-500">{config.description}</div>
                                                                 </div>
-                                                                {dailyWorkData.type === key && (
+                                                                {rfiData.type === key && (
                                                                     <CheckCircle size={16} className="text-primary" />
                                                                 )}
                                                             </div>
@@ -643,7 +643,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Input
                                                     label="RFI Date"
                                                     type="date"
-                                                    value={dailyWorkData.date}
+                                                    value={rfiData.date}
                                                     onValueChange={(value) => handleChange('date', value)}
                                                     isInvalid={Boolean(errors.date)}
                                                     errorMessage={errors.date}
@@ -666,7 +666,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             <div className="col-span-1">
                                                 <Input
                                                     label="RFI Number"
-                                                    value={dailyWorkData.number}
+                                                    value={rfiData.number}
                                                     onValueChange={(value) => handleChange('number', value)}
                                                     isInvalid={Boolean(errors.number)}
                                                     errorMessage={errors.number}
@@ -705,7 +705,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Input
                                                     label="Location"
                                                     placeholder="e.g., Station 10+500 to 11+000"
-                                                    value={dailyWorkData.location}
+                                                    value={rfiData.location}
                                                     onValueChange={(value) => handleChange('location', value)}
                                                     isInvalid={Boolean(errors.location)}
                                                     errorMessage={errors.location}
@@ -730,7 +730,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     label="Road Type"
                                                     placeholder="Select Road Type"
                                                     selectionMode="single"
-                                                    selectedKeys={dailyWorkData.side ? new Set([dailyWorkData.side]) : new Set()}
+                                                    selectedKeys={rfiData.side ? new Set([rfiData.side]) : new Set()}
                                                     onSelectionChange={(keys) => {
                                                         const value = Array.from(keys)[0];
                                                         handleChange('side', value || '');
@@ -766,7 +766,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     label="Planned Time"
                                                     type="text"
                                                     placeholder="e.g., Morning shift, 2-3 hours, Full day"
-                                                    value={dailyWorkData.planned_time}
+                                                    value={rfiData.planned_time}
                                                     onValueChange={(value) => handleChange('planned_time', value)}
                                                     isInvalid={Boolean(errors.planned_time)}
                                                     errorMessage={errors.planned_time}
@@ -790,7 +790,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Input
                                                     label="Quantity/Layer No."
                                                     placeholder="e.g., 3 layers or 150 m³"
-                                                    value={dailyWorkData.qty_layer}
+                                                    value={rfiData.qty_layer}
                                                     onValueChange={(value) => handleChange('qty_layer', value)}
                                                     isInvalid={Boolean(errors.qty_layer)}
                                                     errorMessage={errors.qty_layer}
@@ -813,7 +813,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Textarea
                                                     label="Work Description"
                                                     placeholder="Provide detailed description of the work to be performed, including specific requirements, materials, and safety considerations..."
-                                                    value={dailyWorkData.description}
+                                                    value={rfiData.description}
                                                     onValueChange={(value) => handleChange('description', value)}
                                                     isInvalid={Boolean(errors.description)}
                                                     errorMessage={errors.description}
@@ -826,7 +826,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                         <div className="flex flex-col items-end gap-1">
                                                             {getValidationIcon('description')}
                                                             <span className="text-xs text-default-400">
-                                                                {dailyWorkData.description?.length || 0}/500
+                                                                {rfiData.description?.length || 0}/500
                                                             </span>
                                                         </div>
                                                     }
@@ -849,7 +849,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     label="Chainage Start (m)"
                                                     type="number"
                                                     placeholder="0"
-                                                    value={dailyWorkData.chainage_start}
+                                                    value={rfiData.chainage_start}
                                                     onValueChange={(value) => handleChange('chainage_start', value)}
                                                     isInvalid={Boolean(errors.chainage_start)}
                                                     errorMessage={errors.chainage_start}
@@ -868,7 +868,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     label="Chainage End (m)"
                                                     type="number"
                                                     placeholder="100"
-                                                    value={dailyWorkData.chainage_end}
+                                                    value={rfiData.chainage_end}
                                                     onValueChange={(value) => handleChange('chainage_end', value)}
                                                     isInvalid={Boolean(errors.chainage_end)}
                                                     errorMessage={errors.chainage_end}
@@ -887,7 +887,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Select
                                                     label="Work Layer"
                                                     placeholder="Select work layer"
-                                                    selectedKeys={dailyWorkData.work_layer_id ? [String(dailyWorkData.work_layer_id)] : []}
+                                                    selectedKeys={rfiData.work_layer_id ? [String(rfiData.work_layer_id)] : []}
                                                     onSelectionChange={(keys) => handleChange('work_layer_id', Array.from(keys)[0])}
                                                     isInvalid={Boolean(errors.work_layer_id)}
                                                     errorMessage={errors.work_layer_id}
@@ -916,7 +916,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                         <Input
                                                             placeholder="Latitude"
                                                             type="number"
-                                                            value={dailyWorkData.gps_latitude}
+                                                            value={rfiData.gps_latitude}
                                                             onValueChange={(value) => handleChange('gps_latitude', value)}
                                                             variant="bordered"
                                                             size="sm"
@@ -929,7 +929,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                         <Input
                                                             placeholder="Longitude"
                                                             type="number"
-                                                            value={dailyWorkData.gps_longitude}
+                                                            value={rfiData.gps_longitude}
                                                             onValueChange={(value) => handleChange('gps_longitude', value)}
                                                             variant="bordered"
                                                             size="sm"
@@ -972,18 +972,18 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             </div>
 
                                             {/* GPS Map Preview */}
-                                            {dailyWorkData.gps_latitude && dailyWorkData.gps_longitude && expectedGps && (
+                                            {rfiData.gps_latitude && rfiData.gps_longitude && expectedGps && (
                                                 <div className="col-span-full">
                                                     <GpsMapPreview
-                                                        userLat={parseFloat(dailyWorkData.gps_latitude)}
-                                                        userLng={parseFloat(dailyWorkData.gps_longitude)}
+                                                        userLat={parseFloat(rfiData.gps_latitude)}
+                                                        userLng={parseFloat(rfiData.gps_longitude)}
                                                         expectedLat={expectedGps.lat}
                                                         expectedLng={expectedGps.lng}
                                                         distance={gpsValidation?.distance}
                                                         isValid={gpsValidation?.is_valid}
                                                         tolerance={gpsValidation?.tolerance || 50}
-                                                        chainageStart={dailyWorkData.chainage_start}
-                                                        chainageEnd={dailyWorkData.chainage_end}
+                                                        chainageStart={rfiData.chainage_start}
+                                                        chainageEnd={rfiData.chainage_end}
                                                     />
                                                 </div>
                                             )}
@@ -1027,13 +1027,13 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             )}
 
                                             {/* Layer Dependency Visualization */}
-                                            {dailyWorkData.work_layer_id && workLayers.length > 0 && (
+                                            {rfiData.work_layer_id && workLayers.length > 0 && (
                                                 <div className="col-span-full">
                                                     <LayerDependencyIndicator
-                                                        layer={workLayers.find(l => l.id === parseInt(dailyWorkData.work_layer_id))}
+                                                        layer={workLayers.find(l => l.id === parseInt(rfiData.work_layer_id))}
                                                         projectId={1} // TODO: Get from context
-                                                        chainageStart={dailyWorkData.chainage_start}
-                                                        chainageEnd={dailyWorkData.chainage_end}
+                                                        chainageStart={rfiData.chainage_start}
+                                                        chainageEnd={rfiData.chainage_end}
                                                     />
                                                 </div>
                                             )}
@@ -1042,7 +1042,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             {/* ======================================================= */}
 
                                             {/* Smart suggestions based on work type */}
-                                            {dailyWorkData.type && workTypeConfigs[dailyWorkData.type] && (
+                                            {rfiData.type && workTypeConfigs[rfiData.type] && (
                                                 <div className="col-span-full">
                                                     <Card className="bg-primary/5 border border-primary/20" radius={getThemeRadius()}>
                                                         <CardBody className="p-3">
@@ -1050,14 +1050,14 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                                 <Sparkles size={16} className="text-primary mt-0.5" />
                                                                 <div className="flex-1">
                                                                     <h4 className="text-sm font-semibold text-primary mb-2">
-                                                                        Smart Suggestions for {workTypeConfigs[dailyWorkData.type].label}
+                                                                        Smart Suggestions for {workTypeConfigs[rfiData.type].label}
                                                                     </h4>
                                                                     
                                                                     {/* Suggested planned times */}
                                                                     <div className="mb-2">
                                                                         <p className="text-xs text-default-600 mb-1">Recommended times:</p>
                                                                         <div className="flex flex-wrap gap-1">
-                                                                            {workTypeConfigs[dailyWorkData.type].suggestedTimes.map((time, index) => (
+                                                                            {workTypeConfigs[rfiData.type].suggestedTimes.map((time, index) => (
                                                                                 <Chip
                                                                                     key={index}
                                                                                     size="sm"
@@ -1073,7 +1073,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                                     </div>
                                                                     
                                                                     <p className="text-xs text-default-600">
-                                                                        Typical layers: {workTypeConfigs[dailyWorkData.type].defaultLayers}
+                                                                        Typical layers: {workTypeConfigs[rfiData.type].defaultLayers}
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -1151,4 +1151,4 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
     );
 };
 
-export default DailyWorkForm;
+export default RfiForm;

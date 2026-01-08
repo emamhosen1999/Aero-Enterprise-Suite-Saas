@@ -37,7 +37,7 @@ import { showToast } from "@/utils/toastUtils";
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
-const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, onSuccess }) => {
+const RfisUploadForm = ({ open, closeModal, setTotalRows, setData, refreshData, onSuccess }) => {
     // Expected Excel format data - based on actual project format
     const expectedFormat = [
         { column: 'A', field: 'Date', example: '4/27/2025', required: true, processed: true },
@@ -176,7 +176,7 @@ const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refresh
                     || document.querySelector('input[name="_token"]')?.value 
                     || window.Laravel?.csrfToken;
 
-                const response = await axios.post(route('dailyWorks.import'), formData, {
+                const response = await axios.post(route('rfis.import'), formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
@@ -223,7 +223,7 @@ const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refresh
                     if (error.response.status === 422) {
                         // Handle validation errors
                         setServerErrors(error.response.data.errors || {});
-                        reject(error.response.data.error || 'Failed to import daily works');
+                        reject(error.response.data.error || 'Failed to import rfis');
                     } else if (error.response.status === 500) {
                         // Handle server errors
                         const errorMessage = error.response.data.error || error.response.data.message || 'Internal server error occurred';
@@ -320,10 +320,10 @@ const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refresh
                                     <h2 className="text-lg font-semibold text-foreground" style={{
                                         fontFamily: `var(--fontFamily, "Inter")`,
                                     }}>
-                                        Import Daily Works
+                                        Import RFIs
                                     </h2>
                                     <p className="text-sm text-default-500">
-                                        Upload Excel or CSV file to import multiple daily work entries
+                                        Upload Excel or CSV file to import multiple rfi entries
                                     </p>
                                 </div>
                             </div>
@@ -572,7 +572,7 @@ const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refresh
                                     >
                                         <div className="space-y-3">
                                             <p className="text-sm text-default-600">
-                                                Download our Excel template with the correct 8-column format and sample daily work data:
+                                                Download our Excel template with the correct 8-column format and sample rfi data:
                                             </p>
                                             <Button
                                                 color="success"
@@ -580,7 +580,7 @@ const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refresh
                                                 startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
                                                 onPress={() => {
                                                     // Create and download template
-                                                    window.open(route('dailyWorks.downloadTemplate'), '_blank');
+                                                    window.open(route('rfis.downloadTemplate'), '_blank');
                                                 }}
                                             >
                                                 Download Excel Template
@@ -622,7 +622,7 @@ const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refresh
                                     fontFamily: `var(--fontFamily, "Inter")`,
                                 }}
                             >
-                                {processing ? `Uploading... ${uploadProgress}%` : 'Import Daily Works'}
+                                {processing ? `Uploading... ${uploadProgress}%` : 'Import RFIs'}
                             </Button>
                         </ModalFooter>
                     </>
@@ -632,4 +632,4 @@ const DailyWorksUploadForm = ({ open, closeModal, setTotalRows, setData, refresh
     );
 };
 
-export default DailyWorksUploadForm;
+export default RfisUploadForm;

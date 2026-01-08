@@ -15,8 +15,8 @@ import {
 import { X, AlertCircle, CheckCircle } from 'lucide-react';
 import { showToast } from '@/utils/toastUtils';
 
-const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalType }) => {
-    const [dailyWorkData, setDailyWorkData] = useState({
+const EnhancedRfiForm = ({ open, closeModal, currentRow, setData, modalType }) => {
+    const [rfiData, setRfiData] = useState({
         id: currentRow?.id || '',
         date: currentRow?.date || new Date().toISOString().split('T')[0],
         number: currentRow?.number || '',
@@ -100,7 +100,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setDailyWorkData(prevData => ({
+        setRfiData(prevData => ({
             ...prevData,
             [name]: value,
         }));
@@ -123,8 +123,8 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
 
     const validateAllFields = () => {
         let isValid = true;
-        Object.keys(dailyWorkData).forEach(key => {
-            if (!validateField(key, dailyWorkData[key])) {
+        Object.keys(rfiData).forEach(key => {
+            if (!validateField(key, rfiData[key])) {
                 isValid = false;
             }
         });
@@ -144,18 +144,18 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
         setErrors({});
 
         try {
-            const response = await axios.post(route(`dailyWorks.${modalType}`), {
+            const response = await axios.post(route(`rfis.${modalType}`), {
                 ruleSet: 'details',
-                ...dailyWorkData
+                ...rfiData
             });
 
             if (response.status === 200) {
                 if (modalType === 'update') {
                     setData(prevWorks => prevWorks.map(work =>
-                        work.id === dailyWorkData.id ? { ...work, ...response.data.dailyWork } : work
+                        work.id === rfiData.id ? { ...work, ...response.data.rfi } : work
                     ));
                 } else {
-                    setData(prevWorks => [...prevWorks, response.data.dailyWork]);
+                    setData(prevWorks => [...prevWorks, response.data.rfi]);
                 }
                 
                 showToast.success(response.data.message || `Daily work ${modalType === 'add' ? 'created' : 'updated'} successfully!`);
@@ -175,7 +175,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
             } else if (error.response?.status === 403) {
                 showToast.error('You do not have permission to perform this action.');
             } else if (error.response?.status === 409) {
-                showToast.error('A daily work with this RFI number already exists.');
+                showToast.error('A rfi with this RFI number already exists.');
             } else if (error.response?.status === 500) {
                 showToast.error('Server error occurred. Please try again later.');
             } else {
@@ -214,7 +214,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                     <ModalHeader className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <h2 className="text-lg font-semibold">
-                                {modalType === 'add' ? 'Add Daily Work' : 'Edit Daily Work'}
+                                {modalType === 'add' ? 'Add RFI' : 'Edit RFI'}
                             </h2>
                             {isFormValid() && (
                                 <Chip size="sm" color="success" variant="flat">
@@ -241,7 +241,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                                 label="RFI Date"
                                 type="date"
                                 name="date"
-                                value={dailyWorkData.date}
+                                value={rfiData.date}
                                 onChange={handleChange}
                                 isInvalid={isFieldInvalid('date')}
                                 errorMessage={getFieldError('date')}
@@ -253,7 +253,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                                 variant="bordered"
                                 label="RFI Number"
                                 name="number"
-                                value={dailyWorkData.number}
+                                value={rfiData.number}
                                 onChange={handleChange}
                                 isInvalid={isFieldInvalid('number')}
                                 errorMessage={getFieldError('number')}
@@ -266,7 +266,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                                 variant="bordered"
                                 label="Planned Time"
                                 name="planned_time"
-                                value={dailyWorkData.planned_time}
+                                value={rfiData.planned_time}
                                 onChange={handleChange}
                                 isInvalid={isFieldInvalid('planned_time')}
                                 errorMessage={getFieldError('planned_time')}
@@ -279,7 +279,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                                 variant="bordered"
                                 label="Work Type"
                                 name="type"
-                                selectedKeys={[dailyWorkData.type]}
+                                selectedKeys={[rfiData.type]}
                                 onSelectionChange={(keys) => {
                                     const value = Array.from(keys)[0];
                                     handleChange({ target: { name: 'type', value } });
@@ -298,7 +298,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                                 variant="bordered"
                                 label="Location"
                                 name="location"
-                                value={dailyWorkData.location}
+                                value={rfiData.location}
                                 onChange={handleChange}
                                 isInvalid={isFieldInvalid('location')}
                                 errorMessage={getFieldError('location')}
@@ -311,7 +311,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                                 variant="bordered"
                                 label="Description"
                                 name="description"
-                                value={dailyWorkData.description}
+                                value={rfiData.description}
                                 onChange={handleChange}
                                 isInvalid={isFieldInvalid('description')}
                                 errorMessage={getFieldError('description')}
@@ -324,7 +324,7 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                                 variant="bordered"
                                 label="Road Side"
                                 name="side"
-                                selectedKeys={[dailyWorkData.side]}
+                                selectedKeys={[rfiData.side]}
                                 onSelectionChange={(keys) => {
                                     const value = Array.from(keys)[0];
                                     handleChange({ target: { name: 'side', value } });
@@ -342,14 +342,14 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
                             
                             <Input
                                 variant="bordered"
-                                label={dailyWorkData.type === 'Embankment' ? 'Layer Number' : 'Quantity/Layer'}
+                                label={rfiData.type === 'Embankment' ? 'Layer Number' : 'Quantity/Layer'}
                                 name="qty_layer"
-                                value={dailyWorkData.qty_layer}
+                                value={rfiData.qty_layer}
                                 onChange={handleChange}
                                 isInvalid={isFieldInvalid('qty_layer')}
                                 errorMessage={getFieldError('qty_layer')}
                                 isRequired={false}
-                                placeholder={dailyWorkData.type === 'Embankment' ? 'Layer 1 (optional)' : 'Quantity or layer info'}
+                                placeholder={rfiData.type === 'Embankment' ? 'Layer 1 (optional)' : 'Quantity or layer info'}
                                 description="Optional quantity or layer information"
                             />
                         </div>
@@ -397,4 +397,4 @@ const EnhancedDailyWorkForm = ({ open, closeModal, currentRow, setData, modalTyp
     );
 };
 
-export default EnhancedDailyWorkForm;
+export default EnhancedRfiForm;

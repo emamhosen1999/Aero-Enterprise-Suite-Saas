@@ -1,6 +1,6 @@
 /**
- * Daily Work Module Constants
- * Aligned with backend: App\Models\DailyWork
+ * RFI Module Constants
+ * Aligned with backend: App\Models\Rfi
  */
 
 // Status constants - must match backend exactly

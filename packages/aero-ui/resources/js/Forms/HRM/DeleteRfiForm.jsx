@@ -10,7 +10,7 @@ import React from "react";
 import { showToast } from "@/utils/toastUtils";
 import { ExclamationTriangleIcon, TrashIcon } from "@heroicons/react/24/outline";
 
-const DeleteDailyWorkForm = ({ open, handleClose, handleDelete, isLoading = false }) => {
+const DeleteRfiForm = ({ open, handleClose, handleDelete, isLoading = false }) => {
     // Helper function to convert theme borderRadius to HeroUI radius values
     const getThemeRadius = () => {
         if (typeof window === 'undefined') return 'lg';
@@ -79,7 +79,7 @@ const DeleteDailyWorkForm = ({ open, handleClose, handleDelete, isLoading = fals
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-default-700 leading-relaxed">
-                                        Are you sure you want to delete this daily work entry? 
+                                        Are you sure you want to delete this rfi entry? 
                                         This action will permanently remove the work record and cannot be undone.
                                     </p>
                                     <div className="mt-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
@@ -133,4 +133,4 @@ const DeleteDailyWorkForm = ({ open, handleClose, handleDelete, isLoading = fals
     );
 };
 
-export default DeleteDailyWorkForm;
+export default DeleteRfiForm;
