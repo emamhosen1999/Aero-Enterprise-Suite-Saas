@@ -7,9 +7,11 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const LaborDeploymentsIndex = ({ title }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     const getThemeRadius = () => {
         if (typeof window === 'undefined') return 'lg';
@@ -46,9 +48,11 @@ const LaborDeploymentsIndex = ({ title }) => {
         { title: "Safety Incidents", value: stats.safetyIncidents, icon: <UserGroupIcon className="w-6 h-6" />, color: stats.safetyIncidents > 0 ? "text-danger" : "text-success", iconBg: stats.safetyIncidents > 0 ? "bg-danger/20" : "bg-success/20" },
     ], [stats]);
 
-    const canCreate = auth.permissions?.includes('rfi.labor-deployments.create') || false;
-    const canEdit = auth.permissions?.includes('rfi.labor-deployments.update') || false;
-    const canDelete = auth.permissions?.includes('rfi.labor-deployments.delete') || false;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for RFI
+    const canCreateDeployment = canCreate('rfi.labor-deployments') || isSuperAdmin();
+    const canEditDeployment = canUpdate('rfi.labor-deployments') || isSuperAdmin();
+    const canDeleteDeployment = canDelete('rfi.labor-deployments') || isSuperAdmin();
 
     const fetchDeployments = useCallback(async () => {
         setLoading(true);
@@ -157,8 +161,8 @@ const LaborDeploymentsIndex = ({ title }) => {
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu>
-                            {canEdit && <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}>Edit</DropdownItem>}
-                            {canDelete && (
+                            {canEditDeployment && <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}>Edit</DropdownItem>}
+                            {canDeleteDeployment && (
                                 <DropdownItem key="delete" className="text-danger" color="danger" startContent={<TrashIcon className="w-4 h-4" />} onPress={() => handleDelete(deployment)}>
                                     Delete
                                 </DropdownItem>
@@ -193,7 +197,7 @@ const LaborDeploymentsIndex = ({ title }) => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreateDeployment && (
                                                     <Button color="primary" variant="shadow" startContent={<PlusIcon className="w-4 h-4" />} size={isMobile ? "sm" : "md"}>Add Deployment</Button>
                                                 )}
                                             </div>

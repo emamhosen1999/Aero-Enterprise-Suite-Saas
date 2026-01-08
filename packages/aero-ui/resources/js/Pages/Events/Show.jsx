@@ -30,12 +30,16 @@ import StatsCards from '@/Components/Common/StatsCards';
 import dayjs from 'dayjs';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ShowEvent = ({ event, analytics }) => {
     const { auth } = usePage().props;
+    const { canUpdate, isSuperAdmin } = useHRMAC();
     
-    const canEdit = auth.permissions?.includes('event.update');
-    const canManageRegistrations = auth.permissions?.includes('event.registration.manage');
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined
+    const canEdit = canUpdate('events.events-management') || isSuperAdmin();
+    const canManageRegistrations = canUpdate('events.events-management') || isSuperAdmin();
     
     const statsData = useMemo(() => [
         {

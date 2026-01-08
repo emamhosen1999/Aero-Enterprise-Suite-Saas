@@ -7,9 +7,11 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const SiteInstructionsIndex = ({ title }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     const getThemeRadius = () => {
         if (typeof window === 'undefined') return 'lg';
@@ -46,9 +48,11 @@ const SiteInstructionsIndex = ({ title }) => {
         { title: "Overdue", value: stats.overdue, icon: <ExclamationTriangleIcon className="w-6 h-6" />, color: "text-danger", iconBg: "bg-danger/20" },
     ], [stats]);
 
-    const canCreate = auth.permissions?.includes('rfi.site-instructions.create') || false;
-    const canEdit = auth.permissions?.includes('rfi.site-instructions.update') || false;
-    const canDelete = auth.permissions?.includes('rfi.site-instructions.delete') || false;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for RFI
+    const canCreateInstruction = canCreate('rfi.site-instructions') || isSuperAdmin();
+    const canEditInstruction = canUpdate('rfi.site-instructions') || isSuperAdmin();
+    const canDeleteInstruction = canDelete('rfi.site-instructions') || isSuperAdmin();
 
     const fetchInstructions = useCallback(async () => {
         setLoading(true);
@@ -175,8 +179,8 @@ const SiteInstructionsIndex = ({ title }) => {
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu>
-                            {canEdit && <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}>Edit</DropdownItem>}
-                            {canDelete && (
+                            {canEditInstruction && <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}>Edit</DropdownItem>}
+                            {canDeleteInstruction && (
                                 <DropdownItem key="delete" className="text-danger" color="danger" startContent={<TrashIcon className="w-4 h-4" />} onPress={() => handleDelete(instruction)}>
                                     Delete
                                 </DropdownItem>
@@ -211,7 +215,7 @@ const SiteInstructionsIndex = ({ title }) => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreateInstruction && (
                                                     <Button color="primary" variant="shadow" startContent={<PlusIcon className="w-4 h-4" />} size={isMobile ? "sm" : "md"}>Add Instruction</Button>
                                                 )}
                                             </div>
