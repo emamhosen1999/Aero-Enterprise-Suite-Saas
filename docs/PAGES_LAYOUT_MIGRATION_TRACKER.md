@@ -33,7 +33,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Core\Roles\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\Settings\SystemSettings.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Core\UserDevices\Index.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\CRM\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\CRM\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\CRM\Pipeline\DealCard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\CRM\Pipeline\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\CRM\Pipeline\KanbanBoard.jsx
@@ -80,7 +80,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\UserInformation.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\UserProfile.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\HRM\Wizard.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\IMS\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\IMS\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\IMS\Items.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\IMS\StockAdjustments.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\IMS\StockManagement.jsx
@@ -211,7 +211,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [DONE] packages\aero-ui\resources\js\Pages\Project\Dashboard.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Project\ProjectsIndex.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Project\Rfis\Index.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Quality\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Quality\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Rfi\ChainageProgress\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Rfi\DailyWorks\Create\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Rfi\DailyWorks\Edit\Index.jsx
