@@ -27,6 +27,8 @@ import {
     ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 
 const ProjectsIndex = ({ projects = [], auth }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -37,25 +39,8 @@ const ProjectsIndex = ({ projects = [], auth }) => {
     const rowsPerPage = 10;
 
     // Responsive
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
-
-    // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    const isMobile = useMediaQuery('(max-width: 640px)');
+    const themeRadius = useThemeRadius();
 
     // Permission helper
     const hasPermission = (permission) => {
@@ -222,7 +207,7 @@ const ProjectsIndex = ({ projects = [], auth }) => {
                         <Button
                             color="primary"
                             startContent={<PlusIcon className="w-5 h-5" />}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             New Project
                         </Button>
@@ -237,12 +222,12 @@ const ProjectsIndex = ({ projects = [], auth }) => {
                         onValueChange={handleSearchChange}
                         startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                         className="w-full sm:w-64"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     />
                     <Select
                         placeholder="All Clients"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setClientFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Clients</SelectItem>
@@ -253,7 +238,7 @@ const ProjectsIndex = ({ projects = [], auth }) => {
                     <Select
                         placeholder="All Status"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Status</SelectItem>
@@ -265,7 +250,7 @@ const ProjectsIndex = ({ projects = [], auth }) => {
                     <Select
                         placeholder="All Priority"
                         className="w-full sm:w-48"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setPriorityFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Priority</SelectItem>
@@ -277,7 +262,7 @@ const ProjectsIndex = ({ projects = [], auth }) => {
                     <Button
                         variant="flat"
                         startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     >
                         Export
                     </Button>

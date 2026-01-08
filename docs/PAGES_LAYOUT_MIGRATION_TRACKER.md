@@ -43,7 +43,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Events\Analytics.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Events\Create.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Events\Edit.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Events\Index.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Events\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Events\Registrations\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Events\Registrations\PrintToken.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Events\Registrations\Show.jsx
@@ -111,7 +111,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Platform\Admin\Billing\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Platform\Admin\Billing\Invoices.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Platform\Admin\Billing\Subscriptions.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Platform\Admin\Dashboard.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Platform\Admin\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Platform\Admin\data\mockData.js
 - [TODO] packages\aero-ui\resources\js\Pages\Platform\Admin\Developer\Cache.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Platform\Admin\Developer\Dashboard.jsx
@@ -209,7 +209,7 @@ This tracker lists all page-related files under `packages/*/resources/js/Pages/`
 - [TODO] packages\aero-ui\resources\js\Pages\Project\DailyWorks.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Project\DailyWorkSummary.jsx
 - [DONE] packages\aero-ui\resources\js\Pages\Project\Dashboard.jsx
-- [TODO] packages\aero-ui\resources\js\Pages\Project\ProjectsIndex.jsx
+- [DONE] packages\aero-ui\resources\js\Pages\Project\ProjectsIndex.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Project\Rfis\Index.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Quality\Dashboard.jsx
 - [TODO] packages\aero-ui\resources\js\Pages\Rfi\ChainageProgress\Index.jsx

@@ -3,6 +3,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import App from '@/Layouts/App';
 import { motion, AnimatePresence } from 'framer-motion';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import { 
   Button, 
   Chip, 
@@ -90,20 +91,14 @@ import {
 } from '@heroicons/react/24/solid';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// THEME UTILITIES
+// PLATFORM MODULE - Dynamic from Backend
 // ═══════════════════════════════════════════════════════════════════════════════
+// All module data comes from the Platform package's config and widget registry.
+// No hardcoded module definitions - widgets provide all necessary data.
 
-const getThemeRadius = () => {
-  if (typeof window === 'undefined') return 'lg';
-  const rootStyles = getComputedStyle(document.documentElement);
-  const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-  const radiusValue = parseInt(borderRadius);
-  if (radiusValue === 0) return 'none';
-  if (radiusValue <= 4) return 'sm';
-  if (radiusValue <= 8) return 'md';
-  if (radiusValue <= 12) return 'lg';
-  return 'xl';
-};
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPONENTS - All data from Backend Widgets
+// ═══════════════════════════════════════════════════════════════════════════════
 
 // Consistent card styling - matches tenant dashboard
 const getCardStyle = (accentColor = 'var(--theme-primary)') => ({
@@ -830,17 +825,10 @@ const Dashboard = ({ stats = {}, dynamicWidgets = {}, title = 'Admin Dashboard' 
   // System status from health widget or stats
   const systemStatus = systemHealth?.status ?? stats?.systemStatus ?? 'operational';
 
-  const [themeRadius, setThemeRadius] = useState('lg');
+  const themeRadius = useThemeRadius();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    const updateRadius = () => setThemeRadius(getThemeRadius());
-    updateRadius();
-    window.addEventListener('resize', updateRadius);
-    return () => window.removeEventListener('resize', updateRadius);
-  }, []);
 
   // Auto-refresh every 5 minutes
   useEffect(() => {
