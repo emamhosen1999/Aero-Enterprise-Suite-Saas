@@ -319,4 +319,39 @@ class DepartmentController extends Controller
             'departments' => $departments,
         ]);
     }
+
+    /**
+     * Display the organization chart
+     *
+     * @return \Inertia\Response
+     */
+    public function orgChart(): \Inertia\Response
+    {
+        // Get all departments with their relationships for the org chart
+        $departments = Department::with(['parent', 'manager', 'children', 'employees'])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        // Build hierarchical structure for org chart
+        $rootDepartments = $departments->filter(function ($dept) {
+            return is_null($dept->parent_id) || $dept->parent_id === 0;
+        });
+
+        // Get employee statistics per department
+        $stats = [
+            'total_departments' => $departments->count(),
+            'total_employees' => $departments->sum(function ($dept) {
+                return $dept->employees ? $dept->employees->count() : 0;
+            }),
+            'root_departments' => $rootDepartments->count(),
+        ];
+
+        return Inertia::render('HRM/OrgChart', [
+            'title' => 'Organization Chart',
+            'departments' => $departments,
+            'rootDepartments' => $rootDepartments->values(),
+            'stats' => $stats,
+        ]);
+    }
 }

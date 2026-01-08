@@ -171,12 +171,13 @@ const LeavesAdmin = ({ title, allUsers }) => {
         }
     ], [leaveStats]);
 
-    // Check permissions using new system
-    const canManageLeaves = auth.permissions?.includes('leaves.view') || false;
-    const canApproveLeaves = auth.permissions?.includes('leaves.approve') || false;
-    const canCreateLeaves = auth.permissions?.includes('leaves.create') || false;
-    const canEditLeaves = auth.permissions?.includes('leaves.update') || false;
-    const canDeleteLeaves = auth.permissions?.includes('leaves.delete') || false;
+    // Check permissions using new system - also allow Super Administrator
+    const isSuperAdmin = auth.roles?.some(r => r.name === 'Super Administrator') || false;
+    const canManageLeaves = auth.permissions?.includes('leaves.view') || isSuperAdmin;
+    const canApproveLeaves = auth.permissions?.includes('leaves.approve') || isSuperAdmin;
+    const canCreateLeaves = auth.permissions?.includes('leaves.create') || isSuperAdmin;
+    const canEditLeaves = auth.permissions?.includes('leaves.update') || isSuperAdmin;
+    const canDeleteLeaves = auth.permissions?.includes('leaves.delete') || isSuperAdmin;
 
   
 

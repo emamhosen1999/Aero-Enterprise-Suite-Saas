@@ -643,6 +643,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['module:hrm,employees,departments,department-list,delete'])->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->name('departments.delete');
     Route::middleware(['module:hrm,employees,departments,department-list,update'])->put('/users/{id}/department', [DepartmentController::class, 'updateUserDepartment'])->name('users.update-department');
 
+    // Organization Chart route
+    Route::middleware(['module:hrm,employees,departments'])->get('/org-chart', [DepartmentController::class, 'orgChart'])->name('org-chart');
+
     // Route::middleware(['module:hrm,organization'])->get('/jurisdiction', [JurisdictionController::class, 'index'])->name('jurisdiction'); // TODO: Move to compliance package
 
     // Holiday management routes

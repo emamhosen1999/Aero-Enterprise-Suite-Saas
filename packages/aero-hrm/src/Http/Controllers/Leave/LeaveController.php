@@ -73,7 +73,7 @@ class LeaveController extends Controller
 
     public function index2(): \Inertia\Response
     {
-        return Inertia::render('HRM/TimeOff/AdminLeaves', [
+        return Inertia::render('HRM/LeavesAdmin', [
             'title' => 'Leaves',
             'allUsers' => User::all(),
         ]);
