@@ -36,6 +36,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 import KanbanColumn from './KanbanColumn';
 import DealCard from './DealCard';
@@ -55,6 +56,15 @@ const KanbanBoard = ({
     initialSummary = {},
     users = [],
 }) => {
+    // HRMAC permissions - TODO: Update with actual module hierarchy path
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewPipeline = hasAccess('crm.pipeline') || isSuperAdmin();
+    const canManageDeals = canUpdate('crm.deals') || isSuperAdmin();
+    const canCreateDeal = canCreate('crm.deals') || isSuperAdmin();
+    const canEditDeal = canUpdate('crm.deals') || isSuperAdmin();
+    const canDeleteDeal = canDelete('crm.deals') || isSuperAdmin();
+    const canMoveDeals = canUpdate('crm.deals.stage') || isSuperAdmin();
+
     // ========== STATE ==========
     const [columns, setColumns] = useState(() => {
         // Initialize columns with deals from initialColumns

@@ -28,10 +28,18 @@ import {
     PlusIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
-// Permission checks removed - using role-based access via middleware
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const TaxReturns = () => {
     const { auth, taxReturns: initialData } = usePage().props;
+    
+    // HRMAC permissions - TODO: Update with actual module hierarchy path
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewTaxReturns = hasAccess('finance.tax-returns') || isSuperAdmin();
+    const canCreateTaxReturn = canCreate('finance.tax-returns') || isSuperAdmin();
+    const canEditTaxReturn = canUpdate('finance.tax-returns') || isSuperAdmin();
+    const canDeleteTaxReturn = canDelete('finance.tax-returns') || isSuperAdmin();
+    const canFileReturn = canUpdate('finance.tax-returns.file') || isSuperAdmin();
     const [isMobile, setIsMobile] = useState(false);
     const [filters, setFilters] = useState({
         search: '',

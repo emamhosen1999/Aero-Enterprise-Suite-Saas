@@ -12,6 +12,7 @@ import {
     UserIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 /**
  * Payslip Component
@@ -40,6 +41,12 @@ const Payslip = ({
     // Fallback for when used without controller data
     organization 
 }) => {
+    // HRMAC permissions - TODO: Update with actual module hierarchy path
+    const { hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewPayslip = hasAccess('hrm.payroll.payslip') || isSuperAdmin();
+    const canPrintPayslip = hasAccess('hrm.payroll.payslip.print') || isSuperAdmin();
+    const canDownloadPayslip = hasAccess('hrm.payroll.payslip.download') || isSuperAdmin();
+
     // Format currency helper
     const formatCurrency = (amount, currency = 'USD') => {
         return new Intl.NumberFormat('en-US', {
