@@ -33,7 +33,7 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { parseDate } from "@internationalized/date";
 
-const EnhancedDailyWorksExportForm = ({ 
+const EnhancedRfisExportForm = ({ 
     open, 
     closeModal, 
     filterData = {}, 
@@ -145,7 +145,7 @@ const EnhancedDailyWorksExportForm = ({
                 })
             };
 
-            const response = await axios.post(route('dailyWorks.export'), exportParams);
+            const response = await axios.post(route('rfis.export'), exportParams);
             
             if (response.data.data) {
                 const { data: exportData, filename } = response.data;
@@ -178,7 +178,7 @@ const EnhancedDailyWorksExportForm = ({
     const exportToExcel = (data, filename) => {
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Daily Works');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'RFIs');
         
         // Auto-size columns
         const cols = Object.keys(data[0] || {}).map(() => ({ wch: 20 }));
@@ -261,10 +261,10 @@ const EnhancedDailyWorksExportForm = ({
                             <h2 className="text-lg font-semibold text-foreground" style={{
                                 fontFamily: `var(--fontFamily, "Inter")`,
                             }}>
-                                Export Daily Works
+                                Export RFIs
                             </h2>
                             <p className="text-sm text-default-500">
-                                Export daily work records with customizable options
+                                Export rfi records with customizable options
                             </p>
                         </div>
                     </div>
@@ -517,4 +517,4 @@ const EnhancedDailyWorksExportForm = ({
     );
 };
 
-export default EnhancedDailyWorksExportForm;
+export default EnhancedRfisExportForm;

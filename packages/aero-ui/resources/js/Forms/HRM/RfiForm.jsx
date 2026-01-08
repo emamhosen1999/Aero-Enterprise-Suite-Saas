@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
     Button,
     Input,
@@ -28,12 +28,19 @@ import {
     CheckCircle,
     AlertTriangle
 } from 'lucide-react';
-import { BuildingOfficeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { 
+    BuildingOfficeIcon, 
+    ExclamationTriangleIcon,
+    XCircleIcon,
+    CheckCircleIcon 
+} from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import GpsMapPreview from '@/Components/RFI/GpsMapPreview.jsx';
+import LayerDependencyIndicator from '@/Components/RFI/LayerDependencyIndicator.jsx';
 
 
-const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
+const RfiForm = ({ open, closeModal, currentRow, setData, modalType}) => {
 
     // Helper function to convert theme borderRadius to HeroUI radius values
     const getThemeRadius = () => {
@@ -60,7 +67,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         return `RFI-${year}${month}${day}-${time}`;
     };
 
-    const [dailyWorkData, setDailyWorkData] = useState({
+    const [rfiData, setRfiData] = useState({
         id: currentRow?.id || '',
         date: currentRow?.date ? new Date(currentRow.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         number: currentRow?.number || (modalType === 'add' ? generateRFINumber() : ''),
@@ -70,6 +77,11 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         description: currentRow?.description || '',
         side: currentRow?.side || 'SR-R',
         qty_layer: currentRow?.qty_layer || '',
+        gps_latitude: currentRow?.gps_latitude || '',
+        gps_longitude: currentRow?.gps_longitude || '',
+        work_layer_id: currentRow?.work_layer_id || '',
+        chainage_start: currentRow?.chainage_start || '',
+        chainage_end: currentRow?.chainage_end || '',
     });
 
     const [errors, setErrors] = useState({});
@@ -77,6 +89,15 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
     const [dataChanged, setDataChanged] = useState(false);
     const [formLoading, setFormLoading] = useState(true);
     const [validationStatus, setValidationStatus] = useState({});
+    
+    // GPS & Continuity state (PATENTABLE FEATURES)
+    const [capturingGps, setCapturingGps] = useState(false);
+    const [gpsValidation, setGpsValidation] = useState(null);
+    const [expectedGps, setExpectedGps] = useState(null);
+    const [continuityCheck, setContinuityCheck] = useState(null);
+    const [checkingContinuity, setCheckingContinuity] = useState(false);
+    const [workLayers, setWorkLayers] = useState([]);
+    const [loadingLayers, setLoadingLayers] = useState(false);
 
     // Work type configurations with enhanced metadata
     const workTypeConfigs = useMemo(() => ({
@@ -169,6 +190,123 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         return error;
     };
 
+    // ========================================================================
+    // PATENTABLE FEATURE 1: GPS Geo-Fencing Validation
+    // ========================================================================
+    
+    // Load work layers
+    useEffect(() => {
+        const fetchWorkLayers = async () => {
+            setLoadingLayers(true);
+            try {
+                const response = await axios.get(route('rfi.layers.index'));
+                if (response.status === 200) {
+                    setWorkLayers(response.data.layers || []);
+                }
+            } catch (error) {
+                console.error('Failed to fetch work layers:', error);
+            } finally {
+                setLoadingLayers(false);
+            }
+        };
+        
+        if (open) {
+            fetchWorkLayers();
+        }
+    }, [open]);
+
+    // Capture GPS from device
+    const captureGps = useCallback(() => {
+        if (!navigator.geolocation) {
+            showToast.error('GPS is not supported by your browser');
+            return;
+        }
+
+        setCapturingGps(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                handleChange('gps_latitude', position.coords.latitude.toFixed(6));
+                handleChange('gps_longitude', position.coords.longitude.toFixed(6));
+                setCapturingGps(false);
+                showToast.success('GPS coordinates captured successfully');
+            },
+            (error) => {
+                setCapturingGps(false);
+                showToast.error(`GPS capture failed: ${error.message}`);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }, []);
+
+    // Validate GPS coordinates against expected location
+    const validateGps = useCallback(async () => {
+        if (!rfiData.gps_latitude || !rfiData.gps_longitude || !rfiData.chainage_start) {
+            return;
+        }
+
+        try {
+            const response = await axios.post(route('rfi.rfis.validate-gps'), {
+                gps_latitude: rfiData.gps_latitude,
+                gps_longitude: rfiData.gps_longitude,
+                chainage_start: rfiData.chainage_start,
+                chainage_end: rfiData.chainage_end
+            });
+
+            if (response.status === 200) {
+                setGpsValidation(response.data);
+                setExpectedGps({
+                    lat: response.data.expected_latitude,
+                    lng: response.data.expected_longitude
+                });
+            }
+        } catch (error) {
+            console.error('GPS validation failed:', error);
+        }
+    }, [rfiData.gps_latitude, rfiData.gps_longitude, rfiData.chainage_start, rfiData.chainage_end]);
+
+    // Auto-validate GPS when coordinates change
+    useEffect(() => {
+        validateGps();
+    }, [validateGps]);
+
+    // ========================================================================
+    // PATENTABLE FEATURE 2: Linear Continuity Validation
+    // ========================================================================
+    
+    // Check layer continuity
+    const checkContinuity = useCallback(async () => {
+        if (!rfiData.work_layer_id || !rfiData.chainage_start || !rfiData.chainage_end) {
+            return;
+        }
+
+        setCheckingContinuity(true);
+        try {
+            const response = await axios.post(route('rfi.rfis.check-continuity'), {
+                work_layer_id: rfiData.work_layer_id,
+                chainage_start: rfiData.chainage_start,
+                chainage_end: rfiData.chainage_end
+            });
+
+            if (response.status === 200) {
+                setContinuityCheck(response.data);
+            }
+        } catch (error) {
+            console.error('Continuity check failed:', error);
+            setContinuityCheck(null);
+        } finally {
+            setCheckingContinuity(false);
+        }
+    }, [rfiData.work_layer_id, rfiData.chainage_start, rfiData.chainage_end]);
+
+    // Auto-check continuity when layer/chainage changes
+    useEffect(() => {
+        checkContinuity();
+    }, [checkContinuity]);
+
+    // End of PATENTABLE FEATURES
+    // ========================================================================
+
+
     // Initialize form loading simulation
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -179,7 +317,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                 const initialErrors = {};
                 const initialValidationStatus = {};
                 
-                Object.entries(dailyWorkData).forEach(([key, value]) => {
+                Object.entries(rfiData).forEach(([key, value]) => {
                     if (value && value.toString().trim() !== '') {
                         initialValidationStatus[key] = 'success';
                         // Don't include in errors if field has a valid value
@@ -195,25 +333,25 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
             }
         }, 800);
         return () => clearTimeout(timer);
-    }, [modalType, currentRow, dailyWorkData]);
+    }, [modalType, currentRow, rfiData]);
 
     // Smart defaults based on work type
     useEffect(() => {
-        if (dailyWorkData.type && workTypeConfigs[dailyWorkData.type]) {
-            const config = workTypeConfigs[dailyWorkData.type];
+        if (rfiData.type && workTypeConfigs[rfiData.type]) {
+            const config = workTypeConfigs[rfiData.type];
             if (!currentRow) { // Only for new forms
-                setDailyWorkData(prev => ({
+                setRfiData(prev => ({
                     ...prev,
                     qty_layer: prev.qty_layer || String(config.defaultLayers),
                     planned_time: prev.planned_time || config.suggestedTimes[0]
                 }));
             }
         }
-    }, [dailyWorkData.type, currentRow, workTypeConfigs]);
+    }, [rfiData.type, currentRow, workTypeConfigs]);
 
     useEffect(() => {
         // Check if any field is changed
-        const hasChanges = Object.entries(dailyWorkData).some(([key, value]) => {
+        const hasChanges = Object.entries(rfiData).some(([key, value]) => {
             if (currentRow) {
                 return value !== (currentRow[key] || '');
             }
@@ -224,17 +362,17 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         // For edit mode, initialize validation status to success for fields with values
         if (currentRow && modalType === 'update') {
             const initialValidationStatus = {};
-            Object.entries(dailyWorkData).forEach(([key, value]) => {
+            Object.entries(rfiData).forEach(([key, value]) => {
                 if (value && value.toString().trim() !== '') {
                     initialValidationStatus[key] = 'success';
                 }
             });
             setValidationStatus(prev => ({ ...prev, ...initialValidationStatus }));
         }
-    }, [dailyWorkData, currentRow, modalType]);
+    }, [rfiData, currentRow, modalType]);
 
     const handleChange = (name, value) => {
-        setDailyWorkData(prevData => ({
+        setRfiData(prevData => ({
             ...prevData,
             [name]: value,
         }));
@@ -267,7 +405,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         const newErrors = {};
         
         requiredFields.forEach(field => {
-            const error = validateField(field, dailyWorkData[field]);
+            const error = validateField(field, rfiData[field]);
             if (error) {
                 newErrors[field] = error;
             }
@@ -290,17 +428,17 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.post(route(`dailyWorks.${modalType}`), {
+                const response = await axios.post(route(`rfis.${modalType}`), {
                     ruleSet: 'details',
-                    ...dailyWorkData
+                    ...rfiData
                 });
 
                 if (response.status === 200) {
                     if (modalType === 'add') {
-                        setData(prevWorks => [response.data.dailyWork, ...prevWorks]);
+                        setData(prevWorks => [response.data.rfi, ...prevWorks]);
                     } else {
                         setData(prevWorks => prevWorks.map(work =>
-                            work.id === dailyWorkData.id ? response.data.dailyWork : work
+                            work.id === rfiData.id ? response.data.rfi : work
                         ));
                     }
 
@@ -335,7 +473,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                         return (
                             <div className="flex items-center gap-2">
                                 <Spinner size="sm" />
-                                <span>{modalType === 'add' ? 'Creating daily work...' : 'Updating daily work...'}</span>
+                                <span>{modalType === 'add' ? 'Creating rfi...' : 'Updating rfi...'}</span>
                             </div>
                         );
                     },
@@ -384,7 +522,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
     // Get validation icon
     const getValidationIcon = (fieldName) => {
         const status = validationStatus[fieldName];
-        if (!dailyWorkData[fieldName]) return null;
+        if (!rfiData[fieldName]) return null;
         
         if (status === 'success') {
             return <CheckCircle size={16} className="text-green-500" />;
@@ -432,10 +570,10 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                         <span className="text-lg font-semibold" style={{
                                             fontFamily: `var(--fontFamily, "Inter")`,
                                         }}>
-                                            {currentRow ? 'Edit Daily Work' : 'Add Daily Work'}
+                                            {currentRow ? 'Edit RFI' : 'Add RFI'}
                                         </span>
                                         <p className="text-sm text-default-500">
-                                            {currentRow ? 'Update work details and status' : 'Create a new daily work entry'}
+                                            {currentRow ? 'Update work details and status' : 'Create a new rfi entry'}
                                         </p>
                                     </div>
                                 </div>
@@ -473,7 +611,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                         isPressable
                                                         isHoverable
                                                         className={`p-3 cursor-pointer transition-all duration-200 ${
-                                                            dailyWorkData.type === key 
+                                                            rfiData.type === key 
                                                                 ? 'border-2 border-primary bg-primary/5' 
                                                                 : 'border border-divider hover:border-primary/50'
                                                         }`}
@@ -487,7 +625,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                                     <div className="font-semibold text-sm">{config.label}</div>
                                                                     <div className="text-xs text-default-500">{config.description}</div>
                                                                 </div>
-                                                                {dailyWorkData.type === key && (
+                                                                {rfiData.type === key && (
                                                                     <CheckCircle size={16} className="text-primary" />
                                                                 )}
                                                             </div>
@@ -505,7 +643,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Input
                                                     label="RFI Date"
                                                     type="date"
-                                                    value={dailyWorkData.date}
+                                                    value={rfiData.date}
                                                     onValueChange={(value) => handleChange('date', value)}
                                                     isInvalid={Boolean(errors.date)}
                                                     errorMessage={errors.date}
@@ -528,7 +666,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                             <div className="col-span-1">
                                                 <Input
                                                     label="RFI Number"
-                                                    value={dailyWorkData.number}
+                                                    value={rfiData.number}
                                                     onValueChange={(value) => handleChange('number', value)}
                                                     isInvalid={Boolean(errors.number)}
                                                     errorMessage={errors.number}
@@ -567,7 +705,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Input
                                                     label="Location"
                                                     placeholder="e.g., Station 10+500 to 11+000"
-                                                    value={dailyWorkData.location}
+                                                    value={rfiData.location}
                                                     onValueChange={(value) => handleChange('location', value)}
                                                     isInvalid={Boolean(errors.location)}
                                                     errorMessage={errors.location}
@@ -592,7 +730,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     label="Road Type"
                                                     placeholder="Select Road Type"
                                                     selectionMode="single"
-                                                    selectedKeys={dailyWorkData.side ? new Set([dailyWorkData.side]) : new Set()}
+                                                    selectedKeys={rfiData.side ? new Set([rfiData.side]) : new Set()}
                                                     onSelectionChange={(keys) => {
                                                         const value = Array.from(keys)[0];
                                                         handleChange('side', value || '');
@@ -628,7 +766,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     label="Planned Time"
                                                     type="text"
                                                     placeholder="e.g., Morning shift, 2-3 hours, Full day"
-                                                    value={dailyWorkData.planned_time}
+                                                    value={rfiData.planned_time}
                                                     onValueChange={(value) => handleChange('planned_time', value)}
                                                     isInvalid={Boolean(errors.planned_time)}
                                                     errorMessage={errors.planned_time}
@@ -652,7 +790,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Input
                                                     label="Quantity/Layer No."
                                                     placeholder="e.g., 3 layers or 150 m³"
-                                                    value={dailyWorkData.qty_layer}
+                                                    value={rfiData.qty_layer}
                                                     onValueChange={(value) => handleChange('qty_layer', value)}
                                                     isInvalid={Boolean(errors.qty_layer)}
                                                     errorMessage={errors.qty_layer}
@@ -675,7 +813,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 <Textarea
                                                     label="Work Description"
                                                     placeholder="Provide detailed description of the work to be performed, including specific requirements, materials, and safety considerations..."
-                                                    value={dailyWorkData.description}
+                                                    value={rfiData.description}
                                                     onValueChange={(value) => handleChange('description', value)}
                                                     isInvalid={Boolean(errors.description)}
                                                     errorMessage={errors.description}
@@ -688,7 +826,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                         <div className="flex flex-col items-end gap-1">
                                                             {getValidationIcon('description')}
                                                             <span className="text-xs text-default-400">
-                                                                {dailyWorkData.description?.length || 0}/500
+                                                                {rfiData.description?.length || 0}/500
                                                             </span>
                                                         </div>
                                                     }
@@ -701,8 +839,210 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                 />
                                             </div>
 
+                                            {/* ======================================================= */}
+                                            {/* PATENTABLE FEATURES UI - GPS & Continuity             */}
+                                            {/* ======================================================= */}
+
+                                            {/* Chainage Range */}
+                                            <div className="col-span-1">
+                                                <Input
+                                                    label="Chainage Start (m)"
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={rfiData.chainage_start}
+                                                    onValueChange={(value) => handleChange('chainage_start', value)}
+                                                    isInvalid={Boolean(errors.chainage_start)}
+                                                    errorMessage={errors.chainage_start}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-1">
+                                                <Input
+                                                    label="Chainage End (m)"
+                                                    type="number"
+                                                    placeholder="100"
+                                                    value={rfiData.chainage_end}
+                                                    onValueChange={(value) => handleChange('chainage_end', value)}
+                                                    isInvalid={Boolean(errors.chainage_end)}
+                                                    errorMessage={errors.chainage_end}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* Work Layer with Linear Continuity Check */}
+                                            <div className="col-span-1">
+                                                <Select
+                                                    label="Work Layer"
+                                                    placeholder="Select work layer"
+                                                    selectedKeys={rfiData.work_layer_id ? [String(rfiData.work_layer_id)] : []}
+                                                    onSelectionChange={(keys) => handleChange('work_layer_id', Array.from(keys)[0])}
+                                                    isInvalid={Boolean(errors.work_layer_id)}
+                                                    errorMessage={errors.work_layer_id}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    isLoading={loadingLayers}
+                                                    classNames={{
+                                                        trigger: "min-h-unit-10",
+                                                        value: "text-small"
+                                                    }}
+                                                >
+                                                    {workLayers?.map(layer => (
+                                                        <SelectItem key={String(layer.id)} textValue={layer.name}>
+                                                            {layer.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </Select>
+                                            </div>
+
+                                            {/* GPS Capture Section */}
+                                            <div className="col-span-1">
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-xs text-default-600">GPS Location</label>
+                                                    <div className="flex gap-2">
+                                                        <Input
+                                                            placeholder="Latitude"
+                                                            type="number"
+                                                            value={rfiData.gps_latitude}
+                                                            onValueChange={(value) => handleChange('gps_latitude', value)}
+                                                            variant="bordered"
+                                                            size="sm"
+                                                            radius={getThemeRadius()}
+                                                            classNames={{
+                                                                input: "text-small",
+                                                                inputWrapper: "min-h-unit-10"
+                                                            }}
+                                                        />
+                                                        <Input
+                                                            placeholder="Longitude"
+                                                            type="number"
+                                                            value={rfiData.gps_longitude}
+                                                            onValueChange={(value) => handleChange('gps_longitude', value)}
+                                                            variant="bordered"
+                                                            size="sm"
+                                                            radius={getThemeRadius()}
+                                                            classNames={{
+                                                                input: "text-small",
+                                                                inputWrapper: "min-h-unit-10"
+                                                            }}
+                                                        />
+                                                        <Tooltip content="Capture GPS from device">
+                                                            <Button
+                                                                isIconOnly
+                                                                size="sm"
+                                                                color="primary"
+                                                                variant="flat"
+                                                                onPress={captureGps}
+                                                                isLoading={capturingGps}
+                                                            >
+                                                                {!capturingGps && <MapPinIcon size={16} />}
+                                                            </Button>
+                                                        </Tooltip>
+                                                    </div>
+                                                    {/* GPS Validation Status */}
+                                                    {gpsValidation && (
+                                                        <Chip
+                                                            color={gpsValidation.is_valid ? 'success' : 'danger'}
+                                                            size="sm"
+                                                            variant="flat"
+                                                            startContent={
+                                                                gpsValidation.is_valid ? 
+                                                                <CheckCircle size={12} /> : 
+                                                                <AlertTriangle size={12} />
+                                                            }
+                                                        >
+                                                            {gpsValidation.is_valid ? 'Valid' : 'Invalid'} 
+                                                            {gpsValidation.distance && ` - ${gpsValidation.distance.toFixed(1)}m`}
+                                                        </Chip>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* GPS Map Preview */}
+                                            {rfiData.gps_latitude && rfiData.gps_longitude && expectedGps && (
+                                                <div className="col-span-full">
+                                                    <GpsMapPreview
+                                                        userLat={parseFloat(rfiData.gps_latitude)}
+                                                        userLng={parseFloat(rfiData.gps_longitude)}
+                                                        expectedLat={expectedGps.lat}
+                                                        expectedLng={expectedGps.lng}
+                                                        distance={gpsValidation?.distance}
+                                                        isValid={gpsValidation?.is_valid}
+                                                        tolerance={gpsValidation?.tolerance || 50}
+                                                        chainageStart={rfiData.chainage_start}
+                                                        chainageEnd={rfiData.chainage_end}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Linear Continuity Check Result */}
+                                            {checkingContinuity && (
+                                                <div className="col-span-full">
+                                                    <div className="flex items-center gap-2 text-sm text-default-500">
+                                                        <Spinner size="sm" />
+                                                        <span>Checking layer continuity...</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {continuityCheck && (
+                                                <div className="col-span-full">
+                                                    <Card className="bg-default-50" radius={getThemeRadius()}>
+                                                        <CardBody className="p-3">
+                                                            <div className="flex items-start gap-3">
+                                                                {continuityCheck.can_proceed ? (
+                                                                    <CheckCircleIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                                ) : (
+                                                                    <XCircleIcon className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+                                                                )}
+                                                                <div className="flex-1">
+                                                                    <p className={`font-semibold text-sm ${continuityCheck.can_proceed ? 'text-success' : 'text-danger'}`}>
+                                                                        {continuityCheck.can_proceed ? 'Continuity Check Passed' : 'Continuity Issues Detected'}
+                                                                    </p>
+                                                                    <p className="text-xs text-default-600 mt-1">
+                                                                        {continuityCheck.message}
+                                                                    </p>
+                                                                    {continuityCheck.coverage_percentage !== undefined && (
+                                                                        <p className="text-xs text-default-500 mt-2">
+                                                                            Coverage: {continuityCheck.coverage_percentage.toFixed(1)}%
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </CardBody>
+                                                    </Card>
+                                                </div>
+                                            )}
+
+                                            {/* Layer Dependency Visualization */}
+                                            {rfiData.work_layer_id && workLayers.length > 0 && (
+                                                <div className="col-span-full">
+                                                    <LayerDependencyIndicator
+                                                        layer={workLayers.find(l => l.id === parseInt(rfiData.work_layer_id))}
+                                                        projectId={1} // TODO: Get from context
+                                                        chainageStart={rfiData.chainage_start}
+                                                        chainageEnd={rfiData.chainage_end}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* End PATENTABLE FEATURES UI */}
+                                            {/* ======================================================= */}
+
                                             {/* Smart suggestions based on work type */}
-                                            {dailyWorkData.type && workTypeConfigs[dailyWorkData.type] && (
+                                            {rfiData.type && workTypeConfigs[rfiData.type] && (
                                                 <div className="col-span-full">
                                                     <Card className="bg-primary/5 border border-primary/20" radius={getThemeRadius()}>
                                                         <CardBody className="p-3">
@@ -710,14 +1050,14 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                                 <Sparkles size={16} className="text-primary mt-0.5" />
                                                                 <div className="flex-1">
                                                                     <h4 className="text-sm font-semibold text-primary mb-2">
-                                                                        Smart Suggestions for {workTypeConfigs[dailyWorkData.type].label}
+                                                                        Smart Suggestions for {workTypeConfigs[rfiData.type].label}
                                                                     </h4>
                                                                     
                                                                     {/* Suggested planned times */}
                                                                     <div className="mb-2">
                                                                         <p className="text-xs text-default-600 mb-1">Recommended times:</p>
                                                                         <div className="flex flex-wrap gap-1">
-                                                                            {workTypeConfigs[dailyWorkData.type].suggestedTimes.map((time, index) => (
+                                                                            {workTypeConfigs[rfiData.type].suggestedTimes.map((time, index) => (
                                                                                 <Chip
                                                                                     key={index}
                                                                                     size="sm"
@@ -733,7 +1073,7 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                                     </div>
                                                                     
                                                                     <p className="text-xs text-default-600">
-                                                                        Typical layers: {workTypeConfigs[dailyWorkData.type].defaultLayers}
+                                                                        Typical layers: {workTypeConfigs[rfiData.type].defaultLayers}
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -811,4 +1151,4 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
     );
 };
 
-export default DailyWorkForm;
+export default RfiForm;

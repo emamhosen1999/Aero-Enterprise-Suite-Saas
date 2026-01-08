@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useEffect, useState } from "react";
 import {
     Checkbox,
     Button,
@@ -13,31 +13,69 @@ import {
     TableColumn,
     TableBody,
     TableRow,
-    TableCell,
+    TableCell
 } from "@heroui/react";
 import { X, Download } from 'lucide-react';
 
 import { showToast } from "@/utils/toastUtils";
 
 import * as XLSX from 'xlsx';
+import axios from "axios";
 
 
-const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }) => {
+const RfisDownloadForm = ({ open, closeModal, search, filterData, users }) => {
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(route('rfis.all'), {
+                    params: {
+                        search,
+                        status: filterData.status !== 'all' ? filterData.status : '',
+                        inCharge: filterData.incharge !== 'all' ? filterData.incharge : '',
+                        startDate: filterData.startDate,
+                        endDate: filterData.endDate,
+                    }
+                });
+                setData(response.data);
+            } catch (error) {
+                console.error(error);
+                showToast.error('Failed to fetch data.', {
+                    icon: '🔴',
+                    style: {
+                        backdropFilter: 'blur(16px) saturate(200%)',
+                        background: theme.glassCard.background,
+                        border: theme.glassCard.border,
+                        color: theme.palette.text.primary,
+                    },
+                });
+            }
+        };
+
+        fetchData();
+    }, [filterData, search]);
 
     const [processing, setProcessing] = useState(false);
 
     const columns = [
-        { label: 'Date', key: 'date' },
-        { label: 'Total Daily Works', key: 'totalDailyWorks' },
-        { label: 'Resubmissions', key: 'resubmissions' },
-        { label: 'Embankment', key: 'embankment' },
-        { label: 'Structure', key: 'structure' },
-        { label: 'Pavement', key: 'pavement' },
-        { label: 'Completed', key: 'completed' },
-        { label: 'Pending', key: 'pending' },
-        { label: 'Completion Percentage', key: 'completionPercentage' },
-        { label: 'RFI Submissions', key: 'rfiSubmissions' },
-        { label: 'RFI Submission Percentage', key: 'rfiSubmissionPercentage' },
+
+        { label: 'Date', key: 'date'  },
+        { label: 'RFI No.', key: 'number' },
+        { label: 'Status', key: 'status' },
+        { label: 'Assigned', key: 'assigned'},  // Visible for admin users
+        { label: 'In charge', key: 'incharge' },   // Visible for SE users
+        { label: 'Type', key: 'type' },
+        { label: 'Description', key: 'description' },
+        { label: 'Location', key: 'location' },
+        { label: 'Side', key: 'side' },
+        { label: 'Quantity/Layer', key: 'qty_layer' },
+        { label: 'Planned Time', key: 'planned_time' },
+        { label: 'Completion Time', key: 'completion_time' },
+        { label: 'Results', key: 'inspection_details' },
+        { label: 'Resubmission Count', key: 'resubmission_count' },
+        { label: 'RFI Submission Date', key: 'rfi_submission_date' },
+
 
     ];
 
@@ -55,44 +93,25 @@ const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }
     const exportToExcel = async (selectedColumns) => {
         const promise = new Promise((resolve, reject) => {
             try {
-                // Check if there are selected columns
-                if (!selectedColumns || selectedColumns.length === 0) {
-                    reject('No columns selected for export.');
-                    return;
-                }
-
-                // Filter the data based on the selected columns
-                const exportData = filteredData.map(row => {
+                // Filter the columns based on the user's selection
+                const exportData = data.map(row => {
                     const selectedRow = {};
 
-                    // Calculate completion percentage and RFI submission percentage
-                    const totalDailyWorks = row.totalDailyWorks || 0;
-                    const completed = row.completed || 0;
-                    const rfiSubmissions = row.rfiSubmissions || 0;
-
-                    const pending = totalDailyWorks > 0
-                        ? `${((totalDailyWorks - completed))}`
-                        : '0';
-
-                    const completionPercentage = totalDailyWorks > 0
-                        ? `${((completed / totalDailyWorks) * 100).toFixed(1)}%`
-                        : '0%';
-
-                    const rfiSubmissionPercentage = totalDailyWorks > 0
-                        ? `${((rfiSubmissions / totalDailyWorks) * 100).toFixed(1)}%`
-                        : '0%';
-
-                    // Loop through selected columns and populate selectedRow
                     selectedColumns.forEach(column => {
                         if (column.checked) {
-                            if (column.key === 'pending') {
-                                selectedRow[column.label] = pending;
-                            } else if (column.key === 'completionPercentage') {
-                                selectedRow[column.label] = completionPercentage;
-                            } else if (column.key === 'rfiSubmissionPercentage') {
-                                selectedRow[column.label] = rfiSubmissionPercentage;
+                            if (column.key === 'incharge' || column.key === 'assigned') {
+                                // Fetch the user by matching the id
+                                const user = users.find(user => user.id === row[column.key]);
+
+                                // Assign the username or other desired attribute
+                                selectedRow[column.label] = user ? user.name : 'N/A'; // Use 'Unknown' if no user is found
+                            } else if (column.key === 'status') {
+                                // Capitalize the first character of the status value
+                                const statusValue = row[column.key];
+                                selectedRow[column.label] = statusValue.charAt(0).toUpperCase() + statusValue.slice(1);
                             } else {
-                                selectedRow[column.label] = row[column.key] || ''; // Fallback to empty string if value is null/undefined
+                                // Assign the value directly from the row
+                                selectedRow[column.label] = row[column.key];
                             }
                         }
                     });
@@ -100,24 +119,20 @@ const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }
                     return selectedRow;
                 });
 
-                // Check if there's data to export
-                if (exportData.length === 0) {
-                    reject('No data available for export.');
-                    return;
-                }
-
                 // Create and download Excel file
                 const worksheet = XLSX.utils.json_to_sheet(exportData);
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'Daily Work Summary');
-                XLSX.writeFile(workbook, 'DailyWorkSummary.xlsx');
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'RFIs');
+                XLSX.writeFile(workbook, 'Rfis.xlsx');
 
+                // Notify success
                 resolve('Export successful!');
-                closeModal(); // Close modal after successful export
+                closeModal(); // Close the modal
 
             } catch (error) {
+                // Handle any errors that occur during the export process
                 reject('Failed to export data. Please try again.');
-                console.error("Error exporting data to Excel:", error); // Log the actual error for debugging
+                console.error("Error exporting data to Excel:", error);
             }
         });
 
@@ -128,7 +143,7 @@ const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }
                     render() {
                         return (
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <Spinner size="sm" />
+                                <CircularProgress />
                                 <span style={{ marginLeft: '8px' }}>Exporting data to Excel ...</span>
                             </div>
                         );
@@ -192,8 +207,9 @@ const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }
                 footer: "border-t border-divider",
             }}
         >
+            <ModalContent>
                 <ModalHeader className="flex justify-between items-center">
-                    <h2 className="text-lg font-semibold">Export Daily Works</h2>
+                    <h2 className="text-lg font-semibold">Export RFIs</h2>
                     <Button
                         isIconOnly
                         variant="light"
@@ -240,4 +256,4 @@ const DailyWorkSummaryDownloadForm = ({ open, closeModal,  filteredData, users }
     );
 };
 
-export default DailyWorkSummaryDownloadForm;
+export default RfisDownloadForm;

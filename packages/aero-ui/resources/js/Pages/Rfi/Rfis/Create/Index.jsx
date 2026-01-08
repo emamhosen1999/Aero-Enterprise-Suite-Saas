@@ -1,2 +1,2 @@
 // Re-export for RFI Create page
-export { default } from '@/Pages/Project/DailyWorks';
+export { default } from '@/Pages/Project/Rfis';
