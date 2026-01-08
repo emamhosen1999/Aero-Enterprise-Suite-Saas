@@ -29,10 +29,21 @@ import {
     TrashIcon,
     DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
+import {useHRMAC} from '@/Hooks/useHRMAC';
 import App from "@/Layouts/App.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
 
 const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0 }, accounts = [], filters: initialFilters = {} }) => {
+    // HRMAC permissions
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update with actual HRMAC module hierarchy path once defined
+    const canViewLedger = hasAccess('finance.ledger') || isSuperAdmin();
+    const canCreateEntry = canCreate('finance.ledger.entries') || isSuperAdmin();
+    const canEditEntry = canUpdate('finance.ledger.entries') || isSuperAdmin();
+    const canDeleteEntry = canDelete('finance.ledger.entries') || isSuperAdmin();
+    const canExportLedger = hasAccess('finance.ledger.export') || isSuperAdmin();
+    
     // Responsive state
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -69,11 +80,6 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
     };
 
     const themeRadius = getThemeRadius();
-
-    // Permission helper
-    const hasPermission = (permission) => {
-        return auth.user?.permissions?.includes(permission) || auth.user?.is_super_admin;
-    };
 
     // Handle filter changes
     const handleFilterChange = (key, value) => {

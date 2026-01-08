@@ -3,8 +3,16 @@ import { Head, Link } from '@inertiajs/react';
 import { Card, CardBody, CardHeader, Button } from '@heroui/react';
 import App from '@/Layouts/App.jsx';
 import { ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ProfileIndex = ({ title = 'My Profile', user }) => {
+  const { hasAccess, isSuperAdmin } = useHRMAC();
+  
+  // Permissions using HRMAC
+  // TODO: Update with correct HRMAC path once module hierarchy is defined for Core
+  const canViewProfile = hasAccess('core.profile') || isSuperAdmin();
+  const canAccessSecurity = hasAccess('core.profile.security') || isSuperAdmin();
+  
   const userName = user?.name || 'User';
   return (
     <App>

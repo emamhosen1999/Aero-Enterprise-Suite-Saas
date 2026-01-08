@@ -1,8 +1,15 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import dayjs from 'dayjs';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const PrintToken = ({ registration, event }) => {
+    const { hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Events
+    const canViewRegistration = hasAccess('events.registrations') || isSuperAdmin();
+    
     React.useEffect(() => {
         // Auto-print when page loads
         window.print();

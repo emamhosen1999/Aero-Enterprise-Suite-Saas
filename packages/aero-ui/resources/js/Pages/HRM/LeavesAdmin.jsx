@@ -28,11 +28,13 @@ import dayjs from 'dayjs';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils.jsx';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 
 const LeavesAdmin = ({ title, allUsers }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Custom media queries
     const [isMobile, setIsMobile] = useState(false);
@@ -171,12 +173,13 @@ const LeavesAdmin = ({ title, allUsers }) => {
         }
     ], [leaveStats]);
 
-    // Check permissions using new system - also allow Super Administrator
-    // auth.isSuperAdmin is provided directly, or check auth.user.roles array
-    const isSuperAdmin = auth.isSuperAdmin || auth.user?.roles?.includes('Super Administrator') || false;
-    const canManageLeaves = auth.permissions?.includes('leaves.view') || isSuperAdmin;
-    const canApproveLeaves = auth.permissions?.includes('leaves.approve') || isSuperAdmin;
-    const canCreateLeaves = auth.permissions?.includes('leaves.create') || isSuperAdmin;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canManageLeaves = canUpdate("hrm.leaves") || isSuperAdmin();
+    const canApproveLeaves = canUpdate("hrm.leaves") || isSuperAdmin(); // Approval is an update action
+    const canCreateLeaves = canCreate("hrm.leaves") || isSuperAdmin();
+    const canEditLeaves = canUpdate("hrm.leaves") || isSuperAdmin();
+    const canDeleteLeaves = canDelete("hrm.leaves") || isSuperAdmin();
     const canEditLeaves = auth.permissions?.includes('leaves.update') || isSuperAdmin;
     const canDeleteLeaves = auth.permissions?.includes('leaves.delete') || isSuperAdmin;
 

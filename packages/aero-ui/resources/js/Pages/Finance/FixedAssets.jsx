@@ -29,8 +29,18 @@ import {
     TrashIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => {
+    // HRMAC permissions - TODO: Update with actual module hierarchy path
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewAssets = hasAccess('finance.fixed-assets') || isSuperAdmin();
+    const canCreateAsset = canCreate('finance.fixed-assets') || isSuperAdmin();
+    const canEditAsset = canUpdate('finance.fixed-assets') || isSuperAdmin();
+    const canDeleteAsset = canDelete('finance.fixed-assets') || isSuperAdmin();
+    const canDepreciateAsset = canUpdate('finance.fixed-assets.depreciate') || isSuperAdmin();
+    const canExportAssets = hasAccess('finance.fixed-assets.export') || isSuperAdmin();
+
     // Responsive hooks
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);

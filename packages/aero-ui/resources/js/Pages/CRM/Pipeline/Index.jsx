@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
 import KanbanBoard from './KanbanBoard';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 export default function Index({
     auth,
@@ -33,6 +34,15 @@ export default function Index({
 }) {
     const [selectedPipelineId, setSelectedPipelineId] = useState(pipeline?.id);
     const [viewMode, setViewMode] = useState('kanban');
+
+    // HRMAC permissions
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update these paths with actual HRMAC module hierarchy once defined
+    const canViewPipeline = hasAccess('crm.pipeline') || isSuperAdmin();
+    const canManageDeals = canUpdate('crm.deals') || isSuperAdmin();
+    const canCreateDeal = canCreate('crm.deals') || isSuperAdmin();
+    const canDeleteDeal = canDelete('crm.deals') || isSuperAdmin();
 
     // Animation variants
     const containerVariants = {

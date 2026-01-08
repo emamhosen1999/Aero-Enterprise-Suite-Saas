@@ -53,6 +53,7 @@ import SalaryInformationForm from "@/Forms/HRM/SalaryInformationForm.jsx";
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils';
 import dayjs from 'dayjs';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import {AnimatePresence, motion} from 'framer-motion';
 
 const projects = [
@@ -103,6 +104,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
     
     // Unified modal state management
     const [modals, setModals] = useState({
+    const { canUpdate, hasAccess, isSuperAdmin } = useHRMAC();
         profile: false,
         personal: false,
         emergency: false,
@@ -139,11 +141,11 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
         profile_views: 0
     });
 
-    // Check permissions
-    const canEditProfile = auth.permissions?.includes('profile.own.update') || 
-                          auth.permissions?.includes('profile.update') || 
-                          auth.user.id === user.id;
-    const canViewProfile = auth.permissions?.includes('profile.own.view') || 
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canEditProfile = canUpdate("hrm.profile") || isSuperAdmin();
+    const canViewProfile = hasAccess("hrm.profile") || isSuperAdmin();
+    const canViewPayroll = hasAccess("hrm.payroll") || isSuperAdmin();
                           auth.permissions?.includes('profile.view') || 
                           auth.user.id === user.id;
 
@@ -718,7 +720,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                         <p className="text-default-500 text-sm mb-4">
                             Contact HR to assign your salary structure and compensation details.
                         </p>
-                        {canEditProfile && auth.permissions?.includes('hr.payroll.view') && (
+                        {canEditProfile && canViewPayroll && (
                             <Button
                                 color="primary"
                                 variant="bordered"
@@ -847,7 +849,7 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
                 </div>
 
                 {/* Action Button for HR */}
-                {auth.permissions?.includes('hr.payroll.view') && (
+                {canViewPayroll && (
                     <div className="flex justify-center pt-4">
                         <Button
                             color="primary"

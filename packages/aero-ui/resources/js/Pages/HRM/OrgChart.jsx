@@ -19,6 +19,7 @@ import {
     ChevronRightIcon,
     UserCircleIcon
 } from "@heroicons/react/24/outline";
+import {useHRMAC} from '@/Hooks/useHRMAC';
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 
@@ -123,6 +124,13 @@ const DepartmentNode = ({ department, allDepartments, level = 0, expandedNodes, 
 
 const OrgChart = ({ title, departments, rootDepartments, stats }) => {
     const { auth } = usePage().props;
+    
+    // HRMAC permissions
+    const { hasAccess, canUpdate, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update with actual HRMAC module hierarchy path once defined
+    const canViewOrgChart = hasAccess('hrm.organization.chart') || isSuperAdmin();
+    const canEditDepartment = canUpdate('hrm.departments') || isSuperAdmin();
     
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);

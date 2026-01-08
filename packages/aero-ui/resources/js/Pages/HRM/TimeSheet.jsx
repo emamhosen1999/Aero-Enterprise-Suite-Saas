@@ -8,12 +8,20 @@ import TimeSheetTable from '@/Tables/HRM/TimeSheetTable.jsx';
 import MarkAsPresentForm from "@/Forms/HRM/MarkAsPresentForm.jsx";
 import BulkMarkAsPresentForm from "@/Forms/HRM/BulkMarkAsPresentForm.jsx";
 import dayjs from "dayjs";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const TimeSheet = ({ title, allUsers }) => {
     const { auth } = usePage().props;
     const isMobile = useMediaQuery('(max-width: 768px)');
     const isSmallScreen = useMediaQuery('(max-width: 640px)');
     const themeRadius = useThemeRadius();
+    const { hasAccess, canCreate, canUpdate, isSuperAdmin } = useHRMAC();
+
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canManageAttendance = hasAccess('hrm.attendance') || isSuperAdmin();
+    const canMarkPresent = canCreate('hrm.attendance') || isSuperAdmin();
+    const canEditAttendance = canUpdate('hrm.attendance') || isSuperAdmin();
     
     const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
     const [modalState, setModalState] = useState({
@@ -114,9 +122,8 @@ const TimeSheet = ({ title, allUsers }) => {
     }), [modalState.type, handleModalClose, modalState.selectedDate, selectedDate, allUsers, refreshTimeSheet, modalState.selectedUsers, modalState.currentUser]);
 
     // Check permissions
-    const canManageAttendance = auth.permissions?.includes('attendance.view') || false;
 
-    return (
+    // Permissions already defined above using HRMAC
         <>
             <Head title={title} />
             

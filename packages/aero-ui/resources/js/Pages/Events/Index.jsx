@@ -35,13 +35,28 @@ import StatsCards from '@/Components/Common/StatsCards';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import dayjs from 'dayjs';
-import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import { useThemeRadius } from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
-    // Custom media queries
+    // Theme radius helper (REQUIRED for StandardPageLayout)
+    const getThemeRadius = () => {
+        if (typeof window === 'undefined') return 'lg';
+        const rootStyles = getComputedStyle(document.documentElement);
+        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
+        const radiusValue = parseInt(borderRadius);
+        if (radiusValue === 0) return 'none';
+        if (radiusValue <= 4) return 'sm';
+        if (radiusValue <= 8) return 'md';
+        if (radiusValue <= 16) return 'lg';
+        return 'full';
+    };
+    
+    // Responsive breakpoints (REQUIRED for StandardPageLayout)
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     
@@ -69,9 +84,10 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
         timeline: initialFilters?.timeline || 'all'
     });
     
-    // Permissions
-    const canCreateEvent = auth.permissions?.includes('event.create') || false;
-    const canViewRegistrations = auth.permissions?.includes('event.registration.manage') || false;
+    // Permissions using HRMAC (events.events-management component path)
+    // TODO: Update with correct HRMAC path once module hierarchy is defined
+    const canCreateEvent = canCreate('events.events-management') || isSuperAdmin();
+    const canViewRegistrations = canUpdate('events.events-management') || isSuperAdmin();
     
     // Calculate stats from events
     const statsData = useMemo(() => [
@@ -164,30 +180,55 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
         <>
             <Head title="Event Management" />
             
-            <div className="min-h-screen bg-background">
-                <div className="max-w-[1600px] mx-auto">
-                    <div className="p-6">
+            {/* Main content wrapper - StandardPageLayout pattern */}
+            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Event Management">
+                <div className="space-y-4">
+                    <div className="w-full">
+                        {/* Animated Card wrapper */}
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
                             transition={{ duration: 0.5 }}
                         >
+                            {/* Main Card with themed styling - StandardPageLayout pattern */}
                             <Card
-                                className="bg-content1/50 backdrop-blur-md border border-divider/30"
+                                className="transition-all duration-200"
                                 style={{
+                                    border: `var(--borderWidth, 2px) solid transparent`,
                                     borderRadius: `var(--borderRadius, 12px)`,
                                     fontFamily: `var(--fontFamily, "Inter")`,
+                                    transform: `scale(var(--scale, 1))`,
+                                    background: `linear-gradient(135deg, 
+                                        var(--theme-content1, #FAFAFA) 20%, 
+                                        var(--theme-content2, #F4F4F5) 10%, 
+                                        var(--theme-content3, #F1F3F4) 20%)`,
                                 }}
                             >
-                                <CardHeader className="pb-0">
-                                    <div className="w-full">
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 pb-2">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-3 rounded-xl bg-primary/10 backdrop-blur-sm">
-                                                    <CalendarIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'} text-primary`} />
+                                {/* Card Header with title + action buttons */}
+                                <CardHeader
+                                    className="border-b p-0"
+                                    style={{
+                                        borderColor: `var(--theme-divider, #E4E4E7)`,
+                                        background: `linear-gradient(135deg, 
+                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
+                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
+                                    }}
+                                >
+                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                            {/* Title Section with icon */}
+                                            <div className="flex items-center gap-3 lg:gap-4">
+                                                <div className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
+                                                    style={{
+                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
+                                                        borderRadius: `var(--borderRadius, 12px)`,
+                                                    }}
+                                                >
+                                                    <CalendarIcon className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`}
+                                                        style={{ color: 'var(--theme-primary)' }} />
                                                 </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold text-foreground`}>
+                                                <div>
+                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
                                                         Event Management
                                                     </h4>
                                                     <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
@@ -205,11 +246,6 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                         startContent={<PlusIcon className="w-4 h-4" />}
                                                         onPress={handleCreateEvent}
                                                         size={isMobile ? "sm" : "md"}
-                                                        className="font-semibold"
-                                                        style={{
-                                                            borderRadius: `var(--borderRadius, 8px)`,
-                                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                                        }}
                                                     >
                                                         Create Event
                                                     </Button>
@@ -509,7 +545,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                             <div className="text-center py-12">
                                                 <CalendarIcon className="w-16 h-16 mx-auto text-default-300 mb-4" />
                                                 <h3 className="text-lg font-semibold mb-2">No Events Found</h3>
-                                                <p className="text-default-500 mb-4">No events match your search criteria.</p>
+                                                <p className="text-default-500 mb-2">No events match your search criteria.</p>
                                                 {canCreateEvent && (
                                                     <Button
                                                         color="primary"
@@ -532,6 +568,6 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
     );
 };
 
-EventsIndex.layout = (page) => <App>{page}</App>;
+EventsIndex.layout = (page) => <App children={page} />;
 
 export default EventsIndex;

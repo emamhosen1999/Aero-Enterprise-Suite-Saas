@@ -24,8 +24,14 @@ import {
 import App from '@/Layouts/App';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const CreateEvent = () => {
+    const { canCreate, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Events
+    const canCreateEvent = canCreate('events.events-management') || isSuperAdmin();
     const [data, setData] = useState({
         title: '',
         slug: '',

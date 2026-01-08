@@ -24,6 +24,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const QualityDashboard = ({ stats = {}, inspections = [], ncrs = [], auth }) => {
     const themeRadius = useThemeRadius();
@@ -32,9 +33,13 @@ const QualityDashboard = ({ stats = {}, inspections = [], ncrs = [], auth }) => 
     const isLargeScreen = useMediaQuery('(min-width: 1024px)');
     const [period, setPeriod] = useState('month');
 
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
+    // HRMAC permissions with Super Administrator bypass
+    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update these paths to match actual HRMAC module hierarchy once defined
+    const canViewQuality = hasAccess('quality.dashboard') || isSuperAdmin();
+    const canCreateInspection = canCreate('quality.inspections') || isSuperAdmin();
+    const canManageNCR = canUpdate('quality.ncr') || isSuperAdmin();
 
     const dashboardStats = useMemo(() => [
         {

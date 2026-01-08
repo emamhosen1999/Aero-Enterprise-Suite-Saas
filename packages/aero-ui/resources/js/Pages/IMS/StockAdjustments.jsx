@@ -27,8 +27,16 @@ import {
     ArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const StockAdjustments = ({ adjustments = [], warehouses = [], auth }) => {
+    // TODO: Replace with actual HRMAC module path once hierarchy is defined
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    const canCreateAdjustment = canCreate('ims.stock-adjustments') || isSuperAdmin();
+    const canEditAdjustment = canUpdate('ims.stock-adjustments') || isSuperAdmin();
+    const canDeleteAdjustment = canDelete('ims.stock-adjustments') || isSuperAdmin();
     const [searchTerm, setSearchTerm] = useState('');
     const [warehouseFilter, setWarehouseFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');

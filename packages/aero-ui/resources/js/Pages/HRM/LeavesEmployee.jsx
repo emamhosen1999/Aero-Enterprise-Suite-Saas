@@ -23,12 +23,19 @@ import BulkLeaveModal from '@/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import {showToast} from '@/utils/toastUtils.jsx';
 import axios from 'axios';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const LeavesEmployee = ({ title, allUsers }) => {
   const { auth } = usePage().props;
 
   const isMobile = useMediaQuery('(max-width: 640px)');
   const themeRadius = useThemeRadius();
+  
+  // TODO: Update with proper HRMAC module hierarchy path once defined
+  const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+  const canCreateLeave = canCreate('hrm.leaves') || isSuperAdmin();
+  const canEditLeave = canUpdate('hrm.leaves') || isSuperAdmin();
+  const canDeleteLeave = canDelete('hrm.leaves') || isSuperAdmin();
     const [totalRows, setTotalRows] = useState(0);
       const [lastPage, setLastPage] = useState(0);
   // State management

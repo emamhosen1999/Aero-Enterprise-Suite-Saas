@@ -37,9 +37,15 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const Analytics = ({ auth, event, analytics }) => {
     const [timeRange, setTimeRange] = React.useState('7');
+    const { hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Events
+    const canViewAnalytics = hasAccess('events.analytics') || isSuperAdmin();
 
     const statsData = useMemo(() => [
         {

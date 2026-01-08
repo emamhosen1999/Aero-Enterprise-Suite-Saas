@@ -14,6 +14,7 @@ import {
 import App from '@/Layouts/App';
 import {showToast} from '@/utils/toastUtils';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import axios from 'axios';
 import KanbanColumn from '@/Components/Recruitment/KanbanColumn';
 import CandidateCard from '@/Components/Recruitment/CandidateCard';
@@ -26,6 +27,16 @@ import CandidateCard from '@/Components/Recruitment/CandidateCard';
  */
 const RecruitmentKanban = ({ job, hiringStages, applicationsByStage, departments, jobTypes }) => {
     const themeRadius = useThemeRadius();
+    
+    // HRMAC permissions
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update these paths with actual HRMAC module hierarchy once defined
+    const canManageRecruitment = hasAccess('hrm.recruitment') || isSuperAdmin();
+    const canMoveCandidate = canUpdate('hrm.recruitment') || isSuperAdmin();
+    const canHireCandidate = canCreate('hrm.employees') || isSuperAdmin();
+    const canRejectCandidate = canDelete('hrm.recruitment.candidates') || isSuperAdmin();
+    
     const [activeId, setActiveId] = useState(null);
     const [stages, setStages] = useState([]);
     const [filters, setFilters] = useState({

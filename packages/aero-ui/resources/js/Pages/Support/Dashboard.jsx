@@ -24,6 +24,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const SupportDashboard = ({ stats = {}, recentTickets = [], slaMetrics = [], agentPerformance = [], auth }) => {
     const themeRadius = useThemeRadius();
@@ -32,9 +33,15 @@ const SupportDashboard = ({ stats = {}, recentTickets = [], slaMetrics = [], age
     const isLargeScreen = useMediaQuery('(min-width: 1280px)');
     const [selectedPeriod, setSelectedPeriod] = useState('month');
 
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
+    // HRMAC permissions with Super Admin bypass
+    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Replace with actual module hierarchy paths from config/modules.php
+    const canViewSupport = hasAccess('support.dashboard') || isSuperAdmin();
+    const canManageTickets = canUpdate('support.tickets') || isSuperAdmin();
+    const canCreateTicket = canCreate('support.tickets') || isSuperAdmin();
+    const canAssignTickets = canUpdate('support.tickets.assign') || isSuperAdmin();
+    const canViewSLA = hasAccess('support.sla-metrics') || isSuperAdmin();
 
     const dashboardStats = useMemo(() => [
         {

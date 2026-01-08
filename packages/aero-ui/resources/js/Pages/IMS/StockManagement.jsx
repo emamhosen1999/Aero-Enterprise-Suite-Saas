@@ -33,6 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import PageHeader from "@/Components/PageHeader.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0 }, warehouses = [], categories = [], filters: initialFilters = {} }) => {
     // Responsive state
@@ -71,10 +72,14 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
 
     const themeRadius = getThemeRadius();
 
-    // Permission helper
-    const hasPermission = (permission) => {
-        return auth.user?.permissions?.includes(permission) || auth.user?.is_super_admin;
-    };
+    // HRMAC permissions
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update these paths with actual HRMAC module hierarchy once defined
+    const canManageStock = hasAccess('ims.stock-management') || isSuperAdmin();
+    const canEditStock = canUpdate('ims.stock-management') || isSuperAdmin();
+    const canCreateStock = canCreate('ims.stock-management') || isSuperAdmin();
+    const canExportStock = hasAccess('ims.stock-management.export') || isSuperAdmin();
 
     // Handle filter changes
     const handleFilterChange = (key, value) => {
@@ -202,7 +207,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
             case 'actions':
                 return (
                     <div className="flex items-center gap-2">
-                        {hasPermission('inventory.stock.edit') && (
+                        {canEditStock && (
                             <Dropdown>
                                 <DropdownTrigger>
                                     <Button isIconOnly size="sm" variant="light" radius={themeRadius}>
@@ -274,7 +279,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
                     title="Stock Management"
                     description="Monitor and manage inventory stock levels"
                     action={
-                        hasPermission('inventory.stock.create') && (
+                        canCreateStock && (
                             <Button
                                 color="primary"
                                 startContent={<PlusIcon className="w-5 h-5" />}
@@ -376,7 +381,7 @@ const StockManagement = ({ auth, items = { data: [], current_page: 1, last_page:
                         </Select>
 
                         {/* Export Button */}
-                        {hasPermission('inventory.stock.export') && (
+                        {canExportStock && (
                             <Button
                                 variant="flat"
                                 startContent={<DocumentArrowDownIcon className="w-5 h-5" />}

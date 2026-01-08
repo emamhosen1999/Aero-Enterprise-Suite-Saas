@@ -33,8 +33,17 @@ import {
     XCircleIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const Budget = ({ auth, budgets = [], departments = [] }) => {
+    // HRMAC permissions - TODO: Update path with actual HRMAC module hierarchy
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewBudgets = hasAccess('finance.budgets') || isSuperAdmin();
+    const canCreateBudget = canCreate('finance.budgets') || isSuperAdmin();
+    const canEditBudget = canUpdate('finance.budgets') || isSuperAdmin();
+    const canDeleteBudget = canDelete('finance.budgets') || isSuperAdmin();
+    const canApproveBudget = canUpdate('finance.budgets') || isSuperAdmin();
+    
     // Similar responsive and theme setup as FixedAssets
     const [isMobile, setIsMobile] = useState(false);
     

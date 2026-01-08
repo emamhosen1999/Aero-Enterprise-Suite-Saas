@@ -37,9 +37,11 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const MaterialConsumptions = ({ title }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
 
     // Theme radius helper
     const getThemeRadius = () => {
@@ -132,9 +134,11 @@ const MaterialConsumptions = ({ title }) => {
     ], [stats]);
 
     // Permission checks
-    const canCreate = auth.permissions?.includes('rfi.material-consumptions.create') || true;
-    const canEdit = auth.permissions?.includes('rfi.material-consumptions.update') || true;
-    const canDelete = auth.permissions?.includes('rfi.material-consumptions.delete') || true;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for RFI
+    const canCreateMaterial = canCreate("rfi.material-consumptions") || isSuperAdmin();
+    const canEditMaterial = canUpdate("rfi.material-consumptions") || isSuperAdmin();
+    const canDeleteMaterial = canDelete("rfi.material-consumptions") || isSuperAdmin();
 
     // Fetch data
     const fetchMaterials = useCallback(async () => {
@@ -262,7 +266,7 @@ const MaterialConsumptions = ({ title }) => {
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu aria-label="Actions">
-                            {canEdit && (
+                            {canEditMaterial && (
                                 <DropdownItem
                                     key="edit"
                                     startContent={<PencilIcon className="w-4 h-4" />}
@@ -270,7 +274,7 @@ const MaterialConsumptions = ({ title }) => {
                                     Edit
                                 </DropdownItem>
                             )}
-                            {canDelete && (
+                            {canDeleteMaterial && (
                                 <DropdownItem
                                     key="delete"
                                     className="text-danger"
@@ -347,7 +351,7 @@ const MaterialConsumptions = ({ title }) => {
                                             </div>
 
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreateMaterial && (
                                                     <Button
                                                         color="primary"
                                                         variant="shadow"

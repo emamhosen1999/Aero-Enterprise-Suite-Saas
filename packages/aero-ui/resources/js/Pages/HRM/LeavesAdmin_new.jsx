@@ -25,10 +25,12 @@ import BulkLeaveModal from '@/Components/HRM/BulkLeave/BulkLeaveModal.jsx';
 import BulkDeleteModal from '@/Components/HRM/BulkDelete/BulkDeleteModal.jsx';
 import dayjs from 'dayjs';
 import axios from 'axios';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 
 const LeavesAdmin = ({ title, allUsers }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Custom media queries
     const [isMobile, setIsMobile] = useState(false);
@@ -159,11 +161,13 @@ const LeavesAdmin = ({ title, allUsers }) => {
             description: "Current week"
         }
     ], [leaveStats]);
-
-    // Check permissions using new system
-    const canManageLeaves = auth.permissions?.includes('leaves.view') || false;
-    const canApproveLeaves = auth.permissions?.includes('leaves.approve') || false;
-    const canCreateLeaves = auth.permissions?.includes('leaves.create') || false;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canManageLeaves = canUpdate("hrm.leaves") || isSuperAdmin();
+    const canApproveLeaves = canUpdate("hrm.leaves") || isSuperAdmin(); // Approval is an update action
+    const canCreateLeaves = canCreate("hrm.leaves") || isSuperAdmin();
+    const canEditLeaves = canUpdate("hrm.leaves") || isSuperAdmin();
+    const canDeleteLeaves = canDelete("hrm.leaves") || isSuperAdmin();
     const canEditLeaves = auth.permissions?.includes('leaves.update') || false;
     const canDeleteLeaves = auth.permissions?.includes('leaves.delete') || false;
 

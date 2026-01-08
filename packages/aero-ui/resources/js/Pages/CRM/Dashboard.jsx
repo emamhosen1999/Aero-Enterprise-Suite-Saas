@@ -24,6 +24,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const CRMDashboard = ({ stats = {}, recentLeads = [], deals = [], activities = [], auth, permissions = [] }) => {
     const themeRadius = useThemeRadius();
@@ -32,9 +33,13 @@ const CRMDashboard = ({ stats = {}, recentLeads = [], deals = [], activities = [
     const isLargeScreen = useMediaQuery('(min-width: 1280px)');
     const [selectedPeriod, setSelectedPeriod] = useState('month');
 
-    const hasPermission = (permission) => {
-        return permissions?.includes(permission) || auth?.user?.isPlatformSuperAdmin;
-    };
+    // HRMAC permissions with Super Administrator bypass
+    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update these paths to match actual HRMAC module hierarchy once defined
+    const canViewCRM = hasAccess('crm.dashboard') || isSuperAdmin();
+    const canManageLeads = canUpdate('crm.leads') || isSuperAdmin();
+    const canManageDeals = canUpdate('crm.deals') || isSuperAdmin();
 
     const dashboardStats = useMemo(() => [
         {

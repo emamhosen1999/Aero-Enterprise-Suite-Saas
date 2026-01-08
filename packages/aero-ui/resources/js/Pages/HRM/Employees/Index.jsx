@@ -48,9 +48,17 @@ import PendingOnboardingSection from "@/Components/HRM/PendingOnboardingSection.
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 
 const EmployeesList = ({ title, departments, designations, attendanceTypes }) => {
+
+  // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
+  const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+  const canViewEmployees = hasAccess('hrm.employees') || isSuperAdmin();
+  const canCreateEmployee = canCreate('hrm.employees') || isSuperAdmin();
+  const canEditEmployee = canUpdate('hrm.employees') || isSuperAdmin();
+  const canDeleteEmployee = canDelete('hrm.employees') || isSuperAdmin();
 
   // Custom media query logic - matching AttendanceEmployee
   const [isMobile, setIsMobile] = useState(false);

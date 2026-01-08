@@ -21,12 +21,20 @@ import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import {showToast} from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const Designations = ({ title, initialDesignations, departments, managers, parentDesignations, allDesignations, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;
     const { can } = usePermissions();
     const themeRadius = useThemeRadius();
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canCreateDesignation = canCreate('hrm.designations') || isSuperAdmin();
+    const canEditDesignation = canUpdate('hrm.designations') || isSuperAdmin();
+    const canDeleteDesignation = canDelete('hrm.designations') || isSuperAdmin();
 
     const [designationsData, setDesignationsData] = useState(initialDesignations || { data: [] });
     const [loading, setLoading] = useState(false);

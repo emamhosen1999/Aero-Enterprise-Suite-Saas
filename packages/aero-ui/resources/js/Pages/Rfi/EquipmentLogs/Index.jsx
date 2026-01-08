@@ -7,9 +7,11 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const EquipmentLogsIndex = ({ title }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Theme radius helper
     const getThemeRadius = () => {
@@ -110,9 +112,11 @@ const EquipmentLogsIndex = ({ title }) => {
     ], [stats]);
 
     // Permission checks
-    const canCreate = auth.permissions?.includes('rfi.equipment-logs.create') || false;
-    const canEdit = auth.permissions?.includes('rfi.equipment-logs.update') || false;
-    const canDelete = auth.permissions?.includes('rfi.equipment-logs.delete') || false;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for RFI
+    const canCreateLog = canCreate("rfi.equipment-logs") || isSuperAdmin();
+    const canEditLog = canUpdate("rfi.equipment-logs") || isSuperAdmin();
+    const canDeleteLog = canDelete("rfi.equipment-logs") || isSuperAdmin();
 
     // Data fetching
     const fetchLogs = useCallback(async () => {
@@ -303,7 +307,7 @@ const EquipmentLogsIndex = ({ title }) => {
                                 </Button>
                             </DropdownTrigger>
                             <DropdownMenu aria-label="Equipment log actions">
-                                {canEdit && (
+                                {canEditLog && (
                                     <DropdownItem 
                                         key="edit"
                                         startContent={<PencilIcon className="w-4 h-4" />}
@@ -312,7 +316,7 @@ const EquipmentLogsIndex = ({ title }) => {
                                         Edit
                                     </DropdownItem>
                                 )}
-                                {canDelete && (
+                                {canDeleteLog && (
                                     <DropdownItem 
                                         key="delete"
                                         className="text-danger" 
@@ -395,7 +399,7 @@ const EquipmentLogsIndex = ({ title }) => {
                                             
                                             {/* Action Buttons */}
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreateLog && (
                                                     <Button color="primary" variant="shadow"
                                                         startContent={<PlusIcon className="w-4 h-4" />}
                                                         onPress={() => console.log('Add Equipment Log')}

@@ -18,12 +18,18 @@ import {ArrowLeftIcon} from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
 import PageHeader from '@/Components/PageHeader';
 import {showToast} from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 /**
  * Candidate Evaluation Form
  */
 export default function CandidateEvaluation({ auth, application, evaluation, criteria }) {
     const isEdit = !!evaluation;
+    
+    // TODO: Update with proper HRMAC module hierarchy path once defined
+    const { canCreate, canUpdate, isSuperAdmin } = useHRMAC();
+    const canCreateEvaluation = canCreate('hrm.recruitment.evaluations') || isSuperAdmin();
+    const canEditEvaluation = canUpdate('hrm.recruitment.evaluations') || isSuperAdmin();
 
     const { data, setData, post, put, errors, processing } = useForm({
         technical_skills: evaluation?.technical_skills || 0,

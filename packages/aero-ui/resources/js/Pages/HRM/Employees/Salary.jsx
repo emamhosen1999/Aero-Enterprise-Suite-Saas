@@ -27,8 +27,17 @@ import {
 import App from '@/Layouts/App';
 import {showToast} from '@/utils/toastUtils';
 import axios from 'axios';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 export default function EmployeeSalary({ title, employee, salaryStructures, allComponents, summary }) {
+    // TODO: Replace with actual HRMAC module path once hierarchy is defined
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    const canManageSalary = canUpdate('hrm.salary') || isSuperAdmin();
+    const canCreateSalaryComponent = canCreate('hrm.salary.components') || isSuperAdmin();
+    const canEditSalaryComponent = canUpdate('hrm.salary.components') || isSuperAdmin();
+    const canDeleteSalaryComponent = canDelete('hrm.salary.components') || isSuperAdmin();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedComponents, setSelectedComponents] = useState([]);
     const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split('T')[0]);

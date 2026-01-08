@@ -71,6 +71,7 @@ import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import useMediaQuery from '@/Hooks/useMediaQuery';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 // Component type icons mapping
 const componentTypeIcons = {
@@ -138,6 +139,13 @@ const formatEntityDisplayName = (entityKey) => {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 };
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Core
+    const canCreateModule = canCreate("core.modules") || isSuperAdmin();
+    const canEditModule = canUpdate("core.modules") || isSuperAdmin();
+    const canDeleteModule = canDelete("core.modules") || isSuperAdmin();
 
 
 
@@ -152,6 +160,13 @@ const useDebounce = (value, delay) => {
             setDebouncedValue(value);
         }, delay);
 
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Core
+    const canCreateModule = canCreate("core.modules") || isSuperAdmin();
+    const canEditModule = canUpdate("core.modules") || isSuperAdmin();
+    const canDeleteModule = canDelete("core.modules") || isSuperAdmin();
         return () => clearTimeout(handler);
     }, [value, delay]);
 

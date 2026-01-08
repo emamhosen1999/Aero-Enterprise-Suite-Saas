@@ -40,6 +40,7 @@ import {
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 // Helper function to convert theme borderRadius to HeroUI radius values
 const getThemeRadius = () => {
@@ -66,6 +67,7 @@ const statusColorMap = {
 
 // Status label mapping
 const statusLabelMap = {
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     pending: "Pending",
     in_progress: "In Progress",
     completed: "Completed",
@@ -141,12 +143,11 @@ const OnboardingIndex = ({ title, onboardings }) => {
             description: "Successfully finished"
         }
     ], [stats]);
-
-    // Permission checks
-    const canCreate = auth.permissions?.includes('onboarding.create') || 
-                     auth.roles?.some(r => r.name === 'Super Administrator') || false;
-    const canEdit = auth.permissions?.includes('onboarding.update') || 
-                   auth.roles?.some(r => r.name === 'Super Administrator') || false;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canCreateOnboarding = canCreate("hrm.onboarding") || isSuperAdmin();
+    const canEditOnboarding = canUpdate("hrm.onboarding") || isSuperAdmin();
+    const canDeleteOnboarding = canDelete("hrm.onboarding") || isSuperAdmin();
     const canDelete = auth.permissions?.includes('onboarding.delete') || 
                      auth.roles?.some(r => r.name === 'Super Administrator') || false;
 
@@ -230,7 +231,7 @@ const OnboardingIndex = ({ title, onboardings }) => {
                             >
                                 View
                             </DropdownItem>
-                            {canEdit && (
+                            {canEditOnboarding && (
                                 <DropdownItem 
                                     key="edit" 
                                     startContent={<PencilIcon className="w-4 h-4" />}
@@ -239,7 +240,7 @@ const OnboardingIndex = ({ title, onboardings }) => {
                                     Edit
                                 </DropdownItem>
                             )}
-                            {canDelete && (
+                            {canDeleteOnboarding && (
                                 <DropdownItem 
                                     key="delete" 
                                     className="text-danger" 
@@ -320,7 +321,7 @@ const OnboardingIndex = ({ title, onboardings }) => {
                                             </div>
                                             
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreateOnboarding && (
                                                     <Button 
                                                         color="primary" 
                                                         variant="shadow"

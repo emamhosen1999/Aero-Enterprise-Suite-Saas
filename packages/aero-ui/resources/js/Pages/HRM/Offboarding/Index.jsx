@@ -40,6 +40,7 @@ import {
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import { showToast } from '@/utils/toastUtils.jsx';
 
 // Helper function to convert theme borderRadius to HeroUI radius values
@@ -75,6 +76,7 @@ const statusLabelMap = {
 
 const OffboardingIndex = ({ title, offboardings }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
@@ -143,11 +145,11 @@ const OffboardingIndex = ({ title, offboardings }) => {
         }
     ], [stats]);
 
-    // Permission checks
-    const canCreate = auth.permissions?.includes('offboarding.create') || 
-                     auth.roles?.some(r => r.name === 'Super Administrator') || false;
-    const canEdit = auth.permissions?.includes('offboarding.update') || 
-                   auth.roles?.some(r => r.name === 'Super Administrator') || false;
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
+    const canCreateOffboarding = canCreate("hrm.offboarding") || isSuperAdmin();
+    const canEditOffboarding = canUpdate("hrm.offboarding") || isSuperAdmin();
+    const canDeleteOffboarding = canDelete("hrm.offboarding") || isSuperAdmin();
     const canDelete = auth.permissions?.includes('offboarding.delete') || 
                      auth.roles?.some(r => r.name === 'Super Administrator') || false;
 
@@ -238,7 +240,7 @@ const OffboardingIndex = ({ title, offboardings }) => {
                             >
                                 View
                             </DropdownItem>
-                            {canEdit && (
+                            {canEditOffboarding && (
                                 <DropdownItem 
                                     key="edit" 
                                     startContent={<PencilIcon className="w-4 h-4" />}
@@ -247,7 +249,7 @@ const OffboardingIndex = ({ title, offboardings }) => {
                                     Edit
                                 </DropdownItem>
                             )}
-                            {canDelete && (
+                            {canDeleteOffboarding && (
                                 <DropdownItem 
                                     key="delete" 
                                     className="text-danger" 
@@ -328,7 +330,7 @@ const OffboardingIndex = ({ title, offboardings }) => {
                                             </div>
                                             
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreateOffboarding && (
                                                     <Button 
                                                         color="primary" 
                                                         variant="shadow"

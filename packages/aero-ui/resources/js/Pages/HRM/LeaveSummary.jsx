@@ -41,6 +41,7 @@ import LeaveAnalytics from "@/Components/Leave/LeaveAnalytics.jsx";
 import {useTheme} from '@/Context/ThemeContext.jsx';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useHRMAC} from '@/Hooks/useHRMAC';
 import App from "@/Layouts/App.jsx";
 import axios from 'axios';
 
@@ -50,6 +51,13 @@ const LeaveSummary = ({ title, summaryData }) => {
     const isMobile = useMediaQuery('(max-width: 640px)');
     const isLargeScreen = useMediaQuery('(min-width: 1025px)');
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
+    
+    // HRMAC permissions
+    const { hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update with actual HRMAC module hierarchy path once defined
+    const canViewSummary = hasAccess('hrm.leaves.summary') || isSuperAdmin();
+    const canExportSummary = hasAccess('hrm.leaves.export') || isSuperAdmin();
     
     // Destructure summary data
     const {

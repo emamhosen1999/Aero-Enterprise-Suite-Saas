@@ -7,9 +7,11 @@ import App from '@/Layouts/App.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils.jsx';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ProgressPhotosIndex = ({ title }) => {
     const { auth } = usePage().props;
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
     const getThemeRadius = () => {
         if (typeof window === 'undefined') return 'lg';
@@ -68,10 +70,6 @@ const ProgressPhotosIndex = ({ title }) => {
         { title: "Rejected", value: stats.rejected, icon: <XCircleIcon className="w-6 h-6" />, color: "text-danger", iconBg: "bg-danger/20" },
     ], [stats]);
 
-    const canCreate = auth.permissions?.includes('rfi.progress-photos.create') || false;
-    const canEdit = auth.permissions?.includes('rfi.progress-photos.update') || false;
-    const canDelete = auth.permissions?.includes('rfi.progress-photos.delete') || false;
-    const canApprove = auth.permissions?.includes('rfi.progress-photos.approve') || false;
 
     const fetchPhotos = useCallback(async () => {
         setLoading(true);
@@ -220,7 +218,7 @@ const ProgressPhotosIndex = ({ title }) => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
+                                                {canCreatePhoto && (
                                                     <Button color="primary" variant="shadow" startContent={<PlusIcon className="w-4 h-4" />} size={isMobile ? "sm" : "md"}>
                                                         Upload Photo
                                                     </Button>
@@ -269,15 +267,15 @@ const ProgressPhotosIndex = ({ title }) => {
                                                                         </Button>
                                                                     </DropdownTrigger>
                                                                     <DropdownMenu>
-                                                                        {canApprove && photo.approval_status === 'submitted' && (
+                                                                        {canApprovePhoto && photo.approval_status === 'submitted' && (
                                                                             <DropdownItem key="approve" startContent={<CheckCircleIcon className="w-4 h-4" />} onPress={() => handleApprove(photo)}>
                                                                                 Approve
                                                                             </DropdownItem>
                                                                         )}
-                                                                        {canEdit && (
+                                                                        {canEditPhoto && (
                                                                             <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}>Edit</DropdownItem>
                                                                         )}
-                                                                        {canDelete && (
+                                                                        {canDeletePhoto && (
                                                                             <DropdownItem key="delete" className="text-danger" color="danger" startContent={<TrashIcon className="w-4 h-4" />} onPress={() => handleDelete(photo)}>
                                                                                 Delete
                                                                             </DropdownItem>
