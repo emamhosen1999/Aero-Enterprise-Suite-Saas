@@ -27,8 +27,17 @@ import {
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const StockTransfers = ({ transfers = [], warehouses = [], auth }) => {
+    // TODO: Replace with actual HRMAC module path once hierarchy is defined
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    const canCreateTransfer = canCreate('ims.stock-transfers') || isSuperAdmin();
+    const canEditTransfer = canUpdate('ims.stock-transfers') || isSuperAdmin();
+    const canDeleteTransfer = canDelete('ims.stock-transfers') || isSuperAdmin();
+    const canApproveTransfer = canUpdate('ims.stock-transfers') || isSuperAdmin();
     const [searchTerm, setSearchTerm] = useState('');
     const [fromWarehouseFilter, setFromWarehouseFilter] = useState('all');
     const [toWarehouseFilter, setToWarehouseFilter] = useState('all');

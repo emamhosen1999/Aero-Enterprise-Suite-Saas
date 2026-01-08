@@ -30,8 +30,18 @@ import {
     ClockIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const AccountsPayable = ({ bills = [], vendors = [], auth }) => {
+    // TODO: Replace with actual HRMAC module path once hierarchy is defined
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // Permissions using HRMAC
+    const canViewBills = hasAccess('finance.accounts-payable') || isSuperAdmin();
+    const canCreateBill = canCreate('finance.accounts-payable') || isSuperAdmin();
+    const canEditBill = canUpdate('finance.accounts-payable') || isSuperAdmin();
+    const canDeleteBill = canDelete('finance.accounts-payable') || isSuperAdmin();
+    const canPayBill = canUpdate('finance.accounts-payable.payment') || isSuperAdmin();
     const [searchTerm, setSearchTerm] = useState('');
     const [vendorFilter, setVendorFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
