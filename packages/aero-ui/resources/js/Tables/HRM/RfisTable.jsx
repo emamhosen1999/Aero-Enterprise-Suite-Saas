@@ -69,7 +69,7 @@ import {
 import axios from 'axios';
 import { jsPDF } from "jspdf";
 
-const DailyWorksTable = ({ 
+const RfisTable = ({ 
     allData, 
     setData, 
     loading, 
@@ -77,7 +77,7 @@ const DailyWorksTable = ({
     allInCharges, 
     reports, 
     juniors, 
-    reports_with_daily_works, 
+    reports_with_rfis, 
     openModal, 
     setCurrentRow, 
     filteredData, 
@@ -109,7 +109,7 @@ const DailyWorksTable = ({
 
     // Handle refresh functionality
     const handleRefresh = useCallback(() => {
-        router.reload({ only: ['allData', 'reports_with_daily_works'], onSuccess: () => {
+        router.reload({ only: ['allData', 'reports_with_rfis'], onSuccess: () => {
             showToast.success('Daily works data refreshed successfully');
         }});
     }, []);
@@ -508,7 +508,7 @@ const DailyWorksTable = ({
                 formData.append("taskId", taskId);
                 formData.append("file", imageFile);
 
-                const response = await axios.post(route('dailyWorks.uploadRFI'), formData, {
+                const response = await axios.post(route('rfis.uploadRFI'), formData, {
                     headers: {"Content-Type": "multipart/form-data"},
                 });
 
@@ -561,13 +561,13 @@ const DailyWorksTable = ({
                     updateData.inspection_result = inspectionResult;
                 }
 
-                const response = await axios.post(route('dailyWorks.updateStatus'), updateData);
+                const response = await axios.post(route('rfis.updateStatus'), updateData);
 
                 if (response.status === 200) {
                     // Update local state with the response data
                     setData(prevWorks =>
                         prevWorks.map(w =>
-                            w.id === work.id ? response.data.dailyWork : w
+                            w.id === work.id ? response.data.rfi : w
                         )
                     );
                     
@@ -604,7 +604,7 @@ const DailyWorksTable = ({
     // Handle completion time updates
     const updateCompletionTime = useCallback(async (work, completionTime) => {
         try {
-            const response = await axios.post(route('dailyWorks.updateCompletionTime'), {
+            const response = await axios.post(route('rfis.updateCompletionTime'), {
                 id: work.id,
                 completion_time: completionTime,
             });
@@ -612,7 +612,7 @@ const DailyWorksTable = ({
             if (response.status === 200) {
                 setData(prevWorks =>
                     prevWorks.map(w =>
-                        w.id === work.id ? response.data.dailyWork : w
+                        w.id === work.id ? response.data.rfi : w
                     )
                 );
                 showToast.success('Completion time updated successfully');
@@ -625,7 +625,7 @@ const DailyWorksTable = ({
     // Handle submission time updates
     const updateSubmissionTime = useCallback(async (work, submissionTime) => {
         try {
-            const response = await axios.post(route('dailyWorks.updateSubmissionTime'), {
+            const response = await axios.post(route('rfis.updateSubmissionTime'), {
                 id: work.id,
                 submission_time: submissionTime,
             });
@@ -633,7 +633,7 @@ const DailyWorksTable = ({
             if (response.status === 200) {
                 setData(prevWorks =>
                     prevWorks.map(w =>
-                        w.id === work.id ? response.data.dailyWork : w
+                        w.id === work.id ? response.data.rfi : w
                     )
                 );
                 showToast.success('Submission time updated successfully');
@@ -663,7 +663,7 @@ const DailyWorksTable = ({
                     return;
                 }
 
-                const response = await axios.post(route('dailyWorks.updateIncharge'), {
+                const response = await axios.post(route('rfis.updateIncharge'), {
                     id: work.id,
                     incharge: inchargeId,
                 });
@@ -671,7 +671,7 @@ const DailyWorksTable = ({
                 if (response.status === 200) {
                     setDataRef.current(prevWorks =>
                         prevWorks.map(w =>
-                            w.id === work.id ? response.data.dailyWork : w
+                            w.id === work.id ? response.data.rfi : w
                         )
                     );
                     showToast.success('Incharge updated successfully');
@@ -694,7 +694,7 @@ const DailyWorksTable = ({
                     return;
                 }
 
-                const response = await axios.post(route('dailyWorks.updateAssigned'), {
+                const response = await axios.post(route('rfis.updateAssigned'), {
                     id: work.id,
                     assigned: assignedId,
                 });
@@ -702,7 +702,7 @@ const DailyWorksTable = ({
                 if (response.status === 200) {
                     setDataRef.current(prevWorks =>
                         prevWorks.map(w =>
-                            w.id === work.id ? response.data.dailyWork : w
+                            w.id === work.id ? response.data.rfi : w
                         )
                     );
                     showToast.success('Assigned user updated successfully');
@@ -725,7 +725,7 @@ const DailyWorksTable = ({
                     return;
                 }
 
-                const response = await axios.post(route('dailyWorks.updateCompletionTime'), {
+                const response = await axios.post(route('rfis.updateCompletionTime'), {
                     id: work.id,
                     completion_time: completionTime,
                 });
@@ -733,7 +733,7 @@ const DailyWorksTable = ({
                 if (response.status === 200) {
                     setDataRef.current(prevWorks =>
                         prevWorks.map(w =>
-                            w.id === work.id ? response.data.dailyWork : w
+                            w.id === work.id ? response.data.rfi : w
                         )
                     );
                     showToast.success('Completion time updated successfully');
@@ -756,7 +756,7 @@ const DailyWorksTable = ({
                     return;
                 }
 
-                const response = await axios.post(route('dailyWorks.updateSubmissionTime'), {
+                const response = await axios.post(route('rfis.updateSubmissionTime'), {
                     id: work.id,
                     rfi_submission_date: submissionTime,
                 });
@@ -764,7 +764,7 @@ const DailyWorksTable = ({
                 if (response.status === 200) {
                     setDataRef.current(prevWorks =>
                         prevWorks.map(w =>
-                            w.id === work.id ? response.data.dailyWork : w
+                            w.id === work.id ? response.data.rfi : w
                         )
                     );
                     showToast.success('RFI submission time updated successfully');
@@ -843,7 +843,7 @@ const DailyWorksTable = ({
                 }
             }
 
-            const response = await axios.post(route('dailyWorks.update'), updateData);
+            const response = await axios.post(route('rfis.update'), updateData);
 
             if (response.status === 200) {
                 setData(prevTasks =>
@@ -905,7 +905,7 @@ const DailyWorksTable = ({
     };
 
     // Mobile tabs and accordion component - organized by work types
-    const MobileDailyWorkCard = ({ works, selectedTab, setSelectedTab, expandedItems, toggleExpanded }) => {
+    const MobileRfiCard = ({ works, selectedTab, setSelectedTab, expandedItems, toggleExpanded }) => {
         
         // Define work types and their corresponding data
         const workTypes = [
@@ -1434,7 +1434,7 @@ const DailyWorksTable = ({
                                         radius={getThemeRadius()}
                                         onPress={() => {
                                             setCurrentRow(work);
-                                            openModal("editDailyWork");
+                                            openModal("editRfi");
                                         }}
                                         startContent={<PencilIcon className="w-4 h-4" />}
                                     >
@@ -1445,7 +1445,7 @@ const DailyWorksTable = ({
                                         variant="ghost"
                                         color="danger"
                                         radius={getThemeRadius()}
-                                        onPress={() => handleClickOpen(work.id, "deleteDailyWork")}
+                                        onPress={() => handleClickOpen(work.id, "deleteRfi")}
                                         startContent={<TrashIcon className="w-4 h-4" />}
                                     >
                                         Delete
@@ -2127,7 +2127,7 @@ const DailyWorksTable = ({
                                     onPress={() => {
                                         if (updatingWorkId === work.id) return;
                                         setCurrentRow(work);
-                                        openModal("editDailyWork");
+                                        openModal("editRfi");
                                     }}
                                     className="min-w-8 h-8"
                                 >
@@ -2144,7 +2144,7 @@ const DailyWorksTable = ({
                                     onPress={() => {
                                         if (updatingWorkId === work.id) return;
                                         setCurrentRow(work);
-                                        handleClickOpen(work.id, "deleteDailyWork");
+                                        handleClickOpen(work.id, "deleteRfi");
                                     }}
                                     className="min-w-8 h-8"
                                 >
@@ -2182,7 +2182,7 @@ const DailyWorksTable = ({
         return (
             <div className="space-y-4">
                 <ScrollShadow className="max-h-[70vh]">
-                    <MobileDailyWorkCard 
+                    <MobileRfiCard 
                         works={allData || []} 
                         selectedTab={selectedTab}
                         setSelectedTab={setSelectedTab}
@@ -2302,7 +2302,7 @@ const DailyWorksTable = ({
         <div className="max-h-[84vh] overflow-y-auto">
             {/* Table Header with Refresh Button */}
             <div className="flex items-center justify-between mb-4 px-2">
-                <h3 className="text-lg font-semibold text-default-700">Daily Works</h3>
+                <h3 className="text-lg font-semibold text-default-700">RFIs</h3>
                 <Button
                     variant="flat"
                     color="primary"
@@ -2326,7 +2326,7 @@ const DailyWorksTable = ({
                     isCompact
                     removeWrapper
                     isStriped
-                    aria-label="Daily Works Management Table"
+                    aria-label="RFIs Management Table"
                     isHeaderSticky
                     radius={getThemeRadius()}
                     classNames={{
@@ -2369,7 +2369,7 @@ const DailyWorksTable = ({
                             <div className="flex flex-col items-center justify-center py-8 text-center">
                                 <DocumentTextIcon className="w-12 h-12 text-default-300 mb-4" />
                                 <h6 className="text-lg font-medium text-default-600">
-                                    No daily works found
+                                    No rfis found
                                 </h6>
                                 <span className="text-sm text-default-500">
                                     No work logs available for the selected period
@@ -2414,4 +2414,4 @@ const DailyWorksTable = ({
     );
 };
 
-export default DailyWorksTable;
+export default RfisTable;

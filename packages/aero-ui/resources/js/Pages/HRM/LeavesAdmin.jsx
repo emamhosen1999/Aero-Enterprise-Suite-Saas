@@ -244,7 +244,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
     const perPageToFetch = targetPerPage || pagination.perPage;
     
     try {
-        const response = await axios.get(route('leaves.paginate'), {
+        const response = await axios.get(route('hrm.leaves.paginate'), {
             params: {
                 page: pageToFetch,
                 perPage: perPageToFetch,
@@ -520,7 +520,7 @@ const LeavesAdmin = ({ title, allUsers }) => {
             if (itemsNeeded <= 0) return;
             setTableLoading(true); // Show skeleton loader
             try {
-                const response = await axios.get(route('leaves.paginate'), {
+                const response = await axios.get(route('hrm.leaves.paginate'), {
                     params: {
                         page: pagination.currentPage + 1, // Fetch the next page
                         perPage: itemsNeeded,          // Request only the needed items
