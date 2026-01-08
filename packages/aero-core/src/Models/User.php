@@ -310,6 +310,23 @@ class User extends Authenticatable implements MustVerifyEmail
     // =========================================================================
 
     /**
+     * Scope a query to only include users with a specific role.
+     * Enables: User::role('Employee')->get()
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string|array  $roles
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeRole($query, $roles): \Illuminate\Database\Eloquent\Builder
+    {
+        $roles = is_array($roles) ? $roles : [$roles];
+
+        return $query->whereHas('roles', function ($q) use ($roles) {
+            $q->whereIn('name', $roles);
+        });
+    }
+
+    /**
      * Get the Role model class from config.
      */
     protected function getRoleModel(): string

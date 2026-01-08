@@ -13,26 +13,25 @@ class Holiday extends Model
     protected $fillable = [
         'title',
         'description',
-        'from_date',
-        'to_date',
+        'date',
+        'end_date',
         'type',
         'is_recurring',
-        'recurrence_pattern',
+        'applicable_to',
         'is_active',
-        'created_by',
-        'updated_by',
     ];
 
     protected $dates = [
-        'from_date',
-        'to_date',
+        'date',
+        'end_date',
     ];
 
     protected $casts = [
-        'from_date' => 'date',
-        'to_date' => 'date',
+        'date' => 'date',
+        'end_date' => 'date',
         'is_recurring' => 'boolean',
         'is_active' => 'boolean',
+        'applicable_to' => 'array',
     ];
 
     protected $appends = [
@@ -56,12 +55,12 @@ class Holiday extends Model
 
     public function scopeUpcoming($query)
     {
-        return $query->where('from_date', '>', Carbon::now());
+        return $query->where('date', '>', Carbon::now());
     }
 
     public function scopeCurrentYear($query)
     {
-        return $query->whereYear('from_date', Carbon::now()->year);
+        return $query->whereYear('date', Carbon::now()->year);
     }
 
     public function scopeByType($query, $type)
@@ -77,12 +76,12 @@ class Holiday extends Model
 
     public function getDurationAttribute()
     {
-        if (! $this->from_date || ! $this->to_date) {
+        if (! $this->date || ! $this->end_date) {
             return 1;
         }
 
-        $fromDate = Carbon::parse($this->from_date);
-        $toDate = Carbon::parse($this->to_date);
+        $fromDate = Carbon::parse($this->date);
+        $toDate = Carbon::parse($this->end_date);
 
         // Calculate the absolute difference and add 1 for inclusive counting
         return abs($toDate->diffInDays($fromDate)) + 1;
@@ -90,19 +89,19 @@ class Holiday extends Model
 
     public function getIsUpcomingAttribute()
     {
-        return Carbon::parse($this->from_date)->isFuture();
+        return Carbon::parse($this->date)->isFuture();
     }
 
     public function getIsOngoingAttribute()
     {
         $now = Carbon::now();
 
-        return Carbon::parse($this->from_date)->lte($now) && Carbon::parse($this->to_date)->gte($now);
+        return Carbon::parse($this->date)->lte($now) && Carbon::parse($this->end_date ?? $this->date)->gte($now);
     }
 
     public function getIsPastAttribute()
     {
-        return Carbon::parse($this->to_date)->isPast();
+        return Carbon::parse($this->end_date ?? $this->date)->isPast();
     }
 
     public function getStatusAttribute()
@@ -132,7 +131,7 @@ class Holiday extends Model
     {
         return self::active()
             ->upcoming()
-            ->orderBy('from_date', 'asc')
+            ->orderBy('date', 'asc')
             ->limit($limit)
             ->get();
     }
@@ -141,14 +140,14 @@ class Holiday extends Model
     {
         return self::active()
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('from_date', [$startDate, $endDate])
-                    ->orWhereBetween('to_date', [$startDate, $endDate])
+                $query->whereBetween('date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
                     ->orWhere(function ($q) use ($startDate, $endDate) {
-                        $q->where('from_date', '<=', $startDate)
-                            ->where('to_date', '>=', $endDate);
+                        $q->where('date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
                     });
             })
-            ->orderBy('from_date', 'asc')
+            ->orderBy('date', 'asc')
             ->get();
     }
 
@@ -158,7 +157,7 @@ class Holiday extends Model
         $totalDays = Carbon::create($year)->isLeapYear() ? 366 : 365;
 
         // Calculate holiday days using the duration accessor
-        $holidays = self::whereYear('from_date', $year)
+        $holidays = self::whereYear('date', $year)
             ->active()
             ->get();
 

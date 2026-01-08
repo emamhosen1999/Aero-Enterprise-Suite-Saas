@@ -73,8 +73,8 @@ class LeaveQueryService
             ->get()
             ->flatMap(function ($holiday) {
                 $dates = [];
-                $startDate = \Carbon\Carbon::parse($holiday->from_date);
-                $endDate = \Carbon\Carbon::parse($holiday->to_date);
+                $startDate = \Carbon\Carbon::parse($holiday->date);
+                $endDate = \Carbon\Carbon::parse($holiday->end_date ?? $holiday->date);
 
                 while ($startDate->lte($endDate)) {
                     $dates[] = $startDate->format('Y-m-d');

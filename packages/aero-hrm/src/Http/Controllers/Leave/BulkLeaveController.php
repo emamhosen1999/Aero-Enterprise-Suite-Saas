@@ -108,12 +108,12 @@ class BulkLeaveController extends Controller
                         'leaveTypes' => $leaveTypes,
                         'leaveCountsByUser' => [$userId => $leaveCounts],
                         'publicHolidays' => \Aero\HRM\Models\Holiday::active()
-                            ->whereYear('from_date', $year)
+                            ->whereYear('date', $year)
                             ->get()
                             ->flatMap(function ($holiday) {
                                 $dates = [];
-                                $startDate = \Carbon\Carbon::parse($holiday->from_date);
-                                $endDate = \Carbon\Carbon::parse($holiday->to_date);
+                                $startDate = \Carbon\Carbon::parse($holiday->date);
+                                $endDate = \Carbon\Carbon::parse($holiday->end_date);
 
                                 while ($startDate->lte($endDate)) {
                                     $dates[] = [
@@ -226,12 +226,12 @@ class BulkLeaveController extends Controller
 
             // Get public holidays for the entire year
             $publicHolidays = \Aero\HRM\Models\Holiday::active()
-                ->whereYear('from_date', $year)
+                ->whereYear('date', $year)
                 ->get()
                 ->flatMap(function ($holiday) {
                     $dates = [];
-                    $startDate = \Carbon\Carbon::parse($holiday->from_date);
-                    $endDate = \Carbon\Carbon::parse($holiday->to_date);
+                    $startDate = \Carbon\Carbon::parse($holiday->date);
+                    $endDate = \Carbon\Carbon::parse($holiday->end_date);
 
                     while ($startDate->lte($endDate)) {
                         $dates[] = $startDate->format('Y-m-d');
@@ -378,12 +378,12 @@ class BulkLeaveController extends Controller
                     'leaveTypes' => \Aero\HRM\Models\LeaveSetting::all(),
                     'leaveCountsByUser' => $updatedLeavesData,
                     'publicHolidays' => \Aero\HRM\Models\Holiday::active()
-                        ->whereYear('from_date', now()->year)
+                        ->whereYear('date', now()->year)
                         ->get()
                         ->flatMap(function ($holiday) {
                             $dates = [];
-                            $startDate = \Carbon\Carbon::parse($holiday->from_date);
-                            $endDate = \Carbon\Carbon::parse($holiday->to_date);
+                            $startDate = \Carbon\Carbon::parse($holiday->date);
+                            $endDate = \Carbon\Carbon::parse($holiday->end_date);
 
                             while ($startDate->lte($endDate)) {
                                 $dates[] = [

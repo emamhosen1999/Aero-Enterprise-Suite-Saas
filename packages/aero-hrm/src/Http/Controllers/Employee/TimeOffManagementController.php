@@ -77,8 +77,8 @@ class TimeOffManagementController extends Controller
             return [
                 'id' => 'holiday-'.$holiday->id,
                 'title' => $holiday->title,
-                'start' => $holiday->from_date,
-                'end' => $holiday->to_date ? Carbon::parse($holiday->to_date)->addDay() : Carbon::parse($holiday->from_date)->addDay(),
+                'start' => $holiday->date,
+                'end' => $holiday->end_date ? Carbon::parse($holiday->end_date)->addDay() : Carbon::parse($holiday->date)->addDay(),
                 'type' => 'holiday',
                 'color' => '#ef4444',
                 'extendedProps' => [

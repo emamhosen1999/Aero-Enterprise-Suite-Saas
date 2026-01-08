@@ -50,11 +50,11 @@ class LeaveOverlapService
     public function checkOverLappingHoliday(Carbon $fromDate, Carbon $toDate, ?int $excludeHolidayId = null): array
     {
         $query = Holiday::where(function ($q) use ($fromDate, $toDate) {
-            $q->whereBetween('from_date', [$fromDate, $toDate])
-                ->orWhereBetween('to_date', [$fromDate, $toDate])
+            $q->whereBetween('date', [$fromDate, $toDate])
+                ->orWhereBetween('end_date', [$fromDate, $toDate])
                 ->orWhere(function ($q) use ($fromDate, $toDate) {
-                    $q->where('from_date', '<=', $fromDate)
-                        ->where('to_date', '>=', $toDate);
+                    $q->where('date', '<=', $fromDate)
+                        ->where('end_date', '>=', $toDate);
                 });
         });
 
@@ -70,8 +70,8 @@ class LeaveOverlapService
 
         return $overlapping->map(function ($holiday) {
             // Convert string dates to Carbon instances if they're not already
-            $fromDate = $holiday->from_date instanceof Carbon ? $holiday->from_date : new Carbon($holiday->from_date);
-            $toDate = $holiday->to_date instanceof Carbon ? $holiday->to_date : new Carbon($holiday->to_date);
+            $fromDate = $holiday->date instanceof Carbon ? $holiday->date : new Carbon($holiday->date);
+            $toDate = $holiday->end_date instanceof Carbon ? $holiday->end_date : new Carbon($holiday->end_date);
 
             return $fromDate->equalTo($toDate)
                 ? "\"{$holiday->title}\" holiday on this date: ".$fromDate->format('Y-m-d')

@@ -117,10 +117,10 @@ class AttendanceController extends Controller
     private function getHolidaysForMonth($year, $month)
     {
         return Holiday::where(function ($query) use ($year, $month) {
-            $query->whereYear('from_date', $year)
-                ->whereMonth('from_date', $month)
-                ->orWhereYear('to_date', $year)
-                ->whereMonth('to_date', $month);
+            $query->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->orWhereYear('end_date', $year)
+                ->whereMonth('end_date', $month);
         })->get();
     }
 
@@ -181,8 +181,8 @@ class AttendanceController extends Controller
                 ->sortBy('punchin');
 
             $holiday = $holidays->first(fn ($h) => $date->between(
-                Carbon::parse($h->from_date)->startOfDay(),
-                Carbon::parse($h->to_date)->endOfDay()
+                Carbon::parse($h->date)->startOfDay(),
+                Carbon::parse($h->end_date)->endOfDay()
             ));
             $leave = $user->leaves
                 ->first(fn ($l) => $date->between(
@@ -1269,15 +1269,15 @@ class AttendanceController extends Controller
     private function getTotalHolidayDays(int $year, int $month): int
     {
         $holidays = Holiday::where(function ($query) use ($year, $month) {
-            $query->whereYear('from_date', $year)
-                ->whereMonth('from_date', $month)
-                ->orWhereYear('to_date', $year)
-                ->whereMonth('to_date', $month);
+            $query->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->orWhereYear('end_date', $year)
+                ->whereMonth('end_date', $month);
         })->get();
 
         return $holidays->sum(function ($holiday) use ($year, $month) {
-            $from = Carbon::parse($holiday->from_date);
-            $to = Carbon::parse($holiday->to_date);
+            $from = Carbon::parse($holiday->date);
+            $to = Carbon::parse($holiday->end_date);
 
             // Limit to current year and month
             $startOfMonth = Carbon::create($year, $month, 1);
@@ -1305,11 +1305,11 @@ class AttendanceController extends Controller
 
         // Fetch holiday ranges
         $holidayRanges = Holiday::where(function ($query) use ($year, $month) {
-            $query->whereYear('from_date', $year)->whereMonth('from_date', $month)
-                ->orWhereYear('to_date', $year)->whereMonth('to_date', $month);
+            $query->whereYear('date', $year)->whereMonth('date', $month)
+                ->orWhereYear('end_date', $year)->whereMonth('end_date', $month);
         })->get()->map(function ($holiday) use ($startOfMonth, $endOfRange) {
-            $from = Carbon::parse($holiday->from_date);
-            $to = Carbon::parse($holiday->to_date);
+            $from = Carbon::parse($holiday->date);
+            $to = Carbon::parse($holiday->end_date);
 
             return [
                 'start' => $from->greaterThan($startOfMonth) ? $from : $startOfMonth,
@@ -1381,8 +1381,8 @@ class AttendanceController extends Controller
 
             // Get holidays for the month
             $holidays = Holiday::where(function ($query) use ($year, $month) {
-                $query->whereYear('from_date', $year)->whereMonth('from_date', $month)
-                    ->orWhereYear('to_date', $year)->whereMonth('to_date', $month);
+                $query->whereYear('date', $year)->whereMonth('date', $month)
+                    ->orWhereYear('end_date', $year)->whereMonth('end_date', $month);
             })->get();
 
             // Build calendar data
@@ -1398,8 +1398,8 @@ class AttendanceController extends Controller
 
                 // Check if it's a holiday
                 $isHoliday = $holidays->contains(function ($holiday) use ($current) {
-                    $from = Carbon::parse($holiday->from_date);
-                    $to = Carbon::parse($holiday->to_date);
+                    $from = Carbon::parse($holiday->date);
+                    $to = Carbon::parse($holiday->end_date);
 
                     return $current->between($from, $to);
                 });
