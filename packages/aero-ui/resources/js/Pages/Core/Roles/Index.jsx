@@ -47,6 +47,7 @@ import UserRolesTable from '@/Tables/UserRolesTable.jsx';
 import App from '@/Layouts/App';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 // Utility functions
 const normalizeArray = (arr) => Array.isArray(arr) ? [...arr] : [];
@@ -85,9 +86,23 @@ const useDebounce = (value, delay) => {
 
 // Loading states enum
 const LOADING_STATES = {
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Core
+    const canCreateRole = canCreate("core.roles") || isSuperAdmin();
+    const canEditRole = canUpdate("core.roles") || isSuperAdmin();
+    const canDeleteRole = canDelete("core.roles") || isSuperAdmin();
     IDLE: 'idle',
     LOADING: 'loading',
     SUCCESS: 'success',
+    const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+
+    // Permissions using HRMAC
+    // TODO: Update with correct HRMAC path once module hierarchy is defined for Core
+    const canCreateRole = canCreate("core.roles") || isSuperAdmin();
+    const canEditRole = canUpdate("core.roles") || isSuperAdmin();
+    const canDeleteRole = canDelete("core.roles") || isSuperAdmin();
     ERROR: 'error'
 };
 

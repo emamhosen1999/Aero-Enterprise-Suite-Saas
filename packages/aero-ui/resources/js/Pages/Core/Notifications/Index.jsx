@@ -32,9 +32,17 @@ import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const NotificationsIndex = () => {
   const { title } = usePage().props;
+  const { hasAccess, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+
+  // Permissions using HRMAC
+  // TODO: Update with correct HRMAC path once module hierarchy is defined for Core
+  const canViewNotifications = hasAccess("core.notifications") || isSuperAdmin();
+  const canMarkAsRead = canUpdate("core.notifications") || isSuperAdmin();
+  const canDeleteNotification = canDelete("core.notifications") || isSuperAdmin();
   const themeRadius = useThemeRadius();
   const isMobile = useMediaQuery('(max-width: 640px)');
   
