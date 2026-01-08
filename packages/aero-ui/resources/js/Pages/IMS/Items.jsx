@@ -32,8 +32,16 @@ import {
     QrCodeIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const Items = ({ items = [], categories = [], brands = [], auth }) => {
+    // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewItems = hasAccess('ims.items') || isSuperAdmin();
+    const canCreateItem = canCreate('ims.items') || isSuperAdmin();
+    const canEditItem = canUpdate('ims.items') || isSuperAdmin();
+    const canDeleteItem = canDelete('ims.items') || isSuperAdmin();
+    
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     

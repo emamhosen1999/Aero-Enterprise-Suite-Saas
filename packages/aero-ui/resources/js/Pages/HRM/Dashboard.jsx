@@ -3,6 +3,7 @@ import {Head, router} from '@inertiajs/react';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import {Button, Card, CardBody, CardHeader, Chip, Divider, Progress} from "@heroui/react";
 import {useTheme} from '@/Context/ThemeContext';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 import {
     CalendarDaysIcon,
@@ -25,6 +26,11 @@ const TimeOffDashboard = ({ title, holidays, leaveTypes, userLeaves, stats, curr
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
+  const { hasAccess, canCreate, isSuperAdmin } = useHRMAC();
+  const canViewDashboard = hasAccess('hrm.dashboard') || isSuperAdmin();
+  const canRequestLeave = canCreate('hrm.leaves') || isSuperAdmin();
   
   const [selectedPeriod, setSelectedPeriod] = useState('current_year');
 

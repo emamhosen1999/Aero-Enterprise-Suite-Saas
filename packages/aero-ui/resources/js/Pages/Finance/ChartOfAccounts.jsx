@@ -29,8 +29,16 @@ import {
     TrashIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ChartOfAccounts = ({ accounts = [], accountTypes = [], auth }) => {
+    // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewAccounts = hasAccess('finance.chart-of-accounts') || isSuperAdmin();
+    const canCreateAccount = canCreate('finance.chart-of-accounts') || isSuperAdmin();
+    const canEditAccount = canUpdate('finance.chart-of-accounts') || isSuperAdmin();
+    const canDeleteAccount = canDelete('finance.chart-of-accounts') || isSuperAdmin();
+    
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     
