@@ -32,9 +32,20 @@ import {
     TrashIcon,
     ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
+import {useHRMAC} from '@/Hooks/useHRMAC';
 import App from "@/Layouts/App.jsx";
 
 const Warehouses = ({ warehouses = [], auth }) => {
+    // HRMAC permissions
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update with actual HRMAC module hierarchy path once defined
+    const canViewWarehouses = hasAccess('ims.warehouses') || isSuperAdmin();
+    const canCreateWarehouse = canCreate('ims.warehouses') || isSuperAdmin();
+    const canEditWarehouse = canUpdate('ims.warehouses') || isSuperAdmin();
+    const canDeleteWarehouse = canDelete('ims.warehouses') || isSuperAdmin();
+    const canTransferStock = hasAccess('ims.warehouses.transfer') || isSuperAdmin();
+    
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     
@@ -53,10 +64,6 @@ const Warehouses = ({ warehouses = [], auth }) => {
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
-
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.user?.isPlatformSuperAdmin;
-    };
 
     // Sample data
     const sampleWarehouses = [
