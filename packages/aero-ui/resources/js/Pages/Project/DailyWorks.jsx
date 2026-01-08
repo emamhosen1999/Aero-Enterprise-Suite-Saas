@@ -16,7 +16,9 @@ import {
     FunnelIcon,
     AdjustmentsHorizontalIcon,
     UserIcon,
-    MapPinIcon
+    MapPinIcon,
+    TableCellsIcon,
+    MapIcon
 } from "@heroicons/react/24/outline";
 import { Head } from "@inertiajs/react";
 import App from "@/Layouts/App.jsx";
@@ -40,6 +42,7 @@ import DailyWorkForm from "@/Forms/HRM/DailyWorkForm.jsx";
 import DeleteDailyWorkForm from "@/Forms/HRM/DeleteDailyWorkForm.jsx";
 import EnhancedDailyWorksExportForm from "@/Forms/HRM/EnhancedDailyWorksExportForm.jsx";
 import DailyWorksUploadForm from "@/Forms/HRM/DailyWorksUploadForm.jsx";
+import ChainageProgressMap from "@/Components/RFI/ChainageProgressMap.jsx";
 
 
 
@@ -76,6 +79,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
     const [search, setSearch] = useState('');
     const [perPage, setPerPage] = useState(30);
     const [currentPage, setCurrentPage] = useState(1);
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'map'
     
     // Date state management
     const [selectedDate, setSelectedDate] = useState(overallEndDate); // Set to last date
@@ -840,6 +844,26 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                                             />
                                         </div>
                                         <div className="flex gap-2 items-center">
+                                            {/* View Mode Toggle */}
+                                            <ButtonGroup size="sm" radius={getThemeRadius()}>
+                                                <Button 
+                                                    color={viewMode === 'table' ? 'primary' : 'default'}
+                                                    variant={viewMode === 'table' ? 'solid' : 'bordered'}
+                                                    onPress={() => setViewMode('table')}
+                                                    startContent={<TableCellsIcon className="w-4 h-4" />}
+                                                >
+                                                    {!isMobile && 'Table'}
+                                                </Button>
+                                                <Button 
+                                                    color={viewMode === 'map' ? 'primary' : 'default'}
+                                                    variant={viewMode === 'map' ? 'solid' : 'bordered'}
+                                                    onPress={() => setViewMode('map')}
+                                                    startContent={<MapIcon className="w-4 h-4" />}
+                                                >
+                                                    {!isMobile && 'Digital Twin'}
+                                                </Button>
+                                            </ButtonGroup>
+                                            
                                             <ButtonGroup 
                                                 variant="bordered" 
                                                 radius={getThemeRadius()}
@@ -1105,7 +1129,7 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                                 </div>
                             </div>
                             
-                            {/* Daily Works Table */}
+                            {/* Content Area - Conditional Rendering */}
                             <Card 
                                 radius={getThemeRadius()}
                                 className="bg-content2/50 backdrop-blur-md border border-divider/30"
@@ -1117,30 +1141,53 @@ const DailyWorks = ({ auth, title, allData, jurisdictions, users, reports, repor
                                 }}
                             >
                                 <CardBody className="p-4">
-                                    <DailyWorksTable
-                                        setData={setData}
-                                        filteredData={filteredData}
-                                        setFilteredData={setFilteredData}
-                                        reports={reports}
-                                        setCurrentRow={setCurrentRow}
-                                        currentPage={currentPage}
-                                        setCurrentPage={setCurrentPage}
-                                        onPageChange={handlePageChange}
-                                        setLoading={setLoading}
-                                        refreshStatistics={fetchStatistics}
-                                        handleClickOpen={handleClickOpen}
-                                        openModal={openModal}
-                                        juniors={allData.juniors}
-                                        totalRows={totalRows}
-                                        lastPage={lastPage}
-                                        loading={loading || modeSwitch}
-                                        allData={data}
-                                        allInCharges={allData.allInCharges}
-                                        jurisdictions={jurisdictions}
-                                        users={users}
-                                        reports_with_daily_works={reports_with_daily_works}
-                                        isMobile={isMobile}
-                                    />
+                                    {viewMode === 'table' ? (
+                                        <DailyWorksTable
+                                            setData={setData}
+                                            filteredData={filteredData}
+                                            setFilteredData={setFilteredData}
+                                            reports={reports}
+                                            setCurrentRow={setCurrentRow}
+                                            currentPage={currentPage}
+                                            setCurrentPage={setCurrentPage}
+                                            onPageChange={handlePageChange}
+                                            setLoading={setLoading}
+                                            refreshStatistics={fetchStatistics}
+                                            handleClickOpen={handleClickOpen}
+                                            openModal={openModal}
+                                            juniors={allData.juniors}
+                                            totalRows={totalRows}
+                                            lastPage={lastPage}
+                                            loading={loading || modeSwitch}
+                                            allData={data}
+                                            allInCharges={allData.allInCharges}
+                                            jurisdictions={jurisdictions}
+                                            users={users}
+                                            reports_with_daily_works={reports_with_daily_works}
+                                            isMobile={isMobile}
+                                        />
+                                    ) : (
+                                        <div className="relative">
+                                            <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                                                <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                                    <MapIcon className="w-5 h-5" />
+                                                    Digital Twin Chainage Progress Map
+                                                </h3>
+                                                <p className="text-sm text-default-600 mt-1">
+                                                    Interactive visualization of construction progress across all layers and chainage ranges
+                                                </p>
+                                            </div>
+                                            <ChainageProgressMap
+                                                projectId={auth.project?.id}
+                                                startChainage={0}
+                                                endChainage={10000}
+                                                layers={allData.workLayers || []}
+                                                showLegend={true}
+                                                interactive={true}
+                                                height={isMobile ? 400 : 600}
+                                            />
+                                        </div>
+                                    )}
                                 </CardBody>
                             </Card>
                         </CardBody>
