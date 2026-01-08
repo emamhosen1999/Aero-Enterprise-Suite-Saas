@@ -43,6 +43,7 @@ import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useHRMAC} from '@/Hooks/useHRMAC';
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import axios from 'axios';
 
 const LeaveSummary = ({ title, summaryData }) => {
@@ -377,148 +378,56 @@ const LeaveSummary = ({ title, summaryData }) => {
         return Array.from({ length: 10 }, (_, i) => currentYear - i);
     }, []);
 
+    // Action buttons for StandardPageLayout
+    const actionButtons = useMemo(() => (
+        <>
+            {canExportSummary && (
+                <>
+                    <Button
+                        color="success"
+                        variant="flat"
+                        onPress={exportExcel}
+                        startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+                        size={isMobile ? "sm" : "md"}
+                        radius={themeRadius}
+                        isDisabled={loading || filteredData.length === 0 || downloading !== ''}
+                        isLoading={downloading === 'excel'}
+                        aria-label="Export leave summary as Excel file"
+                    >
+                        {isMobile ? 'XLS' : 'Excel'}
+                    </Button>
+                    <Button
+                        color="danger"
+                        variant="flat"
+                        onPress={exportPDF}
+                        startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+                        size={isMobile ? "sm" : "md"}
+                        radius={themeRadius}
+                        isDisabled={loading || filteredData.length === 0 || downloading !== ''}
+                        isLoading={downloading === 'pdf'}
+                        aria-label="Export leave summary as PDF file"
+                    >
+                        {isMobile ? 'PDF' : 'PDF'}
+                    </Button>
+                </>
+            )}
+        </>
+    ), [canExportSummary, isMobile, themeRadius, loading, filteredData.length, downloading, exportExcel, exportPDF]);
+
     return (
         <>
             <Head title={title} />
             
-            <div 
-                className="flex flex-col w-full h-full p-4"
-                role="main"
-                aria-label="Leave Summary"
+            <StandardPageLayout
+                title="Leave Summary"
+                subtitle="Employee leave analytics and reporting"
+                icon={<PresentationChartLineIcon />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} isLoading={loading} />}
+                ariaLabel="Leave Summary"
             >
-                <div className="space-y-4">
-                    <div className="w-full">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <Card 
-                                className="transition-all duration-200"
-                                style={{
-                                    border: `var(--borderWidth, 2px) solid transparent`,
-                                    borderRadius: `var(--borderRadius, 12px)`,
-                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                    transform: `scale(var(--scale, 1))`,
-                                    background: `linear-gradient(135deg, 
-                                        var(--theme-content1, #FAFAFA) 20%, 
-                                        var(--theme-content2, #F4F4F5) 10%, 
-                                        var(--theme-content3, #F1F3F4) 20%)`,
-                                }}
-                            >
-                                <CardHeader 
-                                    className="border-b p-0"
-                                    style={{
-                                        borderColor: `var(--theme-divider, #E4E4E7)`,
-                                        background: `linear-gradient(135deg, 
-                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                                    }}
-                                >
-                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
-                                        <div className="flex flex-col space-y-4">
-                                            {/* Main Header Content */}
-                                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                                {/* Title Section */}
-                                                <div className="flex items-center gap-3 lg:gap-4">
-                                                    <div 
-                                                        className={`
-                                                            ${!isMobile ? 'p-3' : 'p-2'} 
-                                                            rounded-xl flex items-center justify-center
-                                                        `}
-                                                        style={{
-                                                            background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                                            borderColor: `color-mix(in srgb, var(--theme-primary) 25%, transparent)`,
-                                                            borderWidth: `var(--borderWidth, 2px)`,
-                                                            borderRadius: `var(--borderRadius, 12px)`,
-                                                        }}
-                                                    >
-                                                        <PresentationChartLineIcon 
-                                                            className={`
-                                                                ${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}
-                                                            `}
-                                                            style={{ color: 'var(--theme-primary)' }}
-                                                        />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <h4 
-                                                            className={`
-                                                                ${!isMobile ? 'text-2xl' : 'text-xl'}
-                                                                font-bold text-foreground
-                                                                ${isMobile ? 'truncate' : ''}
-                                                            `}
-                                                            style={{
-                                                                fontFamily: `var(--fontFamily, "Inter")`,
-                                                            }}
-                                                        >
-                                                            Leave Summary
-                                                        </h4>
-                                                        <p 
-                                                            className={`
-                                                                ${!isMobile ? 'text-sm' : 'text-xs'} 
-                                                                text-default-500
-                                                                ${isMobile ? 'truncate' : ''}
-                                                            `}
-                                                            style={{
-                                                                fontFamily: `var(--fontFamily, "Inter")`,
-                                                            }}
-                                                        >
-                                                            Employee leave analytics and reporting
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                
-                                                {/* Action Buttons */}
-                                                <div className="flex gap-2 flex-wrap">
-                                                   
-                                                    
-                                                    {/* Export Buttons */}
-                                                    <Button
-                                                        color="success"
-                                                        variant="flat"
-                                                        onPress={exportExcel}
-                                                        startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
-                                                        size={isMobile ? "sm" : "md"}
-                                                        radius={themeRadius}
-                                                        isDisabled={loading || filteredData.length === 0 || downloading !== ''}
-                                                        isLoading={downloading === 'excel'}
-                                                        className="font-semibold"
-                                                        aria-label="Export leave summary as Excel file"
-                                                        style={{
-                                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                                        }}
-                                                    >
-                                                        {isMobile ? 'XLS' : 'Excel'}
-                                                    </Button>
-                                                    <Button
-                                                        color="danger"
-                                                        variant="flat"
-                                                        onPress={exportPDF}
-                                                        startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
-                                                        size={isMobile ? "sm" : "md"}
-                                                        radius={themeRadius}
-                                                        isDisabled={loading || filteredData.length === 0 || downloading !== ''}
-                                                        isLoading={downloading === 'pdf'}
-                                                        className="font-semibold"
-                                                        aria-label="Export leave summary as PDF file"
-                                                        style={{
-                                                            fontFamily: `var(--fontFamily, "Inter")`,
-                                                        }}
-                                                    >
-                                                        PDF
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-
-                                <CardBody className="p-6">
-                                    {/* Enhanced Stats */}
-                                    <StatsCards stats={statsData} className="mb-6" isLoading={loading} />
-                                        
-                                    {/* Enhanced Filters Section - Compact and Consistent */}
-                                    <div className="space-y-3 mb-6">
+                {/* Enhanced Filters Section - Compact and Consistent */}
+                <div className="space-y-3 mb-6">
                                         {/* Search Bar */}
                                         <div className="flex flex-col lg:flex-row gap-3">
                                             <div className="flex-1">
@@ -1132,13 +1041,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                             </div>
                                         )}
                                     </div>
-                         
-                                </CardBody>
-                            </Card>
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
+            </StandardPageLayout>
         </>
     );
 };
