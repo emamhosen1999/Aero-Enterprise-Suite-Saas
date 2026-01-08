@@ -14,7 +14,7 @@ class HolidayController extends Controller
     public function index(): \Inertia\Response
     {
         $holidays = Holiday::active()
-            ->orderBy('from_date', 'asc')
+            ->orderBy('date', 'asc')
             ->get();
 
         // Get statistics for the dashboard (for reference, but frontend will calculate dynamically)
@@ -28,7 +28,7 @@ class HolidayController extends Controller
             }),
         ];
 
-        return Inertia::render('Holidays', [
+        return Inertia::render('HRM/Holidays', [
             'title' => 'Company Holidays',
             'holidays' => $holidays,
             'stats' => $stats,
@@ -59,8 +59,8 @@ class HolidayController extends Controller
             $data = [
                 'title' => $request->input('title'),
                 'description' => $request->input('description'),
-                'from_date' => $request->input('fromDate'),
-                'to_date' => $request->input('toDate'),
+                'date' => $request->input('fromDate'),
+                'end_date' => $request->input('toDate'),
                 'type' => $request->input('type', 'company'),
                 'is_recurring' => $request->boolean('is_recurring', false),
                 'is_active' => $request->boolean('is_active', true),
@@ -83,7 +83,7 @@ class HolidayController extends Controller
 
             // Get updated holidays for return
             $holidays = Holiday::active()
-                ->orderBy('from_date', 'asc')
+                ->orderBy('date', 'asc')
                 ->get();
 
             return response()->json([
@@ -118,7 +118,7 @@ class HolidayController extends Controller
 
             // Get updated holidays for return
             $holidays = Holiday::active()
-                ->orderBy('from_date', 'asc')
+                ->orderBy('date', 'asc')
                 ->get();
 
             // Return a success response

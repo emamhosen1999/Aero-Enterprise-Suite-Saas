@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Head, usePage} from '@inertiajs/react';
 import {motion} from 'framer-motion';
-import {Card, Input, Select, SelectItem, Spinner} from "@heroui/react";
+import {Button, Card, Input, Select, SelectItem, Spinner} from "@heroui/react";
 import {
     BuildingOffice2Icon,
     CheckCircleIcon,
