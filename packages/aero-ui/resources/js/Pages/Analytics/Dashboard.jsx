@@ -22,35 +22,15 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 
 const AnalyticsDashboard = ({ stats = {}, topPages = [], traffic = [], conversions = [], auth, permissions = [] }) => {
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-    const [isLargeScreen, setIsLargeScreen] = useState(false);
+    const themeRadius = useThemeRadius();
+    const isMobile = useMediaQuery('(max-width: 640px)');
+    const isTablet = useMediaQuery('(max-width: 768px)');
+    const isLargeScreen = useMediaQuery('(min-width: 1280px)');
     const [selectedPeriod, setSelectedPeriod] = useState('month');
-
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-            setIsLargeScreen(window.innerWidth >= 1280);
-        };
-
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
-
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
 
     const hasPermission = (permission) => {
         return permissions?.includes(permission) || auth?.user?.isPlatformSuperAdmin;
@@ -161,7 +141,7 @@ const AnalyticsDashboard = ({ stats = {}, topPages = [], traffic = [], conversio
                             size="sm"
                             variant={selectedPeriod === 'week' ? 'solid' : 'flat'}
                             color={selectedPeriod === 'week' ? 'primary' : 'default'}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             onPress={() => setSelectedPeriod('week')}
                         >
                             Week
@@ -170,7 +150,7 @@ const AnalyticsDashboard = ({ stats = {}, topPages = [], traffic = [], conversio
                             size="sm"
                             variant={selectedPeriod === 'month' ? 'solid' : 'flat'}
                             color={selectedPeriod === 'month' ? 'primary' : 'default'}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             onPress={() => setSelectedPeriod('month')}
                         >
                             Month
@@ -179,7 +159,7 @@ const AnalyticsDashboard = ({ stats = {}, topPages = [], traffic = [], conversio
                             size="sm"
                             variant={selectedPeriod === 'year' ? 'solid' : 'flat'}
                             color={selectedPeriod === 'year' ? 'primary' : 'default'}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                             onPress={() => setSelectedPeriod('year')}
                         >
                             Year
@@ -207,7 +187,7 @@ const AnalyticsDashboard = ({ stats = {}, topPages = [], traffic = [], conversio
                                         size="sm"
                                         variant="flat"
                                         color="primary"
-                                        radius={getThemeRadius()}
+                                        radius={themeRadius}
                                         onPress={() => safeNavigate('analytics.pages.index')}
                                     >
                                         View All

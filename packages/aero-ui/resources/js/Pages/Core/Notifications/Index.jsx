@@ -26,12 +26,18 @@ import {
   ArrowPathIcon
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from "@/Layouts/StandardPageLayout.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 
 const NotificationsIndex = () => {
   const { title } = usePage().props;
+  const themeRadius = useThemeRadius();
+  const isMobile = useMediaQuery('(max-width: 640px)');
+  
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -154,6 +160,35 @@ const NotificationsIndex = () => {
     return colors[type] || 'default';
   };
 
+  // Action buttons
+  const actionButtons = [
+    <Button
+      key="refresh"
+      variant="flat"
+      startContent={<ArrowPathIcon className="w-4 h-4" />}
+      onPress={() => fetchNotifications(pagination.currentPage)}
+      isLoading={loading}
+      size={isMobile ? "sm" : "md"}
+    >
+      Refresh
+    </Button>
+  ];
+
+  if (unreadCount > 0) {
+    actionButtons.push(
+      <Button
+        key="markall"
+        variant="flat"
+        color="primary"
+        startContent={<CheckIcon className="w-4 h-4" />}
+        onPress={handleMarkAllAsRead}
+        size={isMobile ? "sm" : "md"}
+      >
+        Mark All Read
+      </Button>
+    );
+  }
+
   const statsData = [
     {
       title: 'Total Notifications',
@@ -176,156 +211,134 @@ const NotificationsIndex = () => {
   ];
 
   return (
-    <App>
+    <>
       <Head title={title} />
       
-      <div className="space-y-6">
-        {/* Stats Cards */}
-        <StatsCards stats={statsData} isLoading={loading} />
+      <StandardPageLayout
+        ariaLabel="Notifications Management"
+        title="Notifications"
+        subtitle="View and manage your notifications"
+        icon={BellIcon}
+        actions={<div className="flex items-center gap-2">{actionButtons}</div>}
+        stats={<StatsCards stats={statsData} isLoading={loading} />}
+        filters={
+          <Tabs 
+            selectedKey={filter} 
+            onSelectionChange={setFilter}
+            variant="underlined"
+            color="primary"
+            size={isMobile ? "sm" : "md"}
+          >
+            <Tab key="all" title="All" />
+            <Tab 
+              key="unread" 
+              title={
+                <div className="flex items-center gap-2">
+                  <span>Unread</span>
+                  {unreadCount > 0 && (
+                    <Chip size="sm" color="warning" variant="flat">
+                      {unreadCount}
+                    </Chip>
+                  )}
+                </div>
+              }
+            />
+            <Tab key="read" title="Read" />
+          </Tabs>
+        }
+      >
+        {loading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex gap-4 p-4 border border-divider rounded-lg">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-3 w-1/2 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-default-400">
+            <InboxIcon className="w-16 h-16 mb-4" />
+            <p className="text-lg font-medium">No notifications</p>
+            <p className="text-sm">You're all caught up!</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              {notifications.map((notification) => {
+                const Icon = getNotificationIcon(notification.data?.type);
+                const isUnread = !notification.read_at;
 
-        {/* Main Content Card */}
-        <Card className="shadow-none border border-divider">
-          <CardHeader className="flex flex-col sm:flex-row justify-between gap-4 px-6 py-4">
-            <Tabs 
-              selectedKey={filter} 
-              onSelectionChange={setFilter}
-              variant="underlined"
-              color="primary"
-            >
-              <Tab key="all" title="All" />
-              <Tab 
-                key="unread" 
-                title={
-                  <div className="flex items-center gap-2">
-                    <span>Unread</span>
-                    {unreadCount > 0 && (
-                      <Chip size="sm" color="warning" variant="flat">
-                        {unreadCount}
-                      </Chip>
-                    )}
-                  </div>
-                }
-              />
-              <Tab key="read" title="Read" />
-            </Tabs>
-
-            <div className="flex gap-3">
-              <Button
-                variant="flat"
-                startContent={<ArrowPathIcon className="w-4 h-4" />}
-                onPress={() => fetchNotifications(pagination.currentPage)}
-                isLoading={loading}
-                size="sm"
-              >
-                Refresh
-              </Button>
-              {unreadCount > 0 && (
-                <Button
-                  variant="flat"
-                  color="primary"
-                  startContent={<CheckIcon className="w-4 h-4" />}
-                  onPress={handleMarkAllAsRead}
-                  size="sm"
-                >
-                  Mark All Read
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-
-          <CardBody className="px-6">
-            {loading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex gap-4 p-4 border border-divider rounded-lg">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4 rounded" />
-                      <Skeleton className="h-3 w-1/2 rounded" />
+                return (
+                  <div
+                    key={notification.id}
+                    className={`flex gap-4 p-4 border rounded-lg transition-colors ${
+                      isUnread 
+                        ? 'border-primary/30 bg-primary/5' 
+                        : 'border-divider bg-content1'
+                    }`}
+                  >
+                    <div className={`flex-shrink-0 p-2 rounded-full ${
+                      isUnread ? 'bg-primary/10' : 'bg-default-100'
+                    }`}>
+                      <Icon className={`w-5 h-5 ${
+                        isUnread ? 'text-primary' : 'text-default-500'
+                      }`} />
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-default-400">
-                <InboxIcon className="w-16 h-16 mb-4" />
-                <p className="text-lg font-medium">No notifications</p>
-                <p className="text-sm">You're all caught up!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {notifications.map((notification) => {
-                  const Icon = getNotificationIcon(notification.data?.type);
-                  const isUnread = !notification.read_at;
 
-                  return (
-                    <div
-                      key={notification.id}
-                      className={`flex gap-4 p-4 border rounded-lg transition-colors ${
-                        isUnread 
-                          ? 'border-primary/30 bg-primary/5' 
-                          : 'border-divider bg-content1'
-                      }`}
-                    >
-                      <div className={`flex-shrink-0 p-2 rounded-full ${
-                        isUnread ? 'bg-primary/10' : 'bg-default-100'
-                      }`}>
-                        <Icon className={`w-5 h-5 ${
-                          isUnread ? 'text-primary' : 'text-default-500'
-                        }`} />
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className={`text-sm ${isUnread ? 'font-semibold' : 'font-medium'}`}>
+                            {notification.data?.title || 'Notification'}
+                          </p>
+                          <p className="text-sm text-default-500 mt-1">
+                            {notification.data?.message || notification.data?.body || ''}
+                          </p>
+                        </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className={`text-sm ${isUnread ? 'font-semibold' : 'font-medium'}`}>
-                              {notification.data?.title || 'Notification'}
-                            </p>
-                            <p className="text-sm text-default-500 mt-1">
-                              {notification.data?.message || notification.data?.body || ''}
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-default-400 whitespace-nowrap">
-                              {new Date(notification.created_at).toLocaleDateString()}
-                            </span>
-                            
-                            <Dropdown>
-                              <DropdownTrigger>
-                                <Button isIconOnly size="sm" variant="light">
-                                  <EllipsisVerticalIcon className="w-4 h-4" />
-                                </Button>
-                              </DropdownTrigger>
-                              <DropdownMenu aria-label="Notification actions">
-                                {isUnread && (
-                                  <DropdownItem
-                                    key="read"
-                                    startContent={<CheckIcon className="w-4 h-4" />}
-                                    onPress={() => handleMarkAsRead(notification.id)}
-                                  >
-                                    Mark as read
-                                  </DropdownItem>
-                                )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-default-400 whitespace-nowrap">
+                            {new Date(notification.created_at).toLocaleDateString()}
+                          </span>
+                          
+                          <Dropdown>
+                            <DropdownTrigger>
+                              <Button isIconOnly size="sm" variant="light">
+                                <EllipsisVerticalIcon className="w-4 h-4" />
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu aria-label="Notification actions">
+                              {isUnread && (
                                 <DropdownItem
-                                  key="delete"
-                                  color="danger"
-                                  className="text-danger"
-                                  startContent={<TrashIcon className="w-4 h-4" />}
-                                  onPress={() => handleDelete(notification.id)}
+                                  key="read"
+                                  startContent={<CheckIcon className="w-4 h-4" />}
+                                  onPress={() => handleMarkAsRead(notification.id)}
                                 >
-                                  Delete
+                                  Mark as read
                                 </DropdownItem>
-                              </DropdownMenu>
-                            </Dropdown>
-                          </div>
+                              )}
+                              <DropdownItem
+                                key="delete"
+                                color="danger"
+                                className="text-danger"
+                                startContent={<TrashIcon className="w-4 h-4" />}
+                                onPress={() => handleDelete(notification.id)}
+                              >
+                                Delete
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Pagination */}
             {pagination.lastPage > 1 && (
@@ -339,11 +352,13 @@ const NotificationsIndex = () => {
                 />
               </div>
             )}
-          </CardBody>
-        </Card>
-      </div>
-    </App>
+          </>
+        )}
+      </StandardPageLayout>
+    </>
   );
 };
+
+NotificationsIndex.layout = (page) => <App children={page} />;
 
 export default NotificationsIndex;

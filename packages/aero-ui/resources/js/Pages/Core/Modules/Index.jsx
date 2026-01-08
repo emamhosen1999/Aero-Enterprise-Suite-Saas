@@ -69,6 +69,8 @@ import StatsCards from '@/Components/StatsCards';
 import App from '@/Layouts/App';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import useMediaQuery from '@/Hooks/useMediaQuery';
 
 // Component type icons mapping
 const componentTypeIcons = {
@@ -1147,35 +1149,10 @@ const ModuleManagement = (props) => {
         );
     };
 
-    // Helper to get theme radius
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
-
-    // Responsive screen checks
-    const [isMobile, setIsMobile] = React.useState(false);
-    const [isTablet, setIsTablet] = React.useState(false);
-    const [isLargeScreen, setIsLargeScreen] = React.useState(false);
-    
-    React.useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-            setIsLargeScreen(window.innerWidth >= 1025);
-        };
-        
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
+    const themeRadius = useThemeRadius();
+    const isMobile = useMediaQuery('(max-width: 640px)');
+    const isTablet = useMediaQuery('(max-width: 768px)');
+    const isLargeScreen = useMediaQuery('(min-width: 1025px)');
 
     return (
         <>
@@ -1277,7 +1254,7 @@ const ModuleManagement = (props) => {
                                                         style={{
                                                             background: `color-mix(in srgb, var(--theme-default) 15%, transparent)`,
                                                             color: `var(--theme-foreground)`,
-                                                            borderRadius: getThemeRadius(),
+                                                            borderRadius: themeRadius,
                                                             border: `1px solid color-mix(in srgb, var(--theme-default) 30%, transparent)`,
                                                         }}
                                                         startContent={<ArrowPathIcon className="w-4 h-4" />}
@@ -1291,7 +1268,7 @@ const ModuleManagement = (props) => {
                                                             className="text-white font-medium"
                                                             style={{
                                                                 background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
-                                                                borderRadius: getThemeRadius(),
+                                                                borderRadius: themeRadius,
                                                             }}
                                                             startContent={<PlusIcon className="w-4 h-4" />}
                                                             onPress={() => openModuleModal()}
@@ -1348,7 +1325,7 @@ const ModuleManagement = (props) => {
                                         style={{
                                             background: `color-mix(in srgb, var(--theme-content2) 50%, transparent)`,
                                             border: `1px solid color-mix(in srgb, var(--theme-content3) 50%, transparent)`,
-                                            borderRadius: getThemeRadius(),
+                                            borderRadius: themeRadius,
                                             backdropFilter: 'blur(16px)',
                                         }}
                                     >
@@ -1360,7 +1337,7 @@ const ModuleManagement = (props) => {
                                                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                 className="flex-1"
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     inputWrapper: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
                                                     input: "text-foreground placeholder:text-default-400",
@@ -1372,7 +1349,7 @@ const ModuleManagement = (props) => {
                                                 onChange={(e) => setCategoryFilter(e.target.value)}
                                                 className="w-full sm:w-48"
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     trigger: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
                                                     value: "text-foreground",
@@ -1389,7 +1366,7 @@ const ModuleManagement = (props) => {
                                                 onChange={(e) => setStatusFilter(e.target.value)}
                                                 className="w-full sm:w-36"
                                                 variant="bordered"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 classNames={{
                                                     trigger: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
                                                     value: "text-foreground",
@@ -1454,7 +1431,7 @@ const ModuleManagement = (props) => {
                                                     className="w-56"
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     isLoading={roleAccessLoading}
                                                     classNames={{
                                                         trigger: "bg-white/50 dark:bg-default-50/10 backdrop-blur-md border-default-200/30",
@@ -1480,7 +1457,7 @@ const ModuleManagement = (props) => {
                                                         isLoading={roleAccessSaving}
                                                         style={{
                                                             background: `linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary) 80%, var(--theme-secondary)))`,
-                                                            borderRadius: getThemeRadius(),
+                                                            borderRadius: themeRadius,
                                                         }}
                                                     >
                                                         Save Access

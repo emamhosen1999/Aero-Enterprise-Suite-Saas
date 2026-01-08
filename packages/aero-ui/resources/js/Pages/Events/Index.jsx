@@ -35,24 +35,11 @@ import StatsCards from '@/Components/Common/StatsCards';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import dayjs from 'dayjs';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 
 const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
     const { auth } = usePage().props;
-    
-    // Helper function to convert theme borderRadius to HeroUI radius values
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    const themeRadius = useThemeRadius();
     
     // Custom media queries
     const [isMobile, setIsMobile] = useState(false);
@@ -247,7 +234,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                 startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                                                 variant="bordered"
                                                 size="sm"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="w-full"
                                                 classNames={{
                                                     input: "text-sm",
@@ -260,7 +247,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                         <div className="flex gap-2 items-end">
                                             <ButtonGroup 
                                                 variant="bordered" 
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 className="bg-white/5"
                                             >
                                                 <Button
@@ -292,7 +279,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                         onChange={(e) => handleFilterChange('status', e.target.value)}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -313,7 +300,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                         onChange={(e) => handleFilterChange('registration', e.target.value)}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -334,7 +321,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                         onChange={(e) => handleFilterChange('timeline', e.target.value)}
                                                         variant="bordered"
                                                         size="sm"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         className="w-full"
                                                         classNames={{
                                                             trigger: "text-sm",
@@ -513,7 +500,7 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters }) => {
                                                             page={events.current_page}
                                                             onChange={handlePageChange}
                                                             showControls
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                         />
                                                     </div>
                                                 )}

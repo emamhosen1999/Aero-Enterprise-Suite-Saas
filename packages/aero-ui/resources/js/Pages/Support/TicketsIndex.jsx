@@ -28,8 +28,12 @@ import {
     UserIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 
 const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
+    const themeRadius = useThemeRadius();
+    const isMobile = useMediaQuery('(max-width: 640px)');
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -37,27 +41,6 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [page, setPage] = useState(1);
     const rowsPerPage = 10;
-
-    // Responsive
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
-
-    // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
 
     // Permission helper
     const hasPermission = (permission) => {
@@ -227,7 +210,7 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
                         <Button
                             color="primary"
                             startContent={<PlusIcon className="w-5 h-5" />}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             New Ticket
                         </Button>
@@ -242,12 +225,12 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
                         onValueChange={handleSearchChange}
                         startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
                         className="w-full sm:w-64"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     />
                     <Select
                         placeholder="All Priority"
                         className="w-full sm:w-40"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setPriorityFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Priority</SelectItem>
@@ -259,7 +242,7 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
                     <Select
                         placeholder="All Status"
                         className="w-full sm:w-40"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Status</SelectItem>
@@ -272,7 +255,7 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
                     <Select
                         placeholder="All Agents"
                         className="w-full sm:w-40"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setAgentFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Agents</SelectItem>
@@ -283,7 +266,7 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
                     <Select
                         placeholder="All Categories"
                         className="w-full sm:w-40"
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                         onChange={(e) => setCategoryFilter(e.target.value)}
                     >
                         <SelectItem key="all" value="all">All Categories</SelectItem>
@@ -294,7 +277,7 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
                     <Button
                         variant="flat"
                         startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                        radius={getThemeRadius()}
+                        radius={themeRadius}
                     >
                         Export
                     </Button>

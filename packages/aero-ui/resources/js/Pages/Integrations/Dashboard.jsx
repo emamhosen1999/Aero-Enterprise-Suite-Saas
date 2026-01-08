@@ -22,35 +22,15 @@ import {
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
+import useMediaQuery from '@/Hooks/useMediaQuery';
 
 const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-    const [isLargeScreen, setIsLargeScreen] = useState(false);
+    const themeRadius = useThemeRadius();
+    const isMobile = useMediaQuery('(max-width: 640px)');
+    const isTablet = useMediaQuery('(min-width: 640px) and (max-width: 1024px)');
+    const isLargeScreen = useMediaQuery('(min-width: 1024px)');
     const [selectedPeriod, setSelectedPeriod] = useState('month');
-
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
-            setIsLargeScreen(window.innerWidth >= 1024);
-        };
-
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
-
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
 
     const hasPermission = (permission) => {
         return auth?.permissions?.includes(permission) || auth?.permissions?.includes('*');
@@ -154,7 +134,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                             variant={selectedPeriod === 'month' ? 'solid' : 'flat'}
                             color="primary"
                             onPress={() => setSelectedPeriod('month')}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Month
                         </Button>
@@ -163,7 +143,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                             variant={selectedPeriod === 'year' ? 'solid' : 'flat'}
                             color="primary"
                             onPress={() => setSelectedPeriod('year')}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Year
                         </Button>
@@ -254,7 +234,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                                     variant="flat"
                                     color="primary"
                                     onPress={() => safeNavigate('integrations.logs')}
-                                    radius={getThemeRadius()}
+                                    radius={themeRadius}
                                 >
                                     View All Logs
                                 </Button>
@@ -295,7 +275,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                             color="primary"
                             startContent={<KeyIcon className="w-4 h-4" />}
                             onPress={() => safeNavigate('integrations.api-keys')}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Manage API Keys
                         </Button>
@@ -306,7 +286,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                             color="primary"
                             startContent={<CogIcon className="w-4 h-4" />}
                             onPress={() => safeNavigate('integrations.webhooks')}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             Configure Webhooks
                         </Button>
@@ -317,7 +297,7 @@ const Dashboard = ({ stats, integrations, recentCalls, auth }) => {
                             color="default"
                             startContent={<DocumentTextIcon className="w-4 h-4" />}
                             onPress={() => safeNavigate('integrations.documentation')}
-                            radius={getThemeRadius()}
+                            radius={themeRadius}
                         >
                             View Documentation
                         </Button>
