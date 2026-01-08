@@ -40,28 +40,16 @@ import StatsCards from "@/Components/StatsCards.jsx";
 import LeaveAnalytics from "@/Components/Leave/LeaveAnalytics.jsx";
 import {useTheme} from '@/Context/ThemeContext.jsx';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import App from "@/Layouts/App.jsx";
 import axios from 'axios';
 
 const LeaveSummary = ({ title, summaryData }) => {
     const { theme } = useTheme();
+    const themeRadius = useThemeRadius();
     const isMobile = useMediaQuery('(max-width: 640px)');
     const isLargeScreen = useMediaQuery('(min-width: 1025px)');
     const isMediumScreen = useMediaQuery('(min-width: 641px) and (max-width: 1024px)');
-    
-    // Theme radius helper function (matching DailyWorksTable)
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        
-        const radiusValue = parseInt(getComputedStyle(document.documentElement)
-            .getPropertyValue('--borderRadius')?.trim() || '12');
-        
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
     
     // Destructure summary data
     const {
@@ -483,7 +471,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                         onPress={exportExcel}
                                                         startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
                                                         size={isMobile ? "sm" : "md"}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         isDisabled={loading || filteredData.length === 0 || downloading !== ''}
                                                         isLoading={downloading === 'excel'}
                                                         className="font-semibold"
@@ -500,7 +488,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                         onPress={exportPDF}
                                                         startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
                                                         size={isMobile ? "sm" : "md"}
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         isDisabled={loading || filteredData.length === 0 || downloading !== ''}
                                                         isLoading={downloading === 'pdf'}
                                                         className="font-semibold"
@@ -534,7 +522,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                     onChange={(e) => setSearchValue(e.target.value)}
                                                     variant="bordered"
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     aria-label="Search employees by name or department"
                                                     classNames={{
                                                         base: "max-w-full",
@@ -559,7 +547,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                     onPress={() => setShowFilters(!showFilters)}
                                                     startContent={<AdjustmentsHorizontalIcon className="w-3 h-3" />}
                                                     size="sm"
-                                                    radius={getThemeRadius()}
+                                                    radius={themeRadius}
                                                     aria-label={showFilters ? 'Hide filters panel' : 'Show filters panel'}
                                                     className={showFilters 
                                                         ? 'bg-primary-50 border-primary-200 text-primary-700 font-medium h-10 text-xs' 
@@ -592,7 +580,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             placeholder="Select year"
                                                             variant="bordered"
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             selectedKeys={[String(currentFilters.year || year)]}
                                                             onSelectionChange={(keys) => {
                                                                 const selectedYear = Array.from(keys)[0];
@@ -625,7 +613,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             placeholder="Select department"
                                                             variant="bordered"
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             selectedKeys={currentFilters.department_id ? [String(currentFilters.department_id)] : []}
                                                             onSelectionChange={(keys) => {
                                                                 const deptId = Array.from(keys)[0];
@@ -659,7 +647,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             placeholder="Select status"
                                                             variant="bordered"
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             selectedKeys={currentFilters.status ? [currentFilters.status] : []}
                                                             onSelectionChange={(keys) => {
                                                                 const status = Array.from(keys)[0];
@@ -695,7 +683,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                             variant="flat"
                                                             onPress={clearFilters}
                                                             size="sm"
-                                                            radius={getThemeRadius()}
+                                                            radius={themeRadius}
                                                             startContent={<XCircleIcon className="w-3 h-3" />}
                                                             className="bg-primary-50 text-primary-700 border-primary-200 font-medium hover:bg-primary-100 h-8 text-xs"
                                                             aria-label="Clear all applied filters"
@@ -723,7 +711,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                 selectedKey={selectedTab}
                                                 onSelectionChange={setSelectedTab}
                                                 variant="underlined"
-                                                radius={getThemeRadius()}
+                                                radius={themeRadius}
                                                 aria-label="Leave summary view options"
                                                 classNames={{
                                                     tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
@@ -819,7 +807,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                                 isStriped
                                                                 aria-label="Employee leave summary table"
                                                                 isHeaderSticky
-                                                                radius={getThemeRadius()}
+                                                                radius={themeRadius}
                                                             classNames={{
                                                                 base: "max-h-[520px] overflow-auto",
                                                                 table: "min-h-[200px] w-full table-fixed border border-default-200",
@@ -953,7 +941,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                                     total={totalPages}
                                                                     onChange={setPage}
                                                                     size={isMobile ? "sm" : "md"}
-                                                                    radius={getThemeRadius()}
+                                                                    radius={themeRadius}
                                                                     aria-label={`Pagination navigation for leave summary, page ${page} of ${totalPages}`}
                                                                     classNames={{
                                                                         wrapper: "bg-content1/80 backdrop-blur-md border-divider/50",
@@ -971,7 +959,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                 ) : (
                                                     <Card 
                                                         className="bg-white/5 backdrop-blur-md border-white/10"
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         style={{
                                                             border: `var(--borderWidth, 1px) solid var(--theme-divider, rgba(255, 255, 255, 0.1))`,
                                                             borderRadius: `var(--borderRadius, 12px)`,
@@ -1015,7 +1003,7 @@ const LeaveSummary = ({ title, summaryData }) => {
                                                         isStriped
                                                         aria-label="Department leave summary table"
                                                         isHeaderSticky
-                                                        radius={getThemeRadius()}
+                                                        radius={themeRadius}
                                                         classNames={{
                                                             base: "max-h-[520px] overflow-auto",
                                                             table: "min-h-[200px] w-full table-fixed border border-default-200",
