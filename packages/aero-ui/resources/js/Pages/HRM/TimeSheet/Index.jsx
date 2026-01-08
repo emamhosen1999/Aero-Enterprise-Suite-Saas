@@ -4,9 +4,11 @@ import {CalendarIcon, ChartBarIcon, CheckCircleIcon, UserPlusIcon} from "@heroic
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import TimeSheetTable from '@/Tables/HRM/TimeSheetTable.jsx';
 import MarkAsPresentForm from "@/Forms/HRM/MarkAsPresentForm.jsx";
 import BulkMarkAsPresentForm from "@/Forms/HRM/BulkMarkAsPresentForm.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 import dayjs from "dayjs";
 
 const TimeSheet = ({ title, allUsers }) => {
@@ -14,6 +16,11 @@ const TimeSheet = ({ title, allUsers }) => {
     const isMobile = useMediaQuery('(max-width: 768px)');
     const isSmallScreen = useMediaQuery('(max-width: 640px)');
     const themeRadius = useThemeRadius();
+    
+    // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
+    const { hasAccess, canCreate, canUpdate, isSuperAdmin } = useHRMAC();
+    const canManageAttendance = hasAccess('hrm.attendance') || isSuperAdmin();
+    const canMarkPresent = canCreate('hrm.attendance') || isSuperAdmin();
     
     const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
     const [modalState, setModalState] = useState({
@@ -113,9 +120,6 @@ const TimeSheet = ({ title, allUsers }) => {
         currentUser: modalState.currentUser
     }), [modalState.type, handleModalClose, modalState.selectedDate, selectedDate, allUsers, refreshTimeSheet, modalState.selectedUsers, modalState.currentUser]);
 
-    // Check permissions
-    const canManageAttendance = auth.permissions?.includes('attendance.view') || false;
-
     return (
         <>
             <Head title={title} />
@@ -124,14 +128,21 @@ const TimeSheet = ({ title, allUsers }) => {
             {modalState.type === 'mark_as_present' && <MarkAsPresentForm {...modalProps} />}
             {modalState.type === 'bulk_mark_as_present' && <BulkMarkAsPresentForm {...modalProps} />}
 
-           <TimeSheetTable
-                                                handleDateChange={handleDateChange}
-                                                selectedDate={selectedDate}
-                                                updateTimeSheet={updateTimeSheet}
-                                                externalFilterData={filterData}
-                                                externalEmployee=""
-                                                onMarkAsPresent={handleMarkAsPresent}
-                                            />
+            <StandardPageLayout
+                title="Time Sheet"
+                subtitle="Track daily attendance and manage employee presence"
+                icon={<CalendarIcon />}
+                ariaLabel="Time Sheet Management"
+            >
+                <TimeSheetTable
+                    handleDateChange={handleDateChange}
+                    selectedDate={selectedDate}
+                    updateTimeSheet={updateTimeSheet}
+                    externalFilterData={filterData}
+                    externalEmployee=""
+                    onMarkAsPresent={handleMarkAsPresent}
+                />
+            </StandardPageLayout>
         </>
     );
 };
