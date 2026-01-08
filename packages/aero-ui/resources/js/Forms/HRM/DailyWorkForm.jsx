@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
     Button,
     Input,
@@ -28,9 +28,16 @@ import {
     CheckCircle,
     AlertTriangle
 } from 'lucide-react';
-import { BuildingOfficeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { 
+    BuildingOfficeIcon, 
+    ExclamationTriangleIcon,
+    XCircleIcon,
+    CheckCircleIcon 
+} from '@heroicons/react/24/outline';
 import { showToast } from '@/utils/toastUtils';
 import axios from 'axios';
+import GpsMapPreview from '@/Components/RFI/GpsMapPreview.jsx';
+import LayerDependencyIndicator from '@/Components/RFI/LayerDependencyIndicator.jsx';
 
 
 const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
@@ -70,6 +77,11 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         description: currentRow?.description || '',
         side: currentRow?.side || 'SR-R',
         qty_layer: currentRow?.qty_layer || '',
+        gps_latitude: currentRow?.gps_latitude || '',
+        gps_longitude: currentRow?.gps_longitude || '',
+        work_layer_id: currentRow?.work_layer_id || '',
+        chainage_start: currentRow?.chainage_start || '',
+        chainage_end: currentRow?.chainage_end || '',
     });
 
     const [errors, setErrors] = useState({});
@@ -77,6 +89,15 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
     const [dataChanged, setDataChanged] = useState(false);
     const [formLoading, setFormLoading] = useState(true);
     const [validationStatus, setValidationStatus] = useState({});
+    
+    // GPS & Continuity state (PATENTABLE FEATURES)
+    const [capturingGps, setCapturingGps] = useState(false);
+    const [gpsValidation, setGpsValidation] = useState(null);
+    const [expectedGps, setExpectedGps] = useState(null);
+    const [continuityCheck, setContinuityCheck] = useState(null);
+    const [checkingContinuity, setCheckingContinuity] = useState(false);
+    const [workLayers, setWorkLayers] = useState([]);
+    const [loadingLayers, setLoadingLayers] = useState(false);
 
     // Work type configurations with enhanced metadata
     const workTypeConfigs = useMemo(() => ({
@@ -168,6 +189,123 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
         
         return error;
     };
+
+    // ========================================================================
+    // PATENTABLE FEATURE 1: GPS Geo-Fencing Validation
+    // ========================================================================
+    
+    // Load work layers
+    useEffect(() => {
+        const fetchWorkLayers = async () => {
+            setLoadingLayers(true);
+            try {
+                const response = await axios.get(route('rfi.layers.index'));
+                if (response.status === 200) {
+                    setWorkLayers(response.data.layers || []);
+                }
+            } catch (error) {
+                console.error('Failed to fetch work layers:', error);
+            } finally {
+                setLoadingLayers(false);
+            }
+        };
+        
+        if (open) {
+            fetchWorkLayers();
+        }
+    }, [open]);
+
+    // Capture GPS from device
+    const captureGps = useCallback(() => {
+        if (!navigator.geolocation) {
+            showToast.error('GPS is not supported by your browser');
+            return;
+        }
+
+        setCapturingGps(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                handleChange('gps_latitude', position.coords.latitude.toFixed(6));
+                handleChange('gps_longitude', position.coords.longitude.toFixed(6));
+                setCapturingGps(false);
+                showToast.success('GPS coordinates captured successfully');
+            },
+            (error) => {
+                setCapturingGps(false);
+                showToast.error(`GPS capture failed: ${error.message}`);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }, []);
+
+    // Validate GPS coordinates against expected location
+    const validateGps = useCallback(async () => {
+        if (!dailyWorkData.gps_latitude || !dailyWorkData.gps_longitude || !dailyWorkData.chainage_start) {
+            return;
+        }
+
+        try {
+            const response = await axios.post(route('rfi.rfis.validate-gps'), {
+                gps_latitude: dailyWorkData.gps_latitude,
+                gps_longitude: dailyWorkData.gps_longitude,
+                chainage_start: dailyWorkData.chainage_start,
+                chainage_end: dailyWorkData.chainage_end
+            });
+
+            if (response.status === 200) {
+                setGpsValidation(response.data);
+                setExpectedGps({
+                    lat: response.data.expected_latitude,
+                    lng: response.data.expected_longitude
+                });
+            }
+        } catch (error) {
+            console.error('GPS validation failed:', error);
+        }
+    }, [dailyWorkData.gps_latitude, dailyWorkData.gps_longitude, dailyWorkData.chainage_start, dailyWorkData.chainage_end]);
+
+    // Auto-validate GPS when coordinates change
+    useEffect(() => {
+        validateGps();
+    }, [validateGps]);
+
+    // ========================================================================
+    // PATENTABLE FEATURE 2: Linear Continuity Validation
+    // ========================================================================
+    
+    // Check layer continuity
+    const checkContinuity = useCallback(async () => {
+        if (!dailyWorkData.work_layer_id || !dailyWorkData.chainage_start || !dailyWorkData.chainage_end) {
+            return;
+        }
+
+        setCheckingContinuity(true);
+        try {
+            const response = await axios.post(route('rfi.rfis.check-continuity'), {
+                work_layer_id: dailyWorkData.work_layer_id,
+                chainage_start: dailyWorkData.chainage_start,
+                chainage_end: dailyWorkData.chainage_end
+            });
+
+            if (response.status === 200) {
+                setContinuityCheck(response.data);
+            }
+        } catch (error) {
+            console.error('Continuity check failed:', error);
+            setContinuityCheck(null);
+        } finally {
+            setCheckingContinuity(false);
+        }
+    }, [dailyWorkData.work_layer_id, dailyWorkData.chainage_start, dailyWorkData.chainage_end]);
+
+    // Auto-check continuity when layer/chainage changes
+    useEffect(() => {
+        checkContinuity();
+    }, [checkContinuity]);
+
+    // End of PATENTABLE FEATURES
+    // ========================================================================
+
 
     // Initialize form loading simulation
     useEffect(() => {
@@ -700,6 +838,208 @@ const DailyWorkForm = ({ open, closeModal, currentRow, setData, modalType}) => {
                                                     }}
                                                 />
                                             </div>
+
+                                            {/* ======================================================= */}
+                                            {/* PATENTABLE FEATURES UI - GPS & Continuity             */}
+                                            {/* ======================================================= */}
+
+                                            {/* Chainage Range */}
+                                            <div className="col-span-1">
+                                                <Input
+                                                    label="Chainage Start (m)"
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={dailyWorkData.chainage_start}
+                                                    onValueChange={(value) => handleChange('chainage_start', value)}
+                                                    isInvalid={Boolean(errors.chainage_start)}
+                                                    errorMessage={errors.chainage_start}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div className="col-span-1">
+                                                <Input
+                                                    label="Chainage End (m)"
+                                                    type="number"
+                                                    placeholder="100"
+                                                    value={dailyWorkData.chainage_end}
+                                                    onValueChange={(value) => handleChange('chainage_end', value)}
+                                                    isInvalid={Boolean(errors.chainage_end)}
+                                                    errorMessage={errors.chainage_end}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    classNames={{
+                                                        input: "text-small",
+                                                        inputWrapper: "min-h-unit-10"
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* Work Layer with Linear Continuity Check */}
+                                            <div className="col-span-1">
+                                                <Select
+                                                    label="Work Layer"
+                                                    placeholder="Select work layer"
+                                                    selectedKeys={dailyWorkData.work_layer_id ? [String(dailyWorkData.work_layer_id)] : []}
+                                                    onSelectionChange={(keys) => handleChange('work_layer_id', Array.from(keys)[0])}
+                                                    isInvalid={Boolean(errors.work_layer_id)}
+                                                    errorMessage={errors.work_layer_id}
+                                                    variant="bordered"
+                                                    size="sm"
+                                                    radius={getThemeRadius()}
+                                                    isLoading={loadingLayers}
+                                                    classNames={{
+                                                        trigger: "min-h-unit-10",
+                                                        value: "text-small"
+                                                    }}
+                                                >
+                                                    {workLayers?.map(layer => (
+                                                        <SelectItem key={String(layer.id)} textValue={layer.name}>
+                                                            {layer.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </Select>
+                                            </div>
+
+                                            {/* GPS Capture Section */}
+                                            <div className="col-span-1">
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-xs text-default-600">GPS Location</label>
+                                                    <div className="flex gap-2">
+                                                        <Input
+                                                            placeholder="Latitude"
+                                                            type="number"
+                                                            value={dailyWorkData.gps_latitude}
+                                                            onValueChange={(value) => handleChange('gps_latitude', value)}
+                                                            variant="bordered"
+                                                            size="sm"
+                                                            radius={getThemeRadius()}
+                                                            classNames={{
+                                                                input: "text-small",
+                                                                inputWrapper: "min-h-unit-10"
+                                                            }}
+                                                        />
+                                                        <Input
+                                                            placeholder="Longitude"
+                                                            type="number"
+                                                            value={dailyWorkData.gps_longitude}
+                                                            onValueChange={(value) => handleChange('gps_longitude', value)}
+                                                            variant="bordered"
+                                                            size="sm"
+                                                            radius={getThemeRadius()}
+                                                            classNames={{
+                                                                input: "text-small",
+                                                                inputWrapper: "min-h-unit-10"
+                                                            }}
+                                                        />
+                                                        <Tooltip content="Capture GPS from device">
+                                                            <Button
+                                                                isIconOnly
+                                                                size="sm"
+                                                                color="primary"
+                                                                variant="flat"
+                                                                onPress={captureGps}
+                                                                isLoading={capturingGps}
+                                                            >
+                                                                {!capturingGps && <MapPinIcon size={16} />}
+                                                            </Button>
+                                                        </Tooltip>
+                                                    </div>
+                                                    {/* GPS Validation Status */}
+                                                    {gpsValidation && (
+                                                        <Chip
+                                                            color={gpsValidation.is_valid ? 'success' : 'danger'}
+                                                            size="sm"
+                                                            variant="flat"
+                                                            startContent={
+                                                                gpsValidation.is_valid ? 
+                                                                <CheckCircle size={12} /> : 
+                                                                <AlertTriangle size={12} />
+                                                            }
+                                                        >
+                                                            {gpsValidation.is_valid ? 'Valid' : 'Invalid'} 
+                                                            {gpsValidation.distance && ` - ${gpsValidation.distance.toFixed(1)}m`}
+                                                        </Chip>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* GPS Map Preview */}
+                                            {dailyWorkData.gps_latitude && dailyWorkData.gps_longitude && expectedGps && (
+                                                <div className="col-span-full">
+                                                    <GpsMapPreview
+                                                        userLat={parseFloat(dailyWorkData.gps_latitude)}
+                                                        userLng={parseFloat(dailyWorkData.gps_longitude)}
+                                                        expectedLat={expectedGps.lat}
+                                                        expectedLng={expectedGps.lng}
+                                                        distance={gpsValidation?.distance}
+                                                        isValid={gpsValidation?.is_valid}
+                                                        tolerance={gpsValidation?.tolerance || 50}
+                                                        chainageStart={dailyWorkData.chainage_start}
+                                                        chainageEnd={dailyWorkData.chainage_end}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Linear Continuity Check Result */}
+                                            {checkingContinuity && (
+                                                <div className="col-span-full">
+                                                    <div className="flex items-center gap-2 text-sm text-default-500">
+                                                        <Spinner size="sm" />
+                                                        <span>Checking layer continuity...</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {continuityCheck && (
+                                                <div className="col-span-full">
+                                                    <Card className="bg-default-50" radius={getThemeRadius()}>
+                                                        <CardBody className="p-3">
+                                                            <div className="flex items-start gap-3">
+                                                                {continuityCheck.can_proceed ? (
+                                                                    <CheckCircleIcon className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                                                                ) : (
+                                                                    <XCircleIcon className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+                                                                )}
+                                                                <div className="flex-1">
+                                                                    <p className={`font-semibold text-sm ${continuityCheck.can_proceed ? 'text-success' : 'text-danger'}`}>
+                                                                        {continuityCheck.can_proceed ? 'Continuity Check Passed' : 'Continuity Issues Detected'}
+                                                                    </p>
+                                                                    <p className="text-xs text-default-600 mt-1">
+                                                                        {continuityCheck.message}
+                                                                    </p>
+                                                                    {continuityCheck.coverage_percentage !== undefined && (
+                                                                        <p className="text-xs text-default-500 mt-2">
+                                                                            Coverage: {continuityCheck.coverage_percentage.toFixed(1)}%
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </CardBody>
+                                                    </Card>
+                                                </div>
+                                            )}
+
+                                            {/* Layer Dependency Visualization */}
+                                            {dailyWorkData.work_layer_id && workLayers.length > 0 && (
+                                                <div className="col-span-full">
+                                                    <LayerDependencyIndicator
+                                                        layer={workLayers.find(l => l.id === parseInt(dailyWorkData.work_layer_id))}
+                                                        projectId={1} // TODO: Get from context
+                                                        chainageStart={dailyWorkData.chainage_start}
+                                                        chainageEnd={dailyWorkData.chainage_end}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* End PATENTABLE FEATURES UI */}
+                                            {/* ======================================================= */}
 
                                             {/* Smart suggestions based on work type */}
                                             {dailyWorkData.type && workTypeConfigs[dailyWorkData.type] && (
