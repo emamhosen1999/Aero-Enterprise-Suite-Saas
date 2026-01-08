@@ -30,6 +30,7 @@ import {
 import App from "@/Layouts/App.jsx";
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
     const themeRadius = useThemeRadius();
@@ -42,10 +43,16 @@ const TicketsIndex = ({ tickets = [], agents = [], auth }) => {
     const [page, setPage] = useState(1);
     const rowsPerPage = 10;
 
-    // Permission helper
-    const hasPermission = (permission) => {
-        return auth?.user?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
+    // HRMAC permissions with Super Admin bypass
+    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Replace with actual module hierarchy paths from config/modules.php
+    const canViewTickets = hasAccess('support.tickets') || isSuperAdmin();
+    const canCreateTicket = canCreate('support.tickets') || isSuperAdmin();
+    const canEditTicket = canUpdate('support.tickets') || isSuperAdmin();
+    const canDeleteTicket = canDelete('support.tickets') || isSuperAdmin();
+    const canAssignTicket = canUpdate('support.tickets.assign') || isSuperAdmin();
+    const canExportTickets = hasAccess('support.tickets.export') || isSuperAdmin();
 
     // Mock data
     const mockTickets = tickets.length > 0 ? tickets : [

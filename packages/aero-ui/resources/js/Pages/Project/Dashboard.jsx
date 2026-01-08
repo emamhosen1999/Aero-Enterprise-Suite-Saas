@@ -24,6 +24,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const ProjectsDashboard = ({ stats = {}, recentProjects = [], upcomingTasks = [], teamPerformance = [], auth }) => {
     const themeRadius = useThemeRadius();
@@ -32,9 +33,15 @@ const ProjectsDashboard = ({ stats = {}, recentProjects = [], upcomingTasks = []
     const isLargeScreen = useMediaQuery('(min-width: 1280px)');
     const [selectedPeriod, setSelectedPeriod] = useState('month');
 
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
+    // HRMAC permissions with Super Admin bypass
+    const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Replace with actual module hierarchy paths from config/modules.php
+    const canViewProjects = hasAccess('project.dashboard') || isSuperAdmin();
+    const canManageProjects = canUpdate('project.projects') || isSuperAdmin();
+    const canCreateProject = canCreate('project.projects') || isSuperAdmin();
+    const canManageTasks = canUpdate('project.tasks') || isSuperAdmin();
+    const canViewReports = hasAccess('project.reports') || isSuperAdmin();
 
     const dashboardStats = useMemo(() => [
         {
