@@ -35,6 +35,7 @@ import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const FinanceDashboard = ({ 
     stats = {}, 
@@ -53,10 +54,13 @@ const FinanceDashboard = ({
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [loading, setLoading] = useState(false);
 
-  // Helper function to check permissions
-  const hasPermission = (permission) => {
-    return auth.permissions && auth.permissions.includes(permission);
-  };
+  // HRMAC permissions with Super Administrator bypass
+  const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+  
+  // TODO: Update these paths to match actual HRMAC module hierarchy once defined
+  const canViewFinance = hasAccess('finance.dashboard') || isSuperAdmin();
+  const canCreateTransaction = canCreate('finance.transactions') || isSuperAdmin();
+  const canViewReports = hasAccess('finance.reports') || isSuperAdmin();
 
   // Stats data for StatsCards component
   const dashboardStats = useMemo(() => [

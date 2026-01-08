@@ -33,6 +33,7 @@ import {
 
 import App from "@/Layouts/App.jsx";
 import StatsCards from "@/Components/StatsCards.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const InventoryDashboard = ({ 
     stats = {}, 
@@ -50,10 +51,13 @@ const InventoryDashboard = ({
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [loading, setLoading] = useState(false);
 
-  // Helper function to check permissions
-  const hasPermission = (permission) => {
-    return auth.permissions && auth.permissions.includes(permission);
-  };
+  // HRMAC permissions with Super Administrator bypass
+  const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
+  
+  // TODO: Update these paths to match actual HRMAC module hierarchy once defined
+  const canViewInventory = hasAccess('ims.dashboard') || isSuperAdmin();
+  const canManageStock = canUpdate('ims.stock-management') || isSuperAdmin();
+  const canViewReports = hasAccess('ims.reports') || isSuperAdmin();
 
   // Stats data for StatsCards component
   const dashboardStats = useMemo(() => [
