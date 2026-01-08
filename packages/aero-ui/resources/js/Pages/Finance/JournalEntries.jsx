@@ -28,10 +28,20 @@ import {
     PlusIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 
 const JournalEntries = () => {
     const { auth, journalEntries: initialData } = usePage().props;
+    
+    // HRMAC permissions - TODO: Update path with actual HRMAC module hierarchy
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewEntries = hasAccess('finance.journal-entries') || isSuperAdmin();
+    const canCreateEntry = canCreate('finance.journal-entries') || isSuperAdmin();
+    const canEditEntry = canUpdate('finance.journal-entries') || isSuperAdmin();
+    const canDeleteEntry = canDelete('finance.journal-entries') || isSuperAdmin();
+    const canExportEntries = hasAccess('finance.journal-entries') || isSuperAdmin();
+    
     const [isMobile, setIsMobile] = useState(false);
     const [filters, setFilters] = useState({
         search: '',

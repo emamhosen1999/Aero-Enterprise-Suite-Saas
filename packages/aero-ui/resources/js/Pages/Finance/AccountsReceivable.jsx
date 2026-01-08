@@ -33,8 +33,17 @@ import {
     CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const AccountsReceivable = ({ invoices = [], customers = [], auth }) => {
+    // HRMAC permissions - TODO: Update path with actual HRMAC module hierarchy
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewInvoices = hasAccess('finance.accounts-receivable') || isSuperAdmin();
+    const canCreateInvoice = canCreate('finance.accounts-receivable') || isSuperAdmin();
+    const canEditInvoice = canUpdate('finance.accounts-receivable') || isSuperAdmin();
+    const canDeleteInvoice = canDelete('finance.accounts-receivable') || isSuperAdmin();
+    const canSendReminder = canUpdate('finance.accounts-receivable') || isSuperAdmin();
+    
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     

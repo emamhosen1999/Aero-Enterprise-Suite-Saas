@@ -30,6 +30,7 @@ import {
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
 import {showToast} from '@/utils/toastUtils';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 export default function EmployeeOnboardingWizard({ 
     title, 
@@ -39,6 +40,11 @@ export default function EmployeeOnboardingWizard({
     attendanceTypes,
     managers 
 }) {
+    // HRMAC permissions - TODO: Update path with actual HRMAC module hierarchy
+    const { canCreate, canUpdate, isSuperAdmin } = useHRMAC();
+    const canCreateEmployee = canCreate('hrm.employees') || isSuperAdmin();
+    const canEditEmployee = canUpdate('hrm.employees') || isSuperAdmin();
+    
     const [currentStep, setCurrentStep] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([]);
 
