@@ -26,6 +26,7 @@ import {
     BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const BankAccounts = ({ accounts = [], auth }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -56,10 +57,14 @@ const BankAccounts = ({ accounts = [], auth }) => {
         return 'full';
     };
 
-    // Permission helper
-    const hasPermission = (permission) => {
-        return auth?.user?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
+    // HRMAC permissions
+    const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
+    
+    // TODO: Update these paths with actual HRMAC module hierarchy once defined
+    const canViewBankAccounts = hasAccess('finance.bank-accounts') || isSuperAdmin();
+    const canCreateBankAccount = canCreate('finance.bank-accounts') || isSuperAdmin();
+    const canEditBankAccount = canUpdate('finance.bank-accounts') || isSuperAdmin();
+    const canDeleteBankAccount = canDelete('finance.bank-accounts') || isSuperAdmin();
 
     // Mock data
     const mockAccounts = accounts.length > 0 ? accounts : [
@@ -195,7 +200,7 @@ const BankAccounts = ({ accounts = [], auth }) => {
                         <h1 className="text-2xl font-bold text-foreground">Bank Accounts</h1>
                         <p className="text-default-500">Manage your bank accounts and balances</p>
                     </div>
-                    {hasPermission('finance.bank-accounts.create') && (
+                    {canCreateBankAccount && (
                         <Button
                             color="primary"
                             startContent={<PlusIcon className="w-5 h-5" />}
