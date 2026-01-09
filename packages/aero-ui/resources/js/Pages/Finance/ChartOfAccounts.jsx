@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -27,9 +27,16 @@ import {
     EllipsisVerticalIcon,
     PencilIcon,
     TrashIcon,
+    RectangleStackIcon,
+    CheckCircleIcon,
+    XCircleIcon,
+    CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const ChartOfAccounts = ({ accounts = [], accountTypes = [], auth }) => {
     // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
@@ -38,7 +45,9 @@ const ChartOfAccounts = ({ accounts = [], accountTypes = [], auth }) => {
     const canCreateAccount = canCreate('finance.chart-of-accounts') || isSuperAdmin();
     const canEditAccount = canUpdate('finance.chart-of-accounts') || isSuperAdmin();
     const canDeleteAccount = canDelete('finance.chart-of-accounts') || isSuperAdmin();
+    const canExportAccounts = canUpdate('finance.chart-of-accounts') || isSuperAdmin();
     
+    const themeRadius = useThemeRadius();
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
     
@@ -57,17 +66,6 @@ const ChartOfAccounts = ({ accounts = [], accountTypes = [], auth }) => {
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
-
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
 
     const hasPermission = (permission) => {
         return auth?.permissions?.includes(permission) || auth?.user?.isPlatformSuperAdmin;
@@ -220,90 +218,145 @@ const ChartOfAccounts = ({ accounts = [], accountTypes = [], auth }) => {
         { key: 'actions', label: 'Actions' },
     ];
 
+    // Calculate stats
+    const stats = useMemo(() => {
+        const active = filteredAccounts.filter(a => a.status === 'active').length;
+        const totalBalance = filteredAccounts.reduce((sum, a) => sum + a.balance, 0);
+        const accountsByType = filteredAccounts.reduce((acc, a) => {
+            acc[a.type] = (acc[a.type] || 0) + 1;
+            return acc;
+        }, {});
+        
+        return {
+            total: filteredAccounts.length,
+            active,
+            totalBalance,
+            types: Object.keys(accountsByType).length
+        };
+    }, [filteredAccounts]);
+
+    // Stats data
+    const statsData = useMemo(() => [
+        {
+            title: 'Total Accounts',
+            value: stats.total,
+            icon: <RectangleStackIcon className="w-5 h-5" />,
+            color: 'text-primary',
+            iconBg: 'bg-primary/20',
+            description: 'All accounts'
+        },
+        {
+            title: 'Active',
+            value: stats.active,
+            icon: <CheckCircleIcon className="w-5 h-5" />,
+            color: 'text-success',
+            iconBg: 'bg-success/20',
+            description: 'Active accounts'
+        },
+        {
+            title: 'Total Balance',
+            value: `$${stats.totalBalance.toLocaleString()}`,
+            icon: <CurrencyDollarIcon className="w-5 h-5" />,
+            color: 'text-warning',
+            iconBg: 'bg-warning/20',
+            description: 'Combined balance'
+        },
+        {
+            title: 'Account Types',
+            value: stats.types,
+            icon: <RectangleStackIcon className="w-5 h-5" />,
+            color: 'text-default-600',
+            iconBg: 'bg-default-100',
+            description: 'Categories'
+        },
+    ], [stats]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <>
+            {canExportAccounts && (
+                <Button
+                    startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                    variant="flat"
+                    onPress={handleExport}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateAccount && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    New Account
+                </Button>
+            )}
+        </>
+    ), [canExportAccounts, canCreateAccount, themeRadius, isMobile]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+                placeholder="Search by code or name..."
+                value={searchQuery}
+                onValueChange={handleSearch}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
+                className="w-full sm:flex-1"
+                radius={themeRadius}
+            />
+            <Select
+                placeholder="Account Type"
+                selectedKeys={selectedType !== 'all' ? [selectedType] : []}
+                onSelectionChange={(keys) => {
+                    setSelectedType(Array.from(keys)[0] || 'all');
+                    setCurrentPage(1);
+                }}
+                className="w-full sm:w-48"
+                radius={themeRadius}
+                startContent={<FunnelIcon className="w-4 h-4" />}
+            >
+                <SelectItem key="all">All Types</SelectItem>
+                <SelectItem key="Asset">Asset</SelectItem>
+                <SelectItem key="Liability">Liability</SelectItem>
+                <SelectItem key="Equity">Equity</SelectItem>
+                <SelectItem key="Revenue">Revenue</SelectItem>
+                <SelectItem key="Expense">Expense</SelectItem>
+            </Select>
+            <Select
+                placeholder="Status"
+                selectedKeys={selectedStatus !== 'all' ? [selectedStatus] : []}
+                onSelectionChange={(keys) => {
+                    setSelectedStatus(Array.from(keys)[0] || 'all');
+                    setCurrentPage(1);
+                }}
+                className="w-full sm:w-48"
+                radius={themeRadius}
+            >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="active">Active</SelectItem>
+                <SelectItem key="inactive">Inactive</SelectItem>
+            </Select>
+        </div>
+    ), [searchQuery, selectedType, selectedStatus, themeRadius]);
+
     return (
-        <App>
+        <>
             <Head title="Chart of Accounts" />
             
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+            <StandardPageLayout
+                title="Chart of Accounts"
+                subtitle="Manage your accounting structure"
+                icon={<RectangleStackIcon />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
+                ariaLabel="Chart of Accounts Management"
             >
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Chart of Accounts</h1>
-                        <p className="text-sm text-default-600 mt-1">
-                            Manage your accounting structure
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button
-                            startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                            variant="flat"
-                            onPress={handleExport}
-                        >
-                            Export
-                        </Button>
-                        {hasPermission('finance.accounts.create') && (
-                            <Button
-                                color="primary"
-                                startContent={<PlusIcon className="w-4 h-4" />}
-                            >
-                                New Account
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                    <Input
-                        placeholder="Search by code or name..."
-                        value={searchQuery}
-                        onValueChange={handleSearch}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                        classNames={{
-                            inputWrapper: "bg-default-100"
-                        }}
-                        className="sm:max-w-xs"
-                    />
-                    
-                    <Select
-                        placeholder="Account Type"
-                        selectedKeys={selectedType !== 'all' ? [selectedType] : []}
-                        onSelectionChange={(keys) => {
-                            setSelectedType(Array.from(keys)[0] || 'all');
-                            setCurrentPage(1);
-                        }}
-                        classNames={{ trigger: "bg-default-100" }}
-                        className="sm:max-w-xs"
-                        startContent={<FunnelIcon className="w-4 h-4" />}
-                    >
-                        <SelectItem key="all">All Types</SelectItem>
-                        <SelectItem key="Asset">Asset</SelectItem>
-                        <SelectItem key="Liability">Liability</SelectItem>
-                        <SelectItem key="Equity">Equity</SelectItem>
-                        <SelectItem key="Revenue">Revenue</SelectItem>
-                        <SelectItem key="Expense">Expense</SelectItem>
-                    </Select>
-
-                    <Select
-                        placeholder="Status"
-                        selectedKeys={selectedStatus !== 'all' ? [selectedStatus] : []}
-                        onSelectionChange={(keys) => {
-                            setSelectedStatus(Array.from(keys)[0] || 'all');
-                            setCurrentPage(1);
-                        }}
-                        classNames={{ trigger: "bg-default-100" }}
-                        className="sm:max-w-xs"
-                    >
-                        <SelectItem key="all">All Status</SelectItem>
-                        <SelectItem key="active">Active</SelectItem>
-                        <SelectItem key="inactive">Inactive</SelectItem>
-                    </Select>
-                </div>
-
                 {/* Table */}
                 <Table
                     aria-label="Chart of accounts table"
@@ -343,12 +396,14 @@ const ChartOfAccounts = ({ accounts = [], accountTypes = [], auth }) => {
                             page={currentPage}
                             onChange={setCurrentPage}
                             showControls
+                            radius={themeRadius}
                         />
                     </div>
                 )}
-            </motion.div>
-        </App>
+            </StandardPageLayout>
+        </>
     );
 };
 
+ChartOfAccounts.layout = (page) => <App children={page} />;
 export default ChartOfAccounts;
