@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
 import App from '@/Layouts/App';
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { 
     Table, 
     TableHeader, 
@@ -26,10 +28,12 @@ import {
     EllipsisVerticalIcon,
     ArrowDownTrayIcon,
     PencilIcon,
-    TrashIcon
+    TrashIcon,
+    CubeIcon
 } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => {
     // HRMAC permissions - TODO: Update with actual module hierarchy path
@@ -41,38 +45,22 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
     const canDepreciateAsset = canUpdate('finance.fixed-assets.depreciate') || isSuperAdmin();
     const canExportAssets = hasAccess('finance.fixed-assets.export') || isSuperAdmin();
 
-    // Responsive hooks
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
+    const themeRadius = useThemeRadius();
 
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
+    // Statistics
+    const stats = useMemo(() => {
+        const totalCost = filteredAssets.reduce((sum, asset) => sum + asset.acquisition_cost, 0);
+        const totalBookValue = filteredAssets.reduce((sum, asset) => sum + asset.book_value, 0);
+        const activeAssets = filteredAssets.filter(a => a.status === 'active').length;
+        const totalDepreciation = filteredAssets.reduce((sum, asset) => sum + asset.accumulated_depreciation, 0);
 
-    // Theme radius helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
-
-    const themeRadius = useMemo(() => getThemeRadius(), []);
-
-    // Permission helper
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
+        return [
+            { title: "Total Cost", value: `$${totalCost.toLocaleString()}`, icon: <CubeIcon className="w-5 h-5" />, color: "text-primary", iconBg: "bg-primary/20" },
+            { title: "Book Value", value: `$${totalBookValue.toLocaleString()}`, icon: <CubeIcon className="w-5 h-5" />, color: "text-success", iconBg: "bg-success/20" },
+            { title: "Active Assets", value: activeAssets, icon: <CubeIcon className="w-5 h-5" />, color: "text-warning", iconBg: "bg-warning/20" },
+            { title: "Depreciation", value: `$${totalDepreciation.toLocaleString()}`, icon: <CubeIcon className="w-5 h-5" />, color: "text-danger", iconBg: "bg-danger/20" },
+        ];
+    }, [filteredAssets]);
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -210,14 +198,14 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu aria-label="Asset actions">
-                            {hasPermission('finance.fixed-assets.edit') && (
+                            {canEditAsset && (
                                 <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />} onPress={() => handleEdit(asset.id)}>
                                     Edit
                                 </DropdownItem>
                             )}
                             <DropdownItem key="view">View Details</DropdownItem>
                             <DropdownItem key="depreciate">Record Depreciation</DropdownItem>
-                            {hasPermission('finance.fixed-assets.delete') && (
+                            {canDeleteAsset && (
                                 <DropdownItem key="delete" className="text-danger" color="danger" startContent={<TrashIcon className="w-4 h-4" />} onPress={() => handleDelete(asset.id)}>
                                     Delete
                                 </DropdownItem>
@@ -230,100 +218,101 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
         }
     };
 
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <div className="flex gap-2">
+            {canExportAssets && (
+                <Button
+                    color="default"
+                    variant="flat"
+                    startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                    onPress={handleExport}
+                    radius={themeRadius}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateAsset && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    onPress={() => safeNavigate('finance.fixed-assets.create')}
+                    radius={themeRadius}
+                >
+                    Add Asset
+                </Button>
+            )}
+        </div>
+    ), [canExportAssets, canCreateAsset, themeRadius]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+                placeholder="Search by asset number or name..."
+                value={filters.search}
+                onValueChange={handleSearchChange}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                className="sm:w-64"
+                radius={themeRadius}
+                classNames={{
+                    inputWrapper: "bg-default-100"
+                }}
+            />
+            <Select
+                placeholder="All Categories"
+                selectedKeys={filters.category !== 'all' ? [filters.category] : []}
+                onSelectionChange={(keys) => handleFilterChange('category', Array.from(keys)[0] || 'all')}
+                className="sm:w-48"
+                radius={themeRadius}
+                classNames={{ trigger: "bg-default-100" }}
+            >
+                <SelectItem key="all">All Categories</SelectItem>
+                {mockCategories.map(cat => (
+                    <SelectItem key={cat.name}>{cat.name}</SelectItem>
+                ))}
+            </Select>
+            <Select
+                placeholder="All Locations"
+                selectedKeys={filters.location !== 'all' ? [filters.location] : []}
+                onSelectionChange={(keys) => handleFilterChange('location', Array.from(keys)[0] || 'all')}
+                className="sm:w-48"
+                radius={themeRadius}
+                classNames={{ trigger: "bg-default-100" }}
+            >
+                <SelectItem key="all">All Locations</SelectItem>
+                {mockLocations.map(loc => (
+                    <SelectItem key={loc.name}>{loc.name}</SelectItem>
+                ))}
+            </Select>
+            <Select
+                placeholder="All Status"
+                selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+                onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
+                className="sm:w-40"
+                radius={themeRadius}
+                classNames={{ trigger: "bg-default-100" }}
+            >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="active">Active</SelectItem>
+                <SelectItem key="maintenance">Maintenance</SelectItem>
+                <SelectItem key="disposed">Disposed</SelectItem>
+                <SelectItem key="inactive">Inactive</SelectItem>
+            </Select>
+        </div>
+    ), [filters, themeRadius, mockCategories, mockLocations, handleSearchChange, handleFilterChange]);
+
     return (
         <App user={auth.user}>
             <Head title="Fixed Assets" />
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-6"
+            <StandardPageLayout
+                title="Fixed Assets"
+                subtitle="Manage asset lifecycle and depreciation"
+                icon={<CubeIcon className="w-6 h-6" />}
+                actions={actionButtons}
+                stats={<StatsCards stats={stats} />}
+                filters={filtersSection}
             >
-                {/* Header */}
-                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Fixed Assets</h1>
-                        <p className="text-sm text-default-500 mt-1">Manage asset lifecycle and depreciation</p>
-                    </div>
-                    <div className="flex gap-2">
-                        {hasPermission('finance.fixed-assets.export') && (
-                            <Button
-                                color="default"
-                                variant="flat"
-                                startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                                onPress={handleExport}
-                                radius={themeRadius}
-                            >
-                                Export
-                            </Button>
-                        )}
-                        {hasPermission('finance.fixed-assets.create') && (
-                            <Button
-                                color="primary"
-                                startContent={<PlusIcon className="w-4 h-4" />}
-                                onPress={() => safeNavigate('finance.fixed-assets.create')}
-                                radius={themeRadius}
-                            >
-                                Add Asset
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Filters */}
-                <div className="mb-6 flex flex-col sm:flex-row gap-3">
-                    <Input
-                        placeholder="Search by asset number or name..."
-                        value={filters.search}
-                        onValueChange={handleSearchChange}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                        className="sm:w-64"
-                        radius={themeRadius}
-                        classNames={{
-                            inputWrapper: "bg-default-100"
-                        }}
-                    />
-                    <Select
-                        placeholder="All Categories"
-                        selectedKeys={filters.category !== 'all' ? [filters.category] : []}
-                        onSelectionChange={(keys) => handleFilterChange('category', Array.from(keys)[0] || 'all')}
-                        className="sm:w-48"
-                        radius={themeRadius}
-                        classNames={{ trigger: "bg-default-100" }}
-                    >
-                        <SelectItem key="all">All Categories</SelectItem>
-                        {mockCategories.map(cat => (
-                            <SelectItem key={cat.name}>{cat.name}</SelectItem>
-                        ))}
-                    </Select>
-                    <Select
-                        placeholder="All Locations"
-                        selectedKeys={filters.location !== 'all' ? [filters.location] : []}
-                        onSelectionChange={(keys) => handleFilterChange('location', Array.from(keys)[0] || 'all')}
-                        className="sm:w-48"
-                        radius={themeRadius}
-                        classNames={{ trigger: "bg-default-100" }}
-                    >
-                        <SelectItem key="all">All Locations</SelectItem>
-                        {mockLocations.map(loc => (
-                            <SelectItem key={loc.name}>{loc.name}</SelectItem>
-                        ))}
-                    </Select>
-                    <Select
-                        placeholder="All Status"
-                        selectedKeys={filters.status !== 'all' ? [filters.status] : []}
-                        onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
-                        className="sm:w-40"
-                        radius={themeRadius}
-                        classNames={{ trigger: "bg-default-100" }}
-                    >
-                        <SelectItem key="all">All Status</SelectItem>
-                        <SelectItem key="active">Active</SelectItem>
-                        <SelectItem key="maintenance">Maintenance</SelectItem>
-                        <SelectItem key="disposed">Disposed</SelectItem>
-                        <SelectItem key="inactive">Inactive</SelectItem>
-                    </Select>
-                </div>
-
                 {/* Table */}
                 <Table
                     aria-label="Fixed assets table"
@@ -358,7 +347,7 @@ const FixedAssets = ({ auth, assets = [], categories = [], locations = [] }) => 
                         />
                     </div>
                 )}
-            </motion.div>
+            </StandardPageLayout>
         </App>
     );
 };
