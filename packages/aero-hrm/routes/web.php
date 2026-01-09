@@ -24,6 +24,7 @@ use Aero\HRM\Http\Controllers\Employee\TimeOffManagementController;
 use Aero\HRM\Http\Controllers\Employee\TrainingController;
 use Aero\HRM\Http\Controllers\Employee\WorkplaceSafetyController;
 use Aero\HRM\Http\Controllers\Employee\HolidayController;
+use Aero\HRM\Http\Controllers\Expense\ExpenseClaimController;
 use Aero\HRM\Http\Controllers\Leave\BulkLeaveController;
 use Aero\HRM\Http\Controllers\Leave\LeaveController;
 use Aero\HRM\Http\Controllers\Settings\LeaveSettingController;
@@ -722,6 +723,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'destroy'])->name('designations.destroy');
         // For dropdowns and API
         Route::get('/designations/list', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'list'])->name('designations.list');
+    });
+
+    // Expense Claims Management
+    Route::middleware(['module:hrm,expenses'])->prefix('expenses')->name('expenses.')->group(function () {
+        // Main index page (Inertia)
+        Route::get('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'index'])->name('index');
+        // API endpoints for data fetching
+        Route::get('/paginate', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'stats'])->name('stats');
+        // CRUD operations
+        Route::post('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'store'])->name('store');
+        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'destroy'])->name('destroy');
+        // Workflow actions
+        Route::post('/{id}/approve', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'reject'])->name('reject');
     });
 
     Route::get('/api/designations/list', function () {
