@@ -2,6 +2,7 @@
 
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
 use Aero\HRM\Http\Controllers\Asset\AssetController;
+use Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController;
 use Aero\HRM\Http\Controllers\Employee\BenefitsController;
 use Aero\HRM\Http\Controllers\Employee\DepartmentController;
 use Aero\HRM\Http\Controllers\Employee\DesignationController;
@@ -756,6 +757,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Asset allocation workflow
         Route::post('/{id}/allocate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocate'])->name('allocate');
         Route::post('/{id}/return', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'returnAsset'])->name('return');
+    });
+
+    // Disciplinary Management
+    Route::middleware(['module:hrm,disciplinary'])->prefix('disciplinary')->name('disciplinary.')->group(function () {
+        // Main index page (Inertia)
+        Route::get('/cases', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'index'])->name('cases.index');
+        // API endpoints for data fetching
+        Route::get('/cases/paginate', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'paginate'])->name('cases.paginate');
+        Route::get('/cases/stats', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'stats'])->name('cases.stats');
+        // CRUD operations
+        Route::post('/cases', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'store'])->name('cases.store');
+        Route::put('/cases/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'update'])->name('cases.update');
+        Route::delete('/cases/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'destroy'])->name('cases.destroy');
+        // Workflow actions
+        Route::post('/cases/{id}/start-investigation', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'startInvestigation'])->name('cases.start-investigation');
+        Route::post('/cases/{id}/take-action', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'takeAction'])->name('cases.take-action');
+        Route::post('/cases/{id}/close', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'close'])->name('cases.close');
+        Route::post('/cases/{id}/appeal', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'appeal'])->name('cases.appeal');
     });
 
     Route::get('/api/designations/list', function () {
