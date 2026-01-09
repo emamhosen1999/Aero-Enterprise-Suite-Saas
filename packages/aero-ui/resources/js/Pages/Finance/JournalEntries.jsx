@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { router, usePage, Head } from '@inertiajs/react';
 import {
     Table,
     TableHeader,
@@ -7,9 +7,6 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    Card,
-    CardBody,
-    CardHeader,
     Input,
     Select,
     SelectItem,
@@ -26,15 +23,22 @@ import {
     EllipsisVerticalIcon,
     DocumentArrowDownIcon,
     PlusIcon,
+    DocumentTextIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 
 const JournalEntries = () => {
     const { auth, journalEntries: initialData } = usePage().props;
     
-    // HRMAC permissions - TODO: Update path with actual HRMAC module hierarchy
+    // HRMAC permissions - Finance module
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     const canViewEntries = hasAccess('finance.journal-entries') || isSuperAdmin();
     const canCreateEntry = canCreate('finance.journal-entries') || isSuperAdmin();
@@ -51,18 +55,8 @@ const JournalEntries = () => {
         date_to: '',
     });
 
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
-
-    const themeRadius = getThemeRadius();
+    // Theme radius hook
+    const themeRadius = useThemeRadius();
 
     useEffect(() => {
         const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
@@ -179,95 +173,125 @@ const JournalEntries = () => {
         }
     };
 
+    // Stats data
+    const statsData = useMemo(() => [
+        {
+            title: 'Total Entries',
+            value: summary.total,
+            icon: <DocumentTextIcon className="w-5 h-5" />,
+            color: 'text-primary',
+            iconBg: 'bg-primary/20',
+            description: 'All journal entries'
+        },
+        {
+            title: 'Posted',
+            value: summary.posted,
+            icon: <CheckCircleIcon className="w-5 h-5" />,
+            color: 'text-success',
+            iconBg: 'bg-success/20',
+            description: 'Posted to ledger'
+        },
+        {
+            title: 'Draft',
+            value: summary.draft,
+            icon: <DocumentTextIcon className="w-5 h-5" />,
+            color: 'text-default-600',
+            iconBg: 'bg-default-100',
+            description: 'Unposted entries'
+        },
+        {
+            title: 'Pending',
+            value: summary.pending,
+            icon: <ClockIcon className="w-5 h-5" />,
+            color: 'text-warning',
+            iconBg: 'bg-warning/20',
+            description: 'Awaiting approval'
+        },
+    ], [summary]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <>
+            {canExportEntries && (
+                <Button
+                    color="default"
+                    variant="flat"
+                    startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateEntry && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    New Entry
+                </Button>
+            )}
+        </>
+    ), [canCreateEntry, canExportEntries, themeRadius, isMobile]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+                placeholder="Search entries..."
+                value={filters.search}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, search: value }))}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
+                className="w-full sm:flex-1"
+                radius={themeRadius}
+            />
+            <Select
+                placeholder="All Types"
+                selectedKeys={filters.type !== 'all' ? [filters.type] : []}
+                onSelectionChange={(keys) => setFilters(prev => ({ ...prev, type: Array.from(keys)[0] || 'all' }))}
+                className="w-full sm:w-48"
+                radius={themeRadius}
+            >
+                <SelectItem key="all">All Types</SelectItem>
+                <SelectItem key="general">General</SelectItem>
+                <SelectItem key="adjusting">Adjusting</SelectItem>
+                <SelectItem key="closing">Closing</SelectItem>
+            </Select>
+            <Select
+                placeholder="All Status"
+                selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+                onSelectionChange={(keys) => setFilters(prev => ({ ...prev, status: Array.from(keys)[0] || 'all' }))}
+                className="w-full sm:w-48"
+                radius={themeRadius}
+            >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="draft">Draft</SelectItem>
+                <SelectItem key="pending">Pending</SelectItem>
+                <SelectItem key="posted">Posted</SelectItem>
+                <SelectItem key="reversed">Reversed</SelectItem>
+            </Select>
+        </div>
+    ), [filters, themeRadius]);
+
     return (
-        <App title="Journal Entries" auth={auth}>
-            <div className="space-y-6">
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { label: 'Total Entries', value: summary.total, color: 'text-primary' },
-                        { label: 'Posted', value: summary.posted, color: 'text-success' },
-                        { label: 'Draft', value: summary.draft, color: 'text-default-600' },
-                        { label: 'Pending', value: summary.pending, color: 'text-warning' },
-                    ].map((stat, index) => (
-                        <Card key={index}>
-                            <CardBody>
-                                <p className="text-sm text-default-600">{stat.label}</p>
-                                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                            </CardBody>
-                        </Card>
-                    ))}
-                </div>
-
-                {/* Main Card */}
-                <Card>
-                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div>
-                            <h2 className="text-xl font-semibold">Journal Entries</h2>
-                            <p className="text-sm text-default-600">Manual accounting entries and adjustments</p>
-                        </div>
-                        
-                        <Button color="primary" radius={themeRadius} startContent={<PlusIcon className="w-4 h-4" />}>
-                            New Entry
-                        </Button>
-                       
-                    </CardHeader>
-
-                    <CardBody className="space-y-4">
-                        {/* Filters */}
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <Input
-                                placeholder="Search entries..."
-                                value={filters.search}
-                                onValueChange={handleSearchChange}
-                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                radius={themeRadius}
-                                classNames={{ inputWrapper: 'bg-default-100' }}
-                            />
-
-                            <Select
-                                placeholder="Type"
-                                selectedKeys={filters.type !== 'all' ? [filters.type] : []}
-                                onSelectionChange={(keys) => handleFilterChange('type', Array.from(keys)[0] || 'all')}
-                                radius={themeRadius}
-                                classNames={{ trigger: 'bg-default-100' }}
-                                className="sm:w-48"
-                            >
-                                <SelectItem key="all">All Types</SelectItem>
-                                <SelectItem key="adjustment">Adjustment</SelectItem>
-                                <SelectItem key="accrual">Accrual</SelectItem>
-                                <SelectItem key="reversal">Reversal</SelectItem>
-                                <SelectItem key="reclassification">Reclassification</SelectItem>
-                            </Select>
-
-                            <Select
-                                placeholder="Status"
-                                selectedKeys={filters.status !== 'all' ? [filters.status] : []}
-                                onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
-                                radius={themeRadius}
-                                classNames={{ trigger: 'bg-default-100' }}
-                                className="sm:w-48"
-                            >
-                                <SelectItem key="all">All Status</SelectItem>
-                                <SelectItem key="draft">Draft</SelectItem>
-                                <SelectItem key="pending">Pending Approval</SelectItem>
-                                <SelectItem key="posted">Posted</SelectItem>
-                            </Select>
-
-                            <Button
-                                variant="flat"
-                                radius={themeRadius}
-                                startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
-                                onPress={handleExport}
-                            >
-                                Export
-                            </Button>
-                        </div>
-
-                        {/* Table */}
-                        <Table
-                            aria-label="Journal entries table"
-                            isHeaderSticky
+        <>
+            <Head title="Journal Entries" />
+            
+            <StandardPageLayout
+                title="Journal Entries"
+                subtitle="Manual accounting entries and adjustments"
+                icon={<DocumentTextIcon />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
+                ariaLabel="Journal Entries Management"
+            >
+                {/* Table */}
+                <Table
+                    aria-label="Journal entries table"
+                    isHeaderSticky
                             classNames={{
                                 wrapper: 'shadow-none border border-divider rounded-lg',
                                 th: 'bg-default-100 text-default-600 font-semibold',
@@ -290,11 +314,11 @@ const JournalEntries = () => {
                         <div className="flex justify-center">
                             <Pagination total={10} initialPage={1} radius={themeRadius} />
                         </div>
-                    </CardBody>
-                </Card>
-            </div>
-        </App>
+                </Table>
+            </StandardPageLayout>
+        </>
     );
 };
 
+JournalEntries.layout = (page) => <App children={page} />;
 export default JournalEntries;
