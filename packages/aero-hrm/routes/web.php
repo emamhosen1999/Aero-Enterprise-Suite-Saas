@@ -1,6 +1,7 @@
 <?php
 
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
+use Aero\HRM\Http\Controllers\Asset\AssetController;
 use Aero\HRM\Http\Controllers\Employee\BenefitsController;
 use Aero\HRM\Http\Controllers\Employee\DepartmentController;
 use Aero\HRM\Http\Controllers\Employee\DesignationController;
@@ -739,6 +740,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Workflow actions
         Route::post('/{id}/approve', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'approve'])->name('approve');
         Route::post('/{id}/reject', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'reject'])->name('reject');
+    });
+
+    // Asset Management
+    Route::middleware(['module:hrm,assets'])->prefix('assets')->name('assets.')->group(function () {
+        // Main index page (Inertia)
+        Route::get('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'index'])->name('index');
+        // API endpoints for data fetching
+        Route::get('/paginate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'stats'])->name('stats');
+        // CRUD operations
+        Route::post('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'store'])->name('store');
+        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'destroy'])->name('destroy');
+        // Asset allocation workflow
+        Route::post('/{id}/allocate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocate'])->name('allocate');
+        Route::post('/{id}/return', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'returnAsset'])->name('return');
     });
 
     Route::get('/api/designations/list', function () {

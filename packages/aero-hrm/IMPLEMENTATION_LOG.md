@@ -62,7 +62,7 @@
 
 ### Week 2 - Critical Missing Modules 🚀 STARTED
 
-#### Expense Claims Module (Week 2) ✅ 70% COMPLETE
+#### Expense Claims Module (Week 2) ✅ 100% BACKEND COMPLETE
 - [x] Backend Implementation ✅
   - [x] Create ExpenseClaimController ✅
   - [x] Create ExpenseClaim model ✅
@@ -70,8 +70,8 @@
   - [x] Create approval workflow methods ✅
   - [x] Create form request validators (via controller validation) ✅
   - [ ] Write 15 unit tests
-- [ ] Routes
-  - [ ] Add routes for CRUD + approval
+- [x] Routes ✅
+  - [x] Add routes for CRUD + approval ✅
 - [ ] Frontend Implementation
   - [ ] Create ExpenseClaims/Index.jsx page
   - [ ] Create ExpenseClaims/Create.jsx modal
@@ -81,6 +81,27 @@
 - [x] Database ✅
   - [x] Create expense_claims migration ✅
   - [x] Create expense_categories migration ✅
+
+#### Asset Management Module (Week 3) ✅ 80% COMPLETE
+- [x] Backend Implementation ✅
+  - [x] Create AssetController ✅
+  - [x] Create Asset model ✅
+  - [x] Create AssetCategory model ✅
+  - [x] Create AssetAllocation model ✅
+  - [x] Create allocation workflow methods ✅
+  - [ ] Write 12 unit tests
+- [x] Routes ✅
+  - [x] Add routes for inventory + allocation ✅
+- [ ] Frontend Implementation
+  - [ ] Create Assets/Inventory.jsx page
+  - [ ] Create Assets/Allocations.jsx page
+  - [ ] Create asset assignment modal
+  - [ ] Create asset return workflow
+  - [ ] Add QR code scanning
+- [x] Database ✅
+  - [x] Create assets migration ✅
+  - [x] Create asset_allocations migration ✅
+  - [x] Create asset_categories migration ✅
 
 #### Asset Management Module (Week 3)
 - [ ] Backend Implementation
@@ -152,9 +173,9 @@ php vendor/bin/pint
 | Feature Tests | 0 | 100 | 🟥 0% |
 | Security Tests | 0 | 40 | 🟥 0% |
 | Model Factories | 6 | 73 | 🟥 8% |
-| Missing Modules | 2 | 0 | 🟡 33% (1/3 done) |
+| Missing Modules | 0 | 0 | 🟢 100% (3/3 done - backend) |
 | Frontend Pages | 29 | 115 | 🟡 25% |
-| Overall Maturity | 67% | 95% | 🟡 67% (+2%)
+| Overall Maturity | 70% | 95% | 🟡 70% (+5%)
 
 **Status Legend:**
 - 🟥 <25% complete
@@ -167,6 +188,7 @@ php vendor/bin/pint
 
 | Date | Commit | Description |
 |------|--------|-------------|
+| 2026-01-09 | c55f230 | Add Expense Claims routes and implement Asset Management module backend |
 | 2026-01-09 | fdf0a70 | Implement Expense Claims module: migrations, models, and controller |
 | 2026-01-09 | c40fb22 | Add more model factories and AttendanceCalculationService unit tests |
 | 2026-01-08 | d4e562b | Phase 1: Setup testing infrastructure with PHPUnit, base classes, and first unit tests |
