@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import App from '@/Layouts/App';
+import StandardPageLayout from '@/Layouts/StandardPageLayout';
+import StatsCards from '@/Components/StatsCards';
 import { 
     Table, 
     TableHeader, 
@@ -18,9 +20,7 @@ import {
     DropdownTrigger,
     DropdownMenu,
     DropdownItem,
-    Pagination,
-    Card,
-    CardBody
+    Pagination
 } from "@heroui/react";
 import { 
     MagnifyingGlassIcon, 
@@ -30,21 +30,26 @@ import {
     PencilIcon,
     TrashIcon,
     CheckCircleIcon,
-    XCircleIcon
+    XCircleIcon,
+    CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
-import { motion } from 'framer-motion';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const Budget = ({ auth, budgets = [], departments = [] }) => {
-    // HRMAC permissions - TODO: Update path with actual HRMAC module hierarchy
+    // HRMAC permissions
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     const canViewBudgets = hasAccess('finance.budgets') || isSuperAdmin();
     const canCreateBudget = canCreate('finance.budgets') || isSuperAdmin();
     const canEditBudget = canUpdate('finance.budgets') || isSuperAdmin();
     const canDeleteBudget = canDelete('finance.budgets') || isSuperAdmin();
     const canApproveBudget = canUpdate('finance.budgets') || isSuperAdmin();
+    const canExportBudgets = hasAccess('finance.budgets.export') || isSuperAdmin();
     
-    // Similar responsive and theme setup as FixedAssets
+    // Theme radius hook
+    const themeRadius = useThemeRadius();
+    
+    // Responsive state
     const [isMobile, setIsMobile] = useState(false);
     
     useEffect(() => {
@@ -53,23 +58,6 @@ const Budget = ({ auth, budgets = [], departments = [] }) => {
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
-
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
-
-    const themeRadius = useMemo(() => getThemeRadius(), []);
-
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
 
     // Filter states
     const [filters, setFilters] = useState({
@@ -145,6 +133,106 @@ const Budget = ({ auth, budgets = [], departments = [] }) => {
             utilization: (totalSpent / totalBudget) * 100
         };
     }, [mockBudgets]);
+
+    // StatsCards data
+    const statsData = useMemo(() => [
+        {
+            title: "Total Budgeted",
+            value: `$${summaryStats.totalBudget.toLocaleString()}`,
+            icon: <CurrencyDollarIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+        {
+            title: "Total Spent",
+            value: `$${summaryStats.totalSpent.toLocaleString()}`,
+            icon: <CurrencyDollarIcon className="w-6 h-6" />,
+            color: "text-secondary",
+            iconBg: "bg-secondary/20"
+        },
+        {
+            title: "Utilization",
+            value: `${summaryStats.utilization.toFixed(1)}%`,
+            icon: <CurrencyDollarIcon className="w-6 h-6" />,
+            color: "text-warning",
+            iconBg: "bg-warning/20"
+        },
+        {
+            title: "Active Budgets",
+            value: summaryStats.activeCount,
+            icon: <CurrencyDollarIcon className="w-6 h-6" />,
+            color: "text-success",
+            iconBg: "bg-success/20"
+        }
+    ], [summaryStats]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <div className="flex gap-2">
+            {canExportBudgets && (
+                <Button
+                    color="default"
+                    variant="flat"
+                    startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateBudget && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Create Budget
+                </Button>
+            )}
+        </div>
+    ), [canExportBudgets, canCreateBudget, themeRadius, isMobile]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+                placeholder="Search budgets..."
+                value={filters.search}
+                onValueChange={handleSearchChange}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                className="sm:w-64"
+                radius={themeRadius}
+                classNames={{ inputWrapper: "bg-default-100" }}
+            />
+            <Select
+                placeholder="All Departments"
+                selectedKeys={filters.department !== 'all' ? [filters.department] : []}
+                onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys)[0] || 'all')}
+                className="sm:w-48"
+                radius={themeRadius}
+                classNames={{ trigger: "bg-default-100" }}
+            >
+                <SelectItem key="all">All Departments</SelectItem>
+                {mockDepartments.map(dept => (
+                    <SelectItem key={dept.name}>{dept.name}</SelectItem>
+                ))}
+            </Select>
+            <Select
+                placeholder="All Status"
+                selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+                onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
+                className="sm:w-40"
+                radius={themeRadius}
+                classNames={{ trigger: "bg-default-100" }}
+            >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="draft">Draft</SelectItem>
+                <SelectItem key="active">Active</SelectItem>
+                <SelectItem key="closed">Closed</SelectItem>
+            </Select>
+        </div>
+    ), [filters, themeRadius, mockDepartments]);
 
     // Handlers
     const handleSearchChange = (value) => {
@@ -222,14 +310,14 @@ const Budget = ({ auth, budgets = [], departments = [] }) => {
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu aria-label="Budget actions">
-                            {hasPermission('finance.budget.edit') && (
+                            {canEditBudget && (
                                 <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}>
                                     Edit
                                 </DropdownItem>
                             )}
                             <DropdownItem key="view">View Details</DropdownItem>
                             <DropdownItem key="report">Generate Report</DropdownItem>
-                            {hasPermission('finance.budget.delete') && (
+                            {canDeleteBudget && (
                                 <DropdownItem key="delete" className="text-danger" color="danger" startContent={<TrashIcon className="w-4 h-4" />}>
                                     Delete
                                 </DropdownItem>
@@ -243,109 +331,16 @@ const Budget = ({ auth, budgets = [], departments = [] }) => {
     };
 
     return (
-        <App user={auth.user}>
+        <>
             <Head title="Budget Management" />
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-6"
+            <StandardPageLayout
+                title="Budget Management"
+                subtitle="Track budgets and analyze variances"
+                icon={<CurrencyDollarIcon className="w-8 h-8" />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
             >
-                {/* Header */}
-                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Budget Management</h1>
-                        <p className="text-sm text-default-500 mt-1">Track budgets and analyze variances</p>
-                    </div>
-                    <div className="flex gap-2">
-                        {hasPermission('finance.budget.export') && (
-                            <Button
-                                color="default"
-                                variant="flat"
-                                startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                                radius={themeRadius}
-                            >
-                                Export
-                            </Button>
-                        )}
-                        {hasPermission('finance.budget.create') && (
-                            <Button
-                                color="primary"
-                                startContent={<PlusIcon className="w-4 h-4" />}
-                                radius={themeRadius}
-                            >
-                                Create Budget
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-default-500">Total Budgeted</p>
-                            <p className="text-2xl font-bold">${summaryStats.totalBudget.toLocaleString()}</p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-default-500">Total Spent</p>
-                            <p className="text-2xl font-bold">${summaryStats.totalSpent.toLocaleString()}</p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-default-500">Utilization</p>
-                            <p className="text-2xl font-bold">{summaryStats.utilization.toFixed(1)}%</p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-default-500">Active Budgets</p>
-                            <p className="text-2xl font-bold">{summaryStats.activeCount}</p>
-                        </CardBody>
-                    </Card>
-                </div>
-
-                {/* Filters */}
-                <div className="mb-6 flex flex-col sm:flex-row gap-3">
-                    <Input
-                        placeholder="Search budgets..."
-                        value={filters.search}
-                        onValueChange={handleSearchChange}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                        className="sm:w-64"
-                        radius={themeRadius}
-                        classNames={{ inputWrapper: "bg-default-100" }}
-                    />
-                    <Select
-                        placeholder="All Departments"
-                        selectedKeys={filters.department !== 'all' ? [filters.department] : []}
-                        onSelectionChange={(keys) => handleFilterChange('department', Array.from(keys)[0] || 'all')}
-                        className="sm:w-48"
-                        radius={themeRadius}
-                        classNames={{ trigger: "bg-default-100" }}
-                    >
-                        <SelectItem key="all">All Departments</SelectItem>
-                        {mockDepartments.map(dept => (
-                            <SelectItem key={dept.name}>{dept.name}</SelectItem>
-                        ))}
-                    </Select>
-                    <Select
-                        placeholder="All Status"
-                        selectedKeys={filters.status !== 'all' ? [filters.status] : []}
-                        onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
-                        className="sm:w-40"
-                        radius={themeRadius}
-                        classNames={{ trigger: "bg-default-100" }}
-                    >
-                        <SelectItem key="all">All Status</SelectItem>
-                        <SelectItem key="draft">Draft</SelectItem>
-                        <SelectItem key="active">Active</SelectItem>
-                        <SelectItem key="closed">Closed</SelectItem>
-                    </Select>
-                </div>
-
                 {/* Table */}
                 <Table
                     aria-label="Budgets table"
@@ -380,9 +375,10 @@ const Budget = ({ auth, budgets = [], departments = [] }) => {
                         />
                     </div>
                 )}
-            </motion.div>
-        </App>
+            </StandardPageLayout>
+        </>
     );
 };
 
+Budget.layout = (page) => <App children={page} />;
 export default Budget;
