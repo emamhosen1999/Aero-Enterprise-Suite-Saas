@@ -36,23 +36,20 @@ import {
     ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import App from '@/Layouts/App.jsx';
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import { useHRMAC } from '@/Hooks/useHRMAC';
 
 const PayrollIndex = ({ title, payrolls, stats }) => {
     const { auth } = usePage().props;
+    const themeRadius = useThemeRadius();
 
-    // Theme radius helper
-    const getThemeRadius = () => {
-        if (typeof window === 'undefined') return 'lg';
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 16) return 'lg';
-        return 'full';
-    };
+    // HRMAC permissions - TODO: Update with actual module hierarchy paths once defined
+    const { canCreate, canUpdate, hasAccess, isSuperAdmin } = useHRMAC();
+    const canViewPayroll = hasAccess('hrm.payroll') || isSuperAdmin();
+    const canCreatePayroll = canCreate('hrm.payroll') || isSuperAdmin();
+    const canEditPayroll = canUpdate('hrm.payroll') || isSuperAdmin();
 
     // Responsive breakpoints
     const [isMobile, setIsMobile] = useState(false);
@@ -104,9 +101,61 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
         },
     ], [stats]);
 
-    // Permission checks
-    const canCreate = auth.permissions?.includes('hrm.payroll.create') || auth.permissions?.includes('hrm.payroll') || true;
-    const canEdit = auth.permissions?.includes('hrm.payroll.update') || auth.permissions?.includes('hrm.payroll') || true;
+    // Action buttons for StandardPageLayout
+    const actionButtons = useMemo(() => (
+        <>
+            {canCreatePayroll && (
+                <Button
+                    color="primary"
+                    variant="shadow"
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Create Payroll
+                </Button>
+            )}
+        </>
+    ), [canCreatePayroll, isMobile]);
+
+    // Filters section for StandardPageLayout
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+                label="Search Payrolls"
+                placeholder="Search by employee name or email..."
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                variant="bordered"
+                size="sm"
+                radius={themeRadius}
+                classNames={{ input: "text-sm" }}
+            />
+            <Select
+                label="Status"
+                placeholder="All Status"
+                selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+                onSelectionChange={(keys) => {
+                    const value = Array.from(keys)[0];
+                    setFilters(prev => ({ ...prev, status: value || 'all' }));
+                }}
+                variant="bordered"
+                size="sm"
+                radius={themeRadius}
+                className="sm:w-48"
+            >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="draft">Draft</SelectItem>
+                <SelectItem key="pending">Pending</SelectItem>
+                <SelectItem key="processed">Processed</SelectItem>
+                <SelectItem key="cancelled">Cancelled</SelectItem>
+            </Select>
+        </div>
+    ), [filters, themeRadius]);
+
+    // Permission checks (legacy - for compatibility)
+    const canCreate = canCreatePayroll;
+    const canEdit = canEditPayroll;
 
     // Table columns
     const columns = [
@@ -226,167 +275,65 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
         <>
             <Head title={title || 'Payroll Management'} />
 
-            <div className="flex flex-col w-full h-full p-4" role="main" aria-label="Payroll Management">
-                <div className="space-y-4">
-                    <div className="w-full">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <Card
-                                className="transition-all duration-200"
-                                style={{
-                                    border: `var(--borderWidth, 2px) solid transparent`,
-                                    borderRadius: `var(--borderRadius, 12px)`,
-                                    fontFamily: `var(--fontFamily, "Inter")`,
-                                    transform: `scale(var(--scale, 1))`,
-                                    background: `linear-gradient(135deg, 
-                                        var(--theme-content1, #FAFAFA) 20%, 
-                                        var(--theme-content2, #F4F4F5) 10%, 
-                                        var(--theme-content3, #F1F3F4) 20%)`,
-                                }}
-                            >
-                                <CardHeader
-                                    className="border-b p-0"
-                                    style={{
-                                        borderColor: `var(--theme-divider, #E4E4E7)`,
-                                        background: `linear-gradient(135deg, 
-                                            color-mix(in srgb, var(--theme-content1) 50%, transparent) 20%, 
-                                            color-mix(in srgb, var(--theme-content2) 30%, transparent) 10%)`,
-                                    }}
-                                >
-                                    <div className={`${!isMobile ? 'p-6' : 'p-4'} w-full`}>
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                            <div className="flex items-center gap-3 lg:gap-4">
-                                                <div
-                                                    className={`${!isMobile ? 'p-3' : 'p-2'} rounded-xl`}
-                                                    style={{
-                                                        background: `color-mix(in srgb, var(--theme-primary) 15%, transparent)`,
-                                                        borderRadius: `var(--borderRadius, 12px)`,
-                                                    }}
-                                                >
-                                                    <CurrencyDollarIcon
-                                                        className={`${!isMobile ? 'w-8 h-8' : 'w-6 h-6'}`}
-                                                        style={{ color: 'var(--theme-primary)' }}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <h4 className={`${!isMobile ? 'text-2xl' : 'text-xl'} font-bold`}>
-                                                        Payroll Management
-                                                    </h4>
-                                                    <p className={`${!isMobile ? 'text-sm' : 'text-xs'} text-default-500`}>
-                                                        Manage employee payroll and salary processing
-                                                    </p>
-                                                </div>
-                                            </div>
+            <StandardPageLayout
+                title="Payroll Management"
+                subtitle="Manage employee payroll and salary processing"
+                icon={<CurrencyDollarIcon />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
+                ariaLabel="Payroll Management"
+            >
+                {/* Payroll Table */}
+                <Table
+                    aria-label="Payroll records"
+                    isHeaderSticky
+                    classNames={{
+                        wrapper: "shadow-none border border-divider rounded-lg",
+                        th: "bg-default-100 text-default-600 font-semibold",
+                        td: "py-3"
+                    }}
+                >
+                    <TableHeader columns={columns}>
+                        {(column) => (
+                            <TableColumn key={column.uid}>
+                                {column.name}
+                            </TableColumn>
+                        )}
+                    </TableHeader>
+                    <TableBody
+                        items={filteredPayrolls}
+                        emptyContent="No payroll records found"
+                    >
+                        {(item) => (
+                            <TableRow key={item.id}>
+                                {(columnKey) => (
+                                    <TableCell>{renderCell(item, columnKey)}</TableCell>
+                                )}
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
 
-                                            <div className="flex gap-2 flex-wrap">
-                                                {canCreate && (
-                                                    <Button
-                                                        color="primary"
-                                                        variant="shadow"
-                                                        startContent={<PlusIcon className="w-4 h-4" />}
-                                                        size={isMobile ? "sm" : "md"}
-                                                        onPress={() => {
-                                                            // TODO: Implement payroll creation modal or navigate to create page
-                                                            console.log('Generate Payroll clicked');
-                                                        }}
-                                                    >
-                                                        Generate Payroll
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-
-                                <CardBody className="p-6">
-                                    {/* Stats Cards */}
-                                    <StatsCards stats={statsData} className="mb-6" />
-
-                                    {/* Filters */}
-                                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                                        <Input
-                                            placeholder="Search by employee name or email..."
-                                            value={filters.search}
-                                            onValueChange={(value) => setFilters(prev => ({ ...prev, search: value }))}
-                                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                            className="flex-1"
-                                            radius={getThemeRadius()}
-                                            classNames={{
-                                                inputWrapper: "bg-default-100"
-                                            }}
-                                        />
-                                        <Select
-                                            placeholder="Filter by status"
-                                            selectedKeys={[filters.status]}
-                                            onSelectionChange={(keys) => setFilters(prev => ({ ...prev, status: Array.from(keys)[0] || 'all' }))}
-                                            className="w-full sm:w-48"
-                                            radius={getThemeRadius()}
-                                            classNames={{
-                                                trigger: "bg-default-100"
-                                            }}
-                                        >
-                                            <SelectItem key="all">All Status</SelectItem>
-                                            <SelectItem key="draft">Draft</SelectItem>
-                                            <SelectItem key="processed">Processed</SelectItem>
-                                            <SelectItem key="cancelled">Cancelled</SelectItem>
-                                        </Select>
-                                    </div>
-
-                                    {/* Table */}
-                                    <Table
-                                        aria-label="Payroll table"
-                                        isHeaderSticky
-                                        classNames={{
-                                            wrapper: "shadow-none border border-divider rounded-lg",
-                                            th: "bg-default-100 text-default-600 font-semibold",
-                                            td: "py-3"
-                                        }}
-                                    >
-                                        <TableHeader columns={columns}>
-                                            {(column) => (
-                                                <TableColumn key={column.uid} align={column.uid === 'actions' ? 'center' : 'start'}>
-                                                    {column.name}
-                                                </TableColumn>
-                                            )}
-                                        </TableHeader>
-                                        <TableBody
-                                            items={filteredPayrolls}
-                                            emptyContent="No payroll records found"
-                                        >
-                                            {(item) => (
-                                                <TableRow key={item.id}>
-                                                    {(columnKey) => (
-                                                        <TableCell>{renderCell(item, columnKey)}</TableCell>
-                                                    )}
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-
-                                    {/* Pagination */}
-                                    {payrolls?.last_page > 1 && (
-                                        <div className="flex justify-center mt-4">
-                                            <Pagination
-                                                total={payrolls.last_page}
-                                                page={payrolls.current_page}
-                                                onChange={setPage}
-                                                showControls
-                                                color="primary"
-                                            />
-                                        </div>
-                                    )}
-                                </CardBody>
-                            </Card>
-                        </motion.div>
+                {/* Pagination */}
+                {payrolls?.last_page > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <Pagination
+                            total={payrolls.last_page}
+                            page={payrolls.current_page}
+                            onChange={setPage}
+                            showControls
+                            color="primary"
+                        />
                     </div>
-                </div>
-            </div>
+                )}
+            </StandardPageLayout>
         </>
     );
 };
+
+PayrollIndex.layout = (page) => <App children={page} />;
+export default PayrollIndex;
 
 PayrollIndex.layout = (page) => <App children={page} />;
 export default PayrollIndex;

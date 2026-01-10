@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { hasRoute, safeRoute, safeNavigate, safePost, safePut, safeDelete } from '@/utils/routeUtils';
-import { motion } from 'framer-motion';
 import {
     Table,
     TableHeader,
@@ -23,26 +22,29 @@ import {
 import {
     MagnifyingGlassIcon,
     PlusIcon,
-    FunnelIcon,
     EllipsisVerticalIcon,
     PencilIcon,
     TrashIcon,
     DocumentArrowDownIcon,
+    CalculatorIcon,
 } from "@heroicons/react/24/outline";
 import {useHRMAC} from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 import App from "@/Layouts/App.jsx";
-import PageHeader from "@/Components/PageHeader.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout';
+import StatsCards from '@/Components/StatsCards';
 
 const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0 }, accounts = [], filters: initialFilters = {} }) => {
     // HRMAC permissions
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     
-    // TODO: Update with actual HRMAC module hierarchy path once defined
     const canViewLedger = hasAccess('finance.ledger') || isSuperAdmin();
     const canCreateEntry = canCreate('finance.ledger.entries') || isSuperAdmin();
     const canEditEntry = canUpdate('finance.ledger.entries') || isSuperAdmin();
     const canDeleteEntry = canDelete('finance.ledger.entries') || isSuperAdmin();
     const canExportLedger = hasAccess('finance.ledger.export') || isSuperAdmin();
+    
+    const themeRadius = useThemeRadius();
     
     // Responsive state
     const [isMobile, setIsMobile] = useState(false);
@@ -67,19 +69,135 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
         date_to: initialFilters.date_to || '',
     });
 
-    // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    // Calculate stats
+    const totalDebits = entries.data.reduce((sum, e) => sum + (e.debit || 0), 0);
+    const totalCredits = entries.data.reduce((sum, e) => sum + (e.credit || 0), 0);
 
-    const themeRadius = getThemeRadius();
+    // Stats data for StatsCards
+    const statsData = useMemo(() => [
+        {
+            title: "Total Entries",
+            value: entries.total,
+            icon: <CalculatorIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+        {
+            title: "Total Debits",
+            value: `$${totalDebits.toLocaleString()}`,
+            icon: <CalculatorIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+        {
+            title: "Total Credits",
+            value: `$${totalCredits.toLocaleString()}`,
+            icon: <CalculatorIcon className="w-6 h-6" />,
+            color: "text-success",
+            iconBg: "bg-success/20"
+        },
+        {
+            title: "Net Balance",
+            value: `$${Math.abs(totalDebits - totalCredits).toLocaleString()}`,
+            icon: <CalculatorIcon className="w-6 h-6" />,
+            color: totalDebits >= totalCredits ? "text-success" : "text-danger",
+            iconBg: totalDebits >= totalCredits ? "bg-success/20" : "bg-danger/20"
+        },
+    ], [entries.total, totalDebits, totalCredits]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <>
+            {canExportLedger && (
+                <Button
+                    variant="flat"
+                    startContent={<DocumentArrowDownIcon className="w-5 h-5" />}
+                    onPress={() => safeNavigate('finance.general-ledger.export', filters)}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateEntry && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-5 h-5" />}
+                    onPress={() => safeNavigate('finance.general-ledger.create')}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    New Entry
+                </Button>
+            )}
+        </>
+    ), [canExportLedger, canCreateEntry, filters, themeRadius, isMobile]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                    placeholder="Search by reference, account..."
+                    value={filters.search}
+                    onValueChange={(value) => handleFilterChange('search', value)}
+                    startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                    classNames={{ inputWrapper: "bg-default-100" }}
+                    radius={themeRadius}
+                    className="sm:max-w-xs"
+                />
+
+                <Select
+                    placeholder="All Accounts"
+                    selectedKeys={filters.account !== 'all' ? [filters.account] : []}
+                    onSelectionChange={(keys) => handleFilterChange('account', Array.from(keys)[0] || 'all')}
+                    classNames={{ trigger: "bg-default-100" }}
+                    radius={themeRadius}
+                    className="sm:max-w-xs"
+                >
+                    <SelectItem key="all">All Accounts</SelectItem>
+                    {accounts?.map((account) => (
+                        <SelectItem key={account.id}>{account.name}</SelectItem>
+                    ))}
+                </Select>
+
+                <Select
+                    placeholder="All Types"
+                    selectedKeys={filters.type !== 'all' ? [filters.type] : []}
+                    onSelectionChange={(keys) => handleFilterChange('type', Array.from(keys)[0] || 'all')}
+                    classNames={{ trigger: "bg-default-100" }}
+                    radius={themeRadius}
+                    className="sm:max-w-xs"
+                >
+                    <SelectItem key="all">All Types</SelectItem>
+                    <SelectItem key="debit">Debit</SelectItem>
+                    <SelectItem key="credit">Credit</SelectItem>
+                    <SelectItem key="adjustment">Adjustment</SelectItem>
+                </Select>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                    type="date"
+                    label="From Date"
+                    value={filters.date_from}
+                    onChange={(e) => handleFilterChange('date_from', e.target.value)}
+                    classNames={{ inputWrapper: "bg-default-100" }}
+                    radius={themeRadius}
+                    className="sm:max-w-xs"
+                />
+                <Input
+                    type="date"
+                    label="To Date"
+                    value={filters.date_to}
+                    onChange={(e) => handleFilterChange('date_to', e.target.value)}
+                    classNames={{ inputWrapper: "bg-default-100" }}
+                    radius={themeRadius}
+                    className="sm:max-w-xs"
+                />
+            </div>
+        </div>
+    ), [filters, accounts, themeRadius]);
 
     // Handle filter changes
     const handleFilterChange = (key, value) => {
@@ -176,7 +294,7 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
             case 'actions':
                 return (
                     <div className="flex items-center gap-2">
-                        {hasPermission('finance.general-ledger.edit') && (
+                        {canEditEntry && (
                             <Dropdown>
                                 <DropdownTrigger>
                                     <Button isIconOnly size="sm" variant="light" radius={themeRadius}>
@@ -217,114 +335,17 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
     };
 
     return (
-        <App>
+        <>
             <Head title="General Ledger" />
             
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+            <StandardPageLayout
+                title="General Ledger"
+                subtitle="View and manage general ledger entries"
+                icon={<CalculatorIcon className="w-8 h-8" />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
             >
-                <PageHeader
-                    title="General Ledger"
-                    description="View and manage general ledger entries"
-                    action={
-                        hasPermission('finance.general-ledger.create') && (
-                            <Button
-                                color="primary"
-                                startContent={<PlusIcon className="w-5 h-5" />}
-                                onPress={() => safeNavigate('finance.general-ledger.create')}
-                                radius={themeRadius}
-                            >
-                                New Entry
-                            </Button>
-                        )
-                    }
-                />
-
-                {/* Filters */}
-                <div className="mb-6 space-y-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        {/* Search */}
-                        <Input
-                            placeholder="Search by reference, account..."
-                            value={filters.search}
-                            onValueChange={(value) => handleFilterChange('search', value)}
-                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                            classNames={{
-                                inputWrapper: "bg-default-100"
-                            }}
-                            radius={themeRadius}
-                            className="sm:max-w-xs"
-                        />
-
-                        {/* Account Filter */}
-                        <Select
-                            placeholder="All Accounts"
-                            selectedKeys={filters.account !== 'all' ? [filters.account] : []}
-                            onSelectionChange={(keys) => handleFilterChange('account', Array.from(keys)[0] || 'all')}
-                            classNames={{ trigger: "bg-default-100" }}
-                            radius={themeRadius}
-                            className="sm:max-w-xs"
-                        >
-                            <SelectItem key="all">All Accounts</SelectItem>
-                            {accounts?.map((account) => (
-                                <SelectItem key={account.id}>{account.name}</SelectItem>
-                            ))}
-                        </Select>
-
-                        {/* Type Filter */}
-                        <Select
-                            placeholder="All Types"
-                            selectedKeys={filters.type !== 'all' ? [filters.type] : []}
-                            onSelectionChange={(keys) => handleFilterChange('type', Array.from(keys)[0] || 'all')}
-                            classNames={{ trigger: "bg-default-100" }}
-                            radius={themeRadius}
-                            className="sm:max-w-xs"
-                        >
-                            <SelectItem key="all">All Types</SelectItem>
-                            <SelectItem key="debit">Debit</SelectItem>
-                            <SelectItem key="credit">Credit</SelectItem>
-                            <SelectItem key="adjustment">Adjustment</SelectItem>
-                        </Select>
-
-                        {/* Export Button */}
-                        {hasPermission('finance.general-ledger.export') && (
-                            <Button
-                                variant="flat"
-                                startContent={<DocumentArrowDownIcon className="w-5 h-5" />}
-                                onPress={() => safeNavigate('finance.general-ledger.export', filters)}
-                                radius={themeRadius}
-                            >
-                                Export
-                            </Button>
-                        )}
-                    </div>
-
-                    {/* Date Range */}
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <Input
-                            type="date"
-                            label="From Date"
-                            value={filters.date_from}
-                            onChange={(e) => handleFilterChange('date_from', e.target.value)}
-                            classNames={{ inputWrapper: "bg-default-100" }}
-                            radius={themeRadius}
-                            className="sm:max-w-xs"
-                        />
-                        <Input
-                            type="date"
-                            label="To Date"
-                            value={filters.date_to}
-                            onChange={(e) => handleFilterChange('date_to', e.target.value)}
-                            classNames={{ inputWrapper: "bg-default-100" }}
-                            radius={themeRadius}
-                            className="sm:max-w-xs"
-                        />
-                    </div>
-                </div>
-
                 {/* Table */}
                 <Table
                     aria-label="General Ledger Entries"
@@ -334,22 +355,6 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                         th: "bg-default-100 text-default-600 font-semibold",
                         td: "py-3"
                     }}
-                    bottomContent={
-                        entries.last_page > 1 && (
-                            <div className="flex w-full justify-center">
-                                <Pagination
-                                    isCompact
-                                    showControls
-                                    showShadow
-                                    color="primary"
-                                    page={entries.current_page}
-                                    total={entries.last_page}
-                                    onChange={handlePageChange}
-                                    radius={themeRadius}
-                                />
-                            </div>
-                        )
-                    }
                 >
                     <TableHeader columns={columns}>
                         {(column) => (
@@ -372,32 +377,25 @@ const GeneralLedger = ({ auth, entries = { data: [], current_page: 1, last_page:
                     </TableBody>
                 </Table>
 
-                {/* Summary */}
-                {entries.data.length > 0 && (
-                    <div className="mt-4 p-4 bg-default-100 rounded-lg">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <p className="text-sm text-default-500">Total Entries</p>
-                                <p className="text-2xl font-bold">{entries.total}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-default-500">Total Debits</p>
-                                <p className="text-2xl font-bold text-primary">
-                                    ${entries.data.reduce((sum, e) => sum + (e.debit || 0), 0).toLocaleString()}
-                                </p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-default-500">Total Credits</p>
-                                <p className="text-2xl font-bold text-success">
-                                    ${entries.data.reduce((sum, e) => sum + (e.credit || 0), 0).toLocaleString()}
-                                </p>
-                            </div>
-                        </div>
+                {/* Pagination */}
+                {entries.last_page > 1 && (
+                    <div className="flex w-full justify-center mt-4">
+                        <Pagination
+                            isCompact
+                            showControls
+                            showShadow
+                            color="primary"
+                            page={entries.current_page}
+                            total={entries.last_page}
+                            onChange={handlePageChange}
+                            radius={themeRadius}
+                        />
                     </div>
                 )}
-            </motion.div>
-        </App>
+            </StandardPageLayout>
+        </>
     );
 };
 
+GeneralLedger.layout = (page) => <App children={page} />;
 export default GeneralLedger;

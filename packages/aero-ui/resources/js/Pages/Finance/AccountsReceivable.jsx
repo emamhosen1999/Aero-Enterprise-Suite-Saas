@@ -19,8 +19,6 @@ import {
     DropdownMenu,
     DropdownItem,
     Pagination,
-    Card,
-    CardBody,
 } from "@heroui/react";
 import {
     MagnifyingGlassIcon,
@@ -31,18 +29,25 @@ import {
     PencilIcon,
     BellIcon,
     CurrencyDollarIcon,
+    BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const AccountsReceivable = ({ invoices = [], customers = [], auth }) => {
-    // HRMAC permissions - TODO: Update path with actual HRMAC module hierarchy
+    // HRMAC permissions
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     const canViewInvoices = hasAccess('finance.accounts-receivable') || isSuperAdmin();
     const canCreateInvoice = canCreate('finance.accounts-receivable') || isSuperAdmin();
     const canEditInvoice = canUpdate('finance.accounts-receivable') || isSuperAdmin();
     const canDeleteInvoice = canDelete('finance.accounts-receivable') || isSuperAdmin();
     const canSendReminder = canUpdate('finance.accounts-receivable') || isSuperAdmin();
+    const canExportInvoices = hasAccess('finance.accounts-receivable.export') || isSuperAdmin();
+    
+    const themeRadius = useThemeRadius();
     
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -62,10 +67,6 @@ const AccountsReceivable = ({ invoices = [], customers = [], auth }) => {
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
-
-    const hasPermission = (permission) => {
-        return auth?.permissions?.includes(permission) || auth?.user?.isPlatformSuperAdmin;
-    };
 
     // Sample data
     const sampleInvoices = [
@@ -252,102 +253,113 @@ const AccountsReceivable = ({ invoices = [], customers = [], auth }) => {
         { key: 'actions', label: 'Actions' },
     ];
 
+    // Stats data for StatsCards
+    const statsData = useMemo(() => [
+        {
+            title: "Total Receivable",
+            value: `$${summaryStats.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+            icon: <BanknotesIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+        {
+            title: "Overdue Amount",
+            value: `$${summaryStats.overdue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+            icon: <CurrencyDollarIcon className="w-6 h-6" />,
+            color: "text-danger",
+            iconBg: "bg-danger/20"
+        },
+        {
+            title: "Current Amount",
+            value: `$${summaryStats.current.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+            icon: <CurrencyDollarIcon className="w-6 h-6" />,
+            color: "text-success",
+            iconBg: "bg-success/20"
+        },
+        {
+            title: "Total Invoices",
+            value: filteredInvoices.length,
+            icon: <PlusIcon className="w-6 h-6" />,
+            color: "text-default-600",
+            iconBg: "bg-default-100"
+        }
+    ], [summaryStats, filteredInvoices]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <div className="flex gap-2 flex-wrap">
+            {canExportInvoices && (
+                <Button
+                    startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                    variant="flat"
+                    size={isMobile ? "sm" : "md"}
+                    radius={themeRadius}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateInvoice && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    size={isMobile ? "sm" : "md"}
+                    radius={themeRadius}
+                >
+                    New Invoice
+                </Button>
+            )}
+        </div>
+    ), [canExportInvoices, canCreateInvoice, isMobile, themeRadius]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+                placeholder="Search invoices or customers..."
+                value={searchQuery}
+                onValueChange={handleSearch}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                classNames={{
+                    inputWrapper: "bg-default-100"
+                }}
+                className="sm:max-w-xs"
+                radius={themeRadius}
+            />
+            
+            <Select
+                placeholder="Status"
+                selectedKeys={selectedStatus !== 'all' ? [selectedStatus] : []}
+                onSelectionChange={(keys) => {
+                    setSelectedStatus(Array.from(keys)[0] || 'all');
+                    setCurrentPage(1);
+                }}
+                classNames={{ trigger: "bg-default-100" }}
+                className="sm:max-w-xs"
+                startContent={<FunnelIcon className="w-4 h-4" />}
+                radius={themeRadius}
+            >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="draft">Draft</SelectItem>
+                <SelectItem key="sent">Sent</SelectItem>
+                <SelectItem key="partial">Partial</SelectItem>
+                <SelectItem key="paid">Paid</SelectItem>
+                <SelectItem key="overdue">Overdue</SelectItem>
+            </Select>
+        </div>
+    ), [searchQuery, selectedStatus, themeRadius]);
+
     return (
-        <App>
+        <>
             <Head title="Accounts Receivable" />
             
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+            <StandardPageLayout
+                title="Accounts Receivable"
+                subtitle="Track customer invoices and payments"
+                icon={<BanknotesIcon className="w-8 h-8" />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
             >
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Accounts Receivable</h1>
-                        <p className="text-sm text-default-600 mt-1">
-                            Track customer invoices and payments
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button
-                            startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                            variant="flat"
-                        >
-                            Export
-                        </Button>
-                        {hasPermission('finance.invoices.create') && (
-                            <Button
-                                color="primary"
-                                startContent={<PlusIcon className="w-4 h-4" />}
-                            >
-                                New Invoice
-                            </Button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-default-600">Total Receivable</p>
-                            <p className="text-2xl font-bold text-foreground mt-1">
-                                ${summaryStats.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                            </p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-default-600">Overdue Amount</p>
-                            <p className="text-2xl font-bold text-danger mt-1">
-                                ${summaryStats.overdue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                            </p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-default-600">Current Amount</p>
-                            <p className="text-2xl font-bold text-success mt-1">
-                                ${summaryStats.current.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                            </p>
-                        </CardBody>
-                    </Card>
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                    <Input
-                        placeholder="Search invoices or customers..."
-                        value={searchQuery}
-                        onValueChange={handleSearch}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                        classNames={{
-                            inputWrapper: "bg-default-100"
-                        }}
-                        className="sm:max-w-xs"
-                    />
-                    
-                    <Select
-                        placeholder="Status"
-                        selectedKeys={selectedStatus !== 'all' ? [selectedStatus] : []}
-                        onSelectionChange={(keys) => {
-                            setSelectedStatus(Array.from(keys)[0] || 'all');
-                            setCurrentPage(1);
-                        }}
-                        classNames={{ trigger: "bg-default-100" }}
-                        className="sm:max-w-xs"
-                        startContent={<FunnelIcon className="w-4 h-4" />}
-                    >
-                        <SelectItem key="all">All Status</SelectItem>
-                        <SelectItem key="draft">Draft</SelectItem>
-                        <SelectItem key="sent">Sent</SelectItem>
-                        <SelectItem key="partial">Partial</SelectItem>
-                        <SelectItem key="paid">Paid</SelectItem>
-                        <SelectItem key="overdue">Overdue</SelectItem>
-                    </Select>
-                </div>
-
                 {/* Table */}
                 <Table
                     aria-label="Accounts receivable table"
@@ -387,12 +399,14 @@ const AccountsReceivable = ({ invoices = [], customers = [], auth }) => {
                             page={currentPage}
                             onChange={setCurrentPage}
                             showControls
+                            radius={themeRadius}
                         />
                     </div>
                 )}
-            </motion.div>
-        </App>
+            </StandardPageLayout>
+        </>
     );
 };
 
+AccountsReceivable.layout = (page) => <App children={page} />;
 export default AccountsReceivable;

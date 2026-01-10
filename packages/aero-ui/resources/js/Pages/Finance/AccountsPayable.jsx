@@ -18,8 +18,6 @@ import {
     DropdownMenu,
     DropdownItem,
     Pagination,
-    Card,
-    CardBody,
 } from "@heroui/react";
 import {
     MagnifyingGlassIcon,
@@ -28,12 +26,15 @@ import {
     ArrowDownTrayIcon,
     CheckCircleIcon,
     ClockIcon,
+    BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const AccountsPayable = ({ bills = [], vendors = [], auth }) => {
-    // TODO: Replace with actual HRMAC module path once hierarchy is defined
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     
     // Permissions using HRMAC
@@ -42,6 +43,10 @@ const AccountsPayable = ({ bills = [], vendors = [], auth }) => {
     const canEditBill = canUpdate('finance.accounts-payable') || isSuperAdmin();
     const canDeleteBill = canDelete('finance.accounts-payable') || isSuperAdmin();
     const canPayBill = canUpdate('finance.accounts-payable.payment') || isSuperAdmin();
+    const canExportBills = hasAccess('finance.accounts-payable.export') || isSuperAdmin();
+    
+    const themeRadius = useThemeRadius();
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [vendorFilter, setVendorFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -56,23 +61,6 @@ const AccountsPayable = ({ bills = [], vendors = [], auth }) => {
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
-
-    // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
-
-    // Permission helper
-    const hasPermission = (permission) => {
-        return auth?.user?.permissions?.includes(permission) || auth?.user?.is_super_admin;
-    };
 
     // Mock data if empty
     const mockBills = bills.length > 0 ? bills : [
@@ -204,126 +192,131 @@ const AccountsPayable = ({ bills = [], vendors = [], auth }) => {
         { uid: 'actions', name: 'Actions' },
     ];
 
-    return (
-        <App>
-            <Head title="Accounts Payable" />
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-7xl mx-auto px-4 py-6"
+    // Stats data for StatsCards
+    const statsData = useMemo(() => [
+        {
+            title: "Total AP",
+            value: formatCurrency(totalAP),
+            icon: <BanknotesIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+        {
+            title: "Due This Week",
+            value: formatCurrency(dueThisWeek),
+            icon: <ClockIcon className="w-6 h-6" />,
+            color: "text-warning",
+            iconBg: "bg-warning/20"
+        },
+        {
+            title: "Due This Month",
+            value: formatCurrency(dueThisMonth),
+            icon: <ClockIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+        {
+            title: "Overdue",
+            value: formatCurrency(overdue),
+            icon: <ClockIcon className="w-6 h-6" />,
+            color: "text-danger",
+            iconBg: "bg-danger/20"
+        }
+    ], [totalAP, dueThisWeek, dueThisMonth, overdue]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <div className="flex gap-2 flex-wrap">
+            {canExportBills && (
+                <Button
+                    variant="flat"
+                    startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateBill && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-5 h-5" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    New Bill
+                </Button>
+            )}
+        </div>
+    ), [canExportBills, canCreateBill, themeRadius, isMobile]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+                placeholder="Search bills or vendors..."
+                value={searchTerm}
+                onValueChange={handleSearchChange}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                className="w-full sm:w-64"
+                radius={themeRadius}
+            />
+            <Select
+                placeholder="All Vendors"
+                className="w-full sm:w-48"
+                radius={themeRadius}
+                onChange={(e) => setVendorFilter(e.target.value)}
             >
-                {/* Page Header */}
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Accounts Payable</h1>
-                        <p className="text-default-500">Manage vendor bills and payments</p>
-                    </div>
-                    {hasPermission('finance.accounts-payable.create') && (
-                        <Button
-                            color="primary"
-                            startContent={<PlusIcon className="w-5 h-5" />}
-                            radius={getThemeRadius()}
-                        >
-                            New Bill
-                        </Button>
-                    )}
-                </div>
+                <SelectItem key="all" value="all">All Vendors</SelectItem>
+                {[...new Set(mockBills.map(b => b.vendor))].map(vendor => (
+                    <SelectItem key={vendor} value={vendor}>{vendor}</SelectItem>
+                ))}
+            </Select>
+            <Select
+                placeholder="All Status"
+                className="w-full sm:w-48"
+                radius={themeRadius}
+                onChange={(e) => setStatusFilter(e.target.value)}
+            >
+                <SelectItem key="all" value="all">All Status</SelectItem>
+                <SelectItem key="pending" value="pending">Pending</SelectItem>
+                <SelectItem key="approved" value="approved">Approved</SelectItem>
+                <SelectItem key="paid" value="paid">Paid</SelectItem>
+                <SelectItem key="overdue" value="overdue">Overdue</SelectItem>
+            </Select>
+        </div>
+    ), [searchTerm, themeRadius]);
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <Card>
-                        <CardBody className="flex flex-row items-center justify-between">
-                            <div>
-                                <p className="text-sm text-default-500">Total AP</p>
-                                <p className="text-2xl font-bold">{formatCurrency(totalAP)}</p>
-                            </div>
-                            <ClockIcon className="w-8 h-8 text-primary" />
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody className="flex flex-row items-center justify-between">
-                            <div>
-                                <p className="text-sm text-default-500">Due This Week</p>
-                                <p className="text-2xl font-bold text-warning">{formatCurrency(dueThisWeek)}</p>
-                            </div>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody className="flex flex-row items-center justify-between">
-                            <div>
-                                <p className="text-sm text-default-500">Due This Month</p>
-                                <p className="text-2xl font-bold text-primary">{formatCurrency(dueThisMonth)}</p>
-                            </div>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody className="flex flex-row items-center justify-between">
-                            <div>
-                                <p className="text-sm text-default-500">Overdue</p>
-                                <p className="text-2xl font-bold text-danger">{formatCurrency(overdue)}</p>
-                            </div>
-                        </CardBody>
-                    </Card>
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <Input
-                        placeholder="Search bills or vendors..."
-                        value={searchTerm}
-                        onValueChange={handleSearchChange}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                        className="w-full sm:w-64"
-                        radius={getThemeRadius()}
-                    />
-                    <Select
-                        placeholder="All Vendors"
-                        className="w-full sm:w-48"
-                        radius={getThemeRadius()}
-                        onChange={(e) => setVendorFilter(e.target.value)}
-                    >
-                        <SelectItem key="all" value="all">All Vendors</SelectItem>
-                        {[...new Set(mockBills.map(b => b.vendor))].map(vendor => (
-                            <SelectItem key={vendor} value={vendor}>{vendor}</SelectItem>
-                        ))}
-                    </Select>
-                    <Select
-                        placeholder="All Status"
-                        className="w-full sm:w-48"
-                        radius={getThemeRadius()}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <SelectItem key="all" value="all">All Status</SelectItem>
-                        <SelectItem key="pending" value="pending">Pending</SelectItem>
-                        <SelectItem key="approved" value="approved">Approved</SelectItem>
-                        <SelectItem key="paid" value="paid">Paid</SelectItem>
-                        <SelectItem key="overdue" value="overdue">Overdue</SelectItem>
-                    </Select>
-                    <Button
-                        variant="flat"
-                        startContent={<ArrowDownTrayIcon className="w-4 h-4" />}
-                        radius={getThemeRadius()}
-                    >
-                        Export
-                    </Button>
-                </div>
-
+    return (
+        <>
+            <Head title="Accounts Payable" />
+            
+            <StandardPageLayout
+                title="Accounts Payable"
+                subtitle="Manage vendor bills and payments"
+                icon={<BanknotesIcon className="w-8 h-8" />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
+            >
                 {/* Table */}
                 <Table
                     aria-label="Accounts payable table"
                     bottomContent={
-                        <div className="flex w-full justify-center">
-                            <Pagination
-                                isCompact
-                                showControls
-                                showShadow
-                                color="primary"
-                                page={page}
-                                total={pages}
-                                onChange={(page) => setPage(page)}
-                            />
-                        </div>
+                        pages > 1 && (
+                            <div className="flex w-full justify-center">
+                                <Pagination
+                                    isCompact
+                                    showControls
+                                    showShadow
+                                    color="primary"
+                                    page={page}
+                                    total={pages}
+                                    onChange={(page) => setPage(page)}
+                                    radius={themeRadius}
+                                />
+                            </div>
+                        )
                     }
                 >
                     <TableHeader columns={columns}>
@@ -337,9 +330,10 @@ const AccountsPayable = ({ bills = [], vendors = [], auth }) => {
                         )}
                     </TableBody>
                 </Table>
-            </motion.div>
-        </App>
+            </StandardPageLayout>
+        </>
     );
 };
 
+AccountsPayable.layout = (page) => <App children={page} />;
 export default AccountsPayable;

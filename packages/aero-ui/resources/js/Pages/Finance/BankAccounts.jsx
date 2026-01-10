@@ -24,9 +24,15 @@ import {
     EllipsisVerticalIcon,
     PlusIcon,
     BanknotesIcon,
+    BuildingLibraryIcon,
+    CurrencyDollarIcon,
+    CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
+import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
+import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const BankAccounts = ({ accounts = [], auth }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -45,22 +51,13 @@ const BankAccounts = ({ accounts = [], auth }) => {
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    // Theme helper
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
+    // Theme radius hook
+    const themeRadius = useThemeRadius();
 
     // HRMAC permissions
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     
-    // TODO: Update these paths with actual HRMAC module hierarchy once defined
+    // Finance module permissions - TODO: Update with actual HRMAC module hierarchy once defined
     const canViewBankAccounts = hasAccess('finance.bank-accounts') || isSuperAdmin();
     const canCreateBankAccount = canCreate('finance.bank-accounts') || isSuperAdmin();
     const canEditBankAccount = canUpdate('finance.bank-accounts') || isSuperAdmin();
@@ -185,77 +182,127 @@ const BankAccounts = ({ accounts = [], auth }) => {
         { uid: 'actions', name: 'Actions' },
     ];
 
-    return (
-        <App>
-            <Head title="Bank Accounts" />
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="max-w-7xl mx-auto px-4 py-6"
+    // Calculate stats
+    const stats = useMemo(() => {
+        const totalBalance = mockAccounts.reduce((sum, acc) => sum + acc.balance, 0);
+        const activeAccounts = mockAccounts.filter(acc => acc.status === 'active').length;
+        const banks = [...new Set(mockAccounts.map(acc => acc.bank))].length;
+        
+        return [
+            {
+                title: 'Total Balance',
+                value: formatCurrency(totalBalance),
+                icon: <CurrencyDollarIcon className="w-5 h-5" />,
+                color: 'text-success',
+                iconBg: 'bg-success/20',
+                description: 'Across all accounts'
+            },
+            {
+                title: 'Active Accounts',
+                value: activeAccounts,
+                icon: <CheckCircleIcon className="w-5 h-5" />,
+                color: 'text-primary',
+                iconBg: 'bg-primary/20',
+                description: `${mockAccounts.length} total accounts`
+            },
+            {
+                title: 'Banks',
+                value: banks,
+                icon: <BuildingLibraryIcon className="w-5 h-5" />,
+                color: 'text-secondary',
+                iconBg: 'bg-secondary/20',
+                description: 'Banking institutions'
+            },
+            {
+                title: 'Account Types',
+                value: Object.keys(typeLabels).length,
+                icon: <BanknotesIcon className="w-5 h-5" />,
+                color: 'text-warning',
+                iconBg: 'bg-warning/20',
+                description: 'Different types'
+            },
+        ];
+    }, [mockAccounts]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <>
+            {canCreateBankAccount && (
+                <Button
+                    color="primary"
+                    startContent={<PlusIcon className="w-5 h-5" />}
+                    radius={themeRadius}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Add Account
+                </Button>
+            )}
+        </>
+    ), [canCreateBankAccount, themeRadius, isMobile]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <Input
+                placeholder="Search accounts..."
+                value={searchTerm}
+                onValueChange={handleSearchChange}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                className="w-full sm:w-64"
+                radius={themeRadius}
+            />
+            <Select
+                placeholder="All Banks"
+                className="w-full sm:w-48"
+                radius={themeRadius}
+                onChange={(e) => setBankFilter(e.target.value)}
+                selectedKeys={bankFilter !== 'all' ? [bankFilter] : []}
             >
-                {/* Page Header */}
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Bank Accounts</h1>
-                        <p className="text-default-500">Manage your bank accounts and balances</p>
-                    </div>
-                    {canCreateBankAccount && (
-                        <Button
-                            color="primary"
-                            startContent={<PlusIcon className="w-5 h-5" />}
-                            radius={getThemeRadius()}
-                        >
-                            Add Account
-                        </Button>
-                    )}
-                </div>
+                <SelectItem key="all" value="all">All Banks</SelectItem>
+                {[...new Set(mockAccounts.map(a => a.bank))].map(bank => (
+                    <SelectItem key={bank} value={bank}>{bank}</SelectItem>
+                ))}
+            </Select>
+            <Select
+                placeholder="All Types"
+                className="w-full sm:w-48"
+                radius={themeRadius}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                selectedKeys={typeFilter !== 'all' ? [typeFilter] : []}
+            >
+                <SelectItem key="all" value="all">All Types</SelectItem>
+                {Object.entries(typeLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+            </Select>
+            <Select
+                placeholder="All Status"
+                className="w-full sm:w-48"
+                radius={themeRadius}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                selectedKeys={statusFilter !== 'all' ? [statusFilter] : []}
+            >
+                <SelectItem key="all" value="all">All Status</SelectItem>
+                <SelectItem key="active" value="active">Active</SelectItem>
+                <SelectItem key="inactive" value="inactive">Inactive</SelectItem>
+                <SelectItem key="closed" value="closed">Closed</SelectItem>
+            </Select>
+        </div>
+    ), [searchTerm, bankFilter, typeFilter, statusFilter, themeRadius, mockAccounts, handleSearchChange]);
 
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <Input
-                        placeholder="Search accounts..."
-                        value={searchTerm}
-                        onValueChange={handleSearchChange}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                        className="w-full sm:w-64"
-                        radius={getThemeRadius()}
-                    />
-                    <Select
-                        placeholder="All Banks"
-                        className="w-full sm:w-48"
-                        radius={getThemeRadius()}
-                        onChange={(e) => setBankFilter(e.target.value)}
-                    >
-                        <SelectItem key="all" value="all">All Banks</SelectItem>
-                        {[...new Set(mockAccounts.map(a => a.bank))].map(bank => (
-                            <SelectItem key={bank} value={bank}>{bank}</SelectItem>
-                        ))}
-                    </Select>
-                    <Select
-                        placeholder="All Types"
-                        className="w-full sm:w-48"
-                        radius={getThemeRadius()}
-                        onChange={(e) => setTypeFilter(e.target.value)}
-                    >
-                        <SelectItem key="all" value="all">All Types</SelectItem>
-                        {Object.entries(typeLabels).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                        ))}
-                    </Select>
-                    <Select
-                        placeholder="All Status"
-                        className="w-full sm:w-48"
-                        radius={getThemeRadius()}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <SelectItem key="all" value="all">All Status</SelectItem>
-                        <SelectItem key="active" value="active">Active</SelectItem>
-                        <SelectItem key="inactive" value="inactive">Inactive</SelectItem>
-                        <SelectItem key="closed" value="closed">Closed</SelectItem>
-                    </Select>
-                </div>
-
+    return (
+        <>
+            <Head title="Bank Accounts" />
+            
+            <StandardPageLayout
+                title="Bank Accounts"
+                subtitle="Manage your bank accounts and balances"
+                icon={<BanknotesIcon />}
+                actions={actionButtons}
+                stats={<StatsCards stats={stats} />}
+                filters={filtersSection}
+                ariaLabel="Bank Accounts Management"
+            >
                 {/* Table */}
                 <Table
                     aria-label="Bank accounts table"
@@ -284,9 +331,10 @@ const BankAccounts = ({ accounts = [], auth }) => {
                         )}
                     </TableBody>
                 </Table>
-            </motion.div>
-        </App>
+            </StandardPageLayout>
+        </>
     );
 };
 
+BankAccounts.layout = (page) => <App children={page} />;
 export default BankAccounts;

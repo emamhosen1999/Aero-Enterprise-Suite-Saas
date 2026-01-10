@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { router, usePage, Head } from '@inertiajs/react';
 import {
     Table,
     TableHeader,
@@ -7,9 +7,6 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    Card,
-    CardBody,
-    CardHeader,
     Input,
     Select,
     SelectItem,
@@ -26,20 +23,27 @@ import {
     EllipsisVerticalIcon,
     DocumentArrowDownIcon,
     PlusIcon,
+    DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import App from '@/Layouts/App';
+import StandardPageLayout from '@/Layouts/StandardPageLayout';
+import StatsCards from '@/Components/StatsCards';
 import { useHRMAC } from '@/Hooks/useHRMAC';
+import { useThemeRadius } from '@/Hooks/useThemeRadius';
 
 const TaxReturns = () => {
     const { auth, taxReturns: initialData } = usePage().props;
     
-    // HRMAC permissions - TODO: Update with actual module hierarchy path
+    // HRMAC permissions
     const { canCreate, canUpdate, canDelete, hasAccess, isSuperAdmin } = useHRMAC();
     const canViewTaxReturns = hasAccess('finance.tax-returns') || isSuperAdmin();
     const canCreateTaxReturn = canCreate('finance.tax-returns') || isSuperAdmin();
     const canEditTaxReturn = canUpdate('finance.tax-returns') || isSuperAdmin();
     const canDeleteTaxReturn = canDelete('finance.tax-returns') || isSuperAdmin();
     const canFileReturn = canUpdate('finance.tax-returns.file') || isSuperAdmin();
+    const canExportReturns = hasAccess('finance.tax-returns.export') || isSuperAdmin();
+    
+    const themeRadius = useThemeRadius();
     const [isMobile, setIsMobile] = useState(false);
     const [filters, setFilters] = useState({
         search: '',
@@ -48,25 +52,121 @@ const TaxReturns = () => {
         authority: 'all',
     });
 
-    const getThemeRadius = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderRadius = rootStyles.getPropertyValue('--borderRadius')?.trim() || '12px';
-        const radiusValue = parseInt(borderRadius);
-        if (radiusValue === 0) return 'none';
-        if (radiusValue <= 4) return 'sm';
-        if (radiusValue <= 8) return 'md';
-        if (radiusValue <= 12) return 'lg';
-        return 'full';
-    };
-
-    const themeRadius = getThemeRadius();
-
     useEffect(() => {
         const checkScreenSize = () => setIsMobile(window.innerWidth < 640);
         checkScreenSize();
         window.addEventListener('resize', checkScreenSize);
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
+
+    // Mock data
+    const taxReturns = [
+        { id: 1, return_number: 'TR-2024-001', tax_year: '2024', period: 'Q1', authority: 'Federal - IRS', type: 'Income Tax', due_date: '2024-04-15', filing_date: '2024-04-10', amount: 45000, payment_status: 'Paid', status: 'Filed' },
+        { id: 2, return_number: 'TR-2024-002', tax_year: '2024', period: 'Q1', authority: 'State - CA', type: 'Sales Tax', due_date: '2024-04-30', filing_date: null, amount: 12500, payment_status: 'Pending', status: 'Draft' },
+        { id: 3, return_number: 'TR-2023-012', tax_year: '2023', period: 'Annual', authority: 'Federal - IRS', type: 'Corporate Tax', due_date: '2024-03-15', filing_date: '2024-03-12', amount: 125000, payment_status: 'Paid', status: 'Filed' },
+        { id: 4, return_number: 'TR-2024-003', tax_year: '2024', period: 'Q2', authority: 'State - NY', type: 'Withholding Tax', due_date: '2024-07-31', filing_date: null, amount: 8500, payment_status: 'Not Due', status: 'In Progress' },
+        { id: 5, return_number: 'TR-2024-004', tax_year: '2024', period: 'Q1', authority: 'Local - NYC', type: 'Property Tax', due_date: '2024-05-15', filing_date: null, amount: 22000, payment_status: 'Overdue', status: 'Draft' },
+    ];
+
+    // Stats data for StatsCards
+    const statsData = useMemo(() => [
+        {
+            title: "Total Returns",
+            value: summary.total,
+            icon: <DocumentTextIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+        {
+            title: "Draft",
+            value: summary.draft,
+            icon: <DocumentTextIcon className="w-6 h-6" />,
+            color: "text-default-600",
+            iconBg: "bg-default-100"
+        },
+        {
+            title: "Filed",
+            value: summary.filed,
+            icon: <DocumentTextIcon className="w-6 h-6" />,
+            color: "text-success",
+            iconBg: "bg-success/20"
+        },
+        {
+            title: "Total Amount",
+            value: `$${summary.total_amount.toLocaleString()}`,
+            icon: <DocumentTextIcon className="w-6 h-6" />,
+            color: "text-primary",
+            iconBg: "bg-primary/20"
+        },
+    ], [summary]);
+
+    // Action buttons
+    const actionButtons = useMemo(() => (
+        <>
+            {canExportReturns && (
+                <Button
+                    variant="flat"
+                    radius={themeRadius}
+                    startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
+                    onPress={handleExport}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    Export
+                </Button>
+            )}
+            {canCreateTaxReturn && (
+                <Button
+                    color="primary"
+                    radius={themeRadius}
+                    startContent={<PlusIcon className="w-4 h-4" />}
+                    size={isMobile ? "sm" : "md"}
+                >
+                    New Return
+                </Button>
+            )}
+        </>
+    ), [canExportReturns, canCreateTaxReturn, themeRadius, isMobile]);
+
+    // Filters section
+    const filtersSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+                placeholder="Search returns..."
+                value={filters.search}
+                onValueChange={handleSearchChange}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                radius={themeRadius}
+                classNames={{ inputWrapper: 'bg-default-100' }}
+            />
+
+            <Select
+                placeholder="Tax Year"
+                selectedKeys={filters.tax_year !== 'all' ? [filters.tax_year] : []}
+                onSelectionChange={(keys) => handleFilterChange('tax_year', Array.from(keys)[0] || 'all')}
+                radius={themeRadius}
+                classNames={{ trigger: 'bg-default-100' }}
+                className="sm:w-48"
+            >
+                <SelectItem key="all">All Years</SelectItem>
+                <SelectItem key="2024">2024</SelectItem>
+                <SelectItem key="2023">2023</SelectItem>
+            </Select>
+
+            <Select
+                placeholder="Status"
+                selectedKeys={filters.status !== 'all' ? [filters.status] : []}
+                onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
+                radius={themeRadius}
+                classNames={{ trigger: 'bg-default-100' }}
+                className="sm:w-48"
+            >
+                <SelectItem key="all">All Status</SelectItem>
+                <SelectItem key="draft">Draft</SelectItem>
+                <SelectItem key="in_progress">In Progress</SelectItem>
+                <SelectItem key="filed">Filed</SelectItem>
+            </Select>
+        </div>
+    ), [filters, themeRadius]);
 
     // Mock data
     const taxReturns = [
@@ -177,117 +277,47 @@ const TaxReturns = () => {
     };
 
     return (
-        <App title="Tax Returns" auth={auth}>
-            <div className="space-y-6">
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { label: 'Total Returns', value: summary.total, color: 'text-primary' },
-                        { label: 'Draft', value: summary.draft, color: 'text-default-600' },
-                        { label: 'Filed', value: summary.filed, color: 'text-success' },
-                        { label: 'Total Amount', value: `$${summary.total_amount.toLocaleString()}`, color: 'text-primary' },
-                    ].map((stat, index) => (
-                        <Card key={index}>
-                            <CardBody>
-                                <p className="text-sm text-default-600">{stat.label}</p>
-                                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                            </CardBody>
-                        </Card>
-                    ))}
+        <>
+            <Head title="Tax Returns" />
+            
+            <StandardPageLayout
+                title="Tax Returns"
+                subtitle="Manage tax filings and payments"
+                icon={<DocumentTextIcon className="w-8 h-8" />}
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} />}
+                filters={filtersSection}
+            >
+                {/* Table */}
+                <Table
+                    aria-label="Tax returns table"
+                    isHeaderSticky
+                    classNames={{
+                        wrapper: 'shadow-none border border-divider rounded-lg',
+                        th: 'bg-default-100 text-default-600 font-semibold',
+                        td: 'py-3',
+                    }}
+                >
+                    <TableHeader columns={columns}>
+                        {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
+                    </TableHeader>
+                    <TableBody items={taxReturns} emptyContent="No tax returns found">
+                        {(item) => (
+                            <TableRow key={item.id}>
+                                {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+
+                {/* Pagination */}
+                <div className="flex justify-center mt-4">
+                    <Pagination total={10} initialPage={1} radius={themeRadius} />
                 </div>
-
-                {/* Main Card */}
-                <Card>
-                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div>
-                            <h2 className="text-xl font-semibold">Tax Returns</h2>
-                            <p className="text-sm text-default-600">Manage tax filings and payments</p>
-                        </div>
-                        <Button color="primary" radius={themeRadius} startContent={<PlusIcon className="w-4 h-4" />}>
-                            New Return
-                        </Button>
-                    </CardHeader>
-
-                    <CardBody className="space-y-4">
-                        {/* Filters */}
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <Input
-                                placeholder="Search returns..."
-                                value={filters.search}
-                                onValueChange={handleSearchChange}
-                                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                radius={themeRadius}
-                                classNames={{ inputWrapper: 'bg-default-100' }}
-                            />
-
-                            <Select
-                                placeholder="Tax Year"
-                                selectedKeys={filters.tax_year !== 'all' ? [filters.tax_year] : []}
-                                onSelectionChange={(keys) => handleFilterChange('tax_year', Array.from(keys)[0] || 'all')}
-                                radius={themeRadius}
-                                classNames={{ trigger: 'bg-default-100' }}
-                                className="sm:w-48"
-                            >
-                                <SelectItem key="all">All Years</SelectItem>
-                                <SelectItem key="2024">2024</SelectItem>
-                                <SelectItem key="2023">2023</SelectItem>
-                            </Select>
-
-                            <Select
-                                placeholder="Status"
-                                selectedKeys={filters.status !== 'all' ? [filters.status] : []}
-                                onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys)[0] || 'all')}
-                                radius={themeRadius}
-                                classNames={{ trigger: 'bg-default-100' }}
-                                className="sm:w-48"
-                            >
-                                <SelectItem key="all">All Status</SelectItem>
-                                <SelectItem key="draft">Draft</SelectItem>
-                                <SelectItem key="in_progress">In Progress</SelectItem>
-                                <SelectItem key="filed">Filed</SelectItem>
-                            </Select>
-
-                            <Button
-                                variant="flat"
-                                radius={themeRadius}
-                                startContent={<DocumentArrowDownIcon className="w-4 h-4" />}
-                                onPress={handleExport}
-                            >
-                                Export
-                            </Button>
-                        </div>
-
-                        {/* Table */}
-                        <Table
-                            aria-label="Tax returns table"
-                            isHeaderSticky
-                            classNames={{
-                                wrapper: 'shadow-none border border-divider rounded-lg',
-                                th: 'bg-default-100 text-default-600 font-semibold',
-                                td: 'py-3',
-                            }}
-                        >
-                            <TableHeader columns={columns}>
-                                {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
-                            </TableHeader>
-                            <TableBody items={taxReturns} emptyContent="No tax returns found">
-                                {(item) => (
-                                    <TableRow key={item.id}>
-                                        {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-
-                        {/* Pagination */}
-                        <div className="flex justify-center">
-                            <Pagination total={10} initialPage={1} radius={themeRadius} />
-                        </div>
-                    </CardBody>
-                </Card>
-            </div>
-        </App>
+            </StandardPageLayout>
+        </>
     );
 };
 
+TaxReturns.layout = (page) => <App children={page} />;
 export default TaxReturns;
