@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
 import {
     Button,
-    Card,
-    CardBody,
-    CardHeader,
     Chip,
     Input,
     Select,
@@ -27,23 +23,22 @@ import {
 import {
     ArrowRightStartOnRectangleIcon,
     PlusIcon,
-    MagnifyingGlassIcon,
     ClockIcon,
     CheckCircleIcon,
-    XCircleIcon,
     PlayCircleIcon,
     EllipsisVerticalIcon,
     PencilIcon,
     TrashIcon,
     EyeIcon,
-    CalendarDaysIcon
+    ArrowPathIcon
 } from "@heroicons/react/24/outline";
-import App from '@/Layouts/App.jsx';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { useHRMAC } from '@/Hooks/useHRMAC';
 import { showToast } from '@/utils/toastUtils.jsx';
 import { useThemeRadius } from '@/Hooks/useThemeRadius';
+import axios from 'axios';
 
 // Status color mapping
 const statusColorMap = {
@@ -61,82 +56,100 @@ const statusLabelMap = {
     cancelled: "Cancelled"
 };
 
-const OffboardingIndex = ({ title, offboardings }) => {
+const OffboardingIndex = ({ title }) => {
     const { auth } = usePage().props;
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     const themeRadius = useThemeRadius();
     
-    // HRMAC permissions - TODO: Update with proper HRMAC module hierarchy path once defined
+    // HRMAC permissions
     const canCreateOffboarding = canCreate('hrm.offboarding') || isSuperAdmin();
     const canEditOffboarding = canUpdate('hrm.offboarding') || isSuperAdmin();
     const canDeleteOffboarding = canDelete('hrm.offboarding') || isSuperAdmin();
-    
-    // Responsive breakpoints
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-    
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
 
     // State management
     const [loading, setLoading] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState(new Set([]));
-
-    // Calculate stats from offboardings data
-    const stats = useMemo(() => {
-        const data = offboardings?.data || [];
-        return {
-            total: offboardings?.total || data.length,
-            pending: data.filter(o => o.status === 'pending').length,
-            inProgress: data.filter(o => o.status === 'in_progress').length,
-            completed: data.filter(o => o.status === 'completed').length,
-        };
-    }, [offboardings]);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [offboardings, setOffboardings] = useState([]);
+    const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0 });
+    const [filters, setFilters] = useState({ search: '', status: [] });
+    const [pagination, setPagination] = useState({ perPage: 30, currentPage: 1, total: 0, lastPage: 1 });
 
     // Stats cards data
     const statsData = useMemo(() => [
         {
             title: "Total",
             value: stats.total,
-            icon: <ArrowRightStartOnRectangleIcon className="w-5 h-5" />,
+            icon: <ArrowRightStartOnRectangleIcon className="w-6 h-6" />,
             color: "text-primary",
-            iconBg: "bg-primary/20",
-            description: "All offboarding processes"
+            iconBg: "bg-primary/20"
         },
         {
             title: "Pending",
             value: stats.pending,
-            icon: <ClockIcon className="w-5 h-5" />,
+            icon: <ClockIcon className="w-6 h-6" />,
             color: "text-warning",
-            iconBg: "bg-warning/20",
-            description: "Not started"
+            iconBg: "bg-warning/20"
         },
         {
             title: "In Progress",
             value: stats.inProgress,
-            icon: <PlayCircleIcon className="w-5 h-5" />,
+            icon: <PlayCircleIcon className="w-6 h-6" />,
             color: "text-primary",
-            iconBg: "bg-primary/20",
-            description: "Currently active"
+            iconBg: "bg-primary/20"
         },
         {
             title: "Completed",
             value: stats.completed,
-            icon: <CheckCircleIcon className="w-5 h-5" />,
+            icon: <CheckCircleIcon className="w-6 h-6" />,
             color: "text-success",
-            iconBg: "bg-success/20",
-            description: "Successfully finished"
+            iconBg: "bg-success/20"
         }
     ], [stats]);
+
+    // Fetch offboardings
+    const fetchOffboardings = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(route('hrm.offboarding.paginate'), {
+                params: { 
+                    page: pagination.currentPage, 
+                    per_page: pagination.perPage, 
+                    search: filters.search,
+                    status: filters.status.length > 0 ? filters.status.join(',') : undefined
+                }
+            });
+            if (response.status === 200) {
+                setOffboardings(response.data.data || []);
+                setPagination(prev => ({
+                    ...prev,
+                    total: response.data.total || 0,
+                    lastPage: response.data.last_page || 1
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to fetch offboardings:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [filters, pagination.currentPage, pagination.perPage]);
+
+    // Fetch stats
+    const fetchStats = useCallback(async () => {
+        setStatsLoading(true);
+        try {
+            const response = await axios.get(route('hrm.offboarding.stats'));
+            if (response.status === 200) setStats(response.data);
+        } catch (error) {
+            console.error('Failed to fetch stats:', error);
+        } finally {
+            setStatsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchOffboardings();
+        fetchStats();
+    }, [fetchOffboardings, fetchStats]);
 
     // Handle create new offboarding
     const handleCreate = () => {
@@ -157,12 +170,22 @@ const OffboardingIndex = ({ title, offboardings }) => {
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this offboarding process?')) return;
         
-        try {
-            await router.delete(route('hrm.offboarding.destroy', id));
-            showToast.success('Offboarding process deleted successfully');
-        } catch (error) {
-            showToast.error('Failed to delete offboarding process');
-        }
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                await axios.delete(route('hrm.offboarding.destroy', id));
+                resolve(['Offboarding deleted successfully']);
+                fetchOffboardings();
+                fetchStats();
+            } catch (error) {
+                reject([error.response?.data?.message || 'Failed to delete offboarding']);
+            }
+        });
+        
+        showToast.promise(promise, {
+            loading: 'Deleting offboarding...',
+            success: (data) => data.join(', '),
+            error: (data) => data.join(', '),
+        });
     };
 
     // Table columns
@@ -255,123 +278,142 @@ const OffboardingIndex = ({ title, offboardings }) => {
 
     // Handle pagination
     const handlePageChange = (page) => {
-        router.visit(route('hrm.offboarding.index', { page }));
+        setPagination(prev => ({ ...prev, currentPage: page }));
     };
 
-    // Action buttons for StandardPageLayout
+    // Handle filter change
+    const handleFilterChange = (key, value) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+        setPagination(prev => ({ ...prev, currentPage: 1 }));
+    };
+
+    // Action buttons
     const actionButtons = useMemo(() => (
         <>
+            <Button 
+                isIconOnly 
+                variant="flat" 
+                onPress={() => { fetchOffboardings(); fetchStats(); }}
+            >
+                <ArrowPathIcon className="w-4 h-4" />
+            </Button>
             {canCreateOffboarding && (
                 <Button 
                     color="primary" 
                     variant="shadow"
                     startContent={<PlusIcon className="w-4 h-4" />}
                     onPress={handleCreate}
-                    size={isMobile ? "sm" : "md"}
                 >
                     New Offboarding
                 </Button>
             )}
         </>
-    ), [canCreateOffboarding, isMobile, handleCreate]);
+    ), [canCreateOffboarding, fetchOffboardings, fetchStats]);
+
+    // Filter section
+    const filterSection = useMemo(() => (
+        <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+                label="Search"
+                placeholder="Search by employee name..."
+                value={filters.search}
+                onValueChange={(value) => handleFilterChange('search', value)}
+                startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                variant="bordered"
+                size="sm"
+                radius={themeRadius}
+                className="flex-1"
+                isClearable
+                onClear={() => handleFilterChange('search', '')}
+            />
+            <Select
+                label="Status"
+                placeholder="All Statuses"
+                variant="bordered"
+                size="sm"
+                radius={themeRadius}
+                selectionMode="multiple"
+                selectedKeys={new Set(filters.status)}
+                onSelectionChange={(keys) => handleFilterChange('status', Array.from(keys))}
+                className="w-full sm:w-48"
+            >
+                <SelectItem key="pending">Pending</SelectItem>
+                <SelectItem key="in_progress">In Progress</SelectItem>
+                <SelectItem key="completed">Completed</SelectItem>
+                <SelectItem key="cancelled">Cancelled</SelectItem>
+            </Select>
+        </div>
+    ), [filters, themeRadius]);
+
+    // Pagination section
+    const paginationSection = pagination.lastPage > 1 ? (
+        <div className="flex justify-center">
+            <Pagination
+                total={pagination.lastPage}
+                page={pagination.currentPage}
+                onChange={handlePageChange}
+                showControls
+                radius={themeRadius}
+            />
+        </div>
+    ) : null;
 
     return (
         <>
-            <Head title={title} />
+            <Head title={title || "Employee Offboarding"} />
             
             <StandardPageLayout
                 title="Employee Offboarding"
                 subtitle="Manage employee offboarding processes"
-                icon={<ArrowRightStartOnRectangleIcon />}
-                actions={actionButtons}
-                stats={<StatsCards stats={statsData} />}
+                icon={<ArrowRightStartOnRectangleIcon className="w-6 h-6" />}
+                isLoading={loading && statsLoading}
                 ariaLabel="Employee Offboarding Management"
+                actions={actionButtons}
+                stats={<StatsCards stats={statsData} isLoading={statsLoading} />}
+                filters={filterSection}
+                pagination={paginationSection}
             >
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <Input
-                        placeholder="Search by employee name..."
-                        value={searchQuery}
-                        onValueChange={setSearchQuery}
-                        startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                            classNames={{
-                                                inputWrapper: "bg-default-100"
-                                            }}
-                                            size="sm"
-                                            radius={getThemeRadius()}
-                                        />
-                                        <Select
-                                            placeholder="Filter by status"
-                                            selectedKeys={statusFilter}
-                                            onSelectionChange={setStatusFilter}
-                                            classNames={{ trigger: "bg-default-100" }}
-                                            size="sm"
-                                            radius={getThemeRadius()}
-                                        >
-                                            <SelectItem key="pending">Pending</SelectItem>
-                                            <SelectItem key="in_progress">In Progress</SelectItem>
-                                            <SelectItem key="completed">Completed</SelectItem>
-                                            <SelectItem key="cancelled">Cancelled</SelectItem>
-                                        </Select>
-                                    </div>
-                                    
-                                    {/* Data Table */}
-                                    {loading ? (
-                                        <div className="flex justify-center items-center py-12">
-                                            <Spinner size="lg" />
-                                        </div>
-                                    ) : (
-                                        <Table
-                                            aria-label="Employee offboarding table"
-                                            isHeaderSticky
-                                            classNames={{
-                                                wrapper: "shadow-none border border-divider rounded-lg",
-                                                th: "bg-default-100 text-default-600 font-semibold",
-                                                td: "py-3"
-                                            }}
-                                        >
-                                            <TableHeader columns={columns}>
-                                                {(column) => (
-                                                    <TableColumn 
-                                                        key={column.uid}
-                                                        align={column.uid === "actions" ? "center" : "start"}
-                                                    >
-                                                        {column.name}
-                                                    </TableColumn>
-                                                )}
-                                            </TableHeader>
-                                            <TableBody 
-                                                items={offboardings?.data || []} 
-                                                emptyContent="No offboarding processes found"
-                                            >
-                                                {(item) => (
-                                                    <TableRow key={item.id}>
-                                                        {(columnKey) => (
-                                                            <TableCell>{renderCell(item, columnKey)}</TableCell>
-                                                        )}
-                                                    </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
+                {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                        <Spinner size="lg" />
+                    </div>
+                ) : (
+                    <Table
+                        aria-label="Employee offboarding table"
+                        isHeaderSticky
+                        classNames={{
+                            wrapper: "shadow-none border border-divider rounded-lg",
+                            th: "bg-default-100 text-default-600 font-semibold",
+                            td: "py-3"
+                        }}
+                    >
+                        <TableHeader columns={columns}>
+                            {(column) => (
+                                <TableColumn 
+                                    key={column.uid}
+                                    align={column.uid === "actions" ? "center" : "start"}
+                                >
+                                    {column.name}
+                                </TableColumn>
+                            )}
+                        </TableHeader>
+                        <TableBody 
+                            items={offboardings} 
+                            emptyContent="No offboarding processes found"
+                        >
+                            {(item) => (
+                                <TableRow key={item.id}>
+                                    {(columnKey) => (
+                                        <TableCell>{renderCell(item, columnKey)}</TableCell>
                                     )}
-                                    
-                                    {/* Pagination */}
-                                    {offboardings?.last_page > 1 && (
-                                        <div className="flex justify-center mt-6">
-                                            <Pagination
-                                                total={offboardings.last_page}
-                                                page={offboardings.current_page}
-                                                onChange={handlePageChange}
-                                                showControls
-                                                size="sm"
-                                                radius={themeRadius}
-                                            />
-                                        </div>
-                                    )}
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
             </StandardPageLayout>
         </>
     );
 };
 
-OffboardingIndex.layout = (page) => <App children={page} />;
 export default OffboardingIndex;
