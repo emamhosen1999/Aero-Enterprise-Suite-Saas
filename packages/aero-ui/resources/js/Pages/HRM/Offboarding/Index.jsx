@@ -138,14 +138,6 @@ const OffboardingIndex = ({ title, offboardings }) => {
         }
     ], [stats]);
 
-    // Permissions using HRMAC
-    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
-    const canCreateOffboarding = canCreate("hrm.offboarding") || isSuperAdmin();
-    const canEditOffboarding = canUpdate("hrm.offboarding") || isSuperAdmin();
-    const canDeleteOffboarding = canDelete("hrm.offboarding") || isSuperAdmin();
-    const canDelete = auth.permissions?.includes('offboarding.delete') || 
-                     auth.roles?.some(r => r.name === 'Super Administrator') || false;
-
     // Handle create new offboarding
     const handleCreate = () => {
         router.visit(route('hrm.offboarding.create'));

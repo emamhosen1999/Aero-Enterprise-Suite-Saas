@@ -24,6 +24,7 @@ Route::middleware(['auth', 'module:dms'])->group(function () {
 // Documents - maps to 'documents' sub-module
 Route::middleware(['auth', 'module:dms,documents'])->group(function () {
     Route::get('/documents', [DMSController::class, 'documents'])->name('documents');
+    Route::get('/documents/create', [DMSController::class, 'create'])->name('documents.create');
     Route::post('/documents', [DMSController::class, 'store'])->name('documents.store');
     Route::get('/documents/{id}', [DMSController::class, 'show'])->name('documents.show');
     Route::put('/documents/{id}', [DMSController::class, 'update'])->name('documents.update');
@@ -63,4 +64,21 @@ Route::middleware(['auth', 'module:dms,approvals'])->group(function () {
     Route::post('/documents/{id}/request-approval', [DMSController::class, 'requestApproval'])->name('documents.request-approval');
     Route::post('/approvals/{id}/approve', [DMSController::class, 'approveDocument'])->name('approvals.approve');
     Route::post('/approvals/{id}/reject', [DMSController::class, 'rejectDocument'])->name('approvals.reject');
+});
+
+// Shared Documents - maps to 'sharing' sub-module
+Route::middleware(['auth', 'module:dms,sharing'])->group(function () {
+    Route::get('/shared-documents', [DMSController::class, 'shared'])->name('shared-documents');
+});
+
+// Analytics - maps to 'documents' sub-module
+Route::middleware(['auth', 'module:dms,documents'])->group(function () {
+    Route::get('/analytics', [DMSController::class, 'analytics'])->name('analytics');
+});
+
+// Access Control - maps to 'settings' sub-module
+Route::middleware(['auth', 'module:dms,settings'])->group(function () {
+    Route::get('/access-control', [DMSController::class, 'accessControl'])->name('access-control');
+    Route::post('/access-control', [DMSController::class, 'updateAccessControl'])->name('access-control.store');
+    Route::delete('/access-control/{id}', [DMSController::class, 'deleteAccessRule'])->name('access-control.destroy');
 });

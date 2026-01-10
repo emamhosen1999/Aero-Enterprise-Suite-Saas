@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Aero\Quality\Http\Controllers\QualityController;
 use Aero\Quality\Http\Controllers\InspectionController;
 use Aero\Quality\Http\Controllers\NCRController;
+use Aero\Quality\Http\Controllers\LabController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +27,19 @@ Route::middleware(['auth', 'module:quality'])->group(function () {
 
 // Inspections - maps to 'inspections' sub-module
 Route::middleware(['auth', 'module:quality,inspections'])->group(function () {
+    // Named routes for sidebar menu items (must be defined before resource routes)
+    Route::get('inspections/wir', [InspectionController::class, 'index'])->name('inspections.wir');
+    Route::get('inspections/checklists', [InspectionController::class, 'checklists'])->name('inspections.checklists');
+    
+    // Resource routes
     Route::resource('inspections', InspectionController::class);
+});
+
+// Material Testing Lab - maps to 'material-lab' sub-module
+Route::middleware(['auth', 'module:quality,material-lab'])->group(function () {
+    Route::get('lab/concrete', [LabController::class, 'concrete'])->name('lab.concrete');
+    Route::get('lab/soil', [LabController::class, 'soil'])->name('lab.soil');
+    Route::get('lab/materials', [LabController::class, 'materials'])->name('lab.materials');
 });
 
 // Non-Conformance Reports - maps to 'ncr-management' sub-module

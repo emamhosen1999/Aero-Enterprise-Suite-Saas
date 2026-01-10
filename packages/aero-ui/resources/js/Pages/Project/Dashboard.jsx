@@ -36,6 +36,9 @@ const ProjectsDashboard = ({ stats = {}, recentProjects = [], upcomingTasks = []
     // HRMAC permissions with Super Admin bypass
     const { hasAccess, canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     
+    // Helper function for permission checks (uses hasAccess from useHRMAC)
+    const hasPermission = (permission) => hasAccess(permission) || isSuperAdmin();
+    
     // TODO: Replace with actual module hierarchy paths from config/modules.php
     const canViewProjects = hasAccess('project.dashboard') || isSuperAdmin();
     const canManageProjects = canUpdate('project.projects') || isSuperAdmin();

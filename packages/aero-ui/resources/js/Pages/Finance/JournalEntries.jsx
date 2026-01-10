@@ -292,29 +292,28 @@ const JournalEntries = () => {
                 <Table
                     aria-label="Journal entries table"
                     isHeaderSticky
-                            classNames={{
-                                wrapper: 'shadow-none border border-divider rounded-lg',
-                                th: 'bg-default-100 text-default-600 font-semibold',
-                                td: 'py-3',
-                            }}
-                        >
-                            <TableHeader columns={columns}>
-                                {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
-                            </TableHeader>
-                            <TableBody items={journalEntries} emptyContent="No journal entries found">
-                                {(item) => (
-                                    <TableRow key={item.id}>
-                                        {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-
-                        {/* Pagination */}
-                        <div className="flex justify-center">
-                            <Pagination total={10} initialPage={1} radius={themeRadius} />
-                        </div>
+                    classNames={{
+                        wrapper: 'shadow-none border border-divider rounded-lg',
+                        th: 'bg-default-100 text-default-600 font-semibold',
+                        td: 'py-3',
+                    }}
+                >
+                    <TableHeader columns={columns}>
+                        {(column) => <TableColumn key={column.uid}>{column.name}</TableColumn>}
+                    </TableHeader>
+                    <TableBody items={journalEntries} emptyContent="No journal entries found">
+                        {(item) => (
+                            <TableRow key={item.id}>
+                                {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+                            </TableRow>
+                        )}
+                    </TableBody>
                 </Table>
+
+                {/* Pagination */}
+                <div className="flex justify-center mt-4">
+                    <Pagination total={10} initialPage={1} radius={themeRadius} />
+                </div>
             </StandardPageLayout>
         </>
     );

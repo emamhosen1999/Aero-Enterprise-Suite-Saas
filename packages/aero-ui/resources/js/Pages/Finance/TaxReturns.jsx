@@ -168,15 +168,6 @@ const TaxReturns = () => {
         </div>
     ), [filters, themeRadius]);
 
-    // Mock data
-    const taxReturns = [
-        { id: 1, return_number: 'TR-2024-001', tax_year: '2024', period: 'Q1', authority: 'Federal - IRS', type: 'Income Tax', due_date: '2024-04-15', filing_date: '2024-04-10', amount: 45000, payment_status: 'Paid', status: 'Filed' },
-        { id: 2, return_number: 'TR-2024-002', tax_year: '2024', period: 'Q1', authority: 'State - CA', type: 'Sales Tax', due_date: '2024-04-30', filing_date: null, amount: 12500, payment_status: 'Pending', status: 'Draft' },
-        { id: 3, return_number: 'TR-2023-012', tax_year: '2023', period: 'Annual', authority: 'Federal - IRS', type: 'Corporate Tax', due_date: '2024-03-15', filing_date: '2024-03-12', amount: 125000, payment_status: 'Paid', status: 'Filed' },
-        { id: 4, return_number: 'TR-2024-003', tax_year: '2024', period: 'Q2', authority: 'State - NY', type: 'Withholding Tax', due_date: '2024-07-31', filing_date: null, amount: 8500, payment_status: 'Not Due', status: 'In Progress' },
-        { id: 5, return_number: 'TR-2024-004', tax_year: '2024', period: 'Q1', authority: 'Local - NYC', type: 'Property Tax', due_date: '2024-05-15', filing_date: null, amount: 22000, payment_status: 'Overdue', status: 'Draft' },
-    ];
-
     const summary = {
         total: 5,
         draft: 2,

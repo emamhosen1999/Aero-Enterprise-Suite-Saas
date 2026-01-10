@@ -16,6 +16,13 @@ class InspectionController extends Controller
         ]);
     }
 
+    public function checklists()
+    {
+        return Inertia::render('Quality/Inspections/Checklists', [
+            'title' => 'Smart Checklists',
+        ]);
+    }
+
     public function create()
     {
         return Inertia::render('Quality/Inspections/Create', [

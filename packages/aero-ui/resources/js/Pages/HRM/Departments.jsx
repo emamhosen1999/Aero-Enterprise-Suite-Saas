@@ -26,7 +26,6 @@ import DepartmentTable from '@/Tables/HRM/DepartmentTable.jsx';
 import DepartmentForm from '@/Forms/HRM/DepartmentForm.jsx';
 import DeleteDepartmentForm from '@/Forms/HRM/DeleteDepartmentForm.jsx';
 import {useTheme} from '@/Context/ThemeContext.jsx';
-import {usePermissions} from '@/Hooks/usePermissions.js';
 import {useThemeRadius} from '@/Hooks/useThemeRadius.js';
 import {useMediaQuery} from '@/Hooks/useMediaQuery.js';
 import axios from 'axios';
@@ -37,7 +36,6 @@ import { useHRMAC } from '@/Hooks/useHRMAC';
 const Departments = ({ title, departments: initialDepartments, managers, parentDepartments, stats: initialStats, filters: initialFilters }) => {
     const { auth } = usePage().props;
     const { theme } = useTheme();
-    const { can } = usePermissions();
     const themeRadius = useThemeRadius();
     const isMobile = useMediaQuery('(max-width: 640px)');
     const isTablet = useMediaQuery('(max-width: 768px)');
@@ -85,12 +83,7 @@ const Departments = ({ title, departments: initialDepartments, managers, parentD
         inactive: 0,
         parent_departments: 0
     });
-    
-    // Check permissions using usePermissions hook (Super Admin bypasses automatically)
-    const canCreateDepartment = can('departments.create');
-    const canEditDepartment = can('departments.update');
-    const canDeleteDepartment = can('departments.delete');
-    
+
     // Check permissions for template use
     const hasEditPermission = canEditDepartment;
     const hasDeletePermission = canDeleteDepartment;

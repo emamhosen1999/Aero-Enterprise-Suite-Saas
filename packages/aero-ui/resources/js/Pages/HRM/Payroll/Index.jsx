@@ -153,10 +153,6 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
         </div>
     ), [filters, themeRadius]);
 
-    // Permission checks (legacy - for compatibility)
-    const canCreate = canCreatePayroll;
-    const canEdit = canEditPayroll;
-
     // Table columns
     const columns = [
         { uid: 'employee', name: 'Employee' },
@@ -250,7 +246,7 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
                             <DropdownItem key="view" startContent={<EyeIcon className="w-4 h-4" />}>
                                 View Details
                             </DropdownItem>
-                            {canEdit && (
+                            {canEditPayroll && (
                                 <DropdownItem key="edit" startContent={<PencilIcon className="w-4 h-4" />}>
                                     Edit
                                 </DropdownItem>
@@ -269,7 +265,7 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
             default:
                 return item[columnKey];
         }
-    }, [canEdit]);
+    }, [canEditPayroll]);
 
     return (
         <>
@@ -331,9 +327,6 @@ const PayrollIndex = ({ title, payrolls, stats }) => {
         </>
     );
 };
-
-PayrollIndex.layout = (page) => <App children={page} />;
-export default PayrollIndex;
 
 PayrollIndex.layout = (page) => <App children={page} />;
 export default PayrollIndex;

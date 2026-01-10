@@ -3,6 +3,8 @@
 namespace Aero\Dms\Services;
 
 use Aero\Dms\Models\Document;
+use Aero\Dms\Models\DocumentAccessLog;
+use Aero\Dms\Models\DocumentShare;
 use Aero\Dms\Models\DocumentVersion;
 use Aero\Dms\Models\Folder;
 use Aero\Dms\Models\Category;

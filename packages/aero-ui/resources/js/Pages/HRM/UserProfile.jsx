@@ -102,9 +102,11 @@ const UserProfile = ({ title, allUsers, report_to, departments, designations }) 
     const [selectedTab, setSelectedTab] = useState("overview");
     const [loading, setLoading] = useState(false);
     
+    // HRMAC permissions
+    const { canUpdate, hasAccess, isSuperAdmin } = useHRMAC();
+    
     // Unified modal state management
     const [modals, setModals] = useState({
-    const { canUpdate, hasAccess, isSuperAdmin } = useHRMAC();
         profile: false,
         personal: false,
         emergency: false,

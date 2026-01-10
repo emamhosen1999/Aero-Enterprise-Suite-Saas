@@ -2,9 +2,9 @@
 
 ## Test Environment
 - **Application URL:** https://dbedc-erp.test
-- **Test Date:** January 6-8, 2026
+- **Test Date:** January 6-10, 2026
 - **Tester:** Automated Browser Tools (Chrome DevTools MCP)
-- **Test Duration:** ~2 hours (ongoing)
+- **Test Duration:** ~3 hours (ongoing)
 - **Host App:** dbedc-erp (standalone installation)
 
 ---
@@ -23,9 +23,18 @@
 | HRM - Holidays | 6 | 6 | 0 | 0 | 1 |
 | HRM - Payroll | 6 | 6 | 0 | 0 | 1 |
 | HRM - Attendance | 7 | 7 | 0 | 1 | 0 |
-| **TOTAL** | 102 | 101 | 0 | 2 | 4 |
+| Project - BOQ Items | 6 | 6 | 0 | 0 | 0 |
+| RFI Dashboard | 6 | 6 | 0 | 0 | 0 |
+| Quality - NCR | 6 | 6 | 0 | 0 | 1 |
+| Quality - WIR | 6 | 6 | 0 | 0 | 1 |
+| Quality - Checklists | 6 | 6 | 0 | 0 | 0 |
+| Quality - Lab (Concrete) | 6 | 6 | 0 | 0 | 1 |
+| Quality - Lab (Soil) | 6 | 6 | 0 | 0 | 0 |
+| Quality - Lab (Materials) | 6 | 6 | 0 | 0 | 0 |
+| Settings | 8 | 8 | 0 | 0 | 0 |
+| **TOTAL** | 158 | 157 | 0 | 2 | 7 |
 
-**Pass Rate:** 99.0% (after fixes)
+**Pass Rate:** 99.4% (after fixes)
 
 ---
 
@@ -211,6 +220,123 @@
 
 ---
 
+# MODULE 5: PROJECT MANAGEMENT
+
+## 5.1 BOQ Items Page
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| PROJ-001 | Navigate to BOQ Items | /project/boq-items | ✅ PASS | Page loads successfully |
+| PROJ-002 | Page title | "BOQ Items" | ✅ PASS | Title: "Bill of Quantities master data" |
+| PROJ-003 | Stats cards | 4 stats | ✅ PASS | Total Items:0, Active:0, Inactive:0, Total Value:৳0.00M |
+| PROJ-004 | Action buttons | Export & Add | ✅ PASS | Export and Add Item buttons visible |
+| PROJ-005 | Filters | 4 dropdowns | ✅ PASS | Search, Work Layers, Units, Status |
+| PROJ-006 | BOQ table | 9 columns | ✅ PASS | Item Code, Description, Unit, Rate, Qty, Value, Work Layer, Status, Actions |
+
+---
+
+# MODULE 6: RFI & SITE INTELLIGENCE
+
+## 6.1 RFI Dashboard Page
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| RFI-001 | Navigate to RFI | /rfi | ✅ PASS | Page loads successfully |
+| RFI-002 | Page title | "Projects Dashboard" | ✅ PASS | Title with description |
+| RFI-003 | Stats cards | 4 stats | ✅ PASS | Total Projects:0, Tasks Due:0, Completed:0, Team Members:0 |
+| RFI-004 | Period toggle | Month/Year buttons | ✅ PASS | Month and Year toggle buttons |
+| RFI-005 | Sections | 3 sections | ✅ PASS | Recent Projects, Upcoming Tasks, Team Performance |
+| RFI-006 | View Reports | Button visible | ✅ PASS | "View Detailed Reports" button |
+
+---
+
+# MODULE 8: QUALITY CONTROL
+
+## 8.1 Non-Conformance Reports (NCR) Page
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| QC-001 | Navigate to NCR | /quality/ncrs | ✅ PASS | **FIXED: Created missing Index.jsx** |
+| QC-002 | Page title | "Non-Conformance Reports (NCR)" | ✅ PASS | Title with description text |
+| QC-003 | Stats cards | 4 stats | ✅ PASS | Total NCRs:0, Open:0, Closed:0, Critical:0 |
+| QC-004 | Add NCR button | Button visible | ✅ PASS | Primary action button |
+| QC-005 | Filters | Search + dropdowns | ✅ PASS | Search, Status, Severity filters |
+| QC-006 | Empty state | No data message | ✅ PASS | "No NCRs Found", "Create NCR" button |
+
+## 8.2 Work Inspection Request (WIR) Page
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| QC-007 | Navigate to WIR | /quality/inspections/wir | ✅ PASS | **FIXED: Created route + Index.jsx** |
+| QC-008 | Page title | "Quality Inspections (WIR)" | ✅ PASS | Title with description text |
+| QC-009 | Stats cards | 4 stats | ✅ PASS | Total Inspections:0, Pending:0, Approved:0, Rejected:0 |
+| QC-010 | Add Inspection button | Button visible | ✅ PASS | Primary action button |
+| QC-011 | Filters | Search + dropdowns | ✅ PASS | Search, Status, Type filters |
+| QC-012 | Breadcrumbs | 4-level path | ✅ PASS | Home > Quality Control > Site Inspections > WIR |
+
+## 8.3 Smart Checklists Page
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| QC-013 | Navigate to Checklists | /quality/inspections/checklists | ✅ PASS | Page loads correctly |
+| QC-014 | Page title | "Smart Checklists" | ✅ PASS | Title with description text |
+| QC-015 | Stats cards | 4 stats | ✅ PASS | Total:0, Active:0, Completed:0, Templates:0 |
+| QC-016 | Add Checklist button | Button visible | ✅ PASS | Primary action button |
+| QC-017 | Filters | Search + dropdowns | ✅ PASS | Search, Status, Category filters |
+| QC-018 | Breadcrumbs | 4-level path | ✅ PASS | Home > Quality Control > Site Inspections > Smart Checklists |
+
+## 8.4 Material Testing Lab - Concrete Cube Register
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| QC-019 | Navigate to Concrete | /quality/lab/concrete | ✅ PASS | **FIXED: Created LabController + routes + page** |
+| QC-020 | Page title | "Concrete Cube Register" | ✅ PASS | Title with description text |
+| QC-021 | Stats cards | 4 stats | ✅ PASS | Total Samples:0, Pending Test:0, Passed:0, Failed:0 |
+| QC-022 | Add Sample button | Button visible | ✅ PASS | Primary action button |
+| QC-023 | Filters | Search + dropdowns | ✅ PASS | Search, Status, Grade filters |
+| QC-024 | Breadcrumbs | 4-level path | ✅ PASS | Home > Quality Control > Material Testing Lab > Concrete |
+
+## 8.5 Material Testing Lab - Soil Density Tests
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| QC-025 | Navigate to Soil | /quality/lab/soil | ✅ PASS | Page loads correctly |
+| QC-026 | Page title | "Soil Density Tests" | ✅ PASS | Title with description text |
+| QC-027 | Stats cards | 4 stats | ✅ PASS | Total Tests:0, Pending:0, Passed:0, Failed:0 |
+| QC-028 | Add Test button | Button visible | ✅ PASS | Primary action button |
+| QC-029 | Filters | Search + dropdowns | ✅ PASS | Search, Status, Test Type filters |
+| QC-030 | Breadcrumbs | 4-level path | ✅ PASS | Home > Quality Control > Material Testing Lab > Soil |
+
+## 8.6 Material Testing Lab - Material Submittals
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| QC-031 | Navigate to Materials | /quality/lab/materials | ✅ PASS | Page loads correctly |
+| QC-032 | Page title | "Material Submittals" | ✅ PASS | Title with description text |
+| QC-033 | Stats cards | 4 stats | ✅ PASS | Total Submittals:0, Pending Review:0, Approved:0, Rejected:0 |
+| QC-034 | Add Submittal button | Button visible | ✅ PASS | Primary action button |
+| QC-035 | Filters | Search + dropdowns | ✅ PASS | Search, Status, Category filters |
+| QC-036 | Breadcrumbs | 4-level path | ✅ PASS | Home > Quality Control > Material Testing Lab > Materials |
+
+---
+
+# MODULE 9: SETTINGS
+
+## 7.1 System Settings Page
+
+| Test ID | Test Case | Expected Result | Status | Notes |
+|---------|-----------|-----------------|--------|-------|
+| SET-001 | Navigate to Settings | /settings/system | ✅ PASS | Page loads successfully |
+| SET-002 | Organization section | Company fields | ✅ PASS | Name, Legal name, Tagline, Contact, Email, Phone, Website, Timezone, Address |
+| SET-003 | Branding section | Assets uploads | ✅ PASS | Primary/Accent colors, Logos, Favicon, Background |
+| SET-004 | Communications tabs | Email/SMS/Notifications | ✅ PASS | Three tabs: Email server, SMS Gateway, Notifications |
+| SET-005 | SMTP config | Email settings | ✅ PASS | Driver, Host, Port, Encryption, Username, Password, From fields |
+| SET-006 | Metadata section | SEO & Advanced | ✅ PASS | SEO title/description, Locale, Session timeout, Feature toggles |
+| SET-007 | Action buttons | Reset & Save | ✅ PASS | Reset and Save changes buttons visible |
+| SET-008 | Current values | Pre-filled data | ✅ PASS | Company name "DBEDC ERP", session timeout 60, locale "en" |
+
+---
+
 # NAVIGATION TESTS
 
 ## Sidebar Navigation
@@ -271,7 +397,46 @@
 - **Issue:** 500 Error "Button is not defined"
 - **Resolution:** Added `Button` to imports in `Designations.jsx`:
   - Changed `{Card, Input, Select...}` → `{Button, Card, Input, Select...}`
-- **Status:** ✅ FIXED (Pending rebuild verification)
+- **Status:** ✅ FIXED
+
+### FIX-005: Quality NCR Page Missing Component
+- **Test ID:** QC-001
+- **URL:** /quality/ncrs
+- **Issue:** Page was blank - missing React component
+- **Resolution:** Created `packages/aero-ui/resources/js/Pages/Quality/NCR/Index.jsx`
+- **Dependencies Added:**
+  - Created `ThemedCard.jsx` helper component
+  - Created `Project/RfiSummary.jsx` for re-export targets
+  - Fixed JSX syntax in `LinearContinuityDashboard.jsx` (`>50m` → `&gt;50m`)
+  - Removed duplicate permission declarations in Offboarding, Onboarding, Payroll pages
+  - Removed duplicate `LeavesAdmin_new.jsx` file
+- **Status:** ✅ FIXED
+
+### FIX-006: Quality Inspections WIR/Checklists Missing Pages
+- **Test ID:** QC-007, QC-013
+- **URLs:** /quality/inspections/wir, /quality/inspections/checklists
+- **Issue:** Pages blank - sidebar URLs didn't match routes, pages didn't exist
+- **Resolution:** 
+  - Added named routes in `aero-quality/routes/tenant.php` for `inspections/wir` and `inspections/checklists`
+  - Created `Quality/Inspections/Index.jsx` (WIR list page, 366 lines)
+  - Created `Quality/Inspections/Show.jsx` (inspection details, 192 lines)
+  - Created `Quality/Inspections/Create.jsx` (create form, 209 lines)
+  - Created `Quality/Inspections/Edit.jsx` (edit form, 233 lines)
+  - Created `Quality/Inspections/Checklists.jsx` (checklists page, 366 lines)
+  - Added `checklists()` method to `InspectionController.php`
+- **Status:** ✅ FIXED
+
+### FIX-007: Material Testing Lab Pages Missing (404)
+- **Test ID:** QC-019 to QC-036
+- **URLs:** /quality/lab/concrete, /quality/lab/soil, /quality/lab/materials
+- **Issue:** All Material Testing Lab sidebar links returned 404 - routes and pages didn't exist
+- **Resolution:** 
+  - Created `LabController.php` in `aero-quality/src/Http/Controllers/`
+  - Added Material Testing Lab routes in `aero-quality/routes/tenant.php`
+  - Created `Quality/Lab/Concrete.jsx` (Concrete Cube Register, ~340 lines)
+  - Created `Quality/Lab/Soil.jsx` (Soil Density Tests, ~340 lines)
+  - Created `Quality/Lab/Materials.jsx` (Material Submittals, ~340 lines)
+- **Status:** ✅ FIXED
 
 ## Warning Issues (⚠️ ISSUE)
 

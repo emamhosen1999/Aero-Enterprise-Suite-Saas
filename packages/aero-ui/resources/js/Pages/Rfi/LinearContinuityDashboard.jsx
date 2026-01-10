@@ -439,7 +439,7 @@ const LinearContinuityDashboard = ({ title, projects }) => {
                                                             <p className="text-xs font-semibold mb-2">Violation Types:</p>
                                                             <ul className="text-xs space-y-1 list-disc list-inside">
                                                                 <li>Insufficient prerequisite layer coverage</li>
-                                                                <li>GPS location mismatch (>50m tolerance)</li>
+                                                                <li>GPS location mismatch (&gt;50m tolerance)</li>
                                                                 <li>Missing Permit to Work authorization</li>
                                                                 <li>Unsuitable weather conditions</li>
                                                                 <li>Missing required test results</li>

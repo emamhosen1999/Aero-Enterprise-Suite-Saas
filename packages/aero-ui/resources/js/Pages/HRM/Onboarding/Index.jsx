@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
-import { motion } from 'framer-motion';
 import {
     Button,
-    Card,
-    CardBody,
-    CardHeader,
     Chip,
     Input,
     Select,
@@ -27,17 +23,15 @@ import {
 import {
     ClipboardDocumentListIcon,
     PlusIcon,
-    MagnifyingGlassIcon,
     ClockIcon,
     CheckCircleIcon,
-    XCircleIcon,
     PlayCircleIcon,
     EllipsisVerticalIcon,
     PencilIcon,
     TrashIcon,
     EyeIcon
 } from "@heroicons/react/24/outline";
-import App from '@/Layouts/App.jsx';
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import StandardPageLayout from '@/Layouts/StandardPageLayout.jsx';
 import StatsCards from '@/Components/StatsCards.jsx';
 import { showToast } from '@/utils/toastUtils.jsx';
@@ -64,26 +58,11 @@ const OnboardingIndex = ({ title, onboardings }) => {
     const { auth } = usePage().props;
     const themeRadius = useThemeRadius();
     
-    // HRMAC permissions - TODO: Update with proper HRMAC module hierarchy path once defined
+    // HRMAC permissions
     const { canCreate, canUpdate, canDelete, isSuperAdmin } = useHRMAC();
     const canCreateOnboarding = canCreate('hrm.onboarding') || isSuperAdmin();
     const canEditOnboarding = canUpdate('hrm.onboarding') || isSuperAdmin();
     const canDeleteOnboarding = canDelete('hrm.onboarding') || isSuperAdmin();
-    
-    // Responsive breakpoints
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-    
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth < 768);
-        };
-        
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
 
     // State management
     const [loading, setLoading] = useState(false);
@@ -136,13 +115,6 @@ const OnboardingIndex = ({ title, onboardings }) => {
             description: "Successfully finished"
         }
     ], [stats]);
-    // Permissions using HRMAC
-    // TODO: Update with correct HRMAC path once module hierarchy is defined for HRM
-    const canCreateOnboarding = canCreate("hrm.onboarding") || isSuperAdmin();
-    const canEditOnboarding = canUpdate("hrm.onboarding") || isSuperAdmin();
-    const canDeleteOnboarding = canDelete("hrm.onboarding") || isSuperAdmin();
-    const canDelete = auth.permissions?.includes('onboarding.delete') || 
-                     auth.roles?.some(r => r.name === 'Super Administrator') || false;
 
     // Handle create new onboarding
     const handleCreate = () => {
@@ -266,13 +238,12 @@ const OnboardingIndex = ({ title, onboardings }) => {
                     variant="shadow"
                     startContent={<PlusIcon className="w-4 h-4" />}
                     onPress={handleCreate}
-                    size={isMobile ? "sm" : "md"}
                 >
                     New Onboarding
                 </Button>
             )}
         </>
-    ), [canCreateOnboarding, isMobile, handleCreate]);
+    ), [canCreateOnboarding]);
 
     return (
         <>
@@ -285,92 +256,93 @@ const OnboardingIndex = ({ title, onboardings }) => {
                 actions={actionButtons}
                 stats={<StatsCards stats={statsData} />}
                 ariaLabel="Employee Onboarding Management"
+                filters={
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Input
+                            placeholder="Search by employee name..."
+                            value={searchQuery}
+                            onValueChange={setSearchQuery}
+                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
+                            classNames={{
+                                inputWrapper: "bg-default-100"
+                            }}
+                            size="sm"
+                            radius={themeRadius}
+                            className="flex-1"
+                        />
+                        <Select
+                            placeholder="Filter by status"
+                            selectedKeys={statusFilter}
+                            onSelectionChange={setStatusFilter}
+                            classNames={{ trigger: "bg-default-100" }}
+                            size="sm"
+                            radius={themeRadius}
+                            className="w-full sm:w-48"
+                        >
+                            <SelectItem key="pending">Pending</SelectItem>
+                            <SelectItem key="in_progress">In Progress</SelectItem>
+                            <SelectItem key="completed">Completed</SelectItem>
+                            <SelectItem key="cancelled">Cancelled</SelectItem>
+                        </Select>
+                    </div>
+                }
+                pagination={
+                    onboardings?.last_page > 1 && (
+                        <div className="flex justify-center">
+                            <Pagination
+                                total={onboardings.last_page}
+                                page={onboardings.current_page}
+                                onChange={handlePageChange}
+                                showControls
+                                size="sm"
+                                radius={themeRadius}
+                            />
+                        </div>
+                    )
+                }
             >
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                                        <Input
-                                            placeholder="Search by employee name..."
-                                            value={searchQuery}
-                                            onValueChange={setSearchQuery}
-                                            startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                            classNames={{
-                                                inputWrapper: "bg-default-100"
-                                            }}
-                                            size="sm"
-                                            radius={getThemeRadius()}
-                                        />
-                                        <Select
-                                            placeholder="Filter by status"
-                                            selectedKeys={statusFilter}
-                                            onSelectionChange={setStatusFilter}
-                                            classNames={{ trigger: "bg-default-100" }}
-                                            size="sm"
-                                            radius={getThemeRadius()}
-                                        >
-                                            <SelectItem key="pending">Pending</SelectItem>
-                                            <SelectItem key="in_progress">In Progress</SelectItem>
-                                            <SelectItem key="completed">Completed</SelectItem>
-                                            <SelectItem key="cancelled">Cancelled</SelectItem>
-                                        </Select>
-                                    </div>
-                                    
-                                    {/* Data Table */}
-                                    {loading ? (
-                                        <div className="flex justify-center items-center py-12">
-                                            <Spinner size="lg" />
-                                        </div>
-                                    ) : (
-                                        <Table
-                                            aria-label="Employee onboarding table"
-                                            isHeaderSticky
-                                            classNames={{
-                                                wrapper: "shadow-none border border-divider rounded-lg",
-                                                th: "bg-default-100 text-default-600 font-semibold",
-                                                td: "py-3"
-                                            }}
-                                        >
-                                            <TableHeader columns={columns}>
-                                                {(column) => (
-                                                    <TableColumn 
-                                                        key={column.uid}
-                                                        align={column.uid === "actions" ? "center" : "start"}
-                                                    >
-                                                        {column.name}
-                                                    </TableColumn>
-                                                )}
-                                            </TableHeader>
-                                            <TableBody 
-                                                items={onboardings?.data || []} 
-                                                emptyContent="No onboarding processes found"
-                                            >
-                                                {(item) => (
-                                                    <TableRow key={item.id}>
-                                                        {(columnKey) => (
-                                                            <TableCell>{renderCell(item, columnKey)}</TableCell>
-                                                        )}
-                                                    </TableRow>
-                                                )}
-                                            </TableBody>
-                                        </Table>
+                {/* Data Table */}
+                {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                        <Spinner size="lg" />
+                    </div>
+                ) : (
+                    <Table
+                        aria-label="Employee onboarding table"
+                        isHeaderSticky
+                        classNames={{
+                            wrapper: "shadow-none border border-divider rounded-lg",
+                            th: "bg-default-100 text-default-600 font-semibold",
+                            td: "py-3"
+                        }}
+                    >
+                        <TableHeader columns={columns}>
+                            {(column) => (
+                                <TableColumn 
+                                    key={column.uid}
+                                    align={column.uid === "actions" ? "center" : "start"}
+                                >
+                                    {column.name}
+                                </TableColumn>
+                            )}
+                        </TableHeader>
+                        <TableBody 
+                            items={onboardings?.data || []} 
+                            emptyContent="No onboarding processes found"
+                        >
+                            {(item) => (
+                                <TableRow key={item.id}>
+                                    {(columnKey) => (
+                                        <TableCell>{renderCell(item, columnKey)}</TableCell>
                                     )}
-                                    
-                                    {/* Pagination */}
-                                    {onboardings?.last_page > 1 && (
-                                        <div className="flex justify-center mt-6">
-                                            <Pagination
-                                                total={onboardings.last_page}
-                                                page={onboardings.current_page}
-                                                onChange={handlePageChange}
-                                                showControls
-                                                size="sm"
-                                                radius={themeRadius}
-                                            />
-                                        </div>
-                                    )}
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
             </StandardPageLayout>
         </>
     );
 };
 
-OnboardingIndex.layout = (page) => <App children={page} />;
 export default OnboardingIndex;

@@ -70,12 +70,9 @@ const Designations = ({ title, initialDesignations, departments, managers, paren
         total: 0, active: 0, inactive: 0, parent_designations: 0
     });
 
-    // Check permissions using usePermissions hook (Super Admin bypasses automatically)
-    const canCreateDesignation = can('designations.create');
-    const canEditDesignation = can('designations.update');
-    const canDeleteDesignation = can('designations.delete');
-
-
+    // Permission check helpers (using HRMAC above)
+    const hasEditPermission = canEditDesignation;
+    const hasDeletePermission = canDeleteDesignation;
 
     const fetchDesignations = useCallback(async () => {
         setLoading(true);
