@@ -1,6 +1,8 @@
 <?php
 
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
+use Aero\HRM\Http\Controllers\Asset\AssetController;
+use Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController;
 use Aero\HRM\Http\Controllers\Employee\BenefitsController;
 use Aero\HRM\Http\Controllers\Employee\DepartmentController;
 use Aero\HRM\Http\Controllers\Employee\DesignationController;
@@ -24,6 +26,7 @@ use Aero\HRM\Http\Controllers\Employee\TimeOffManagementController;
 use Aero\HRM\Http\Controllers\Employee\TrainingController;
 use Aero\HRM\Http\Controllers\Employee\WorkplaceSafetyController;
 use Aero\HRM\Http\Controllers\Employee\HolidayController;
+use Aero\HRM\Http\Controllers\Expense\ExpenseClaimController;
 use Aero\HRM\Http\Controllers\Leave\BulkLeaveController;
 use Aero\HRM\Http\Controllers\Leave\LeaveController;
 use Aero\HRM\Http\Controllers\Settings\LeaveSettingController;
@@ -722,6 +725,56 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/designations/{id}', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'destroy'])->name('designations.destroy');
         // For dropdowns and API
         Route::get('/designations/list', [\Aero\HRM\Http\Controllers\Employee\DesignationController::class, 'list'])->name('designations.list');
+    });
+
+    // Expense Claims Management
+    Route::middleware(['module:hrm,expenses'])->prefix('expenses')->name('expenses.')->group(function () {
+        // Main index page (Inertia)
+        Route::get('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'index'])->name('index');
+        // API endpoints for data fetching
+        Route::get('/paginate', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'stats'])->name('stats');
+        // CRUD operations
+        Route::post('/', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'store'])->name('store');
+        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'destroy'])->name('destroy');
+        // Workflow actions
+        Route::post('/{id}/approve', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [\Aero\HRM\Http\Controllers\Expense\ExpenseClaimController::class, 'reject'])->name('reject');
+    });
+
+    // Asset Management
+    Route::middleware(['module:hrm,assets'])->prefix('assets')->name('assets.')->group(function () {
+        // Main index page (Inertia)
+        Route::get('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'index'])->name('index');
+        // API endpoints for data fetching
+        Route::get('/paginate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'paginate'])->name('paginate');
+        Route::get('/stats', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'stats'])->name('stats');
+        // CRUD operations
+        Route::post('/', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'store'])->name('store');
+        Route::put('/{id}', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'destroy'])->name('destroy');
+        // Asset allocation workflow
+        Route::post('/{id}/allocate', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'allocate'])->name('allocate');
+        Route::post('/{id}/return', [\Aero\HRM\Http\Controllers\Asset\AssetController::class, 'returnAsset'])->name('return');
+    });
+
+    // Disciplinary Management
+    Route::middleware(['module:hrm,disciplinary'])->prefix('disciplinary')->name('disciplinary.')->group(function () {
+        // Main index page (Inertia)
+        Route::get('/cases', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'index'])->name('cases.index');
+        // API endpoints for data fetching
+        Route::get('/cases/paginate', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'paginate'])->name('cases.paginate');
+        Route::get('/cases/stats', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'stats'])->name('cases.stats');
+        // CRUD operations
+        Route::post('/cases', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'store'])->name('cases.store');
+        Route::put('/cases/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'update'])->name('cases.update');
+        Route::delete('/cases/{id}', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'destroy'])->name('cases.destroy');
+        // Workflow actions
+        Route::post('/cases/{id}/start-investigation', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'startInvestigation'])->name('cases.start-investigation');
+        Route::post('/cases/{id}/take-action', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'takeAction'])->name('cases.take-action');
+        Route::post('/cases/{id}/close', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'close'])->name('cases.close');
+        Route::post('/cases/{id}/appeal', [\Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController::class, 'appeal'])->name('cases.appeal');
     });
 
     Route::get('/api/designations/list', function () {
