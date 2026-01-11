@@ -64,9 +64,9 @@ class BulkLeaveService
             try {
                 $carbonDate = Carbon::parse($date);
 
-                // Check for overlapping leaves
+                // Check for overlapping leaves (uses user_id for Leave model compatibility)
                 $overlapError = $this->overlapService->getOverlapErrorMessage(
-                    $userId,
+                    $employee->user_id,
                     $carbonDate,
                     $carbonDate
                 );
@@ -97,7 +97,7 @@ class BulkLeaveService
 
         // Calculate estimated balance impact
         $validDatesCount = collect($results)->where('status', '!=', 'conflict')->count();
-        $estimatedBalanceImpact = $this->calculateBalanceImpact($userId, $leaveTypeId, $validDatesCount);
+        $estimatedBalanceImpact = $this->calculateBalanceImpact($employee->user_id, $leaveTypeId, $validDatesCount);
 
         return [
             'validation_results' => $results,
@@ -107,14 +107,35 @@ class BulkLeaveService
 
     /**
      * Process bulk leave creation
+     * 
+     * @param array $payload Must contain 'employee_id' or 'user_id' (deprecated)
+     * @return array Results with created leaves and failures
+     * @throws UserNotOnboardedException If user has no employee record
      */
     public function processBulkLeave(array $payload): array
     {
         $allowPartialSuccess = $payload['allow_partial_success'] ?? false;
         $dates = $payload['dates'] ?? [];
-        $userId = $payload['user_id'];
         $leaveTypeId = $payload['leave_type_id'];
         $reason = $payload['reason'];
+
+        // Resolve employee
+        $employee = null;
+        if (isset($payload['employee_id'])) {
+            $employee = Employee::find($payload['employee_id']);
+        } elseif (isset($payload['user_id'])) {
+            $employee = $this->employeeResolver->resolveFromUserId($payload['user_id']);
+        }
+        
+        if (!$employee) {
+            throw new UserNotOnboardedException(
+                'Cannot process bulk leave for non-onboarded user',
+                $payload['user_id'] ?? $payload['employee_id'] ?? 0
+            );
+        }
+        
+        // Use user_id for Leave model compatibility
+        $userId = $employee->user_id;
 
         $createdLeaves = [];
         $failedDates = [];

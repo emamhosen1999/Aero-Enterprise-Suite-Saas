@@ -3,15 +3,17 @@
 namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\Department;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\Core\Models\User;
 use Carbon\Carbon;
 
 class LeaveSummaryService
 {
     /**
      * Generate comprehensive leave summary data
+     * 
+     * Uses Employee as the primary model for HRM data.
      */
     public function generateLeaveSummary(array $filters = []): array
     {
@@ -21,14 +23,14 @@ class LeaveSummaryService
         $statusFilter = $filters['status'] ?? null;
         $leaveTypeFilter = $filters['leave_type'] ?? null;
 
-        // Get filtered users with department and designation info
-        $usersQuery = User::with(['department', 'designation'])
-            ->whereHas('department') // Only users with departments
+        // Get filtered employees with department and designation info
+        $employeesQuery = Employee::with(['user', 'department', 'designation'])
+            ->whereNotNull('department_id') // Only employees with departments
             ->when($departmentId, fn ($q) => $q->where('department_id', $departmentId))
             ->when($employeeId, fn ($q) => $q->where('id', $employeeId))
-            ->orderBy('name');
+            ->orderBy('created_at');
 
-        $users = $usersQuery->get();
+        $employees = $employeesQuery->get();
 
         // Get leave types (exclude Weekend)
         $leaveTypes = LeaveSetting::where('type', '!=', 'Weekend')
@@ -36,12 +38,12 @@ class LeaveSummaryService
             ->orderBy('type')
             ->get();
 
-        // Get leaves with optimized query
+        // Get leaves with optimized query - filter by employee_id when available
         $leavesQuery = Leave::with(['leaveSetting', 'employee.department'])
             ->whereYear('from_date', $year)
             ->whereHas('leaveSetting', fn ($q) => $q->where('type', '!=', 'Weekend'))
             ->when($departmentId, fn ($q) => $q->whereHas('employee', fn ($eq) => $eq->where('department_id', $departmentId)))
-            ->when($employeeId, fn ($q) => $q->where('user_id', $employeeId))
+            ->when($employeeId, fn ($q) => $q->whereHas('employee', fn ($eq) => $eq->where('id', $employeeId)))
             ->when($statusFilter, fn ($q) => $q->where('status', $statusFilter))
             ->when($leaveTypeFilter, fn ($q) => $q->where('leave_type', $leaveTypeFilter));
 
@@ -60,24 +62,26 @@ class LeaveSummaryService
 
         // Calculate statistics
         $totalStats = [
-            'total_employees' => $users->count(),
+            'total_employees' => $employees->count(),
             'total_leaves_taken' => 0,
             'total_approved_leaves' => 0,
             'total_pending_leaves' => 0,
             'total_rejected_leaves' => 0,
-            'departments_count' => $users->pluck('department_id')->unique()->count(),
+            'departments_count' => $employees->pluck('department_id')->unique()->count(),
             'leave_types_count' => $leaveTypes->count(),
         ];
 
-        foreach ($users as $user) {
-            $userLeaves = $leaves->where('user_id', $user->id);
+        foreach ($employees as $employee) {
+            // Get leaves for this employee via user_id (Leave model still uses user_id)
+            $employeeLeaves = $leaves->where('user_id', $employee->user_id);
 
             $row = [
-                'id' => $user->id,
+                'id' => $employee->id,
+                'user_id' => $employee->user_id,
                 'SL NO' => $sl_no++,
-                'employee_name' => $user->name,
-                'department' => $user->department->name ?? 'N/A',
-                'designation' => $user->designation->title ?? 'N/A',
+                'employee_name' => $employee->user->name ?? 'Unknown',
+                'department' => $employee->department->name ?? 'N/A',
+                'designation' => $employee->designation->title ?? 'N/A',
             ];
 
             $total = 0;
@@ -88,7 +92,7 @@ class LeaveSummaryService
 
             // Calculate monthly leave days (only approved)
             foreach ($months as $num => $label) {
-                $monthLeaves = $userLeaves->filter(
+                $monthLeaves = $employeeLeaves->filter(
                     fn ($leave) => Carbon::parse($leave->from_date)->month == $num
                 );
 
@@ -106,7 +110,7 @@ class LeaveSummaryService
             }
 
             // Calculate leave type totals (approved only)
-            foreach ($userLeaves->where('status', 'Approved') as $leave) {
+            foreach ($employeeLeaves->where('status', 'Approved') as $leave) {
                 $type = $leave->leaveSetting->type ?? '';
                 if (isset($leaveTypeTotals[$type])) {
                     $leaveTypeTotals[$type] += $leave->no_of_days;
@@ -114,10 +118,10 @@ class LeaveSummaryService
             }
 
             // Calculate detailed leave type information (used and remaining)
-            $leaveTypeDetails = $this->calculateLeaveTypeDetails($user, $leaveTypes, $userLeaves);
+            $leaveTypeDetails = $this->calculateLeaveTypeDetails($employee, $leaveTypes, $employeeLeaves);
 
             // Calculate balance information
-            $balanceInfo = $this->calculateLeaveBalance($user, $leaveTypes, $userLeaves);
+            $balanceInfo = $this->calculateLeaveBalance($employee, $leaveTypes, $employeeLeaves);
 
             $row['total_approved'] = $totalApproved;
             $row['total_pending'] = $totalPending;
