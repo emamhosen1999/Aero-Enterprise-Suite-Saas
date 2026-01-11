@@ -4,7 +4,8 @@ namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceSetting;
-use Aero\Core\Models\User;
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Carbon\Carbon;
 
 class AttendanceCalculationService
@@ -131,10 +132,15 @@ class AttendanceCalculationService
 
     /**
      * Calculate monthly work hours summary
+     * 
+     * @param Employee $employee The employee to calculate hours for
+     * @param int $month The month (1-12)
+     * @param int $year The year
+     * @return array Work hours summary
      */
-    public function getMonthlyWorkHours(User $user, int $month, int $year): array
+    public function getMonthlyWorkHours(Employee $employee, int $month, int $year): array
     {
-        $attendances = Attendance::where('user_id', $user->id)
+        $attendances = Attendance::where('employee_id', $employee->id)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->whereNotNull('punchout')
@@ -211,11 +217,16 @@ class AttendanceCalculationService
     }
 
     /**
-     * Recalculate all attendance records for a user in a date range
+     * Recalculate all attendance records for an employee in a date range
+     * 
+     * @param Employee $employee The employee to recalculate for
+     * @param Carbon $startDate Start of date range
+     * @param Carbon $endDate End of date range
+     * @return int Number of records updated
      */
-    public function recalculateForUser(User $user, Carbon $startDate, Carbon $endDate): int
+    public function recalculateForEmployee(Employee $employee, Carbon $startDate, Carbon $endDate): int
     {
-        $attendances = Attendance::where('user_id', $user->id)
+        $attendances = Attendance::where('employee_id', $employee->id)
             ->whereBetween('date', [$startDate, $endDate])
             ->get();
 
@@ -227,5 +238,29 @@ class AttendanceCalculationService
         }
 
         return $updated;
+    }
+
+    /**
+     * @deprecated Use recalculateForEmployee() instead
+     * Maintained for backward compatibility - will be removed in v2.0
+     */
+    public function recalculateForUser($userOrEmployee, Carbon $startDate, Carbon $endDate): int
+    {
+        // Resolve employee from user if needed
+        if ($userOrEmployee instanceof Employee) {
+            return $this->recalculateForEmployee($userOrEmployee, $startDate, $endDate);
+        }
+
+        // If passed a User, resolve to Employee
+        $employee = Employee::where('user_id', $userOrEmployee->id)->first();
+        
+        if (!$employee) {
+            throw new UserNotOnboardedException(
+                'Cannot calculate attendance for non-onboarded user',
+                $userOrEmployee->id
+            );
+        }
+
+        return $this->recalculateForEmployee($employee, $startDate, $endDate);
     }
 }

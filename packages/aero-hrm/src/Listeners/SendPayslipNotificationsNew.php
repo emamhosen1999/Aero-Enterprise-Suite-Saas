@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Listener that sends payslip notifications when payroll is generated.
  */
-class SendPayslipNotifications implements ShouldQueue
+class SendPayslipNotificationsNew implements ShouldQueue
 {
     /**
      * Handle the payroll generated event.

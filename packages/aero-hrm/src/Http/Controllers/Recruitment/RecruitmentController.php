@@ -11,6 +11,9 @@ use Aero\HRM\Models\JobOffer;
 use Aero\Core\Models\User;
 use Aero\HRM\Models\Job;
 use Aero\HRM\Models\JobApplication;
+use Aero\HRM\Events\Recruitment\ApplicationReceived;
+use Aero\HRM\Events\Recruitment\InterviewScheduled;
+use Aero\HRM\Events\Recruitment\OfferExtended;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -802,6 +805,9 @@ class RecruitmentController extends Controller
             $application->addMedia($request->file('resume'))->toMediaCollection('resumes');
         }
 
+        // Dispatch ApplicationReceived event
+        event(new ApplicationReceived($application));
+
         return redirect()->route('hr.recruitment.applications.show', [$job->id, $application->id])
             ->with('success', 'Application submitted successfully.');
     }
@@ -943,6 +949,9 @@ class RecruitmentController extends Controller
         $validated['scheduled_by'] = Auth::id();
 
         $interview = JobInterview::create($validated);
+
+        // Dispatch InterviewScheduled event
+        event(new InterviewScheduled($interview));
 
         return redirect()->back()
             ->with('success', 'Interview scheduled successfully.');

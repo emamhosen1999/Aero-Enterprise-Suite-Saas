@@ -52,6 +52,19 @@ class AddPersonalInfoToEmployeesTable extends Migration
             if (! Schema::hasColumn('employees', 'emirates_id_expiry')) {
                 $table->date('emirates_id_expiry')->nullable()->after('emirates_id');
             }
+            // Additional fields for test compatibility
+            if (! Schema::hasColumn('employees', 'joining_date')) {
+                $table->date('joining_date')->nullable()->after('date_of_joining');
+            }
+            if (! Schema::hasColumn('employees', 'probation_period_months')) {
+                $table->integer('probation_period_months')->nullable()->after('probation_end_date');
+            }
+            if (! Schema::hasColumn('employees', 'contract_start_date')) {
+                $table->date('contract_start_date')->nullable()->after('probation_period_months');
+            }
+            if (! Schema::hasColumn('employees', 'contract_end_date')) {
+                $table->date('contract_end_date')->nullable()->after('contract_start_date');
+            }
         });
     }
 
@@ -67,7 +80,8 @@ class AddPersonalInfoToEmployeesTable extends Migration
         Schema::table('employees', function (Blueprint $table) {
             $columns = [
                 'birthday', 'gender', 'nationality', 'religion', 'marital_status', 'blood_group',
-                'passport_no', 'passport_expiry', 'visa_no', 'visa_expiry', 'emirates_id', 'emirates_id_expiry'
+                'passport_no', 'passport_expiry', 'visa_no', 'visa_expiry', 'emirates_id', 'emirates_id_expiry',
+                'joining_date', 'probation_period_months', 'contract_start_date', 'contract_end_date'
             ];
 
             foreach ($columns as $column) {

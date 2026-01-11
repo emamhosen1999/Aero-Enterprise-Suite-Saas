@@ -469,6 +469,175 @@ class RoleModuleAccessService implements RoleModuleAccessInterface
     }
 
     /**
+     * Get all users who have access to a specific sub-module.
+     * This is used for sending notifications to users with module access.
+     *
+     * @param string $moduleCode The module code (e.g., 'hrm')
+     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
+     * @param string|null $actionCode Optional action code to check specific action access (e.g., 'approve')
+     * @return \Illuminate\Support\Collection Collection of User models
+     */
+    public function getUsersWithSubModuleAccess(string $moduleCode, string $subModuleCode, ?string $actionCode = null): \Illuminate\Support\Collection
+    {
+        // Get the module
+        $module = Module::where('code', $moduleCode)->where('is_active', true)->first();
+        if (! $module) {
+            return collect();
+        }
+
+        // Get the sub-module
+        $subModule = SubModule::where('module_id', $module->id)
+            ->where('code', $subModuleCode)
+            ->where('is_active', true)
+            ->first();
+        if (! $subModule) {
+            return collect();
+        }
+
+        // Build query to find role IDs with access
+        $roleIdsQuery = RoleModuleAccess::query()
+            ->where(function ($query) use ($module, $subModule) {
+                // Direct module access (grants access to all sub-modules)
+                $query->where(function ($q) use ($module) {
+                    $q->where('module_id', $module->id)
+                        ->whereNull('sub_module_id')
+                        ->whereNull('component_id')
+                        ->whereNull('action_id');
+                })
+                // Direct sub-module access
+                ->orWhere(function ($q) use ($subModule) {
+                    $q->where('sub_module_id', $subModule->id)
+                        ->whereNull('component_id')
+                        ->whereNull('action_id');
+                });
+            });
+
+        // If action code is specified, also include component/action level access
+        if ($actionCode) {
+            // Get components in this submodule that have the specified action
+            $componentIds = Component::where('sub_module_id', $subModule->id)
+                ->where('is_active', true)
+                ->pluck('id');
+
+            if ($componentIds->isNotEmpty()) {
+                $roleIdsQuery->orWhere(function ($query) use ($componentIds) {
+                    $query->whereIn('component_id', $componentIds)
+                        ->whereNull('action_id');
+                });
+
+                // Also check specific action access
+                $actionIds = \Aero\HRMAC\Models\Action::whereIn('component_id', $componentIds)
+                    ->where('code', $actionCode)
+                    ->where('is_active', true)
+                    ->pluck('id');
+
+                if ($actionIds->isNotEmpty()) {
+                    $roleIdsQuery->orWhereIn('action_id', $actionIds);
+                }
+            }
+        }
+
+        $roleIds = $roleIdsQuery->pluck('role_id')->unique();
+
+        if ($roleIds->isEmpty()) {
+            return collect();
+        }
+
+        // Get the User model class from config
+        $userModel = config('hrmac.models.user', \Aero\Core\Models\User::class);
+
+        // Find all active users with these roles
+        return $userModel::whereHas('roles', function ($query) use ($roleIds) {
+            $query->whereIn('roles.id', $roleIds);
+        })
+            ->where('is_active', true)
+            ->get();
+    }
+
+    /**
+     * Get all users who have access to perform a specific action.
+     *
+     * @param string $moduleCode The module code (e.g., 'hrm')
+     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
+     * @param string $componentCode The component code (e.g., 'leave-requests')
+     * @param string $actionCode The action code (e.g., 'approve')
+     * @return \Illuminate\Support\Collection Collection of User models
+     */
+    public function getUsersWithActionAccess(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): \Illuminate\Support\Collection
+    {
+        // Get the module hierarchy
+        $module = Module::where('code', $moduleCode)->where('is_active', true)->first();
+        if (! $module) {
+            return collect();
+        }
+
+        $subModule = SubModule::where('module_id', $module->id)
+            ->where('code', $subModuleCode)
+            ->where('is_active', true)
+            ->first();
+        if (! $subModule) {
+            return collect();
+        }
+
+        $component = Component::where('sub_module_id', $subModule->id)
+            ->where('code', $componentCode)
+            ->where('is_active', true)
+            ->first();
+        if (! $component) {
+            return collect();
+        }
+
+        $action = \Aero\HRMAC\Models\Action::where('component_id', $component->id)
+            ->where('code', $actionCode)
+            ->where('is_active', true)
+            ->first();
+
+        // Build query to find role IDs with cascading access
+        $roleIds = RoleModuleAccess::query()
+            ->where(function ($query) use ($module, $subModule, $component, $action) {
+                // Module level access (full access)
+                $query->where(function ($q) use ($module) {
+                    $q->where('module_id', $module->id)
+                        ->whereNull('sub_module_id')
+                        ->whereNull('component_id')
+                        ->whereNull('action_id');
+                })
+                // Sub-module level access
+                ->orWhere(function ($q) use ($subModule) {
+                    $q->where('sub_module_id', $subModule->id)
+                        ->whereNull('component_id')
+                        ->whereNull('action_id');
+                })
+                // Component level access
+                ->orWhere(function ($q) use ($component) {
+                    $q->where('component_id', $component->id)
+                        ->whereNull('action_id');
+                });
+
+                // Specific action access (if action exists)
+                if ($action) {
+                    $query->orWhere('action_id', $action->id);
+                }
+            })
+            ->pluck('role_id')
+            ->unique();
+
+        if ($roleIds->isEmpty()) {
+            return collect();
+        }
+
+        // Get the User model class from config
+        $userModel = config('hrmac.models.user', \Aero\Core\Models\User::class);
+
+        // Find all active users with these roles
+        return $userModel::whereHas('roles', function ($query) use ($roleIds) {
+            $query->whereIn('roles.id', $roleIds);
+        })
+            ->where('is_active', true)
+            ->get();
+    }
+
+    /**
      * Get cache key with optional tenant prefix.
      */
     protected function getCacheKey(string $key): string

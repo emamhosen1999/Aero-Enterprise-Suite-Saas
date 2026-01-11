@@ -23,6 +23,7 @@ class Leave extends Model
 
     protected $fillable = [
         'user_id',
+        'leave_setting_id',
         'leave_type',
         'from_date',
         'to_date',
@@ -40,6 +41,7 @@ class Leave extends Model
 
     protected $casts = [
         'id' => 'integer',
+        'leave_setting_id' => 'integer',
         'leave_type' => 'string',
         'from_date' => 'date', // Simplified casting
         'to_date' => 'date',   // Simplified casting

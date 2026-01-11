@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
  * Notifies:
  * - The employee's manager (if the employee cancelled)
  * - The employee (if manager/HR cancelled)
+ * - Users with access to the 'leaves' submodule in HRM (via HRMAC)
  */
 class NotifyOnLeaveCancellation implements ShouldQueue
 {
@@ -34,8 +35,8 @@ class NotifyOnLeaveCancellation implements ShouldQueue
             return;
         }
 
-        // Determine who cancelled the leave
-        $cancelledBy = auth()->user();
+        // Determine who cancelled the leave (use event parameter or fall back to auth)
+        $cancelledBy = $event->cancelledBy ?? auth()->user();
         $cancelledByName = $cancelledBy?->name ?? 'System';
 
         // Notify the manager if the employee cancelled
@@ -49,54 +50,53 @@ class NotifyOnLeaveCancellation implements ShouldQueue
             $employee->notify(new LeaveCancelledNotification($leave, $cancelledByName));
         }
 
-        // Notify HR roles
-        $this->notifyHrRoles($leave, $cancelledByName);
+        // Notify users with access to leave management (via HRMAC module access)
+        $this->notifyUsersWithLeaveAccess($leave, $cancelledByName, $cancelledBy, $employee);
     }
 
     /**
      * Get the employee's manager.
      */
-    protected function getManager(object $employee): ?object
+    protected function getManager(object $user): ?object
     {
-        // Check if employee has an employee record with manager
-        if (method_exists($employee, 'employee') && $employee->employee) {
-            $employeeRecord = $employee->employee;
-            if ($employeeRecord->manager_id) {
-                return $employeeRecord->manager;
-            }
-        }
+        // Get the employee record to find manager (direct query)
+        $employee = \Aero\HRM\Models\Employee::where('user_id', $user->id)->first();
 
-        // Check for direct manager relationship
-        if (method_exists($employee, 'manager')) {
-            return $employee->manager;
-        }
-
-        // Check for reporting_to relationship
-        if (method_exists($employee, 'reportingTo')) {
-            return $employee->reportingTo;
+        // manager_id references users table directly
+        if ($employee && $employee->manager_id) {
+            return \Aero\Core\Models\User::find($employee->manager_id);
         }
 
         return null;
     }
 
     /**
-     * Notify users with HR roles.
+     * Notify users who have access to leave management via HRMAC.
      */
-    protected function notifyHrRoles($leave, string $cancelledByName): void
+    protected function notifyUsersWithLeaveAccess($leave, string $cancelledByName, $cancelledBy, $employee): void
     {
-        // Get users with HR roles - this uses a common pattern without core dependency
-        $hrRoleNames = ['hr', 'hr_manager', 'hr-manager', 'human_resources'];
+        // Use HRMAC to get users with access to hrm.leaves submodule
+        if (! app()->bound('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
+            Log::debug('HRMAC service not bound, skipping module-based notifications');
+            return;
+        }
 
-        // Check if Role model exists (avoid hard dependency)
-        if (class_exists('Spatie\Permission\Models\Role')) {
-            $hrUsers = \Aero\Core\Models\User::role($hrRoleNames)->get();
+        try {
+            $hrmacService = app('Aero\HRMAC\Contracts\RoleModuleAccessInterface');
+            
+            // Get users with access to the 'leaves' submodule in 'hrm' module
+            $usersWithAccess = $hrmacService->getUsersWithSubModuleAccess('hrm', 'leaves');
 
-            foreach ($hrUsers as $hrUser) {
-                // Don't notify if they're the one who cancelled
-                if (auth()->id() !== $hrUser->id && $leave->user_id !== $hrUser->id) {
-                    $hrUser->notify(new LeaveCancelledNotification($leave, $cancelledByName));
+            foreach ($usersWithAccess as $user) {
+                // Don't notify if they're the one who cancelled or the employee
+                if ($user->id !== $cancelledBy?->id && $user->id !== $employee->id) {
+                    $user->notify(new LeaveCancelledNotification($leave, $cancelledByName));
                 }
             }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to get users with leave access via HRMAC', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

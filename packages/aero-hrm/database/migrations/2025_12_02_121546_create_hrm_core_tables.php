@@ -390,7 +390,8 @@ return new class extends Migration
             Schema::create('leaves', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-                $table->string('leave_type'); // references leave_settings
+                $table->foreignId('leave_setting_id')->nullable()->constrained('leave_settings')->nullOnDelete();
+                $table->string('leave_type'); // references leave_settings (kept for backward compatibility)
                 $table->date('from_date');
                 $table->date('to_date');
                 $table->integer('no_of_days');

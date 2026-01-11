@@ -11,6 +11,8 @@ use Aero\Core\Http\Controllers\Auth\InvitationController;
 use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
+use Aero\Core\Http\Controllers\Profile\NotificationPreferenceController;
+use Aero\Core\Http\Controllers\Settings\NotificationSettingController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
 use Aero\Core\Services\PlatformErrorReporter;
 use Illuminate\Http\Request;
@@ -415,6 +417,15 @@ Route::middleware('auth:web')->group(function () {
         Route::post('/system/test-email', [SystemSettingController::class, 'sendTestEmail'])->name('system.test-email');
         Route::post('/system/test-sms', [SystemSettingController::class, 'sendTestSms'])->name('system.test-sms');
 
+        // Notification Settings
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [NotificationSettingController::class, 'index'])->name('index');
+            Route::get('/stats', [NotificationSettingController::class, 'stats'])->name('stats');
+            Route::post('/', [NotificationSettingController::class, 'update'])->name('update');
+            Route::post('/retry', [NotificationSettingController::class, 'updateRetry'])->name('update-retry');
+            Route::post('/test-channel', [NotificationSettingController::class, 'testChannel'])->name('test-channel');
+        });
+
         // Domain Management (SaaS mode only - requires aero-platform)
         Route::prefix('domains')->name('domains.')->group(function () {
             // Only register domain routes if Platform is installed
@@ -479,6 +490,14 @@ Route::middleware('auth:web')->group(function () {
                     : 0,
             ]);
         })->name('security');
+
+        // Notification Preferences
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [NotificationPreferenceController::class, 'index'])->name('index');
+            Route::post('/', [NotificationPreferenceController::class, 'update'])->name('update');
+            Route::post('/global', [NotificationPreferenceController::class, 'updateGlobal'])->name('update-global');
+            Route::post('/reset', [NotificationPreferenceController::class, 'reset'])->name('reset');
+        });
     });
 
     // ========================================================================

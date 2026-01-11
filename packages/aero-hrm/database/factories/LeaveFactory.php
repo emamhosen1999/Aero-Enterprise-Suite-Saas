@@ -32,6 +32,7 @@ class LeaveFactory extends Factory
 
         return [
             'user_id' => User::factory(),
+            'leave_setting_id' => null, // Nullable for tests without leave_settings
             'leave_type' => $this->faker->randomElement([
                 'Annual',
                 'Sick',

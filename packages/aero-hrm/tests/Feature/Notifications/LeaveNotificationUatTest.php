@@ -79,7 +79,7 @@ class LeaveNotificationUatTest extends TestCase
 
         $this->employeeRecord = Employee::factory()->create([
             'user_id' => $this->employee->id,
-            'manager_id' => $this->managerRecord->id,
+            'manager_id' => $this->manager->id,  // manager_id references users.id, not employees.id
             'status' => 'active',
         ]);
     }

@@ -3,6 +3,8 @@
 namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Http\Controllers\Controller;
+use Aero\HRM\Models\Employee;
+use Aero\HRM\Services\Authorization\HRMAuthorizationService;
 use Aero\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -224,6 +226,9 @@ class ProfileImageController extends Controller
 
     /**
      * Check if current user can update the given user's profile
+     * 
+     * Uses HRMAuthorizationService for permission-based access control
+     * instead of hardcoded role checks.
      */
     private function canUpdateUserProfile(User $user): bool
     {
@@ -235,13 +240,17 @@ class ProfileImageController extends Controller
             return true;
         }
 
-        // Admin users can update any profile
-        if ($currentUser->hasRole('Super Administrator') || $currentUser->hasRole('Administrator')) {
+        // Use HRMAuthorizationService for permission-based checks
+        $authService = app(HRMAuthorizationService::class);
+        
+        // Check if user has employee management permissions
+        if ($authService->canManageEmployees($currentUser)) {
             return true;
         }
 
-        // HR users can update employee profiles
-        if ($currentUser->hasRole('HR Manager') && $user->hasRole('Employee')) {
+        // Check if current user is the manager of the target user's employee record
+        $targetEmployee = Employee::where('user_id', $user->id)->first();
+        if ($targetEmployee && $targetEmployee->manager_id === $currentUser->id) {
             return true;
         }
 

@@ -20,22 +20,27 @@ class SendDocumentExpiryNotifications implements ShouldQueue
     public function handle(DocumentExpiring $event): void
     {
         $document = $event->document;
-        $employee = $document->employee;
+        $user = $document->user;
 
-        if (! $employee || ! $employee->user) {
-            Log::warning('DocumentExpiring event: No employee/user found for document', [
+        if (! $user) {
+            Log::warning('DocumentExpiring event: No user found for document', [
                 'document_id' => $document->id,
             ]);
 
             return;
         }
 
-        // Notify the employee
-        $employee->user->notify(new DocumentExpiryNotification($document, $event->daysUntilExpiry));
+        // Notify the user (document owner)
+        $user->notify(new DocumentExpiryNotification($document, $event->daysUntilExpiry));
 
         // Notify HR for urgent documents (expiring within 7 days)
         if ($event->daysUntilExpiry <= 7) {
             $this->notifyHr($document, $event->daysUntilExpiry);
+        }
+
+        // Notify manager for expired/expiring soon documents (0-7 days)
+        if ($event->daysUntilExpiry <= 7) {
+            $this->notifyManager($document, $event->daysUntilExpiry);
         }
     }
 
@@ -45,13 +50,29 @@ class SendDocumentExpiryNotifications implements ShouldQueue
     protected function notifyHr($document, int $daysUntilExpiry): void
     {
         if (class_exists('Spatie\Permission\Models\Role')) {
-            $hrRoleNames = ['hr', 'hr_manager', 'hr-manager', 'human_resources'];
+            $hrRoleNames = ['HR Admin', 'HR Manager', 'hr', 'hr_manager', 'hr-manager', 'human_resources'];
             $hrUsers = \Aero\Core\Models\User::role($hrRoleNames)->get();
 
             foreach ($hrUsers as $hrUser) {
-                if ($hrUser->id !== $document->employee?->user_id) {
+                if ($hrUser->id !== $document->user_id) {
                     $hrUser->notify(new DocumentExpiryNotification($document, $daysUntilExpiry));
                 }
+            }
+        }
+    }
+
+    /**
+     * Notify manager of the document owner.
+     */
+    protected function notifyManager($document, int $daysUntilExpiry): void
+    {
+        // Find the employee record for the document owner
+        $employee = \Aero\HRM\Models\Employee::where('user_id', $document->user_id)->first();
+        
+        if ($employee && $employee->manager_id) {
+            $manager = \Aero\Core\Models\User::find($employee->manager_id);
+            if ($manager) {
+                $manager->notify(new DocumentExpiryNotification($document, $daysUntilExpiry));
             }
         }
     }

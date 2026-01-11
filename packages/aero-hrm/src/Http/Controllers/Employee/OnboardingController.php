@@ -93,6 +93,9 @@ class OnboardingController extends Controller
                 ]);
             }
 
+            // Dispatch OnboardingStarted event
+            event(new OnboardingStarted($onboarding, auth()->id()));
+
             DB::commit();
 
             return redirect()->route('hr.onboarding.show', $onboarding->id)

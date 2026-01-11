@@ -76,4 +76,25 @@ interface RoleModuleAccessInterface
      * Clear cached access data for a user.
      */
     public function clearUserCache(mixed $user): void;
+
+    /**
+     * Get all users who have access to a specific sub-module.
+     *
+     * @param string $moduleCode The module code (e.g., 'hrm')
+     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
+     * @param string|null $actionCode Optional action code to check specific action access
+     * @return \Illuminate\Support\Collection Collection of User models
+     */
+    public function getUsersWithSubModuleAccess(string $moduleCode, string $subModuleCode, ?string $actionCode = null): \Illuminate\Support\Collection;
+
+    /**
+     * Get all users who have access to perform a specific action.
+     *
+     * @param string $moduleCode The module code (e.g., 'hrm')
+     * @param string $subModuleCode The sub-module code (e.g., 'leaves')
+     * @param string $componentCode The component code (e.g., 'leave-requests')
+     * @param string $actionCode The action code (e.g., 'approve')
+     * @return \Illuminate\Support\Collection Collection of User models
+     */
+    public function getUsersWithActionAccess(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode): \Illuminate\Support\Collection;
 }

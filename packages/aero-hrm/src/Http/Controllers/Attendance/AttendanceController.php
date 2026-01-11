@@ -4,11 +4,13 @@ namespace Aero\HRM\Http\Controllers\Attendance;
 
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceSetting;
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Holiday;
 use Aero\HRM\Models\LeaveSetting;
 use Aero\HRM\Events\Attendance\AttendancePunchedIn;
 use Aero\HRM\Events\Attendance\AttendancePunchedOut;
 use Aero\HRM\Events\Attendance\LateArrivalDetected;
+use Aero\HRM\Services\Authorization\HRMAuthorizationService;
 use App\Exports\AttendanceAdminExport;
 use App\Exports\AttendanceExport;
 use Aero\HRM\Http\Controllers\Controller;
@@ -25,6 +27,13 @@ use Throwable;
 
 class AttendanceController extends Controller
 {
+    protected HRMAuthorizationService $authService;
+
+    public function __construct(HRMAuthorizationService $authService)
+    {
+        $this->authService = $authService;
+    }
+
     public function index1(): \Inertia\Response
     {
         return Inertia::render('HRM/Attendance/Admin', [
@@ -1649,12 +1658,13 @@ class AttendanceController extends Controller
                 ], 422);
             }
 
-            // Verify the user exists and is an employee
+            // Verify the user has an employee record (replaces hasRole check)
             $user = User::find($userId);
-            if (! $user || ! $user->hasRole('Employee')) {
+            $employee = $user ? Employee::where('user_id', $userId)->first() : null;
+            if (! $user || ! $employee) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Invalid user or user is not an employee.',
+                    'message' => 'Invalid user or user is not onboarded as an employee.',
                 ], 422);
             }
 
@@ -1764,13 +1774,14 @@ class AttendanceController extends Controller
                         continue;
                     }
 
-                    // Verify user is an employee
+                    // Verify user has an employee record (replaces hasRole check)
                     $user = User::find($userId);
-                    if (! $user || ! $user->hasRole('Employee')) {
+                    $employee = $user ? Employee::where('user_id', $userId)->first() : null;
+                    if (! $user || ! $employee) {
                         $results['failed'][] = [
                             'user_id' => $userId,
                             'name' => $user->name ?? 'Unknown',
-                            'reason' => 'Invalid user or not an employee',
+                            'reason' => 'Invalid user or not onboarded as employee',
                         ];
 
                         continue;

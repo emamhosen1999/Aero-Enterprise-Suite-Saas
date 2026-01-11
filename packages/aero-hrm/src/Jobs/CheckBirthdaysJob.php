@@ -43,7 +43,7 @@ class CheckBirthdaysJob implements ShouldQueue
             ->whereMonth('birthday', $today->month)
             ->whereDay('birthday', $today->day)
             ->where('status', 'active')
-            ->with(['user', 'department', 'manager.user'])
+            ->with(['user', 'department', 'manager'])
             ->get();
 
         Log::info('Birthday check completed', [

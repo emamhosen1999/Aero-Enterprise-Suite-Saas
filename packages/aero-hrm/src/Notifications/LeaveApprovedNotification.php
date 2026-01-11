@@ -6,6 +6,7 @@ namespace Aero\HRM\Notifications;
 
 use Aero\HRM\Models\Leave;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Carbon;
 
 /**
  * Notification sent to employees when their leave is approved.
@@ -23,13 +24,33 @@ class LeaveApprovedNotification extends BaseHrmNotification
     }
 
     /**
+     * Parse date to Carbon, handling both string and Carbon inputs.
+     */
+    protected function parseDate(mixed $date): ?Carbon
+    {
+        if ($date === null) {
+            return null;
+        }
+        if ($date instanceof Carbon) {
+            return $date;
+        }
+        if ($date instanceof \DateTimeInterface) {
+            return Carbon::instance($date);
+        }
+        if (is_string($date)) {
+            return Carbon::parse($date);
+        }
+        return null;
+    }
+
+    /**
      * Get the mail representation of the notification.
      */
     public function toMail(object $notifiable): MailMessage
     {
         $leaveType = $this->leave->leaveSetting?->leave_type ?? $this->leave->leaveType?->name ?? $this->leave->leave_type ?? 'Leave';
-        $fromDate = $this->leave->from_date ?? $this->leave->start_date;
-        $toDate = $this->leave->to_date ?? $this->leave->end_date;
+        $fromDate = $this->parseDate($this->leave->from_date ?? $this->leave->start_date);
+        $toDate = $this->parseDate($this->leave->to_date ?? $this->leave->end_date);
         $days = $this->leave->no_of_days ?? $this->leave->days ?? 1;
 
         return (new MailMessage)
@@ -50,8 +71,8 @@ class LeaveApprovedNotification extends BaseHrmNotification
      */
     public function toArray(object $notifiable): array
     {
-        $fromDate = $this->leave->from_date ?? $this->leave->start_date;
-        $toDate = $this->leave->to_date ?? $this->leave->end_date;
+        $fromDate = $this->parseDate($this->leave->from_date ?? $this->leave->start_date);
+        $toDate = $this->parseDate($this->leave->to_date ?? $this->leave->end_date);
 
         return [
             'type' => 'leave_approved',

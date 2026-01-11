@@ -44,7 +44,7 @@ class CheckWorkAnniversariesJob implements ShouldQueue
             ->whereDay('date_of_joining', $today->day)
             ->whereYear('date_of_joining', '<', $today->year) // Must be at least 1 year
             ->where('status', 'active')
-            ->with(['user', 'department', 'manager.user'])
+            ->with(['user', 'department', 'manager'])
             ->get();
 
         Log::info('Work anniversary check completed', [
@@ -67,7 +67,7 @@ class CheckWorkAnniversariesJob implements ShouldQueue
      */
     protected function calculateYearsOfService(Carbon $dateOfJoining): int
     {
-        return $dateOfJoining->diffInYears(Carbon::today());
+        return (int) $dateOfJoining->diffInYears(Carbon::today());
     }
 
     /**

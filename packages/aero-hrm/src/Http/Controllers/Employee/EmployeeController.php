@@ -8,6 +8,7 @@ use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Services\EmployeeOnboardingService;
+use Aero\HRM\Services\Authorization\HRMAuthorizationService;
 use Aero\HRM\Notifications\WelcomeEmployeeNotification;
 use Aero\HRM\Events\Employee\EmployeeCreated;
 use Aero\HRM\Events\Employee\EmployeeUpdated;
@@ -897,28 +898,36 @@ class EmployeeController extends Controller
 
     /**
      * Check if current user can modify the employee
+     * 
+     * Uses HRMAuthorizationService for permission-based access control
+     * instead of hardcoded role checks.
      */
     private function canModifyEmployee($currentUser, Employee $employee): bool
     {
-        if ($currentUser->hasAnyRole(['Super Administrator', 'Administrator', 'HR Manager'])) {
-            return true;
-        }
-
-        // Department managers can modify employees in their department
-        if ($currentUser->hasRole('Department Manager')) {
-            $currentUserEmployee = Employee::where('user_id', $currentUser->id)->first();
-            if ($currentUserEmployee && $currentUserEmployee->department_id === $employee->department_id) {
-                return true;
-            }
-        }
-
-        if ($currentUser->can('users.update')) {
-            return true;
-        }
-
+        $authService = app(HRMAuthorizationService::class);
+        
         // Users can modify their own profile
         if ($currentUser->id === $employee->user_id) {
             return true;
+        }
+
+        // Check via authorization service - uses module access system
+        if ($authService->canManageEmployees($currentUser)) {
+            return true;
+        }
+
+        // Department scope: Check if manager of the same department
+        $currentEmployee = Employee::where('user_id', $currentUser->id)->first();
+        if ($currentEmployee) {
+            // Check if current user is manager of target employee's department
+            if ($authService->canManageDepartment($currentUser, $employee->department_id)) {
+                return true;
+            }
+            
+            // Check if current user is the direct manager of the employee
+            if ($employee->manager_id === $currentUser->id) {
+                return true;
+            }
         }
 
         return false;
@@ -927,6 +936,12 @@ class EmployeeController extends Controller
     /**
      * Check if current user can delete the employee
      */
+    /**
+     * Check if current user can delete the employee
+     * 
+     * Uses HRMAuthorizationService for permission-based access control
+     * instead of hardcoded role checks.
+     */
     private function canDeleteEmployee($currentUser, Employee $employee): bool
     {
         // Cannot delete yourself
@@ -934,15 +949,10 @@ class EmployeeController extends Controller
             return false;
         }
 
-        if ($currentUser->hasAnyRole(['Super Administrator', 'Administrator', 'HR Manager'])) {
-            return true;
-        }
-
-        if ($currentUser->can('users.delete')) {
-            return true;
-        }
-
-        return false;
+        $authService = app(HRMAuthorizationService::class);
+        
+        // Check via authorization service - uses module access system
+        return $authService->canManageEmployees($currentUser);
     }
 
     /**

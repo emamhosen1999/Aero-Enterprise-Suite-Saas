@@ -7,6 +7,7 @@ use Aero\HRM\Models\Training;
 use Aero\HRM\Models\TrainingCategory;
 use Aero\HRM\Models\TrainingEnrollment;
 use Aero\HRM\Models\TrainingMaterial;
+use Aero\HRM\Events\Training\TrainingScheduled;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
@@ -110,6 +111,16 @@ class TrainingController extends Controller
             foreach ($request->file('attachments') as $file) {
                 $training->addMedia($file)->toMediaCollection('training_attachments');
             }
+        }
+
+        // Dispatch TrainingScheduled event if status is scheduled
+        if ($validated['status'] === 'scheduled') {
+            // Get enrolled employee IDs (if any were pre-enrolled)
+            $enrolledEmployeeIds = [];
+            if ($request->has('enrolled_employees')) {
+                $enrolledEmployeeIds = $request->input('enrolled_employees', []);
+            }
+            event(new TrainingScheduled($training, $enrolledEmployeeIds));
         }
 
         return redirect()->route('hr.training.show', $training->id)

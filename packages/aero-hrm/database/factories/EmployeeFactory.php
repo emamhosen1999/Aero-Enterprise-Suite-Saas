@@ -73,12 +73,12 @@ class EmployeeFactory extends Factory
     }
 
     /**
-     * Indicate that the employee is inactive.
+     * Indicate that the employee is inactive (terminated).
      */
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'inactive',
+            'status' => 'terminated',
             'date_of_leaving' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ]);
     }

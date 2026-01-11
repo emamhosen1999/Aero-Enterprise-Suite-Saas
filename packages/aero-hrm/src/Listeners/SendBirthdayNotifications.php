@@ -57,10 +57,11 @@ class SendBirthdayNotifications implements ShouldQueue
      */
     protected function notifyManager($employee, int $age): void
     {
+        // manager relationship returns User model directly (manager_id -> users.id)
         $manager = $employee->manager;
 
-        if ($manager && $manager->user) {
-            $manager->user->notify(new TeamBirthdayAlertNotification($employee, $age));
+        if ($manager) {
+            $manager->notify(new TeamBirthdayAlertNotification($employee, $age));
         }
     }
 

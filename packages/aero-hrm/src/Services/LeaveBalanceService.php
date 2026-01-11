@@ -2,10 +2,10 @@
 
 namespace Aero\HRM\Services;
 
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveBalance;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\Core\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Log;
 class LeaveBalanceService
 {
     /**
-     * Initialize leave balances for a user for a specific year
+     * Initialize leave balances for an employee for a specific year
      */
-    public function initializeBalancesForUser(User $user, ?int $year = null): void
+    public function initializeBalancesForEmployee(Employee $employee, ?int $year = null): void
     {
         $year = $year ?? now()->year;
 
@@ -25,7 +25,7 @@ class LeaveBalanceService
         foreach ($leaveTypes as $leaveType) {
             LeaveBalance::firstOrCreate(
                 [
-                    'user_id' => $user->id,
+                    'employee_id' => $employee->id,
                     'leave_setting_id' => $leaveType->id,
                     'year' => $year,
                 ],
@@ -40,47 +40,47 @@ class LeaveBalanceService
             );
         }
 
-        Log::info("Leave balances initialized for user {$user->id} for year {$year}");
+        Log::info("Leave balances initialized for employee {$employee->id} ({$employee->full_name}) for year {$year}");
     }
 
     /**
-     * Initialize balances for all active users
+     * Initialize balances for all active employees
      */
-    public function initializeBalancesForAllUsers(?int $year = null): void
+    public function initializeBalancesForAllEmployees(?int $year = null): void
     {
         $year = $year ?? now()->year;
 
-        $users = User::where('is_active', true)->get();
+        $employees = Employee::where('is_active', true)->get();
 
-        foreach ($users as $user) {
-            $this->initializeBalancesForUser($user, $year);
+        foreach ($employees as $employee) {
+            $this->initializeBalancesForEmployee($employee, $year);
         }
 
-        Log::info("Leave balances initialized for all users for year {$year}");
+        Log::info("Leave balances initialized for all employees for year {$year}");
     }
 
     /**
-     * Get leave balance for a user and leave type
+     * Get leave balance for an employee and leave type
      */
-    public function getBalance(User $user, int $leaveSettingId, ?int $year = null): ?LeaveBalance
+    public function getBalance(Employee $employee, int $leaveSettingId, ?int $year = null): ?LeaveBalance
     {
         $year = $year ?? now()->year;
 
-        return LeaveBalance::where('user_id', $user->id)
+        return LeaveBalance::where('employee_id', $employee->id)
             ->where('leave_setting_id', $leaveSettingId)
             ->where('year', $year)
             ->first();
     }
 
     /**
-     * Get all balances for a user
+     * Get all balances for an employee
      */
-    public function getAllBalances(User $user, ?int $year = null): \Illuminate\Database\Eloquent\Collection
+    public function getAllBalances(Employee $employee, ?int $year = null): \Illuminate\Database\Eloquent\Collection
     {
         $year = $year ?? now()->year;
 
         return LeaveBalance::with('leaveSetting')
-            ->where('user_id', $user->id)
+            ->where('employee_id', $employee->id)
             ->where('year', $year)
             ->get();
     }
@@ -90,6 +90,11 @@ class LeaveBalanceService
      */
     public function handleLeaveRequest(Leave $leave): void
     {
+        // Skip balance update if no leave_setting_id (backward compatibility)
+        if (! $leave->leave_setting_id) {
+            return;
+        }
+
         $leaveDays = $leave->number_of_days ?? $this->calculateLeaveDays($leave);
 
         $balance = $this->getBalance(
@@ -101,7 +106,7 @@ class LeaveBalanceService
         if ($balance) {
             $balance->addPending($leaveDays);
         } else {
-            Log::warning("Leave balance not found for user {$leave->user_id}, leave setting {$leave->leave_setting_id}");
+            Log::warning("Leave balance not found for employee {$leave->employee_id}, leave setting {$leave->leave_setting_id}");
         }
     }
 
@@ -110,6 +115,10 @@ class LeaveBalanceService
      */
     public function handleLeaveApproval(Leave $leave): void
     {
+        if (! $leave->leave_setting_id) {
+            return;
+        }
+
         $leaveDays = $leave->number_of_days ?? $this->calculateLeaveDays($leave);
 
         $balance = $this->getBalance(
@@ -128,6 +137,10 @@ class LeaveBalanceService
      */
     public function handleLeaveRejection(Leave $leave): void
     {
+        if (! $leave->leave_setting_id) {
+            return;
+        }
+
         $leaveDays = $leave->number_of_days ?? $this->calculateLeaveDays($leave);
 
         $balance = $this->getBalance(
@@ -146,6 +159,10 @@ class LeaveBalanceService
      */
     public function handleLeaveCancellation(Leave $leave): void
     {
+        if (! $leave->leave_setting_id) {
+            return;
+        }
+
         $leaveDays = $leave->number_of_days ?? $this->calculateLeaveDays($leave);
 
         $balance = $this->getBalance(
@@ -166,11 +183,11 @@ class LeaveBalanceService
     }
 
     /**
-     * Check if user has sufficient balance
+     * Check if employee has sufficient balance
      */
-    public function hasSufficientBalance(User $user, int $leaveSettingId, float $days, ?int $year = null): bool
+    public function hasSufficientBalance(Employee $employee, int $leaveSettingId, float $days, ?int $year = null): bool
     {
-        $balance = $this->getBalance($user, $leaveSettingId, $year);
+        $balance = $this->getBalance($employee, $leaveSettingId, $year);
 
         if (! $balance) {
             return false;
@@ -205,7 +222,7 @@ class LeaveBalanceService
                     // Create or update next year's balance
                     $newBalance = LeaveBalance::firstOrCreate(
                         [
-                            'user_id' => $oldBalance->user_id,
+                            'employee_id' => $oldBalance->employee_id,
                             'leave_setting_id' => $leaveType->id,
                             'year' => $toYear,
                         ],
@@ -282,7 +299,7 @@ class LeaveBalanceService
     {
         $year = $year ?? now()->year;
 
-        $summary = LeaveBalance::with(['user', 'leaveSetting'])
+        $summary = LeaveBalance::with(['employee', 'leaveSetting'])
             ->where('year', $year)
             ->get()
             ->groupBy('leave_setting_id')

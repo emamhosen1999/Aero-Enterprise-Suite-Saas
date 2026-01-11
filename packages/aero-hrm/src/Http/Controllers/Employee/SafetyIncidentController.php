@@ -5,6 +5,7 @@ namespace Aero\HRM\Http\Controllers\Employee;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\SafetyIncident;
 use Aero\HRM\Models\SafetyIncidentParticipant;
+use Aero\HRM\Events\Safety\SafetyIncidentReported;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
@@ -110,6 +111,10 @@ class SafetyIncidentController extends Controller
                     ]);
                 }
             }
+
+            // Dispatch SafetyIncidentReported event
+            $requiresImmediateAction = in_array($validated['severity'], ['high', 'critical']);
+            event(new SafetyIncidentReported($incident, $requiresImmediateAction));
 
             DB::commit();
 

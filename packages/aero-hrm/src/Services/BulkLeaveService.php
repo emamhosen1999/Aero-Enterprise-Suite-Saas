@@ -2,9 +2,11 @@
 
 namespace Aero\HRM\Services;
 
+use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
 use Aero\HRM\Models\LeaveSetting;
-use Aero\Core\Models\User;
+use Aero\HRM\Services\EmployeeResolutionService;
+use Aero\HRM\Exceptions\UserNotOnboardedException;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,22 +16,42 @@ class BulkLeaveService
     public function __construct(
         private LeaveValidationService $validationService,
         private LeaveOverlapService $overlapService,
-        private LeaveCrudService $crudService
-    ) {}
+        private LeaveCrudService $crudService,
+        private ?EmployeeResolutionService $employeeResolver = null
+    ) {
+        $this->employeeResolver = $employeeResolver ?? app(EmployeeResolutionService::class);
+    }
 
     /**
      * Validate multiple dates for bulk leave creation
+     * 
+     * @param array $payload Must contain 'employee_id' or 'user_id' (deprecated)
+     * @return array Validation results and balance impact
+     * @throws UserNotOnboardedException If user has no employee record
      */
     public function validateDates(array $payload): array
     {
         $results = [];
         $dates = $payload['dates'] ?? [];
-        $userId = $payload['user_id'];
         $leaveTypeId = $payload['leave_type_id'];
+
+        // Resolve employee - support both employee_id and user_id (deprecated)
+        $employee = null;
+        if (isset($payload['employee_id'])) {
+            $employee = Employee::find($payload['employee_id']);
+        } elseif (isset($payload['user_id'])) {
+            $employee = $this->employeeResolver->resolveFromUserId($payload['user_id']);
+        }
+        
+        if (!$employee) {
+            throw new UserNotOnboardedException(
+                'Cannot process bulk leave for non-onboarded user',
+                $payload['user_id'] ?? $payload['employee_id'] ?? 0
+            );
+        }
 
         // Get leave type info for balance calculation
         $leaveSetting = LeaveSetting::find($leaveTypeId);
-        $user = User::find($userId);
 
         foreach ($dates as $date) {
             $dateResult = [

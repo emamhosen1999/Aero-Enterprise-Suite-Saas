@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getRoleAccessTree(\Spatie\Permission\Models\Role $role)
  * @method static void clearRoleCache(\Spatie\Permission\Models\Role $role)
  * @method static void clearUserCache($user)
+ * @method static \Illuminate\Support\Collection getUsersWithSubModuleAccess(string $moduleCode, string $subModuleCode, ?string $actionCode = null)
+ * @method static \Illuminate\Support\Collection getUsersWithActionAccess(string $moduleCode, string $subModuleCode, string $componentCode, string $actionCode)
  *
  * @see \Aero\HRMAC\Services\RoleModuleAccessService
  */

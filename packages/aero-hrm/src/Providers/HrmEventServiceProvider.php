@@ -4,28 +4,58 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Providers;
 
+use Aero\HRM\Events\Attendance\AttendancePunchedIn;
+use Aero\HRM\Events\Attendance\AttendancePunchedOut;
+use Aero\HRM\Events\Attendance\LateArrivalDetected;
 use Aero\HRM\Events\ContractExpiring;
 use Aero\HRM\Events\DocumentExpiring;
+use Aero\HRM\Events\Employee\EmployeeCreated;
+use Aero\HRM\Events\Employee\EmployeePromoted;
+use Aero\HRM\Events\Employee\EmployeeResigned;
 use Aero\HRM\Events\EmployeeBirthday;
 use Aero\HRM\Events\Leave\LeaveApproved;
 use Aero\HRM\Events\Leave\LeaveCancelled;
 use Aero\HRM\Events\Leave\LeaveRejected;
 use Aero\HRM\Events\Leave\LeaveRequested;
+use Aero\HRM\Events\Offboarding\OffboardingStarted;
+use Aero\HRM\Events\Onboarding\OnboardingCompleted;
+use Aero\HRM\Events\Onboarding\OnboardingStarted;
 use Aero\HRM\Events\PayrollGenerated;
+use Aero\HRM\Events\Performance\PerformanceReviewCompleted;
 use Aero\HRM\Events\ProbationEnding;
+use Aero\HRM\Events\Recruitment\ApplicationReceived;
+use Aero\HRM\Events\Recruitment\InterviewScheduled;
+use Aero\HRM\Events\Safety\SafetyIncidentReported;
+use Aero\HRM\Events\Training\TrainingScheduled;
 use Aero\HRM\Events\WorkAnniversary;
+use Aero\HRM\Listeners\Attendance\SendLateArrivalNotification;
+use Aero\HRM\Listeners\Attendance\SendPunchInConfirmation;
+use Aero\HRM\Listeners\Employee\NotifyHROfResignation;
+use Aero\HRM\Listeners\Employee\NotifyManagerOfNewEmployee;
+use Aero\HRM\Listeners\Employee\SendEmployeeWelcomeNotification;
+use Aero\HRM\Listeners\Employee\SendPromotionNotification;
+use Aero\HRM\Listeners\Leave\NotifyEmployeeOfLeaveApproval;
+use Aero\HRM\Listeners\Leave\NotifyEmployeeOfLeaveRejection;
 use Aero\HRM\Listeners\Leave\NotifyOnLeaveCancellation;
 use Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveApproval;
 use Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveCancellation;
 use Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveRejection;
 use Aero\HRM\Listeners\Leave\UpdateBalanceOnLeaveRequest;
 use Aero\HRM\Listeners\NotifyManagerOfLeaveRequest;
+use Aero\HRM\Listeners\Offboarding\SendOffboardingNotification;
+use Aero\HRM\Listeners\Onboarding\SendOnboardingCompletionNotification;
+use Aero\HRM\Listeners\Onboarding\SendOnboardingWelcomeNotification;
+use Aero\HRM\Listeners\Performance\SendReviewCompletionNotification;
+use Aero\HRM\Listeners\Recruitment\SendApplicationAcknowledgment;
+use Aero\HRM\Listeners\Recruitment\SendInterviewInvitation;
+use Aero\HRM\Listeners\Safety\NotifySafetyTeam;
 use Aero\HRM\Listeners\SendBirthdayNotifications;
 use Aero\HRM\Listeners\SendContractExpiryNotifications;
 use Aero\HRM\Listeners\SendDocumentExpiryNotifications;
 use Aero\HRM\Listeners\SendPayslipNotificationsNew;
 use Aero\HRM\Listeners\SendProbationEndingNotifications;
 use Aero\HRM\Listeners\SendWorkAnniversaryNotifications;
+use Aero\HRM\Listeners\Training\SendTrainingInvitation;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 /**
@@ -42,6 +72,70 @@ class HrmEventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
+        // Employee Lifecycle Events
+        EmployeeCreated::class => [
+            SendEmployeeWelcomeNotification::class,
+            NotifyManagerOfNewEmployee::class,
+        ],
+
+        EmployeePromoted::class => [
+            SendPromotionNotification::class,
+        ],
+
+        EmployeeResigned::class => [
+            NotifyHROfResignation::class,
+        ],
+
+        // Attendance Events
+        AttendancePunchedIn::class => [
+            SendPunchInConfirmation::class,
+        ],
+
+        AttendancePunchedOut::class => [
+            // Confirmation sent inline in controller for now
+        ],
+
+        LateArrivalDetected::class => [
+            SendLateArrivalNotification::class,
+        ],
+
+        // Onboarding/Offboarding Events
+        OnboardingStarted::class => [
+            SendOnboardingWelcomeNotification::class,
+        ],
+
+        OnboardingCompleted::class => [
+            SendOnboardingCompletionNotification::class,
+        ],
+
+        OffboardingStarted::class => [
+            SendOffboardingNotification::class,
+        ],
+
+        // Recruitment Events
+        ApplicationReceived::class => [
+            SendApplicationAcknowledgment::class,
+        ],
+
+        InterviewScheduled::class => [
+            SendInterviewInvitation::class,
+        ],
+
+        // Performance Events
+        PerformanceReviewCompleted::class => [
+            SendReviewCompletionNotification::class,
+        ],
+
+        // Training Events
+        TrainingScheduled::class => [
+            SendTrainingInvitation::class,
+        ],
+
+        // Safety Events
+        SafetyIncidentReported::class => [
+            NotifySafetyTeam::class,
+        ],
+
         // Leave Events
         LeaveRequested::class => [
             UpdateBalanceOnLeaveRequest::class,
@@ -50,12 +144,12 @@ class HrmEventServiceProvider extends ServiceProvider
 
         LeaveApproved::class => [
             UpdateBalanceOnLeaveApproval::class,
-            // Notification is sent directly in LeaveApprovalService
+            NotifyEmployeeOfLeaveApproval::class,
         ],
 
         LeaveRejected::class => [
             UpdateBalanceOnLeaveRejection::class,
-            // Notification is sent directly in LeaveApprovalService
+            NotifyEmployeeOfLeaveRejection::class,
         ],
 
         LeaveCancelled::class => [
@@ -68,7 +162,7 @@ class HrmEventServiceProvider extends ServiceProvider
             SendPayslipNotificationsNew::class,
         ],
 
-        // Employee Lifecycle Events
+        // Employee Milestone Events
         EmployeeBirthday::class => [
             SendBirthdayNotifications::class,
         ],
@@ -77,6 +171,7 @@ class HrmEventServiceProvider extends ServiceProvider
             SendWorkAnniversaryNotifications::class,
         ],
 
+        // Document & Contract Events
         DocumentExpiring::class => [
             SendDocumentExpiryNotifications::class,
         ],

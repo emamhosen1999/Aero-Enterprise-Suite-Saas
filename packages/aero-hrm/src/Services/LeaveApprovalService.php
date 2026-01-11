@@ -4,7 +4,6 @@ namespace Aero\HRM\Services;
 
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
-use Aero\Core\Models\User;
 use App\Notifications\LeaveApprovalNotification;
 use App\Notifications\LeaveApprovedNotification;
 use App\Notifications\LeaveRejectedNotification;
@@ -13,12 +12,17 @@ use Illuminate\Support\Facades\Log;
 
 class LeaveApprovalService
 {
+    public function __construct(
+        private EmployeeResolutionService $resolutionService,
+        private HRMAuthorizationService $authService
+    ) {}
+
     /**
      * Build approval chain for a leave request based on organizational hierarchy
      */
     public function buildApprovalChain(Leave $leave): array
     {
-        $user = $leave->user;
+        $employee = $leave->employee;
         $leaveSetting = $leave->leaveSetting;
 
         // Check if approval is required for this leave type
@@ -33,36 +37,38 @@ class LeaveApprovalService
 
         $approvalChain = [];
 
-        // Level 1: Direct Manager (report_to)
-        if ($user->report_to_id) {
-            $approvalChain[] = [
-                'level' => 1,
-                'approver_id' => $user->report_to_id,
-                'approver_name' => $user->reportTo->name ?? 'Unknown',
-                'status' => 'pending',
-                'approved_at' => null,
-                'comments' => null,
-            ];
+        // Level 1: Direct Manager (reporting_manager_id)
+        if ($employee->reporting_manager_id) {
+            $manager = Employee::find($employee->reporting_manager_id);
+            if ($manager) {
+                $approvalChain[] = [
+                    'level' => 1,
+                    'approver_employee_id' => $manager->id,
+                    'approver_name' => $manager->full_name,
+                    'status' => 'pending',
+                    'approved_at' => null,
+                    'comments' => null,
+                ];
+            }
         }
 
         // Level 2: Department Head (if different from direct manager)
-        $employee = $user->employee;
-        $departmentHead = $employee ? Employee::where('department_id', $employee->department_id)
+        // Level 2: Department Head (if different from direct manager)
+        $departmentHead = Employee::where('department_id', $employee->department_id)
             ->where('designation_id', function ($query) {
                 $query->selectRaw('MIN(id)') // Lowest designation_id = highest rank
                     ->from('designations')
                     ->whereColumn('id', 'employees.designation_id');
             })
-            ->where('user_id', '!=', $user->id)
-            ->where('user_id', '!=', $user->report_to_id)
-            ->with('user')
-            ->first() : null;
+            ->where('id', '!=', $employee->id)
+            ->where('id', '!=', $employee->reporting_manager_id)
+            ->first();
 
         if ($departmentHead) {
             $approvalChain[] = [
                 'level' => 2,
-                'approver_id' => $departmentHead->user_id,
-                'approver_name' => $departmentHead->user->name ?? 'Unknown',
+                'approver_employee_id' => $departmentHead->id,
+                'approver_name' => $departmentHead->full_name,
                 'status' => 'pending',
                 'approved_at' => null,
                 'comments' => null,
@@ -71,17 +77,19 @@ class LeaveApprovalService
 
         // Level 3: HR Manager (for leaves > 5 days or special leave types)
         if ($leave->no_of_days > 5 || in_array($leave->leave_type_id, $this->getSpecialLeaveTypes())) {
-            $hrManager = User::whereHas('roles', function ($query) {
-                $query->where('name', 'HR Manager')
-                    ->orWhere('name', 'HR Head')
-                    ->orWhere('name', 'Super Admin');
-            })->first();
+            // Find employees authorized for HR leave approval
+            $hrManagers = Employee::where('is_active', true)
+                ->get()
+                ->filter(function ($emp) {
+                    return $this->authService->canApproveLeave($emp);
+                })
+                ->first();
 
-            if ($hrManager) {
+            if ($hrManagers) {
                 $approvalChain[] = [
                     'level' => 3,
-                    'approver_id' => $hrManager->id,
-                    'approver_name' => $hrManager->name,
+                    'approver_employee_id' => $hrManagers->id,
+                    'approver_name' => $hrManagers->full_name,
                     'status' => 'pending',
                     'approved_at' => null,
                     'comments' => null,
@@ -127,7 +135,7 @@ class LeaveApprovalService
 
             DB::commit();
             Log::info("Leave #{$leave->id} submitted for approval", [
-                'user_id' => $leave->user_id,
+                'employee_id' => $leave->employee_id,
                 'levels' => count($approvalChain),
             ]);
 
@@ -145,7 +153,7 @@ class LeaveApprovalService
     /**
      * Approve leave at current level
      */
-    public function approve(Leave $leave, User $approver, ?string $comments = null): array
+    public function approve(Leave $leave, Employee $approver, ?string $comments = null): array
     {
         DB::beginTransaction();
         try {
@@ -162,7 +170,7 @@ class LeaveApprovalService
 
             // Update current level in chain
             foreach ($approvalChain as &$level) {
-                if ($level['level'] === $currentLevel && $level['approver_id'] === $approver->id) {
+                if ($level['level'] === $currentLevel && $level['approver_employee_id'] === $approver->id) {
                     $level['status'] = 'approved';
                     $level['approved_at'] = now()->toDateTimeString();
                     $level['comments'] = $comments;
@@ -201,11 +209,11 @@ class LeaveApprovalService
                 ]);
 
                 // Notify employee
-                $leave->user->notify(new LeaveApprovedNotification($leave));
+                $leave->employee->user->notify(new LeaveApprovedNotification($leave));
 
                 DB::commit();
                 Log::info("Leave #{$leave->id} fully approved", [
-                    'final_approver' => $approver->id,
+                    'final_approver_employee_id' => $approver->id,
                 ]);
 
                 return [
@@ -231,7 +239,7 @@ class LeaveApprovalService
     /**
      * Reject leave request
      */
-    public function reject(Leave $leave, User $approver, string $reason): array
+    public function reject(Leave $leave, Employee $approver, string $reason): array
     {
         DB::beginTransaction();
         try {
@@ -247,7 +255,7 @@ class LeaveApprovalService
 
             // Update current level in chain
             foreach ($approvalChain as &$level) {
-                if ($level['level'] === $currentLevel && $level['approver_id'] === $approver->id) {
+                if ($level['level'] === $currentLevel && $level['approver_employee_id'] === $approver->id) {
                     $level['status'] = 'rejected';
                     $level['approved_at'] = now()->toDateTimeString();
                     $level['comments'] = $reason;
@@ -259,11 +267,11 @@ class LeaveApprovalService
                 'approval_chain' => $approvalChain,
                 'status' => 'rejected',
                 'rejection_reason' => $reason,
-                'rejected_by' => $approver->id,
+                'rejected_by_employee_id' => $approver->id,
             ]);
 
             // Notify employee
-            $leave->user->notify(new LeaveRejectedNotification($leave, $reason));
+            $leave->employee->user->notify(new LeaveRejectedNotification($leave, $reason));
 
             DB::commit();
             Log::info("Leave #{$leave->id} rejected", [
@@ -290,9 +298,9 @@ class LeaveApprovalService
     }
 
     /**
-     * Check if user can approve this leave at current level
+     * Check if employee can approve this leave at current level
      */
-    public function canApprove(Leave $leave, User $user): bool
+    public function canApprove(Leave $leave, Employee $employee): bool
     {
         if ($leave->status !== 'pending') {
             return false;
@@ -302,7 +310,7 @@ class LeaveApprovalService
         $currentLevel = $leave->current_approval_level;
 
         foreach ($approvalChain as $level) {
-            if ($level['level'] === $currentLevel && $level['approver_id'] === $user->id && $level['status'] === 'pending') {
+            if ($level['level'] === $currentLevel && $level['approver_employee_id'] === $employee->id && $level['status'] === 'pending') {
                 return true;
             }
         }
@@ -311,9 +319,9 @@ class LeaveApprovalService
     }
 
     /**
-     * Get current approver for a leave request
+     * Get current approver employee for a leave request
      */
-    public function getCurrentApprover(Leave $leave): ?User
+    public function getCurrentApprover(Leave $leave): ?Employee
     {
         if ($leave->status !== 'pending' || ! $leave->approval_chain) {
             return null;
@@ -324,7 +332,7 @@ class LeaveApprovalService
 
         foreach ($approvalChain as $level) {
             if ($level['level'] === $currentLevel && $level['status'] === 'pending') {
-                return User::find($level['approver_id']);
+                return Employee::find($level['approver_employee_id']);
             }
         }
 
@@ -336,10 +344,10 @@ class LeaveApprovalService
      */
     protected function notifyCurrentApprover(Leave $leave): void
     {
-        $approver = $this->getCurrentApprover($leave);
+        $approverEmployee = $this->getCurrentApprover($leave);
 
-        if ($approver) {
-            $approver->notify(new LeaveApprovalNotification($leave));
+        if ($approverEmployee && $approverEmployee->user) {
+            $approverEmployee->user->notify(new LeaveApprovalNotification($leave));
         }
     }
 
@@ -358,31 +366,31 @@ class LeaveApprovalService
     }
 
     /**
-     * Get leaves pending approval for a user
+     * Get leaves pending approval for an employee
      */
-    public function getPendingApprovalsForUser(User $user): \Illuminate\Database\Eloquent\Collection
+    public function getPendingApprovalsForEmployee(Employee $employee): \Illuminate\Database\Eloquent\Collection
     {
         return Leave::where('status', 'pending')
             ->whereNotNull('approval_chain')
             ->get()
-            ->filter(function ($leave) use ($user) {
-                return $this->canApprove($leave, $user);
+            ->filter(function ($leave) use ($employee) {
+                return $this->canApprove($leave, $employee);
             });
     }
 
     /**
-     * Get approval statistics for a user
+     * Get approval statistics for an employee
      */
-    public function getApprovalStats(User $user): array
+    public function getApprovalStats(Employee $employee): array
     {
-        $pending = $this->getPendingApprovalsForUser($user)->count();
+        $pending = $this->getPendingApprovalsForEmployee($employee)->count();
 
         $approved = Leave::whereNotNull('approval_chain')
             ->where('status', 'approved')
             ->get()
-            ->filter(function ($leave) use ($user) {
+            ->filter(function ($leave) use ($employee) {
                 foreach ($leave->approval_chain as $level) {
-                    if ($level['approver_id'] === $user->id && $level['status'] === 'approved') {
+                    if ($level['approver_employee_id'] === $employee->id && $level['status'] === 'approved') {
                         return true;
                     }
                 }
@@ -394,9 +402,9 @@ class LeaveApprovalService
         $rejected = Leave::whereNotNull('approval_chain')
             ->where('status', 'rejected')
             ->get()
-            ->filter(function ($leave) use ($user) {
+            ->filter(function ($leave) use ($employee) {
                 foreach ($leave->approval_chain as $level) {
-                    if ($level['approver_id'] === $user->id && $level['status'] === 'rejected') {
+                    if ($level['approver_employee_id'] === $employee->id && $level['status'] === 'rejected') {
                         return true;
                     }
                 }

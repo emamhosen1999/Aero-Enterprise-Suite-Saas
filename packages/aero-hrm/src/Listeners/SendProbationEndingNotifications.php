@@ -33,10 +33,12 @@ class SendProbationEndingNotifications implements ShouldQueue
      */
     protected function notifyManager($employee, int $daysRemaining): void
     {
-        $manager = $employee->manager;
-
-        if ($manager && $manager->user) {
-            $manager->user->notify(new ProbationEndingNotification($employee, $daysRemaining));
+        // manager_id references users.id directly
+        if ($employee->manager_id) {
+            $manager = \Aero\Core\Models\User::find($employee->manager_id);
+            if ($manager) {
+                $manager->notify(new ProbationEndingNotification($employee, $daysRemaining));
+            }
         }
     }
 
@@ -46,7 +48,7 @@ class SendProbationEndingNotifications implements ShouldQueue
     protected function notifyHr($employee, int $daysRemaining): void
     {
         if (class_exists('Spatie\Permission\Models\Role')) {
-            $hrRoleNames = ['hr', 'hr_manager', 'hr-manager', 'human_resources'];
+            $hrRoleNames = ['HR Admin', 'HR Manager', 'hr', 'hr_manager', 'hr-manager', 'human_resources'];
             $hrUsers = \Aero\Core\Models\User::role($hrRoleNames)->get();
 
             foreach ($hrUsers as $hrUser) {
@@ -57,8 +59,48 @@ class SendProbationEndingNotifications implements ShouldQueue
         }
     }
 
-    /**
-     * Handle a failed job.
+    /**     * Notify users who have access to HRM employee management.
+     */
+    protected function notifyUsersWithEmployeeAccess($employee, int $daysUntilEnd): void
+    {
+        // Try HRMAC first
+        if (app()->bound('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
+            try {
+                $hrmacService = app('Aero\HRMAC\Contracts\RoleModuleAccessInterface');
+                $usersWithAccess = $hrmacService->getUsersWithSubModuleAccess('hrm', 'employees', 'view');
+
+                foreach ($usersWithAccess as $user) {
+                    $user->notify(new ProbationEndingNotification($employee, $daysUntilEnd));
+                }
+                
+                if ($usersWithAccess->isNotEmpty()) {
+                    return;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Failed to get users with employee access via HRMAC', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Fallback: Find users via role scope if available
+        try {
+            $userClass = \Aero\Core\Models\User::class;
+            if (method_exists($userClass, 'scopeRole')) {
+                $hrUsers = $userClass::role(['HR Admin', 'HR Manager', 'hr_admin', 'hr_manager'])->get();
+                
+                foreach ($hrUsers as $hrUser) {
+                    $hrUser->notify(new ProbationEndingNotification($employee, $daysUntilEnd));
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to notify HR users (fallback)', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**     * Handle a failed job.
      */
     public function failed(ProbationEnding $event, \Throwable $exception): void
     {

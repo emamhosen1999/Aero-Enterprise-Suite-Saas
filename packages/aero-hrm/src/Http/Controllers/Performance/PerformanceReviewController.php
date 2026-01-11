@@ -5,6 +5,7 @@ namespace Aero\HRM\Http\Controllers\Performance;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\PerformanceReview;
 use Aero\HRM\Models\PerformanceReviewTemplate;
+use Aero\HRM\Events\Performance\PerformanceReviewCompleted;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
@@ -187,6 +188,15 @@ class PerformanceReviewController extends Controller
         ]);
 
         $review->update($validated);
+
+        // Dispatch PerformanceReviewCompleted event if status is completed
+        if ($validated['status'] === 'completed' && isset($validated['overall_rating'])) {
+            event(new PerformanceReviewCompleted(
+                $review,
+                $validated['overall_rating'],
+                $validated['comments'] ?? ''
+            ));
+        }
 
         return redirect()->route('hr.performance.show', $review->id)
             ->with('success', 'Performance review updated successfully.');
