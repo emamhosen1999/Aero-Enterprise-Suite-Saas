@@ -293,7 +293,7 @@ class SentimentAnalyticsService
         return [
             'period_days' => $days,
             'total_records' => $records->count(),
-            'overall_average' => round($records->avg('sentiment_score'), 1),
+            'overall_average' => round($records->avg('sentiment_score') ?? 0, 1),
             'trend_direction' => $trendDirection,
             'weekly_data' => $trends,
         ];
