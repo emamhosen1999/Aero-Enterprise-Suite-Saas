@@ -22,6 +22,18 @@ import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
     ArrowPathIcon,
+    UserPlusIcon,
+    UserMinusIcon,
+    CalendarDaysIcon,
+    ClockIcon,
+    DocumentTextIcon,
+    ArrowTrendingUpIcon,
+    BuildingOfficeIcon,
+    AcademicCapIcon,
+    ShieldExclamationIcon,
+    BanknotesIcon,
+    HeartIcon,
+    GiftIcon,
 } from '@heroicons/react/24/outline';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
 import { formatDistanceToNow } from 'date-fns';
@@ -164,7 +176,7 @@ const NotificationDropdown = ({
         
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.delete(`/api/notifications/${notificationId}`);
+                const response = await axios.delete(`/api/core/notifications/${notificationId}`);
                 
                 if (response.status === 200) {
                     const removedNotification = notifications.find(n => n.id === notificationId);
@@ -202,11 +214,81 @@ const NotificationDropdown = ({
         }
     };
 
-    // Get notification icon based on type
+    // Get notification icon based on type or event
     const getNotificationIcon = (notification) => {
         const type = notification.data?.type || notification.type || 'info';
+        const event = notification.data?.event || notification.data?.category || '';
         const iconClass = "w-5 h-5";
 
+        // HRM-specific event icons
+        if (event) {
+            const eventLower = event.toLowerCase();
+            
+            // Employee events
+            if (eventLower.includes('employee.created') || eventLower.includes('welcome')) {
+                return <UserPlusIcon className={`${iconClass} text-success`} />;
+            }
+            if (eventLower.includes('employee.terminated') || eventLower.includes('resigned') || eventLower.includes('offboarding')) {
+                return <UserMinusIcon className={`${iconClass} text-danger`} />;
+            }
+            if (eventLower.includes('employee.promoted') || eventLower.includes('promotion')) {
+                return <ArrowTrendingUpIcon className={`${iconClass} text-success`} />;
+            }
+            if (eventLower.includes('employee.transferred') || eventLower.includes('transfer')) {
+                return <BuildingOfficeIcon className={`${iconClass} text-primary`} />;
+            }
+            
+            // Leave events
+            if (eventLower.includes('leave.approved')) {
+                return <CheckCircleIcon className={`${iconClass} text-success`} />;
+            }
+            if (eventLower.includes('leave.rejected')) {
+                return <ExclamationCircleIcon className={`${iconClass} text-danger`} />;
+            }
+            if (eventLower.includes('leave')) {
+                return <CalendarDaysIcon className={`${iconClass} text-primary`} />;
+            }
+            
+            // Attendance events
+            if (eventLower.includes('attendance') || eventLower.includes('late') || eventLower.includes('absent')) {
+                return <ClockIcon className={`${iconClass} text-warning`} />;
+            }
+            
+            // Training events
+            if (eventLower.includes('training')) {
+                return <AcademicCapIcon className={`${iconClass} text-primary`} />;
+            }
+            
+            // Safety events
+            if (eventLower.includes('safety') || eventLower.includes('incident')) {
+                return <ShieldExclamationIcon className={`${iconClass} text-danger`} />;
+            }
+            
+            // Payroll events
+            if (eventLower.includes('payroll') || eventLower.includes('payslip') || eventLower.includes('salary')) {
+                return <BanknotesIcon className={`${iconClass} text-success`} />;
+            }
+            
+            // Document events
+            if (eventLower.includes('document') || eventLower.includes('contract')) {
+                return <DocumentTextIcon className={`${iconClass} text-primary`} />;
+            }
+            
+            // Birthday/Anniversary events
+            if (eventLower.includes('birthday')) {
+                return <GiftIcon className={`${iconClass} text-pink-500`} />;
+            }
+            if (eventLower.includes('anniversary')) {
+                return <HeartIcon className={`${iconClass} text-pink-500`} />;
+            }
+            
+            // Onboarding events
+            if (eventLower.includes('onboarding')) {
+                return <UserPlusIcon className={`${iconClass} text-primary`} />;
+            }
+        }
+
+        // Fallback to type-based icons
         switch (type) {
             case 'success':
                 return <CheckCircleIcon className={`${iconClass} text-success`} />;

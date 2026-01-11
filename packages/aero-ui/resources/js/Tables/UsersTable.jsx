@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { showToast } from '@/utils/toastUtils';
 import { getProfileAvatarTokens } from '@/Components/ProfileAvatar';
+import ProfilePictureModal from '@/Components/ProfilePictureModal';
 import { 
   Table, 
   TableBody, 
@@ -153,6 +154,36 @@ const UsersTable = ({
   
   // Get current user's auth info
   const { auth } = usePage().props;
+
+  // Profile picture modal state (for User profile images)
+  const [profilePictureModal, setProfilePictureModal] = useState({
+    isOpen: false,
+    user: null
+  });
+
+  // Profile picture modal handlers
+  const handleProfilePictureClick = (user) => {
+    setProfilePictureModal({
+      isOpen: true,
+      user: user
+    });
+  };
+
+  const handleProfilePictureClose = () => {
+    setProfilePictureModal({
+      isOpen: false,
+      user: null
+    });
+  };
+
+  const handleProfileImageUpdate = (userId, newImageUrl) => {
+    // Update the user's profile image in the local state
+    if (updateUserOptimized) {
+      updateUserOptimized(userId, {
+        profile_image_url: newImageUrl
+      });
+    }
+  };
   
   // Helper to check if a user has Super Admin role
   const isSuperAdmin = (user) => {
@@ -593,6 +624,9 @@ const UsersTable = ({
                 src: user?.profile_image_url || user?.profile_image,
                 name: user?.name || "Unnamed User",
                 size: "sm",
+                isBordered: true,
+                className: "cursor-pointer hover:opacity-80 transition-opacity",
+                onClick: () => handleProfilePictureClick(user),
                 ...getProfileAvatarTokens({
                   name: user?.name || "Unnamed User",
                   size: 'sm',
@@ -1248,6 +1282,14 @@ const UsersTable = ({
       
       {/* Pagination Footer - Outside scroll area */}
       {renderPagination()}
+
+      {/* User Profile Picture Update Modal */}
+      <ProfilePictureModal
+        isOpen={profilePictureModal.isOpen}
+        onClose={handleProfilePictureClose}
+        user={profilePictureModal.user}
+        onImageUpdate={handleProfileImageUpdate}
+      />
     </div>
   );
 };

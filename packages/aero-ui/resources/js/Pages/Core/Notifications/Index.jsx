@@ -23,7 +23,22 @@ import {
   EllipsisVerticalIcon,
   CheckCircleIcon,
   InboxIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  UserPlusIcon,
+  UserMinusIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  DocumentTextIcon,
+  ArrowTrendingUpIcon,
+  BuildingOfficeIcon,
+  AcademicCapIcon,
+  ShieldExclamationIcon,
+  BanknotesIcon,
+  HeartIcon,
+  GiftIcon,
+  ExclamationCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import App from "@/Layouts/App.jsx";
 import StandardPageLayout from "@/Layouts/StandardPageLayout.jsx";
@@ -153,16 +168,107 @@ const NotificationsIndex = () => {
     });
   };
 
-  const getNotificationIcon = (type) => {
-    // Default icon based on notification type
+  const getNotificationIcon = (notification) => {
+    const type = notification.data?.type || notification.type || 'info';
+    const event = notification.data?.event || notification.data?.category || '';
+    
+    // HRM-specific event icons
+    if (event) {
+      const eventLower = event.toLowerCase();
+      
+      // Employee events
+      if (eventLower.includes('employee.created') || eventLower.includes('welcome')) {
+        return UserPlusIcon;
+      }
+      if (eventLower.includes('employee.terminated') || eventLower.includes('resigned') || eventLower.includes('offboarding')) {
+        return UserMinusIcon;
+      }
+      if (eventLower.includes('employee.promoted') || eventLower.includes('promotion')) {
+        return ArrowTrendingUpIcon;
+      }
+      if (eventLower.includes('employee.transferred') || eventLower.includes('transfer')) {
+        return BuildingOfficeIcon;
+      }
+      
+      // Leave events
+      if (eventLower.includes('leave.approved')) {
+        return CheckCircleIcon;
+      }
+      if (eventLower.includes('leave.rejected')) {
+        return ExclamationCircleIcon;
+      }
+      if (eventLower.includes('leave')) {
+        return CalendarDaysIcon;
+      }
+      
+      // Attendance events
+      if (eventLower.includes('attendance') || eventLower.includes('late') || eventLower.includes('absent')) {
+        return ClockIcon;
+      }
+      
+      // Training events
+      if (eventLower.includes('training')) {
+        return AcademicCapIcon;
+      }
+      
+      // Safety events
+      if (eventLower.includes('safety') || eventLower.includes('incident')) {
+        return ShieldExclamationIcon;
+      }
+      
+      // Payroll events
+      if (eventLower.includes('payroll') || eventLower.includes('payslip') || eventLower.includes('salary')) {
+        return BanknotesIcon;
+      }
+      
+      // Document events
+      if (eventLower.includes('document') || eventLower.includes('contract')) {
+        return DocumentTextIcon;
+      }
+      
+      // Birthday/Anniversary events
+      if (eventLower.includes('birthday')) {
+        return GiftIcon;
+      }
+      if (eventLower.includes('anniversary')) {
+        return HeartIcon;
+      }
+      
+      // Onboarding events
+      if (eventLower.includes('onboarding')) {
+        return UserPlusIcon;
+      }
+    }
+    
+    // Fallback to default icon
     return BellIcon;
   };
 
-  const getNotificationColor = (type) => {
+  const getNotificationColor = (notification) => {
+    const type = notification.data?.type || notification.type || 'info';
+    const event = notification.data?.event || notification.data?.category || '';
+    
+    // Event-based colors
+    if (event) {
+      const eventLower = event.toLowerCase();
+      
+      if (eventLower.includes('approved') || eventLower.includes('success') || eventLower.includes('promoted') || eventLower.includes('payroll')) {
+        return 'success';
+      }
+      if (eventLower.includes('rejected') || eventLower.includes('terminated') || eventLower.includes('resigned') || eventLower.includes('incident') || eventLower.includes('safety')) {
+        return 'danger';
+      }
+      if (eventLower.includes('late') || eventLower.includes('absent') || eventLower.includes('warning') || eventLower.includes('reminder')) {
+        return 'warning';
+      }
+    }
+    
+    // Type-based colors (fallback)
     const colors = {
       'success': 'success',
       'warning': 'warning',
       'error': 'danger',
+      'danger': 'danger',
       'info': 'primary'
     };
     return colors[type] || 'default';
@@ -277,7 +383,8 @@ const NotificationsIndex = () => {
           <>
             <div className="space-y-3">
               {notifications.map((notification) => {
-                const Icon = getNotificationIcon(notification.data?.type);
+                const Icon = getNotificationIcon(notification);
+                const colorClass = getNotificationColor(notification);
                 const isUnread = !notification.read_at;
 
                 return (
@@ -290,10 +397,10 @@ const NotificationsIndex = () => {
                     }`}
                   >
                     <div className={`flex-shrink-0 p-2 rounded-full ${
-                      isUnread ? 'bg-primary/10' : 'bg-default-100'
+                      isUnread ? `bg-${colorClass}/10` : 'bg-default-100'
                     }`}>
                       <Icon className={`w-5 h-5 ${
-                        isUnread ? 'text-primary' : 'text-default-500'
+                        isUnread ? `text-${colorClass}` : 'text-default-500'
                       }`} />
                     </div>
 
