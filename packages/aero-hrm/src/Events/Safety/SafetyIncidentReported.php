@@ -35,7 +35,8 @@ class SafetyIncidentReported extends BaseHrmEvent
         public bool $requiresImmediateAction = false,
         ?int $actorEmployeeId = null
     ) {
-        parent::__construct($actorEmployeeId ?? $incident->reported_by_employee_id);
+        // SafetyIncident uses reported_by (user_id)
+        parent::__construct($actorEmployeeId);
     }
 
     public function getSubModuleCode(): string
@@ -48,14 +49,14 @@ class SafetyIncidentReported extends BaseHrmEvent
         return 'incidents';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'report';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->incident->id;
+        return (int) $this->incident->id;
     }
 
     public function getEntityType(): string
@@ -66,11 +67,11 @@ class SafetyIncidentReported extends BaseHrmEvent
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'reported_by_employee_id' => $this->incident->reported_by_employee_id,
+            'reported_by_user_id' => $this->incident->reported_by,
             'severity' => $this->severity,
             'requires_immediate_action' => $this->requiresImmediateAction,
             'incident_date' => $this->incident->incident_date?->toDateString(),
-            'location' => $this->incident->location ?? null,
+            'location' => $this->incident->location,
         ]);
     }
 

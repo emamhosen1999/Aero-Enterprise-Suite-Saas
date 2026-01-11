@@ -52,7 +52,7 @@ class WorkAnniversary extends BaseHrmEvent
     {
         return array_merge(parent::getNotificationContext(), [
             'employee_id' => $this->employee->id,
-            'employee_name' => $this->employee->full_name,
+            'employee_name' => $this->employee->name,
             'years_of_service' => $this->yearsOfService,
             'department_id' => $this->employee->department_id,
         ]);
@@ -61,6 +61,6 @@ class WorkAnniversary extends BaseHrmEvent
     public function shouldNotify(): bool
     {
         // Anniversary notifications are optional
-        return config('hrm.notifications.anniversaries', true);
+        return \config('hrm.notifications.anniversaries', true);
     }
 }

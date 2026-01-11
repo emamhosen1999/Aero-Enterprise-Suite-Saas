@@ -43,14 +43,14 @@ class InterviewScheduled extends BaseHrmEvent
         return 'interviews';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'schedule';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->interview->id;
+        return (int) $this->interview->id;
     }
 
     public function getEntityType(): string
@@ -61,10 +61,9 @@ class InterviewScheduled extends BaseHrmEvent
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'application_id' => $this->interview->job_application_id ?? null,
+            'application_id' => $this->interview->application_id,
             'scheduled_at' => $this->interview->scheduled_at?->format('Y-m-d H:i:s'),
-            'interview_type' => $this->interview->interview_type ?? null,
-            'interviewer_employee_ids' => $this->interview->interviewer_employee_ids ?? [],
+            'interview_type' => $this->interview->interview_type,
         ]);
     }
 

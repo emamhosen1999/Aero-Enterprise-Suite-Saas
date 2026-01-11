@@ -50,8 +50,9 @@ class PayrollGenerated extends BaseHrmEvent
     {
         return array_merge(parent::getNotificationContext(), [
             'payroll_id' => $this->payroll->id,
-            'employee_id' => $this->payroll->employee_id,
-            'period' => $this->payroll->period,
+            'user_id' => $this->payroll->user_id,
+            'pay_period_start' => $this->payroll->pay_period_start?->toDateString(),
+            'pay_period_end' => $this->payroll->pay_period_end?->toDateString(),
             'net_salary' => $this->payroll->net_salary,
         ]);
     }

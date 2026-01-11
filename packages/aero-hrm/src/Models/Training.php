@@ -9,6 +9,39 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * Training Model
+ *
+ * @property int $id
+ * @property string $title
+ * @property string|null $description
+ * @property int|null $category_id
+ * @property string|null $type
+ * @property string|null $status
+ * @property \Carbon\Carbon|null $start_date
+ * @property \Carbon\Carbon|null $end_date
+ * @property int|null $duration
+ * @property string|null $duration_unit
+ * @property string|null $location
+ * @property bool $is_online
+ * @property int|null $instructor_id
+ * @property int|null $max_participants
+ * @property float|null $cost
+ * @property string|null $currency
+ * @property array|null $prerequisites
+ * @property array|null $learning_outcomes
+ * @property string|null $certification
+ * @property int|null $created_by
+ * @property bool $approval_required
+ * @property int|null $department_id
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ *
+ * @property-read TrainingCategory|null $category
+ * @property-read User|null $instructor
+ * @property-read User|null $creator
+ */
 class Training extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;

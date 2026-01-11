@@ -44,14 +44,14 @@ class OnboardingStarted extends BaseHrmEvent
         return 'tasks';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'start';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->onboarding->id;
+        return (int) $this->onboarding->id;
     }
 
     public function getEntityType(): string

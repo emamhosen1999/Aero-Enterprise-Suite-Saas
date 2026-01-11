@@ -59,6 +59,14 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $religion
  * @property string|null $marital_status
  * @property string|null $blood_group
+ *
+ * Accessors:
+ * @property-read string $name
+ * @property-read string $full_name
+ * @property-read User $user
+ * @property-read Department|null $department
+ * @property-read Designation|null $designation
+ * @property-read Employee|null $manager
  */
 class Employee extends Model implements HasMedia
 {

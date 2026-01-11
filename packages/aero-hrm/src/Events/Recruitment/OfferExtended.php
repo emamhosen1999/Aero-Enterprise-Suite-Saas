@@ -43,14 +43,14 @@ class OfferExtended extends BaseHrmEvent
         return 'offers';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'extend';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->offer->id;
+        return (int) $this->offer->id;
     }
 
     public function getEntityType(): string
@@ -61,11 +61,10 @@ class OfferExtended extends BaseHrmEvent
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'application_id' => $this->offer->job_application_id ?? null,
-            'candidate_name' => $this->offer->candidate_name ?? null,
-            'position' => $this->offer->position ?? null,
-            'offer_amount' => $this->offer->offer_amount ?? null,
-            'valid_until' => $this->offer->valid_until?->toDateString(),
+            'application_id' => $this->offer->application_id,
+            'offered_salary' => $this->offer->offered_salary,
+            'joining_date' => $this->offer->joining_date?->toDateString(),
+            'offer_valid_until' => $this->offer->offer_valid_until?->toDateString(),
         ]);
     }
 

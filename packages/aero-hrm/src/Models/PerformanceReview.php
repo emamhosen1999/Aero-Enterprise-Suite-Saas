@@ -9,6 +9,34 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Performance Review Model
+ *
+ * @property int $id
+ * @property int $employee_id User ID of employee being reviewed
+ * @property int $reviewer_id User ID of reviewer
+ * @property \Carbon\Carbon|null $review_period_start
+ * @property \Carbon\Carbon|null $review_period_end
+ * @property \Carbon\Carbon|null $review_date
+ * @property string|null $status
+ * @property float|null $overall_rating
+ * @property string|null $goals_achieved
+ * @property string|null $strengths
+ * @property string|null $areas_for_improvement
+ * @property string|null $comments
+ * @property \Carbon\Carbon|null $acknowledgment_date
+ * @property string|null $employee_comments
+ * @property \Carbon\Carbon|null $next_review_date
+ * @property int|null $department_id
+ * @property int|null $template_id
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ *
+ * @property-read User $employee
+ * @property-read User $reviewer
+ * @property-read string $review_period
+ */
 class PerformanceReview extends Model
 {
     use HasFactory, SoftDeletes;

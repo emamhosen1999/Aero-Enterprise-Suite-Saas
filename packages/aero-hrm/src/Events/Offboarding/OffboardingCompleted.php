@@ -49,14 +49,14 @@ class OffboardingCompleted extends BaseHrmEvent
         return 'tasks';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'complete';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->offboarding->id;
+        return (int) $this->offboarding->id;
     }
 
     public function getEntityType(): string

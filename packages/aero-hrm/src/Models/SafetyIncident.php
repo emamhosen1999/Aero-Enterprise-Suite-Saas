@@ -2,12 +2,36 @@
 
 namespace Aero\HRM\Models;
 
-use App\Models\Tenant\HRM\User;
+use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Safety Incident Model
+ *
+ * @property int $id
+ * @property \Carbon\Carbon $incident_date
+ * @property \Carbon\Carbon|null $incident_time
+ * @property string|null $location
+ * @property string $incident_type
+ * @property string $severity
+ * @property int $reported_by User ID who reported the incident
+ * @property string|null $description
+ * @property string|null $immediate_actions
+ * @property string|null $root_cause
+ * @property string|null $corrective_actions
+ * @property string $status
+ * @property array|null $witnesses
+ * @property bool $reported_to_authorities
+ * @property \Carbon\Carbon|null $authority_report_date
+ * @property array|null $related_documents
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ *
+ * @property-read User $reporter
+ */
 class SafetyIncident extends Model
 {
     use HasFactory;

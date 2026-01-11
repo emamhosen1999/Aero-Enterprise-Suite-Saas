@@ -10,6 +10,27 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Offboarding Model
+ *
+ * @property int $id
+ * @property int $employee_id
+ * @property \Carbon\Carbon|null $initiation_date
+ * @property \Carbon\Carbon|null $last_working_date
+ * @property \Carbon\Carbon|null $exit_interview_date
+ * @property string $reason
+ * @property string $status
+ * @property string|null $notes
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ *
+ * @property-read Employee $employee
+ * @property-read User|null $creator
+ * @property-read User|null $updater
+ */
 class Offboarding extends Model
 {
     use HasFactory, SoftDeletes;

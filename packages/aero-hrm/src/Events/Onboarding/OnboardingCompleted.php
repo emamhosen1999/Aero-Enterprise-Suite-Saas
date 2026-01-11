@@ -35,7 +35,7 @@ class OnboardingCompleted extends BaseHrmEvent
         public int $daysTaken,
         ?int $actorEmployeeId = null
     ) {
-        parent::__construct($actorEmployeeId ?? $onboarding->employee_id);
+        parent::__construct($actorEmployeeId);
     }
 
     public function getSubModuleCode(): string
@@ -48,14 +48,14 @@ class OnboardingCompleted extends BaseHrmEvent
         return 'tasks';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'complete';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->onboarding->id;
+        return (int) $this->onboarding->id;
     }
 
     public function getEntityType(): string

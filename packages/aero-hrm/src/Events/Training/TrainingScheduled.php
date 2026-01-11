@@ -45,14 +45,14 @@ class TrainingScheduled extends BaseHrmEvent
         return 'sessions';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'schedule';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->training->id;
+        return (int) $this->training->id;
     }
 
     public function getEntityType(): string
@@ -63,9 +63,10 @@ class TrainingScheduled extends BaseHrmEvent
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'training_title' => $this->training->title ?? null,
-            'training_type' => $this->training->training_type ?? null,
-            'scheduled_at' => $this->training->scheduled_at?->format('Y-m-d H:i:s'),
+            'training_title' => $this->training->title,
+            'training_type' => $this->training->type,
+            'start_date' => $this->training->start_date?->toDateString(),
+            'end_date' => $this->training->end_date?->toDateString(),
             'enrolled_employee_ids' => $this->enrolledEmployeeIds,
             'enrolled_count' => count($this->enrolledEmployeeIds),
         ]);

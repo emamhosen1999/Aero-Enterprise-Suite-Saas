@@ -41,14 +41,14 @@ class ApplicationReceived extends BaseHrmEvent
         return 'applications';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'receive';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->application->id;
+        return (int) $this->application->id;
     }
 
     public function getEntityType(): string

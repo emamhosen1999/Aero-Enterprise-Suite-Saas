@@ -6,6 +6,34 @@ use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Payroll Model
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property \Carbon\Carbon $pay_period_start
+ * @property \Carbon\Carbon $pay_period_end
+ * @property float $basic_salary
+ * @property float $gross_salary
+ * @property float $total_deductions
+ * @property float $net_salary
+ * @property int $working_days
+ * @property int $present_days
+ * @property int $absent_days
+ * @property int $leave_days
+ * @property float|null $overtime_hours
+ * @property float|null $overtime_amount
+ * @property string $status
+ * @property int|null $processed_by
+ * @property \Carbon\Carbon|null $processed_at
+ * @property string|null $remarks
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ *
+ * @property-read User $employee
+ * @property-read User|null $processedBy
+ * @property-read string $period
+ */
 class Payroll extends Model
 {
     use HasFactory;

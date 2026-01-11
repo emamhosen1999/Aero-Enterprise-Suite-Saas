@@ -35,7 +35,8 @@ class PerformanceReviewCompleted extends BaseHrmEvent
         public ?string $summary = null,
         ?int $actorEmployeeId = null
     ) {
-        parent::__construct($actorEmployeeId ?? $review->reviewer_employee_id);
+        // PerformanceReview uses user_id fields (employee_id, reviewer_id)
+        parent::__construct($actorEmployeeId);
     }
 
     public function getSubModuleCode(): string
@@ -48,14 +49,14 @@ class PerformanceReviewCompleted extends BaseHrmEvent
         return 'reviews';
     }
 
-    public function getActionCode(): ?string
+    public function getActionCode(): string
     {
         return 'complete';
     }
 
-    public function getEntityId(): int|string
+    public function getEntityId(): int
     {
-        return $this->review->id;
+        return (int) $this->review->id;
     }
 
     public function getEntityType(): string
@@ -66,10 +67,11 @@ class PerformanceReviewCompleted extends BaseHrmEvent
     public function getNotificationContext(): array
     {
         return array_merge(parent::getNotificationContext(), [
-            'employee_id' => $this->review->employee_id,
-            'reviewer_employee_id' => $this->review->reviewer_employee_id,
+            'user_id' => $this->review->employee_id,
+            'reviewer_user_id' => $this->review->reviewer_id,
             'overall_rating' => $this->overallRating,
-            'review_period' => $this->review->review_period ?? null,
+            'review_period_start' => $this->review->review_period_start?->toDateString(),
+            'review_period_end' => $this->review->review_period_end?->toDateString(),
         ]);
     }
 
