@@ -6,10 +6,14 @@ use Aero\Core\Contracts\DomainContextContract;
 use Aero\Core\Http\Resources\SystemSettingResource;
 use Aero\Core\Models\SystemSetting;
 use Aero\Core\Services\NavigationRegistry;
+use Aero\HRMAC\Contracts\RoleModuleAccessInterface;
+use Aero\HRMAC\Models\Module;
+use Aero\HRMAC\Models\SubModule;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
@@ -216,6 +220,20 @@ class HandleInertiaRequests extends Middleware
             $permissions = [];
         }
 
+        // Get HRMAC module access tree for frontend (standalone mode)
+        // Super admins bypass access checks - don't need the tree
+        $moduleAccess = null;
+        $accessibleModules = null;
+        $modulesLookup = null;
+        $subModulesLookup = null;
+
+        if (! $isSuperAdmin) {
+            $moduleAccess = $this->getUserModuleAccess($user);
+            $accessibleModules = $this->getUserAccessibleModules($user);
+            $modulesLookup = $this->getModulesLookup();
+            $subModulesLookup = $this->getSubModulesLookup();
+        }
+
         return [
             'user' => [
                 'id' => $user->id,
@@ -225,6 +243,11 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $roles,
                 'permissions' => $permissions,
                 'is_super_admin' => $isSuperAdmin,
+                // HRMAC access data for frontend hooks (useHRMAC, moduleAccessUtils)
+                'module_access' => $moduleAccess,
+                'accessible_modules' => $accessibleModules,
+                'modules_lookup' => $modulesLookup,
+                'sub_modules_lookup' => $subModulesLookup,
             ],
             'isAuthenticated' => true,
             'sessionValid' => true,
@@ -304,5 +327,123 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $this->cachedSystemSetting;
+    }
+
+    // =========================================================================
+    // HRMAC Access Helpers (for standalone mode)
+    // These mirror Platform's HandleInertiaRequests for consistency
+    // =========================================================================
+
+    /**
+     * Get user's module access tree via HRMAC service.
+     *
+     * @return array{modules: int[], sub_modules: int[], components: int[], actions: array<array{id: int, scope: string}>}
+     */
+    protected function getUserModuleAccess($user): array
+    {
+        if (! $user) {
+            return [];
+        }
+
+        $cacheKey = "standalone_user_module_access:{$user->id}";
+
+        return Cache::remember($cacheKey, 600, function () use ($user) {
+            try {
+                if (! app()->bound(RoleModuleAccessInterface::class)) {
+                    return [];
+                }
+
+                $service = app(RoleModuleAccessInterface::class);
+                $access = ['modules' => [], 'sub_modules' => [], 'components' => [], 'actions' => []];
+
+                if (empty($user->roles)) {
+                    return $access;
+                }
+
+                foreach ($user->roles as $role) {
+                    $tree = $service->getRoleAccessTree($role);
+                    $access['modules'] = array_merge($access['modules'], $tree['modules'] ?? []);
+                    $access['sub_modules'] = array_merge($access['sub_modules'], $tree['sub_modules'] ?? []);
+                    $access['components'] = array_merge($access['components'], $tree['components'] ?? []);
+                    $access['actions'] = array_merge($access['actions'], $tree['actions'] ?? []);
+                }
+
+                return array_map(fn ($arr) => array_values(array_unique($arr, SORT_REGULAR)), $access);
+            } catch (Throwable $e) {
+                Log::warning('Failed to get user module access', ['error' => $e->getMessage()]);
+
+                return [];
+            }
+        });
+    }
+
+    /**
+     * Get user's accessible modules as array of module objects.
+     *
+     * @return array<array{id: int, code: string, name: string}>
+     */
+    protected function getUserAccessibleModules($user): array
+    {
+        $access = $this->getUserModuleAccess($user);
+        if (empty($access['modules'])) {
+            return [];
+        }
+
+        try {
+            if (! class_exists(Module::class)) {
+                return [];
+            }
+
+            return Module::whereIn('id', $access['modules'])
+                ->where('is_active', true)
+                ->get(['id', 'code', 'name'])
+                ->toArray();
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get modules lookup table (id => code).
+     *
+     * @return array<int, string>
+     */
+    protected function getModulesLookup(): array
+    {
+        return Cache::remember('standalone_modules_lookup', 3600, function () {
+            try {
+                if (! class_exists(Module::class)) {
+                    return [];
+                }
+
+                return Module::where('is_active', true)->pluck('code', 'id')->toArray();
+            } catch (Throwable $e) {
+                return [];
+            }
+        });
+    }
+
+    /**
+     * Get sub-modules lookup table (id => 'module.submodule').
+     *
+     * @return array<int, string>
+     */
+    protected function getSubModulesLookup(): array
+    {
+        return Cache::remember('standalone_sub_modules_lookup', 3600, function () {
+            try {
+                if (! class_exists(SubModule::class)) {
+                    return [];
+                }
+
+                return SubModule::with('module')
+                    ->where('is_active', true)
+                    ->get()
+                    ->mapWithKeys(fn ($sm) => [$sm->id => $sm->module->code.'.'.$sm->code])
+                    ->toArray();
+            } catch (Throwable $e) {
+                return [];
+            }
+        });
     }
 }

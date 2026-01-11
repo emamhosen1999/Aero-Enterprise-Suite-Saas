@@ -1,14 +1,61 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Aero\HRM\Events\Leave;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\Leave;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
-class LeaveRejected
+/**
+ * Leave Rejected Event
+ *
+ * Dispatched when a leave request is rejected.
+ * Triggers notification to the requesting employee.
+ */
+class LeaveRejected extends BaseHrmEvent
 {
-    use Dispatchable, SerializesModels;
+    public function __construct(
+        public Leave $leave,
+        ?int $rejectorEmployeeId = null,
+        public ?string $rejectionReason = null,
+        array $metadata = []
+    ) {
+        parent::__construct($rejectorEmployeeId, $metadata);
+    }
 
-    public function __construct(public Leave $leave) {}
+    public function getSubModuleCode(): string
+    {
+        return 'leaves';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'leave-requests';
+    }
+
+    public function getActionCode(): string
+    {
+        return 'reject';
+    }
+
+    public function getEntityId(): int
+    {
+        return $this->leave->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'leave';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'leave_id' => $this->leave->id,
+            'employee_id' => $this->leave->employee_id,
+            'rejector_employee_id' => $this->getActorEmployeeId(),
+            'rejection_reason' => $this->rejectionReason,
+        ]);
+    }
 }

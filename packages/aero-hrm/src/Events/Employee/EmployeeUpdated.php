@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Events\Employee;
 
+use Aero\HRM\Events\BaseHrmEvent;
 use Aero\HRM\Models\Employee;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * EmployeeUpdated Event
@@ -17,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
  * Triggers:
  * - Change notification (if significant fields changed)
  * - Manager notification (if reporting changed)
- * - HR notification (if compensation/status changed)
+ * - HR notification via HRMAC (if compensation/status changed)
  *
  * Significant Changes:
  * - Department/Designation change → EmployeePromoted event
@@ -25,22 +23,61 @@ use Illuminate\Queue\SerializesModels;
  * - Manager change → Manager notification
  * - Salary change → HR notification
  */
-class EmployeeUpdated
+class EmployeeUpdated extends BaseHrmEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    public array $changes;
 
     /**
      * Create a new event instance.
      *
-     * @param  \Aero\HRM\Models\Employee  $employee  The updated employee
+     * @param  Employee  $employee  The updated employee
      * @param  array  $changes  Array of changed attributes
-     * @param  int|null  $updatedBy  User ID of the person who updated the employee
+     * @param  int|null  $updatedByEmployeeId  Employee ID of the person who updated
      */
     public function __construct(
         public Employee $employee,
-        public array $changes = [],
-        public ?int $updatedBy = null
-    ) {}
+        array $changes = [],
+        ?int $updatedByEmployeeId = null,
+        array $metadata = []
+    ) {
+        $this->changes = $changes;
+        parent::__construct($updatedByEmployeeId, $metadata);
+    }
+
+    public function getSubModuleCode(): string
+    {
+        return 'employees';
+    }
+
+    public function getComponentCode(): ?string
+    {
+        return 'employee-records';
+    }
+
+    public function getActionCode(): string
+    {
+        return 'update';
+    }
+
+    public function getEntityId(): int
+    {
+        return $this->employee->id;
+    }
+
+    public function getEntityType(): string
+    {
+        return 'employee';
+    }
+
+    public function getNotificationContext(): array
+    {
+        return array_merge(parent::getNotificationContext(), [
+            'employee_id' => $this->employee->id,
+            'changed_fields' => array_keys($this->changes),
+            'manager_employee_id' => $this->employee->manager_id,
+            'department_id' => $this->employee->department_id,
+        ]);
+    }
 
     /**
      * Check if a specific field was changed.
@@ -53,7 +90,7 @@ class EmployeeUpdated
     /**
      * Get the old value of a changed field.
      */
-    public function getOldValue(string $field)
+    public function getOldValue(string $field): mixed
     {
         return $this->changes[$field]['old'] ?? null;
     }
@@ -61,7 +98,7 @@ class EmployeeUpdated
     /**
      * Get the new value of a changed field.
      */
-    public function getNewValue(string $field)
+    public function getNewValue(string $field): mixed
     {
         return $this->changes[$field]['new'] ?? null;
     }

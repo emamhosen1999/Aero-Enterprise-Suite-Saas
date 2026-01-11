@@ -2,69 +2,65 @@
 
 namespace Aero\Project\Models;
 
-use Aero\HRM\Models\Department;
-use Aero\Rfi\Models\Rfi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Project extends Model implements HasMedia
+class Project extends Model
 {
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'tenant_id',
         'project_name',
+        'code',
+        'description',
         'client_id',
+        'department_id',
         'start_date',
         'end_date',
-        'rate',
-        'rate_type',
-        'priority',
         'project_leader_id',
         'team_leader_id',
-        'description',
-        'files',
-        'status',
         'budget',
-        'department_id',
+        'rate',
+        'rate_type',
+        'status',
+        'priority',
         'progress',
         'color',
+        'files',
         'notes',
-    ];
-
-    protected $dates = [
-        'start_date',
-        'end_date',
+        // domain-specific
+        'type',
+        'category',
+        'location',
+        'start_chainage',
+        'end_chainage',
+        'total_length',
+        'boundary_lat_min',
+        'boundary_lat_max',
+        'boundary_lng_min',
+        'boundary_lng_max',
+        'geofence_settings',
     ];
 
     protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
         'files' => 'array',
         'budget' => 'decimal:2',
         'progress' => 'integer',
+        'start_chainage' => 'decimal:3',
+        'end_chainage' => 'decimal:3',
+        'total_length' => 'decimal:3',
+        'boundary_lat_min' => 'decimal:7',
+        'boundary_lat_max' => 'decimal:7',
+        'boundary_lng_min' => 'decimal:7',
+        'boundary_lng_max' => 'decimal:7',
+        'geofence_settings' => 'array',
     ];
 
-    // Relationships
-    public function client()
-    {
-        return $this->belongsTo(Client::class);
-    }
-
-    public function projectLeader()
-    {
-        return $this->belongsTo(User::class, 'project_leader_id');
-    }
-
-    public function teamLeader()
-    {
-        return $this->belongsTo(User::class, 'team_leader_id');
-    }
-
-    public function department()
-    {
-        return $this->belongsTo(Department::class);
-    }
-
+    // Internal relationships (tenant-scoped)
     public function milestones()
     {
         return $this->hasMany(ProjectMilestone::class);
@@ -78,26 +74,6 @@ class Project extends Model implements HasMedia
     public function issues()
     {
         return $this->hasMany(ProjectIssue::class);
-    }
-
-    public function resources()
-    {
-        return $this->belongsToMany(User::class, 'project_resources')
-            ->withPivot('role', 'allocation_percentage', 'start_date', 'end_date')
-            ->withTimestamps();
-    }
-
-    public function rfis()
-    {
-        return $this->hasMany(Rfi::class);
-    }
-
-    /**
-     * Alias for backward compatibility.
-     */
-    public function dailyWorks()
-    {
-        return $this->rfis();
     }
 
     public function timeEntries()
@@ -120,9 +96,6 @@ class Project extends Model implements HasMedia
         return $this->hasMany(ProjectResource::class);
     }
 
-    /**
-     * Calculate project progress based on completed tasks.
-     */
     public function calculateProgress(): int
     {
         $tasks = $this->tasks;
@@ -134,12 +107,9 @@ class Project extends Model implements HasMedia
         $completedTasks = $tasks->where('status', 'completed')->count();
         $totalTasks = $tasks->count();
 
-        return intval(($completedTasks / $totalTasks) * 100);
+        return (int) (($completedTasks / $totalTasks) * 100);
     }
 
-    /**
-     * Get project status text.
-     */
     public function getStatusTextAttribute(): string
     {
         $statusMap = [
