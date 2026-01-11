@@ -2,11 +2,11 @@
 
 namespace Aero\HRM\Http\Controllers\Employee;
 
+use Aero\Core\Models\User;
+use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\SafetyInspection;
 use Aero\HRM\Models\SafetyTraining;
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -389,5 +389,80 @@ class WorkplaceSafetyController extends Controller
                 ->with('error', 'Failed to update safety training. Please try again.')
                 ->withInput();
         }
+    }
+
+    /**
+     * Get safety stats for dashboard.
+     */
+    public function stats()
+    {
+        $totalIncidents = DB::table('safety_incidents')->count();
+        $openIncidents = DB::table('safety_incidents')->where('status', 'open')->orWhere('status', 'investigating')->count();
+
+        // Calculate days without incident
+        $lastIncident = DB::table('safety_incidents')
+            ->whereIn('severity', ['high', 'critical'])
+            ->orderBy('incident_date', 'desc')
+            ->first();
+
+        $daysWithoutIncident = $lastIncident
+            ? now()->diffInDays(\Carbon\Carbon::parse($lastIncident->incident_date))
+            : 365; // Default if no incidents
+
+        $pendingInspections = SafetyInspection::where('status', 'scheduled')
+            ->where('inspection_date', '>=', now())
+            ->count();
+
+        return response()->json([
+            'total_incidents' => $totalIncidents,
+            'open_incidents' => $openIncidents,
+            'days_without_incident' => $daysWithoutIncident,
+            'pending_inspections' => $pendingInspections,
+        ]);
+    }
+
+    /**
+     * Delete a safety incident.
+     */
+    public function destroyIncident($id)
+    {
+        $incident = DB::table('safety_incidents')->where('id', $id)->first();
+
+        if (! $incident) {
+            return response()->json(['message' => 'Incident not found'], 404);
+        }
+
+        DB::table('safety_incidents')->where('id', $id)->delete();
+
+        return response()->json(['message' => 'Incident deleted successfully']);
+    }
+
+    /**
+     * Resolve a safety incident.
+     */
+    public function resolveIncident($id)
+    {
+        DB::table('safety_incidents')
+            ->where('id', $id)
+            ->update([
+                'status' => 'resolved',
+                'resolved_at' => now(),
+                'resolved_by' => Auth::id(),
+            ]);
+
+        return response()->json(['message' => 'Incident marked as resolved']);
+    }
+
+    /**
+     * Delete a safety inspection.
+     */
+    public function destroyInspection($id)
+    {
+        $inspection = SafetyInspection::findOrFail($id);
+        $this->authorize('delete', $inspection);
+
+        $inspection->delete();
+
+        return response()->json(['message' => 'Inspection deleted successfully']);
     }
 }

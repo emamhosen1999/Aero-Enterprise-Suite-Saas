@@ -3,7 +3,6 @@
 namespace Aero\HRM\Services\Performance;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -19,37 +18,54 @@ class GoalSettingService
      * Goal types.
      */
     public const TYPE_INDIVIDUAL = 'individual';
+
     public const TYPE_TEAM = 'team';
+
     public const TYPE_DEPARTMENT = 'department';
+
     public const TYPE_COMPANY = 'company';
 
     /**
      * Goal statuses.
      */
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_PENDING_APPROVAL = 'pending_approval';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_ON_TRACK = 'on_track';
+
     public const STATUS_AT_RISK = 'at_risk';
+
     public const STATUS_BEHIND = 'behind';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Goal priority levels.
      */
     public const PRIORITY_LOW = 'low';
+
     public const PRIORITY_MEDIUM = 'medium';
+
     public const PRIORITY_HIGH = 'high';
+
     public const PRIORITY_CRITICAL = 'critical';
 
     /**
      * Key result measurement types.
      */
     public const MEASURE_PERCENTAGE = 'percentage';
+
     public const MEASURE_NUMBER = 'number';
+
     public const MEASURE_CURRENCY = 'currency';
+
     public const MEASURE_BOOLEAN = 'boolean';
+
     public const MEASURE_MILESTONE = 'milestone';
 
     /**
@@ -58,7 +74,7 @@ class GoalSettingService
     public function createGoal(array $data): array
     {
         $validation = $this->validateGoalData($data);
-        if (!$validation['valid']) {
+        if (! $validation['valid']) {
             return ['success' => false, 'errors' => $validation['errors']];
         }
 
@@ -283,6 +299,7 @@ class GoalSettingService
     {
         return array_map(function ($kr) use ($goalId) {
             $krId = Str::uuid()->toString();
+
             return [
                 'id' => $krId,
                 'goal_id' => $goalId,
@@ -323,6 +340,7 @@ class GoalSettingService
         }
 
         $progress = (($current - $start) / ($target - $start)) * 100;
+
         return max(0, min(100, round($progress, 2)));
     }
 
@@ -345,12 +363,45 @@ class GoalSettingService
             $errors[] = 'Goal period dates are required';
         }
 
-        if (!empty($data['start_date']) && !empty($data['end_date'])) {
+        if (! empty($data['start_date']) && ! empty($data['end_date'])) {
             if (Carbon::parse($data['start_date'])->gt(Carbon::parse($data['end_date']))) {
                 $errors[] = 'Start date must be before end date';
             }
         }
 
         return ['valid' => empty($errors), 'errors' => $errors];
+    }
+
+    /**
+     * Get goal statistics for a user.
+     */
+    public function getGoalStats(?int $userId = null): array
+    {
+        // In a real implementation, this would query the database
+        // For now, return mock stats structure
+        return [
+            'total' => 0,
+            'in_progress' => 0,
+            'completed' => 0,
+            'overdue' => 0,
+            'on_track' => 0,
+            'at_risk' => 0,
+            'behind' => 0,
+        ];
+    }
+
+    /**
+     * Paginate goals with filters.
+     */
+    public function paginateGoals(array $filters = [], int $perPage = 30): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        // In a real implementation, this would query the database
+        // For now, return empty paginator
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            [],
+            0,
+            $perPage,
+            1
+        );
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Aero\HRM\Http\Controllers\AIAnalyticsController;
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
 use Aero\HRM\Http\Controllers\Asset\AssetController;
 use Aero\HRM\Http\Controllers\HRMDashboardController;
@@ -125,6 +126,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // =====================================================================
         Route::prefix('goals')->name('goals.')->group(function () {
             Route::get('/', [GoalController::class, 'index'])->name('index');
+            Route::get('/stats', [GoalController::class, 'stats'])->name('stats');
+            Route::get('/paginate', [GoalController::class, 'paginate'])->name('paginate');
             Route::get('/create', [GoalController::class, 'create'])->name('create');
             Route::post('/', [GoalController::class, 'store'])->name('store');
             Route::get('/team', [GoalController::class, 'teamGoals'])->name('team');
@@ -132,6 +135,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{goalId}', [GoalController::class, 'show'])->name('show');
             Route::put('/{goalId}', [GoalController::class, 'update'])->name('update');
             Route::delete('/{goalId}', [GoalController::class, 'destroy'])->name('destroy');
+            Route::post('/{goalId}/complete', [GoalController::class, 'complete'])->name('complete');
+            Route::put('/{goalId}/progress', [GoalController::class, 'updateProgress'])->name('update-progress');
             Route::post('/{goalId}/check-in', [GoalController::class, 'checkIn'])->name('check-in');
             Route::put('/{goalId}/key-results/{keyResultId}', [GoalController::class, 'updateKeyResult'])->name('key-results.update');
         });
@@ -275,14 +280,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Skills & Competency Management
     Route::middleware(['module:hrm,employees,skills'])->group(function () {
         Route::get('/skills', [SkillsController::class, 'index'])->name('skills.index');
+        Route::get('/skills/stats', [SkillsController::class, 'stats'])->name('skills.stats');
+        Route::get('/skills/matrix', [SkillsController::class, 'matrix'])->name('skills.matrix');
+        Route::get('/skills/all-employee-skills', [SkillsController::class, 'allEmployeeSkills'])->name('skills.all-employee-skills');
         Route::post('/skills', [SkillsController::class, 'store'])->name('skills.store');
         Route::put('/skills/{id}', [SkillsController::class, 'update'])->name('skills.update');
         Route::delete('/skills/{id}', [SkillsController::class, 'destroy'])->name('skills.destroy');
+
+        // Competencies
+        Route::get('/competencies', [SkillsController::class, 'competencies'])->name('competencies.index');
+        Route::post('/competencies', [SkillsController::class, 'storeCompetency'])->name('competencies.store');
+        Route::put('/competencies/{id}', [SkillsController::class, 'updateCompetency'])->name('competencies.update');
+        Route::delete('/competencies/{id}', [SkillsController::class, 'destroyCompetency'])->name('competencies.destroy');
 
         // Employee Skills
         Route::get('/employee-skills/{employeeId}', [SkillsController::class, 'employeeSkills'])->name('employee.skills.index');
         Route::post('/employee-skills/{employeeId}', [SkillsController::class, 'storeEmployeeSkill'])->name('employee.skills.store');
         Route::put('/employee-skills/{employeeId}/{skillId}', [SkillsController::class, 'updateEmployeeSkill'])->name('employee.skills.update');
+        Route::post('/employee-skills/{employeeId}/{skillId}/verify', [SkillsController::class, 'verifyEmployeeSkill'])->name('employee.skills.verify');
         Route::delete('/employee-skills/{employeeId}/{skillId}', [SkillsController::class, 'destroyEmployeeSkill'])->name('employee.skills.destroy');
     });
 
@@ -326,6 +341,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Employee Benefits Administration
     Route::middleware(['module:hrm,employees,benefits'])->group(function () {
         Route::get('/benefits', [BenefitsController::class, 'index'])->name('benefits.index');
+        Route::get('/benefits/stats', [BenefitsController::class, 'stats'])->name('benefits.stats');
+        Route::get('/benefits/enrollments', [BenefitsController::class, 'enrollments'])->name('benefits.enrollments.index');
+        Route::post('/benefits/enrollments', [BenefitsController::class, 'storeEnrollment'])->name('benefits.enrollments.store');
+        Route::post('/benefits/enrollments/{id}/approve', [BenefitsController::class, 'approveEnrollment'])->name('benefits.enrollments.approve');
         Route::get('/benefits/create', [BenefitsController::class, 'create'])->name('benefits.create');
         Route::post('/benefits', [BenefitsController::class, 'store'])->name('benefits.store');
         Route::get('/benefits/{id}', [BenefitsController::class, 'show'])->name('benefits.show');
@@ -355,11 +374,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Workplace Health & Safety
     Route::middleware(['module:hrm,safety'])->group(function () {
         Route::get('/safety', [WorkplaceSafetyController::class, 'index'])->name('safety.index');
+        Route::get('/safety/stats', [WorkplaceSafetyController::class, 'stats'])->name('safety.stats');
         Route::get('/safety/incidents', [WorkplaceSafetyController::class, 'incidents'])->name('safety.incidents.index');
         Route::get('/safety/incidents/create', [WorkplaceSafetyController::class, 'createIncident'])->name('safety.incidents.create');
         Route::post('/safety/incidents', [WorkplaceSafetyController::class, 'storeIncident'])->name('safety.incidents.store');
         Route::get('/safety/incidents/{id}', [WorkplaceSafetyController::class, 'showIncident'])->name('safety.incidents.show');
         Route::put('/safety/incidents/{id}', [WorkplaceSafetyController::class, 'updateIncident'])->name('safety.incidents.update');
+        Route::delete('/safety/incidents/{id}', [WorkplaceSafetyController::class, 'destroyIncident'])->name('safety.incidents.destroy');
+        Route::post('/safety/incidents/{id}/resolve', [WorkplaceSafetyController::class, 'resolveIncident'])->name('safety.incidents.resolve');
 
         // Safety Inspections
         Route::get('/safety/inspections', [WorkplaceSafetyController::class, 'inspections'])->name('safety.inspections.index');
@@ -367,6 +389,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/safety/inspections', [WorkplaceSafetyController::class, 'storeInspection'])->name('safety.inspections.store');
         Route::get('/safety/inspections/{id}', [WorkplaceSafetyController::class, 'showInspection'])->name('safety.inspections.show');
         Route::put('/safety/inspections/{id}', [WorkplaceSafetyController::class, 'updateInspection'])->name('safety.inspections.update');
+        Route::delete('/safety/inspections/{id}', [WorkplaceSafetyController::class, 'destroyInspection'])->name('safety.inspections.destroy');
 
         // Safety Training
         Route::get('/safety/training', [WorkplaceSafetyController::class, 'training'])->name('safety.training.index');
@@ -808,5 +831,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/departments/list', function () {
         return response()->json(\Aero\HRM\Models\Department::select('id', 'name')->get());
     })->name('departments.list');
+
+    // =========================================================================
+    // AI Analytics - Next-Generation Predictive HR Intelligence
+    // =========================================================================
+    Route::middleware(['module:hrm,ai_analytics'])->prefix('ai-analytics')->name('ai-analytics.')->group(function () {
+        // Dashboard
+        Route::get('/', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'dashboard'])->name('dashboard');
+        
+        // Attrition Predictions
+        Route::get('/attrition', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'attritionPredictions'])->name('attrition');
+        
+        // Burnout Risk Analysis
+        Route::get('/burnout', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'burnoutRisks'])->name('burnout');
+        
+        // Behavioral Anomaly Detection
+        Route::get('/anomalies', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'anomalies'])->name('anomalies');
+        Route::post('/anomalies/{anomaly}/resolve', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'resolveAnomaly'])->name('anomalies.resolve');
+        
+        // Talent Mobility & Internal Recommendations
+        Route::get('/talent-mobility', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'talentMobility'])->name('talent-mobility');
+        
+        // Engagement & Sentiment Analytics
+        Route::get('/engagement', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'engagementSentiment'])->name('engagement');
+        
+        // AI Insights (cross-cutting alerts)
+        Route::get('/insights', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'insights'])->name('insights');
+        Route::post('/insights/{insight}/resolve', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'resolveInsight'])->name('insights.resolve');
+        
+        // Employee Risk Profile (detailed view)
+        Route::get('/employees/{employee}/risk-profile', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'employeeRiskProfile'])->name('employee-risk-profile');
+        
+        // Run predictions (admin action)
+        Route::post('/run-predictions', [\Aero\HRM\Http\Controllers\AIAnalyticsController::class, 'runPredictions'])->name('run-predictions');
+    });
 });
 

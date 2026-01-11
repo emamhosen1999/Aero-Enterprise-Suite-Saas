@@ -21,7 +21,7 @@ class GoalController extends Controller
     {
         $filters = $request->only(['status', 'type', 'period', 'search']);
         $userId = $request->user()->id;
-        
+
         return Inertia::render('Hrm/Performance/Goals/Index', [
             'goals' => fn () => $this->goalService->getGoalsForUser($userId, $filters),
             'filters' => $filters,
@@ -49,7 +49,7 @@ class GoalController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'type' => 'required|string|in:' . implode(',', GoalSettingService::TYPES),
+            'type' => 'required|string|in:'.implode(',', GoalSettingService::TYPES),
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'priority' => 'nullable|string',
@@ -58,17 +58,17 @@ class GoalController extends Controller
             'key_results.*.target_value' => 'required|numeric',
             'key_results.*.measurement_type' => 'required|string',
         ]);
-        
+
         $validated['owner_id'] = $request->user()->id;
         $validated['created_by'] = $request->user()->id;
-        
+
         $result = $this->goalService->createGoal($validated);
-        
+
         if ($result['success']) {
             return redirect()->route('hrm.performance.goals.show', $result['goal']['id'])
                 ->with('success', 'Goal created successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to create goal');
     }
 
@@ -78,7 +78,7 @@ class GoalController extends Controller
     public function show(string $goalId): Response
     {
         $goal = $this->goalService->getGoal($goalId);
-        
+
         return Inertia::render('Hrm/Performance/Goals/Show', [
             'goal' => $goal,
             'checkIns' => fn () => $this->goalService->getCheckIns($goalId),
@@ -96,13 +96,13 @@ class GoalController extends Controller
             'status' => 'sometimes|string',
             'progress' => 'sometimes|numeric|min:0|max:100',
         ]);
-        
+
         $result = $this->goalService->updateGoal($goalId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Goal updated successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to update goal');
     }
 
@@ -112,12 +112,12 @@ class GoalController extends Controller
     public function destroy(string $goalId)
     {
         $result = $this->goalService->deleteGoal($goalId);
-        
+
         if ($result['success']) {
             return redirect()->route('hrm.performance.goals.index')
                 ->with('success', 'Goal deleted successfully');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to delete goal');
     }
 
@@ -131,15 +131,15 @@ class GoalController extends Controller
             'progress_update' => 'nullable|numeric|min:0|max:100',
             'key_result_updates' => 'nullable|array',
         ]);
-        
+
         $validated['user_id'] = $request->user()->id;
-        
+
         $result = $this->goalService->addCheckIn($goalId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Check-in recorded');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to record check-in');
     }
 
@@ -152,13 +152,13 @@ class GoalController extends Controller
             'current_value' => 'required|numeric',
             'note' => 'nullable|string',
         ]);
-        
+
         $result = $this->goalService->updateKeyResult($goalId, $keyResultId, $validated);
-        
+
         if ($result['success']) {
             return back()->with('success', 'Key result updated');
         }
-        
+
         return back()->with('error', $result['error'] ?? 'Failed to update key result');
     }
 
@@ -169,7 +169,7 @@ class GoalController extends Controller
     {
         $teamId = $request->get('team_id');
         $filters = $request->only(['status', 'period']);
-        
+
         return Inertia::render('Hrm/Performance/Goals/Team', [
             'goals' => fn () => $this->goalService->getTeamGoals($teamId, $filters),
             'filters' => $filters,
@@ -182,9 +182,71 @@ class GoalController extends Controller
     public function analytics(Request $request): Response
     {
         $userId = $request->user()->id;
-        
+
         return Inertia::render('Hrm/Performance/Goals/Analytics', [
             'analytics' => fn () => $this->goalService->getGoalAnalytics($userId),
         ]);
+    }
+
+    /**
+     * Get goals stats for dashboard.
+     */
+    public function stats(Request $request)
+    {
+        $userId = $request->user()->id;
+        $stats = $this->goalService->getGoalStats($userId);
+
+        return response()->json($stats);
+    }
+
+    /**
+     * Paginated goals for API.
+     */
+    public function paginate(Request $request)
+    {
+        $filters = $request->only(['status', 'type', 'period', 'search', 'employee_id']);
+        $perPage = $request->input('per_page', 30);
+
+        $goals = $this->goalService->paginateGoals($filters, $perPage);
+
+        return response()->json([
+            'goals' => $goals,
+        ]);
+    }
+
+    /**
+     * Complete a goal.
+     */
+    public function complete(string $goalId)
+    {
+        $result = $this->goalService->updateGoal($goalId, [
+            'status' => 'completed',
+            'progress' => 100,
+            'completed_at' => now(),
+        ]);
+
+        if ($result['success']) {
+            return response()->json(['message' => 'Goal marked as completed']);
+        }
+
+        return response()->json(['message' => $result['error'] ?? 'Failed to complete goal'], 422);
+    }
+
+    /**
+     * Update goal progress.
+     */
+    public function updateProgress(Request $request, string $goalId)
+    {
+        $validated = $request->validate([
+            'progress' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $result = $this->goalService->updateGoal($goalId, $validated);
+
+        if ($result['success']) {
+            return response()->json(['message' => 'Progress updated']);
+        }
+
+        return response()->json(['message' => $result['error'] ?? 'Failed to update progress'], 422);
     }
 }
