@@ -98,6 +98,13 @@ class HRMServiceProvider extends AbstractModuleProvider
             return new \Aero\HRM\Services\PayrollCalculationService;
         });
 
+        // Register AI Analytics Services
+        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\AttritionPredictionService::class);
+        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\BurnoutRiskService::class);
+        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\PerformancePredictionService::class);
+        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\RecruitmentAnalyticsService::class);
+        $this->app->singleton(\Aero\HRM\Services\AIAnalytics\WorkforceAnalyticsService::class);
+
         // Merge HRM-specific configuration
         $hrmConfigPath = $this->getModulePath('config/hrm.php');
         if (file_exists($hrmConfigPath)) {

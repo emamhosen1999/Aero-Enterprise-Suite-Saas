@@ -465,4 +465,110 @@ class WorkplaceSafetyController extends Controller
 
         return response()->json(['message' => 'Inspection deleted successfully']);
     }
+
+    /**
+     * Display a listing of safety incidents.
+     */
+    public function incidents()
+    {
+        $this->authorize('viewAny', SafetyInspection::class);
+
+        $incidents = DB::table('safety_incidents')
+            ->join('departments', 'safety_incidents.department_id', '=', 'departments.id')
+            ->join('users', 'safety_incidents.reported_by', '=', 'users.id')
+            ->select('safety_incidents.*', 'departments.name as department_name', 'users.name as reporter_name')
+            ->orderBy('safety_incidents.created_at', 'desc')
+            ->paginate(15);
+
+        return response()->json($incidents);
+    }
+
+    /**
+     * Show the form for creating a new incident.
+     */
+    public function createIncident()
+    {
+        $this->authorize('create', SafetyInspection::class);
+
+        $departments = Department::all();
+        $users = User::all();
+
+        return response()->json([
+            'departments' => $departments,
+            'users' => $users,
+        ]);
+    }
+
+    /**
+     * Store a newly created incident.
+     */
+    public function storeIncident(Request $request)
+    {
+        $this->authorize('create', SafetyInspection::class);
+
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'department_id' => 'required|exists:departments,id',
+            'location' => 'required|string|max:255',
+            'severity' => 'required|in:low,medium,high,critical',
+            'incident_date' => 'required|date',
+            'reported_by' => 'nullable|exists:users,id',
+        ]);
+
+        $validatedData['reported_by'] = $validatedData['reported_by'] ?? Auth::id();
+        $validatedData['status'] = 'open';
+
+        $incident = DB::table('safety_incidents')->insertGetId($validatedData);
+
+        return response()->json([
+            'message' => 'Safety incident created successfully',
+            'incident' => $incident,
+        ], 201);
+    }
+
+    /**
+     * Display the specified incident.
+     */
+    public function showIncident($id)
+    {
+        $this->authorize('view', SafetyInspection::class);
+
+        $incident = DB::table('safety_incidents')
+            ->join('departments', 'safety_incidents.department_id', '=', 'departments.id')
+            ->join('users', 'safety_incidents.reported_by', '=', 'users.id')
+            ->select('safety_incidents.*', 'departments.name as department_name', 'users.name as reporter_name')
+            ->where('safety_incidents.id', $id)
+            ->first();
+
+        if (!$incident) {
+            return response()->json(['message' => 'Incident not found'], 404);
+        }
+
+        return response()->json($incident);
+    }
+
+    /**
+     * Update the specified incident.
+     */
+    public function updateIncident(Request $request, $id)
+    {
+        $this->authorize('update', SafetyInspection::class);
+
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'department_id' => 'required|exists:departments,id',
+            'location' => 'required|string|max:255',
+            'severity' => 'required|in:low,medium,high,critical',
+            'status' => 'required|in:open,investigating,resolved,closed',
+            'incident_date' => 'required|date',
+        ]);
+
+        DB::table('safety_incidents')
+            ->where('id', $id)
+            ->update($validatedData);
+
+        return response()->json(['message' => 'Safety incident updated successfully']);
+    }
 }
