@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aero\HRM\Services;
 
-use Aero\HRMAC\Services\RoleModuleAccessService;
 use Aero\HRM\Models\Employee;
 use Illuminate\Support\Facades\Cache;
 
@@ -30,9 +29,17 @@ class HRMAuthorizationService
 
     private const CACHE_TTL = 300; // 5 minutes
 
+    /**
+     * RoleModuleAccessService or compatible stub
+     * @var mixed
+     */
+    private mixed $roleModuleAccessService;
+
     public function __construct(
-        private RoleModuleAccessService $roleModuleAccessService
-    ) {}
+        mixed $roleModuleAccessService
+    ) {
+        $this->roleModuleAccessService = $roleModuleAccessService;
+    }
 
     /**
      * Check if employee has access to a specific HRM sub-module

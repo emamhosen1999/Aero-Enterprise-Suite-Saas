@@ -8,7 +8,6 @@ use Aero\HRM\Models\JobInterview;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\JobApplicationStageHistory;
 use Aero\HRM\Models\JobOffer;
-use Aero\Core\Models\User;
 use Aero\HRM\Models\Job;
 use Aero\HRM\Models\JobApplication;
 use Aero\HRM\Events\Recruitment\ApplicationReceived;
@@ -16,6 +15,7 @@ use Aero\HRM\Events\Recruitment\InterviewScheduled;
 use Aero\HRM\Events\Recruitment\OfferExtended;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 
 class RecruitmentController extends Controller
@@ -66,7 +66,7 @@ class RecruitmentController extends Controller
             'jobs' => $jobs,
             'filters' => $request->only(['search', 'status', 'department_id', 'job_type', 'sort_by', 'sort_order']),
             'departments' => Department::select('id', 'name')->get(),
-            'managers' => User::role(['Super Administrator', 'Administrator', 'HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
+            'managers' => $this->getRecruitmentManagers(),
             'jobTypes' => [
                 ['id' => 'full_time', 'name' => 'Full Time'],
                 ['id' => 'part_time', 'name' => 'Part Time'],
@@ -134,7 +134,7 @@ class RecruitmentController extends Controller
             'jobs' => $jobs,
             'filters' => $request->only(['search', 'status', 'department_id', 'job_type', 'sort_by', 'sort_order']),
             'departments' => Department::select('id', 'name')->get(),
-            'managers' => User::role(['Super Administrator', 'Administrator', 'HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
+            'managers' => $this->getRecruitmentManagers(),
             'jobTypes' => [
                 ['id' => 'full_time', 'name' => 'Full Time'],
                 ['id' => 'part_time', 'name' => 'Part Time'],
@@ -365,7 +365,7 @@ class RecruitmentController extends Controller
             'daysUntilClosing' => $job->daysUntilClosing(),
             // Add dropdown data for forms, same as in index method
             'departments' => Department::select('id', 'name')->get(),
-            'managers' => User::role(['Super Administrator', 'Administrator', 'HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
+            'managers' => $this->getRecruitmentManagers(),
             'jobTypes' => [
                 ['id' => 'full_time', 'name' => 'Full Time'],
                 ['id' => 'part_time', 'name' => 'Part Time'],
@@ -459,7 +459,7 @@ class RecruitmentController extends Controller
             'daysUntilClosing' => $job->daysUntilClosing(),
             // Add dropdown data for forms, same as in index and show methods
             'departments' => Department::select('id', 'name')->get(),
-            'managers' => User::role(['Super Administrator', 'Administrator', 'HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
+            'managers' => $this->getRecruitmentManagers(),
             'jobTypes' => [
                 ['id' => 'full_time', 'name' => 'Full Time'],
                 ['id' => 'part_time', 'name' => 'Part Time'],
@@ -494,7 +494,7 @@ class RecruitmentController extends Controller
         return Inertia::render('HRM/Recruitment/Edit', [
             'job' => $job,
             'departments' => Department::all(['id', 'name']),
-            'managers' => User::role(['HR Manager', 'Department Manager', 'Team Lead'])->get(['id', 'name']),
+            'managers' => $this->getRecruitmentManagers(),
             'jobTypes' => [
                 ['id' => 'full_time', 'name' => 'Full Time'],
                 ['id' => 'part_time', 'name' => 'Part Time'],
@@ -914,7 +914,7 @@ class RecruitmentController extends Controller
             'job' => Job::findOrFail($id),
             'application' => $application,
             'interviews' => $interviews,
-            'interviewers' => User::role(['HR Manager', 'Department Manager', 'Team Lead', 'Senior Employee'])->get(['id', 'name']),
+            'interviewers' => $this->getInterviewers(),
             'interviewTypes' => [
                 ['id' => 'phone', 'name' => 'Phone Interview'],
                 ['id' => 'video', 'name' => 'Video Interview'],
@@ -993,6 +993,76 @@ class RecruitmentController extends Controller
 
         return redirect()->back()
             ->with('success', 'Interview deleted successfully.');
+    }
+
+    /**
+     * Extend a job offer to an applicant.
+     */
+    public function extendOffer(Request $request, $id, $applicationId)
+    {
+        $application = JobApplication::where('job_id', $id)
+            ->with(['job', 'applicant'])
+            ->findOrFail($applicationId);
+
+        $validated = $request->validate([
+            'offered_salary' => 'required|numeric|min:0',
+            'joining_date' => 'required|date|after_or_equal:today',
+            'offer_valid_until' => 'required|date|after_or_equal:today',
+            'offer_letter_path' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:2000',
+            'benefits' => 'nullable|array',
+            'bonus' => 'nullable|numeric|min:0',
+        ]);
+
+        // Create the job offer
+        $offer = JobOffer::create([
+            'application_id' => $application->id,
+            'offered_salary' => $validated['offered_salary'],
+            'joining_date' => $validated['joining_date'],
+            'offer_valid_until' => $validated['offer_valid_until'],
+            'offer_letter_path' => $validated['offer_letter_path'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'benefits' => $validated['benefits'] ?? null,
+            'bonus' => $validated['bonus'] ?? null,
+            'status' => 'pending',
+            'sent_by' => Auth::id(),
+            'sent_at' => now(),
+        ]);
+
+        // Update application status to "offered"
+        $application->update([
+            'status' => 'offered',
+            'last_status_change' => now(),
+        ]);
+
+        // Create stage history entry for the offer stage
+        $offerStage = JobHiringStage::where('job_id', $id)
+            ->where('name', 'Offer')
+            ->first();
+
+        if ($offerStage) {
+            $application->stageHistory()->create([
+                'stage_id' => $offerStage->id,
+                'previous_stage_id' => $application->current_stage_id,
+                'changed_by' => Auth::id(),
+                'changed_at' => now(),
+                'notes' => 'Offer extended to candidate',
+            ]);
+
+            $application->update(['current_stage_id' => $offerStage->id]);
+        }
+
+        // Dispatch OfferExtended event
+        event(new OfferExtended(
+            $offer,
+            Auth::id()
+        ));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Job offer extended successfully',
+            'offer' => $offer->load('application'),
+        ]);
     }
 
     /**
@@ -1323,5 +1393,29 @@ class RecruitmentController extends Controller
             'message' => 'Candidate moved successfully',
             'application' => $application->load('currentStage'),
         ]);
+    }
+
+    /**
+     * HRMAC-driven manager options for recruitment flows.
+     */
+    protected function getRecruitmentManagers(): Collection
+    {
+        return $this->hrmac
+            ->getUsersWithSubModuleAccess('hrm', 'recruitment', 'create')
+            ->unique('id')
+            ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])
+            ->values();
+    }
+
+    /**
+     * HRMAC-driven interviewer options.
+     */
+    protected function getInterviewers(): Collection
+    {
+        return $this->hrmac
+            ->getUsersWithSubModuleAccess('hrm', 'recruitment', 'create')
+            ->unique('id')
+            ->map(fn ($user) => ['id' => $user->id, 'name' => $user->name])
+            ->values();
     }
 }

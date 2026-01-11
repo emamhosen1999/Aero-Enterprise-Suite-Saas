@@ -21,6 +21,7 @@ use Aero\HRM\Events\Employee\EmployeeResigned;
 use Aero\HRM\Http\Controllers\Controller;
 use App\Http\Controllers\Tenant\HRM\Employee\Request;
 use Aero\Core\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -617,6 +618,9 @@ class OnboardingController extends Controller
 
         $validated = $request->validated();
 
+        // Track the old status to detect completion
+        $oldStatus = $offboarding->status;
+
         DB::beginTransaction();
         try {
             $offboarding->update([
@@ -662,6 +666,20 @@ class OnboardingController extends Controller
                 OffboardingTask::whereIn('id', $tasksToDelete)->delete();
             }
             DB::commit();
+
+            // Dispatch OffboardingCompleted event if status changed to 'completed'
+            if ($oldStatus !== 'completed' && $validated['status'] === 'completed') {
+                // Check if all tasks are completed
+                $offboarding->refresh()->load('tasks');
+                $allClearancesObtained = $offboarding->tasks->every(fn ($task) => $task->status === 'completed');
+
+                event(new OffboardingCompleted(
+                    $offboarding,
+                    now(),
+                    $allClearancesObtained,
+                    Auth::id()
+                ));
+            }
 
             return redirect()->route('hr.offboarding.show', $offboarding->id)
                 ->with('success', 'Offboarding process updated successfully.');

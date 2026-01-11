@@ -4,7 +4,7 @@ namespace Aero\HRM\Http\Controllers\Employee;
 
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Models\Employee;
-use Aero\HRM\Services\Authorization\HRMAuthorizationService;
+use Aero\HRM\Services\HRMAuthorizationService;
 use Aero\HRM\Services\EmployeeResolutionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

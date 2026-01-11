@@ -12,7 +12,6 @@ use Aero\HRM\Events\Leave\LeaveCancelled;
 use Aero\HRM\Events\Leave\LeaveRejected;
 use Aero\HRM\Events\Leave\LeaveRequested;
 use Aero\HRM\Http\Controllers\Controller;
-use Aero\Core\Models\User;
 use Aero\HRM\Services\LeaveApprovalService;
 use Aero\HRM\Services\LeaveBalanceService;
 use Aero\HRM\Services\LeaveCrudService;
@@ -44,6 +43,14 @@ class LeaveController extends Controller
 
     protected LeaveBalanceService $balanceService;
 
+    /**
+     * Resolve configured user model to avoid cross-package coupling.
+     */
+    protected function userModel(): string
+    {
+        return config('hrm.user_model', config('auth.providers.users.model'));
+    }
+
     public function __construct(
         LeaveValidationService $validationService,
         LeaveOverlapService $overlapService,
@@ -66,7 +73,7 @@ class LeaveController extends Controller
     {
         return Inertia::render('HRM/TimeOff/EmployeeLeaves', [
             'title' => 'Leaves',
-            'allUsers' => User::all(),
+            'allUsers' => $this->userModel()::all(),
 
         ]);
     }
@@ -75,7 +82,7 @@ class LeaveController extends Controller
     {
         return Inertia::render('HRM/LeavesAdmin', [
             'title' => 'Leaves',
-            'allUsers' => User::all(),
+            'allUsers' => $this->userModel()::all(),
         ]);
     }
 

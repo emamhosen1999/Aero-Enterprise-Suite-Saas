@@ -10,7 +10,7 @@ use Aero\HRM\Models\LeaveSetting;
 use Aero\HRM\Events\Attendance\AttendancePunchedIn;
 use Aero\HRM\Events\Attendance\AttendancePunchedOut;
 use Aero\HRM\Events\Attendance\LateArrivalDetected;
-use Aero\HRM\Services\Authorization\HRMAuthorizationService;
+use Aero\HRM\Services\HRMAuthorizationService;
 use App\Exports\AttendanceAdminExport;
 use App\Exports\AttendanceExport;
 use Aero\HRM\Http\Controllers\Controller;

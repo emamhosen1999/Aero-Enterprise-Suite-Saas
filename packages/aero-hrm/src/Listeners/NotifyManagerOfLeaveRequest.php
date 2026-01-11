@@ -37,8 +37,8 @@ class NotifyManagerOfLeaveRequest implements ShouldQueue
         // Get the employee record to find manager (direct query)
         $employee = Employee::where('user_id', $user->id)->first();
 
-        // Find the employee's manager (manager_id references users table)
-        $manager = $employee?->manager_id ? \Aero\Core\Models\User::find($employee->manager_id) : null;
+        // Find the employee's manager via configured user model (no direct cross-package import)
+        $manager = $employee?->manager;
 
         if ($manager) {
             // Notify manager about leave request
@@ -51,64 +51,30 @@ class NotifyManagerOfLeaveRequest implements ShouldQueue
 
     /**
      * Notify users who have access to leave management via HRMAC.
-     * Falls back to HR roles if HRMAC service is not available.
      */
     protected function notifyUsersWithLeaveAccess($leave, $employee, $manager): void
     {
-        // Try HRMAC first for proper module-based access control
-        if (app()->bound('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
-            try {
-                $hrmacService = app('Aero\HRMAC\Contracts\RoleModuleAccessInterface');
-                
-                // Get users with access to the 'leaves' submodule in 'hrm' module
-                // Using 'approve' action to target users who can approve leave requests
-                $usersWithAccess = $hrmacService->getUsersWithSubModuleAccess('hrm', 'leaves', 'approve');
-
-                foreach ($usersWithAccess as $user) {
-                    // Don't notify the employee requesting leave or the manager (already notified)
-                    if ($user->id !== $employee->id && $user->id !== $manager?->id) {
-                        $user->notify(new LeaveRequestNotification($leave));
-                    }
-                }
-                
-                // If we successfully used HRMAC and found users, return
-                if ($usersWithAccess->isNotEmpty()) {
-                    return;
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Failed to get users with leave access via HRMAC', [
-                    'error' => $e->getMessage(),
-                ]);
-            }
+        // Enforce HRMAC-only routing; if service unavailable, log and exit to avoid role-based fallbacks
+        if (! app()->bound('Aero\HRMAC\Contracts\RoleModuleAccessInterface')) {
+            Log::warning('HRMAC service not bound; skipping leave access notifications');
+            return;
         }
 
-        // Fallback: If no manager assigned, try to notify HR users
-        // This handles cases where HRMAC is not set up or returns no users
-        if (! $manager) {
-            $this->notifyHrFallback($leave, $employee);
-        }
-    }
-
-    /**
-     * Fallback notification to HR users when no manager is assigned and HRMAC not available.
-     */
-    protected function notifyHrFallback($leave, $employee): void
-    {
         try {
-            $userClass = \Aero\Core\Models\User::class;
+            $hrmacService = app('Aero\HRMAC\Contracts\RoleModuleAccessInterface');
             
-            // Check if user class has scopeRole method (Laravel scope pattern)
-            if (method_exists($userClass, 'scopeRole')) {
-                $hrUsers = $userClass::role(['HR Admin', 'HR Manager', 'hr_admin', 'hr_manager'])->get();
-                
-                foreach ($hrUsers as $hrUser) {
-                    if ($hrUser->id !== $employee->id) {
-                        $hrUser->notify(new LeaveRequestNotification($leave));
-                    }
+            // Get users with access to the 'leaves' submodule in 'hrm' module
+            // Using 'approve' action to target users who can approve leave requests
+            $usersWithAccess = $hrmacService->getUsersWithSubModuleAccess('hrm', 'leaves', 'approve');
+
+            foreach ($usersWithAccess as $user) {
+                // Don't notify the employee requesting leave or the manager (already notified)
+                if ($user->id !== $employee->id && $user->id !== $manager?->id) {
+                    $user->notify(new LeaveRequestNotification($leave));
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning('Failed to notify HR users (fallback)', [
+            Log::warning('Failed to get users with leave access via HRMAC', [
                 'error' => $e->getMessage(),
             ]);
         }

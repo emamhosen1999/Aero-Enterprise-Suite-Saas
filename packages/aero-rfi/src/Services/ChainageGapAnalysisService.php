@@ -2,7 +2,7 @@
 
 namespace Aero\Rfi\Services;
 
-use Aero\Quality\Contracts\NcrBlockingServiceInterface;
+use Aero\Rfi\Contracts\NcrBlockingServiceInterface;
 use Aero\Rfi\Models\ChainageProgress;
 use Aero\Rfi\Models\Rfi;
 use Aero\Rfi\Models\WorkLayer;

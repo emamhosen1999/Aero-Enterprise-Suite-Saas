@@ -33,6 +33,36 @@ class AeroRfiServiceProvider extends ServiceProvider
             __DIR__.'/../config/module.php',
             'modules.rfi'
         );
+
+        // Register fallback for NcrBlockingServiceInterface if Quality package is not installed
+        $this->registerQualityFallback();
+    }
+
+    /**
+     * Register a fallback implementation for Quality package interfaces.
+     * This allows RFI to work without the Quality package installed.
+     */
+    protected function registerQualityFallback(): void
+    {
+        $interfaceName = \Aero\Rfi\Contracts\NcrBlockingServiceInterface::class;
+
+        // Only register fallback if not already bound
+        if (!$this->app->bound($interfaceName)) {
+            $this->app->singleton($interfaceName, function () {
+                // Return a null implementation that doesn't block anything
+                return new class implements \Aero\Rfi\Contracts\NcrBlockingServiceInterface {
+                    public function getBlockingNcrsInRange(int $projectId, float $startChainage, float $endChainage): array
+                    {
+                        return [];
+                    }
+
+                    public function hasBlockingNcrs(int $projectId, float $startChainage, float $endChainage): bool
+                    {
+                        return false;
+                    }
+                };
+            });
+        }
     }
 
     /**

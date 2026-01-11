@@ -11,6 +11,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Model Bindings
+    |--------------------------------------------------------------------------
+    |
+    | Allows decoupling HRM from concrete user implementations. Defaults to the
+    | application's auth provider user model to avoid direct cross-package
+    | imports while still enabling Eloquent relations.
+    */
+
+    'user_model' => env('HRM_USER_MODEL', config('auth.providers.users.model')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Employee Settings
     |--------------------------------------------------------------------------
     */

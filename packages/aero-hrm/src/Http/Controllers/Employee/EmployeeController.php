@@ -8,11 +8,12 @@ use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Services\EmployeeOnboardingService;
-use Aero\HRM\Services\Authorization\HRMAuthorizationService;
+use Aero\HRM\Services\HRMAuthorizationService;
 use Aero\HRM\Notifications\WelcomeEmployeeNotification;
 use Aero\HRM\Events\Employee\EmployeeCreated;
 use Aero\HRM\Events\Employee\EmployeeUpdated;
 use Aero\HRM\Events\Employee\EmployeePromoted;
+use Aero\HRM\Events\Employee\EmployeeTerminated;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -677,6 +678,16 @@ class EmployeeController extends Controller
 
             // Deactivate user
             $employee->user->update(['active' => false]);
+
+            // Dispatch EmployeeTerminated event
+            event(new EmployeeTerminated(
+                $employee,
+                now(),
+                now(), // last working date is now for immediate termination
+                'Employee terminated via admin action',
+                true, // immediate
+                Auth::id()
+            ));
 
             DB::commit();
 

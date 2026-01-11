@@ -119,11 +119,19 @@ class AeroCoreServiceProvider extends ServiceProvider
             $this->app->singleton(RoleModuleAccessService::class, function ($app) {
                 // Only instantiate if installed to avoid DB queries pre-install
                 if (!file_exists(storage_path('app/aeos.installed'))) {
+                    // Return a stub that uses __call for method handling
                     return new class
                     {
                         public function __call($method, $args)
                         {
-                            return [];
+                            // Return appropriate defaults based on method signature
+                            if (str_starts_with($method, 'can') || str_starts_with($method, 'user')) {
+                                return false;
+                            }
+                            if (str_starts_with($method, 'get')) {
+                                return $method === 'getFirstAccessibleRoute' ? null : [];
+                            }
+                            return null;
                         }
                     };
                 }
@@ -135,7 +143,13 @@ class AeroCoreServiceProvider extends ServiceProvider
                     {
                         public function __call($method, $args)
                         {
-                            return [];
+                            if (str_starts_with($method, 'can') || str_starts_with($method, 'user')) {
+                                return false;
+                            }
+                            if (str_starts_with($method, 'get')) {
+                                return $method === 'getFirstAccessibleRoute' ? null : [];
+                            }
+                            return null;
                         }
                     };
                 }
@@ -955,7 +969,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                     return new class implements \Aero\Core\Contracts\NotificationRoutingContract {
                         public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection { return collect(); }
                         public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection { return collect(); }
-                        public function shouldNotify(object $notifiable, string $moduleCode, string $subModuleCode, ?string $actionCode = null): bool { return false; }
+                        public function shouldNotify(int $userId, string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null): bool { return false; }
                     };
                 }
 
@@ -968,7 +982,7 @@ class AeroCoreServiceProvider extends ServiceProvider
                     return new class implements \Aero\Core\Contracts\NotificationRoutingContract {
                         public function getRecipients(string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null, array $context = []): \Illuminate\Support\Collection { return collect(); }
                         public function getRecipientsByScope(string $moduleCode, string $subModuleCode, string $scope, array $context): \Illuminate\Support\Collection { return collect(); }
-                        public function shouldNotify(object $notifiable, string $moduleCode, string $subModuleCode, ?string $actionCode = null): bool { return false; }
+                        public function shouldNotify(int $userId, string $moduleCode, string $subModuleCode, ?string $componentCode = null, ?string $actionCode = null): bool { return false; }
                     };
                 }
             }

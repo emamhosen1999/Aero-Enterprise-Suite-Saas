@@ -1,8 +1,6 @@
 <?php
 
 namespace Aero\HRM\Models;
-
-use Aero\Core\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -199,7 +197,7 @@ class Employee extends Model implements HasMedia
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo($this->getUserModel(), 'user_id');
     }
 
     /**
@@ -223,7 +221,7 @@ class Employee extends Model implements HasMedia
      */
     public function manager(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'manager_id');
+        return $this->belongsTo($this->getUserModel(), 'manager_id');
     }
 
     /**
@@ -717,18 +715,11 @@ class Employee extends Model implements HasMedia
      */
     public function getEmployeeImageUrlWithFallback(string $conversion = ''): string
     {
-        // First try employee's own image
         $employeeImage = $this->getEmployeeImageUrl($conversion);
         if ($employeeImage) {
             return $employeeImage;
         }
 
-        // Fallback to user's profile image
-        if ($this->user && method_exists($this->user, 'profile_image_url')) {
-            return $this->user->profile_image_url;
-        }
-
-        // Default avatar
         return '/images/default-employee-avatar.png';
     }
 
@@ -748,5 +739,13 @@ class Employee extends Model implements HasMedia
     public function getEmployeeImageUrlAttribute(): ?string
     {
         return $this->getEmployeeImageUrl();
+    }
+
+    /**
+     * Resolve the user model class without importing cross-package models.
+     */
+    protected function getUserModel(): string
+    {
+        return config('hrm.user_model', config('auth.providers.users.model'));
     }
 }

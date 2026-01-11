@@ -234,6 +234,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/recruitment/{id}/applications/{applicationId}/interviews', [RecruitmentController::class, 'storeInterview'])->name('recruitment.interviews.store');
         Route::put('/recruitment/{id}/applications/{applicationId}/interviews/{interviewId}', [RecruitmentController::class, 'updateInterview'])->name('recruitment.interviews.update');
         Route::delete('/recruitment/{id}/applications/{applicationId}/interviews/{interviewId}', [RecruitmentController::class, 'destroyInterview'])->name('recruitment.interviews.destroy');
+
+        // Job Offers
+        Route::post('/recruitment/{id}/applications/{applicationId}/offer', [RecruitmentController::class, 'extendOffer'])->name('recruitment.applications.extend-offer');
     });
 
     // Employee Onboarding & Offboarding
