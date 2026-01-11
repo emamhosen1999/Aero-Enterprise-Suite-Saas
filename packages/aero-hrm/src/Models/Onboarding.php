@@ -10,6 +10,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Onboarding Model
+ *
+ * @property int $id
+ * @property int $employee_id
+ * @property \Carbon\Carbon|null $start_date
+ * @property \Carbon\Carbon|null $expected_completion_date
+ * @property \Carbon\Carbon|null $actual_completion_date
+ * @property string $status
+ * @property string|null $notes
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ *
+ * @property-read Employee $employee
+ * @property-read User|null $creator
+ * @property-read User|null $updater
+ */
 class Onboarding extends Model
 {
     use HasFactory, SoftDeletes;
