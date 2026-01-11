@@ -4,7 +4,8 @@ import {
     TrashIcon,
     XMarkIcon,
     CheckCircleIcon,
-    ExclamationTriangleIcon
+    ExclamationTriangleIcon,
+    UserCircleIcon
 } from '@heroicons/react/24/outline';
 import { 
     Button,
@@ -21,11 +22,31 @@ import ProfileAvatar from './ProfileAvatar';
 // Use the global axios instance which has CSRF configuration
 const axios = window.axios;
 
+/**
+ * User Profile Picture Modal
+ * 
+ * Manages User's profile image for identity/authentication purposes.
+ * This is SEPARATE from Employee HR images.
+ * 
+ * Architecture:
+ * - User Profile Image (this modal): For authentication/identity purposes
+ *   - Used in: login screens, account settings, general system UI
+ *   - Stored on: User model (Core package)
+ *   - Route: core.profile.image.upload (or profile.image.upload for backward compatibility)
+ * 
+ * - Employee Image (EmployeeImageModal): For HR/work purposes
+ *   - Used in: badges, org charts, ID cards, HR directory
+ *   - Stored on: Employee model (HRM package)
+ *   - Route: hrm.employees.image.upload
+ * 
+ * @see EmployeeImageModal For employee HR images
+ */
 const ProfilePictureModal = ({ 
     isOpen, 
     onClose, 
-    employee,
-    onImageUpdate
+    employee,  // Actually represents User or Employee with user relation
+    onImageUpdate,
+    user = null  // Optional direct User object
 }) => {
     const fileInputRef = useRef(null);
     
@@ -42,8 +63,10 @@ const ProfilePictureModal = ({
     const MIN_DIMENSION = 100;
     const MAX_DIMENSION = 2000;
 
-    // Get current profile image URL - now uses the proper accessor
-    const currentProfileImage = employee?.profile_image_url || null;
+    // Get current profile image URL - from User model
+    // Support both direct user prop and employee.user relation
+    const targetUser = user || employee?.user || employee;
+    const currentProfileImage = targetUser?.profile_image_url || null;
     const hasCurrentImage = currentProfileImage && currentProfileImage !== null;
 
     // Handle file selection with validation
@@ -96,10 +119,10 @@ const ProfilePictureModal = ({
         img.src = objectUrl;
     };
 
-    // Handle upload
+    // Handle upload - uploads to User profile image route
     const handleUpload = async () => {
-        if (!selectedFile || !employee) {
-            console.error('[ProfileUpload] Missing file or employee:', { selectedFile, employee });
+        if (!selectedFile || !targetUser) {
+            console.error('[ProfileUpload] Missing file or user:', { selectedFile, targetUser });
             return;
         }
 
@@ -109,15 +132,20 @@ const ProfilePictureModal = ({
 
         const formData = new FormData();
         formData.append('profile_image', selectedFile);
-        formData.append('user_id', employee.id);
+        formData.append('user_id', targetUser.id);
 
         // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
+        // Determine route - use Core route if available, fallback to HRM route for backward compatibility
+        const uploadRoute = typeof route === 'function' && route('core.profile.image.upload', undefined, false) 
+            ? 'core.profile.image.upload' 
+            : 'profile.image.upload';
+
         const promise = new Promise(async (resolve, reject) => {
             try {
                 const response = await axios.post(
-                    route('profile.image.upload'), 
+                    route(uploadRoute), 
                     formData,
                     {
                         headers: {
@@ -137,7 +165,7 @@ const ProfilePictureModal = ({
                     // Callback to update the parent component with the new profile image URL
                     if (onImageUpdate) {
                         const newImageUrl = response.data.profile_image_url;
-                        onImageUpdate(employee.id, newImageUrl);
+                        onImageUpdate(targetUser.id, newImageUrl);
                     }
                     
                     handleClose();
@@ -210,7 +238,7 @@ const ProfilePictureModal = ({
 
     // Handle remove profile picture
     const handleRemoveProfilePicture = async () => {
-        if (!employee) return;
+        if (!targetUser) return;
 
         setUploading(true);
         setError('');
@@ -218,12 +246,17 @@ const ProfilePictureModal = ({
         // Get CSRF token from meta tag as fallback
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
+        // Determine route - use Core route if available, fallback to HRM route for backward compatibility
+        const removeRoute = typeof route === 'function' && route('core.profile.image.remove', undefined, false) 
+            ? 'core.profile.image.remove' 
+            : 'profile.image.remove';
+
         const promise = new Promise(async (resolve, reject) => {
             try {
                 const response = await axios.delete(
-                    route('profile.image.remove'), 
+                    route(removeRoute), 
                     {
-                        data: { user_id: employee.id },
+                        data: { user_id: targetUser.id },
                         headers: {
                             'X-CSRF-TOKEN': csrfToken,
                         },
@@ -235,7 +268,7 @@ const ProfilePictureModal = ({
                     if (onImageUpdate) {
                         // Use the explicit profile_image_url from response (should be null after removal)
                         const newImageUrl = response.data.profile_image_url;
-                        onImageUpdate(employee.id, newImageUrl);
+                        onImageUpdate(targetUser.id, newImageUrl);
                     }
                     
                     handleClose();
@@ -277,8 +310,8 @@ const ProfilePictureModal = ({
         onClose();
     };
 
-    // Don't render if no employee
-    if (!employee) return null;
+    // Don't render if no user/employee
+    if (!targetUser) return null;
 
     return (
         <Modal
@@ -296,13 +329,13 @@ const ProfilePictureModal = ({
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <PhotoIcon className="w-6 h-6 text-blue-500" />
+                        <UserCircleIcon className="w-6 h-6 text-blue-500" />
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900">
                                 Update Profile Picture
                             </h3>
                             <p className="text-sm text-gray-500">
-                                {employee?.name || 'Employee'}
+                                {targetUser?.name || 'User'}
                             </p>
                         </div>
                     </div>

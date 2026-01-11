@@ -12,6 +12,7 @@ use Aero\Core\Http\Controllers\Auth\NewPasswordController;
 use Aero\Core\Http\Controllers\Auth\PasswordResetLinkController;
 use Aero\Core\Http\Controllers\DashboardController;
 use Aero\Core\Http\Controllers\Profile\NotificationPreferenceController;
+use Aero\Core\Http\Controllers\Profile\UserProfileImageController;
 use Aero\Core\Http\Controllers\Settings\NotificationSettingController;
 use Aero\Core\Http\Controllers\Settings\SystemSettingController;
 use Aero\Core\Services\PlatformErrorReporter;
@@ -497,6 +498,18 @@ Route::middleware('auth:web')->group(function () {
             Route::post('/', [NotificationPreferenceController::class, 'update'])->name('update');
             Route::post('/global', [NotificationPreferenceController::class, 'updateGlobal'])->name('update-global');
             Route::post('/reset', [NotificationPreferenceController::class, 'reset'])->name('reset');
+        });
+
+        // ====================================================================
+        // User Profile Image Routes
+        // ====================================================================
+        // These manage the User's identity/authentication profile image
+        // SEPARATE from Employee HR images which are managed in HRM package
+        // ====================================================================
+        Route::prefix('image')->name('image.')->group(function () {
+            Route::get('/{user}', [UserProfileImageController::class, 'show'])->name('show');
+            Route::post('/upload', [UserProfileImageController::class, 'upload'])->name('upload');
+            Route::delete('/remove', [UserProfileImageController::class, 'remove'])->name('remove');
         });
     });
 

@@ -62,7 +62,7 @@ const NotificationDropdown = ({
     const fetchNotifications = useCallback(async () => {
         try {
             setError(null);
-            const response = await axios.get('/api/notifications', {
+            const response = await axios.get('/api/core/notifications', {
                 params: {
                     limit: maxItems,
                     unread_only: showUnreadOnly ? '1' : '0',
@@ -109,7 +109,7 @@ const NotificationDropdown = ({
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.post(`/api/notifications/${notificationId}/read`);
+                const response = await axios.post(`/api/core/notifications/${notificationId}/read`);
                 
                 if (response.status === 200) {
                     setNotifications(prev => 
@@ -136,7 +136,7 @@ const NotificationDropdown = ({
 
         const promise = new Promise(async (resolve, reject) => {
             try {
-                const response = await axios.post('/api/notifications/read-all');
+                const response = await axios.post('/api/core/notifications/read-all');
                 
                 if (response.status === 200) {
                     setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));

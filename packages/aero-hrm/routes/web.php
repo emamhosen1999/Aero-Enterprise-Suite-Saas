@@ -21,6 +21,7 @@ use Aero\HRM\Http\Controllers\Employee\PayrollController;
 use Aero\HRM\Http\Controllers\Employee\PerformanceController;
 use Aero\HRM\Http\Controllers\Employee\ProfileController;
 use Aero\HRM\Http\Controllers\Employee\ProfileImageController;
+use Aero\HRM\Http\Controllers\Employee\EmployeeImageController;
 use Aero\HRM\Http\Controllers\Employee\SkillsController;
 use Aero\HRM\Http\Controllers\Employee\TimeOffController;
 use Aero\HRM\Http\Controllers\Employee\TimeOffLegacyController;
@@ -571,7 +572,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile/delete', [ProfileController::class, 'delete'])->name('profile.delete');
 
-        // Profile Image Routes - dedicated endpoints for profile image management
+        // Profile Image Routes - User's profile image (managed in Core, accessible from HRM)
+        // These routes manage the User's identity/authentication profile image
         Route::post('/profile/image/upload', [ProfileImageController::class, 'upload'])->name('profile.image.upload');
         Route::delete('/profile/image/remove', [ProfileImageController::class, 'remove'])->name('profile.image.remove');
 
@@ -587,6 +589,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Experience Routes:
         Route::post('/experience/update', [ExperienceController::class, 'update'])->name('experience.update');
         Route::delete('/experience/delete', [ExperienceController::class, 'delete'])->name('experience.delete');
+    });
+
+    // ========================================================================
+    // EMPLOYEE IMAGE ROUTES (Separate from User Profile Image)
+    // ========================================================================
+    // These routes manage the Employee's HR image (badges, org charts, ID cards)
+    // This is SEPARATE from the User's profile image which is for identity/auth
+    Route::middleware(['module:hrm,employees'])->prefix('employees')->name('employees.')->group(function () {
+        Route::get('/{employee}/image', [EmployeeImageController::class, 'show'])->name('image.show');
+        Route::post('/image/upload', [EmployeeImageController::class, 'upload'])->name('image.upload');
+        Route::delete('/image/remove', [EmployeeImageController::class, 'remove'])->name('image.remove');
     });
 
     // Leave management routes

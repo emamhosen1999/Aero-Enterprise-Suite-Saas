@@ -1,10 +1,8 @@
 <?php
 
-namespace Aero\HRM\Http\Controllers\Employee;
+namespace Aero\Core\Http\Controllers\Profile;
 
-use Aero\HRM\Http\Controllers\Controller;
-use Aero\HRM\Models\Employee;
-use Aero\HRM\Services\Authorization\HRMAuthorizationService;
+use Aero\Core\Http\Controllers\Controller;
 use Aero\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,41 +13,26 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 
 /**
- * User Profile Image Controller (HRM Package Wrapper)
+ * User Profile Image Controller
  *
- * DEPRECATED: This controller is maintained for backward compatibility.
- * New implementations should use:
- * - \Aero\Core\Http\Controllers\Profile\UserProfileImageController for User profile images
- * - \Aero\HRM\Http\Controllers\Employee\EmployeeImageController for Employee HR images
+ * Manages User's profile image for identity/authentication purposes.
+ * This controller handles the User's identity image used across the system
+ * for authentication screens, account settings, and general UI.
  *
- * This controller manages User's profile image for identity/authentication purposes.
- * This is SEPARATE from Employee images which are managed by EmployeeImageController.
+ * This is SEPARATE from Employee images in HRM which are used for:
+ * - HR badges, org charts, ID cards, HR directory
+ * - Managed by EmployeeImageController in HRM package
  *
- * Architecture:
- * - User Profile Image (this controller → delegates to Core): For authentication/identity purposes
- *   - Used in: login screens, account settings, general system UI
- *   - Stored on: User model (Core package)
- *
- * - Employee Image (EmployeeImageController): For HR/work purposes
- *   - Used in: badges, org charts, ID cards, HR directory
- *   - Stored on: Employee model (HRM package)
- *
- * @deprecated Use \Aero\Core\Http\Controllers\Profile\UserProfileImageController instead
  * @see \Aero\HRM\Http\Controllers\Employee\EmployeeImageController For employee HR images
- * @see \Aero\Core\Models\User For profile image storage
  */
-class ProfileImageController extends Controller
+class UserProfileImageController extends Controller
 {
     /**
      * Upload or update user's profile image
-     * 
-     * This manages the User's identity/authentication profile image,
-     * which is stored on the User model in the Core package.
      */
     public function upload(Request $request): JsonResponse
     {
-        // Debug logging at start
-        Log::info('[ProfileImageUpload] Request received', [
+        Log::info('[UserProfileImageUpload] Request received', [
             'user_id' => $request->user_id ?? 'not provided',
             'has_file' => $request->hasFile('profile_image'),
             'file_valid' => $request->hasFile('profile_image') ? $request->file('profile_image')->isValid() : false,
@@ -72,7 +55,7 @@ class ProfileImageController extends Controller
             ]);
 
             if ($validator->fails()) {
-                Log::warning('[ProfileImageUpload] Validation failed', [
+                Log::warning('[UserProfileImageUpload] Validation failed', [
                     'errors' => $validator->errors()->toArray(),
                     'user_id' => $request->user_id,
                 ]);
@@ -86,11 +69,14 @@ class ProfileImageController extends Controller
 
             // Get the user
             $user = User::findOrFail($request->user_id);
-            Log::info('[ProfileImageUpload] User found', ['target_user_id' => $user->id, 'target_user_name' => $user->name]);
+            Log::info('[UserProfileImageUpload] User found', [
+                'target_user_id' => $user->id,
+                'target_user_name' => $user->name,
+            ]);
 
             // Check if current user can update this user's profile
             if (! $this->canUpdateUserProfile($user)) {
-                Log::warning('[ProfileImageUpload] Authorization failed', [
+                Log::warning('[UserProfileImageUpload] Authorization failed', [
                     'auth_user_id' => Auth::id(),
                     'target_user_id' => $user->id,
                 ]);
@@ -101,22 +87,22 @@ class ProfileImageController extends Controller
                 ], 403);
             }
 
-            Log::info('[ProfileImageUpload] Authorization passed, proceeding with upload');
+            Log::info('[UserProfileImageUpload] Authorization passed, proceeding with upload');
 
             // Clear any existing profile images (ensure only one image per user)
             if ($user->hasMedia('profile_images')) {
-                Log::info('[ProfileImageUpload] Clearing existing media');
+                Log::info('[UserProfileImageUpload] Clearing existing media');
                 $user->clearMediaCollection('profile_images');
             }
 
             // Upload new profile image
-            Log::info('[ProfileImageUpload] Adding media from request');
+            Log::info('[UserProfileImageUpload] Adding media from request');
             $media = $user->addMediaFromRequest('profile_image')
                 ->usingName($user->name.' Profile Image')
                 ->usingFileName(time().'_profile.'.$request->file('profile_image')->getClientOriginalExtension())
                 ->toMediaCollection('profile_images');
 
-            Log::info('[ProfileImageUpload] Media added successfully', [
+            Log::info('[UserProfileImageUpload] Media added successfully', [
                 'media_id' => $media->id,
                 'media_url' => $media->getUrl(),
             ]);
@@ -139,12 +125,12 @@ class ProfileImageController extends Controller
                 'media_id' => $media->id,
             ];
 
-            Log::info('[ProfileImageUpload] Success', $responseData);
+            Log::info('[UserProfileImageUpload] Success', $responseData);
 
             return response()->json($responseData);
 
         } catch (FileDoesNotExist $e) {
-            Log::error('[ProfileImageUpload] FileDoesNotExist exception', [
+            Log::error('[UserProfileImageUpload] FileDoesNotExist exception', [
                 'message' => $e->getMessage(),
                 'user_id' => $request->user_id ?? null,
             ]);
@@ -155,7 +141,7 @@ class ProfileImageController extends Controller
                 'exception' => $e->getMessage(),
             ], 400);
         } catch (FileIsTooBig $e) {
-            Log::error('[ProfileImageUpload] FileIsTooBig exception', [
+            Log::error('[UserProfileImageUpload] FileIsTooBig exception', [
                 'message' => $e->getMessage(),
                 'user_id' => $request->user_id ?? null,
             ]);
@@ -166,7 +152,7 @@ class ProfileImageController extends Controller
                 'exception' => $e->getMessage(),
             ], 400);
         } catch (\Exception $e) {
-            Log::error('[ProfileImageUpload] Unexpected exception', [
+            Log::error('[UserProfileImageUpload] Unexpected exception', [
                 'message' => $e->getMessage(),
                 'exception_class' => get_class($e),
                 'user_id' => $request->user_id ?? null,
@@ -239,7 +225,7 @@ class ProfileImageController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Profile image removal error: '.$e->getMessage(), [
+            Log::error('User profile image removal error: '.$e->getMessage(), [
                 'user_id' => $request->user_id ?? null,
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -252,10 +238,38 @@ class ProfileImageController extends Controller
     }
 
     /**
+     * Get user's profile image
+     */
+    public function show(Request $request, int $userId): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($userId);
+
+            return response()->json([
+                'success' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'profile_image_url' => $user->profile_image_url,
+                ],
+                'profile_image_url' => $user->profile_image_url,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found',
+            ], 404);
+        }
+    }
+
+    /**
      * Check if current user can update the given user's profile
-     * 
-     * Uses HRMAuthorizationService for permission-based access control
-     * instead of hardcoded role checks.
+     *
+     * Authorization rules:
+     * 1. User can always update their own profile
+     * 2. User with 'manage users' permission can update any profile
+     * 3. User's manager can update their profile
      */
     private function canUpdateUserProfile(User $user): bool
     {
@@ -267,17 +281,16 @@ class ProfileImageController extends Controller
             return true;
         }
 
-        // Use HRMAuthorizationService for permission-based checks
-        $authService = app(HRMAuthorizationService::class);
-        
-        // Check if user has employee management permissions
-        if ($authService->canManageEmployees($currentUser)) {
+        // Check for permission-based access using Spatie Permission
+        if ($currentUser->hasPermissionTo('manage users') ||
+            $currentUser->hasPermissionTo('users.update') ||
+            $currentUser->hasPermissionTo('users.edit')) {
             return true;
         }
 
-        // Check if current user is the manager of the target user's employee record
-        $targetEmployee = Employee::where('user_id', $user->id)->first();
-        if ($targetEmployee && $targetEmployee->manager_id === $currentUser->id) {
+        // Check if current user is the manager of the target user
+        // This uses the report_to relationship from User model
+        if ($user->report_to === $currentUser->id) {
             return true;
         }
 

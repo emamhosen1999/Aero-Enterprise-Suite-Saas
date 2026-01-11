@@ -41,6 +41,7 @@ import {
 } from "@heroicons/react/24/outline";
 import DeleteEmployeeModal from '@/Components/DeleteEmployeeModal';
 import ProfilePictureModal from '@/Components/ProfilePictureModal';
+import EmployeeImageModal from '@/Components/HRM/EmployeeImageModal';
 import ProfileAvatar, {getProfileAvatarTokens} from '@/Components/ProfileAvatar';
 
 const EmployeeTable = ({ 
@@ -58,7 +59,9 @@ const EmployeeTable = ({
   totalUsers = 0,
   loading = false,
   updateEmployeeOptimized,
-  deleteEmployeeOptimized
+  deleteEmployeeOptimized,
+  // New prop to control which image modal to use
+  imageType = 'employee' // 'employee' for HR image, 'profile' for User profile image
 }) => {
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -69,8 +72,14 @@ const EmployeeTable = ({
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Profile picture modal state
+  // Profile picture modal state (for User profile images)
   const [profilePictureModal, setProfilePictureModal] = useState({
+    isOpen: false,
+    employee: null
+  });
+
+  // Employee image modal state (for HR images)
+  const [employeeImageModal, setEmployeeImageModal] = useState({
     isOpen: false,
     employee: null
   });
@@ -484,7 +493,7 @@ const EmployeeTable = ({
     setEmployeeToDelete(null);
   };
 
-  // Profile picture modal handlers
+  // Profile picture modal handlers (for User profile images)
   const handleProfilePictureClick = (employee) => {
     setProfilePictureModal({
       isOpen: true,
@@ -499,6 +508,51 @@ const EmployeeTable = ({
     });
   };
 
+  // Employee image modal handlers (for HR images)
+  const handleEmployeeImageClick = (employee) => {
+    setEmployeeImageModal({
+      isOpen: true,
+      employee: employee
+    });
+  };
+
+  const handleEmployeeImageClose = () => {
+    setEmployeeImageModal({
+      isOpen: false,
+      employee: null
+    });
+  };
+
+  // Handler for avatar click - opens appropriate modal based on imageType prop
+  const handleAvatarClick = (employee) => {
+    if (imageType === 'profile') {
+      handleProfilePictureClick(employee);
+    } else {
+      handleEmployeeImageClick(employee);
+    }
+  };
+
+  // Handler for User profile image update
+  const handleProfileImageUpdate = (userId, newImageUrl) => {
+    // Update the user's profile image in the local state
+    if (updateEmployeeOptimized) {
+      updateEmployeeOptimized(userId, {
+        profile_image_url: newImageUrl
+      });
+    }
+  };
+
+  // Handler for Employee HR image update
+  const handleEmployeeImageUpdate = (employeeId, newImageUrl) => {
+    // Update the employee's HR image in the local state
+    if (updateEmployeeOptimized) {
+      updateEmployeeOptimized(employeeId, {
+        employee_image_url: newImageUrl
+      });
+    }
+  };
+
+  // Legacy handler for backward compatibility
   const handleImageUpdate = (employeeId, newImageUrl) => {
     // Update the employee's profile image in the local state
     if (updateEmployeeOptimized) {
@@ -651,10 +705,10 @@ const EmployeeTable = ({
           <div className="min-w-max">
             <div className="flex items-center gap-3">
               <ProfileAvatar
-                src={user?.profile_image_url || user?.profile_image}
+                src={user?.employee_image_url || user?.profile_image_url || user?.profile_image}
                 name={user?.name}
                 size={isMobile ? "sm" : "md"}
-                onClick={() => handleProfilePictureClick(user)}
+                onClick={() => handleAvatarClick(user)}
               />
               <div className="flex flex-col">
                 <p className="font-semibold text-foreground text-left whitespace-nowrap">
@@ -1171,12 +1225,20 @@ const EmployeeTable = ({
         loading={deleteLoading}
       />
       
-      {/* Profile Picture Update Modal */}
+      {/* User Profile Picture Update Modal (for User identity/auth images) */}
       <ProfilePictureModal
         isOpen={profilePictureModal.isOpen}
         onClose={handleProfilePictureClose}
         employee={profilePictureModal.employee}
-        onImageUpdate={handleImageUpdate}
+        onImageUpdate={handleProfileImageUpdate}
+      />
+
+      {/* Employee HR Image Update Modal (for badges, org charts, ID cards) */}
+      <EmployeeImageModal
+        isOpen={employeeImageModal.isOpen}
+        onClose={handleEmployeeImageClose}
+        employee={employeeImageModal.employee}
+        onImageUpdate={handleEmployeeImageUpdate}
       />
     </div>
   );
