@@ -6,6 +6,9 @@ use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceSetting;
 use Aero\HRM\Models\Holiday;
 use Aero\HRM\Models\LeaveSetting;
+use Aero\HRM\Events\Attendance\AttendancePunchedIn;
+use Aero\HRM\Events\Attendance\AttendancePunchedOut;
+use Aero\HRM\Events\Attendance\LateArrivalDetected;
 use App\Exports\AttendanceAdminExport;
 use App\Exports\AttendanceExport;
 use Aero\HRM\Http\Controllers\Controller;
@@ -386,12 +389,53 @@ class AttendanceController extends Controller
             $today = Carbon::today();
 
             // Attempt to create or update the attendance record
-            Attendance::create([
+            $attendance = Attendance::create([
                 'user_id' => $request->user_id,
                 'date' => Carbon::today(),
                 'punchin' => Carbon::now(),
                 'punchin_location' => $request->location,
             ]);
+
+            // Calculate if employee is late
+            $isLate = false;
+            $scheduledTime = null;
+            $lateMinutes = 0;
+
+            // Get user's attendance settings to determine scheduled time
+            $user = User::find($request->user_id);
+            if ($user && $user->attendanceType) {
+                $config = $user->attendanceType->config;
+                if (isset($config['start_time'])) {
+                    $scheduledTime = Carbon::parse($today->format('Y-m-d') . ' ' . $config['start_time']);
+                    $actualTime = $attendance->punchin;
+                    
+                    if ($actualTime->greaterThan($scheduledTime)) {
+                        $isLate = true;
+                        $lateMinutes = $actualTime->diffInMinutes($scheduledTime);
+                    }
+                }
+            }
+
+            // Parse location data
+            $locationData = is_string($request->location) ? json_decode($request->location, true) : $request->location;
+            $location = [
+                'latitude' => $locationData['latitude'] ?? null,
+                'longitude' => $locationData['longitude'] ?? null,
+                'address' => $locationData['address'] ?? 'Unknown location',
+            ];
+
+            // Dispatch AttendancePunchedIn event
+            event(new AttendancePunchedIn($attendance, $isLate, $location));
+
+            // Dispatch LateArrivalDetected event if employee is late
+            if ($isLate && $scheduledTime) {
+                event(new LateArrivalDetected(
+                    $attendance,
+                    $lateMinutes,
+                    $scheduledTime,
+                    $attendance->punchin
+                ));
+            }
 
             // Return success response with no punches if there are none
             return response()->json([
@@ -423,6 +467,48 @@ class AttendanceController extends Controller
             $attendance->punchout = Carbon::now();
             $attendance->punchout_location = $request->location;
             $attendance->save();
+
+            // Calculate work duration and overtime
+            $totalMinutes = $attendance->punchin->diffInMinutes($attendance->punchout);
+            $isEarly = false;
+            $hasOvertime = false;
+
+            // Get user's attendance settings
+            $user = User::find($request->user_id);
+            if ($user && $user->attendanceType) {
+                $config = $user->attendanceType->config;
+                
+                // Check for early departure
+                if (isset($config['end_time'])) {
+                    $scheduledEndTime = Carbon::parse($attendance->date->format('Y-m-d') . ' ' . $config['end_time']);
+                    if ($attendance->punchout->lessThan($scheduledEndTime)) {
+                        $isEarly = true;
+                    }
+                }
+                
+                // Check for overtime (standard 8-hour workday assumed)
+                $standardMinutes = 8 * 60; // 8 hours
+                if ($totalMinutes > $standardMinutes) {
+                    $hasOvertime = true;
+                }
+            }
+
+            // Parse location data
+            $locationData = is_string($request->location) ? json_decode($request->location, true) : $request->location;
+            $location = [
+                'latitude' => $locationData['latitude'] ?? null,
+                'longitude' => $locationData['longitude'] ?? null,
+                'address' => $locationData['address'] ?? 'Unknown location',
+            ];
+
+            // Dispatch AttendancePunchedOut event
+            event(new AttendancePunchedOut(
+                $attendance,
+                $isEarly,
+                $hasOvertime,
+                $totalMinutes,
+                $location
+            ));
 
             // Return success response
             return response()->json([

@@ -2,12 +2,14 @@
 
 use Aero\HRM\Http\Controllers\Attendance\AttendanceController;
 use Aero\HRM\Http\Controllers\Asset\AssetController;
+use Aero\HRM\Http\Controllers\HRMDashboardController;
 use Aero\HRM\Http\Controllers\Disciplinary\DisciplinaryCaseController;
 use Aero\HRM\Http\Controllers\Employee\BenefitsController;
 use Aero\HRM\Http\Controllers\Employee\DepartmentController;
 use Aero\HRM\Http\Controllers\Employee\DesignationController;
 use Aero\HRM\Http\Controllers\Employee\EducationController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeController;
+use Aero\HRM\Http\Controllers\Employee\EmployeeDashboardController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeDocumentController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeProfileController;
 use Aero\HRM\Http\Controllers\Employee\EmployeeSelfServiceController;
@@ -87,10 +89,16 @@ Route::middleware(['auth', 'verified', 'module:hrm,employees'])
 // ============================================================================
 // Note: Service provider adds 'hrm.' prefix and '/hrm' path automatically
 Route::middleware(['auth', 'verified'])->group(function () {
-    // HR Dashboard
-    Route::middleware(['module:hrm,dashboard'])
-        ->get('/dashboard', [PerformanceReviewController::class, 'dashboard'])
-        ->name('dashboard');
+    // HR Dashboard (for HR Managers and Admins)
+    Route::middleware(['module:hrm,dashboard'])->group(function () {
+        Route::get('/dashboard', [HRMDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/stats', [HRMDashboardController::class, 'stats'])->name('dashboard.stats');
+    });
+
+    // Employee Dashboard (for regular employees - personal view)
+    Route::middleware(['module:hrm,employee-self-service'])
+        ->get('/employee/dashboard', [EmployeeDashboardController::class, 'index'])
+        ->name('employee.dashboard');
 
     // Performance Management
     Route::middleware(['module:hrm,performance'])->group(function () {

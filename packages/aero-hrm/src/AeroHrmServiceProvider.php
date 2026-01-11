@@ -49,6 +49,9 @@ class AeroHrmServiceProvider extends ServiceProvider
         // Register routes
         $this->registerRoutes();
 
+        // Register HRM dashboards
+        $this->registerDashboards();
+
         // Publish compiled module library (ES module for runtime loading)
         // Built to dist/ directory via npm run build
         $moduleLibrary = __DIR__ . '/../dist';
@@ -123,5 +126,40 @@ class AeroHrmServiceProvider extends ServiceProvider
     protected function isSaaSMode(): bool
     {
         return is_saas_mode();
+    }
+
+    /**
+     * Register HRM dashboards with DashboardRegistry.
+     *
+     * @return void
+     */
+    protected function registerDashboards(): void
+    {
+        // Only register if DashboardRegistry is available
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        // Register HRM Dashboard (for HR Managers and Staff)
+        $registry->register(
+            'hrm.dashboard',
+            'HRM Dashboard',
+            'hrm',
+            'Full HR analytics for HR Managers and Staff',
+            'UserGroupIcon',
+            'hrm.dashboard.view'
+        );
+
+        // Register Employee Dashboard (for regular employees)
+        $registry->register(
+            'hrm.employee.dashboard',
+            'Employee Dashboard',
+            'hrm',
+            'Personal dashboard for employees (leaves, attendance, payslips)',
+            'UserIcon',
+            'hrm.employee.dashboard.view'
+        );
     }
 }

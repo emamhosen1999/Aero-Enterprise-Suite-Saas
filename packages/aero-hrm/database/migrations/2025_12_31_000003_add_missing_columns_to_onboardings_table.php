@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Only run if table exists
+        if (!Schema::hasTable('onboardings')) {
+            return;
+        }
+
         Schema::table('onboardings', function (Blueprint $table) {
             if (!Schema::hasColumn('onboardings', 'actual_completion_date')) {
                 $table->timestamp('actual_completion_date')->nullable()->after('expected_completion_date');

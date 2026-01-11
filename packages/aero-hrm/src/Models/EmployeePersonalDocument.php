@@ -18,6 +18,16 @@ class EmployeePersonalDocument extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Aero\HRM\Database\Factories\EmployeePersonalDocumentFactory::new();
+    }
+
     protected $table = 'employee_personal_documents';
 
     protected $fillable = [

@@ -72,6 +72,11 @@ class CoreModuleProvider extends AbstractModuleProvider
     {
         parent::register();
 
+        // Register DashboardRegistry as singleton
+        $this->app->singleton(\Aero\Core\Services\DashboardRegistry::class, function ($app) {
+            return new \Aero\Core\Services\DashboardRegistry();
+        });
+
         // In standalone mode, push the global BootstrapGuard middleware
         // This runs before route matching and handles:
         // 1. Installation status check
@@ -174,6 +179,31 @@ class CoreModuleProvider extends AbstractModuleProvider
         
         // Register commands
         $this->registerCommands();
+
+        // Register Core dashboards in the DashboardRegistry
+        $this->registerDashboards();
+    }
+
+    /**
+     * Register Core dashboards.
+     */
+    protected function registerDashboards(): void
+    {
+        if (!$this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        $registry->registerMany([
+            [
+                'route' => 'dashboard',
+                'label' => 'Core Dashboard',
+                'module' => 'core',
+                'description' => 'System overview for administrators',
+                'icon' => 'HomeIcon',
+            ],
+        ]);
     }
 
     /**
@@ -204,6 +234,7 @@ class CoreModuleProvider extends AbstractModuleProvider
         $router->aliasMiddleware('permission', \Aero\Core\Http\Middleware\PermissionMiddleware::class);
         $router->aliasMiddleware('role', \Aero\Core\Http\Middleware\EnsureUserHasRole::class);
         $router->aliasMiddleware('prevent.installed', \Aero\Core\Http\Middleware\PreventInstalledAccess::class);
+        $router->aliasMiddleware('dashboard.redirect', \Aero\Core\Http\Middleware\DashboardRedirectMiddleware::class);
         
         // Note: BootstrapGuard is registered globally in register() method for standalone mode.
         // No additional installation middleware is needed in the web group.

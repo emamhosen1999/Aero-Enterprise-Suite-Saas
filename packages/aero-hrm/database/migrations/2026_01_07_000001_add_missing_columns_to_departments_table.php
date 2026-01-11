@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Only run if table exists
+        if (!Schema::hasTable('departments')) {
+            return;
+        }
+
         Schema::table('departments', function (Blueprint $table) {
             if (! Schema::hasColumn('departments', 'code')) {
                 $table->string('code', 50)->nullable()->unique()->after('name');
@@ -42,3 +47,4 @@ return new class extends Migration
         });
     }
 };
+

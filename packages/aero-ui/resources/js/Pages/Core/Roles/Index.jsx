@@ -104,6 +104,7 @@ const RoleManagement = (props) => {
     const dataValidationErrors = validatedData.errors;
     const initialUsers = props.users || [];
     const isPlatformContext = props.is_platform_context || false;
+    const dashboardOptions = props.dashboard_options || [];
 
     // Local users state for real-time updates
     const [users, setUsers] = useState(initialUsers);
@@ -168,6 +169,8 @@ const RoleManagement = (props) => {
         description: '',
         hierarchy_level: 10,
         is_active: true,
+        default_dashboard: '',
+        priority: 0,
         guard_name: 'web' // Will be auto-set based on context
     });
     const [formErrors, setFormErrors] = useState({});
@@ -312,7 +315,9 @@ const RoleManagement = (props) => {
             name: role?.name || '',
             description: role?.description || '',
             hierarchy_level: role?.hierarchy_level || 10,
-            is_active: role?.is_active ?? true
+            is_active: role?.is_active ?? true,
+            default_dashboard: role?.default_dashboard || '',
+            priority: role?.priority || 0
         });
         setRoleDialogOpen(true);
         setFormErrors({});
@@ -328,7 +333,9 @@ const RoleManagement = (props) => {
             name: '',
             description: '',
             hierarchy_level: 10,
-            is_active: true
+            is_active: true,
+            default_dashboard: '',
+            priority: 0
         });
     }, []);
 
@@ -621,6 +628,66 @@ const RoleManagement = (props) => {
                                 inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
                                 input: "text-foreground placeholder:text-default-400",
                                 label: "text-default-500"
+                            }}
+                        />
+                    </div>
+                    
+                    {/* Dashboard Selection Section */}
+                    <div className="col-span-2">
+                        <Divider className="my-4" />
+                        <p className="text-sm font-medium text-default-700 mb-3">Dashboard Settings</p>
+                    </div>
+                    
+                    <div className="col-span-1">
+                        <Select
+                            label="Default Dashboard"
+                            placeholder="Select a dashboard"
+                            selectedKeys={roleForm.default_dashboard ? [roleForm.default_dashboard] : []}
+                            onSelectionChange={(keys) => {
+                                const selected = Array.from(keys)[0] || '';
+                                setRoleForm(prev => ({ ...prev, default_dashboard: selected }));
+                            }}
+                            isDisabled={isLoading}
+                            variant="bordered"
+                            radius={themeRadius}
+                            description="Users with this role will be redirected to this dashboard"
+                            classNames={{
+                                trigger: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 data-[focus=true]:border-primary/50",
+                                label: "text-default-500",
+                                description: "text-default-400"
+                            }}
+                        >
+                            <SelectItem key="" value="">None (use default)</SelectItem>
+                            {dashboardOptions.map((dashboard) => (
+                                <SelectItem 
+                                    key={dashboard.key} 
+                                    value={dashboard.key}
+                                    description={dashboard.description}
+                                >
+                                    {dashboard.label}
+                                </SelectItem>
+                            ))}
+                        </Select>
+                    </div>
+                    
+                    <div className="col-span-1">
+                        <Input
+                            label="Role Priority"
+                            placeholder="0"
+                            type="number"
+                            min={0}
+                            max={1000}
+                            value={String(roleForm.priority)}
+                            onValueChange={(value) => setRoleForm(prev => ({ ...prev, priority: parseInt(value) || 0 }))}
+                            isDisabled={isLoading}
+                            variant="bordered"
+                            radius={themeRadius}
+                            description="Higher priority role's dashboard is used for multi-role users"
+                            classNames={{
+                                inputWrapper: "bg-default-100/50 dark:bg-default-50/10 border-default-200/20 hover:border-default-300/30 focus-within:!border-primary/50",
+                                input: "text-foreground",
+                                label: "text-default-500",
+                                description: "text-default-400"
                             }}
                         />
                     </div>

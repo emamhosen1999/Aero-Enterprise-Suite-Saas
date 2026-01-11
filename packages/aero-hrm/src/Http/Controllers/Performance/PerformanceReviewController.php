@@ -20,7 +20,7 @@ class PerformanceReviewController extends Controller
     {
         // Get statistics for the dashboard
         $totalReviews = PerformanceReview::count();
-        $pendingReviews = PerformanceReview::where('status', 'pending')->count();
+        $pendingReviews = PerformanceReview::whereIn('status', ['self_assessment_pending', 'manager_review_pending'])->count();
         $completedReviews = PerformanceReview::where('status', 'completed')->count();
         $averageRating = PerformanceReview::whereNotNull('overall_rating')->avg('overall_rating');
 
@@ -33,7 +33,7 @@ class PerformanceReviewController extends Controller
         // Upcoming reviews
         $upcomingReviews = PerformanceReview::with(['employee', 'reviewer'])
             ->where('status', 'scheduled')
-            ->orderBy('review_date')
+            ->orderBy('review_start_date')
             ->take(5)
             ->get();
 
@@ -68,7 +68,7 @@ class PerformanceReviewController extends Controller
             ->when($request->department_id, function ($query, $departmentId) {
                 $query->where('department_id', $departmentId);
             })
-            ->orderBy($request->input('sort_by', 'review_date'), $request->input('sort_order', 'desc'))
+            ->orderBy($request->input('sort_by', 'review_start_date'), $request->input('sort_order', 'desc'))
             ->paginate(10)
             ->withQueryString();
 

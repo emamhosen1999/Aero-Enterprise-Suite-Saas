@@ -4,12 +4,19 @@ namespace Aero\HRM\Providers;
 
 use Aero\Core\Providers\AbstractModuleProvider;
 use Aero\Core\Services\UserRelationshipRegistry;
+use Aero\HRM\Jobs\CheckBirthdaysJob;
+use Aero\HRM\Jobs\CheckExpiringContractsJob;
+use Aero\HRM\Jobs\CheckExpiringDocumentsJob;
+use Aero\HRM\Jobs\CheckProbationEndingJob;
+use Aero\HRM\Jobs\CheckWorkAnniversariesJob;
 use Aero\HRM\Models\Attendance;
 use Aero\HRM\Models\AttendanceType;
 use Aero\HRM\Models\Department;
 use Aero\HRM\Models\Designation;
 use Aero\HRM\Models\Employee;
 use Aero\HRM\Models\Leave;
+use Aero\HRM\Services\HrmNotificationChannelResolver;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -53,6 +60,14 @@ class HRMServiceProvider extends AbstractModuleProvider
      */
     protected function registerServices(): void
     {
+        // Register HRM Event Service Provider
+        $this->app->register(HrmEventServiceProvider::class);
+
+        // Register HRM Notification Channel Resolver (HRM-specific, no core dependency)
+        $this->app->singleton(HrmNotificationChannelResolver::class, function ($app) {
+            return new HrmNotificationChannelResolver;
+        });
+
         // Register main HRM service
         $this->app->singleton('hrm', function ($app) {
             return new \Aero\HRM\Services\HRMetricsAggregatorService;
@@ -95,8 +110,94 @@ class HRMServiceProvider extends AbstractModuleProvider
         // Register console commands
         $this->registerCommands();
 
+        // Register scheduled jobs
+        $this->registerScheduledJobs();
+
         // Register dashboard widgets for Core Dashboard
         $this->registerDashboardWidgets();
+
+        // Register HRM dashboards with DashboardRegistry
+        $this->registerDashboards();
+    }
+
+    /**
+     * Register HRM scheduled jobs.
+     *
+     * These jobs run daily to check for employee-related events:
+     * - Birthdays and work anniversaries
+     * - Expiring documents, probation periods, and contracts
+     */
+    protected function registerScheduledJobs(): void
+    {
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            // Birthday and Anniversary checks - run at 8:00 AM
+            $schedule->job(new CheckBirthdaysJob)
+                ->dailyAt('08:00')
+                ->name('hrm:check-birthdays')
+                ->withoutOverlapping()
+                ->onOneServer();
+
+            $schedule->job(new CheckWorkAnniversariesJob)
+                ->dailyAt('08:00')
+                ->name('hrm:check-work-anniversaries')
+                ->withoutOverlapping()
+                ->onOneServer();
+
+            // Document and Contract expiry checks - run at 9:00 AM
+            $schedule->job(new CheckExpiringDocumentsJob)
+                ->dailyAt('09:00')
+                ->name('hrm:check-expiring-documents')
+                ->withoutOverlapping()
+                ->onOneServer();
+
+            $schedule->job(new CheckProbationEndingJob)
+                ->dailyAt('09:00')
+                ->name('hrm:check-probation-ending')
+                ->withoutOverlapping()
+                ->onOneServer();
+
+            $schedule->job(new CheckExpiringContractsJob)
+                ->dailyAt('09:00')
+                ->name('hrm:check-expiring-contracts')
+                ->withoutOverlapping()
+                ->onOneServer();
+        });
+    }
+
+    /**
+     * Register HRM dashboards with the DashboardRegistry.
+     *
+     * This allows roles to be assigned to specific HRM dashboards:
+     * - hrm.dashboard: For HR Managers and Staff (full analytics)
+     * - hrm.employee.dashboard: For regular employees (personal view)
+     */
+    protected function registerDashboards(): void
+    {
+        // Only register if the registry is available
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        $registry->registerMany([
+            [
+                'route' => 'hrm.dashboard',
+                'label' => 'HRM Dashboard',
+                'module' => 'hrm',
+                'description' => 'Full HR analytics for HR Managers and Staff',
+                'icon' => 'UserGroupIcon',
+                'requiredPermission' => 'hrm.dashboard',
+            ],
+            [
+                'route' => 'hrm.employee.dashboard',
+                'label' => 'Employee Dashboard',
+                'module' => 'hrm',
+                'description' => 'Personal dashboard for employees (leaves, attendance, payslips)',
+                'icon' => 'UserIcon',
+                'requiredPermission' => 'hrm.employee-self-service',
+            ],
+        ]);
     }
 
     /**
@@ -108,7 +209,7 @@ class HRMServiceProvider extends AbstractModuleProvider
     protected function registerDashboardWidgets(): void
     {
         // Only register if the registry is available
-        if (!$this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardWidgetRegistry::class)) {
             return;
         }
 
@@ -117,17 +218,17 @@ class HRMServiceProvider extends AbstractModuleProvider
         // Register HRM widgets for Core Dashboard
         $registry->registerMany([
             // Leave & Attendance widgets
-            new \Aero\HRM\Widgets\PunchStatusWidget(),
-            new \Aero\HRM\Widgets\MyLeaveBalanceWidget(),
-            new \Aero\HRM\Widgets\PendingLeaveApprovalsWidget(),
-            new \Aero\HRM\Widgets\UpcomingHolidaysWidget(),
-            new \Aero\HRM\Widgets\OrganizationInfoWidget(),
+            new \Aero\HRM\Widgets\PunchStatusWidget,
+            new \Aero\HRM\Widgets\MyLeaveBalanceWidget,
+            new \Aero\HRM\Widgets\PendingLeaveApprovalsWidget,
+            new \Aero\HRM\Widgets\UpcomingHolidaysWidget,
+            new \Aero\HRM\Widgets\OrganizationInfoWidget,
             // Performance Management widgets
-            new \Aero\HRM\Widgets\MyGoalsWidget(),
-            new \Aero\HRM\Widgets\PendingReviewsWidget(),
+            new \Aero\HRM\Widgets\MyGoalsWidget,
+            new \Aero\HRM\Widgets\PendingReviewsWidget,
             // Manager widgets
-            new \Aero\HRM\Widgets\TeamAttendanceWidget(),
-            new \Aero\HRM\Widgets\PayrollSummaryWidget(),
+            new \Aero\HRM\Widgets\TeamAttendanceWidget,
+            new \Aero\HRM\Widgets\PayrollSummaryWidget,
         ]);
     }
 

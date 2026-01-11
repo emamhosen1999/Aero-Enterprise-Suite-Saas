@@ -13,6 +13,11 @@ use Aero\HRM\Models\OffboardingTask;
 use Aero\HRM\Models\Onboarding;
 use Aero\HRM\Models\OnboardingStep;
 use Aero\HRM\Models\OnboardingTask;
+use Aero\HRM\Events\Onboarding\OnboardingStarted;
+use Aero\HRM\Events\Onboarding\OnboardingCompleted;
+use Aero\HRM\Events\Offboarding\OffboardingStarted;
+use Aero\HRM\Events\Offboarding\OffboardingCompleted;
+use Aero\HRM\Events\Employee\EmployeeResigned;
 use Aero\HRM\Http\Controllers\Controller;
 use App\Http\Controllers\Tenant\HRM\Employee\Request;
 use Aero\Core\Models\User;
@@ -468,6 +473,13 @@ class OnboardingController extends Controller
             // Mark employee as active
             $employee->update(['active' => true]);
 
+            // Mark onboarding as completed
+            $onboarding->update(['status' => Onboarding::STATUS_COMPLETED]);
+
+            // Dispatch OnboardingCompleted event
+            $daysTaken = $onboarding->start_date->diffInDays(now());
+            event(new OnboardingCompleted($onboarding, now(), $daysTaken));
+
             DB::commit();
 
             return response()->json([
@@ -548,6 +560,21 @@ class OnboardingController extends Controller
                     'status' => OffboardingTask::STATUS_PENDING,
                 ]);
             }
+
+            // Dispatch EmployeeResigned event if reason is resignation
+            $employee = User::with('employee')->findOrFail($validated['employee_id']);
+            if (strtolower($validated['reason']) === 'resignation' && $employee->employee) {
+                event(new EmployeeResigned(
+                    $employee->employee,
+                    now(),
+                    $validated['last_working_date'],
+                    $validated['notes'] ?? 'Voluntary resignation',
+                    $validated['initiation_date']->diffInDays($validated['last_working_date'])
+                ));
+            }
+
+            // Dispatch OffboardingStarted event
+            event(new OffboardingStarted($offboarding, $validated['reason'], auth()->id()));
 
             DB::commit();
 

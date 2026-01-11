@@ -7,6 +7,7 @@ use Aero\HRMAC\Models\Role;
 use Aero\Core\Models\User;
 use Aero\Core\Models\Module;
 use Aero\Core\Services\AuditService;
+use Aero\Core\Services\DashboardRegistry;
 use Aero\Core\Support\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -75,6 +76,12 @@ class RoleController extends Controller
                 ->orderBy('name')
                 ->get()
                 ->map(function ($role) {
+                    // Fetch extended fields from the roles table
+                    $extraFields = DB::table('roles')
+                        ->where('id', $role->id)
+                        ->select(['default_dashboard', 'priority'])
+                        ->first();
+
                     return [
                         'id' => $role->id,
                         'name' => $role->name,
@@ -82,6 +89,8 @@ class RoleController extends Controller
                         'guard_name' => $role->guard_name,
                         'scope' => $role->scope ?? 'platform',
                         'is_protected' => $role->is_protected ?? false,
+                        'default_dashboard' => $extraFields->default_dashboard ?? null,
+                        'priority' => $extraFields->priority ?? 0,
                         'users_count' => $role->users()->count(),
                         'created_at' => $role->created_at,
                         'updated_at' => $role->updated_at,
@@ -172,6 +181,7 @@ class RoleController extends Controller
                 'role_has_permissions' => [], // Empty - not using permissions
                 'enterprise_modules' => [], // Empty - not using permissions
                 'module_hierarchy' => $moduleHierarchy, // NEW: Module hierarchy for permission assignment
+                'dashboard_options' => app(DashboardRegistry::class)->getDashboardOptions(), // Dashboard options for role assignment - no user filtering, show all available
                 'can_manage_super_admin' => $isSuperAdmin,
                 'is_platform_context' => false,
                 'users' => $users,
@@ -221,12 +231,24 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles,name',
             'description' => 'nullable|string|max:500',
             'is_active' => 'nullable|boolean',
+            'default_dashboard' => 'nullable|string|max:100',
+            'priority' => 'nullable|integer|min:0|max:1000',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        // Validate dashboard route if provided
+        if ($request->filled('default_dashboard')) {
+            $dashboardRegistry = app(DashboardRegistry::class);
+            if (!$dashboardRegistry->isValid($request->default_dashboard)) {
+                return response()->json([
+                    'errors' => ['default_dashboard' => ['The selected dashboard is not valid.']],
+                ], 422);
+            }
         }
 
         DB::beginTransaction();
@@ -250,6 +272,13 @@ class RoleController extends Controller
             }
             if ($request->has('is_active')) {
                 $updateData['is_active'] = $request->boolean('is_active', true);
+            }
+            // Add default_dashboard and priority
+            if ($request->has('default_dashboard')) {
+                $updateData['default_dashboard'] = $request->default_dashboard;
+            }
+            if ($request->has('priority')) {
+                $updateData['priority'] = (int) $request->priority;
             }
             if (!empty($updateData)) {
                 $updateData['updated_at'] = now();
@@ -297,12 +326,24 @@ class RoleController extends Controller
             'name' => 'required|string|max:255|unique:roles,name,' . $id,
             'description' => 'nullable|string|max:500',
             'is_active' => 'nullable|boolean',
+            'default_dashboard' => 'nullable|string|max:100',
+            'priority' => 'nullable|integer|min:0|max:1000',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        // Validate dashboard route if provided
+        if ($request->filled('default_dashboard')) {
+            $dashboardRegistry = app(DashboardRegistry::class);
+            if (!$dashboardRegistry->isValid($request->default_dashboard)) {
+                return response()->json([
+                    'errors' => ['default_dashboard' => ['The selected dashboard is not valid.']],
+                ], 422);
+            }
         }
 
         DB::beginTransaction();
@@ -338,6 +379,13 @@ class RoleController extends Controller
             }
             if ($request->has('is_active')) {
                 $updateData['is_active'] = $request->boolean('is_active');
+            }
+            // Add default_dashboard and priority
+            if ($request->has('default_dashboard')) {
+                $updateData['default_dashboard'] = $request->default_dashboard;
+            }
+            if ($request->has('priority')) {
+                $updateData['priority'] = (int) $request->priority;
             }
             if (!empty($updateData)) {
                 $updateData['updated_at'] = now();

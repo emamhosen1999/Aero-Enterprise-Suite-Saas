@@ -1,35 +1,25 @@
 <?php
 
-namespace App\Notifications;
+declare(strict_types=1);
 
-use App\Models\HRM\Leave;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+namespace Aero\HRM\Notifications;
+
+use Aero\HRM\Models\Leave;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
-class LeaveRequestNotification extends Notification implements ShouldQueue
+/**
+ * Notification sent to managers/HR when a leave request is submitted.
+ *
+ * Recipients: Manager, HR roles
+ */
+class LeaveRequestNotification extends BaseHrmNotification
 {
-    use Queueable;
+    protected string $eventType = 'leave_requested';
 
-    public $leave;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Leave $leave)
-    {
-        $this->leave = $leave;
-    }
-
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    {
-        return ['mail', 'database'];
+    public function __construct(
+        public Leave $leave
+    ) {
+        $this->afterCommit();
     }
 
     /**
@@ -38,41 +28,78 @@ class LeaveRequestNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $employee = $this->leave->user;
-        $startDate = $this->leave->start_date->format('M d, Y');
-        $endDate = $this->leave->end_date->format('M d, Y');
+        $employeeName = $employee?->name ?? 'Employee';
+        $startDate = $this->leave->from_date?->format('M d, Y') ?? $this->leave->start_date?->format('M d, Y') ?? 'N/A';
+        $endDate = $this->leave->to_date?->format('M d, Y') ?? $this->leave->end_date?->format('M d, Y') ?? 'N/A';
+        $days = $this->leave->no_of_days ?? $this->leave->days ?? 1;
+        $leaveType = $this->leave->leaveSetting?->leave_type ?? $this->leave->leaveType?->name ?? $this->leave->leave_type ?? 'Leave';
 
         return (new MailMessage)
-            ->subject('Leave Request - '.$employee->name)
-            ->greeting('Hello, '.$notifiable->name)
-            ->line($employee->name.' has submitted a leave request that requires your approval.')
+            ->subject("Leave Request - {$employeeName}")
+            ->greeting("Hello {$notifiable->name},")
+            ->line("{$employeeName} has submitted a leave request that requires your approval.")
             ->line('**Leave Details:**')
-            ->line('Employee: '.$employee->name)
-            ->line('Leave Type: '.$this->leave->leaveType?->name)
-            ->line('Duration: '.$startDate.' to '.$endDate)
-            ->line('Days: '.$this->leave->days.' day(s)')
-            ->line('Reason: '.$this->leave->reason)
-            ->action('Review Leave Request', route('hr.leaves.show', $this->leave->id))
+            ->line("Employee: {$employeeName}")
+            ->line("Leave Type: {$leaveType}")
+            ->line("Duration: {$startDate} to {$endDate}")
+            ->line("Days: {$days} day(s)")
+            ->line('Reason: ' . ($this->leave->reason ?? 'Not specified'))
+            ->action('Review Leave Request', url("/hrm/leaves/{$this->leave->id}"))
             ->line('Please review and take appropriate action.');
     }
 
     /**
      * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        $employee = $this->leave->user;
+        $startDate = $this->leave->from_date ?? $this->leave->start_date;
+        $endDate = $this->leave->to_date ?? $this->leave->end_date;
+
         return [
+            'type' => 'leave_requested',
             'leave_id' => $this->leave->id,
             'employee_id' => $this->leave->user_id,
-            'employee_name' => $this->leave->user->name,
-            'leave_type' => $this->leave->leaveType?->name,
-            'start_date' => $this->leave->start_date->toDateString(),
-            'end_date' => $this->leave->end_date->toDateString(),
-            'days' => $this->leave->days,
-            'message' => $this->leave->user->name.' has requested leave from '.$this->leave->start_date->format('M d').' to '.$this->leave->end_date->format('M d'),
-            'action' => 'review_leave',
-            'action_url' => route('hr.leaves.show', $this->leave->id),
+            'employee_name' => $employee?->name ?? 'Employee',
+            'leave_type' => $this->leave->leaveSetting?->leave_type ?? $this->leave->leaveType?->name ?? $this->leave->leave_type,
+            'from_date' => $startDate?->format('Y-m-d'),
+            'to_date' => $endDate?->format('Y-m-d'),
+            'days' => $this->leave->no_of_days ?? $this->leave->days ?? 1,
+            'message' => ($employee?->name ?? 'An employee') . " has requested leave from {$startDate?->format('M d')} to {$endDate?->format('M d')}",
+            'action_url' => "/hrm/leaves/{$this->leave->id}",
+        ];
+    }
+
+    /**
+     * Get FCM notification title.
+     */
+    protected function getFcmTitle(): string
+    {
+        return 'New Leave Request';
+    }
+
+    /**
+     * Get FCM notification body.
+     */
+    protected function getFcmBody(): string
+    {
+        $employeeName = $this->leave->user?->name ?? 'An employee';
+        $days = $this->leave->no_of_days ?? $this->leave->days ?? 1;
+
+        return "{$employeeName} has requested {$days} day(s) of leave. Tap to review.";
+    }
+
+    /**
+     * Get FCM data payload.
+     */
+    protected function getFcmData(): array
+    {
+        return [
+            'type' => 'leave_requested',
+            'leave_id' => (string) $this->leave->id,
+            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            'route' => "/hrm/leaves/{$this->leave->id}",
         ];
     }
 }

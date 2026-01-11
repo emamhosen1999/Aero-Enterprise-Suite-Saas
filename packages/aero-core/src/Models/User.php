@@ -2,6 +2,7 @@
 
 namespace Aero\Core\Models;
 
+use Aero\Core\Contracts\UserContract;
 use Aero\Core\Services\UserRelationshipRegistry;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,6 +24,9 @@ use Illuminate\Support\Facades\Log;
  * - Account status (active, locked)
  * - Roles & permissions
  * - Basic profile
+ *
+ * Implements UserContract interface to allow modules to depend on user
+ * functionality without direct model coupling.
  *
  * Module-specific relationships (Employee, Attendance, Leaves, etc.) are
  * registered dynamically by their respective module providers via
@@ -47,11 +51,21 @@ use Illuminate\Support\Facades\Log;
  * @property string|null $password
  * @property bool $active
  */
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, UserContract
 {
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Aero\Core\Database\Factories\UserFactory::new();
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -803,5 +817,187 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $roleAccessService->getRoleAccessTree($role);
+    }
+
+    // =================================================================
+    // UserContract Interface Implementation
+    // =================================================================
+
+    /**
+     * Get the user's unique identifier.
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Get the user's email address.
+     */
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * Get the user's phone number (if available).
+     */
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    /**
+     * Check if the user account is active.
+     */
+    public function isActive(): bool
+    {
+        return (bool) $this->active;
+    }
+
+    /**
+     * Check if the user's email has been verified.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return ! is_null($this->email_verified_at);
+    }
+
+    /**
+     * Get the user's profile image URL.
+     */
+    public function getProfileImageUrl(): ?string
+    {
+        if ($this->profile_image) {
+            return asset('storage/'.$this->profile_image);
+        }
+
+        if ($this->avatar_url) {
+            return $this->avatar_url;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the user's locale/language preference.
+     */
+    public function getLocale(): string
+    {
+        return $this->locale ?? config('app.locale', 'en');
+    }
+
+    /**
+     * Get the user's timezone.
+     */
+    public function getTimezone(): string
+    {
+        return $this->timezone ?? config('app.timezone', 'UTC');
+    }
+
+    /**
+     * Check if user has a specific permission.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        return $this->can($permission);
+    }
+
+    /**
+     * Check if user has any of the given permissions.
+     */
+    public function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->can($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user has all of the given permissions.
+     */
+    public function hasAllPermissions(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if (! $this->can($permission)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the user's roles.
+     */
+    public function getRoles()
+    {
+        return $this->roles;
+    }
+
+    /**
+     * Get the user's permissions.
+     */
+    public function getPermissions()
+    {
+        return $this->permissions ?? collect();
+    }
+
+    /**
+     * Get the date when the user was created.
+     */
+    public function getCreatedAt(): \DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    /**
+     * Get the date when the user was last updated.
+     */
+    public function getUpdatedAt(): \DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    /**
+     * Get the user's notification preferences for a specific channel.
+     */
+    public function prefersNotificationChannel(string $channel): bool
+    {
+        // Default: all channels enabled unless explicitly disabled
+        // TODO: Implement user notification preferences table
+        return true;
+    }
+
+    /**
+     * Get the value of a dynamically registered relationship.
+     */
+    public function getRelationship(string $relationshipName)
+    {
+        return $this->{$relationshipName} ?? null;
+    }
+
+    /**
+     * Check if a dynamically registered relationship exists.
+     */
+    public function hasRelationship(string $relationshipName): bool
+    {
+        try {
+            return ! is_null($this->{$relationshipName});
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

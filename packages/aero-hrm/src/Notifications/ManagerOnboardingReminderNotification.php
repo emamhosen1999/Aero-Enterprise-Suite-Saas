@@ -1,35 +1,26 @@
 <?php
 
-namespace Aero\Hrm\Notifications;
+declare(strict_types=1);
 
-use Aero\Hrm\Models\Onboarding;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+namespace Aero\HRM\Notifications;
+
+use Aero\HRM\Models\Onboarding;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
-class ManagerOnboardingReminderNotification extends Notification implements ShouldQueue
+/**
+ * Reminder notification sent to managers about pending employee onboarding.
+ *
+ * Recipients: The employee's manager
+ */
+class ManagerOnboardingReminderNotification extends BaseHrmNotification
 {
-    use Queueable;
+    protected string $eventType = 'manager_onboarding_reminder';
 
-    protected Onboarding $onboarding;
-    protected int $progress;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Onboarding $onboarding, int $progress)
-    {
-        $this->onboarding = $onboarding;
-        $this->progress = $progress;
-    }
-
-    /**
-     * Get the notification's delivery channels.
-     */
-    public function via(object $notifiable): array
-    {
-        return ['mail', 'database'];
+    public function __construct(
+        protected Onboarding $onboarding,
+        protected int $progress
+    ) {
+        $this->afterCommit();
     }
 
     /**
@@ -37,18 +28,18 @@ class ManagerOnboardingReminderNotification extends Notification implements Shou
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $employeeName = $this->onboarding->employee->user->name ?? 'Employee';
+        $employeeName = $this->onboarding->employee?->user?->name ?? 'Employee';
         $daysElapsed = now()->diffInDays($this->onboarding->created_at);
 
         return (new MailMessage)
-            ->subject('Onboarding Status: ' . $employeeName)
-            ->greeting('Hello ' . $notifiable->name . ',')
+            ->subject("Onboarding Status: {$employeeName}")
+            ->greeting("Hello {$notifiable->name},")
             ->line('This is a reminder about a pending employee onboarding.')
-            ->line('**Employee:** ' . $employeeName)
-            ->line('**Onboarding Progress:** ' . $this->progress . '%')
-            ->line('**Days Elapsed:** ' . $daysElapsed . ' days')
+            ->line("**Employee:** {$employeeName}")
+            ->line("**Onboarding Progress:** {$this->progress}%")
+            ->line("**Days Elapsed:** {$daysElapsed} days")
             ->line('The employee has not yet completed their onboarding process. You may want to follow up with them.')
-            ->action('View Onboarding', route('hrm.onboarding.show', $this->onboarding->id))
+            ->action('View Onboarding', url("/hrm/onboarding/{$this->onboarding->id}"))
             ->line('Thank you for helping new team members get onboarded successfully.')
             ->salutation('Best regards, ' . config('app.name'));
     }
@@ -58,11 +49,34 @@ class ManagerOnboardingReminderNotification extends Notification implements Shou
      */
     public function toArray(object $notifiable): array
     {
+        $employeeName = $this->onboarding->employee?->user?->name ?? 'Employee';
+
         return [
+            'type' => 'manager_onboarding_reminder',
             'onboarding_id' => $this->onboarding->id,
             'employee_id' => $this->onboarding->employee_id,
+            'employee_name' => $employeeName,
             'progress' => $this->progress,
-            'message' => 'Employee onboarding pending completion.',
+            'message' => "{$employeeName}'s onboarding is at {$this->progress}% completion. Follow-up may be needed.",
+            'action_url' => "/hrm/onboarding/{$this->onboarding->id}",
         ];
+    }
+
+    /**
+     * Get FCM notification title.
+     */
+    protected function getFcmTitle(): string
+    {
+        return '📋 Employee Onboarding Reminder';
+    }
+
+    /**
+     * Get FCM notification body.
+     */
+    protected function getFcmBody(): string
+    {
+        $employeeName = $this->onboarding->employee?->user?->name ?? 'An employee';
+
+        return "{$employeeName}'s onboarding is at {$this->progress}%. May need follow-up.";
     }
 }

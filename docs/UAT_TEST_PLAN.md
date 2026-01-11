@@ -19,21 +19,86 @@
 
 # MODULE 1: DASHBOARD
 
-## 1.1 Dashboard Overview
+## 1.1 Role-Based Dashboard Routing
 | Test ID | Test Case | Steps | Expected Result | Status | Notes |
 |---------|-----------|-------|-----------------|--------|-------|
-| DASH-001 | Page Load | Navigate to /dashboard | Page loads with greeting | 🔄 | |
-| DASH-002 | Greeting Display | Check greeting text | Shows "Good [time], [User]!" | 🔄 | |
-| DASH-003 | Date Display | Check date | Shows current date | 🔄 | |
-| DASH-004 | Stats Cards | Verify 4 stat cards | Total Users, Active, Inactive, Roles | 🔄 | |
-| DASH-005 | Recent Activity | Check activity section | Shows activity log or empty state | 🔄 | |
-| DASH-006 | My Goals | Check goals section | Shows goals or "Set Your First Goal" | 🔄 | |
-| DASH-007 | Security Widget | Check security stats | Failed logins, Sessions, Devices | 🔄 | |
-| DASH-008 | Notifications Widget | Check notifications | Shows count and list | 🔄 | |
-| DASH-009 | Products Widget | Check products | Shows active products | 🔄 | |
-| DASH-010 | Upcoming Holidays | Check holidays | Shows holidays or empty state | 🔄 | |
-| DASH-011 | Organization Widget | Check org stats | Departments, Designations, Locations | 🔄 | |
-| DASH-012 | Pending Reviews | Check reviews | Shows pending or "All caught up" | 🔄 | |
+| DASH-001 | Login as Super Admin | Login with admin credentials | Redirects to Core Dashboard (/dashboard) | 🔄 | Default admin user |
+| DASH-002 | Admin Dashboard Load | Check dashboard after login | Core Dashboard loads with system widgets | 🔄 | No HR widgets visible |
+| DASH-003 | Login as HR Manager | Login with HR Manager role | Redirects to HRM Dashboard (/hrm/dashboard) | 🔄 | |
+| DASH-004 | HRM Dashboard Load | Check HRM dashboard | Shows HR analytics and metrics | 🔄 | No core system widgets |
+| DASH-005 | Login as Employee | Login with Employee role | Redirects to Employee Dashboard (/hrm/employee/dashboard) | 🔄 | |
+| DASH-006 | Employee Dashboard Load | Check employee dashboard | Shows personal widgets (leaves, attendance, payslip) | 🔄 | No admin or HR widgets |
+| DASH-007 | Dashboard URL Access | Try accessing /dashboard directly as Employee | Redirects to assigned dashboard | 🔄 | Should redirect based on role |
+| DASH-008 | Unauthorized Access | Try accessing /hrm/dashboard as Employee | Shows 403 or redirects | 🔄 | Permission check |
+
+## 1.2 Core Dashboard (System Admin)
+| Test ID | Test Case | Steps | Expected Result | Status | Notes |
+|---------|-----------|-------|-----------------|--------|-------|
+| DASH-010 | Page Load | Navigate to /dashboard as admin | Page loads with greeting | 🔄 | |
+| DASH-011 | Greeting Display | Check greeting text | Shows "Good [time], [User]!" | 🔄 | |
+| DASH-012 | Date Display | Check date | Shows current date | 🔄 | |
+| DASH-013 | Stats Cards | Verify 4 stat cards | Total Users, Active Users, Inactive Users, Total Roles | 🔄 | System-level stats only |
+| DASH-014 | Recent Activity | Check activity section | Shows activity log or empty state | 🔄 | |
+| DASH-015 | My Goals | Check goals section | Shows goals or "Set Your First Goal" | 🔄 | |
+| DASH-016 | Security Widget | Check security stats | Failed logins, Sessions, Devices | 🔄 | Admin security metrics |
+| DASH-017 | Notifications Widget | Check notifications | Shows count and list | 🔄 | System notifications |
+| DASH-018 | Products Widget | Check products | Shows active products | 🔄 | |
+| DASH-019 | Upcoming Holidays | Check holidays | Shows holidays or empty state | 🔄 | |
+| DASH-020 | Organization Widget | Check org stats | Departments, Designations, Locations | 🔄 | Organization overview |
+| DASH-021 | Pending Reviews | Check reviews | Shows pending or "All caught up" | 🔄 | |
+| DASH-022 | NO HR Widgets | Verify HR widgets absent | No employee stats, attendance, leave requests | 🔄 | Widget separation |
+
+## 1.3 HRM Dashboard (HR Manager)
+| Test ID | Test Case | Steps | Expected Result | Status | Notes |
+|---------|-----------|-------|-----------------|--------|-------|
+| DASH-030 | Page Load | Navigate to /hrm/dashboard as HR Manager | HRM Dashboard loads | 🔄 | |
+| DASH-031 | Page Title | Check page header | "HR Management Dashboard" or similar | 🔄 | |
+| DASH-032 | Employee Stats Cards | Verify 4 stat cards | Total Employees, Active Today, Pending Leaves, On Leave | 🔄 | HR-specific metrics |
+| DASH-033 | Pending Leave Requests | Check leave requests section | Shows pending leave list with employee details | 🔄 | Top 10 pending leaves |
+| DASH-034 | Leave Request Avatars | Check employee avatars | Employee photos/initials display | 🔄 | Visual representation |
+| DASH-035 | Leave Request Status | Check status chips | Chips show Pending, Approved, Rejected | 🔄 | Color-coded status |
+| DASH-036 | Leave Request Actions | Check action buttons | Approve/Reject buttons visible | 🔄 | Quick actions |
+| DASH-037 | Department Overview | Check department section | Shows departments with attendance rates | 🔄 | Department breakdown |
+| DASH-038 | Department Progress Bars | Check progress bars | Visual attendance rate per department | 🔄 | Progress indicators |
+| DASH-039 | Attendance Summary Sidebar | Check attendance sidebar | Shows Present, Absent, Late, On Leave counts | 🔄 | Today's attendance |
+| DASH-040 | HR Metrics Cards | Check HR metrics | Open Positions, Pending Expenses, New Hires | 🔄 | Additional HR KPIs |
+| DASH-041 | Recent Activity Feed | Check activity section | Shows recent HR activities | 🔄 | Activity log |
+| DASH-042 | Stats Async Loading | Check stats endpoint | /hrm/dashboard/stats loads data | 🔄 | Async data fetching |
+| DASH-043 | Loading Skeletons | Check loading state | Skeleton loaders appear during fetch | 🔄 | UX enhancement |
+| DASH-044 | NO Core Widgets | Verify core widgets absent | No system users, security stats | 🔄 | Widget separation |
+| DASH-045 | NO Employee Widgets | Verify employee widgets absent | No personal leave balance, payslip access | 🔄 | Role-specific widgets |
+
+## 1.4 Employee Dashboard (Regular Employee)
+| Test ID | Test Case | Steps | Expected Result | Status | Notes |
+|---------|-----------|-------|-----------------|--------|-------|
+| DASH-050 | Page Load | Navigate to /hrm/employee/dashboard | Employee Dashboard loads | 🔄 | |
+| DASH-051 | Page Title | Check page header | "My Dashboard" or "Employee Dashboard" | 🔄 | |
+| DASH-052 | Leave Balance Cards | Check leave balance | Shows annual, sick, casual leave balances | 🔄 | Personal leave data |
+| DASH-053 | Apply Leave Button | Check quick actions | "Apply Leave" button present | 🔄 | Quick access to leave form |
+| DASH-054 | Attendance Summary | Check attendance widget | Shows personal attendance (days present, absent, late) | 🔄 | Employee's own data |
+| DASH-055 | Payslip Access | Check payslip section | Shows latest payslip or download link | 🔄 | Payroll self-service |
+| DASH-056 | My Leave Requests | Check leave history | Shows employee's own leave requests | 🔄 | Personal history only |
+| DASH-057 | Leave Request Status | Check status display | Shows Pending, Approved, Rejected status | 🔄 | Own request statuses |
+| DASH-058 | Quick Actions Panel | Check quick actions | Clock In/Out, Apply Leave, View Payslip | 🔄 | Self-service actions |
+| DASH-059 | My Attendance Graph | Check attendance chart | Visual representation of monthly attendance | 🔄 | Personal analytics |
+| DASH-060 | Upcoming Holidays | Check holidays | Shows upcoming company holidays | 🔄 | Calendar information |
+| DASH-061 | NO Admin Widgets | Verify admin widgets absent | No user management, role stats | 🔄 | Widget separation |
+| DASH-062 | NO HR Manager Widgets | Verify HR widgets absent | No pending approvals, department stats | 🔄 | Role-specific widgets |
+| DASH-063 | NO Other Employee Data | Verify data scope | Only shows own data, not other employees | 🔄 | Data privacy |
+
+## 1.5 Dashboard Assignment in Role Management
+| Test ID | Test Case | Steps | Expected Result | Status | Notes |
+|---------|-----------|-------|-----------------|--------|-------|
+| DASH-070 | Navigate to Roles | Go to Roles & Module Access | Opens roles page | 🔄 | |
+| DASH-071 | Edit Role Form | Click edit on a role | Opens role edit form | 🔄 | |
+| DASH-072 | Dashboard Selector Present | Check form fields | "Default Dashboard" dropdown present | 🔄 | New field added |
+| DASH-073 | Dashboard Options | Open dashboard dropdown | Shows: None, Core Dashboard, HRM Dashboard, Employee Dashboard | 🔄 | All 4 options |
+| DASH-074 | Assign Core Dashboard | Select "Core Dashboard" for admin role | Saves successfully | 🔄 | Admin assignment |
+| DASH-075 | Assign HRM Dashboard | Select "HRM Dashboard" for HR Manager | Saves successfully | 🔄 | HR Manager assignment |
+| DASH-076 | Assign Employee Dashboard | Select "Employee Dashboard" for Employee role | Saves successfully | 🔄 | Employee assignment |
+| DASH-077 | None Option | Select "None" for custom role | Uses default routing logic | 🔄 | Fallback behavior |
+| DASH-078 | Verify Assignment | Check role after save | Dashboard assignment persists | 🔄 | Data persistence |
+| DASH-079 | Login After Assignment | Login with role after dashboard change | Redirects to newly assigned dashboard | 🔄 | Routing works |
 
 ---
 

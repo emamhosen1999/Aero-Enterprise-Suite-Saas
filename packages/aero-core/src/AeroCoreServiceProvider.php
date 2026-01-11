@@ -4,6 +4,7 @@ namespace Aero\Core;
 
 use Aero\Core\Contracts\TenantScopeInterface;
 use Aero\Core\Providers\ModuleRouteServiceProvider;
+use Aero\Core\Services\DashboardRegistry;
 use Aero\Core\Services\DashboardWidgetRegistry;
 use Aero\Core\Services\ModuleAccessService;
 use Aero\Core\Services\ModuleManager;
@@ -86,6 +87,7 @@ class AeroCoreServiceProvider extends ServiceProvider
             $this->app->singleton(NavigationRegistry::class);
             $this->app->singleton(UserRelationshipRegistry::class);
             $this->app->singleton(DashboardWidgetRegistry::class);
+            $this->app->singleton(DashboardRegistry::class);
 
             // Register Module Access Services (with error handling for missing tables)
             // These services are lazy-loaded, so they won't cause issues pre-install
@@ -256,6 +258,9 @@ class AeroCoreServiceProvider extends ServiceProvider
 
                 // Register Core dashboard widgets
                 $this->registerDashboardWidgets();
+
+                // Register Core dashboards in the DashboardRegistry
+                $this->registerDashboards();
             }
         } catch (\Throwable $e) {
             // Ignore errors during early boot/package discovery
@@ -303,6 +308,41 @@ class AeroCoreServiceProvider extends ServiceProvider
             new \Aero\Core\Widgets\SecurityOverviewWidget,
             new \Aero\Core\Widgets\ActiveModulesWidget,
         ]);
+    }
+
+    /**
+     * Register Core dashboards with DashboardRegistry.
+     *
+     * The DashboardRegistry allows roles to be assigned to specific dashboards.
+     * When users navigate to /dashboard, the DashboardRedirectMiddleware
+     * will redirect them to their role's assigned dashboard.
+     */
+    protected function registerDashboards(): void
+    {
+        // Only register if the registry is available
+        if (! $this->app->bound(DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(DashboardRegistry::class);
+
+        // Register Core Dashboard (for system administrators)
+        $registry->register(
+            'dashboard',
+            'Core Dashboard',
+            'core',
+            'System overview for administrators',
+            'HomeIcon'
+        );
+
+        // Also register 'core.dashboard' as an alias
+        $registry->register(
+            'core.dashboard',
+            'Core Dashboard',
+            'core',
+            'System overview for administrators',
+            'HomeIcon'
+        );
     }
 
     /**
@@ -499,6 +539,9 @@ class AeroCoreServiceProvider extends ServiceProvider
             // Register 'tenant' middleware alias for tenant-only routes
             // This ensures requests have a valid tenant context (used after InitializeTenancyIfNotCentral)
             $router->aliasMiddleware('tenant', \Aero\Core\Http\Middleware\EnsureTenantContext::class);
+
+            // Register 'dashboard.redirect' middleware alias for role-based dashboard routing
+            $router->aliasMiddleware('dashboard.redirect', \Aero\Core\Http\Middleware\DashboardRedirectMiddleware::class);
         });
     }
 

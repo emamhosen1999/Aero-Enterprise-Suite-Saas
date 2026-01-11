@@ -9,6 +9,9 @@ use Aero\HRM\Models\Employee;
 use Aero\HRM\Http\Controllers\Controller;
 use Aero\HRM\Services\EmployeeOnboardingService;
 use Aero\HRM\Notifications\WelcomeEmployeeNotification;
+use Aero\HRM\Events\Employee\EmployeeCreated;
+use Aero\HRM\Events\Employee\EmployeeUpdated;
+use Aero\HRM\Events\Employee\EmployeePromoted;
 use Aero\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -451,6 +454,13 @@ class EmployeeController extends Controller
             // Send welcome notification
             $user->notify(new WelcomeEmployeeNotification($employee, $onboarding));
 
+            // Dispatch EmployeeCreated event
+            event(new EmployeeCreated($employee, Auth::id(), [
+                'onboarding_enabled' => true,
+                'send_welcome_email' => true,
+                'onboarding_id' => $onboarding->id,
+            ]));
+
             DB::commit();
 
             // Load relationships for response
@@ -549,9 +559,20 @@ class EmployeeController extends Controller
 
             DB::beginTransaction();
 
+            // Capture original values before update for change tracking
+            $originalDesignation = $employee->designation_id;
+            $originalDepartment = $employee->department_id;
+            $originalSalary = $employee->basic_salary;
+            $changes = [];
+
             // Update User fields
             $userFields = array_intersect_key($validated, array_flip(['name', 'email', 'phone', 'active', 'attendance_type_id']));
             if (! empty($userFields)) {
+                foreach ($userFields as $key => $value) {
+                    if ($user->$key != $value) {
+                        $changes[$key] = ['old' => $user->$key, 'new' => $value];
+                    }
+                }
                 $user->update($userFields);
             }
 
@@ -561,7 +582,35 @@ class EmployeeController extends Controller
                 'employment_type', 'date_of_joining',
             ]));
             if (! empty($employeeFields)) {
+                foreach ($employeeFields as $key => $value) {
+                    if ($employee->$key != $value) {
+                        $changes[$key] = ['old' => $employee->$key, 'new' => $value];
+                    }
+                }
                 $employee->update($employeeFields);
+            }
+
+            // Dispatch EmployeeUpdated event if there are changes
+            if (! empty($changes)) {
+                event(new EmployeeUpdated($employee, $changes, Auth::id()));
+            }
+
+            // Detect promotion (designation or department change with salary increase)
+            $isPromotion = isset($changes['designation_id']) || 
+                          (isset($changes['department_id']) && isset($changes['basic_salary']) && 
+                           $changes['basic_salary']['new'] > $changes['basic_salary']['old']);
+
+            if ($isPromotion) {
+                event(new EmployeePromoted(
+                    $employee,
+                    $originalDesignation,
+                    $employee->designation_id,
+                    $originalDepartment,
+                    $employee->department_id,
+                    $originalSalary,
+                    $employee->basic_salary,
+                    $request->input('promotion_reason', 'Performance-based promotion')
+                ));
             }
 
             DB::commit();

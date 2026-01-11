@@ -43,6 +43,9 @@ class AeroComplianceServiceProvider extends ServiceProvider
         // Register routes
         $this->registerRoutes();
 
+        // Register dashboards
+        $this->registerDashboards();
+
         // Publish configuration
         $this->publishes([
             __DIR__.'/../config/module.php' => config_path('modules/compliance.php'),
@@ -82,5 +85,26 @@ class AeroComplianceServiceProvider extends ServiceProvider
                 ->name('admin.compliance.')
                 ->group(__DIR__.'/../routes/admin.php');
         }
+    }
+
+    /**
+     * Register Compliance dashboards with DashboardRegistry.
+     */
+    protected function registerDashboards(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        $registry->register(
+            'compliance.dashboard',
+            'Compliance Dashboard',
+            'compliance',
+            'Regulatory compliance and HSE tracking',
+            'ShieldCheckIcon',
+            'compliance.dashboard.view'
+        );
     }
 }

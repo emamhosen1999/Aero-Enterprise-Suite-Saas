@@ -58,6 +58,16 @@ class Employee extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Aero\HRM\Database\Factories\EmployeeFactory::new();
+    }
+
+    /**
      * The table associated with the model.
      */
     protected $table = 'employees';

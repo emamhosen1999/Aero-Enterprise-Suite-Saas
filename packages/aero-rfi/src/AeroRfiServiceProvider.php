@@ -52,6 +52,9 @@ class AeroRfiServiceProvider extends ServiceProvider
         // Register dashboard widgets for Core Dashboard
         $this->registerDashboardWidgets();
 
+        // Register RFI dashboards
+        $this->registerDashboards();
+
         // Publish configuration
         $this->publishes([
             __DIR__.'/../config/rfi.php' => config_path('rfi.php'),
@@ -185,5 +188,26 @@ class AeroRfiServiceProvider extends ServiceProvider
         }
 
         return is_saas_mode();
+    }
+
+    /**
+     * Register RFI dashboards with DashboardRegistry.
+     */
+    protected function registerDashboards(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        $registry->register(
+            'rfi.dashboard',
+            'RFI Dashboard',
+            'rfi',
+            'Site inspections and RFI tracking',
+            'MapPinIcon',
+            'rfi.dashboard.view'
+        );
     }
 }

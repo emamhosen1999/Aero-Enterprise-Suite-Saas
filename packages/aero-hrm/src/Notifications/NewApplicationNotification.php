@@ -1,35 +1,25 @@
 <?php
 
-namespace App\Notifications;
+declare(strict_types=1);
 
-use App\Models\HRM\JobApplication;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+namespace Aero\HRM\Notifications;
+
+use Aero\HRM\Models\JobApplication;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
-class NewApplicationNotification extends Notification implements ShouldQueue
+/**
+ * Notification sent to HR/recruiters when a new job application is received.
+ *
+ * Recipients: HR managers, recruiters
+ */
+class NewApplicationNotification extends BaseHrmNotification
 {
-    use Queueable;
+    protected string $eventType = 'new_job_application';
 
-    public $application;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(JobApplication $application)
-    {
-        $this->application = $application;
-    }
-
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    {
-        return ['mail', 'database'];
+    public function __construct(
+        public JobApplication $application
+    ) {
+        $this->afterCommit();
     }
 
     /**
@@ -37,38 +27,67 @@ class NewApplicationNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $candidateName = $this->application->first_name.' '.$this->application->last_name;
-        $jobTitle = $this->application->job?->title ?? 'a position';
+        $candidateName = trim(($this->application->first_name ?? '') . ' ' . ($this->application->last_name ?? ''));
+        if (empty($candidateName)) {
+            $candidateName = $this->application->name ?? 'Candidate';
+        }
+        $jobTitle = $this->application->job?->title ?? $this->application->jobPosting?->title ?? 'a position';
 
         return (new MailMessage)
-            ->subject('New Job Application - '.$candidateName)
-            ->greeting('Hello, '.$notifiable->name)
-            ->line('A new candidate has applied for '.$jobTitle.'.')
+            ->subject("New Job Application - {$candidateName}")
+            ->greeting("Hello {$notifiable->name},")
+            ->line("A new candidate has applied for {$jobTitle}.")
             ->line('**Candidate Details:**')
-            ->line('Name: '.$candidateName)
-            ->line('Email: '.$this->application->email)
-            ->line('Phone: '.($this->application->phone ?? 'N/A'))
-            ->line('Experience: '.($this->application->years_of_experience ?? 0).' years')
-            ->action('Review Application', route('hr.recruitment.applicants.show', $this->application->id))
+            ->line("Name: {$candidateName}")
+            ->line("Email: {$this->application->email}")
+            ->line('Phone: ' . ($this->application->phone ?? 'N/A'))
+            ->line('Experience: ' . ($this->application->years_of_experience ?? 0) . ' years')
+            ->action('Review Application', url("/hrm/recruitment/applicants/{$this->application->id}"))
             ->line('Please review the application and take appropriate action.');
     }
 
     /**
      * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        $candidateName = trim(($this->application->first_name ?? '') . ' ' . ($this->application->last_name ?? ''));
+        if (empty($candidateName)) {
+            $candidateName = $this->application->name ?? 'Candidate';
+        }
+        $jobTitle = $this->application->job?->title ?? $this->application->jobPosting?->title ?? 'Unknown Position';
+
         return [
+            'type' => 'new_job_application',
             'application_id' => $this->application->id,
-            'job_id' => $this->application->job_id,
-            'job_title' => $this->application->job?->title,
-            'candidate_name' => $this->application->first_name.' '.$this->application->last_name,
+            'job_id' => $this->application->job_id ?? $this->application->job_posting_id,
+            'job_title' => $jobTitle,
+            'candidate_name' => $candidateName,
             'candidate_email' => $this->application->email,
-            'message' => $this->application->first_name.' '.$this->application->last_name.' has applied for '.$this->application->job?->title,
-            'action' => 'review_application',
-            'action_url' => route('hr.recruitment.applicants.show', $this->application->id),
+            'message' => "{$candidateName} has applied for {$jobTitle}",
+            'action_url' => "/hrm/recruitment/applicants/{$this->application->id}",
         ];
+    }
+
+    /**
+     * Get FCM notification title.
+     */
+    protected function getFcmTitle(): string
+    {
+        return '📝 New Job Application';
+    }
+
+    /**
+     * Get FCM notification body.
+     */
+    protected function getFcmBody(): string
+    {
+        $candidateName = trim(($this->application->first_name ?? '') . ' ' . ($this->application->last_name ?? ''));
+        if (empty($candidateName)) {
+            $candidateName = $this->application->name ?? 'A candidate';
+        }
+        $jobTitle = $this->application->job?->title ?? $this->application->jobPosting?->title ?? 'a position';
+
+        return "{$candidateName} has applied for {$jobTitle}. Tap to review.";
     }
 }

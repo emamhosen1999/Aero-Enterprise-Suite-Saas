@@ -29,7 +29,9 @@
   },
   "autoload": {
     "psr-4": {
-      "Aero\\HRM\\": "src/"
+      "Aero\\HRM\\": "src/",
+      "Aero\\HRM\\Database\\Factories\\": "database/factories/",
+      "Aero\\HRM\\Database\\Seeders\\": "database/seeders/"
     }
   },
   "autoload-dev": {

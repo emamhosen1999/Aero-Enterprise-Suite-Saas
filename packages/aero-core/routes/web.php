@@ -221,9 +221,10 @@ Route::middleware('auth:web')->group(function () {
     // All dashboard routes use 'core.dashboard.*' prefix for consistency
     // This allows proper route grouping and makes route('core.dashboard') work consistently
     // Protected by role.access middleware to enforce role_module_access table checks
+    // dashboard.redirect middleware redirects users to their role's assigned dashboard
     $dashboardMiddleware = class_exists('Aero\HRMAC\Http\Middleware\CheckRoleModuleAccess')
-        ? ['role.access:core,dashboard']
-        : [];
+        ? ['dashboard.redirect', 'role.access:core,dashboard']
+        : ['dashboard.redirect'];
 
     Route::middleware($dashboardMiddleware)->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('core.dashboard');

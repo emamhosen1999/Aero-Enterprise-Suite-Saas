@@ -1,38 +1,26 @@
 <?php
 
-namespace App\Notifications;
+declare(strict_types=1);
 
-use App\Models\HRM\Attendance;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+namespace Aero\HRM\Notifications;
+
+use Aero\HRM\Models\Attendance;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
-class LateArrivalNotification extends Notification implements ShouldQueue
+/**
+ * Notification sent to managers when an employee arrives late.
+ *
+ * Recipients: The employee's manager
+ */
+class LateArrivalNotification extends BaseHrmNotification
 {
-    use Queueable;
+    protected string $eventType = 'late_arrival';
 
-    public $attendance;
-
-    public $lateCount;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Attendance $attendance, int $lateCount = 1)
-    {
-        $this->attendance = $attendance;
-        $this->lateCount = $lateCount;
-    }
-
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
-    {
-        return ['mail', 'database'];
+    public function __construct(
+        public Attendance $attendance,
+        public int $lateCount = 1
+    ) {
+        $this->afterCommit();
     }
 
     /**
@@ -41,58 +29,82 @@ class LateArrivalNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $employee = $this->attendance->user;
-        $date = $this->attendance->date->format('M d, Y');
-        $clockIn = $this->attendance->clock_in?->format('h:i A');
+        $employeeName = $employee?->name ?? 'Employee';
+        $date = $this->attendance->date?->format('M d, Y') ?? now()->format('M d, Y');
+        $clockIn = $this->attendance->clock_in?->format('h:i A') ?? 'N/A';
 
         $message = (new MailMessage)
-            ->subject('Late Arrival Alert - '.$employee->name)
-            ->greeting('Hello, '.$notifiable->name)
-            ->line($employee->name.' arrived late on '.$date.'.')
+            ->subject("Late Arrival Alert - {$employeeName}")
+            ->greeting("Hello {$notifiable->name},")
+            ->line("{$employeeName} arrived late on {$date}.")
             ->line('**Attendance Details:**')
-            ->line('Employee: '.$employee->name)
-            ->line('Date: '.$date)
-            ->line('Clock In: '.$clockIn);
+            ->line("Employee: {$employeeName}")
+            ->line("Date: {$date}")
+            ->line("Clock In: {$clockIn}");
 
         if ($this->lateCount > 1) {
-            $message->line('**Note:** This is the '.$this->lateCount.$this->getOrdinalSuffix($this->lateCount).' late arrival this month.');
+            $suffix = $this->getOrdinalSuffix($this->lateCount);
+            $message->line("**Note:** This is the {$this->lateCount}{$suffix} late arrival this month.");
         }
 
         return $message
-            ->action('View Attendance', route('hr.attendance.index'))
+            ->action('View Attendance', url('/hrm/attendance'))
             ->line('Please review and take appropriate action if necessary.');
     }
 
     /**
      * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        $employee = $this->attendance->user;
+
         return [
+            'type' => 'late_arrival',
             'attendance_id' => $this->attendance->id,
             'employee_id' => $this->attendance->user_id,
-            'employee_name' => $this->attendance->user->name,
-            'date' => $this->attendance->date->toDateString(),
+            'employee_name' => $employee?->name ?? 'Employee',
+            'date' => $this->attendance->date?->format('Y-m-d'),
             'clock_in' => $this->attendance->clock_in?->format('H:i:s'),
             'late_count' => $this->lateCount,
-            'message' => $this->attendance->user->name.' arrived late on '.$this->attendance->date->format('M d').'. Late count this month: '.$this->lateCount,
-            'action' => 'view_attendance',
-            'action_url' => route('hr.attendance.index'),
+            'message' => ($employee?->name ?? 'An employee') . " arrived late on {$this->attendance->date?->format('M d')}. Late count this month: {$this->lateCount}",
+            'action_url' => '/hrm/attendance',
         ];
     }
 
     /**
-     * Get ordinal suffix for numbers.
+     * Get FCM notification title.
      */
-    private function getOrdinalSuffix(int $number): string
+    protected function getFcmTitle(): string
     {
-        $ends = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'];
+        return '⏰ Late Arrival Alert';
+    }
 
-        if ((($number % 100) >= 11) && (($number % 100) <= 13)) {
+    /**
+     * Get FCM notification body.
+     */
+    protected function getFcmBody(): string
+    {
+        $employeeName = $this->attendance->user?->name ?? 'An employee';
+        $date = $this->attendance->date?->format('M d') ?? 'today';
+
+        return "{$employeeName} arrived late on {$date}. ({$this->lateCount} this month)";
+    }
+
+    /**
+     * Get ordinal suffix for a number.
+     */
+    protected function getOrdinalSuffix(int $number): string
+    {
+        if (in_array($number % 100, [11, 12, 13])) {
             return 'th';
         }
 
-        return $ends[$number % 10];
+        return match ($number % 10) {
+            1 => 'st',
+            2 => 'nd',
+            3 => 'rd',
+            default => 'th',
+        };
     }
 }

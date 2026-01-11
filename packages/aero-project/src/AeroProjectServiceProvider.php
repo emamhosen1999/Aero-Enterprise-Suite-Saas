@@ -46,6 +46,9 @@ class AeroProjectServiceProvider extends ServiceProvider
         // Register routes
         $this->registerRoutes();
 
+        // Register dashboards
+        $this->registerDashboards();
+
         // Publish configuration
         $configPath = __DIR__.'/../config/module.php';
         if (file_exists($configPath)) {
@@ -90,5 +93,26 @@ class AeroProjectServiceProvider extends ServiceProvider
                 Route::middleware(['api'])->group($apiRoutesPath);
             }
         }
+    }
+
+    /**
+     * Register Project dashboards with DashboardRegistry.
+     */
+    protected function registerDashboards(): void
+    {
+        if (! $this->app->bound(\Aero\Core\Services\DashboardRegistry::class)) {
+            return;
+        }
+
+        $registry = $this->app->make(\Aero\Core\Services\DashboardRegistry::class);
+
+        $registry->register(
+            'project.dashboard',
+            'Project Dashboard',
+            'project',
+            'Project management and tracking',
+            'BriefcaseIcon',
+            'project.dashboard.view'
+        );
     }
 }
